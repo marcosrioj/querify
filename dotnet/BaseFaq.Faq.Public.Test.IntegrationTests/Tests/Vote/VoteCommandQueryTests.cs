@@ -58,7 +58,7 @@ public class VoteCommandQueryTests
     }
 
     [Fact]
-    public async Task CreateVote_PreventsDuplicatesByUserPrint()
+    public async Task CreateVote_UpdatesExistingVoteByUserPrint()
     {
         var httpContext = new DefaultHttpContext();
         httpContext.Connection.RemoteIpAddress = IPAddress.Parse("198.51.100.10");
@@ -79,23 +79,77 @@ public class VoteCommandQueryTests
             clientKeyContextService,
             tenantClientKeyResolver,
             context.HttpContextAccessor);
-        var request = new VotesCreateVoteCommand
+        var firstRequest = new VotesCreateVoteCommand
         {
             Like = true,
             UnLikeReason = null,
             FaqItemId = faqItem.Id
         };
 
-        var firstId = await handler.Handle(request, CancellationToken.None);
-        var secondId = await handler.Handle(request, CancellationToken.None);
+        var secondRequest = new VotesCreateVoteCommand
+        {
+            Like = false,
+            UnLikeReason = UnLikeReason.NotRelevant,
+            FaqItemId = faqItem.Id
+        };
+
+        var firstId = await handler.Handle(firstRequest, CancellationToken.None);
+        var secondId = await handler.Handle(secondRequest, CancellationToken.None);
 
         var votes = context.DbContext.Votes.Where(v => v.FaqItemId == faqItem.Id).ToList();
         var updatedFaqItem = await context.DbContext.FaqItems.FindAsync(faqItem.Id);
 
         Assert.Single(votes);
         Assert.Equal(firstId, secondId);
+        Assert.False(votes[0].Like);
+        Assert.Equal(UnLikeReason.NotRelevant, votes[0].UnLikeReason);
         Assert.NotNull(updatedFaqItem);
-        Assert.Equal(1, updatedFaqItem!.VoteScore);
+        Assert.Equal(-1, updatedFaqItem!.VoteScore);
+    }
+
+    [Fact]
+    public async Task CreateVote_DoesNothingWhenExistingLikeIsUnchanged()
+    {
+        var httpContext = new DefaultHttpContext();
+        httpContext.Connection.RemoteIpAddress = IPAddress.Parse("198.51.100.11");
+        httpContext.Request.Headers.UserAgent = "SameLikeAgent/1.0";
+
+        using var context = TestContext.Create(httpContext: httpContext);
+        var faq = await TestDataFactory.SeedFaqAsync(context.DbContext, context.TenantId);
+        var faqItem = await TestDataFactory.SeedFaqItemAsync(
+            context.DbContext,
+            context.TenantId,
+            faq.Id);
+
+        var handler = new VotesCreateVoteCommandHandler(
+            context.DbContext,
+            new TestClientKeyContextService(context.ClientKey),
+            new TestTenantClientKeyResolver(context.TenantId, context.ClientKey),
+            context.HttpContextAccessor);
+
+        var firstId = await handler.Handle(new VotesCreateVoteCommand
+        {
+            Like = false,
+            UnLikeReason = UnLikeReason.ConfusingOrUnclear,
+            FaqItemId = faqItem.Id
+        }, CancellationToken.None);
+
+        var secondId = await handler.Handle(new VotesCreateVoteCommand
+        {
+            Like = false,
+            UnLikeReason = UnLikeReason.NotRelevant,
+            FaqItemId = faqItem.Id
+        }, CancellationToken.None);
+
+        var vote = await context.DbContext.Votes.FindAsync(firstId);
+        var updatedFaqItem = await context.DbContext.FaqItems.FindAsync(faqItem.Id);
+
+        Assert.NotNull(vote);
+        Assert.Equal(firstId, secondId);
+        Assert.False(vote!.Like);
+        Assert.Equal(UnLikeReason.ConfusingOrUnclear, vote.UnLikeReason);
+        Assert.NotNull(updatedFaqItem);
+        Assert.Equal(-1, updatedFaqItem!.VoteScore);
     }
 
     [Fact]

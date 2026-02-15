@@ -32,7 +32,6 @@ public class VotesCreateVoteCommandHandler(
         httpContextAccessor.HttpContext?.Items[TenantContextKeys.TenantIdItemKey] = tenantId;
 
         var existing = await dbContext.Votes
-            .AsNoTracking()
             .FirstOrDefaultAsync(
                 vote => vote.TenantId == tenantId &&
                         vote.FaqItemId == request.FaqItemId &&
@@ -41,12 +40,34 @@ public class VotesCreateVoteCommandHandler(
 
         if (existing is not null)
         {
+            if (existing.Like == request.Like)
+            {
+                return existing.Id;
+            }
+
+            var faqItem = await dbContext.FaqItems
+                .FirstOrDefaultAsync(item => item.TenantId == tenantId && item.Id == request.FaqItemId,
+                    cancellationToken);
+            if (faqItem is null)
+            {
+                throw new ApiErrorException(
+                    $"FAQ item '{request.FaqItemId}' was not found.",
+                    errorCode: (int)HttpStatusCode.NotFound);
+            }
+
+            existing.Like = request.Like;
+            existing.Ip = identity.Ip;
+            existing.UserAgent = identity.UserAgent;
+            existing.UnLikeReason = request.UnLikeReason;
+            faqItem.VoteScore += request.Like ? 2 : -2;
+            await dbContext.SaveChangesAsync(cancellationToken);
+
             return existing.Id;
         }
 
-        var faqItem = await dbContext.FaqItems
+        var faqItemForCreate = await dbContext.FaqItems
             .FirstOrDefaultAsync(item => item.TenantId == tenantId && item.Id == request.FaqItemId, cancellationToken);
-        if (faqItem is null)
+        if (faqItemForCreate is null)
         {
             throw new ApiErrorException(
                 $"FAQ item '{request.FaqItemId}' was not found.",
@@ -67,7 +88,7 @@ public class VotesCreateVoteCommandHandler(
         await dbContext.Votes.AddAsync(vote, cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);
 
-        faqItem.VoteScore = await dbContext.Votes
+        faqItemForCreate.VoteScore = await dbContext.Votes
             .Where(v => v.TenantId == tenantId && v.FaqItemId == request.FaqItemId)
             .SumAsync(v => v.Like ? 1 : -1, cancellationToken);
 
