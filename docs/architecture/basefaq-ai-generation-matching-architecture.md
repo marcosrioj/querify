@@ -240,7 +240,7 @@ Recommended for BaseFAQ:
 - Support active/standby key references.
 - Rotate regularly (time-based) and on incident trigger.
 - Use `IOptionsMonitor` or equivalent config reload for zero-downtime key switch.
-- Runbook: `docs/secret-manager-key-rotation.md`.
+- Runbook: `docs/operations/secret-manager-key-rotation.md`.
 
 ### Log masking and no leakage
 - Redact:
@@ -410,7 +410,7 @@ Tracking convention:
 | ID | Item | Status | Target Artifact |
 |---|---|---|---|
 | `AI-HARD-01` | Retry policy and DLQ handling validation for worker consumers | `Done` | `dotnet/BaseFaq.AI.Generation.Test.IntegrationTests/Tests/Infrastructure/RetryAndDlqPolicyTests.cs` |
-| `AI-HARD-02` | Secret manager + dual-slot key rotation verification for AI providers | `Done` | `docs/secret-manager-key-rotation.md` |
+| `AI-HARD-02` | Secret manager + dual-slot key rotation verification for AI providers | `Done` | `docs/operations/secret-manager-key-rotation.md` |
 | `AI-HARD-03` | Logging redaction and sensitive field masking guardrails | `Done` | `dotnet/BaseFaq.AI.Generation.Test.IntegrationTests/Tests/Infrastructure/LoggingRedactionTests.cs` |
 
 ### Scale backlog

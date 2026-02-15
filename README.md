@@ -42,9 +42,9 @@ This document is the operational playbook for local development, integration val
 
 ## Documentation catalog
 - `README.md`: end-to-end local setup, run, and troubleshooting playbook.
-- `docs/integration-testing-strategy.md`: integration testing scope, risk matrix, and execution model.
-- `docs/basefaq-ai-generation-matching-architecture.md`: AI architecture, delivery plan, and operational controls.
-- `docs/secret-manager-key-rotation.md`: AI provider key-management and rotation runbook.
+- `docs/testing/integration-testing-strategy.md`: integration testing scope, risk matrix, and execution model.
+- `docs/architecture/basefaq-ai-generation-matching-architecture.md`: AI architecture, delivery plan, and operational controls.
+- `docs/operations/secret-manager-key-rotation.md`: AI provider key-management and rotation runbook.
 
 ## Platform scope
 - FAQ Portal API
