@@ -25,24 +25,50 @@ public class FaqsGetFaqListQueryHandler(
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(request.Request);
 
+        var includeItems = request.Request.IncludeFaqItems;
+        var includeContentRefs = request.Request.IncludeContentRefs;
+        var includeTags = request.Request.IncludeTags;
+
+        var tenantId = await ResolveTenantIdAndSetContextAsync(cancellationToken);
+        var query = BuildFaqQuery(request, tenantId);
+        query = ApplyRequestedIncludes(query, includeItems, includeContentRefs, includeTags);
+        var totalCount = await query.CountAsync(cancellationToken);
+        var items = await LoadItemsAsync(query, request, includeItems, includeContentRefs, includeTags,
+            cancellationToken);
+
+        return new PagedResultDto<FaqDetailDto>(totalCount, items);
+    }
+
+    private async Task<Guid> ResolveTenantIdAndSetContextAsync(CancellationToken cancellationToken)
+    {
         var clientKey = clientKeyContextService.GetRequiredClientKey();
         var tenantId = await tenantClientKeyResolver.ResolveTenantId(clientKey, cancellationToken);
         httpContextAccessor.HttpContext?.Items[TenantContextKeys.TenantIdItemKey] = tenantId;
+        return tenantId;
+    }
 
+    private IQueryable<Common.Persistence.FaqDb.Entities.Faq> BuildFaqQuery(
+        FaqsGetFaqListQuery request,
+        Guid tenantId)
+    {
         var query = dbContext.Faqs
             .AsNoTracking()
             .Where(faq => faq.TenantId == tenantId);
+
         if (request.Request.FaqIds is { Count: > 0 })
         {
             query = query.Where(faq => request.Request.FaqIds!.Contains(faq.Id));
         }
 
-        query = ApplySorting(query, request.Request.Sorting);
+        return ApplySorting(query, request.Request.Sorting);
+    }
 
-        var includeItems = request.Request.IncludeFaqItems;
-        var includeContentRefs = request.Request.IncludeContentRefs;
-        var includeTags = request.Request.IncludeTags;
-
+    private static IQueryable<Common.Persistence.FaqDb.Entities.Faq> ApplyRequestedIncludes(
+        IQueryable<Common.Persistence.FaqDb.Entities.Faq> query,
+        bool includeItems,
+        bool includeContentRefs,
+        bool includeTags)
+    {
         if (includeItems)
         {
             query = query.Include(faq => faq.Items);
@@ -58,9 +84,18 @@ public class FaqsGetFaqListQueryHandler(
             query = query.Include(faq => faq.Tags).ThenInclude(faqTag => faqTag.Tag);
         }
 
-        var totalCount = await query.CountAsync(cancellationToken);
+        return query;
+    }
 
-        var items = await query
+    private static async Task<List<FaqDetailDto>> LoadItemsAsync(
+        IQueryable<Common.Persistence.FaqDb.Entities.Faq> query,
+        FaqsGetFaqListQuery request,
+        bool includeItems,
+        bool includeContentRefs,
+        bool includeTags,
+        CancellationToken cancellationToken)
+    {
+        return await query
             .Skip(request.Request.SkipCount)
             .Take(request.Request.MaxResultCount)
             .Select(faq => new FaqDetailDto
@@ -109,8 +144,6 @@ public class FaqsGetFaqListQueryHandler(
                     : null
             })
             .ToListAsync(cancellationToken);
-
-        return new PagedResultDto<FaqDetailDto>(totalCount, items);
     }
 
     private static IQueryable<Common.Persistence.FaqDb.Entities.Faq> ApplySorting(

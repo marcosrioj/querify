@@ -15,31 +15,73 @@ public class TenantsCreateOrUpdateTenantsCommandHandler(TenantDbContext dbContex
     {
         var userId = sessionService.GetUserId();
 
-        var currentConnections = await dbContext.TenantConnections
+        var currentConnections = await GetCurrentConnectionsAsync(cancellationToken);
+        await UpsertActiveTenantsAsync(request, userId, currentConnections, cancellationToken);
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        return true;
+    }
+
+    private async Task<Dictionary<AppEnum, string>> GetCurrentConnectionsAsync(CancellationToken cancellationToken)
+    {
+        return await dbContext.TenantConnections
             .AsNoTracking()
             .Where(entity => entity.IsCurrent)
             .ToDictionaryAsync(entity => entity.App, entity => entity.ConnectionString, cancellationToken);
+    }
 
+    private async Task UpsertActiveTenantsAsync(
+        TenantsCreateOrUpdateTenantsCommand request,
+        Guid userId,
+        IReadOnlyDictionary<AppEnum, string> currentConnections,
+        CancellationToken cancellationToken)
+    {
         var apps = Enum.GetValues<AppEnum>().Where(app => app != AppEnum.Tenant);
 
         foreach (var app in apps)
         {
-            if (!currentConnections.TryGetValue(app, out var connectionString) ||
-                string.IsNullOrWhiteSpace(connectionString))
+            if (!TryGetConnectionString(currentConnections, app, out var connectionString))
             {
                 continue;
             }
 
-            var activeTenant = await dbContext.Tenants
-                .FirstOrDefaultAsync(
-                    entity => entity.UserId == userId && entity.App == app && entity.IsActive,
-                    cancellationToken);
+            await UpsertActiveTenantAsync(request, userId, app, connectionString, cancellationToken);
+        }
+    }
 
-            var slug = TenantHelper.GenerateSlug($"{request.Name}{app}");
+    private static bool TryGetConnectionString(
+        IReadOnlyDictionary<AppEnum, string> currentConnections,
+        AppEnum app,
+        out string connectionString)
+    {
+        if (!currentConnections.TryGetValue(app, out connectionString!) || string.IsNullOrWhiteSpace(connectionString))
+        {
+            connectionString = string.Empty;
+            return false;
+        }
 
-            if (activeTenant is null)
-            {
-                activeTenant = new Common.EntityFramework.Tenant.Entities.Tenant
+        return true;
+    }
+
+    private async Task UpsertActiveTenantAsync(
+        TenantsCreateOrUpdateTenantsCommand request,
+        Guid userId,
+        AppEnum app,
+        string connectionString,
+        CancellationToken cancellationToken)
+    {
+        var activeTenant = await dbContext.Tenants
+            .FirstOrDefaultAsync(
+                entity => entity.UserId == userId && entity.App == app && entity.IsActive,
+                cancellationToken);
+
+        var slug = TenantHelper.GenerateSlug($"{request.Name}{app}");
+
+        if (activeTenant is null)
+        {
+            await dbContext.Tenants.AddAsync(
+                new Common.EntityFramework.Tenant.Entities.Tenant
                 {
                     Slug = slug,
                     Name = request.Name,
@@ -48,24 +90,17 @@ public class TenantsCreateOrUpdateTenantsCommandHandler(TenantDbContext dbContex
                     ConnectionString = connectionString,
                     IsActive = true,
                     UserId = userId
-                };
-
-                await dbContext.Tenants.AddAsync(activeTenant, cancellationToken);
-            }
-            else
-            {
-                activeTenant.Slug = slug;
-                activeTenant.Name = request.Name;
-                activeTenant.Edition = request.Edition;
-                activeTenant.ConnectionString = connectionString;
-                activeTenant.IsActive = true;
-
-                dbContext.Tenants.Update(activeTenant);
-            }
+                },
+                cancellationToken);
+            return;
         }
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        activeTenant.Slug = slug;
+        activeTenant.Name = request.Name;
+        activeTenant.Edition = request.Edition;
+        activeTenant.ConnectionString = connectionString;
+        activeTenant.IsActive = true;
 
-        return true;
+        dbContext.Tenants.Update(activeTenant);
     }
 }

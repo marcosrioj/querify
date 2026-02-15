@@ -17,24 +17,39 @@ public class FaqTagsCreateFaqTagCommandHandler(FaqDbContext dbContext, ISessionS
         ArgumentNullException.ThrowIfNull(request);
 
         var tenantId = sessionService.GetTenantId(AppEnum.Faq);
+        await EnsureFaqExistsAsync(request.FaqId, cancellationToken);
+        await EnsureTagExistsAsync(request.TagId, cancellationToken);
+        return await CreateFaqTagAsync(request, tenantId, cancellationToken);
+    }
 
-        var faqExists = await dbContext.Faqs.AnyAsync(entity => entity.Id == request.FaqId, cancellationToken);
+    private async Task EnsureFaqExistsAsync(Guid faqId, CancellationToken cancellationToken)
+    {
+        var faqExists = await dbContext.Faqs.AnyAsync(entity => entity.Id == faqId, cancellationToken);
         if (!faqExists)
         {
             throw new ApiErrorException(
-                $"FAQ '{request.FaqId}' was not found.",
+                $"FAQ '{faqId}' was not found.",
                 errorCode: (int)HttpStatusCode.NotFound);
         }
+    }
 
-        var tagExists = await dbContext.Tags.AnyAsync(entity => entity.Id == request.TagId, cancellationToken);
+    private async Task EnsureTagExistsAsync(Guid tagId, CancellationToken cancellationToken)
+    {
+        var tagExists = await dbContext.Tags.AnyAsync(entity => entity.Id == tagId, cancellationToken);
         if (!tagExists)
         {
             throw new ApiErrorException(
-                $"Tag '{request.TagId}' was not found.",
+                $"Tag '{tagId}' was not found.",
                 errorCode: (int)HttpStatusCode.NotFound);
         }
+    }
 
-        var faqTag = new Common.Persistence.FaqDb.Entities.FaqTag
+    private async Task<Guid> CreateFaqTagAsync(
+        FaqTagsCreateFaqTagCommand request,
+        Guid tenantId,
+        CancellationToken cancellationToken)
+    {
+        var faqTag = new FaqTag
         {
             FaqId = request.FaqId,
             TagId = request.TagId,
@@ -43,7 +58,6 @@ public class FaqTagsCreateFaqTagCommandHandler(FaqDbContext dbContext, ISessionS
 
         await dbContext.FaqTags.AddAsync(faqTag, cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);
-
         return faqTag.Id;
     }
 }

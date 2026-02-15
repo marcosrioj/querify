@@ -23,18 +23,37 @@ public class FaqsGetFaqQueryHandler(
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(request.Request);
 
-        var clientKey = clientKeyContextService.GetRequiredClientKey();
-        var tenantId = await tenantClientKeyResolver.ResolveTenantId(clientKey, cancellationToken);
-        httpContextAccessor.HttpContext?.Items[TenantContextKeys.TenantIdItemKey] = tenantId;
-
-        var query = dbContext.Faqs
-            .AsNoTracking()
-            .Where(faq => faq.TenantId == tenantId && faq.Id == request.Id);
-
         var includeItems = request.Request.IncludeFaqItems;
         var includeContentRefs = request.Request.IncludeContentRefs;
         var includeTags = request.Request.IncludeTags;
 
+        var tenantId = await ResolveTenantIdAndSetContextAsync(cancellationToken);
+        var query = BuildFaqQuery(request, tenantId);
+        query = ApplyRequestedIncludes(query, includeItems, includeContentRefs, includeTags);
+        return await SelectFaqDetailAsync(query, includeItems, includeContentRefs, includeTags, cancellationToken);
+    }
+
+    private async Task<Guid> ResolveTenantIdAndSetContextAsync(CancellationToken cancellationToken)
+    {
+        var clientKey = clientKeyContextService.GetRequiredClientKey();
+        var tenantId = await tenantClientKeyResolver.ResolveTenantId(clientKey, cancellationToken);
+        httpContextAccessor.HttpContext?.Items[TenantContextKeys.TenantIdItemKey] = tenantId;
+        return tenantId;
+    }
+
+    private IQueryable<Common.Persistence.FaqDb.Entities.Faq> BuildFaqQuery(FaqsGetFaqQuery request, Guid tenantId)
+    {
+        return dbContext.Faqs
+            .AsNoTracking()
+            .Where(faq => faq.TenantId == tenantId && faq.Id == request.Id);
+    }
+
+    private static IQueryable<Common.Persistence.FaqDb.Entities.Faq> ApplyRequestedIncludes(
+        IQueryable<Common.Persistence.FaqDb.Entities.Faq> query,
+        bool includeItems,
+        bool includeContentRefs,
+        bool includeTags)
+    {
         if (includeItems)
         {
             query = query.Include(faq => faq.Items);
@@ -50,6 +69,16 @@ public class FaqsGetFaqQueryHandler(
             query = query.Include(faq => faq.Tags).ThenInclude(faqTag => faqTag.Tag);
         }
 
+        return query;
+    }
+
+    private static async Task<FaqDetailDto?> SelectFaqDetailAsync(
+        IQueryable<Common.Persistence.FaqDb.Entities.Faq> query,
+        bool includeItems,
+        bool includeContentRefs,
+        bool includeTags,
+        CancellationToken cancellationToken)
+    {
         return await query
             .Select(faq => new FaqDetailDto
             {

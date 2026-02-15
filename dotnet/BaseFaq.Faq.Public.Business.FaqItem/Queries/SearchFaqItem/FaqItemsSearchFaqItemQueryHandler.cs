@@ -24,10 +24,28 @@ public class FaqItemsSearchFaqItemQueryHandler(
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(request.Request);
 
+        var tenantId = await ResolveTenantIdAndSetContextAsync(cancellationToken);
+        var query = BuildSearchQuery(request, tenantId);
+        var totalCount = await query.CountAsync(cancellationToken);
+        var groupByFaq = request.Request.FaqIds is { Count: > 1 };
+        query = ApplySortByFaqStrategy(query, groupByFaq);
+        var items = await LoadItemsAsync(query, request, cancellationToken);
+
+        return new PagedResultDto<FaqItemDto>(totalCount, items);
+    }
+
+    private async Task<Guid> ResolveTenantIdAndSetContextAsync(CancellationToken cancellationToken)
+    {
         var clientKey = clientKeyContextService.GetRequiredClientKey();
         var tenantId = await tenantClientKeyResolver.ResolveTenantId(clientKey, cancellationToken);
         httpContextAccessor.HttpContext?.Items[TenantContextKeys.TenantIdItemKey] = tenantId;
+        return tenantId;
+    }
 
+    private IQueryable<Common.Persistence.FaqDb.Entities.FaqItem> BuildSearchQuery(
+        FaqItemsSearchFaqItemQuery request,
+        Guid tenantId)
+    {
         var query = dbContext.FaqItems
             .AsNoTracking()
             .Where(item => item.TenantId == tenantId);
@@ -47,12 +65,15 @@ public class FaqItemsSearchFaqItemQueryHandler(
                 (item.AdditionalInfo != null && item.AdditionalInfo.Contains(term)));
         }
 
-        var totalCount = await query.CountAsync(cancellationToken);
+        return query;
+    }
 
-        var groupByFaq = request.Request.FaqIds is { Count: > 1 };
-        query = ApplySortByFaqStrategy(query, groupByFaq);
-
-        var items = await query
+    private static async Task<List<FaqItemDto>> LoadItemsAsync(
+        IQueryable<Common.Persistence.FaqDb.Entities.FaqItem> query,
+        FaqItemsSearchFaqItemQuery request,
+        CancellationToken cancellationToken)
+    {
+        return await query
             .Skip(request.Request.SkipCount)
             .Take(request.Request.MaxResultCount)
             .Select(item => new FaqItemDto
@@ -72,8 +93,6 @@ public class FaqItemsSearchFaqItemQueryHandler(
                 ContentRefId = item.ContentRefId
             })
             .ToListAsync(cancellationToken);
-
-        return new PagedResultDto<FaqItemDto>(totalCount, items);
     }
 
     private static IQueryable<Common.Persistence.FaqDb.Entities.FaqItem> ApplySortByFaqStrategy(

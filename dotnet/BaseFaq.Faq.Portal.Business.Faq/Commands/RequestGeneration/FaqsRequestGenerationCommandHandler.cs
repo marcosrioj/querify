@@ -3,6 +3,7 @@ using BaseFaq.AI.Common.Contracts.Generation;
 using BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception;
 using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Faq.Common.Persistence.FaqDb;
+using BaseFaq.Faq.Common.Persistence.FaqDb.Entities;
 using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.Faq.Enums;
 using MassTransit;
@@ -36,10 +37,49 @@ public sealed class FaqsRequestGenerationCommandHandler(
     {
         ArgumentNullException.ThrowIfNull(request);
 
-        var faqId = request.FaqId;
-        var tenantId = sessionService.GetTenantId(AppEnum.Faq);
-        var userId = sessionService.GetUserId();
+        var context = CreateRequestContext(request);
+        var faq = await LoadFaqOrThrowAsync(context.FaqId, context.TenantId, cancellationToken);
+        ValidateFaqLanguage(faq.Language);
+        await EnsureProcessableContentRefsAsync(context.FaqId, context.TenantId, cancellationToken);
+        var promptProfile = GetPromptProfileOrThrow();
+        await PublishGenerationRequestedAsync(context, faq.Language, promptProfile, cancellationToken);
+        return context.CorrelationId;
+    }
 
+    private GenerationRequestContext CreateRequestContext(FaqsRequestGenerationCommand request)
+    {
+        return new GenerationRequestContext(
+            request.FaqId,
+            sessionService.GetTenantId(AppEnum.Faq),
+            sessionService.GetUserId(),
+            Guid.NewGuid(),
+            DateTime.UtcNow);
+    }
+
+    private async Task PublishGenerationRequestedAsync(
+        GenerationRequestContext context,
+        string language,
+        string promptProfile,
+        CancellationToken cancellationToken)
+    {
+        await publishEndpoint.Publish(new FaqGenerationRequestedV1
+        {
+            CorrelationId = context.CorrelationId,
+            FaqId = context.FaqId,
+            TenantId = context.TenantId,
+            RequestedByUserId = context.UserId,
+            Language = language,
+            PromptProfile = promptProfile,
+            IdempotencyKey = $"faq-generation-{context.FaqId:N}-{context.CorrelationId:N}",
+            RequestedUtc = context.RequestedUtc
+        }, cancellationToken);
+    }
+
+    private async Task<Common.Persistence.FaqDb.Entities.Faq> LoadFaqOrThrowAsync(
+        Guid faqId,
+        Guid tenantId,
+        CancellationToken cancellationToken)
+    {
         var faq = await dbContext.Faqs
             .AsNoTracking()
             .FirstOrDefaultAsync(x => x.Id == faqId && x.TenantId == tenantId, cancellationToken);
@@ -51,13 +91,24 @@ public sealed class FaqsRequestGenerationCommandHandler(
                 errorCode: (int)HttpStatusCode.NotFound);
         }
 
-        if (string.IsNullOrWhiteSpace(faq.Language) || faq.Language.Length > MaxLanguageLength)
+        return faq;
+    }
+
+    private static void ValidateFaqLanguage(string? language)
+    {
+        if (string.IsNullOrWhiteSpace(language) || language.Length > MaxLanguageLength)
         {
             throw new ApiErrorException(
                 $"FAQ language is required and must have at most {MaxLanguageLength} characters to request generation.",
                 errorCode: (int)HttpStatusCode.BadRequest);
         }
+    }
 
+    private async Task EnsureProcessableContentRefsAsync(
+        Guid faqId,
+        Guid tenantId,
+        CancellationToken cancellationToken)
+    {
         var contentRefs = await dbContext.FaqContentRefs
             .AsNoTracking()
             .Where(x => x.FaqId == faqId && x.TenantId == tenantId)
@@ -78,7 +129,10 @@ public sealed class FaqsRequestGenerationCommandHandler(
                 $"FAQ '{faqId}' has ContentRef entries, but none with a processable kind (Web, Pdf, Document, Video).",
                 errorCode: (int)HttpStatusCode.BadRequest);
         }
+    }
 
+    private string GetPromptProfileOrThrow()
+    {
         var promptProfile = (configuration["Ai:Generation:PromptProfile"] ?? DefaultPromptProfile).Trim();
         if (string.IsNullOrWhiteSpace(promptProfile) || promptProfile.Length > MaxPromptProfileLength)
         {
@@ -87,21 +141,13 @@ public sealed class FaqsRequestGenerationCommandHandler(
                 errorCode: (int)HttpStatusCode.BadRequest);
         }
 
-        var requestedUtc = DateTime.UtcNow;
-        var correlationId = Guid.NewGuid();
-
-        await publishEndpoint.Publish(new FaqGenerationRequestedV1
-        {
-            CorrelationId = correlationId,
-            FaqId = faqId,
-            TenantId = tenantId,
-            RequestedByUserId = userId,
-            Language = faq.Language,
-            PromptProfile = promptProfile,
-            IdempotencyKey = $"faq-generation-{faqId:N}-{correlationId:N}",
-            RequestedUtc = requestedUtc
-        }, cancellationToken);
-
-        return correlationId;
+        return promptProfile;
     }
+
+    private readonly record struct GenerationRequestContext(
+        Guid FaqId,
+        Guid TenantId,
+        Guid UserId,
+        Guid CorrelationId,
+        DateTime RequestedUtc);
 }

@@ -13,36 +13,53 @@ public class FaqTagsUpdateFaqTagCommandHandler(FaqDbContext dbContext)
     {
         ArgumentNullException.ThrowIfNull(request);
 
-        var faqTag = await dbContext.FaqTags.FirstOrDefaultAsync(
-            entity => entity.Id == request.Id,
-            cancellationToken);
-        if (faqTag is null)
-        {
-            throw new ApiErrorException(
-                $"FAQ tag '{request.Id}' was not found.",
-                errorCode: (int)HttpStatusCode.NotFound);
-        }
-
-        var faqExists = await dbContext.Faqs.AnyAsync(entity => entity.Id == request.FaqId, cancellationToken);
-        if (!faqExists)
-        {
-            throw new ApiErrorException(
-                $"FAQ '{request.FaqId}' was not found.",
-                errorCode: (int)HttpStatusCode.NotFound);
-        }
-
-        var tagExists = await dbContext.Tags.AnyAsync(entity => entity.Id == request.TagId, cancellationToken);
-        if (!tagExists)
-        {
-            throw new ApiErrorException(
-                $"Tag '{request.TagId}' was not found.",
-                errorCode: (int)HttpStatusCode.NotFound);
-        }
-
+        var faqTag = await GetFaqTagOrThrowAsync(request.Id, cancellationToken);
+        await EnsureFaqExistsAsync(request.FaqId, cancellationToken);
+        await EnsureTagExistsAsync(request.TagId, cancellationToken);
         faqTag.FaqId = request.FaqId;
         faqTag.TagId = request.TagId;
 
         dbContext.FaqTags.Update(faqTag);
         await dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    private async Task<Common.Persistence.FaqDb.Entities.FaqTag> GetFaqTagOrThrowAsync(
+        Guid faqTagId,
+        CancellationToken cancellationToken)
+    {
+        var faqTag = await dbContext.FaqTags.FirstOrDefaultAsync(
+            entity => entity.Id == faqTagId,
+            cancellationToken);
+
+        if (faqTag is null)
+        {
+            throw new ApiErrorException(
+                $"FAQ tag '{faqTagId}' was not found.",
+                errorCode: (int)HttpStatusCode.NotFound);
+        }
+
+        return faqTag;
+    }
+
+    private async Task EnsureFaqExistsAsync(Guid faqId, CancellationToken cancellationToken)
+    {
+        var faqExists = await dbContext.Faqs.AnyAsync(entity => entity.Id == faqId, cancellationToken);
+        if (!faqExists)
+        {
+            throw new ApiErrorException(
+                $"FAQ '{faqId}' was not found.",
+                errorCode: (int)HttpStatusCode.NotFound);
+        }
+    }
+
+    private async Task EnsureTagExistsAsync(Guid tagId, CancellationToken cancellationToken)
+    {
+        var tagExists = await dbContext.Tags.AnyAsync(entity => entity.Id == tagId, cancellationToken);
+        if (!tagExists)
+        {
+            throw new ApiErrorException(
+                $"Tag '{tagId}' was not found.",
+                errorCode: (int)HttpStatusCode.NotFound);
+        }
     }
 }

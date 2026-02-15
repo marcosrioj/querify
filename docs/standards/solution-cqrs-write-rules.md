@@ -87,6 +87,15 @@ When command intent is "request async processing":
 - publish event with required metadata
 - do not return composite response DTO for the command
 
+## 7. Keep `Handle` methods small and readable
+
+Mediator handler `Handle(...)` methods must stay orchestration-focused.
+
+- if `Handle` grows beyond simple orchestration, split logic into private methods
+- keep each private method focused on one step (validation, loading, persistence, publish, mapping)
+- avoid deeply nested branches in `Handle`; move branching details to private helpers
+- preserve behavior; this rule is for readability and maintainability, not changing contracts
+
 ## Implementation Guidance
 
 ## Write endpoint response mapping
@@ -118,6 +127,7 @@ Read shape is owned by queries:
 - [ ] Service write methods return simple types
 - [ ] Tests updated to match command dependencies and contracts
 - [ ] No new "AcceptedResponse"/command response wrapper DTO introduced for write commands
+- [ ] Oversized `Handle` logic extracted into private methods for readability
 
 ## Anti-Patterns to Reject in Review
 

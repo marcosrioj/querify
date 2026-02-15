@@ -16,12 +16,24 @@ public class FaqItemsGetFaqItemListQueryHandler(FaqDbContext dbContext)
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(request.Request);
 
-        var query = dbContext.FaqItems.AsNoTracking();
-        query = ApplySorting(query, request.Request.Sorting);
-
+        var query = BuildSortedQuery(request);
         var totalCount = await query.CountAsync(cancellationToken);
+        var items = await LoadItemsAsync(query, request, cancellationToken);
+        return new PagedResultDto<FaqItemDto>(totalCount, items);
+    }
 
-        var items = await query
+    private IQueryable<Common.Persistence.FaqDb.Entities.FaqItem> BuildSortedQuery(FaqItemsGetFaqItemListQuery request)
+    {
+        var query = dbContext.FaqItems.AsNoTracking();
+        return ApplySorting(query, request.Request.Sorting);
+    }
+
+    private static async Task<List<FaqItemDto>> LoadItemsAsync(
+        IQueryable<Common.Persistence.FaqDb.Entities.FaqItem> query,
+        FaqItemsGetFaqItemListQuery request,
+        CancellationToken cancellationToken)
+    {
+        return await query
             .Skip(request.Request.SkipCount)
             .Take(request.Request.MaxResultCount)
             .Select(item => new FaqItemDto
@@ -41,8 +53,6 @@ public class FaqItemsGetFaqItemListQueryHandler(FaqDbContext dbContext)
                 ContentRefId = item.ContentRefId
             })
             .ToListAsync(cancellationToken);
-
-        return new PagedResultDto<FaqItemDto>(totalCount, items);
     }
 
     private static IQueryable<Common.Persistence.FaqDb.Entities.FaqItem> ApplySorting(

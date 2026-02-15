@@ -19,25 +19,40 @@ public class FaqContentRefsCreateFaqContentRefCommandHandler(
         ArgumentNullException.ThrowIfNull(request);
 
         var tenantId = sessionService.GetTenantId(AppEnum.Faq);
+        await EnsureFaqExistsAsync(request.FaqId, cancellationToken);
+        await EnsureContentRefExistsAsync(request.ContentRefId, cancellationToken);
+        return await CreateFaqContentRefAsync(request, tenantId, cancellationToken);
+    }
 
-        var faqExists = await dbContext.Faqs.AnyAsync(entity => entity.Id == request.FaqId, cancellationToken);
+    private async Task EnsureFaqExistsAsync(Guid faqId, CancellationToken cancellationToken)
+    {
+        var faqExists = await dbContext.Faqs.AnyAsync(entity => entity.Id == faqId, cancellationToken);
         if (!faqExists)
         {
             throw new ApiErrorException(
-                $"FAQ '{request.FaqId}' was not found.",
+                $"FAQ '{faqId}' was not found.",
                 errorCode: (int)HttpStatusCode.NotFound);
         }
+    }
 
+    private async Task EnsureContentRefExistsAsync(Guid contentRefId, CancellationToken cancellationToken)
+    {
         var contentRefExists = await dbContext.ContentRefs.AnyAsync(
-            entity => entity.Id == request.ContentRefId,
+            entity => entity.Id == contentRefId,
             cancellationToken);
         if (!contentRefExists)
         {
             throw new ApiErrorException(
-                $"Content reference '{request.ContentRefId}' was not found.",
+                $"Content reference '{contentRefId}' was not found.",
                 errorCode: (int)HttpStatusCode.NotFound);
         }
+    }
 
+    private async Task<Guid> CreateFaqContentRefAsync(
+        FaqContentRefsCreateFaqContentRefCommand request,
+        Guid tenantId,
+        CancellationToken cancellationToken)
+    {
         var faqContentRef = new Common.Persistence.FaqDb.Entities.FaqContentRef
         {
             FaqId = request.FaqId,
@@ -47,7 +62,6 @@ public class FaqContentRefsCreateFaqContentRefCommandHandler(
 
         await dbContext.FaqContentRefs.AddAsync(faqContentRef, cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);
-
         return faqContentRef.Id;
     }
 }

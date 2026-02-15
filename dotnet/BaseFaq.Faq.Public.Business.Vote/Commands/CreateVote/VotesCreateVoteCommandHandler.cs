@@ -19,17 +19,9 @@ public class VotesCreateVoteCommandHandler(
 {
     public async Task<Guid> Handle(VotesCreateVoteCommand request, CancellationToken cancellationToken)
     {
-        if (!request.Like && request.UnLikeReason is null)
-        {
-            throw new ApiErrorException(
-                "UnLikeReason is required when Like is false.",
-                errorCode: (int)HttpStatusCode.UnprocessableEntity);
-        }
-
-        var identity = VoteRequestContext.GetIdentity(httpContextAccessor);
-        var clientKey = clientKeyContextService.GetRequiredClientKey();
-        var tenantId = await tenantClientKeyResolver.ResolveTenantId(clientKey, cancellationToken);
-        httpContextAccessor.HttpContext?.Items[TenantContextKeys.TenantIdItemKey] = tenantId;
+        ValidateUnlikeReason(request);
+        var identity = ResolveVoteIdentity();
+        var tenantId = await ResolveTenantIdAndSetContextAsync(cancellationToken);
 
         var existing = await dbContext.Votes
             .FirstOrDefaultAsync(
@@ -45,35 +37,61 @@ public class VotesCreateVoteCommandHandler(
                 return existing.Id;
             }
 
-            var faqItem = await dbContext.FaqItems
-                .FirstOrDefaultAsync(item => item.TenantId == tenantId && item.Id == request.FaqItemId,
-                    cancellationToken);
-            if (faqItem is null)
-            {
-                throw new ApiErrorException(
-                    $"FAQ item '{request.FaqItemId}' was not found.",
-                    errorCode: (int)HttpStatusCode.NotFound);
-            }
-
-            existing.Like = request.Like;
-            existing.Ip = identity.Ip;
-            existing.UserAgent = identity.UserAgent;
-            existing.UnLikeReason = request.UnLikeReason;
-            faqItem.VoteScore += request.Like ? 2 : -2;
-            await dbContext.SaveChangesAsync(cancellationToken);
-
-            return existing.Id;
+            return await UpdateExistingVoteAsync(request, tenantId, identity, existing, cancellationToken);
         }
 
-        var faqItemForCreate = await dbContext.FaqItems
-            .FirstOrDefaultAsync(item => item.TenantId == tenantId && item.Id == request.FaqItemId, cancellationToken);
-        if (faqItemForCreate is null)
+        return await CreateVoteAsync(request, tenantId, identity, cancellationToken);
+    }
+
+    private static void ValidateUnlikeReason(VotesCreateVoteCommand request)
+    {
+        if (!request.Like && request.UnLikeReason is null)
         {
             throw new ApiErrorException(
-                $"FAQ item '{request.FaqItemId}' was not found.",
-                errorCode: (int)HttpStatusCode.NotFound);
+                "UnLikeReason is required when Like is false.",
+                errorCode: (int)HttpStatusCode.UnprocessableEntity);
         }
+    }
 
+    private VoteRequestIdentity ResolveVoteIdentity()
+    {
+        return VoteRequestContext.GetIdentity(httpContextAccessor);
+    }
+
+    private async Task<Guid> ResolveTenantIdAndSetContextAsync(CancellationToken cancellationToken)
+    {
+        var clientKey = clientKeyContextService.GetRequiredClientKey();
+        var tenantId = await tenantClientKeyResolver.ResolveTenantId(clientKey, cancellationToken);
+        httpContextAccessor.HttpContext?.Items[TenantContextKeys.TenantIdItemKey] = tenantId;
+        return tenantId;
+    }
+
+    private async Task<Guid> UpdateExistingVoteAsync(
+        VotesCreateVoteCommand request,
+        Guid tenantId,
+        VoteRequestIdentity identity,
+        Common.Persistence.FaqDb.Entities.Vote existing,
+        CancellationToken cancellationToken)
+    {
+        var faqItem = await GetFaqItemOrThrowAsync(tenantId, request.FaqItemId, cancellationToken);
+
+        existing.Like = request.Like;
+        existing.Ip = identity.Ip;
+        existing.UserAgent = identity.UserAgent;
+        existing.UnLikeReason = request.UnLikeReason;
+        faqItem.VoteScore += request.Like ? 2 : -2;
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        return existing.Id;
+    }
+
+    private async Task<Guid> CreateVoteAsync(
+        VotesCreateVoteCommand request,
+        Guid tenantId,
+        VoteRequestIdentity identity,
+        CancellationToken cancellationToken)
+    {
+        var faqItemForCreate = await GetFaqItemOrThrowAsync(tenantId, request.FaqItemId, cancellationToken);
         var vote = new Common.Persistence.FaqDb.Entities.Vote
         {
             Like = request.Like,
@@ -95,5 +113,23 @@ public class VotesCreateVoteCommandHandler(
         await dbContext.SaveChangesAsync(cancellationToken);
 
         return vote.Id;
+    }
+
+    private async Task<Common.Persistence.FaqDb.Entities.FaqItem> GetFaqItemOrThrowAsync(
+        Guid tenantId,
+        Guid faqItemId,
+        CancellationToken cancellationToken)
+    {
+        var faqItem = await dbContext.FaqItems
+            .FirstOrDefaultAsync(item => item.TenantId == tenantId && item.Id == faqItemId, cancellationToken);
+
+        if (faqItem is null)
+        {
+            throw new ApiErrorException(
+                $"FAQ item '{faqItemId}' was not found.",
+                errorCode: (int)HttpStatusCode.NotFound);
+        }
+
+        return faqItem;
     }
 }

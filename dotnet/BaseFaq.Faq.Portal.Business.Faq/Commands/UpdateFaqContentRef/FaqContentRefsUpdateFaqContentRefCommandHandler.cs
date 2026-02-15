@@ -13,38 +13,54 @@ public class FaqContentRefsUpdateFaqContentRefCommandHandler(FaqDbContext dbCont
     {
         ArgumentNullException.ThrowIfNull(request);
 
-        var faqContentRef = await dbContext.FaqContentRefs.FirstOrDefaultAsync(
-            entity => entity.Id == request.Id,
-            cancellationToken);
-        if (faqContentRef is null)
-        {
-            throw new ApiErrorException(
-                $"FAQ content reference '{request.Id}' was not found.",
-                errorCode: (int)HttpStatusCode.NotFound);
-        }
-
-        var faqExists = await dbContext.Faqs.AnyAsync(entity => entity.Id == request.FaqId, cancellationToken);
-        if (!faqExists)
-        {
-            throw new ApiErrorException(
-                $"FAQ '{request.FaqId}' was not found.",
-                errorCode: (int)HttpStatusCode.NotFound);
-        }
-
-        var contentRefExists = await dbContext.ContentRefs.AnyAsync(
-            entity => entity.Id == request.ContentRefId,
-            cancellationToken);
-        if (!contentRefExists)
-        {
-            throw new ApiErrorException(
-                $"Content reference '{request.ContentRefId}' was not found.",
-                errorCode: (int)HttpStatusCode.NotFound);
-        }
-
+        var faqContentRef = await GetFaqContentRefOrThrowAsync(request.Id, cancellationToken);
+        await EnsureFaqExistsAsync(request.FaqId, cancellationToken);
+        await EnsureContentRefExistsAsync(request.ContentRefId, cancellationToken);
         faqContentRef.FaqId = request.FaqId;
         faqContentRef.ContentRefId = request.ContentRefId;
 
         dbContext.FaqContentRefs.Update(faqContentRef);
         await dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    private async Task<Common.Persistence.FaqDb.Entities.FaqContentRef> GetFaqContentRefOrThrowAsync(
+        Guid faqContentRefId,
+        CancellationToken cancellationToken)
+    {
+        var faqContentRef = await dbContext.FaqContentRefs
+            .FirstOrDefaultAsync(entity => entity.Id == faqContentRefId, cancellationToken);
+
+        if (faqContentRef is null)
+        {
+            throw new ApiErrorException(
+                $"FAQ content reference '{faqContentRefId}' was not found.",
+                errorCode: (int)HttpStatusCode.NotFound);
+        }
+
+        return faqContentRef;
+    }
+
+    private async Task EnsureFaqExistsAsync(Guid faqId, CancellationToken cancellationToken)
+    {
+        var faqExists = await dbContext.Faqs.AnyAsync(entity => entity.Id == faqId, cancellationToken);
+        if (!faqExists)
+        {
+            throw new ApiErrorException(
+                $"FAQ '{faqId}' was not found.",
+                errorCode: (int)HttpStatusCode.NotFound);
+        }
+    }
+
+    private async Task EnsureContentRefExistsAsync(Guid contentRefId, CancellationToken cancellationToken)
+    {
+        var contentRefExists = await dbContext.ContentRefs.AnyAsync(
+            entity => entity.Id == contentRefId,
+            cancellationToken);
+        if (!contentRefExists)
+        {
+            throw new ApiErrorException(
+                $"Content reference '{contentRefId}' was not found.",
+                errorCode: (int)HttpStatusCode.NotFound);
+        }
     }
 }

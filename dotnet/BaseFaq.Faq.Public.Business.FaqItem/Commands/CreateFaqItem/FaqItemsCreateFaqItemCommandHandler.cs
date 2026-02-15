@@ -24,20 +24,46 @@ public class FaqItemsCreateFaqItemCommandHandler(
 
     public async Task<Guid> Handle(FaqItemsCreateFaqItemCommand request, CancellationToken cancellationToken)
     {
+        var tenantId = await ResolveTenantIdAndSetContextAsync(cancellationToken);
+        var faq = await GetFaqOrThrowAsync(request.FaqId, tenantId, cancellationToken);
+        var faqItem = await CreateFaqItemAsync(request, tenantId, cancellationToken);
+        ValidateMatchingInputs(request.Question, faq.Language);
+        await PublishMatchingRequestedAsync(request, faqItem, faq.Language, tenantId, cancellationToken);
+        return faqItem.Id;
+    }
+
+    private async Task<Guid> ResolveTenantIdAndSetContextAsync(CancellationToken cancellationToken)
+    {
         var clientKey = clientKeyContextService.GetRequiredClientKey();
         var tenantId = await tenantClientKeyResolver.ResolveTenantId(clientKey, cancellationToken);
         httpContextAccessor.HttpContext?.Items[TenantContextKeys.TenantIdItemKey] = tenantId;
+        return tenantId;
+    }
 
+    private async Task<Common.Persistence.FaqDb.Entities.Faq> GetFaqOrThrowAsync(
+        Guid faqId,
+        Guid tenantId,
+        CancellationToken cancellationToken)
+    {
         var faq = await dbContext.Faqs
             .AsNoTracking()
-            .FirstOrDefaultAsync(faq => faq.TenantId == tenantId && faq.Id == request.FaqId, cancellationToken);
+            .FirstOrDefaultAsync(entity => entity.TenantId == tenantId && entity.Id == faqId, cancellationToken);
+
         if (faq is null)
         {
             throw new ApiErrorException(
-                $"FAQ '{request.FaqId}' was not found.",
+                $"FAQ '{faqId}' was not found.",
                 errorCode: (int)HttpStatusCode.NotFound);
         }
 
+        return faq;
+    }
+
+    private async Task<Common.Persistence.FaqDb.Entities.FaqItem> CreateFaqItemAsync(
+        FaqItemsCreateFaqItemCommand request,
+        Guid tenantId,
+        CancellationToken cancellationToken)
+    {
         var faqItem = new Common.Persistence.FaqDb.Entities.FaqItem
         {
             Question = request.Question,
@@ -57,25 +83,27 @@ public class FaqItemsCreateFaqItemCommandHandler(
 
         await dbContext.FaqItems.AddAsync(faqItem, cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);
+        return faqItem;
+    }
 
-        ValidateMatchingInputs(request.Question, faq.Language);
-
-        var now = DateTime.UtcNow;
-        var correlationId = Guid.NewGuid();
-
+    private async Task PublishMatchingRequestedAsync(
+        FaqItemsCreateFaqItemCommand request,
+        Common.Persistence.FaqDb.Entities.FaqItem faqItem,
+        string language,
+        Guid tenantId,
+        CancellationToken cancellationToken)
+    {
         await publishEndpoint.Publish(new FaqMatchingRequestedV1
         {
-            CorrelationId = correlationId,
+            CorrelationId = Guid.NewGuid(),
             TenantId = tenantId,
             FaqItemId = faqItem.Id,
             RequestedByUserId = Guid.Empty,
             Query = request.Question,
-            Language = faq.Language,
+            Language = language,
             IdempotencyKey = $"faqitem-create-{faqItem.Id:N}",
-            RequestedUtc = now
+            RequestedUtc = DateTime.UtcNow
         }, cancellationToken);
-
-        return faqItem.Id;
     }
 
     private static void ValidateMatchingInputs(string query, string language)
