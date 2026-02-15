@@ -1,14 +1,14 @@
+using System.Diagnostics;
+using System.Text.RegularExpressions;
 using BaseFaq.AI.Common.Contracts.Matching;
 using BaseFaq.AI.Common.Persistence.AiDb;
 using BaseFaq.AI.Common.Persistence.AiDb.Entities;
 using BaseFaq.AI.Common.Providers.Abstractions;
 using BaseFaq.AI.Matching.Business.Worker.Abstractions;
 using BaseFaq.Faq.Common.Persistence.FaqDb;
-using BaseFaq.Models.Ai.Enums;
 using MassTransit;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using System.Text.RegularExpressions;
 
 namespace BaseFaq.AI.Matching.Business.Worker.Commands.ProcessFaqMatchingRequested;
 
@@ -16,6 +16,7 @@ public sealed class ProcessFaqMatchingRequestedCommandHandler(
     AiDbContext aiDbContext,
     IAiProviderCredentialAccessor aiProviderCredentialAccessor,
     IMatchingFaqDbContextFactory matchingFaqDbContextFactory,
+    IMatchingPromptComposer matchingPromptComposer,
     IPublishEndpoint publishEndpoint)
     : IRequestHandler<ProcessFaqMatchingRequestedCommand>
 {
@@ -63,12 +64,19 @@ public sealed class ProcessFaqMatchingRequestedCommandHandler(
         FaqMatchingRequestedV1 message,
         CancellationToken cancellationToken)
     {
-        _ = aiProviderCredentialAccessor.GetCurrent();
+        var providerCredential = aiProviderCredentialAccessor.GetCurrent();
         await using var faqDbContext = matchingFaqDbContextFactory.Create(message.TenantId);
 
         var sourceQuestion = await LoadSourceQuestionAsync(faqDbContext, message, cancellationToken);
         var queryText = string.IsNullOrWhiteSpace(message.Query) ? sourceQuestion : message.Query;
         var candidates = await LoadCandidateQuestionsAsync(faqDbContext, message, cancellationToken);
+        var promptComposition = matchingPromptComposer.Compose(
+            sourceQuestion,
+            queryText,
+            message.Language,
+            candidates.Select(x => new MatchingPromptCandidate(x.Id, x.Question)).ToArray(),
+            providerCredential);
+        AddPromptActivityTags(promptComposition, candidates.Count);
 
         return candidates
             .Select(x => new MatchingCandidate(x.Id, ComputeSimilarity(queryText, x.Question)))
@@ -191,6 +199,14 @@ public sealed class ProcessFaqMatchingRequestedCommandHandler(
             .Split(text.Trim().ToLowerInvariant())
             .Where(x => x.Length > 1)
             .ToHashSet(StringComparer.Ordinal);
+    }
+
+    private static void AddPromptActivityTags(MatchingPromptComposition promptComposition, int candidatesCount)
+    {
+        Activity.Current?.SetTag("basefaq.prompt.domain", promptComposition.Domain);
+        Activity.Current?.SetTag("basefaq.prompt.version", promptComposition.Version);
+        Activity.Current?.SetTag("basefaq.prompt.provider", promptComposition.Provider);
+        Activity.Current?.SetTag("basefaq.matching.candidates_count", candidatesCount);
     }
 
     private sealed record CandidateQuestion(Guid Id, string Question);

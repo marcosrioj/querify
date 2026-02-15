@@ -29,6 +29,7 @@ public static class ServiceCollectionExtensions
 
         services.AddScoped<IAiProviderCredentialAccessor, AiProviderCredentialAccessor>();
         services.AddScoped<IMatchingFaqDbContextFactory, MatchingFaqDbContextFactory>();
+        services.AddScoped<IMatchingPromptComposer, MatchingPromptComposer>();
         services.AddMediatR(config =>
             config.RegisterServicesFromAssemblyContaining<ProcessFaqMatchingRequestedCommandHandler>());
 

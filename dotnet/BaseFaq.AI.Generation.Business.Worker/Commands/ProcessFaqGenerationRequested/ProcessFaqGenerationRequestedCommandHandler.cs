@@ -1,3 +1,7 @@
+using System.Diagnostics;
+using System.Security.Cryptography;
+using System.Text;
+using System.Text.Json;
 using BaseFaq.AI.Common.Contracts.Generation;
 using BaseFaq.AI.Common.Persistence.AiDb;
 using BaseFaq.AI.Common.Persistence.AiDb.Entities;
@@ -7,12 +11,9 @@ using BaseFaq.AI.Generation.Business.Worker.Abstractions;
 using BaseFaq.AI.Generation.Business.Worker.Observability;
 using BaseFaq.AI.Generation.Business.Worker.Service;
 using BaseFaq.Models.Ai.Enums;
-using BaseFaq.Models.Faq.Enums;
 using MassTransit;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using System.Diagnostics;
-using System.Text.Json;
 
 namespace BaseFaq.AI.Generation.Business.Worker.Commands.ProcessFaqGenerationRequested;
 
@@ -21,9 +22,12 @@ public sealed class ProcessFaqGenerationRequestedCommandHandler(
     IAiProviderCredentialAccessor aiProviderCredentialAccessor,
     IFaqIntegrationDbContextFactory faqIntegrationDbContextFactory,
     IGenerationFaqWriteService generationFaqWriteService,
+    IGenerationPromptComposer generationPromptComposer,
     IPublishEndpoint publishEndpoint)
     : IRequestHandler<ProcessFaqGenerationRequestedCommand>
 {
+    private const string DefaultPromptProfileSuffix = "default";
+
     public async Task Handle(ProcessFaqGenerationRequestedCommand command, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -124,7 +128,7 @@ public sealed class ProcessFaqGenerationRequestedCommandHandler(
             RequestedByUserId = message.RequestedByUserId,
             FaqId = message.FaqId,
             Language = message.Language,
-            PromptProfile = message.PromptProfile,
+            PromptProfile = ResolveDefaultPromptProfile(providerCredential),
             IdempotencyKey = message.IdempotencyKey,
             RequestedUtc = message.RequestedUtc,
             StartedUtc = DateTime.UtcNow,
@@ -152,11 +156,12 @@ public sealed class ProcessFaqGenerationRequestedCommandHandler(
         CancellationToken cancellationToken)
     {
         var studiedRefs = await LoadStudiedRefsAsync(message, cancellationToken);
+        var promptComposition = generationPromptComposer.Compose(message, studiedRefs, providerCredential);
         using var providerActivity =
             GenerationWorkerTracing.ActivitySource.StartActivity("generation.provider.generate", ActivityKind.Client);
 
-        AddProviderActivityTags(providerActivity, providerCredential, message, studiedRefs);
-        AddDraftArtifact(message, studiedRefs, job);
+        AddProviderActivityTags(providerActivity, providerCredential, message, studiedRefs, promptComposition);
+        AddDraftArtifact(message, studiedRefs, job, promptComposition);
         await WriteDraftFaqItemAsync(message, studiedRefs, cancellationToken);
 
         job.Status = GenerationJobStatus.Succeeded;
@@ -192,7 +197,8 @@ public sealed class ProcessFaqGenerationRequestedCommandHandler(
         Activity? providerActivity,
         AiProviderCredential providerCredential,
         FaqGenerationRequestedV1 message,
-        ContentRefStudyResult studiedRefs)
+        ContentRefStudyResult studiedRefs,
+        GenerationPromptComposition promptComposition)
     {
         providerActivity?.SetTag("gen_ai.system", providerCredential.Provider);
         providerActivity?.SetTag("gen_ai.request.model", providerCredential.Model);
@@ -203,12 +209,16 @@ public sealed class ProcessFaqGenerationRequestedCommandHandler(
         providerActivity?.SetTag("basefaq.content_ref.total_count", studiedRefs.TotalCount);
         providerActivity?.SetTag("basefaq.content_ref.processed_count", studiedRefs.ProcessedCount);
         providerActivity?.SetTag("basefaq.content_ref.skipped_count", studiedRefs.SkippedCount);
+        providerActivity?.SetTag("basefaq.prompt.domain", promptComposition.Domain);
+        providerActivity?.SetTag("basefaq.prompt.version", promptComposition.Version);
+        providerActivity?.SetTag("basefaq.prompt.provider", promptComposition.Provider);
     }
 
     private static void AddDraftArtifact(
         FaqGenerationRequestedV1 message,
         ContentRefStudyResult studiedRefs,
-        GenerationJob job)
+        GenerationJob job,
+        GenerationPromptComposition promptComposition)
     {
         var draftContent = BuildDraftContent(message.FaqId, studiedRefs);
 
@@ -224,7 +234,13 @@ public sealed class ProcessFaqGenerationRequestedCommandHandler(
                     contentRefTotal = studiedRefs.TotalCount,
                     contentRefProcessed = studiedRefs.ProcessedCount,
                     contentRefSkipped = studiedRefs.SkippedCount,
-                    processedKinds = studiedRefs.StudiedRefs.Select(x => x.Kind.ToString()).ToArray()
+                    processedKinds = studiedRefs.StudiedRefs.Select(x => x.Kind.ToString()).ToArray(),
+                    promptDomain = promptComposition.Domain,
+                    promptVersion = promptComposition.Version,
+                    promptProvider = promptComposition.Provider,
+                    systemPromptHash = HashPrompt(promptComposition.SystemPrompt),
+                    userPromptHash = HashPrompt(promptComposition.UserPrompt),
+                    schemaHash = HashPrompt(promptComposition.ExpectedJsonSchema)
                 }),
                 GenerationArtifact.MaxMetadataJsonLength)
         });
@@ -374,6 +390,26 @@ public sealed class ProcessFaqGenerationRequestedCommandHandler(
     private static string Truncate(string value, int maxLength)
     {
         return value.Length <= maxLength ? value : value[..maxLength];
+    }
+
+    private static string HashPrompt(string value)
+    {
+        var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(value));
+        return Convert.ToHexString(bytes);
+    }
+
+    private static string ResolveDefaultPromptProfile(AiProviderCredential providerCredential)
+    {
+        var provider = providerCredential.Provider?.Trim();
+        if (string.IsNullOrWhiteSpace(provider))
+        {
+            return DefaultPromptProfileSuffix;
+        }
+
+        var profile = $"{provider}-{DefaultPromptProfileSuffix}";
+        return profile.Length <= GenerationJob.MaxPromptProfileLength
+            ? profile
+            : profile[..GenerationJob.MaxPromptProfileLength];
     }
 
     private sealed record GenerationProcessingContext(GenerationJob Job, AiProviderCredential ProviderCredential);

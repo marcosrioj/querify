@@ -7,7 +7,6 @@ public sealed record FaqGenerationRequestedV1
     public required Guid TenantId { get; init; }
     public required Guid RequestedByUserId { get; init; }
     public required string Language { get; init; }
-    public required string PromptProfile { get; init; }
     public required string IdempotencyKey { get; init; }
     public required DateTime RequestedUtc { get; init; }
 }

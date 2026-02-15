@@ -30,6 +30,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IAiProviderCredentialAccessor, AiProviderCredentialAccessor>();
         services.AddScoped<IFaqIntegrationDbContextFactory, FaqIntegrationDbContextFactory>();
         services.AddScoped<IGenerationFaqWriteService, GenerationFaqWriteService>();
+        services.AddScoped<IGenerationPromptComposer, GenerationPromptComposer>();
         services.AddMediatR(config =>
             config.RegisterServicesFromAssemblyContaining<ProcessFaqGenerationRequestedCommandHandler>());
 

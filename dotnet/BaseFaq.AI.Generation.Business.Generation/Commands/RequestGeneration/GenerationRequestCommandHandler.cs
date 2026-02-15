@@ -9,7 +9,6 @@ public sealed class GenerationRequestCommandHandler(IPublishEndpoint publishEndp
     : IRequestHandler<GenerationRequestCommand, Guid>
 {
     private const int MaxLanguageLength = 16;
-    private const int MaxPromptProfileLength = 128;
     private const int MaxIdempotencyKeyLength = 128;
 
     public async Task<Guid> Handle(
@@ -31,7 +30,6 @@ public sealed class GenerationRequestCommandHandler(IPublishEndpoint publishEndp
             TenantId = command.Request.TenantId,
             RequestedByUserId = command.Request.RequestedByUserId ?? Guid.Empty,
             Language = command.Request.Language,
-            PromptProfile = command.Request.PromptProfile,
             IdempotencyKey = normalizedIdempotencyKey,
             RequestedUtc = requestedUtc
         };
@@ -57,14 +55,6 @@ public sealed class GenerationRequestCommandHandler(IPublishEndpoint publishEndp
         {
             throw new ArgumentException(
                 $"Language is required and must have at most {MaxLanguageLength} characters.",
-                nameof(request));
-        }
-
-        if (string.IsNullOrWhiteSpace(request.PromptProfile) ||
-            request.PromptProfile.Length > MaxPromptProfileLength)
-        {
-            throw new ArgumentException(
-                $"PromptProfile is required and must have at most {MaxPromptProfileLength} characters.",
                 nameof(request));
         }
 
