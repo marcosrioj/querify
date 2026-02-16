@@ -2,4 +2,5 @@
 /.git/
 bin/
 obj/
+**/appsettings.Development.json
 BaseFaq.sln.DotSettings.user

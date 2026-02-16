@@ -43,4 +43,22 @@ public class TenantController(ITenantService tenantService) : ControllerBase
         var result = await tenantService.GenerateNewClientKey(token);
         return Ok(result);
     }
+
+    [HttpPost("SetAiProviderCredentials")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<IActionResult> SetAiProviderCredentials(
+        [FromBody] TenantSetAiProviderCredentialsRequestDto dto,
+        CancellationToken token)
+    {
+        await tenantService.SetAiProviderCredentials(dto, token);
+        return NoContent();
+    }
+
+    [HttpGet("IsAiProviderKeyConfigured/{aiProviderId:guid}")]
+    [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
+    public async Task<IActionResult> IsAiProviderKeyConfigured(Guid aiProviderId, CancellationToken token)
+    {
+        var result = await tenantService.IsAiProviderKeyConfigured(aiProviderId, token);
+        return Ok(result);
+    }
 }

@@ -1,11 +1,14 @@
 using BaseFaq.AI.Common.Contracts.Generation;
 using BaseFaq.AI.Common.Providers.Models;
 using BaseFaq.AI.Generation.Business.Worker.Abstractions;
+using BaseFaq.Common.EntityFramework.Tenant;
+using BaseFaq.Models.Tenant.Enums;
+using Microsoft.EntityFrameworkCore;
 using System.Text;
 
 namespace BaseFaq.AI.Generation.Business.Worker.Service;
 
-public sealed class GenerationPromptComposer : IGenerationPromptComposer
+public sealed class GenerationPromptComposer(TenantDbContext tenantDbContext) : IGenerationPromptComposer
 {
     private const string Domain = "generation";
     private const string PromptVersion = "2026-02-15.generation.v1";
@@ -25,28 +28,31 @@ public sealed class GenerationPromptComposer : IGenerationPromptComposer
             Domain,
             PromptVersion,
             provider,
-            BuildSystemPrompt(provider),
+            ResolveSystemPrompt(provider, providerCredential.Model),
             BuildUserPrompt(request, studiedRefs),
             BuildExpectedJsonSchema());
     }
 
-    private static string BuildSystemPrompt(string provider)
+    private string ResolveSystemPrompt(string provider, string model)
     {
-        var providerDirective = provider switch
-        {
-            "openai" => "Prefer concise structured outputs and avoid unnecessary prose.",
-            "anthropic" => "Be explicit about uncertainty and avoid fabricated facts.",
-            "google" => "Optimize for grounded factual synthesis and high precision.",
-            _ => "Produce grounded, deterministic output with strict schema adherence."
-        };
+        var normalizedModel = model?.Trim();
 
-        return string.Join(Environment.NewLine, [
-            "You are a multilingual FAQ generation engine.",
-            "Use only supplied source context. Do not invent citations or facts.",
-            "Write clear customer-facing language while preserving technical accuracy.",
-            "If context is insufficient, state the missing data in uncertaintyNotes.",
-            providerDirective
-        ]);
+        var prompt = tenantDbContext.AiProviders
+            .AsNoTracking()
+            .Where(x =>
+                x.Command == AiCommandType.Generation &&
+                x.Provider.ToLower() == provider &&
+                x.Model == normalizedModel)
+            .Select(x => x.Prompt)
+            .FirstOrDefault();
+
+        if (!string.IsNullOrWhiteSpace(prompt))
+        {
+            return prompt;
+        }
+
+        return
+            "You are a multilingual FAQ generation engine. Use only supplied context and return schema-compliant JSON.";
     }
 
     private static string BuildUserPrompt(FaqGenerationRequestedV1 request, ContentRefStudyResult studiedRefs)

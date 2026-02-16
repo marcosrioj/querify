@@ -10,6 +10,7 @@ public class TenantCreateRequestDto
     public required TenantEdition Edition { get; set; }
     public required AppEnum App { get; set; }
     public required string ConnectionString { get; set; }
+    public Guid AiProviderId { get; set; }
     public required bool IsActive { get; set; }
     public required Guid UserId { get; set; }
 }

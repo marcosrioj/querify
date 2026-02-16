@@ -8,4 +8,6 @@ public interface ITenantService
     Task<bool> CreateOrUpdate(TenantCreateOrUpdateRequestDto requestDto, CancellationToken token);
     Task<string?> GetClientKey(CancellationToken token);
     Task<string> GenerateNewClientKey(CancellationToken token);
+    Task SetAiProviderCredentials(TenantSetAiProviderCredentialsRequestDto requestDto, CancellationToken token);
+    Task<bool> IsAiProviderKeyConfigured(Guid aiProviderId, CancellationToken token);
 }

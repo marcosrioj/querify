@@ -1,5 +1,7 @@
+using System.Net;
 using BaseFaq.Common.EntityFramework.Tenant;
 using BaseFaq.Common.EntityFramework.Tenant.Helpers;
+using BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception;
 using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Models.Common.Enums;
 using MediatR;
@@ -80,6 +82,8 @@ public class TenantsCreateOrUpdateTenantsCommandHandler(TenantDbContext dbContex
 
         if (activeTenant is null)
         {
+            var aiProviderIdDefault = await GetAiProviderIdDefault(app, cancellationToken);
+
             await dbContext.Tenants.AddAsync(
                 new Common.EntityFramework.Tenant.Entities.Tenant
                 {
@@ -88,6 +92,7 @@ public class TenantsCreateOrUpdateTenantsCommandHandler(TenantDbContext dbContex
                     Edition = request.Edition,
                     App = app,
                     ConnectionString = connectionString,
+                    AiProviderId = aiProviderIdDefault,
                     IsActive = true,
                     UserId = userId
                 },
@@ -98,9 +103,34 @@ public class TenantsCreateOrUpdateTenantsCommandHandler(TenantDbContext dbContex
         activeTenant.Slug = slug;
         activeTenant.Name = request.Name;
         activeTenant.Edition = request.Edition;
-        activeTenant.ConnectionString = connectionString;
-        activeTenant.IsActive = true;
 
         dbContext.Tenants.Update(activeTenant);
+    }
+
+    private async Task<Guid> GetAiProviderIdDefault(AppEnum app, CancellationToken cancellationToken)
+    {
+        var aiProviderId = await dbContext.AiProviders
+            .Where(x => x.Provider.ToLower() == "openai")
+            .Select(x => x.Id)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (aiProviderId == Guid.Empty)
+        {
+            var aiProviderIdDefaul = await dbContext.AiProviders
+                .OrderByDescending(x => x.UpdatedDate)
+                .Select(x => x.Id)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (aiProviderIdDefaul == Guid.Empty)
+            {
+                throw new ApiErrorException(
+                    "Default Ai Provider was not found.",
+                    errorCode: (int)HttpStatusCode.InternalServerError);
+            }
+
+            return aiProviderIdDefaul;
+        }
+
+        return aiProviderId;
     }
 }

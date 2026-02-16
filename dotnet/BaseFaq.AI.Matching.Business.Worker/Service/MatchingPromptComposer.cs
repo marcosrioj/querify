@@ -1,10 +1,13 @@
 using BaseFaq.AI.Common.Providers.Models;
 using BaseFaq.AI.Matching.Business.Worker.Abstractions;
+using BaseFaq.Common.EntityFramework.Tenant;
+using BaseFaq.Models.Tenant.Enums;
+using Microsoft.EntityFrameworkCore;
 using System.Text;
 
 namespace BaseFaq.AI.Matching.Business.Worker.Service;
 
-public sealed class MatchingPromptComposer : IMatchingPromptComposer
+public sealed class MatchingPromptComposer(TenantDbContext tenantDbContext) : IMatchingPromptComposer
 {
     private const int MaxPromptCandidates = 100;
     private const string Domain = "matching";
@@ -29,28 +32,31 @@ public sealed class MatchingPromptComposer : IMatchingPromptComposer
             Domain,
             PromptVersion,
             provider,
-            BuildSystemPrompt(provider),
+            ResolveSystemPrompt(provider, providerCredential.Model),
             BuildUserPrompt(sourceQuestion, queryText, language, candidates),
             BuildExpectedJsonSchema());
     }
 
-    private static string BuildSystemPrompt(string provider)
+    private string ResolveSystemPrompt(string provider, string model)
     {
-        var providerDirective = provider switch
-        {
-            "openai" => "Prioritize deterministic ranking and calibrated score spread.",
-            "anthropic" => "Explain uncertainty briefly and avoid overconfident high scores.",
-            "google" => "Optimize semantic relevance over lexical overlap.",
-            _ => "Apply strict ranking rules and deterministic JSON output."
-        };
+        var normalizedModel = model?.Trim();
 
-        return string.Join(Environment.NewLine, [
-            "You are a FAQ semantic matching engine.",
-            "Rank candidates by semantic intent similarity to the query.",
-            "Do not use tenant IDs or FAQ IDs as ranking clues.",
-            "Output only valid JSON following the schema.",
-            providerDirective
-        ]);
+        var prompt = tenantDbContext.AiProviders
+            .AsNoTracking()
+            .Where(x =>
+                x.Command == AiCommandType.Matching &&
+                x.Provider.ToLower() == provider &&
+                x.Model == normalizedModel)
+            .Select(x => x.Prompt)
+            .FirstOrDefault();
+
+        if (!string.IsNullOrWhiteSpace(prompt))
+        {
+            return prompt;
+        }
+
+        return
+            "You are a FAQ semantic matching engine. Rank candidates by semantic relevance and return deterministic JSON.";
     }
 
     private static string BuildUserPrompt(

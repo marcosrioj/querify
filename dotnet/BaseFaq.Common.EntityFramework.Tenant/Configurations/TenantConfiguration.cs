@@ -27,14 +27,25 @@ public class TenantConfiguration : BaseConfiguration<Entities.Tenant>
         builder.Property(p => p.ClientKey)
             .HasMaxLength(Entities.Tenant.MaxClientKeyLength);
 
+        builder.Property(p => p.AiProviderKey)
+            .HasMaxLength(Entities.Tenant.MaxAiProviderKeyLength);
+
         builder.Property(p => p.Edition)
             .IsRequired();
 
         builder.Property(p => p.IsActive)
             .IsRequired();
 
+        builder.Property(p => p.AiProviderId)
+            .IsRequired();
+
         builder.Property(p => p.UserId)
             .IsRequired();
+
+        builder.HasOne(p => p.AiProvider)
+            .WithMany()
+            .HasForeignKey(p => p.AiProviderId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasIndex(p => p.Slug)
             .IsUnique()
@@ -47,5 +58,8 @@ public class TenantConfiguration : BaseConfiguration<Entities.Tenant>
         builder.HasIndex(p => p.ClientKey)
             .IsUnique()
             .HasDatabaseName("IX_Tenant_ClientKey");
+
+        builder.HasIndex(p => p.AiProviderId)
+            .HasDatabaseName("IX_Tenant_AiProviderId");
     }
 }

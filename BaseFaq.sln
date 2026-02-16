@@ -203,6 +203,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BaseFaq.Common.Infrasctruct
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Telemetry", "Telemetry", "{2DCC6BC4-C2EC-41CF-A0AC-AADC4580DAB5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BaseFaq.Tenant.Portal.Business.AiProvider", "dotnet\BaseFaq.Tenant.Portal.Business.AiProvider\BaseFaq.Tenant.Portal.Business.AiProvider.csproj", "{4077BCF4-6DB9-4B10-BD8E-07C3D2EDB66C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BaseFaq.Tenant.BackOffice.Business.AiProvider", "dotnet\BaseFaq.Tenant.BackOffice.Business.AiProvider\BaseFaq.Tenant.BackOffice.Business.AiProvider.csproj", "{3D3414A7-EE68-4B9E-BADD-75A41FE3671F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -409,6 +413,14 @@ Global
 		{7DA1881C-5DFB-4E53-9132-E63D92BF2A61}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7DA1881C-5DFB-4E53-9132-E63D92BF2A61}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7DA1881C-5DFB-4E53-9132-E63D92BF2A61}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4077BCF4-6DB9-4B10-BD8E-07C3D2EDB66C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4077BCF4-6DB9-4B10-BD8E-07C3D2EDB66C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4077BCF4-6DB9-4B10-BD8E-07C3D2EDB66C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4077BCF4-6DB9-4B10-BD8E-07C3D2EDB66C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3D3414A7-EE68-4B9E-BADD-75A41FE3671F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3D3414A7-EE68-4B9E-BADD-75A41FE3671F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3D3414A7-EE68-4B9E-BADD-75A41FE3671F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3D3414A7-EE68-4B9E-BADD-75A41FE3671F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -507,5 +519,7 @@ Global
 		{2E6B79DE-8A40-400A-A810-C507B2C55559} = {CB8DB1C8-8F5C-474E-91A9-AF7BEAA0151F}
 		{2DCC6BC4-C2EC-41CF-A0AC-AADC4580DAB5} = {87130428-904D-44AB-82A8-9341EA677BAB}
 		{7DA1881C-5DFB-4E53-9132-E63D92BF2A61} = {2DCC6BC4-C2EC-41CF-A0AC-AADC4580DAB5}
+		{4077BCF4-6DB9-4B10-BD8E-07C3D2EDB66C} = {39A1B0C7-95A8-4931-B828-C591BC96932F}
+		{3D3414A7-EE68-4B9E-BADD-75A41FE3671F} = {4600E701-4E95-4894-AAB7-AFFA8D04FC9F}
 	EndGlobalSection
 EndGlobal

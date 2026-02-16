@@ -10,5 +10,6 @@ public class TenantSummaryDto
     public required string Name { get; set; }
     public required TenantEdition Edition { get; set; }
     public required AppEnum App { get; set; }
+    public Guid AiProviderId { get; set; }
     public required bool IsActive { get; set; }
 }

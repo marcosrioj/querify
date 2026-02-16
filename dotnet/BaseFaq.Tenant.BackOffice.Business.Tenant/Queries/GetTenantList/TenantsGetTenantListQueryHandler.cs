@@ -31,6 +31,7 @@ public class TenantsGetTenantListQueryHandler(TenantDbContext dbContext)
                 Edition = tenant.Edition,
                 App = tenant.App,
                 ConnectionString = string.Empty,
+                AiProviderId = tenant.AiProviderId,
                 IsActive = tenant.IsActive,
                 UserId = tenant.UserId
             })

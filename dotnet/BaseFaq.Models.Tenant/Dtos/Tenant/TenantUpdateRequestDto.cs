@@ -8,6 +8,7 @@ public class TenantUpdateRequestDto
     public required string Name { get; set; }
     public required TenantEdition Edition { get; set; }
     public required string ConnectionString { get; set; }
+    public Guid AiProviderId { get; set; }
     public required bool IsActive { get; set; }
     public required Guid UserId { get; set; }
 }

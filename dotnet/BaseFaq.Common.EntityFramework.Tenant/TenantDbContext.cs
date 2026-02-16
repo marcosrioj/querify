@@ -28,6 +28,7 @@ public class TenantDbContext(
         httpContextAccessor)
 {
     public DbSet<Entities.Tenant> Tenants { get; set; } = null!;
+    public DbSet<AiProvider> AiProviders { get; set; } = null!;
     public DbSet<TenantConnection> TenantConnections { get; set; } = null!;
     public DbSet<User> Users { get; set; } = null!;
 
@@ -50,6 +51,14 @@ public class TenantDbContext(
         modelBuilder.Entity<Entities.Tenant>()
             .Property(tenant => tenant.ConnectionString)
             .HasConversion(converter);
+
+        var secretConverter = new ValueConverter<string?, string?>(
+            value => EncryptSecret(value),
+            value => DecryptSecret(value));
+
+        modelBuilder.Entity<Entities.Tenant>()
+            .Property(tenant => tenant.AiProviderKey)
+            .HasConversion(secretConverter);
 
         modelBuilder.Entity<TenantConnection>()
             .Property(connection => connection.ConnectionString)
@@ -180,5 +189,25 @@ public class TenantDbContext(
     {
         return !string.IsNullOrWhiteSpace(value) &&
                value.StartsWith("v1:", StringComparison.Ordinal);
+    }
+
+    private static string? EncryptSecret(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value) || IsEncrypted(value))
+        {
+            return value;
+        }
+
+        return StringCipher.Instance.Encrypt(value);
+    }
+
+    private static string? DecryptSecret(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value) || !IsEncrypted(value))
+        {
+            return value;
+        }
+
+        return StringCipher.Instance.Decrypt(value);
     }
 }
