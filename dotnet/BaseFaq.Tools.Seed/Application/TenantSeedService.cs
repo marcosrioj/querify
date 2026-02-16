@@ -18,9 +18,31 @@ public sealed class TenantSeedService : ITenantSeedService
     public bool HasData(TenantDbContext dbContext)
     {
         return dbContext.Tenants.Any() ||
-               dbContext.Users.Any() ||
-               dbContext.TenantConnections.Any() ||
-               dbContext.AiProviders.Any();
+               dbContext.TenantConnections.Any();
+    }
+
+    public bool HasEssentialData(TenantDbContext dbContext)
+    {
+        var hasIaAgent = dbContext.Users.Any(item =>
+            item.ExternalId == IaAgentExternalId || item.Email == IaAgentEmail);
+
+        if (!hasIaAgent)
+        {
+            return false;
+        }
+
+        var requiredKeys = BuildAiProviderEntries()
+            .Select(x => $"{(int)x.Command}|{x.Provider}|{x.Model}")
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        var existingKeys = dbContext.AiProviders
+            .AsNoTracking()
+            .Select(x => new { x.Command, x.Provider, x.Model })
+            .ToList()
+            .Select(x => $"{(int)x.Command}|{x.Provider}|{x.Model}")
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        return requiredKeys.All(existingKeys.Contains);
     }
 
     public Guid SeedDummyData(TenantDbContext dbContext, TenantSeedRequest request, SeedCounts counts)
@@ -32,7 +54,7 @@ public sealed class TenantSeedService : ITenantSeedService
         dbContext.Users.AddRange(users);
         dbContext.SaveChanges();
 
-        var aiProviders = SeedAiProviders(dbContext);
+        var aiProviders = GetExistingAiProvidersForTenantProvisioning(dbContext);
 
         var tenants = BuildSingleTenant(users, existingSlugs, request, aiProviders);
         dbContext.Tenants.AddRange(tenants);
@@ -49,7 +71,13 @@ public sealed class TenantSeedService : ITenantSeedService
         return seedTenant.Id;
     }
 
-    public Guid EnsureIaAgentUser(TenantDbContext dbContext)
+    public Guid EnsureEssentialData(TenantDbContext dbContext)
+    {
+        SeedAiProviders(dbContext);
+        return EnsureIaAgentUser(dbContext);
+    }
+
+    private static Guid EnsureIaAgentUser(TenantDbContext dbContext)
     {
         var user = dbContext.Users.FirstOrDefault(item => item.ExternalId == IaAgentExternalId)
                    ?? dbContext.Users.FirstOrDefault(item => item.Email == IaAgentEmail);
@@ -171,6 +199,25 @@ public sealed class TenantSeedService : ITenantSeedService
                 IsCurrent = true
             }
         ];
+    }
+
+    private static List<AiProvider> GetExistingAiProvidersForTenantProvisioning(TenantDbContext dbContext)
+    {
+        var aiProviders = dbContext.AiProviders
+            .AsNoTracking()
+            .OrderBy(x => x.Command)
+            .ThenBy(x => x.Provider)
+            .ThenBy(x => x.Model)
+            .ToList();
+
+        if (!aiProviders.Any(x => x.Command == AiCommandType.Generation) ||
+            !aiProviders.Any(x => x.Command == AiCommandType.Matching))
+        {
+            throw new InvalidOperationException(
+                "Essential AI providers are missing. Run essential seed before dummy seed.");
+        }
+
+        return aiProviders;
     }
 
     private static List<AiProvider> SeedAiProviders(TenantDbContext dbContext)
