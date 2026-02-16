@@ -203,135 +203,182 @@ public sealed class TenantSeedService : ITenantSeedService
 
     private static List<AiProvider> BuildAiProviderEntries()
     {
-        const string generationPrompt =
-            "You are a multilingual FAQ generation engine. Use only supplied source context and return schema-compliant JSON.";
-        const string matchingPrompt =
-            "You are a FAQ semantic matching engine. Rank by semantic similarity and return deterministic JSON.";
+        var generationModels = new (string Provider, string Model)[]
+        {
+            ("openai", "gpt-4o-mini"),
+            ("anthropic", "claude-3-5-sonnet"),
+            ("google", "gemini-1.5-pro"),
+            ("azure-openai", "gpt-4o"),
+            ("aws-bedrock", "anthropic.claude-3-sonnet"),
+            ("cohere", "command-r-plus"),
+            ("mistral", "mistral-large-latest"),
+            ("together-ai", "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo"),
+            ("fireworks-ai", "accounts/fireworks/models/llama-v3p1-70b-instruct"),
+            ("groq", "llama-3.1-70b-versatile"),
+            ("voyage-ai", "external-llm-required"),
+            ("jina-ai", "external-llm-required")
+        };
+
+        var matchingModels = new (string Provider, string Model)[]
+        {
+            ("openai", "text-embedding-3-small"),
+            ("anthropic", "external-embedding-required"),
+            ("google", "text-embedding-004"),
+            ("azure-openai", "text-embedding-3-large"),
+            ("aws-bedrock", "amazon.titan-embed-text-v2"),
+            ("cohere", "embed-multilingual-v3.0"),
+            ("mistral", "mistral-embed"),
+            ("together-ai", "BAAI/bge-large-en-v1.5"),
+            ("fireworks-ai", "nomic-ai/nomic-embed-text-v1.5"),
+            ("groq", "external-embedding-required"),
+            ("voyage-ai", "voyage-3"),
+            ("jina-ai", "jina-embeddings-v3")
+        };
+
+        var providers = generationModels
+            .Select(entry => BuildAiProviderEntry(entry.Provider, entry.Model, AiCommandType.Generation))
+            .ToList();
+
+        providers.AddRange(
+            matchingModels.Select(entry => BuildAiProviderEntry(entry.Provider, entry.Model, AiCommandType.Matching)));
+
+        return providers;
+    }
+
+    private static AiProvider BuildAiProviderEntry(string provider, string model, AiCommandType command)
+    {
+        return new AiProvider
+        {
+            Id = Guid.NewGuid(),
+            Provider = provider,
+            Model = model,
+            Prompt = BuildPromptByModel(command, provider, model),
+            Command = command
+        };
+    }
+
+    private static string BuildPromptByModel(AiCommandType command, string provider, string model)
+    {
+        var normalizedModel = model.Trim().ToLowerInvariant();
+        var basePrompt = command switch
+        {
+            AiCommandType.Generation => BuildGenerationPromptBase(),
+            AiCommandType.Matching => BuildMatchingPromptBase(),
+            _ => "You are an AI assistant. Follow instructions and return deterministic JSON."
+        };
+
+        var modelGuidance = command switch
+        {
+            AiCommandType.Generation => BuildGenerationModelGuidance(provider, normalizedModel),
+            AiCommandType.Matching => BuildMatchingModelGuidance(provider, normalizedModel),
+            _ => "No model-specific guidance."
+        };
 
         return
-        [
-            new AiProvider
-            {
-                Id = Guid.NewGuid(), Provider = "openai", Model = "gpt-4o-mini", Prompt = generationPrompt,
-                Command = AiCommandType.Generation
-            },
-            new AiProvider
-            {
-                Id = Guid.NewGuid(), Provider = "anthropic", Model = "claude-3-5-sonnet", Prompt = generationPrompt,
-                Command = AiCommandType.Generation
-            },
-            new AiProvider
-            {
-                Id = Guid.NewGuid(), Provider = "google", Model = "gemini-1.5-pro", Prompt = generationPrompt,
-                Command = AiCommandType.Generation
-            },
-            new AiProvider
-            {
-                Id = Guid.NewGuid(), Provider = "azure-openai", Model = "gpt-4o", Prompt = generationPrompt,
-                Command = AiCommandType.Generation
-            },
-            new AiProvider
-            {
-                Id = Guid.NewGuid(), Provider = "aws-bedrock", Model = "anthropic.claude-3-sonnet",
-                Prompt = generationPrompt, Command = AiCommandType.Generation
-            },
-            new AiProvider
-            {
-                Id = Guid.NewGuid(), Provider = "cohere", Model = "command-r-plus", Prompt = generationPrompt,
-                Command = AiCommandType.Generation
-            },
-            new AiProvider
-            {
-                Id = Guid.NewGuid(), Provider = "mistral", Model = "mistral-large-latest", Prompt = generationPrompt,
-                Command = AiCommandType.Generation
-            },
-            new AiProvider
-            {
-                Id = Guid.NewGuid(), Provider = "together-ai", Model = "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo",
-                Prompt = generationPrompt, Command = AiCommandType.Generation
-            },
-            new AiProvider
-            {
-                Id = Guid.NewGuid(), Provider = "fireworks-ai",
-                Model = "accounts/fireworks/models/llama-v3p1-70b-instruct", Prompt = generationPrompt,
-                Command = AiCommandType.Generation
-            },
-            new AiProvider
-            {
-                Id = Guid.NewGuid(), Provider = "groq", Model = "llama-3.1-70b-versatile", Prompt = generationPrompt,
-                Command = AiCommandType.Generation
-            },
-            new AiProvider
-            {
-                Id = Guid.NewGuid(), Provider = "voyage-ai", Model = "external-llm-required", Prompt = generationPrompt,
-                Command = AiCommandType.Generation
-            },
-            new AiProvider
-            {
-                Id = Guid.NewGuid(), Provider = "jina-ai", Model = "external-llm-required", Prompt = generationPrompt,
-                Command = AiCommandType.Generation
-            },
+            $"{basePrompt}\n\nProvider-model profile: {provider}/{model}\nModel-specific guidance: {modelGuidance}";
+    }
 
-            new AiProvider
-            {
-                Id = Guid.NewGuid(), Provider = "openai", Model = "text-embedding-3-small", Prompt = matchingPrompt,
-                Command = AiCommandType.Matching
-            },
-            new AiProvider
-            {
-                Id = Guid.NewGuid(), Provider = "anthropic", Model = "external-embedding-required",
-                Prompt = matchingPrompt, Command = AiCommandType.Matching
-            },
-            new AiProvider
-            {
-                Id = Guid.NewGuid(), Provider = "google", Model = "text-embedding-004", Prompt = matchingPrompt,
-                Command = AiCommandType.Matching
-            },
-            new AiProvider
-            {
-                Id = Guid.NewGuid(), Provider = "azure-openai", Model = "text-embedding-3-large",
-                Prompt = matchingPrompt, Command = AiCommandType.Matching
-            },
-            new AiProvider
-            {
-                Id = Guid.NewGuid(), Provider = "aws-bedrock", Model = "amazon.titan-embed-text-v2",
-                Prompt = matchingPrompt, Command = AiCommandType.Matching
-            },
-            new AiProvider
-            {
-                Id = Guid.NewGuid(), Provider = "cohere", Model = "embed-multilingual-v3.0", Prompt = matchingPrompt,
-                Command = AiCommandType.Matching
-            },
-            new AiProvider
-            {
-                Id = Guid.NewGuid(), Provider = "mistral", Model = "mistral-embed", Prompt = matchingPrompt,
-                Command = AiCommandType.Matching
-            },
-            new AiProvider
-            {
-                Id = Guid.NewGuid(), Provider = "together-ai", Model = "BAAI/bge-large-en-v1.5",
-                Prompt = matchingPrompt, Command = AiCommandType.Matching
-            },
-            new AiProvider
-            {
-                Id = Guid.NewGuid(), Provider = "fireworks-ai", Model = "nomic-ai/nomic-embed-text-v1.5",
-                Prompt = matchingPrompt, Command = AiCommandType.Matching
-            },
-            new AiProvider
-            {
-                Id = Guid.NewGuid(), Provider = "groq", Model = "external-embedding-required", Prompt = matchingPrompt,
-                Command = AiCommandType.Matching
-            },
-            new AiProvider
-            {
-                Id = Guid.NewGuid(), Provider = "voyage-ai", Model = "voyage-3", Prompt = matchingPrompt,
-                Command = AiCommandType.Matching
-            },
-            new AiProvider
-            {
-                Id = Guid.NewGuid(), Provider = "jina-ai", Model = "jina-embeddings-v3", Prompt = matchingPrompt,
-                Command = AiCommandType.Matching
-            }
-        ];
+    private static string BuildGenerationPromptBase()
+    {
+        return """
+               You are a multilingual FAQ generation engine.
+               Objective: transform supplied reference context into a high-quality FAQ draft.
+               Hard constraints:
+               - Use only supplied context. Do not invent facts, numbers, policies, or citations.
+               - If evidence is incomplete, keep claims conservative and add uncertainty notes.
+               - Keep language aligned with the requested language.
+               - Produce output that is valid against the required JSON schema.
+               - Return JSON only, with no markdown fences or extra prose.
+               Quality bar:
+               - Question should be explicit and user-facing.
+               - Summary must be concise and scannable.
+               - Answer should be structured, practical, and traceable to cited references.
+               - Confidence should reflect evidence quality and coverage.
+               """;
+    }
+
+    private static string BuildMatchingPromptBase()
+    {
+        return """
+               You are a FAQ semantic matching engine.
+               Objective: rank candidate FAQ questions by true semantic relevance to the query.
+               Hard constraints:
+               - Prioritize semantic equivalence over keyword overlap.
+               - Penalize partial-topic overlap and near-miss intent.
+               - Prefer language-consistent candidates when meaning is otherwise similar.
+               - Return deterministic results for the same inputs.
+               - Output valid JSON only, no markdown or additional narrative.
+               Ranking policy:
+               - Include only the strongest matches.
+               - Sort by score descending.
+               - Keep score calibrated in [0,1] and reasons brief and specific.
+               """;
+    }
+
+    private static string BuildGenerationModelGuidance(string provider, string normalizedModel)
+    {
+        if (provider.Equals("openai", StringComparison.OrdinalIgnoreCase) ||
+            provider.Equals("azure-openai", StringComparison.OrdinalIgnoreCase) ||
+            normalizedModel.Contains("gpt-4o", StringComparison.Ordinal))
+        {
+            return
+                "Optimize for strict JSON reliability and concise factual language; avoid stylistic verbosity.";
+        }
+
+        if (normalizedModel.Contains("claude", StringComparison.Ordinal))
+        {
+            return
+                "Keep reasoning implicit; return final JSON directly without role labels, markdown blocks, or XML-like wrappers.";
+        }
+
+        if (normalizedModel.Contains("gemini", StringComparison.Ordinal))
+        {
+            return
+                "Avoid any explanatory preamble and ensure escaped characters keep JSON parse-safe.";
+        }
+
+        if (normalizedModel.Contains("llama", StringComparison.Ordinal) ||
+            normalizedModel.Contains("instruct", StringComparison.Ordinal))
+        {
+            return
+                "Follow instruction format strictly and suppress conversational filler around the JSON object.";
+        }
+
+        if (normalizedModel.Contains("external-llm-required", StringComparison.Ordinal))
+        {
+            return
+                "Assume an externally selected chat-completion model; prioritize schema adherence and zero-hallucination behavior.";
+        }
+
+        return "Prioritize deterministic output, factual grounding, and strict schema adherence.";
+    }
+
+    private static string BuildMatchingModelGuidance(string provider, string normalizedModel)
+    {
+        if (normalizedModel.Contains("external-embedding-required", StringComparison.Ordinal))
+        {
+            return
+                "Use this prompt as policy for downstream re-ranking when embeddings are produced by an external provider.";
+        }
+
+        if (normalizedModel.Contains("embedding", StringComparison.Ordinal) ||
+            normalizedModel.Contains("embed", StringComparison.Ordinal) ||
+            normalizedModel.Contains("bge", StringComparison.Ordinal) ||
+            normalizedModel.Contains("voyage", StringComparison.Ordinal) ||
+            normalizedModel.Contains("jina", StringComparison.Ordinal) ||
+            normalizedModel.Contains("nomic", StringComparison.Ordinal))
+        {
+            return
+                "Treat semantic closeness as primary signal and reserve high scores for near-equivalent user intent.";
+        }
+
+        if (provider.Equals("openai", StringComparison.OrdinalIgnoreCase) ||
+            provider.Equals("azure-openai", StringComparison.OrdinalIgnoreCase))
+        {
+            return
+                "Keep ranking deterministic; avoid optimistic scoring when evidence of intent match is weak.";
+        }
+
+        return "Prefer precision-first ranking, short rationale text, and stable score calibration.";
     }
 }
