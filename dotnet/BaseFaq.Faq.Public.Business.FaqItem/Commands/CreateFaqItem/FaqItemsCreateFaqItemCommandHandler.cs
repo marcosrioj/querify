@@ -4,6 +4,7 @@ using BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception;
 using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Common.Infrastructure.Core.Constants;
 using BaseFaq.Faq.Common.Persistence.FaqDb;
+using BaseFaq.Models.Tenant.Enums;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using MediatR;
@@ -15,6 +16,7 @@ public class FaqItemsCreateFaqItemCommandHandler(
     FaqDbContext dbContext,
     IClientKeyContextService clientKeyContextService,
     ITenantClientKeyResolver tenantClientKeyResolver,
+    ITenantAiProviderResolver tenantAiProviderResolver,
     IHttpContextAccessor httpContextAccessor,
     IPublishEndpoint publishEndpoint)
     : IRequestHandler<FaqItemsCreateFaqItemCommand, Guid>
@@ -93,6 +95,15 @@ public class FaqItemsCreateFaqItemCommandHandler(
         Guid tenantId,
         CancellationToken cancellationToken)
     {
+        var shouldPublish = await tenantAiProviderResolver.HasProviderForCommandAsync(
+            tenantId,
+            AiCommandType.Matching,
+            cancellationToken);
+        if (!shouldPublish)
+        {
+            return;
+        }
+
         await publishEndpoint.Publish(new FaqMatchingRequestedV1
         {
             CorrelationId = Guid.NewGuid(),

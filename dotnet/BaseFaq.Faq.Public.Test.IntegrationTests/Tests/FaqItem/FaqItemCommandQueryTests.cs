@@ -1,6 +1,7 @@
 using BaseFaq.Faq.Public.Business.FaqItem.Commands.CreateFaqItem;
 using BaseFaq.Faq.Public.Business.FaqItem.Queries.SearchFaqItem;
 using BaseFaq.Faq.Public.Test.IntegrationTests.Helpers;
+using BaseFaq.AI.Common.Contracts.Matching;
 using BaseFaq.Models.Faq.Dtos.FaqItem;
 using BaseFaq.Models.Faq.Enums;
 using MassTransit;
@@ -20,11 +21,13 @@ public class FaqItemCommandQueryTests
         var clientKeyContextService = new TestClientKeyContextService(context.ClientKey);
         var tenantClientKeyResolver =
             new TestTenantClientKeyResolver(context.TenantId, context.ClientKey);
+        var tenantAiProviderResolver = new TestTenantAiProviderResolver();
         var publishEndpoint = new Mock<IPublishEndpoint>().Object;
         var handler = new FaqItemsCreateFaqItemCommandHandler(
             context.DbContext,
             clientKeyContextService,
             tenantClientKeyResolver,
+            tenantAiProviderResolver,
             context.HttpContextAccessor,
             publishEndpoint);
         var request = new FaqItemsCreateFaqItemCommand
@@ -50,6 +53,86 @@ public class FaqItemCommandQueryTests
         Assert.Equal("How to sign in?", faqItem!.Question);
         Assert.Equal(faq.Id, faqItem.FaqId);
         Assert.Equal(context.TenantId, faqItem.TenantId);
+    }
+
+    [Fact]
+    public async Task CreateFaqItem_PublishesMatchingEvent_WhenTenantHasMatchingProvider()
+    {
+        using var context = TestContext.Create();
+        var faq = await TestDataFactory.SeedFaqAsync(context.DbContext, context.TenantId);
+
+        var clientKeyContextService = new TestClientKeyContextService(context.ClientKey);
+        var tenantClientKeyResolver = new TestTenantClientKeyResolver(context.TenantId, context.ClientKey);
+        var tenantAiProviderResolver = new TestTenantAiProviderResolver(hasProvider: true);
+        var publishEndpoint = new Mock<IPublishEndpoint>();
+        var handler = new FaqItemsCreateFaqItemCommandHandler(
+            context.DbContext,
+            clientKeyContextService,
+            tenantClientKeyResolver,
+            tenantAiProviderResolver,
+            context.HttpContextAccessor,
+            publishEndpoint.Object);
+
+        await handler.Handle(new FaqItemsCreateFaqItemCommand
+        {
+            Question = "How to reset password?",
+            ShortAnswer = "Use reset form.",
+            Answer = "Use reset form.",
+            AdditionalInfo = "N/A",
+            CtaTitle = "Reset",
+            CtaUrl = "https://example.test/reset",
+            Sort = 1,
+            VoteScore = 0,
+            AiConfidenceScore = 0,
+            IsActive = true,
+            FaqId = faq.Id
+        }, CancellationToken.None);
+
+        publishEndpoint.Verify(
+            x => x.Publish(
+                It.IsAny<FaqMatchingRequestedV1>(),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task CreateFaqItem_DoesNotPublishMatchingEvent_WhenTenantHasNoMatchingProvider()
+    {
+        using var context = TestContext.Create();
+        var faq = await TestDataFactory.SeedFaqAsync(context.DbContext, context.TenantId);
+
+        var clientKeyContextService = new TestClientKeyContextService(context.ClientKey);
+        var tenantClientKeyResolver = new TestTenantClientKeyResolver(context.TenantId, context.ClientKey);
+        var tenantAiProviderResolver = new TestTenantAiProviderResolver(hasProvider: false);
+        var publishEndpoint = new Mock<IPublishEndpoint>();
+        var handler = new FaqItemsCreateFaqItemCommandHandler(
+            context.DbContext,
+            clientKeyContextService,
+            tenantClientKeyResolver,
+            tenantAiProviderResolver,
+            context.HttpContextAccessor,
+            publishEndpoint.Object);
+
+        await handler.Handle(new FaqItemsCreateFaqItemCommand
+        {
+            Question = "How to update email?",
+            ShortAnswer = "Use profile settings.",
+            Answer = "Use profile settings.",
+            AdditionalInfo = "N/A",
+            CtaTitle = "Profile",
+            CtaUrl = "https://example.test/profile",
+            Sort = 1,
+            VoteScore = 0,
+            AiConfidenceScore = 0,
+            IsActive = true,
+            FaqId = faq.Id
+        }, CancellationToken.None);
+
+        publishEndpoint.Verify(
+            x => x.Publish(
+                It.IsAny<FaqMatchingRequestedV1>(),
+                It.IsAny<CancellationToken>()),
+            Times.Never);
     }
 
     [Fact]

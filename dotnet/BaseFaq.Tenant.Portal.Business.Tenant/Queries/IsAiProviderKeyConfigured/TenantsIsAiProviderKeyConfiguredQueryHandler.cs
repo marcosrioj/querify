@@ -12,9 +12,15 @@ public class TenantsIsAiProviderKeyConfiguredQueryHandler(TenantDbContext dbCont
     {
         var userId = sessionService.GetUserId();
 
-        return await dbContext.Tenants
+        return await dbContext.TenantAiProviders
             .AsNoTracking()
-            .Where(x => x.UserId == userId && x.IsActive && x.AiProviderId == request.AiProviderId)
+            .Include(x => x.AiProvider)
+            .Where(x => x.AiProvider.Command == request.Command)
+            .Join(
+                dbContext.Tenants.AsNoTracking().Where(t => t.UserId == userId && t.IsActive),
+                tap => tap.TenantId,
+                t => t.Id,
+                (tap, _) => tap)
             .AnyAsync(x => !string.IsNullOrWhiteSpace(x.AiProviderKey), cancellationToken);
     }
 }

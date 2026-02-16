@@ -25,7 +25,6 @@ public class TenantsGetAllTenantsQueryHandler(TenantDbContext dbContext, ISessio
                 Name = tenant.Name,
                 Edition = tenant.Edition,
                 App = tenant.App,
-                AiProviderId = tenant.AiProviderId,
                 IsActive = tenant.IsActive
             })
             .ToListAsync(cancellationToken);

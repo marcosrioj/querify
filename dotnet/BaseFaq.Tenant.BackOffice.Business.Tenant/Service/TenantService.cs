@@ -25,7 +25,6 @@ public class TenantService(IMediator mediator) : ITenantService
             Edition = requestDto.Edition,
             App = requestDto.App,
             ConnectionString = requestDto.ConnectionString,
-            AiProviderId = requestDto.AiProviderId,
             IsActive = requestDto.IsActive,
             UserId = requestDto.UserId
         };
@@ -69,7 +68,6 @@ public class TenantService(IMediator mediator) : ITenantService
             Name = requestDto.Name,
             Edition = requestDto.Edition,
             ConnectionString = requestDto.ConnectionString,
-            AiProviderId = requestDto.AiProviderId,
             IsActive = requestDto.IsActive,
             UserId = requestDto.UserId
         };

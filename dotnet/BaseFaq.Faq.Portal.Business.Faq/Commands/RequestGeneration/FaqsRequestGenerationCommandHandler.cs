@@ -3,9 +3,9 @@ using BaseFaq.AI.Common.Contracts.Generation;
 using BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception;
 using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Faq.Common.Persistence.FaqDb;
-using BaseFaq.Faq.Common.Persistence.FaqDb.Entities;
 using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.Faq.Enums;
+using BaseFaq.Models.Tenant.Enums;
 using MassTransit;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -15,6 +15,7 @@ namespace BaseFaq.Faq.Portal.Business.Faq.Commands.RequestGeneration;
 public sealed class FaqsRequestGenerationCommandHandler(
     FaqDbContext dbContext,
     ISessionService sessionService,
+    ITenantAiProviderResolver tenantAiProviderResolver,
     IPublishEndpoint publishEndpoint) : IRequestHandler<FaqsRequestGenerationCommand, Guid>
 {
     private static readonly ContentRefKind[] ProcessableContentRefKinds =
@@ -56,6 +57,17 @@ public sealed class FaqsRequestGenerationCommandHandler(
         string language,
         CancellationToken cancellationToken)
     {
+        var shouldPublish = await tenantAiProviderResolver.HasProviderForCommandAsync(
+            context.TenantId,
+            AiCommandType.Generation,
+            cancellationToken);
+        if (!shouldPublish)
+        {
+            throw new ApiErrorException(
+                $"Tenant '{context.TenantId}' has no AI provider configured for generation.",
+                errorCode: (int)HttpStatusCode.BadRequest);
+        }
+
         await publishEndpoint.Publish(new FaqGenerationRequestedV1
         {
             CorrelationId = context.CorrelationId,

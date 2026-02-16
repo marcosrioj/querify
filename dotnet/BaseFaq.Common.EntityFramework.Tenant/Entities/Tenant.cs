@@ -10,7 +10,6 @@ public class Tenant : BaseEntity
     public const int MaxNameLength = 128;
     public const int MaxConnectionStringLength = 1024;
     public const int MaxClientKeyLength = 128;
-    public const int MaxAiProviderKeyLength = 255;
     public const string DefaultTenantName = "Default";
 
     public required string Slug { get; set; }
@@ -19,11 +18,8 @@ public class Tenant : BaseEntity
     public required AppEnum App { get; set; }
     public required string ConnectionString { get; set; }
     public string? ClientKey { get; set; }
-    public string? AiProviderKey { get; set; }
     public bool IsActive { get; set; } = true;
-
-    public AiProvider AiProvider { get; set; } = null!;
-    public Guid AiProviderId { get; set; }
+    public ICollection<TenantAiProvider> AiProviders { get; set; } = [];
 
     public Guid UserId { get; set; }
 }

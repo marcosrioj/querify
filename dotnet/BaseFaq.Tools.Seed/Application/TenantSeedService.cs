@@ -33,9 +33,8 @@ public sealed class TenantSeedService : ITenantSeedService
         dbContext.SaveChanges();
 
         var aiProviders = SeedAiProviders(dbContext);
-        var tenantAiProviderId = aiProviders.First(x => x.Command == AiCommandType.Generation).Id;
 
-        var tenants = BuildSingleTenant(users, existingSlugs, request, tenantAiProviderId);
+        var tenants = BuildSingleTenant(users, existingSlugs, request, aiProviders);
         dbContext.Tenants.AddRange(tenants);
         dbContext.SaveChanges();
 
@@ -119,24 +118,43 @@ public sealed class TenantSeedService : ITenantSeedService
         IReadOnlyList<User> users,
         HashSet<string> existingSlugs,
         TenantSeedRequest request,
-        Guid aiProviderId)
+        IReadOnlyList<AiProvider> aiProviders)
     {
         var slug = existingSlugs.Contains("tenant-001") ? $"tenant-{Guid.NewGuid():N}" : "tenant-001";
         var userId = users.Count > 0 ? users[0].Id : Guid.Empty;
+        var generationProvider = aiProviders.First(x => x.Command == AiCommandType.Generation);
+        var matchingProvider = aiProviders.First(x => x.Command == AiCommandType.Matching);
+        var tenantId = Guid.NewGuid();
 
         return
         [
             new Tenant
             {
-                Id = Guid.NewGuid(),
+                Id = tenantId,
                 Slug = slug,
                 Name = Tenant.DefaultTenantName,
                 Edition = TenantEdition.Free,
                 App = AppEnum.Faq,
                 ConnectionString = request.FaqConnectionString,
-                AiProviderId = aiProviderId,
                 IsActive = true,
-                UserId = userId
+                UserId = userId,
+                AiProviders =
+                [
+                    new TenantAiProvider
+                    {
+                        Id = Guid.NewGuid(),
+                        TenantId = tenantId,
+                        AiProviderId = generationProvider.Id,
+                        AiProviderKey = "seed-generation-key"
+                    },
+                    new TenantAiProvider
+                    {
+                        Id = Guid.NewGuid(),
+                        TenantId = tenantId,
+                        AiProviderId = matchingProvider.Id,
+                        AiProviderKey = "seed-matching-key"
+                    }
+                ]
             }
         ];
     }

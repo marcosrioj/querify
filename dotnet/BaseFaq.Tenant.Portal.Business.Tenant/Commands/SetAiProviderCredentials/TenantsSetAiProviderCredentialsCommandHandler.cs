@@ -19,11 +19,10 @@ public class TenantsSetAiProviderCredentialsCommandHandler(TenantDbContext dbCon
 
         var userId = sessionService.GetUserId();
 
-        var providerExists = await dbContext.AiProviders
+        var provider = await dbContext.AiProviders
             .AsNoTracking()
-            .AnyAsync(x => x.Id == request.AiProviderId, cancellationToken);
-
-        if (!providerExists)
+            .FirstOrDefaultAsync(x => x.Id == request.AiProviderId, cancellationToken);
+        if (provider is null)
         {
             throw new ApiErrorException(
                 $"AI Provider '{request.AiProviderId}' was not found.",
@@ -43,8 +42,27 @@ public class TenantsSetAiProviderCredentialsCommandHandler(TenantDbContext dbCon
 
         foreach (var tenant in tenants)
         {
-            tenant.AiProviderId = request.AiProviderId;
-            tenant.AiProviderKey = request.AiProviderKey;
+            var existingForCommand = await dbContext.TenantAiProviders
+                .Include(x => x.AiProvider)
+                .FirstOrDefaultAsync(
+                    x => x.TenantId == tenant.Id && x.AiProvider.Command == provider.Command,
+                    cancellationToken);
+
+            if (existingForCommand is null)
+            {
+                dbContext.TenantAiProviders.Add(new BaseFaq.Common.EntityFramework.Tenant.Entities.TenantAiProvider
+                {
+                    TenantId = tenant.Id,
+                    AiProviderId = provider.Id,
+                    AiProviderKey = request.AiProviderKey
+                });
+            }
+            else
+            {
+                existingForCommand.AiProviderId = provider.Id;
+                existingForCommand.AiProviderKey = request.AiProviderKey;
+                dbContext.TenantAiProviders.Update(existingForCommand);
+            }
         }
 
         await dbContext.SaveChangesAsync(cancellationToken);

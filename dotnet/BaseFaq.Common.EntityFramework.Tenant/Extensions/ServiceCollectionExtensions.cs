@@ -22,6 +22,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IUserIdProvider, UserIdProvider>();
         services.AddScoped<IAllowedTenantProvider, AllowedTenantProvider>();
         services.AddScoped<ITenantClientKeyResolver, TenantClientKeyResolver>();
+        services.AddScoped<ITenantAiProviderResolver, TenantAiProviderResolver>();
 
         return services;
     }

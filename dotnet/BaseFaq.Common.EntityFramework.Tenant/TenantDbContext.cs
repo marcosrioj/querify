@@ -29,6 +29,7 @@ public class TenantDbContext(
 {
     public DbSet<Entities.Tenant> Tenants { get; set; } = null!;
     public DbSet<AiProvider> AiProviders { get; set; } = null!;
+    public DbSet<TenantAiProvider> TenantAiProviders { get; set; } = null!;
     public DbSet<TenantConnection> TenantConnections { get; set; } = null!;
     public DbSet<User> Users { get; set; } = null!;
 
@@ -52,12 +53,12 @@ public class TenantDbContext(
             .Property(tenant => tenant.ConnectionString)
             .HasConversion(converter);
 
-        var secretConverter = new ValueConverter<string?, string?>(
+        var secretConverter = new ValueConverter<string, string>(
             value => EncryptSecret(value),
             value => DecryptSecret(value));
 
-        modelBuilder.Entity<Entities.Tenant>()
-            .Property(tenant => tenant.AiProviderKey)
+        modelBuilder.Entity<TenantAiProvider>()
+            .Property(entity => entity.AiProviderKey)
             .HasConversion(secretConverter);
 
         modelBuilder.Entity<TenantConnection>()
@@ -191,23 +192,23 @@ public class TenantDbContext(
                value.StartsWith("v1:", StringComparison.Ordinal);
     }
 
-    private static string? EncryptSecret(string? value)
+    private static string EncryptSecret(string value)
     {
         if (string.IsNullOrWhiteSpace(value) || IsEncrypted(value))
         {
             return value;
         }
 
-        return StringCipher.Instance.Encrypt(value);
+        return StringCipher.Instance.Encrypt(value) ?? string.Empty;
     }
 
-    private static string? DecryptSecret(string? value)
+    private static string DecryptSecret(string value)
     {
         if (string.IsNullOrWhiteSpace(value) || !IsEncrypted(value))
         {
             return value;
         }
 
-        return StringCipher.Instance.Decrypt(value);
+        return StringCipher.Instance.Decrypt(value) ?? string.Empty;
     }
 }

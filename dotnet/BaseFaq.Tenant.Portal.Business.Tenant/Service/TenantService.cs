@@ -1,10 +1,13 @@
 using BaseFaq.Models.Tenant.Dtos.Tenant;
+using BaseFaq.Models.Tenant.Dtos.TenantAiProvider;
+using BaseFaq.Models.Tenant.Enums;
 using BaseFaq.Tenant.Portal.Business.Tenant.Abstractions;
 using BaseFaq.Tenant.Portal.Business.Tenant.Commands.CreateOrUpdateTenants;
 using BaseFaq.Tenant.Portal.Business.Tenant.Commands.GenerateNewClientKey;
 using BaseFaq.Tenant.Portal.Business.Tenant.Commands.SetAiProviderCredentials;
 using BaseFaq.Tenant.Portal.Business.Tenant.Queries.GetAllTenants;
 using BaseFaq.Tenant.Portal.Business.Tenant.Queries.GetClientKey;
+using BaseFaq.Tenant.Portal.Business.Tenant.Queries.GetConfiguredAiProviders;
 using BaseFaq.Tenant.Portal.Business.Tenant.Queries.IsAiProviderKeyConfigured;
 using MediatR;
 
@@ -41,6 +44,11 @@ public class TenantService(IMediator mediator) : ITenantService
         return mediator.Send(new TenantsGenerateNewClientKeyCommand(), token);
     }
 
+    public Task<List<TenantAiProviderDto>> GetConfiguredAiProviders(CancellationToken token)
+    {
+        return mediator.Send(new TenantsGetConfiguredAiProvidersQuery(), token);
+    }
+
     public Task SetAiProviderCredentials(TenantSetAiProviderCredentialsRequestDto requestDto, CancellationToken token)
     {
         ArgumentNullException.ThrowIfNull(requestDto);
@@ -52,11 +60,11 @@ public class TenantService(IMediator mediator) : ITenantService
         }, token);
     }
 
-    public Task<bool> IsAiProviderKeyConfigured(Guid aiProviderId, CancellationToken token)
+    public Task<bool> IsAiProviderKeyConfigured(AiCommandType command, CancellationToken token)
     {
         return mediator.Send(new TenantsIsAiProviderKeyConfiguredQuery
         {
-            AiProviderId = aiProviderId
+            Command = command
         }, token);
     }
 }
