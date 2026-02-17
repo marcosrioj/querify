@@ -31,18 +31,19 @@ public sealed class TenantSeedService : ITenantSeedService
             return false;
         }
 
-        var requiredKeys = BuildAiProviderEntries()
-            .Select(x => $"{(int)x.Command}|{x.Provider}|{x.Model}")
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
-
-        var existingKeys = dbContext.AiProviders
+        var requiredProviders = BuildAiProviderEntries();
+        var existingByKey = dbContext.AiProviders
             .AsNoTracking()
-            .Select(x => new { x.Command, x.Provider, x.Model })
             .ToList()
-            .Select(x => $"{(int)x.Command}|{x.Provider}|{x.Model}")
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+            .GroupBy(x => BuildAiProviderKey(x.Command, x.Provider), StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(x => x.Key, x => x.ToList(), StringComparer.OrdinalIgnoreCase);
 
-        return requiredKeys.All(existingKeys.Contains);
+        return requiredProviders.All(requiredProvider =>
+        {
+            var key = BuildAiProviderKey(requiredProvider.Command, requiredProvider.Provider);
+            return existingByKey.TryGetValue(key, out var providers) &&
+                   providers.Any(x => x.Model.Equals(requiredProvider.Model, StringComparison.OrdinalIgnoreCase));
+        });
     }
 
     public Guid SeedDummyData(TenantDbContext dbContext, TenantSeedRequest request, SeedCounts counts)
@@ -230,21 +231,52 @@ public sealed class TenantSeedService : ITenantSeedService
     private static List<AiProvider> SeedAiProviders(TenantDbContext dbContext)
     {
         var required = BuildAiProviderEntries();
-
-        var existingKeys = dbContext.AiProviders
-            .AsNoTracking()
-            .Select(x => new { x.Command, x.Provider, x.Model })
+        var existingProviders = dbContext.AiProviders
+            .IgnoreQueryFilters()
             .ToList()
-            .Select(x => $"{(int)x.Command}|{x.Provider}|{x.Model}")
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+            .GroupBy(x => BuildAiProviderKey(x.Command, x.Provider), StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(x => x.Key, x => x.ToList(), StringComparer.OrdinalIgnoreCase);
+        var assignedProviderIds = dbContext.TenantAiProviders
+            .IgnoreQueryFilters()
+            .Select(x => x.AiProviderId)
+            .ToHashSet();
 
-        var toInsert = required
-            .Where(x => !existingKeys.Contains($"{(int)x.Command}|{x.Provider}|{x.Model}"))
-            .ToList();
-
-        if (toInsert.Count > 0)
+        var hasChanges = false;
+        foreach (var requiredProvider in required)
         {
-            dbContext.AiProviders.AddRange(toInsert);
+            var key = BuildAiProviderKey(requiredProvider.Command, requiredProvider.Provider);
+            if (existingProviders.TryGetValue(key, out var providersByKey) && providersByKey.Count > 0)
+            {
+                var providerToUpdate =
+                    providersByKey.FirstOrDefault(x =>
+                        x.Model.Equals(requiredProvider.Model, StringComparison.OrdinalIgnoreCase))
+                    ?? providersByKey
+                        .OrderByDescending(x => assignedProviderIds.Contains(x.Id))
+                        .ThenBy(x => x.IsDeleted)
+                        .ThenBy(x => x.CreatedDate ?? DateTime.MinValue)
+                        .First();
+
+                if (ShouldUpdateProvider(providerToUpdate, requiredProvider))
+                {
+                    providerToUpdate.Provider = requiredProvider.Provider;
+                    providerToUpdate.Model = requiredProvider.Model;
+                    providerToUpdate.Prompt = requiredProvider.Prompt;
+                    providerToUpdate.Command = requiredProvider.Command;
+                    providerToUpdate.IsDeleted = false;
+                    providerToUpdate.DeletedBy = null;
+                    providerToUpdate.DeletedDate = null;
+                    hasChanges = true;
+                }
+
+                continue;
+            }
+
+            dbContext.AiProviders.Add(requiredProvider);
+            hasChanges = true;
+        }
+
+        if (hasChanges)
+        {
             dbContext.SaveChanges();
         }
 
@@ -255,37 +287,53 @@ public sealed class TenantSeedService : ITenantSeedService
             .ToList();
     }
 
+    private static string BuildAiProviderKey(AiCommandType command, string provider)
+    {
+        return $"{(int)command}|{provider}";
+    }
+
+    private static bool ShouldUpdateProvider(AiProvider existingProvider, AiProvider requiredProvider)
+    {
+        return !existingProvider.Provider.Equals(requiredProvider.Provider, StringComparison.Ordinal) ||
+               !existingProvider.Model.Equals(requiredProvider.Model, StringComparison.Ordinal) ||
+               !existingProvider.Prompt.Equals(requiredProvider.Prompt, StringComparison.Ordinal) ||
+               existingProvider.Command != requiredProvider.Command ||
+               existingProvider.IsDeleted ||
+               existingProvider.DeletedBy is not null ||
+               existingProvider.DeletedDate is not null;
+    }
+
     private static List<AiProvider> BuildAiProviderEntries()
     {
         var generationModels = new (string Provider, string Model)[]
         {
-            ("openai", "gpt-4o-mini"),
-            ("anthropic", "claude-3-5-sonnet"),
-            ("google", "gemini-1.5-pro"),
-            ("azure-openai", "gpt-4o"),
-            ("aws-bedrock", "anthropic.claude-3-sonnet"),
-            ("cohere", "command-r-plus"),
-            ("mistral", "mistral-large-latest"),
-            ("together-ai", "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo"),
-            ("fireworks-ai", "accounts/fireworks/models/llama-v3p1-70b-instruct"),
-            ("groq", "llama-3.1-70b-versatile"),
+            ("openai", "gpt-5.2"),
+            ("anthropic", "claude-sonnet-4-5"),
+            ("google", "gemini-2.5-pro"),
+            ("azure-openai", "gpt-5.2"),
+            ("aws-bedrock", "amazon.nova-pro-v1:0"),
+            ("cohere", "command-a-03-2025"),
+            ("mistral", "mistral-medium-latest"),
+            ("together-ai", "meta-llama/Llama-3.3-70B-Instruct-Turbo"),
+            ("fireworks-ai", "accounts/fireworks/models/llama-v3p3-70b-instruct"),
+            ("groq", "llama-3.3-70b-versatile"),
             ("voyage-ai", "external-llm-required"),
             ("jina-ai", "external-llm-required")
         };
 
         var matchingModels = new (string Provider, string Model)[]
         {
-            ("openai", "text-embedding-3-small"),
+            ("openai", "text-embedding-3-large"),
             ("anthropic", "external-embedding-required"),
-            ("google", "text-embedding-004"),
+            ("google", "gemini-embedding-001"),
             ("azure-openai", "text-embedding-3-large"),
-            ("aws-bedrock", "amazon.titan-embed-text-v2"),
+            ("aws-bedrock", "amazon.titan-embed-text-v2:0"),
             ("cohere", "embed-multilingual-v3.0"),
             ("mistral", "mistral-embed"),
-            ("together-ai", "BAAI/bge-large-en-v1.5"),
-            ("fireworks-ai", "nomic-ai/nomic-embed-text-v1.5"),
+            ("together-ai", "intfloat/multilingual-e5-large-instruct"),
+            ("fireworks-ai", "fireworks/qwen3-embedding-8b"),
             ("groq", "external-embedding-required"),
-            ("voyage-ai", "voyage-3"),
+            ("voyage-ai", "voyage-3.5"),
             ("jina-ai", "jina-embeddings-v3")
         };
 
