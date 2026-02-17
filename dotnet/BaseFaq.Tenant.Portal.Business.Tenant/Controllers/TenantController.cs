@@ -1,6 +1,4 @@
 using BaseFaq.Models.Tenant.Dtos.Tenant;
-using BaseFaq.Models.Tenant.Dtos.TenantAiProvider;
-using BaseFaq.Models.Tenant.Enums;
 using BaseFaq.Tenant.Portal.Business.Tenant.Abstractions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -46,14 +44,6 @@ public class TenantController(ITenantService tenantService) : ControllerBase
         return Ok(result);
     }
 
-    [HttpGet("GetConfiguredAiProviders")]
-    [ProducesResponseType(typeof(List<TenantAiProviderDto>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetConfiguredAiProviders(CancellationToken token)
-    {
-        var result = await tenantService.GetConfiguredAiProviders(token);
-        return Ok(result);
-    }
-
     [HttpPost("SetAiProviderCredentials")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> SetAiProviderCredentials(
@@ -62,13 +52,5 @@ public class TenantController(ITenantService tenantService) : ControllerBase
     {
         await tenantService.SetAiProviderCredentials(dto, token);
         return NoContent();
-    }
-
-    [HttpGet("IsAiProviderKeyConfigured/{command:int}")]
-    [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
-    public async Task<IActionResult> IsAiProviderKeyConfigured(AiCommandType command, CancellationToken token)
-    {
-        var result = await tenantService.IsAiProviderKeyConfigured(command, token);
-        return Ok(result);
     }
 }

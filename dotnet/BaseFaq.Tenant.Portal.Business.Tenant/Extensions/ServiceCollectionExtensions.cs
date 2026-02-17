@@ -10,6 +10,7 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddTenantBusiness(this IServiceCollection services)
     {
         services.AddScoped<ITenantService, TenantService>();
+        services.AddScoped<ITenantAiProviderService, TenantAiProviderService>();
         services.AddMediatR(config =>
             config.RegisterServicesFromAssemblyContaining<TenantsCreateOrUpdateTenantsCommandHandler>());
 
