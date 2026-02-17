@@ -231,15 +231,14 @@ Recommended for BaseFAQ:
 
 ## 8) OpenAI API Key Security Strategy
 ### Secret manager
-- Development: .NET User Secrets.
-- Production: managed secret manager (Azure Key Vault / AWS Secrets Manager / GCP Secret Manager).
+- Development and production: keep provider keys in a managed secret manager
+  (Azure Key Vault / AWS Secrets Manager / GCP Secret Manager) and apply them via tenant management flows.
 - Never store provider keys in repository `appsettings*.json`.
-- Implemented for Generation and Matching processes via `AiProvider` section with dual slots (`PrimaryApiKey` / `SecondaryApiKey`) and runtime slot selection (`ActiveKeySlot`).
+- Implemented at tenant level via `TenantAiProviders` (`AiProviderId` + encrypted `AiProviderKey`).
 
 ### Key rotation
-- Support active/standby key references.
+- Rotate by updating tenant provider credentials per command (`Generation` / `Matching`).
 - Rotate regularly (time-based) and on incident trigger.
-- Use `IOptionsMonitor` or equivalent config reload for zero-downtime key switch.
 - Runbook: `docs/operations/secret-manager-key-rotation.md`.
 
 ### Log masking and no leakage
@@ -316,7 +315,6 @@ dotnet
   /BaseFaq.AI.Matching.Business.Matching
   /BaseFaq.AI.Matching.Business.Worker
   /BaseFaq.AI.Matching.Test.IntegrationTests
-  /BaseFaq.AI.Common.Providers
   /BaseFaq.AI.Common.VectorStore
   /BaseFaq.AI.Common.Contracts
 ```
@@ -333,7 +331,6 @@ dotnet/BaseFaq.AI.Matching.Business.Matching/BaseFaq.AI.Matching.Business.Matchi
 dotnet/BaseFaq.AI.Matching.Business.Worker/BaseFaq.AI.Matching.Business.Worker.csproj
 dotnet/BaseFaq.AI.Matching.Test.IntegrationTests/BaseFaq.AI.Matching.Test.IntegrationTests.csproj
 
-dotnet/BaseFaq.AI.Common.Providers/BaseFaq.AI.Common.Providers.csproj
 dotnet/BaseFaq.AI.Common.VectorStore/BaseFaq.AI.Common.VectorStore.csproj
 dotnet/BaseFaq.AI.Common.Contracts/BaseFaq.AI.Common.Contracts.csproj
 ```
@@ -410,7 +407,7 @@ Tracking convention:
 | ID | Item | Status | Target Artifact |
 |---|---|---|---|
 | `AI-HARD-01` | Retry policy and DLQ handling validation for worker consumers | `Done` | `dotnet/BaseFaq.AI.Generation.Test.IntegrationTests/Tests/Infrastructure/RetryAndDlqPolicyTests.cs` |
-| `AI-HARD-02` | Secret manager + dual-slot key rotation verification for AI providers | `Done` | `docs/operations/secret-manager-key-rotation.md` |
+| `AI-HARD-02` | Tenant-level AI provider key rotation verification | `Done` | `docs/operations/secret-manager-key-rotation.md` |
 | `AI-HARD-03` | Logging redaction and sensitive field masking guardrails | `Done` | `dotnet/BaseFaq.AI.Generation.Test.IntegrationTests/Tests/Infrastructure/LoggingRedactionTests.cs` |
 
 ### Scale backlog
@@ -418,7 +415,7 @@ Tracking convention:
 |---|---|---|---|
 | `AI-SCALE-01` | Worker split for generation/matching workloads and throughput baselines | `Todo` | `dotnet/BaseFaq.AI.Generation.Business.Worker`, `dotnet/BaseFaq.AI.Matching.Business.Worker` |
 | `AI-SCALE-02` | Adaptive concurrency controls with queue-depth feedback | `Todo` | `dotnet/BaseFaq.AI.Generation.Business.Worker` |
-| `AI-SCALE-03` | Provider routing and cost control policy implementation | `Todo` | `dotnet/BaseFaq.AI.Common.Providers` |
+| `AI-SCALE-03` | Provider routing and cost control policy implementation | `Todo` | `dotnet/BaseFaq.AI.Generation.Business.Worker`, `dotnet/BaseFaq.AI.Matching.Business.Worker` |
 
 Review cadence:
 - Weekly backlog triage in architecture review.

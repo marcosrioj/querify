@@ -1,17 +1,11 @@
 using BaseFaq.AI.Common.Contracts.Generation;
-using BaseFaq.AI.Common.Providers.Abstractions;
-using BaseFaq.AI.Common.Providers.Options;
-using BaseFaq.AI.Common.Providers.Service;
 using BaseFaq.AI.Generation.Business.Worker.Commands.ProcessFaqGenerationRequested;
 using BaseFaq.AI.Generation.Business.Worker.Consumers;
-using BaseFaq.AI.Generation.Business.Worker.Abstractions;
-using BaseFaq.AI.Generation.Business.Worker.Service;
 using BaseFaq.Common.Infrastructure.MassTransit.Extensions;
 using BaseFaq.Common.Infrastructure.MassTransit.Models;
 using MassTransit;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 
 namespace BaseFaq.AI.Generation.Business.Worker.Extensions;
 
@@ -22,15 +16,6 @@ public static class ServiceCollectionExtensions
         var rabbitMqOption = configuration.GetSection(RabbitMqOption.Name).Get<RabbitMqOption>()
                              ?? throw new InvalidOperationException("RabbitMQ configuration is missing.");
 
-        services.AddOptions<AiProviderOptions>()
-            .Bind(configuration.GetSection(AiProviderOptions.Name))
-            .ValidateOnStart();
-        services.AddSingleton<IValidateOptions<AiProviderOptions>, AiProviderOptionsValidator>();
-
-        services.AddScoped<IAiProviderCredentialAccessor, AiProviderCredentialAccessor>();
-        services.AddScoped<IFaqIntegrationDbContextFactory, FaqIntegrationDbContextFactory>();
-        services.AddScoped<IGenerationFaqWriteService, GenerationFaqWriteService>();
-        services.AddScoped<IGenerationPromptComposer, GenerationPromptComposer>();
         services.AddMediatR(config =>
             config.RegisterServicesFromAssemblyContaining<ProcessFaqGenerationRequestedCommandHandler>());
 

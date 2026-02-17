@@ -1,27 +1,35 @@
 using System.Diagnostics;
+using System.Text;
 using System.Text.RegularExpressions;
 using BaseFaq.AI.Common.Contracts.Matching;
 using BaseFaq.AI.Common.Persistence.AiDb;
 using BaseFaq.AI.Common.Persistence.AiDb.Entities;
-using BaseFaq.AI.Common.Providers.Abstractions;
-using BaseFaq.AI.Matching.Business.Worker.Abstractions;
+using BaseFaq.Common.EntityFramework.Tenant;
+using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Faq.Common.Persistence.FaqDb;
+using BaseFaq.Models.Common.Enums;
+using BaseFaq.Models.Tenant.Enums;
 using MassTransit;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
 namespace BaseFaq.AI.Matching.Business.Worker.Commands.ProcessFaqMatchingRequested;
 
 public sealed class ProcessFaqMatchingRequestedCommandHandler(
     AiDbContext aiDbContext,
-    IAiProviderCredentialAccessor aiProviderCredentialAccessor,
-    IMatchingFaqDbContextFactory matchingFaqDbContextFactory,
-    IMatchingPromptComposer matchingPromptComposer,
+    TenantDbContext tenantDbContext,
+    ITenantConnectionStringProvider tenantConnectionStringProvider,
+    IConfiguration configuration,
     IPublishEndpoint publishEndpoint)
     : IRequestHandler<ProcessFaqMatchingRequestedCommand>
 {
     private const int MaxCandidates = 5;
+    private const int MaxPromptCandidates = 100;
     private const string SimilarityErrorCode = "MATCHING_FAILED";
+    private const string PromptDomain = "matching";
+    private const string PromptVersion = "2026-02-15.matching.v1";
     private static readonly Regex WordSplitter = new("[^a-z0-9]+", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
     public async Task Handle(ProcessFaqMatchingRequestedCommand command, CancellationToken cancellationToken)
@@ -64,19 +72,25 @@ public sealed class ProcessFaqMatchingRequestedCommandHandler(
         FaqMatchingRequestedV1 message,
         CancellationToken cancellationToken)
     {
-        var providerCredential = aiProviderCredentialAccessor.GetCurrent();
-        await using var faqDbContext = matchingFaqDbContextFactory.Create(message.TenantId);
+        var providerContext = await ResolveTenantAiProviderAsync(
+            message.TenantId,
+            AiCommandType.Matching,
+            cancellationToken);
+
+        await using var faqDbContext = CreateFaqDbContext(message.TenantId);
 
         var sourceQuestion = await LoadSourceQuestionAsync(faqDbContext, message, cancellationToken);
         var queryText = string.IsNullOrWhiteSpace(message.Query) ? sourceQuestion : message.Query;
         var candidates = await LoadCandidateQuestionsAsync(faqDbContext, message, cancellationToken);
-        var promptComposition = matchingPromptComposer.Compose(
+
+        var promptData = BuildPromptData(
             sourceQuestion,
             queryText,
             message.Language,
             candidates.Select(x => new MatchingPromptCandidate(x.Id, x.Question)).ToArray(),
-            providerCredential);
-        AddPromptActivityTags(promptComposition, candidates.Count);
+            providerContext);
+
+        AddPromptActivityTags(promptData, candidates.Count, providerContext);
 
         return candidates
             .Select(x => new MatchingCandidate(x.Id, ComputeSimilarity(queryText, x.Question)))
@@ -201,13 +215,181 @@ public sealed class ProcessFaqMatchingRequestedCommandHandler(
             .ToHashSet(StringComparer.Ordinal);
     }
 
-    private static void AddPromptActivityTags(MatchingPromptComposition promptComposition, int candidatesCount)
+    private static void AddPromptActivityTags(
+        MatchingPromptData promptData,
+        int candidatesCount,
+        MatchingAiProviderContext providerContext)
     {
-        Activity.Current?.SetTag("basefaq.prompt.domain", promptComposition.Domain);
-        Activity.Current?.SetTag("basefaq.prompt.version", promptComposition.Version);
-        Activity.Current?.SetTag("basefaq.prompt.provider", promptComposition.Provider);
+        Activity.Current?.SetTag("gen_ai.system", providerContext.Provider);
+        Activity.Current?.SetTag("gen_ai.request.model", providerContext.Model);
+        Activity.Current?.SetTag("basefaq.ai_key_configured", !string.IsNullOrWhiteSpace(providerContext.ApiKey));
+        Activity.Current?.SetTag("basefaq.prompt.domain", promptData.Domain);
+        Activity.Current?.SetTag("basefaq.prompt.version", promptData.Version);
+        Activity.Current?.SetTag("basefaq.prompt.provider", promptData.Provider);
         Activity.Current?.SetTag("basefaq.matching.candidates_count", candidatesCount);
     }
+
+    private static MatchingPromptData BuildPromptData(
+        string sourceQuestion,
+        string queryText,
+        string language,
+        IReadOnlyCollection<MatchingPromptCandidate> candidates,
+        MatchingAiProviderContext providerContext)
+    {
+        var provider = NormalizeProvider(providerContext.Provider);
+
+        return new MatchingPromptData(
+            PromptDomain,
+            PromptVersion,
+            provider,
+            ResolvePromptTemplate(providerContext.Prompt),
+            BuildPromptInput(sourceQuestion, queryText, language, candidates),
+            BuildOutputSchema());
+    }
+
+    private static string ResolvePromptTemplate(string? prompt)
+    {
+        if (!string.IsNullOrWhiteSpace(prompt))
+        {
+            return prompt;
+        }
+
+        return
+            "You are a FAQ semantic matching engine. Rank candidates by semantic relevance and return deterministic JSON.";
+    }
+
+    private static string BuildPromptInput(
+        string sourceQuestion,
+        string queryText,
+        string language,
+        IReadOnlyCollection<MatchingPromptCandidate> candidates)
+    {
+        var builder = new StringBuilder();
+        builder.AppendLine("Task: rank FAQ candidates by semantic similarity.");
+        builder.AppendLine($"language: {language}");
+        builder.AppendLine($"sourceQuestion: {sourceQuestion}");
+        builder.AppendLine($"query: {queryText}");
+        builder.AppendLine($"candidatesTotal: {candidates.Count}");
+        builder.AppendLine("candidates:");
+
+        foreach (var candidate in candidates.Take(MaxPromptCandidates))
+        {
+            builder.AppendLine($"- faqItemId={candidate.FaqItemId:D}, question={candidate.Question}");
+        }
+
+        builder.AppendLine("Return top 5 candidates with score in [0,1], sorted descending.");
+        return builder.ToString();
+    }
+
+    private static string BuildOutputSchema()
+    {
+        return """
+               {
+                 "type": "object",
+                 "required": ["topCandidates"],
+                 "properties": {
+                   "topCandidates": {
+                     "type": "array",
+                     "maxItems": 5,
+                     "items": {
+                       "type": "object",
+                       "required": ["faqItemId", "score", "reason"],
+                       "properties": {
+                         "faqItemId": { "type": "string" },
+                         "score": { "type": "number", "minimum": 0, "maximum": 1 },
+                         "reason": { "type": "string", "maxLength": 300 }
+                       }
+                     }
+                   }
+                 }
+               }
+               """;
+    }
+
+    private static string NormalizeProvider(string? provider)
+    {
+        return string.IsNullOrWhiteSpace(provider)
+            ? "unknown"
+            : provider.Trim().ToLowerInvariant();
+    }
+
+    private async Task<MatchingAiProviderContext> ResolveTenantAiProviderAsync(
+        Guid tenantId,
+        AiCommandType commandType,
+        CancellationToken cancellationToken)
+    {
+        var provider = await tenantDbContext.TenantAiProviders
+            .AsNoTracking()
+            .Where(x => x.TenantId == tenantId && x.AiProvider.Command == commandType)
+            .OrderByDescending(x => x.AiProvider.Provider.ToLower() == "openai")
+            .ThenBy(x => x.AiProvider.Provider)
+            .ThenBy(x => x.AiProvider.Model)
+            .Select(x => new MatchingAiProviderContext(
+                x.AiProvider.Provider,
+                x.AiProvider.Model,
+                x.AiProvider.Prompt,
+                x.AiProviderKey))
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (provider is null)
+        {
+            throw new InvalidOperationException(
+                $"Tenant '{tenantId}' has no AI provider configured for '{commandType}'.");
+        }
+
+        return provider;
+    }
+
+    private FaqDbContext CreateFaqDbContext(Guid tenantId)
+    {
+        var connectionString = tenantConnectionStringProvider.GetConnectionString(tenantId);
+
+        var options = new DbContextOptionsBuilder<FaqDbContext>()
+            .UseNpgsql(connectionString)
+            .Options;
+
+        return new FaqDbContext(
+            options,
+            new IntegrationSessionService(tenantId, ResolveAiUserId(configuration)),
+            configuration,
+            new StaticTenantConnectionStringProvider(connectionString),
+            new HttpContextAccessor());
+    }
+
+    private static Guid ResolveAiUserId(IConfiguration configuration)
+    {
+        return Guid.TryParse(configuration["Ai:UserId"], out var configuredUserId)
+            ? configuredUserId
+            : Guid.Empty;
+    }
+
+    private sealed class IntegrationSessionService(Guid tenantId, Guid userId) : ISessionService
+    {
+        public Guid GetTenantId(AppEnum app) => tenantId;
+        public Guid GetUserId() => userId;
+    }
+
+    private sealed class StaticTenantConnectionStringProvider(string connectionString)
+        : ITenantConnectionStringProvider
+    {
+        public string GetConnectionString(Guid tenantId) => connectionString;
+    }
+
+    private sealed record MatchingAiProviderContext(
+        string Provider,
+        string Model,
+        string? Prompt,
+        string? ApiKey);
+
+    private sealed record MatchingPromptCandidate(Guid FaqItemId, string Question);
+
+    private sealed record MatchingPromptData(
+        string Domain,
+        string Version,
+        string Provider,
+        string Template,
+        string Input,
+        string OutputSchema);
 
     private sealed record CandidateQuestion(Guid Id, string Question);
 }

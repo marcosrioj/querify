@@ -5,28 +5,36 @@ using System.Text.Json;
 using BaseFaq.AI.Common.Contracts.Generation;
 using BaseFaq.AI.Common.Persistence.AiDb;
 using BaseFaq.AI.Common.Persistence.AiDb.Entities;
-using BaseFaq.AI.Common.Providers.Abstractions;
-using BaseFaq.AI.Common.Providers.Models;
-using BaseFaq.AI.Generation.Business.Worker.Abstractions;
 using BaseFaq.AI.Generation.Business.Worker.Observability;
 using BaseFaq.AI.Generation.Business.Worker.Service;
+using BaseFaq.Common.EntityFramework.Tenant;
+using BaseFaq.Common.Infrastructure.Core.Abstractions;
+using BaseFaq.Faq.Common.Persistence.FaqDb;
+using BaseFaq.Faq.Common.Persistence.FaqDb.Entities;
 using BaseFaq.Models.Ai.Enums;
+using BaseFaq.Models.Common.Enums;
+using BaseFaq.Models.Tenant.Enums;
 using MassTransit;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace BaseFaq.AI.Generation.Business.Worker.Commands.ProcessFaqGenerationRequested;
 
 public sealed class ProcessFaqGenerationRequestedCommandHandler(
     AiDbContext aiDbContext,
-    IAiProviderCredentialAccessor aiProviderCredentialAccessor,
-    IFaqIntegrationDbContextFactory faqIntegrationDbContextFactory,
-    IGenerationFaqWriteService generationFaqWriteService,
-    IGenerationPromptComposer generationPromptComposer,
+    TenantDbContext tenantDbContext,
+    ITenantConnectionStringProvider tenantConnectionStringProvider,
+    IConfiguration configuration,
+    ILogger<ProcessFaqGenerationRequestedCommandHandler> logger,
     IPublishEndpoint publishEndpoint)
     : IRequestHandler<ProcessFaqGenerationRequestedCommand>
 {
-    private const string DefaultPromptProfileSuffix = "default";
+    private const string PromptProfileFallback = "default";
+    private const string PromptDomain = "generation";
+    private const string PromptVersion = "2026-02-15.generation.v1";
 
     public async Task Handle(ProcessFaqGenerationRequestedCommand command, CancellationToken cancellationToken)
     {
@@ -60,14 +68,18 @@ public sealed class ProcessFaqGenerationRequestedCommandHandler(
             return null;
         }
 
-        var providerCredential = aiProviderCredentialAccessor.GetCurrent();
-        var job = CreateProcessingJob(message, providerCredential);
+        var providerContext = await ResolveTenantAiProviderAsync(
+            message.TenantId,
+            AiCommandType.Generation,
+            cancellationToken);
+
+        var job = CreateProcessingJob(message, providerContext);
         aiDbContext.GenerationJobs.Add(job);
 
         try
         {
             await SaveJobWithTracingAsync("generation.ai_db.job_create", cancellationToken);
-            return new GenerationProcessingContext(job, providerCredential);
+            return new GenerationProcessingContext(job, providerContext);
         }
         catch (DbUpdateException ex) when (IsDuplicateJobException(ex))
         {
@@ -85,7 +97,7 @@ public sealed class ProcessFaqGenerationRequestedCommandHandler(
         {
             await ProcessGenerationAsync(
                 message,
-                processingContext.ProviderCredential,
+                processingContext.ProviderContext,
                 processingContext.Job,
                 cancellationToken);
         }
@@ -106,7 +118,8 @@ public sealed class ProcessFaqGenerationRequestedCommandHandler(
                 cancellationToken);
     }
 
-    private async Task<bool> IsJobAlreadyCreatedAsync(FaqGenerationRequestedV1 message,
+    private async Task<bool> IsJobAlreadyCreatedAsync(
+        FaqGenerationRequestedV1 message,
         CancellationToken cancellationToken)
     {
         return await aiDbContext.GenerationJobs
@@ -119,7 +132,7 @@ public sealed class ProcessFaqGenerationRequestedCommandHandler(
 
     private static GenerationJob CreateProcessingJob(
         FaqGenerationRequestedV1 message,
-        AiProviderCredential providerCredential)
+        GenerationAiProviderContext providerContext)
     {
         return new GenerationJob
         {
@@ -128,13 +141,13 @@ public sealed class ProcessFaqGenerationRequestedCommandHandler(
             RequestedByUserId = message.RequestedByUserId,
             FaqId = message.FaqId,
             Language = message.Language,
-            PromptProfile = ResolveDefaultPromptProfile(providerCredential),
+            PromptProfile = BuildPromptProfile(providerContext),
             IdempotencyKey = message.IdempotencyKey,
             RequestedUtc = message.RequestedUtc,
             StartedUtc = DateTime.UtcNow,
             Status = GenerationJobStatus.Processing,
-            Provider = providerCredential.Provider,
-            Model = providerCredential.Model
+            Provider = providerContext.Provider,
+            Model = providerContext.Model
         };
     }
 
@@ -151,18 +164,19 @@ public sealed class ProcessFaqGenerationRequestedCommandHandler(
 
     private async Task ProcessGenerationAsync(
         FaqGenerationRequestedV1 message,
-        AiProviderCredential providerCredential,
+        GenerationAiProviderContext providerContext,
         GenerationJob job,
         CancellationToken cancellationToken)
     {
         var studiedRefs = await LoadStudiedRefsAsync(message, cancellationToken);
-        var promptComposition = generationPromptComposer.Compose(message, studiedRefs, providerCredential);
+        var promptData = BuildPromptData(message, studiedRefs, providerContext);
+
         using var providerActivity =
             GenerationWorkerTracing.ActivitySource.StartActivity("generation.provider.generate", ActivityKind.Client);
 
-        AddProviderActivityTags(providerActivity, providerCredential, message, studiedRefs, promptComposition);
-        AddDraftArtifact(message, studiedRefs, job, promptComposition);
-        await WriteDraftFaqItemAsync(message, studiedRefs, cancellationToken);
+        AddProviderActivityTags(providerActivity, providerContext, message, studiedRefs, promptData);
+        AddDraftArtifact(message, studiedRefs, job, promptData);
+        await WriteGeneratedFaqItemAsync(message, studiedRefs, cancellationToken);
 
         job.Status = GenerationJobStatus.Succeeded;
         job.CompletedUtc = DateTime.UtcNow;
@@ -177,7 +191,8 @@ public sealed class ProcessFaqGenerationRequestedCommandHandler(
         FaqGenerationRequestedV1 message,
         CancellationToken cancellationToken)
     {
-        await using var faqDbContext = faqIntegrationDbContextFactory.Create(message.TenantId);
+        await using var faqDbContext = CreateFaqDbContext(message.TenantId);
+
         var contentRefs = await faqDbContext.FaqContentRefs
             .AsNoTracking()
             .Where(x => x.FaqId == message.FaqId && x.TenantId == message.TenantId)
@@ -193,32 +208,124 @@ public sealed class ProcessFaqGenerationRequestedCommandHandler(
         return ContentRefStudyService.Study(contentRefs);
     }
 
-    private static void AddProviderActivityTags(
-        Activity? providerActivity,
-        AiProviderCredential providerCredential,
+    private async Task WriteGeneratedFaqItemAsync(
         FaqGenerationRequestedV1 message,
         ContentRefStudyResult studiedRefs,
-        GenerationPromptComposition promptComposition)
+        CancellationToken cancellationToken)
     {
-        providerActivity?.SetTag("gen_ai.system", providerCredential.Provider);
-        providerActivity?.SetTag("gen_ai.request.model", providerCredential.Model);
-        providerActivity?.SetTag("basefaq.ai_key_slot", providerCredential.SelectedSlot);
-        providerActivity?.SetTag("basefaq.ai_key_configured",
-            !string.IsNullOrWhiteSpace(providerCredential.ApiKey));
+        using var writeActivity =
+            GenerationWorkerTracing.ActivitySource.StartActivity("generation.faq_db.write", ActivityKind.Internal);
+
+        writeActivity?.SetTag("db.system", "postgresql");
+        writeActivity?.SetTag("db.name", "bf_faq_db");
+        writeActivity?.SetTag("basefaq.correlation_id", message.CorrelationId.ToString("D"));
+        writeActivity?.SetTag("basefaq.tenant_id", message.TenantId.ToString("D"));
+        writeActivity?.SetTag("basefaq.faq_id", message.FaqId.ToString("D"));
+
+        await using var faqDbContext = CreateFaqDbContext(message.TenantId);
+
+        var faq = await faqDbContext.Faqs
+            .FirstOrDefaultAsync(x => x.Id == message.FaqId, cancellationToken);
+
+        if (faq is null)
+        {
+            throw new InvalidOperationException(
+                $"FAQ '{message.FaqId}' was not found for tenant '{message.TenantId}'.");
+        }
+
+        var itemId = CreateDeterministicFaqItemId(message.CorrelationId, message.FaqId, message.TenantId);
+        var question = Truncate(BuildDraftQuestion(studiedRefs), FaqItem.MaxQuestionLength);
+        var shortAnswer = Truncate(BuildDraftSummary(message.FaqId, studiedRefs), FaqItem.MaxShortAnswerLength);
+        var answer = Truncate(BuildDraftContent(message.FaqId, studiedRefs), FaqItem.MaxAnswerLength);
+
+        var faqItem = await faqDbContext.FaqItems
+            .IgnoreQueryFilters()
+            .FirstOrDefaultAsync(
+                x => x.Id == itemId && x.FaqId == message.FaqId && x.TenantId == message.TenantId,
+                cancellationToken);
+
+        if (faqItem is null)
+        {
+            faqItem = new FaqItem
+            {
+                Id = itemId,
+                TenantId = message.TenantId,
+                FaqId = message.FaqId,
+                Question = question,
+                ShortAnswer = shortAnswer,
+                Answer = answer,
+                AdditionalInfo = null,
+                CtaTitle = null,
+                CtaUrl = null,
+                VoteScore = 0,
+                AiConfidenceScore = 80,
+                IsActive = true,
+                Sort = await GetNextSortAsync(faqDbContext, message, cancellationToken)
+            };
+
+            faqDbContext.FaqItems.Add(faqItem);
+        }
+        else
+        {
+            faqItem.Question = question;
+            faqItem.ShortAnswer = shortAnswer;
+            faqItem.Answer = answer;
+            faqItem.AdditionalInfo = null;
+            faqItem.CtaTitle = null;
+            faqItem.CtaUrl = null;
+            faqItem.AiConfidenceScore = 80;
+            faqItem.IsActive = true;
+            faqItem.IsDeleted = false;
+            faqItem.DeletedDate = null;
+            faqItem.DeletedBy = null;
+        }
+
+        await faqDbContext.SaveChangesAsync(cancellationToken);
+
+        logger.LogInformation(
+            "FAQ generation write completed for CorrelationId {CorrelationId}, FaqId {FaqId}, TenantId {TenantId}.",
+            message.CorrelationId,
+            message.FaqId,
+            message.TenantId);
+    }
+
+    private static async Task<int> GetNextSortAsync(
+        FaqDbContext faqDbContext,
+        FaqGenerationRequestedV1 message,
+        CancellationToken cancellationToken)
+    {
+        var maxSort = await faqDbContext.FaqItems
+            .Where(x => x.FaqId == message.FaqId && !x.IsDeleted)
+            .Select(x => (int?)x.Sort)
+            .MaxAsync(cancellationToken);
+
+        return (maxSort ?? 0) + 1;
+    }
+
+    private static void AddProviderActivityTags(
+        Activity? providerActivity,
+        GenerationAiProviderContext providerContext,
+        FaqGenerationRequestedV1 message,
+        ContentRefStudyResult studiedRefs,
+        GenerationPromptData promptData)
+    {
+        providerActivity?.SetTag("gen_ai.system", providerContext.Provider);
+        providerActivity?.SetTag("gen_ai.request.model", providerContext.Model);
+        providerActivity?.SetTag("basefaq.ai_key_configured", !string.IsNullOrWhiteSpace(providerContext.ApiKey));
         providerActivity?.SetTag("basefaq.correlation_id", message.CorrelationId.ToString("D"));
         providerActivity?.SetTag("basefaq.content_ref.total_count", studiedRefs.TotalCount);
         providerActivity?.SetTag("basefaq.content_ref.processed_count", studiedRefs.ProcessedCount);
         providerActivity?.SetTag("basefaq.content_ref.skipped_count", studiedRefs.SkippedCount);
-        providerActivity?.SetTag("basefaq.prompt.domain", promptComposition.Domain);
-        providerActivity?.SetTag("basefaq.prompt.version", promptComposition.Version);
-        providerActivity?.SetTag("basefaq.prompt.provider", promptComposition.Provider);
+        providerActivity?.SetTag("basefaq.prompt.domain", promptData.Domain);
+        providerActivity?.SetTag("basefaq.prompt.version", promptData.Version);
+        providerActivity?.SetTag("basefaq.prompt.provider", promptData.Provider);
     }
 
     private static void AddDraftArtifact(
         FaqGenerationRequestedV1 message,
         ContentRefStudyResult studiedRefs,
         GenerationJob job,
-        GenerationPromptComposition promptComposition)
+        GenerationPromptData promptData)
     {
         var draftContent = BuildDraftContent(message.FaqId, studiedRefs);
 
@@ -235,35 +342,15 @@ public sealed class ProcessFaqGenerationRequestedCommandHandler(
                     contentRefProcessed = studiedRefs.ProcessedCount,
                     contentRefSkipped = studiedRefs.SkippedCount,
                     processedKinds = studiedRefs.StudiedRefs.Select(x => x.Kind.ToString()).ToArray(),
-                    promptDomain = promptComposition.Domain,
-                    promptVersion = promptComposition.Version,
-                    promptProvider = promptComposition.Provider,
-                    systemPromptHash = HashPrompt(promptComposition.SystemPrompt),
-                    userPromptHash = HashPrompt(promptComposition.UserPrompt),
-                    schemaHash = HashPrompt(promptComposition.ExpectedJsonSchema)
+                    promptDomain = promptData.Domain,
+                    promptVersion = promptData.Version,
+                    promptProvider = promptData.Provider,
+                    promptTemplateHash = ComputeHash(promptData.Template),
+                    promptInputHash = ComputeHash(promptData.Input),
+                    outputSchemaHash = ComputeHash(promptData.OutputSchema)
                 }),
                 GenerationArtifact.MaxMetadataJsonLength)
         });
-    }
-
-    private async Task WriteDraftFaqItemAsync(
-        FaqGenerationRequestedV1 message,
-        ContentRefStudyResult studiedRefs,
-        CancellationToken cancellationToken)
-    {
-        await generationFaqWriteService.WriteAsync(
-            new GenerationFaqWriteRequest(
-                message.CorrelationId,
-                message.FaqId,
-                message.TenantId,
-                Truncate(BuildDraftQuestion(studiedRefs), 1000),
-                Truncate(BuildDraftSummary(message.FaqId, studiedRefs), 250),
-                Truncate(BuildDraftContent(message.FaqId, studiedRefs), 5000),
-                null,
-                null,
-                null,
-                80),
-            cancellationToken);
     }
 
     private async Task PublishGenerationReadyAsync(
@@ -290,10 +377,12 @@ public sealed class ProcessFaqGenerationRequestedCommandHandler(
     {
         job.Status = GenerationJobStatus.Failed;
         job.CompletedUtc = DateTime.UtcNow;
+
         const string errorCode = "GENERATION_FAILED";
         var errorMessage = ex.Message.Length <= GenerationJob.MaxErrorMessageLength
             ? ex.Message
             : ex.Message[..GenerationJob.MaxErrorMessageLength];
+
         job.ErrorCode = errorCode;
         job.ErrorMessage = errorMessage;
 
@@ -392,25 +481,192 @@ public sealed class ProcessFaqGenerationRequestedCommandHandler(
         return value.Length <= maxLength ? value : value[..maxLength];
     }
 
-    private static string HashPrompt(string value)
+    private static string ComputeHash(string value)
     {
         var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(value));
         return Convert.ToHexString(bytes);
     }
 
-    private static string ResolveDefaultPromptProfile(AiProviderCredential providerCredential)
+    private static Guid CreateDeterministicFaqItemId(Guid correlationId, Guid faqId, Guid tenantId)
     {
-        var provider = providerCredential.Provider?.Trim();
+        var input = $"{correlationId:N}:{faqId:N}:{tenantId:N}";
+        var hash = MD5.HashData(Encoding.UTF8.GetBytes(input));
+
+        hash[6] = (byte)((hash[6] & 0x0F) | (3 << 4));
+        hash[8] = (byte)((hash[8] & 0x3F) | 0x80);
+
+        return new Guid(hash);
+    }
+
+    private static string BuildPromptProfile(GenerationAiProviderContext providerContext)
+    {
+        var provider = providerContext.Provider?.Trim();
         if (string.IsNullOrWhiteSpace(provider))
         {
-            return DefaultPromptProfileSuffix;
+            return PromptProfileFallback;
         }
 
-        var profile = $"{provider}-{DefaultPromptProfileSuffix}";
+        var profile = $"{provider}-{PromptProfileFallback}";
         return profile.Length <= GenerationJob.MaxPromptProfileLength
             ? profile
             : profile[..GenerationJob.MaxPromptProfileLength];
     }
 
-    private sealed record GenerationProcessingContext(GenerationJob Job, AiProviderCredential ProviderCredential);
+    private static GenerationPromptData BuildPromptData(
+        FaqGenerationRequestedV1 request,
+        ContentRefStudyResult studiedRefs,
+        GenerationAiProviderContext providerContext)
+    {
+        var provider = NormalizeProvider(providerContext.Provider);
+
+        return new GenerationPromptData(
+            PromptDomain,
+            PromptVersion,
+            provider,
+            ResolvePromptTemplate(providerContext.Prompt),
+            BuildPromptInput(request, studiedRefs),
+            BuildOutputSchema());
+    }
+
+    private static string ResolvePromptTemplate(string? prompt)
+    {
+        if (!string.IsNullOrWhiteSpace(prompt))
+        {
+            return prompt;
+        }
+
+        return
+            "You are a multilingual FAQ generation engine. Use only supplied context and return schema-compliant JSON.";
+    }
+
+    private static string BuildPromptInput(FaqGenerationRequestedV1 request, ContentRefStudyResult studiedRefs)
+    {
+        var builder = new StringBuilder();
+        builder.AppendLine("Task: generate a FAQ draft from studied references.");
+        builder.AppendLine($"faqId: {request.FaqId:D}");
+        builder.AppendLine($"tenantId: {request.TenantId:D}");
+        builder.AppendLine($"language: {request.Language}");
+        builder.AppendLine($"refs.total: {studiedRefs.TotalCount}");
+        builder.AppendLine($"refs.processed: {studiedRefs.ProcessedCount}");
+        builder.AppendLine($"refs.skipped: {studiedRefs.SkippedCount}");
+        builder.AppendLine("references:");
+
+        foreach (var studiedRef in studiedRefs.StudiedRefs)
+        {
+            builder.AppendLine(
+                $"- kind={studiedRef.Kind}, locator={studiedRef.Locator}, inferredSubject={studiedRef.MainSubject}");
+        }
+
+        builder.AppendLine("Output must follow the provided JSON schema exactly.");
+        return builder.ToString();
+    }
+
+    private static string BuildOutputSchema()
+    {
+        return """
+               {
+                 "type": "object",
+                 "required": ["question", "summary", "answer", "confidence", "citations", "uncertaintyNotes"],
+                 "properties": {
+                   "question": { "type": "string", "maxLength": 1000 },
+                   "summary": { "type": "string", "maxLength": 250 },
+                   "answer": { "type": "string", "maxLength": 5000 },
+                   "confidence": { "type": "integer", "minimum": 0, "maximum": 100 },
+                   "citations": {
+                     "type": "array",
+                     "items": { "type": "string", "maxLength": 2000 }
+                   },
+                   "uncertaintyNotes": {
+                     "type": "array",
+                     "items": { "type": "string", "maxLength": 500 }
+                   }
+                 }
+               }
+               """;
+    }
+
+    private static string NormalizeProvider(string? provider)
+    {
+        return string.IsNullOrWhiteSpace(provider)
+            ? "unknown"
+            : provider.Trim().ToLowerInvariant();
+    }
+
+    private async Task<GenerationAiProviderContext> ResolveTenantAiProviderAsync(
+        Guid tenantId,
+        AiCommandType commandType,
+        CancellationToken cancellationToken)
+    {
+        var provider = await tenantDbContext.TenantAiProviders
+            .AsNoTracking()
+            .Where(x => x.TenantId == tenantId && x.AiProvider.Command == commandType)
+            .OrderByDescending(x => x.AiProvider.Provider.ToLower() == "openai")
+            .ThenBy(x => x.AiProvider.Provider)
+            .ThenBy(x => x.AiProvider.Model)
+            .Select(x => new GenerationAiProviderContext(
+                x.AiProvider.Provider,
+                x.AiProvider.Model,
+                x.AiProvider.Prompt,
+                x.AiProviderKey))
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (provider is null)
+        {
+            throw new InvalidOperationException(
+                $"Tenant '{tenantId}' has no AI provider configured for '{commandType}'.");
+        }
+
+        return provider;
+    }
+
+    private FaqDbContext CreateFaqDbContext(Guid tenantId)
+    {
+        var connectionString = tenantConnectionStringProvider.GetConnectionString(tenantId);
+
+        var options = new DbContextOptionsBuilder<FaqDbContext>()
+            .UseNpgsql(connectionString)
+            .Options;
+
+        return new FaqDbContext(
+            options,
+            new IntegrationSessionService(tenantId, ResolveAiUserId(configuration)),
+            configuration,
+            new StaticTenantConnectionStringProvider(connectionString),
+            new HttpContextAccessor());
+    }
+
+    private static Guid ResolveAiUserId(IConfiguration configuration)
+    {
+        return Guid.TryParse(configuration["Ai:UserId"], out var configuredUserId)
+            ? configuredUserId
+            : Guid.Empty;
+    }
+
+    private sealed class IntegrationSessionService(Guid tenantId, Guid userId) : ISessionService
+    {
+        public Guid GetTenantId(AppEnum app) => tenantId;
+        public Guid GetUserId() => userId;
+    }
+
+    private sealed class StaticTenantConnectionStringProvider(string connectionString)
+        : ITenantConnectionStringProvider
+    {
+        public string GetConnectionString(Guid tenantId) => connectionString;
+    }
+
+    private sealed record GenerationAiProviderContext(
+        string Provider,
+        string Model,
+        string? Prompt,
+        string? ApiKey);
+
+    private sealed record GenerationPromptData(
+        string Domain,
+        string Version,
+        string Provider,
+        string Template,
+        string Input,
+        string OutputSchema);
+
+    private sealed record GenerationProcessingContext(GenerationJob Job, GenerationAiProviderContext ProviderContext);
 }

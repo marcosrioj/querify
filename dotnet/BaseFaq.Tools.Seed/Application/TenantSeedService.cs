@@ -150,8 +150,8 @@ public sealed class TenantSeedService : ITenantSeedService
     {
         var slug = existingSlugs.Contains("tenant-001") ? $"tenant-{Guid.NewGuid():N}" : "tenant-001";
         var userId = users.Count > 0 ? users[0].Id : Guid.Empty;
-        var generationProvider = aiProviders.First(x => x.Command == AiCommandType.Generation);
-        var matchingProvider = aiProviders.First(x => x.Command == AiCommandType.Matching);
+        var generationProvider = PickPreferredProvider(aiProviders, AiCommandType.Generation);
+        var matchingProvider = PickPreferredProvider(aiProviders, AiCommandType.Matching);
         var tenantId = Guid.NewGuid();
 
         return
@@ -185,6 +185,13 @@ public sealed class TenantSeedService : ITenantSeedService
                 ]
             }
         ];
+    }
+
+    private static AiProvider PickPreferredProvider(IReadOnlyList<AiProvider> aiProviders, AiCommandType command)
+    {
+        return aiProviders.FirstOrDefault(x =>
+                   x.Command == command && x.Provider.Equals("openai", StringComparison.OrdinalIgnoreCase))
+               ?? aiProviders.First(x => x.Command == command);
     }
 
     private static List<TenantConnection> BuildSingleFaqConnection(TenantSeedRequest request)
