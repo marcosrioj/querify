@@ -40,7 +40,8 @@ public class TenantService(IMediator mediator) : ITenantService
         return mediator.Send(new TenantsGenerateNewClientKeyCommand(), token);
     }
 
-    public Task SetAiProviderCredentials(TenantSetAiProviderCredentialsRequestDto requestDto, CancellationToken token)
+    public Task<bool> SetAiProviderCredentials(TenantSetAiProviderCredentialsRequestDto requestDto,
+        CancellationToken token)
     {
         ArgumentNullException.ThrowIfNull(requestDto);
 

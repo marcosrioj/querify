@@ -45,12 +45,12 @@ public class TenantController(ITenantService tenantService) : ControllerBase
     }
 
     [HttpPost("SetAiProviderCredentials")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
     public async Task<IActionResult> SetAiProviderCredentials(
         [FromBody] TenantSetAiProviderCredentialsRequestDto dto,
         CancellationToken token)
     {
-        await tenantService.SetAiProviderCredentials(dto, token);
-        return NoContent();
+        var result = await tenantService.SetAiProviderCredentials(dto, token);
+        return Ok(result);
     }
 }

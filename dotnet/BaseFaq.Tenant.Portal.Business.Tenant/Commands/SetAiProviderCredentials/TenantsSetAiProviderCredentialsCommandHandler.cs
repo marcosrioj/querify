@@ -8,9 +8,11 @@ using Microsoft.EntityFrameworkCore;
 namespace BaseFaq.Tenant.Portal.Business.Tenant.Commands.SetAiProviderCredentials;
 
 public class TenantsSetAiProviderCredentialsCommandHandler(TenantDbContext dbContext, ISessionService sessionService)
-    : IRequestHandler<TenantsSetAiProviderCredentialsCommand>
+    : IRequestHandler<TenantsSetAiProviderCredentialsCommand, bool>
 {
-    public async Task Handle(TenantsSetAiProviderCredentialsCommand request, CancellationToken cancellationToken)
+    public async Task<bool> Handle(
+        TenantsSetAiProviderCredentialsCommand request,
+        CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(request.AiProviderKey))
         {
@@ -66,5 +68,6 @@ public class TenantsSetAiProviderCredentialsCommandHandler(TenantDbContext dbCon
         }
 
         await dbContext.SaveChangesAsync(cancellationToken);
+        return true;
     }
 }

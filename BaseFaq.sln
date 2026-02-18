@@ -203,6 +203,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BaseFaq.Tenant.Portal.Busin
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BaseFaq.Tenant.BackOffice.Business.AiProvider", "dotnet\BaseFaq.Tenant.BackOffice.Business.AiProvider\BaseFaq.Tenant.BackOffice.Business.AiProvider.csproj", "{3D3414A7-EE68-4B9E-BADD-75A41FE3671F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BaseFaq.Common.Architecture.Test.IntegrationTest", "dotnet\BaseFaq.Common.Architecture.Test.IntegrationTest\BaseFaq.Common.Architecture.Test.IntegrationTest.csproj", "{EFBD3A39-5884-4771-AD31-220FFA3889DD}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Test", "Test", "{3838A24C-6AA1-4149-B689-5D33B0D745FF}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "IntegrationTest", "IntegrationTest", "{BC41B5AF-3D0E-4736-BBB3-47929AFF27CE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -413,6 +419,10 @@ Global
 		{3D3414A7-EE68-4B9E-BADD-75A41FE3671F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3D3414A7-EE68-4B9E-BADD-75A41FE3671F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3D3414A7-EE68-4B9E-BADD-75A41FE3671F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EFBD3A39-5884-4771-AD31-220FFA3889DD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EFBD3A39-5884-4771-AD31-220FFA3889DD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EFBD3A39-5884-4771-AD31-220FFA3889DD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EFBD3A39-5884-4771-AD31-220FFA3889DD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -511,5 +521,8 @@ Global
 		{2DCC6BC4-C2EC-41CF-A0AC-AADC4580DAB5} = {87130428-904D-44AB-82A8-9341EA677BAB}
 		{4077BCF4-6DB9-4B10-BD8E-07C3D2EDB66C} = {39A1B0C7-95A8-4931-B828-C591BC96932F}
 		{3D3414A7-EE68-4B9E-BADD-75A41FE3671F} = {4600E701-4E95-4894-AAB7-AFFA8D04FC9F}
+		{3838A24C-6AA1-4149-B689-5D33B0D745FF} = {87130428-904D-44AB-82A8-9341EA677BAB}
+		{BC41B5AF-3D0E-4736-BBB3-47929AFF27CE} = {3838A24C-6AA1-4149-B689-5D33B0D745FF}
+		{EFBD3A39-5884-4771-AD31-220FFA3889DD} = {BC41B5AF-3D0E-4736-BBB3-47929AFF27CE}
 	EndGlobalSection
 EndGlobal
