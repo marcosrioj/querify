@@ -2,6 +2,7 @@
 
 ## Objective
 Use existing BaseFaq architecture standards. Do not introduce parallel patterns.
+When Commands or Queries become large, slice them into small, cohesive parts so behavior stays maintainable, testable, and reusable under SOLID + DDD.
 
 ## Authoritative Sources (Read First)
 1. `docs/standards/solution-cqrs-write-rules.md`
@@ -59,15 +60,45 @@ Apply these rules to:
 
 Hard rule: do not place new behavior in folders that already exist for a different concern.
 
-## Oversized Command/Query Playbook (When `Handle(...)` Gets Too Big)
+## Universal Command/Query Slicing Rules (Apply to Every Action)
+
+1. One action, one intent boundary.
+   - A Command/Query represents one use-case.
+   - Do not mix unrelated goals in one action (for example create + report + export).
+
+2. Handler is orchestration, not business engine.
+   - `Handle(...)` coordinates phases and delegates behavior.
+   - Domain rules live in domain entities/value objects/domain services, not inline in controller/service handler code.
+
+3. Slice by explicit phases.
+   - Use this order as default: validate -> authorize -> load -> apply domain behavior -> persist -> publish/integrate.
+   - Query actions use: validate -> authorize -> load -> project/map -> return.
+
+4. Keep collaborators cohesive (SRP).
+   - Each extracted class has one reason to change.
+   - Prefer small feature-local collaborators (`Validator`, `Policy`, `Loader`, `Executor`, `Projector`) over one large utility class.
+
+5. Apply decomposition triggers consistently.
+   - Split when `Handle(...)` is roughly over 40-60 lines, has more than 3 branch families, or has more than 2 side-effect categories.
+   - Split when a method name needs "and" to describe its responsibility.
+
+6. Reuse with the right ownership boundary.
+   - If used by one action only, keep it inside that action folder.
+   - If reused by multiple actions, move to shared abstraction + implementation in the correct layer.
+   - Never move business behavior into `Controllers`, `Extensions`, or generic `Helpers` to reduce size.
+
+## Standard Internal Structure for Large Actions
 
 Use this sequence in order:
 
 1. Keep the command/query contract unchanged.
-2. Split `Handle(...)` into clearly named private phases (validate, filters, load, apply, persist, publish).
-3. If still too large, extract feature-local collaborators inside the same action boundary under `Commands/<Action>/`/`Queries/<Action>/` (for example validator/filter/policy/executor classes).
-4. If logic is reused across multiple actions, move it to the correct shared behavior location (`Abstractions` + `Service` implementation), not to `Extensions` or `Controllers`.
-5. If flow is long-running or crosses external systems, convert to async orchestration and return correlation `Guid` (`202 Accepted`).
+2. Split `Handle(...)` into clearly named private phases first.
+3. If still too large, extract feature-local collaborators inside the same action boundary:
+   - `Commands/<Action>/`: `Command`, `Handler`, `Validator`, `Policy`, `Executor` (or equivalent phase names).
+   - `Queries/<Action>/`: `Query`, `Handler`, `Filter`, `Projector/Mapper`, `ReadModelFactory` (as needed).
+4. Keep orchestration order explicit in handler code so transaction/side-effect order is obvious.
+5. If logic is reused across multiple actions, move it to the correct shared behavior location (`Abstractions` + `Service` implementation), not to `Extensions` or `Controllers`.
+6. If flow is long-running or crosses external systems, convert to async orchestration and return correlation `Guid` (`202 Accepted`).
 
 Never solve "big command" by moving behavior to unrelated folders.
 
@@ -80,7 +111,10 @@ Never solve "big command" by moving behavior to unrelated folders.
 - [ ] Command return type is a simple value only.
 - [ ] No read-after-write query in command paths.
 - [ ] Write endpoints/services do not return read DTOs.
-- [ ] `Handle(...)` is bounded; oversized logic was decomposed using the playbook.
+- [ ] `Handle(...)` is bounded; oversized logic was decomposed using the slicing rules.
+- [ ] Every extracted class has a single responsibility and clear name.
+- [ ] Domain rules stay in domain layer collaborators, not controllers or transport code.
+- [ ] Action structure follows the standard slicing pattern for Commands/Queries.
 - [ ] New behavior was added only to the correct folder ownership boundary.
 - [ ] Tests were updated for dependency/contract changes.
 - [ ] No command response wrapper DTO was introduced.
