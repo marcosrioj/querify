@@ -12,6 +12,7 @@ using BaseFaq.Faq.Common.Persistence.FaqDb;
 using BaseFaq.Faq.Common.Persistence.FaqDb.Entities;
 using BaseFaq.Models.Ai.Contracts.Generation;
 using BaseFaq.Models.Ai.Enums;
+using BaseFaq.Models.Ai.Enums.Generation;
 using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.Tenant.Enums;
 using MassTransit;

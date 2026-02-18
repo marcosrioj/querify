@@ -1,4 +1,4 @@
-namespace BaseFaq.Models.Ai.Enums;
+namespace BaseFaq.Models.Ai.Enums.Generation;
 
 public enum GenerationArtifactType
 {

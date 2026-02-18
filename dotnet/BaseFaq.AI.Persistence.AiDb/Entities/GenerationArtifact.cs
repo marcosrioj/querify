@@ -1,5 +1,6 @@
 using BaseFaq.Common.EntityFramework.Core.Entities;
 using BaseFaq.Models.Ai.Enums;
+using BaseFaq.Models.Ai.Enums.Generation;
 
 namespace BaseFaq.AI.Persistence.AiDb.Entities;
 
