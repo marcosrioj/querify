@@ -3,7 +3,7 @@ using MediatR;
 
 namespace BaseFaq.Faq.Portal.Business.ContentRef.Commands.UpdateContentRef;
 
-public class ContentRefsUpdateContentRefCommand : IRequest
+public sealed class ContentRefsUpdateContentRefCommand : IRequest
 {
     public required Guid Id { get; set; }
     public required ContentRefKind Kind { get; set; }

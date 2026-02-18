@@ -3,4 +3,4 @@ using MediatR;
 
 namespace BaseFaq.Tenant.Portal.Business.AiProvider.Queries.GetAiProviderList;
 
-public class AiProvidersGetAiProviderListQuery : IRequest<List<AiProviderDto>>;
+public sealed class AiProvidersGetAiProviderListQuery : IRequest<List<AiProviderDto>>;

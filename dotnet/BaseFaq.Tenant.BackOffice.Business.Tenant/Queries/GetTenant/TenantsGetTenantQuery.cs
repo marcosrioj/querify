@@ -3,7 +3,7 @@ using MediatR;
 
 namespace BaseFaq.Tenant.BackOffice.Business.Tenant.Queries.GetTenant;
 
-public class TenantsGetTenantQuery : IRequest<TenantDto?>
+public sealed class TenantsGetTenantQuery : IRequest<TenantDto?>
 {
     public required Guid Id { get; set; }
 }

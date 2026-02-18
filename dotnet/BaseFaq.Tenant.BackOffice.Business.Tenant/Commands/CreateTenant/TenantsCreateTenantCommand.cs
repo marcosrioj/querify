@@ -4,7 +4,7 @@ using MediatR;
 
 namespace BaseFaq.Tenant.BackOffice.Business.Tenant.Commands.CreateTenant;
 
-public class TenantsCreateTenantCommand : IRequest<Guid>
+public sealed class TenantsCreateTenantCommand : IRequest<Guid>
 {
     public required string Slug { get; set; }
     public required string Name { get; set; }

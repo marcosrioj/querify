@@ -2,7 +2,7 @@ using MediatR;
 
 namespace BaseFaq.Faq.Portal.Business.FaqItem.Commands.UpdateFaqItem;
 
-public class FaqItemsUpdateFaqItemCommand : IRequest
+public sealed class FaqItemsUpdateFaqItemCommand : IRequest
 {
     public required Guid Id { get; set; }
     public required string Question { get; set; }

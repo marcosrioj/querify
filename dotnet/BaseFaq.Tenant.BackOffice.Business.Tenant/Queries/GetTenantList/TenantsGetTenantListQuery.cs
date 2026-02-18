@@ -4,7 +4,7 @@ using MediatR;
 
 namespace BaseFaq.Tenant.BackOffice.Business.Tenant.Queries.GetTenantList;
 
-public class TenantsGetTenantListQuery : IRequest<PagedResultDto<TenantDto>>
+public sealed class TenantsGetTenantListQuery : IRequest<PagedResultDto<TenantDto>>
 {
     public required TenantGetAllRequestDto Request { get; set; }
 }

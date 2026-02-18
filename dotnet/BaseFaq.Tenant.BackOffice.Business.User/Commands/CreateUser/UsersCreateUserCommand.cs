@@ -3,7 +3,7 @@ using MediatR;
 
 namespace BaseFaq.Tenant.BackOffice.Business.User.Commands.CreateUser;
 
-public class UsersCreateUserCommand : IRequest<Guid>
+public sealed class UsersCreateUserCommand : IRequest<Guid>
 {
     public required string GivenName { get; set; }
     public string? SurName { get; set; }

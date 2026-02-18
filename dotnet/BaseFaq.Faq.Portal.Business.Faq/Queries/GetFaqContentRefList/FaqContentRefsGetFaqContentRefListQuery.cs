@@ -4,7 +4,7 @@ using MediatR;
 
 namespace BaseFaq.Faq.Portal.Business.Faq.Queries.GetFaqContentRefList;
 
-public class FaqContentRefsGetFaqContentRefListQuery : IRequest<PagedResultDto<FaqContentRefDto>>
+public sealed class FaqContentRefsGetFaqContentRefListQuery : IRequest<PagedResultDto<FaqContentRefDto>>
 {
     public required FaqContentRefGetAllRequestDto Request { get; set; }
 }

@@ -3,7 +3,7 @@ using MediatR;
 
 namespace BaseFaq.Tenant.BackOffice.Business.AiProvider.Commands.UpdateAiProvider;
 
-public class AiProvidersUpdateAiProviderCommand : IRequest
+public sealed class AiProvidersUpdateAiProviderCommand : IRequest
 {
     public required Guid Id { get; set; }
     public required string Provider { get; set; }

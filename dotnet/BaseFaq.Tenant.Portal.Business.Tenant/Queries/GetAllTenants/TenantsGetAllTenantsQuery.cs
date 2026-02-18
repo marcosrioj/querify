@@ -3,4 +3,4 @@ using MediatR;
 
 namespace BaseFaq.Tenant.Portal.Business.Tenant.Queries.GetAllTenants;
 
-public class TenantsGetAllTenantsQuery : IRequest<List<TenantSummaryDto>>;
+public sealed class TenantsGetAllTenantsQuery : IRequest<List<TenantSummaryDto>>;

@@ -3,7 +3,7 @@ using MediatR;
 
 namespace BaseFaq.Tenant.BackOffice.Business.Tenant.Commands.UpdateTenant;
 
-public class TenantsUpdateTenantCommand : IRequest
+public sealed class TenantsUpdateTenantCommand : IRequest
 {
     public required Guid Id { get; set; }
     public required string Slug { get; set; }

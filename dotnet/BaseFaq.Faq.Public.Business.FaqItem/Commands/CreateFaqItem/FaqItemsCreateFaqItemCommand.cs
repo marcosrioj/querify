@@ -2,7 +2,7 @@ using MediatR;
 
 namespace BaseFaq.Faq.Public.Business.FaqItem.Commands.CreateFaqItem;
 
-public class FaqItemsCreateFaqItemCommand : IRequest<Guid>
+public sealed class FaqItemsCreateFaqItemCommand : IRequest<Guid>
 {
     public required string Question { get; set; }
     public required string ShortAnswer { get; set; }

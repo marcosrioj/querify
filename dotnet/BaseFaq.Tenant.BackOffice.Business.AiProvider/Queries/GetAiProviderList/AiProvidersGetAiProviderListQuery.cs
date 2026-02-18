@@ -4,7 +4,7 @@ using MediatR;
 
 namespace BaseFaq.Tenant.BackOffice.Business.AiProvider.Queries.GetAiProviderList;
 
-public class AiProvidersGetAiProviderListQuery : IRequest<PagedResultDto<AiProviderDto>>
+public sealed class AiProvidersGetAiProviderListQuery : IRequest<PagedResultDto<AiProviderDto>>
 {
     public required AiProviderGetAllRequestDto Request { get; set; }
 }

@@ -4,7 +4,7 @@ using MediatR;
 
 namespace BaseFaq.Faq.Portal.Business.Tag.Queries.GetTagList;
 
-public class TagsGetTagListQuery : IRequest<PagedResultDto<TagDto>>
+public sealed class TagsGetTagListQuery : IRequest<PagedResultDto<TagDto>>
 {
     public required TagGetAllRequestDto Request { get; set; }
 }

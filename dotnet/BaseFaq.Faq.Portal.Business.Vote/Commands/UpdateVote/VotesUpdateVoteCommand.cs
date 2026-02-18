@@ -3,7 +3,7 @@ using MediatR;
 
 namespace BaseFaq.Faq.Portal.Business.Vote.Commands.UpdateVote;
 
-public class VotesUpdateVoteCommand : IRequest
+public sealed class VotesUpdateVoteCommand : IRequest
 {
     public required Guid Id { get; set; }
     public required bool Like { get; set; }

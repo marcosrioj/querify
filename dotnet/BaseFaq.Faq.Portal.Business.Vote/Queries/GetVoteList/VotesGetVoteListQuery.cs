@@ -4,7 +4,7 @@ using MediatR;
 
 namespace BaseFaq.Faq.Portal.Business.Vote.Queries.GetVoteList;
 
-public class VotesGetVoteListQuery : IRequest<PagedResultDto<VoteDto>>
+public sealed class VotesGetVoteListQuery : IRequest<PagedResultDto<VoteDto>>
 {
     public required VoteGetAllRequestDto Request { get; set; }
 }

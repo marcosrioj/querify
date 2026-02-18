@@ -3,7 +3,7 @@ using MediatR;
 
 namespace BaseFaq.Tenant.BackOffice.Business.Tenant.Commands.CreateTenantConnection;
 
-public class TenantConnectionsCreateTenantConnectionCommand : IRequest<Guid>
+public sealed class TenantConnectionsCreateTenantConnectionCommand : IRequest<Guid>
 {
     public required AppEnum App { get; set; }
     public required string ConnectionString { get; set; }

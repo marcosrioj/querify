@@ -3,7 +3,7 @@ using MediatR;
 
 namespace BaseFaq.Faq.Portal.Business.ContentRef.Commands.CreateContentRef;
 
-public class ContentRefsCreateContentRefCommand : IRequest<Guid>
+public sealed class ContentRefsCreateContentRefCommand : IRequest<Guid>
 {
     public required ContentRefKind Kind { get; set; }
     public required string Locator { get; set; }
