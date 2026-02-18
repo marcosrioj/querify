@@ -1,14 +1,14 @@
 using System.Net;
-using BaseFaq.AI.Common.Contracts.Matching;
 using BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception;
 using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Common.Infrastructure.Core.Constants;
 using BaseFaq.Faq.Common.Persistence.FaqDb;
+using BaseFaq.Models.Ai.Contracts.Matching;
 using BaseFaq.Models.Tenant.Enums;
 using MassTransit;
-using Microsoft.EntityFrameworkCore;
 using MediatR;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 
 namespace BaseFaq.Faq.Public.Business.FaqItem.Commands.CreateFaqItem;
 

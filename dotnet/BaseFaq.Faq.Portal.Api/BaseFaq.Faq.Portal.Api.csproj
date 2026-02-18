@@ -28,7 +28,6 @@
         <ProjectReference Include="..\BaseFaq.Common.Infrastructure.MassTransit\BaseFaq.Common.Infrastructure.MassTransit.csproj"/>
         <ProjectReference Include="..\BaseFaq.Common.EntityFramework.Tenant\BaseFaq.Common.EntityFramework.Tenant.csproj"/>
         <ProjectReference Include="..\BaseFaq.Models.Tenant\BaseFaq.Models.Tenant.csproj"/>
-        <ProjectReference Include="..\BaseFaq.AI.Common.Contracts\BaseFaq.AI.Common.Contracts.csproj"/>
         <ProjectReference Include="..\BaseFaq.Faq.Portal.Business.Faq\BaseFaq.Faq.Portal.Business.Faq.csproj"/>
         <ProjectReference Include="..\BaseFaq.Faq.Portal.Business.FaqItem\BaseFaq.Faq.Portal.Business.FaqItem.csproj"/>
         <ProjectReference Include="..\BaseFaq.Faq.Portal.Business.Tag\BaseFaq.Faq.Portal.Business.Tag.csproj"/>

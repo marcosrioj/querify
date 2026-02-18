@@ -1,4 +1,4 @@
-using BaseFaq.AI.Common.Contracts.Matching;
+using BaseFaq.Models.Ai.Contracts.Matching;
 using MediatR;
 
 namespace BaseFaq.AI.Business.Matching.Commands.ProcessFaqMatchingRequested;

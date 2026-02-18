@@ -1,7 +1,7 @@
 using BaseFaq.Faq.Public.Business.FaqItem.Commands.CreateFaqItem;
 using BaseFaq.Faq.Public.Business.FaqItem.Queries.SearchFaqItem;
 using BaseFaq.Faq.Public.Test.IntegrationTests.Helpers;
-using BaseFaq.AI.Common.Contracts.Matching;
+using BaseFaq.Models.Ai.Contracts.Matching;
 using BaseFaq.Models.Faq.Dtos.FaqItem;
 using BaseFaq.Models.Faq.Enums;
 using MassTransit;

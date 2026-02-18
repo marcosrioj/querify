@@ -1,5 +1,5 @@
-using BaseFaq.AI.Common.Contracts.Matching;
 using BaseFaq.Common.Infrastructure.MassTransit.Models;
+using BaseFaq.Models.Ai.Contracts.Matching;
 using MassTransit;
 
 namespace BaseFaq.Faq.Public.Api.Extensions;

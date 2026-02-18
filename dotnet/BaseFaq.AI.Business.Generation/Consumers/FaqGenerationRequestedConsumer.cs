@@ -1,7 +1,7 @@
 using System.Diagnostics;
-using BaseFaq.AI.Common.Contracts.Generation;
 using BaseFaq.AI.Business.Generation.Commands.ProcessFaqGenerationRequested;
 using BaseFaq.AI.Business.Generation.Observability;
+using BaseFaq.Models.Ai.Contracts.Generation;
 using MassTransit;
 using MediatR;
 

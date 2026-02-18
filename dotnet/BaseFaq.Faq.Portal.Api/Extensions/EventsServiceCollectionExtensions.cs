@@ -1,7 +1,7 @@
-using BaseFaq.AI.Common.Contracts.Generation;
 using BaseFaq.Common.Infrastructure.MassTransit.Extensions;
 using BaseFaq.Common.Infrastructure.MassTransit.Models;
 using BaseFaq.Faq.Portal.Api.Consumers;
+using BaseFaq.Models.Ai.Contracts.Generation;
 using MassTransit;
 
 namespace BaseFaq.Faq.Portal.Api.Extensions;

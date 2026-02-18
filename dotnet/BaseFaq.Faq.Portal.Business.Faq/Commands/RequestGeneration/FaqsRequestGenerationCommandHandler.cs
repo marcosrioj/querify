@@ -1,8 +1,8 @@
 using System.Net;
-using BaseFaq.AI.Common.Contracts.Generation;
 using BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception;
 using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Faq.Common.Persistence.FaqDb;
+using BaseFaq.Models.Ai.Contracts.Generation;
 using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.Faq.Enums;
 using BaseFaq.Models.Tenant.Enums;

@@ -1,8 +1,8 @@
-using BaseFaq.AI.Common.Contracts.Matching;
 using BaseFaq.AI.Business.Matching.Commands.ProcessFaqMatchingRequested;
 using BaseFaq.AI.Business.Matching.Consumers;
 using BaseFaq.Common.Infrastructure.MassTransit.Extensions;
 using BaseFaq.Common.Infrastructure.MassTransit.Models;
+using BaseFaq.Models.Ai.Contracts.Matching;
 using MassTransit;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;

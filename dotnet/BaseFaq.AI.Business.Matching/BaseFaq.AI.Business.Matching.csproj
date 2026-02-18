@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <TargetFramework>net10.0</TargetFramework>
@@ -7,7 +7,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\BaseFaq.AI.Common.Contracts\BaseFaq.AI.Common.Contracts.csproj"/>
         <ProjectReference Include="..\BaseFaq.AI.Persistence.AiDb\BaseFaq.AI.Persistence.AiDb.csproj"/>
         <ProjectReference Include="..\BaseFaq.Common.Infrastructure.MassTransit\BaseFaq.Common.Infrastructure.MassTransit.csproj"/>
         <ProjectReference Include="..\BaseFaq.Common.Infrastructure.MediatR\BaseFaq.Common.Infrastructure.MediatR.csproj"/>

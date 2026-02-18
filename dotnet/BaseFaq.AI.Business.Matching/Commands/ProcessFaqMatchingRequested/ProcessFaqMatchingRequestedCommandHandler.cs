@@ -1,12 +1,12 @@
 using System.Diagnostics;
 using System.Text;
 using System.Text.RegularExpressions;
-using BaseFaq.AI.Common.Contracts.Matching;
 using BaseFaq.AI.Persistence.AiDb;
 using BaseFaq.AI.Persistence.AiDb.Entities;
 using BaseFaq.Common.EntityFramework.Tenant;
 using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Faq.Common.Persistence.FaqDb;
+using BaseFaq.Models.Ai.Contracts.Matching;
 using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.Tenant.Enums;
 using MassTransit;

@@ -8,8 +8,4 @@
         <RootNamespace>BaseFaq.Models.Ai</RootNamespace>
     </PropertyGroup>
 
-    <ItemGroup>
-        <Folder Include="Contracts\"/>
-    </ItemGroup>
-
 </Project>

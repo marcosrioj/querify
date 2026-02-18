@@ -1,4 +1,4 @@
-using BaseFaq.AI.Common.Contracts.Generation;
+using BaseFaq.Models.Ai.Contracts.Generation;
 using MediatR;
 
 namespace BaseFaq.AI.Business.Generation.Commands.ProcessFaqGenerationRequested;

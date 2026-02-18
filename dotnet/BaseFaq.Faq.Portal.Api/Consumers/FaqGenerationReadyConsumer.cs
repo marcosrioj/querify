@@ -1,4 +1,4 @@
-using BaseFaq.AI.Common.Contracts.Generation;
+using BaseFaq.Models.Ai.Contracts.Generation;
 using MassTransit;
 
 namespace BaseFaq.Faq.Portal.Api.Consumers;

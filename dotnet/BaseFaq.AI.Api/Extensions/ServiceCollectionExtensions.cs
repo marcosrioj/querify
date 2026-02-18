@@ -2,13 +2,13 @@ using BaseFaq.AI.Business.Generation.Commands.ProcessFaqGenerationRequested;
 using BaseFaq.AI.Business.Generation.Consumers;
 using BaseFaq.AI.Business.Matching.Commands.ProcessFaqMatchingRequested;
 using BaseFaq.AI.Business.Matching.Consumers;
-using BaseFaq.AI.Common.Contracts.Generation;
-using BaseFaq.AI.Common.Contracts.Matching;
 using BaseFaq.AI.Persistence.AiDb.Extensions;
 using BaseFaq.Common.EntityFramework.Tenant.Extensions;
 using BaseFaq.Common.Infrastructure.MassTransit.Extensions;
 using BaseFaq.Common.Infrastructure.MassTransit.Models;
 using BaseFaq.Faq.Common.Persistence.FaqDb.Extensions;
+using BaseFaq.Models.Ai.Contracts.Generation;
+using BaseFaq.Models.Ai.Contracts.Matching;
 using MassTransit;
 
 namespace BaseFaq.AI.Api.Extensions;
