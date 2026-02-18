@@ -21,7 +21,7 @@ public class UserProfileService(IMediator mediator) : IUserProfileService
         return result;
     }
 
-    public async Task<UserProfileDto> UpdateUserProfile(UserProfileUpdateRequestDto requestDto, CancellationToken token)
+    public async Task<bool> UpdateUserProfile(UserProfileUpdateRequestDto requestDto, CancellationToken token)
     {
         ArgumentNullException.ThrowIfNull(requestDto);
 
@@ -33,7 +33,6 @@ public class UserProfileService(IMediator mediator) : IUserProfileService
         };
 
         await mediator.Send(command, token);
-
-        return await GetUserProfile(token);
+        return true;
     }
 }

@@ -23,7 +23,7 @@ public class UserController(IUserProfileService userProfileService) : Controller
     [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
     public async Task<IActionResult> UserProfile([FromBody] UserProfileUpdateRequestDto dto, CancellationToken token)
     {
-        await userProfileService.UpdateUserProfile(dto, token);
-        return Ok(true);
+        var result = await userProfileService.UpdateUserProfile(dto, token);
+        return Ok(result);
     }
 }
