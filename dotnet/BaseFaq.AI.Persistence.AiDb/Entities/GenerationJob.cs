@@ -1,7 +1,7 @@
 using BaseFaq.Common.EntityFramework.Core.Entities;
 using BaseFaq.Models.Ai.Enums;
 
-namespace BaseFaq.AI.Common.Persistence.AiDb.Entities;
+namespace BaseFaq.AI.Persistence.AiDb.Entities;
 
 public class GenerationJob : BaseEntity
 {

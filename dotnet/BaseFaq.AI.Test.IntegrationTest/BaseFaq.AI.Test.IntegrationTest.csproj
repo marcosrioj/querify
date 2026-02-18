@@ -30,7 +30,7 @@
     <ItemGroup>
         <ProjectReference Include="..\BaseFaq.AI.Business.Generation\BaseFaq.AI.Business.Generation.csproj"/>
         <ProjectReference Include="..\BaseFaq.AI.Business.Matching\BaseFaq.AI.Business.Matching.csproj"/>
-        <ProjectReference Include="..\BaseFaq.AI.Common.Persistence.AiDb\BaseFaq.AI.Common.Persistence.AiDb.csproj"/>
+        <ProjectReference Include="..\BaseFaq.AI.Persistence.AiDb\BaseFaq.AI.Persistence.AiDb.csproj"/>
     </ItemGroup>
 
 </Project>

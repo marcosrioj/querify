@@ -1,6 +1,6 @@
 using BaseFaq.Common.Infrastructure.Core.Abstractions;
 
-namespace BaseFaq.AI.Common.Persistence.AiDb.Infrastructure;
+namespace BaseFaq.AI.Persistence.AiDb.Infrastructure;
 
 internal sealed class AiTenantConnectionStringProvider : ITenantConnectionStringProvider
 {

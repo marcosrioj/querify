@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace BaseFaq.AI.Common.Persistence.AiDb.Migrations
+namespace BaseFaq.AI.Persistence.AiDb.Migrations
 {
     public partial class AddProcessedMessageDedupe : Migration
     {

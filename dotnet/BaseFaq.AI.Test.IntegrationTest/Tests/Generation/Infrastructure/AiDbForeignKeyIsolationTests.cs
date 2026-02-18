@@ -1,5 +1,5 @@
-using BaseFaq.AI.Common.Persistence.AiDb;
-using BaseFaq.AI.Common.Persistence.AiDb.Extensions;
+using BaseFaq.AI.Persistence.AiDb;
+using BaseFaq.AI.Persistence.AiDb.Extensions;
 using BaseFaq.AI.Test.IntegrationTest.Helpers.Generation;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -20,7 +20,7 @@ public class AiDbForeignKeyIsolationTests
         using var scope = provider.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<AiDbContext>();
 
-        const string aiNamespacePrefix = "BaseFaq.AI.Common.Persistence.AiDb.Entities";
+        const string aiNamespacePrefix = "BaseFaq.AI.Persistence.AiDb.Entities";
         var externalForeignKeys = dbContext.Model
             .GetEntityTypes()
             .SelectMany(entityType => entityType.GetForeignKeys())

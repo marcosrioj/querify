@@ -1,11 +1,11 @@
 ﻿using System;
-using BaseFaq.AI.Common.Persistence.AiDb;
+using BaseFaq.AI.Persistence.AiDb;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace BaseFaq.AI.Common.Persistence.AiDb.Migrations
+namespace BaseFaq.AI.Persistence.AiDb.Migrations
 {
     [DbContext(typeof(AiDbContext))]
     [Migration("20260213013000_InitialMigration")]

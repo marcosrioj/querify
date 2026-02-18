@@ -4,7 +4,7 @@ using BaseFaq.AI.Business.Matching.Commands.ProcessFaqMatchingRequested;
 using BaseFaq.AI.Business.Matching.Consumers;
 using BaseFaq.AI.Common.Contracts.Generation;
 using BaseFaq.AI.Common.Contracts.Matching;
-using BaseFaq.AI.Common.Persistence.AiDb.Extensions;
+using BaseFaq.AI.Persistence.AiDb.Extensions;
 using BaseFaq.Common.EntityFramework.Tenant.Extensions;
 using BaseFaq.Common.Infrastructure.MassTransit.Extensions;
 using BaseFaq.Common.Infrastructure.MassTransit.Models;

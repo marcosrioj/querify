@@ -1,6 +1,6 @@
 using BaseFaq.Common.EntityFramework.Core.Entities;
 
-namespace BaseFaq.AI.Common.Persistence.AiDb.Entities;
+namespace BaseFaq.AI.Persistence.AiDb.Entities;
 
 public class ProcessedMessage : BaseEntity
 {

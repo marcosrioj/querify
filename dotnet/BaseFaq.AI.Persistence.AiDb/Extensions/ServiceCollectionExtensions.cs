@@ -1,10 +1,10 @@
-using BaseFaq.AI.Common.Persistence.AiDb.Infrastructure;
+using BaseFaq.AI.Persistence.AiDb.Infrastructure;
 using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
-namespace BaseFaq.AI.Common.Persistence.AiDb.Extensions;
+namespace BaseFaq.AI.Persistence.AiDb.Extensions;
 
 public static class ServiceCollectionExtensions
 {

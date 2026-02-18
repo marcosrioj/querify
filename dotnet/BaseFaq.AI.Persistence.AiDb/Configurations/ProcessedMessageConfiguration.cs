@@ -1,9 +1,9 @@
-using BaseFaq.AI.Common.Persistence.AiDb.Entities;
+using BaseFaq.AI.Persistence.AiDb.Entities;
 using BaseFaq.Common.EntityFramework.Core.Configurations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace BaseFaq.AI.Common.Persistence.AiDb.Configurations;
+namespace BaseFaq.AI.Persistence.AiDb.Configurations;
 
 public class ProcessedMessageConfiguration : BaseConfiguration<ProcessedMessage>
 {

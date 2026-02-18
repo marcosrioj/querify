@@ -1,4 +1,4 @@
-using BaseFaq.AI.Common.Persistence.AiDb.Entities;
+using BaseFaq.AI.Persistence.AiDb.Entities;
 using BaseFaq.Common.EntityFramework.Core;
 using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Models.Common.Enums;
@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 
-namespace BaseFaq.AI.Common.Persistence.AiDb;
+namespace BaseFaq.AI.Persistence.AiDb;
 
 public class AiDbContext(
     DbContextOptions<AiDbContext> options,
@@ -27,7 +27,7 @@ public class AiDbContext(
 
     protected override IEnumerable<string> ConfigurationNamespaces =>
     [
-        "BaseFaq.AI.Common.Persistence.AiDb.Configurations"
+        "BaseFaq.AI.Persistence.AiDb.Configurations"
     ];
 
     protected override bool UseTenantConnectionString => false;

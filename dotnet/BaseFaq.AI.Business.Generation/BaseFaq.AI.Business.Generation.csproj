@@ -8,7 +8,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\BaseFaq.AI.Common.Contracts\BaseFaq.AI.Common.Contracts.csproj"/>
-        <ProjectReference Include="..\BaseFaq.AI.Common.Persistence.AiDb\BaseFaq.AI.Common.Persistence.AiDb.csproj"/>
+        <ProjectReference Include="..\BaseFaq.AI.Persistence.AiDb\BaseFaq.AI.Persistence.AiDb.csproj"/>
         <ProjectReference Include="..\BaseFaq.Common.Infrasctructure.Telemetry\BaseFaq.Common.Infrasctructure.Telemetry.csproj"/>
         <ProjectReference Include="..\BaseFaq.Models.Ai\BaseFaq.Models.Ai.csproj"/>
         <ProjectReference Include="..\BaseFaq.Common.Infrastructure.MassTransit\BaseFaq.Common.Infrastructure.MassTransit.csproj"/>

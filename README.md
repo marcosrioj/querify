@@ -153,7 +153,7 @@ AI DB (independent, non-tenant):
 
 ```bash
 dotnet ef database update \
-  --project dotnet/BaseFaq.AI.Common.Persistence.AiDb \
+  --project dotnet/BaseFaq.AI.Persistence.AiDb \
   --startup-project dotnet/BaseFaq.AI.Api
 ```
 

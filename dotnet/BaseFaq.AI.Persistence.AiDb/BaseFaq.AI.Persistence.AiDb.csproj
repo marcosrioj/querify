@@ -4,7 +4,7 @@
         <TargetFramework>net10.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <PackageId>BaseFaq.AI.Common.Persistence.AiDb</PackageId>
+        <PackageId>BaseFaq.AI.Persistence.AiDb</PackageId>
     </PropertyGroup>
 
     <ItemGroup>

@@ -2,7 +2,7 @@ using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Models.Common.Enums;
 using Microsoft.Extensions.Configuration;
 
-namespace BaseFaq.AI.Common.Persistence.AiDb.Infrastructure;
+namespace BaseFaq.AI.Persistence.AiDb.Infrastructure;
 
 internal sealed class AiDbSessionService(IConfiguration configuration) : ISessionService
 {

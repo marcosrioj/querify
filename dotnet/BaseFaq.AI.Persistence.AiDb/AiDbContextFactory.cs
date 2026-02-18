@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
 
-namespace BaseFaq.AI.Common.Persistence.AiDb;
+namespace BaseFaq.AI.Persistence.AiDb;
 
 internal sealed class AiDbContextFactory : IDesignTimeDbContextFactory<AiDbContext>
 {
