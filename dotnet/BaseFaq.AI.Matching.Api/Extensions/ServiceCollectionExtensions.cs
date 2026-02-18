@@ -1,5 +1,4 @@
 using BaseFaq.AI.Common.Persistence.AiDb.Extensions;
-using BaseFaq.AI.Matching.Business.Matching.Extensions;
 using BaseFaq.AI.Matching.Business.Worker.Extensions;
 using BaseFaq.Common.EntityFramework.Tenant.Extensions;
 using BaseFaq.Faq.Common.Persistence.FaqDb.Extensions;
@@ -13,7 +12,6 @@ public static class ServiceCollectionExtensions
         services.AddTenantDb(configuration.GetConnectionString("TenantDb"));
         services.AddFaqDb();
         services.AddAiDb(configuration.GetConnectionString("AiDb"));
-        services.AddMatchingBusiness();
         services.AddMatchingWorker(configuration);
     }
 }

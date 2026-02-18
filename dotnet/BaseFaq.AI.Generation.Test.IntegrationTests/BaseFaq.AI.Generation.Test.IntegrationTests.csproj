@@ -28,7 +28,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\BaseFaq.AI.Generation.Business.Generation\BaseFaq.AI.Generation.Business.Generation.csproj"/>
         <ProjectReference Include="..\BaseFaq.AI.Generation.Business.Worker\BaseFaq.AI.Generation.Business.Worker.csproj"/>
         <ProjectReference Include="..\BaseFaq.AI.Common.Persistence.AiDb\BaseFaq.AI.Common.Persistence.AiDb.csproj"/>
     </ItemGroup>

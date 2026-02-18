@@ -1,4 +1,3 @@
-using BaseFaq.AI.Generation.Business.Generation.Extensions;
 using BaseFaq.AI.Generation.Business.Worker.Extensions;
 using BaseFaq.AI.Common.Persistence.AiDb.Extensions;
 using BaseFaq.Common.EntityFramework.Tenant.Extensions;
@@ -11,7 +10,6 @@ public static class ServiceCollectionExtensions
     {
         services.AddTenantDb(configuration.GetConnectionString("TenantDb"));
         services.AddAiDb(configuration.GetConnectionString("AiDb"));
-        services.AddGenerationBusiness();
         services.AddGenerationWorker(configuration);
     }
 }

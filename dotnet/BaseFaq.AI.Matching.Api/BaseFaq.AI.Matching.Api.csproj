@@ -30,7 +30,6 @@
         <ProjectReference Include="..\BaseFaq.Common.EntityFramework.Tenant\BaseFaq.Common.EntityFramework.Tenant.csproj"/>
         <ProjectReference Include="..\BaseFaq.AI.Common.Persistence.AiDb\BaseFaq.AI.Common.Persistence.AiDb.csproj"/>
         <ProjectReference Include="..\BaseFaq.Faq.Common.Persistence.FaqDb\BaseFaq.Faq.Common.Persistence.FaqDb.csproj"/>
-        <ProjectReference Include="..\BaseFaq.AI.Matching.Business.Matching\BaseFaq.AI.Matching.Business.Matching.csproj"/>
         <ProjectReference Include="..\BaseFaq.AI.Matching.Business.Worker\BaseFaq.AI.Matching.Business.Worker.csproj"/>
     </ItemGroup>
 

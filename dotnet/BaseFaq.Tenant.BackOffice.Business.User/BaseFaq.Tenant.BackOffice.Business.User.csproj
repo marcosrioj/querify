@@ -18,4 +18,9 @@
         <ProjectReference Include="..\BaseFaq.Common.Infrastructure.Core\BaseFaq.Common.Infrastructure.Core.csproj"/>
     </ItemGroup>
 
+    <ItemGroup>
+        <Compile Remove="Commands\CreateUser\UsersCreateUserCommandPolicy.cs"/>
+        <Compile Remove="Commands\CreateUser\UsersCreateUserCommandExecutor.cs"/>
+    </ItemGroup>
+
 </Project>

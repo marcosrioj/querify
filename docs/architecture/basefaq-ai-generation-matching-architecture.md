@@ -308,11 +308,9 @@ public record FaqGenerationFailedV1(
 ```text
 dotnet
   /BaseFaq.AI.Generation.Api
-  /BaseFaq.AI.Generation.Business.Generation
   /BaseFaq.AI.Generation.Business.Worker
   /BaseFaq.AI.Generation.Test.IntegrationTests
   /BaseFaq.AI.Matching.Api
-  /BaseFaq.AI.Matching.Business.Matching
   /BaseFaq.AI.Matching.Business.Worker
   /BaseFaq.AI.Matching.Test.IntegrationTests
   /BaseFaq.AI.Common.VectorStore
@@ -322,12 +320,10 @@ dotnet
 Suggested concrete project names:
 ```text
 dotnet/BaseFaq.AI.Generation.Api/BaseFaq.AI.Generation.Api.csproj
-dotnet/BaseFaq.AI.Generation.Business.Generation/BaseFaq.AI.Generation.Business.Generation.csproj
 dotnet/BaseFaq.AI.Generation.Business.Worker/BaseFaq.AI.Generation.Business.Worker.csproj
 dotnet/BaseFaq.AI.Generation.Test.IntegrationTests/BaseFaq.AI.Generation.Test.IntegrationTests.csproj
 
 dotnet/BaseFaq.AI.Matching.Api/BaseFaq.AI.Matching.Api.csproj
-dotnet/BaseFaq.AI.Matching.Business.Matching/BaseFaq.AI.Matching.Business.Matching.csproj
 dotnet/BaseFaq.AI.Matching.Business.Worker/BaseFaq.AI.Matching.Business.Worker.csproj
 dotnet/BaseFaq.AI.Matching.Test.IntegrationTests/BaseFaq.AI.Matching.Test.IntegrationTests.csproj
 
