@@ -20,7 +20,13 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BaseFaq.Common.EntityFramew
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{1074D984-8543-46F5-862B-C0E88701CBFE}"
 	ProjectSection(SolutionItems) = preProject
-		compose.yaml = compose.yaml
+		README.md = README.md
+		PROJECT_RULES.md = PROJECT_RULES.md
+		global.json = global.json
+		docker.sh = docker.sh
+		docker.ps1 = docker.ps1
+		docker-base.sh = docker-base.sh
+		docker-base.ps1 = docker-base.ps1
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Infrastructure", "Infrastructure", "{87130428-904D-44AB-82A8-9341EA677BAB}"
