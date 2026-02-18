@@ -307,25 +307,20 @@ public record FaqGenerationFailedV1(
 ### Solution/project folder structure
 ```text
 dotnet
-  /BaseFaq.AI.Generation.Api
-  /BaseFaq.AI.Generation.Business.Worker
-  /BaseFaq.AI.Generation.Test.IntegrationTests
-  /BaseFaq.AI.Matching.Api
-  /BaseFaq.AI.Matching.Business.Worker
-  /BaseFaq.AI.Matching.Test.IntegrationTests
+  /BaseFaq.AI.Api
+  /BaseFaq.AI.Business.Generation
+  /BaseFaq.AI.Business.Matching
+  /BaseFaq.AI.Test.IntegrationTest
   /BaseFaq.AI.Common.VectorStore
   /BaseFaq.AI.Common.Contracts
 ```
 
 Suggested concrete project names:
 ```text
-dotnet/BaseFaq.AI.Generation.Api/BaseFaq.AI.Generation.Api.csproj
-dotnet/BaseFaq.AI.Generation.Business.Worker/BaseFaq.AI.Generation.Business.Worker.csproj
-dotnet/BaseFaq.AI.Generation.Test.IntegrationTests/BaseFaq.AI.Generation.Test.IntegrationTests.csproj
-
-dotnet/BaseFaq.AI.Matching.Api/BaseFaq.AI.Matching.Api.csproj
-dotnet/BaseFaq.AI.Matching.Business.Worker/BaseFaq.AI.Matching.Business.Worker.csproj
-dotnet/BaseFaq.AI.Matching.Test.IntegrationTests/BaseFaq.AI.Matching.Test.IntegrationTests.csproj
+dotnet/BaseFaq.AI.Api/BaseFaq.AI.Api.csproj
+dotnet/BaseFaq.AI.Business.Generation/BaseFaq.AI.Business.Generation.csproj
+dotnet/BaseFaq.AI.Business.Matching/BaseFaq.AI.Business.Matching.csproj
+dotnet/BaseFaq.AI.Test.IntegrationTest/BaseFaq.AI.Test.IntegrationTest.csproj
 
 dotnet/BaseFaq.AI.Common.VectorStore/BaseFaq.AI.Common.VectorStore.csproj
 dotnet/BaseFaq.AI.Common.Contracts/BaseFaq.AI.Common.Contracts.csproj
@@ -395,23 +390,23 @@ Tracking convention:
 ### MVP backlog
 | ID | Item | Status | Target Artifact |
 |---|---|---|---|
-| `AI-MVP-01` | Generation request/worker happy-path integration test coverage completion | `Done` | `dotnet/BaseFaq.AI.Generation.Test.IntegrationTests` |
-| `AI-MVP-02` | Matching async request/status contract verification suite | `Done` | `dotnet/BaseFaq.AI.Matching.Test.IntegrationTests` |
-| `AI-MVP-03` | FAQ write idempotency validation under duplicate event delivery | `Done` | `dotnet/BaseFaq.AI.Generation.Test.IntegrationTests/Tests/Infrastructure/GenerationFaqWriteIdempotencyTests.cs` |
+| `AI-MVP-01` | Generation request/worker happy-path integration test coverage completion | `Done` | `dotnet/BaseFaq.AI.Test.IntegrationTest` |
+| `AI-MVP-02` | Matching async request/status contract verification suite | `Done` | `dotnet/BaseFaq.AI.Test.IntegrationTest` |
+| `AI-MVP-03` | FAQ write idempotency validation under duplicate event delivery | `Done` | `dotnet/BaseFaq.AI.Test.IntegrationTest` |
 
 ### Hardening backlog
 | ID | Item | Status | Target Artifact |
 |---|---|---|---|
-| `AI-HARD-01` | Retry policy and DLQ handling validation for worker consumers | `Done` | `dotnet/BaseFaq.AI.Generation.Test.IntegrationTests/Tests/Infrastructure/RetryAndDlqPolicyTests.cs` |
+| `AI-HARD-01` | Retry policy and DLQ handling validation for worker consumers | `Done` | `dotnet/BaseFaq.AI.Test.IntegrationTest/Tests/Generation/Infrastructure/RetryAndDlqPolicyTests.cs` |
 | `AI-HARD-02` | Tenant-level AI provider key rotation verification | `Done` | `docs/operations/secret-manager-key-rotation.md` |
-| `AI-HARD-03` | Logging redaction and sensitive field masking guardrails | `Done` | `dotnet/BaseFaq.AI.Generation.Test.IntegrationTests/Tests/Infrastructure/LoggingRedactionTests.cs` |
+| `AI-HARD-03` | Logging redaction and sensitive field masking guardrails | `Done` | `dotnet/BaseFaq.AI.Test.IntegrationTest/Tests/Generation/Infrastructure/LoggingRedactionTests.cs` |
 
 ### Scale backlog
 | ID | Item | Status | Target Artifact |
 |---|---|---|---|
-| `AI-SCALE-01` | Worker split for generation/matching workloads and throughput baselines | `Todo` | `dotnet/BaseFaq.AI.Generation.Business.Worker`, `dotnet/BaseFaq.AI.Matching.Business.Worker` |
-| `AI-SCALE-02` | Adaptive concurrency controls with queue-depth feedback | `Todo` | `dotnet/BaseFaq.AI.Generation.Business.Worker` |
-| `AI-SCALE-03` | Provider routing and cost control policy implementation | `Todo` | `dotnet/BaseFaq.AI.Generation.Business.Worker`, `dotnet/BaseFaq.AI.Matching.Business.Worker` |
+| `AI-SCALE-01` | Worker split for generation/matching workloads and throughput baselines | `Todo` | `dotnet/BaseFaq.AI.Business.Generation`, `dotnet/BaseFaq.AI.Business.Matching` |
+| `AI-SCALE-02` | Adaptive concurrency controls with queue-depth feedback | `Todo` | `dotnet/BaseFaq.AI.Business.Generation` |
+| `AI-SCALE-03` | Provider routing and cost control policy implementation | `Todo` | `dotnet/BaseFaq.AI.Business.Generation`, `dotnet/BaseFaq.AI.Business.Matching` |
 
 Review cadence:
 - Weekly backlog triage in architecture review.
