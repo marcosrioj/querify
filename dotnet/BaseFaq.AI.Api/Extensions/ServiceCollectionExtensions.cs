@@ -1,18 +1,10 @@
-using BaseFaq.AI.Business.Generation.Abstractions;
-using BaseFaq.AI.Business.Generation.Commands.ProcessFaqGenerationRequested;
-using BaseFaq.AI.Business.Generation.Consumers;
-using BaseFaq.AI.Business.Generation.Service;
-using BaseFaq.AI.Business.Matching.Abstractions;
-using BaseFaq.AI.Business.Matching.Commands.ProcessFaqMatchingRequested;
-using BaseFaq.AI.Business.Matching.Consumers;
-using BaseFaq.AI.Business.Matching.Service;
-using BaseFaq.AI.Business.Common.Extensions;
+using BaseFaq.AI.Business.Generation.Extensions;
+using BaseFaq.AI.Business.Matching.Extensions;
 using BaseFaq.Common.EntityFramework.Tenant.Extensions;
-using BaseFaq.Common.Infrastructure.MassTransit.Extensions;
+using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Common.Infrastructure.MassTransit.Models;
 using BaseFaq.Faq.Common.Persistence.FaqDb.Extensions;
-using BaseFaq.Models.Ai.Contracts.Generation;
-using BaseFaq.Models.Ai.Contracts.Matching;
+using BaseFaq.Models.Common.Enums;
 using MassTransit;
 
 namespace BaseFaq.AI.Api.Extensions;
@@ -21,25 +13,20 @@ public static class ServiceCollectionExtensions
 {
     public static void AddFeatures(this IServiceCollection services, IConfiguration configuration)
     {
+        services.AddHttpContextAccessor();
+        services.AddScoped<ISessionService, AiWorkerSessionService>();
         services.AddTenantDb(configuration.GetConnectionString("TenantDb"));
         services.AddFaqDb();
-        services.AddAiBusinessCore();
-        services.AddScoped<IFaqGenerationEngine, SimpleFaqGenerationEngine>();
-        services.AddScoped<IFaqMatchingScorer, SimpleFaqMatchingScorer>();
-
-        services.AddMediatR(config =>
-        {
-            config.RegisterServicesFromAssemblyContaining<ProcessFaqGenerationRequestedCommandHandler>();
-            config.RegisterServicesFromAssemblyContaining<ProcessFaqMatchingRequestedCommandHandler>();
-        });
+        services.AddAiGenerationBusiness();
+        services.AddAiMatchingBusiness();
 
         var generationRabbitMq = GetRabbitMqOption(configuration, "RabbitMQ:Generation", "generation");
         var matchingRabbitMq = GetRabbitMqOption(configuration, "RabbitMQ:Matching", "matching");
 
         services.AddMassTransit(x =>
         {
-            x.AddConsumer<FaqGenerationRequestedConsumer>();
-            x.AddConsumer<FaqMatchingRequestedConsumer>();
+            x.AddGenerationWorker();
+            x.AddMatchingWorker();
 
             x.UsingRabbitMq((context, cfg) =>
             {
@@ -49,10 +36,21 @@ public static class ServiceCollectionExtensions
                     h.Password(generationRabbitMq.Password);
                 });
 
-                ConfigureGenerationWorker(cfg, context, generationRabbitMq);
-                ConfigureMatchingWorker(cfg, context, matchingRabbitMq);
+                cfg.ConfigureGenerationWorker(context, generationRabbitMq);
+                cfg.ConfigureMatchingWorker(context, matchingRabbitMq);
             });
         });
+    }
+
+    private sealed class AiWorkerSessionService : ISessionService
+    {
+        public Guid GetTenantId(AppEnum app)
+        {
+            throw new InvalidOperationException(
+                "AI worker session tenant is not available. Use tenant-aware message payloads with IFaqDbContextFactory.");
+        }
+
+        public Guid GetUserId() => Guid.Empty;
     }
 
     private static RabbitMqOption GetRabbitMqOption(
@@ -63,69 +61,5 @@ public static class ServiceCollectionExtensions
         return configuration.GetSection(sectionName).Get<RabbitMqOption>()
                ?? throw new InvalidOperationException(
                    $"RabbitMQ configuration is missing for {workerName} worker at '{sectionName}'.");
-    }
-
-    private static void ConfigureGenerationWorker(
-        IRabbitMqBusFactoryConfigurator cfg,
-        IBusRegistrationContext context,
-        RabbitMqOption rabbitMqOption)
-    {
-        cfg.Message<FaqGenerationRequestedV1>(message =>
-            message.SetEntityName(rabbitMqOption.Exchange.Name));
-
-        cfg.Publish<FaqGenerationRequestedV1>(message =>
-            message.ExchangeType = rabbitMqOption.Exchange.Type);
-
-        cfg.Message<FaqGenerationReadyV1>(message =>
-            message.SetEntityName(GenerationEventNames.ReadyExchange));
-
-        cfg.Publish<FaqGenerationReadyV1>(message =>
-            message.ExchangeType = GenerationEventNames.ExchangeType);
-
-        cfg.Message<FaqGenerationFailedV1>(message =>
-            message.SetEntityName(GenerationEventNames.FailedExchange));
-
-        cfg.Publish<FaqGenerationFailedV1>(message =>
-            message.ExchangeType = GenerationEventNames.ExchangeType);
-
-        cfg.ReceiveEndpoint(rabbitMqOption.QueueName, endpoint =>
-        {
-            endpoint.PrefetchCount = (ushort)Math.Max(1, rabbitMqOption.PrefetchCount);
-            endpoint.ConcurrentMessageLimit = Math.Max(1, rabbitMqOption.ConcurrencyLimit);
-            endpoint.ConfigureResilience(rabbitMqOption);
-            endpoint.ConfigureConsumer<FaqGenerationRequestedConsumer>(context);
-        });
-    }
-
-    private static void ConfigureMatchingWorker(
-        IRabbitMqBusFactoryConfigurator cfg,
-        IBusRegistrationContext context,
-        RabbitMqOption rabbitMqOption)
-    {
-        cfg.Message<FaqMatchingRequestedV1>(message =>
-            message.SetEntityName(rabbitMqOption.Exchange.Name));
-
-        cfg.Publish<FaqMatchingRequestedV1>(message =>
-            message.ExchangeType = rabbitMqOption.Exchange.Type);
-
-        cfg.Message<FaqMatchingCompletedV1>(message =>
-            message.SetEntityName(MatchingEventNames.CompletedExchange));
-
-        cfg.Publish<FaqMatchingCompletedV1>(message =>
-            message.ExchangeType = MatchingEventNames.ExchangeType);
-
-        cfg.Message<FaqMatchingFailedV1>(message =>
-            message.SetEntityName(MatchingEventNames.FailedExchange));
-
-        cfg.Publish<FaqMatchingFailedV1>(message =>
-            message.ExchangeType = MatchingEventNames.ExchangeType);
-
-        cfg.ReceiveEndpoint(rabbitMqOption.QueueName, endpoint =>
-        {
-            endpoint.PrefetchCount = (ushort)Math.Max(1, rabbitMqOption.PrefetchCount);
-            endpoint.ConcurrentMessageLimit = Math.Max(1, rabbitMqOption.ConcurrencyLimit);
-            endpoint.ConfigureResilience(rabbitMqOption);
-            endpoint.ConfigureConsumer<FaqMatchingRequestedConsumer>(context);
-        });
     }
 }
