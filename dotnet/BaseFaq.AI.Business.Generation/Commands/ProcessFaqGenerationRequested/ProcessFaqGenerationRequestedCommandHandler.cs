@@ -1,12 +1,11 @@
-using System.Diagnostics;
 using BaseFaq.AI.Business.Common.Abstractions;
 using BaseFaq.AI.Business.Common.Utilities;
-using BaseFaq.AI.Business.Generation.Observability;
-using BaseFaq.AI.Business.Generation.Service;
+using BaseFaq.AI.Business.Generation.Abstractions;
+using BaseFaq.AI.Business.Generation.Dtos;
+using BaseFaq.AI.Business.Generation.Helpers;
 using BaseFaq.Faq.Common.Persistence.FaqDb;
 using BaseFaq.Faq.Common.Persistence.FaqDb.Entities;
 using BaseFaq.Models.Ai.Contracts.Generation;
-using BaseFaq.Models.Tenant.Enums;
 using MassTransit;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -15,7 +14,6 @@ using Microsoft.Extensions.Logging;
 namespace BaseFaq.AI.Business.Generation.Commands.ProcessFaqGenerationRequested;
 
 public sealed class ProcessFaqGenerationRequestedCommandHandler(
-    ITenantAiProviderContextResolver tenantAiProviderContextResolver,
     IFaqDbContextFactory faqDbContextFactory,
     IFaqGenerationEngine generationEngine,
     ILogger<ProcessFaqGenerationRequestedCommandHandler> logger,
@@ -34,7 +32,11 @@ public sealed class ProcessFaqGenerationRequestedCommandHandler(
 
         try
         {
-            await ProcessGenerationAsync(message, cancellationToken);
+            var studiedRefs = await LoadStudiedRefsAsync(message, cancellationToken);
+            var generatedDraft = generationEngine.Generate(message, studiedRefs);
+
+            await WriteGeneratedFaqItemAsync(message, generatedDraft, cancellationToken);
+            await PublishGenerationReadyAsync(message, Guid.NewGuid(), cancellationToken);
         }
         catch (Exception ex)
         {
@@ -47,27 +49,6 @@ public sealed class ProcessFaqGenerationRequestedCommandHandler(
 
             await PublishGenerationFailedSafeAsync(message, Guid.NewGuid(), ex, cancellationToken);
         }
-    }
-
-    private async Task ProcessGenerationAsync(
-        FaqGenerationRequestedV1 message,
-        CancellationToken cancellationToken)
-    {
-        var providerContext = await tenantAiProviderContextResolver.ResolveAsync(
-            message.TenantId,
-            AiCommandType.Generation,
-            cancellationToken);
-
-        var studiedRefs = await LoadStudiedRefsAsync(message, cancellationToken);
-        var generatedDraft = generationEngine.Generate(message, studiedRefs, providerContext);
-
-        using var providerActivity =
-            GenerationWorkerTracing.ActivitySource.StartActivity("generation.provider.generate", ActivityKind.Client);
-
-        AddProviderActivityTags(providerActivity, providerContext, message, studiedRefs, generatedDraft.PromptData);
-
-        await WriteGeneratedFaqItemAsync(message, generatedDraft, cancellationToken);
-        await PublishGenerationReadyAsync(message, Guid.NewGuid(), cancellationToken);
     }
 
     private async Task<ContentRefStudyResult> LoadStudiedRefsAsync(
@@ -88,7 +69,7 @@ public sealed class ProcessFaqGenerationRequestedCommandHandler(
                 $"FAQ '{message.FaqId}' must have at least one ContentRef to continue generation.");
         }
 
-        return ContentRefStudyService.Study(contentRefs);
+        return ContentRefStudyHelper.Study(contentRefs);
     }
 
     private async Task WriteGeneratedFaqItemAsync(
@@ -96,15 +77,6 @@ public sealed class ProcessFaqGenerationRequestedCommandHandler(
         GeneratedFaqDraft generatedDraft,
         CancellationToken cancellationToken)
     {
-        using var writeActivity =
-            GenerationWorkerTracing.ActivitySource.StartActivity("generation.faq_db.write", ActivityKind.Internal);
-
-        writeActivity?.SetTag("db.system", "postgresql");
-        writeActivity?.SetTag("db.name", "bf_faq_db");
-        writeActivity?.SetTag("basefaq.correlation_id", message.CorrelationId.ToString("D"));
-        writeActivity?.SetTag("basefaq.tenant_id", message.TenantId.ToString("D"));
-        writeActivity?.SetTag("basefaq.faq_id", message.FaqId.ToString("D"));
-
         await using var faqDbContext = faqDbContextFactory.Create(message.TenantId);
 
         var faq = await faqDbContext.Faqs
@@ -187,25 +159,6 @@ public sealed class ProcessFaqGenerationRequestedCommandHandler(
             .MaxAsync(cancellationToken);
 
         return (maxSort ?? 0) + 1;
-    }
-
-    private static void AddProviderActivityTags(
-        Activity? providerActivity,
-        BaseFaq.AI.Business.Common.Models.AiProviderContext providerContext,
-        FaqGenerationRequestedV1 message,
-        ContentRefStudyResult studiedRefs,
-        GenerationPromptData promptData)
-    {
-        providerActivity?.SetTag("gen_ai.system", providerContext.Provider);
-        providerActivity?.SetTag("gen_ai.request.model", providerContext.Model);
-        providerActivity?.SetTag("basefaq.ai_key_configured", !string.IsNullOrWhiteSpace(providerContext.ApiKey));
-        providerActivity?.SetTag("basefaq.correlation_id", message.CorrelationId.ToString("D"));
-        providerActivity?.SetTag("basefaq.content_ref.total_count", studiedRefs.TotalCount);
-        providerActivity?.SetTag("basefaq.content_ref.processed_count", studiedRefs.ProcessedCount);
-        providerActivity?.SetTag("basefaq.content_ref.skipped_count", studiedRefs.SkippedCount);
-        providerActivity?.SetTag("basefaq.prompt.domain", promptData.Domain);
-        providerActivity?.SetTag("basefaq.prompt.version", promptData.Version);
-        providerActivity?.SetTag("basefaq.prompt.provider", promptData.Provider);
     }
 
     private async Task PublishGenerationReadyAsync(

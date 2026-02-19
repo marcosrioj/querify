@@ -1,6 +1,8 @@
+using BaseFaq.AI.Business.Generation.Abstractions;
 using BaseFaq.AI.Business.Generation.Commands.ProcessFaqGenerationRequested;
 using BaseFaq.AI.Business.Generation.Consumers;
 using BaseFaq.AI.Business.Generation.Service;
+using BaseFaq.AI.Business.Matching.Abstractions;
 using BaseFaq.AI.Business.Matching.Commands.ProcessFaqMatchingRequested;
 using BaseFaq.AI.Business.Matching.Consumers;
 using BaseFaq.AI.Business.Matching.Service;
@@ -22,8 +24,8 @@ public static class ServiceCollectionExtensions
         services.AddTenantDb(configuration.GetConnectionString("TenantDb"));
         services.AddFaqDb();
         services.AddAiBusinessCore();
-        services.AddScoped<IFaqGenerationEngine, DeterministicFaqGenerationEngine>();
-        services.AddScoped<IFaqMatchingScorer, HybridFaqMatchingScorer>();
+        services.AddScoped<IFaqGenerationEngine, SimpleFaqGenerationEngine>();
+        services.AddScoped<IFaqMatchingScorer, SimpleFaqMatchingScorer>();
 
         services.AddMediatR(config =>
         {
@@ -33,8 +35,6 @@ public static class ServiceCollectionExtensions
 
         var generationRabbitMq = GetRabbitMqOption(configuration, "RabbitMQ:Generation", "generation");
         var matchingRabbitMq = GetRabbitMqOption(configuration, "RabbitMQ:Matching", "matching");
-
-        EnsureRabbitMqHostConsistency(generationRabbitMq, matchingRabbitMq);
 
         services.AddMassTransit(x =>
         {
@@ -63,18 +63,6 @@ public static class ServiceCollectionExtensions
         return configuration.GetSection(sectionName).Get<RabbitMqOption>()
                ?? throw new InvalidOperationException(
                    $"RabbitMQ configuration is missing for {workerName} worker at '{sectionName}'.");
-    }
-
-    private static void EnsureRabbitMqHostConsistency(RabbitMqOption generation, RabbitMqOption matching)
-    {
-        if (!string.Equals(generation.Hostname, matching.Hostname, StringComparison.OrdinalIgnoreCase) ||
-            generation.Port != matching.Port ||
-            !string.Equals(generation.Username, matching.Username, StringComparison.Ordinal) ||
-            !string.Equals(generation.Password, matching.Password, StringComparison.Ordinal))
-        {
-            throw new InvalidOperationException(
-                "Generation and matching RabbitMQ host credentials must match when hosted in the same API process.");
-        }
     }
 
     private static void ConfigureGenerationWorker(

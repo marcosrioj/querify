@@ -1,14 +1,15 @@
+using BaseFaq.AI.Business.Matching.Dtos;
 using BaseFaq.AI.Business.Matching.Service;
 using Xunit;
 
 namespace BaseFaq.AI.Test.IntegrationTest.Tests.Matching.Infrastructure;
 
-public sealed class HybridFaqMatchingScorerTests
+public sealed class SimpleFaqMatchingScorerTests
 {
     [Fact]
     public void Rank_PrioritizesMostRelevantQuestion()
     {
-        var scorer = new HybridFaqMatchingScorer();
+        var scorer = new SimpleFaqMatchingScorer();
 
         var ranked = scorer.Rank(
             "how can i reset my account password",
@@ -26,7 +27,7 @@ public sealed class HybridFaqMatchingScorerTests
     [Fact]
     public void Rank_ReturnsNoMatches_WhenQueryIsUnrelated()
     {
-        var scorer = new HybridFaqMatchingScorer();
+        var scorer = new SimpleFaqMatchingScorer();
 
         var ranked = scorer.Rank(
             "volcanic ash cloud updates",

@@ -1,4 +1,4 @@
-using BaseFaq.AI.Business.Common.Models;
+using BaseFaq.AI.Business.Generation.Dtos;
 using BaseFaq.AI.Business.Generation.Service;
 using BaseFaq.Models.Ai.Contracts.Generation;
 using BaseFaq.Models.Faq.Enums;
@@ -6,12 +6,12 @@ using Xunit;
 
 namespace BaseFaq.AI.Test.IntegrationTest.Tests.Infrastructure;
 
-public sealed class DeterministicFaqGenerationEngineTests
+public sealed class SimpleFaqGenerationEngineTests
 {
     [Fact]
     public void Generate_ComputesConfidenceFromProcessedRatio()
     {
-        var engine = new DeterministicFaqGenerationEngine();
+        var engine = new SimpleFaqGenerationEngine();
         var request = new FaqGenerationRequestedV1
         {
             CorrelationId = Guid.NewGuid(),
@@ -33,13 +33,8 @@ public sealed class DeterministicFaqGenerationEngineTests
                 new StudiedContentRef(ContentRefKind.Pdf, "https://c", "c")
             ]);
 
-        var result = engine.Generate(
-            request,
-            studiedRefs,
-            new AiProviderContext("OpenAI", "gpt-4o-mini", null, "secret"));
+        var result = engine.Generate(request, studiedRefs);
 
         Assert.Equal(75, result.Confidence);
-        Assert.Equal("generation", result.PromptData.Domain);
-        Assert.Equal("openai", result.PromptData.Provider);
     }
 }

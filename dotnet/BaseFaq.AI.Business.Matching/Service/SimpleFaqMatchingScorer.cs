@@ -1,14 +1,17 @@
 using System.Text.RegularExpressions;
+using BaseFaq.AI.Business.Matching.Abstractions;
+using BaseFaq.AI.Business.Matching.Dtos;
 using BaseFaq.Models.Ai.Contracts.Matching;
 
 namespace BaseFaq.AI.Business.Matching.Service;
 
-public sealed partial class HybridFaqMatchingScorer : IFaqMatchingScorer
+public sealed partial class SimpleFaqMatchingScorer : IFaqMatchingScorer
 {
     private const double TokenWeight = 0.75;
     private const double CharacterNGramWeight = 0.25;
 
-    public MatchingCandidate[] Rank(string queryText, IReadOnlyCollection<CandidateQuestion> candidates, int maxCandidates)
+    public MatchingCandidate[] Rank(string queryText, IReadOnlyCollection<CandidateQuestion> candidates,
+        int maxCandidates)
     {
         return candidates
             .Select(x => new MatchingCandidate(x.Id, ComputeScore(queryText, x.Question)))

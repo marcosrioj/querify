@@ -1,18 +1,9 @@
+using BaseFaq.AI.Business.Generation.Dtos;
 using BaseFaq.Models.Faq.Enums;
 
-namespace BaseFaq.AI.Business.Generation.Service;
+namespace BaseFaq.AI.Business.Generation.Helpers;
 
-public sealed record ContentRefStudyInput(ContentRefKind Kind, string Locator);
-
-public sealed record StudiedContentRef(ContentRefKind Kind, string Locator, string MainSubject);
-
-public sealed record ContentRefStudyResult(
-    int TotalCount,
-    int ProcessedCount,
-    int SkippedCount,
-    IReadOnlyList<StudiedContentRef> StudiedRefs);
-
-public static class ContentRefStudyService
+public static class ContentRefStudyHelper
 {
     public static ContentRefStudyResult Study(IReadOnlyCollection<ContentRefStudyInput> refs)
     {

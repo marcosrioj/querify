@@ -1,12 +1,9 @@
-using System.Diagnostics;
-using System.Text;
 using BaseFaq.AI.Business.Common.Abstractions;
-using BaseFaq.AI.Business.Common.Models;
 using BaseFaq.AI.Business.Common.Utilities;
-using BaseFaq.AI.Business.Matching.Service;
+using BaseFaq.AI.Business.Matching.Abstractions;
+using BaseFaq.AI.Business.Matching.Dtos;
 using BaseFaq.Faq.Common.Persistence.FaqDb;
 using BaseFaq.Models.Ai.Contracts.Matching;
-using BaseFaq.Models.Tenant.Enums;
 using MassTransit;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -15,7 +12,6 @@ using Microsoft.Extensions.Logging;
 namespace BaseFaq.AI.Business.Matching.Commands.ProcessFaqMatchingRequested;
 
 public sealed class ProcessFaqMatchingRequestedCommandHandler(
-    ITenantAiProviderContextResolver tenantAiProviderContextResolver,
     IFaqDbContextFactory faqDbContextFactory,
     IFaqMatchingScorer faqMatchingScorer,
     ILogger<ProcessFaqMatchingRequestedCommandHandler> logger,
@@ -23,11 +19,8 @@ public sealed class ProcessFaqMatchingRequestedCommandHandler(
     : IRequestHandler<ProcessFaqMatchingRequestedCommand>
 {
     private const int MaxCandidates = 5;
-    private const int MaxPromptCandidates = 100;
     private const int MaxErrorMessageLength = 2000;
     private const string SimilarityErrorCode = "MATCHING_FAILED";
-    private const string PromptDomain = "matching";
-    private const string PromptVersion = "2026-02-19.matching.v2";
 
     public async Task Handle(ProcessFaqMatchingRequestedCommand command, CancellationToken cancellationToken)
     {
@@ -58,25 +51,11 @@ public sealed class ProcessFaqMatchingRequestedCommandHandler(
         FaqMatchingRequestedV1 message,
         CancellationToken cancellationToken)
     {
-        var providerContext = await tenantAiProviderContextResolver.ResolveAsync(
-            message.TenantId,
-            AiCommandType.Matching,
-            cancellationToken);
-
         await using var faqDbContext = faqDbContextFactory.Create(message.TenantId);
 
         var sourceQuestion = await LoadSourceQuestionAsync(faqDbContext, message, cancellationToken);
         var queryText = string.IsNullOrWhiteSpace(message.Query) ? sourceQuestion : message.Query;
         var candidates = await LoadCandidateQuestionsAsync(faqDbContext, message, cancellationToken);
-
-        var promptData = BuildPromptData(
-            sourceQuestion,
-            queryText,
-            message.Language,
-            candidates,
-            providerContext);
-
-        AddPromptActivityTags(promptData, candidates.Count, providerContext);
 
         return faqMatchingScorer.Rank(queryText, candidates, MaxCandidates);
     }
@@ -158,110 +137,4 @@ public sealed class ProcessFaqMatchingRequestedCommandHandler(
                 message.TenantId);
         }
     }
-
-    private static void AddPromptActivityTags(
-        MatchingPromptData promptData,
-        int candidatesCount,
-        AiProviderContext providerContext)
-    {
-        Activity.Current?.SetTag("gen_ai.system", providerContext.Provider);
-        Activity.Current?.SetTag("gen_ai.request.model", providerContext.Model);
-        Activity.Current?.SetTag("basefaq.ai_key_configured", !string.IsNullOrWhiteSpace(providerContext.ApiKey));
-        Activity.Current?.SetTag("basefaq.prompt.domain", promptData.Domain);
-        Activity.Current?.SetTag("basefaq.prompt.version", promptData.Version);
-        Activity.Current?.SetTag("basefaq.prompt.provider", promptData.Provider);
-        Activity.Current?.SetTag("basefaq.matching.candidates_count", candidatesCount);
-    }
-
-    private static MatchingPromptData BuildPromptData(
-        string sourceQuestion,
-        string queryText,
-        string language,
-        IReadOnlyCollection<CandidateQuestion> candidates,
-        AiProviderContext providerContext)
-    {
-        var provider = NormalizeProvider(providerContext.Provider);
-
-        return new MatchingPromptData(
-            PromptDomain,
-            PromptVersion,
-            provider,
-            ResolvePromptTemplate(providerContext.Prompt),
-            BuildPromptInput(sourceQuestion, queryText, language, candidates),
-            BuildOutputSchema());
-    }
-
-    private static string ResolvePromptTemplate(string? prompt)
-    {
-        if (!string.IsNullOrWhiteSpace(prompt))
-        {
-            return prompt;
-        }
-
-        return
-            "You are a FAQ semantic matching engine. Rank candidates by semantic relevance and return deterministic JSON.";
-    }
-
-    private static string BuildPromptInput(
-        string sourceQuestion,
-        string queryText,
-        string language,
-        IReadOnlyCollection<CandidateQuestion> candidates)
-    {
-        var builder = new StringBuilder();
-        builder.AppendLine("Task: rank FAQ candidates by semantic similarity.");
-        builder.AppendLine($"language: {language}");
-        builder.AppendLine($"sourceQuestion: {sourceQuestion}");
-        builder.AppendLine($"query: {queryText}");
-        builder.AppendLine($"candidatesTotal: {candidates.Count}");
-        builder.AppendLine("candidates:");
-
-        foreach (var candidate in candidates.Take(MaxPromptCandidates))
-        {
-            builder.AppendLine($"- faqItemId={candidate.Id:D}, question={candidate.Question}");
-        }
-
-        builder.AppendLine("Return top 5 candidates with score in [0,1], sorted descending.");
-        return builder.ToString();
-    }
-
-    private static string BuildOutputSchema()
-    {
-        return """
-               {
-                 "type": "object",
-                 "required": ["topCandidates"],
-                 "properties": {
-                   "topCandidates": {
-                     "type": "array",
-                     "maxItems": 5,
-                     "items": {
-                       "type": "object",
-                       "required": ["faqItemId", "score", "reason"],
-                       "properties": {
-                         "faqItemId": { "type": "string" },
-                         "score": { "type": "number", "minimum": 0, "maximum": 1 },
-                         "reason": { "type": "string", "maxLength": 300 }
-                       }
-                     }
-                   }
-                 }
-               }
-               """;
-    }
-
-    private static string NormalizeProvider(string? provider)
-    {
-        return string.IsNullOrWhiteSpace(provider)
-            ? "unknown"
-            : provider.Trim().ToLowerInvariant();
-    }
-
-    private sealed record MatchingPromptData(
-        string Domain,
-        string Version,
-        string Provider,
-        string Template,
-        string Input,
-        string OutputSchema);
 }

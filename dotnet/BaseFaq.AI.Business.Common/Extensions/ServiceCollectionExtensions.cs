@@ -8,7 +8,6 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddAiBusinessCore(this IServiceCollection services)
     {
-        services.AddScoped<ITenantAiProviderContextResolver, TenantAiProviderContextResolver>();
         services.AddScoped<IFaqDbContextFactory, FaqDbContextFactory>();
         return services;
     }

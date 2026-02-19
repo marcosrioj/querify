@@ -1,10 +1,11 @@
-using BaseFaq.AI.Business.Generation.Service;
+using BaseFaq.AI.Business.Generation.Dtos;
+using BaseFaq.AI.Business.Generation.Helpers;
 using BaseFaq.Models.Faq.Enums;
 using Xunit;
 
 namespace BaseFaq.AI.Test.IntegrationTest.Tests.Infrastructure;
 
-public class ContentRefStudyServiceTests
+public class ContentRefStudyHelperTests
 {
     [Fact]
     public void Study_Processes_Only_Web_Pdf_Document_And_Video()
@@ -21,7 +22,7 @@ public class ContentRefStudyServiceTests
             new ContentRefStudyInput(ContentRefKind.Other, "other://skip")
         };
 
-        var result = ContentRefStudyService.Study(refs);
+        var result = ContentRefStudyHelper.Study(refs);
 
         Assert.Equal(8, result.TotalCount);
         Assert.Equal(4, result.ProcessedCount);
@@ -42,7 +43,7 @@ public class ContentRefStudyServiceTests
             new ContentRefStudyInput(ContentRefKind.Web, " https://example.test/guide ")
         };
 
-        var result = ContentRefStudyService.Study(refs);
+        var result = ContentRefStudyHelper.Study(refs);
         var studied = Assert.Single(result.StudiedRefs);
 
         Assert.Equal("https://example.test/guide", studied.Locator);
