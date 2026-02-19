@@ -16,7 +16,11 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddAiGenerationBusiness(this IServiceCollection services)
     {
         services.AddAiBusinessCommon();
-        services.AddScoped<IFaqGenerationEngine, SimpleFaqGenerationEngine>();
+        services.AddScoped<IGenerationExecutionService, GenerationExecutionService>();
+        services.AddScoped<ContentRefStudyService>();
+        services.AddScoped<IGenerationPromptBuilder, GenerationPromptBuilder>();
+        services.AddScoped<IGenerationProviderClient, GenerationProviderClient>();
+
         services.AddMediatR(config =>
             config.RegisterServicesFromAssemblyContaining<ProcessFaqGenerationRequestedCommandHandler>());
 

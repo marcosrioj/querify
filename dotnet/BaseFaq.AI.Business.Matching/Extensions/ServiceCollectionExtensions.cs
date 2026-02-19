@@ -16,7 +16,9 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddAiMatchingBusiness(this IServiceCollection services)
     {
         services.AddAiBusinessCommon();
-        services.AddScoped<IFaqMatchingScorer, SimpleFaqMatchingScorer>();
+        services.AddScoped<IMatchingExecutionService, MatchingExecutionService>();
+        services.AddScoped<IMatchingProviderClient, MatchingProviderClient>();
+
         services.AddMediatR(config =>
             config.RegisterServicesFromAssemblyContaining<ProcessFaqMatchingRequestedCommandHandler>());
 

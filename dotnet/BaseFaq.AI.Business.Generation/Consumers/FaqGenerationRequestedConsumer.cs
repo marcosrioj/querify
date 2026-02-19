@@ -11,8 +11,10 @@ public sealed class FaqGenerationRequestedConsumer(
 {
     public async Task Consume(ConsumeContext<FaqGenerationRequestedV1> context)
     {
+        var message = context.Message;
+
         await mediator.Send(
-            new ProcessFaqGenerationRequestedCommand(context.Message),
+            new ProcessFaqGenerationRequestedCommand(message),
             context.CancellationToken);
     }
 }
