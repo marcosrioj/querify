@@ -6,6 +6,3 @@ SELECT 'CREATE DATABASE bf_faq_db_01'
 
 SELECT 'CREATE DATABASE bf_faq_db_02'
     WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'bf_faq_db_02')\gexec
-
-SELECT 'CREATE DATABASE bf_ai_db'
-    WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'bf_ai_db')\gexec

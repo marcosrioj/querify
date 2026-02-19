@@ -9,12 +9,10 @@ public sealed class FaqMatchingRequestedConsumer(
 {
     public async Task Consume(MassTransit.ConsumeContext<FaqMatchingRequestedV1> context)
     {
-        var handlerName = nameof(FaqMatchingRequestedConsumer);
-        var messageId = context.MessageId?.ToString("N") ?? context.Message.CorrelationId.ToString("N");
         var message = context.Message;
 
         await mediator.Send(
-            new ProcessFaqMatchingRequestedCommand(message, handlerName, messageId),
+            new ProcessFaqMatchingRequestedCommand(message),
             context.CancellationToken);
     }
 }

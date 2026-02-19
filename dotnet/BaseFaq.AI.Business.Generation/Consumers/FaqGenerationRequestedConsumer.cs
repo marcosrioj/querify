@@ -17,7 +17,6 @@ public sealed class FaqGenerationRequestedConsumer(
             GenerationWorkerTracing.ActivitySource.StartActivity("generation.worker.consume",
                 ActivityKind.Consumer);
 
-        var handlerName = nameof(FaqGenerationRequestedConsumer);
         var messageId = context.MessageId?.ToString("N") ?? context.Message.CorrelationId.ToString("N");
         var message = context.Message;
 
@@ -29,7 +28,7 @@ public sealed class FaqGenerationRequestedConsumer(
         consumeActivity?.SetTag("basefaq.faq_id", message.FaqId.ToString("D"));
 
         await mediator.Send(
-            new ProcessFaqGenerationRequestedCommand(message, handlerName, messageId),
+            new ProcessFaqGenerationRequestedCommand(message),
             context.CancellationToken);
     }
 }

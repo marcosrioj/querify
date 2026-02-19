@@ -1,9 +1,6 @@
 using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
-using System.Text.Json;
-using BaseFaq.AI.Persistence.AiDb;
-using BaseFaq.AI.Persistence.AiDb.Entities;
 using BaseFaq.AI.Business.Generation.Observability;
 using BaseFaq.AI.Business.Generation.Service;
 using BaseFaq.Common.EntityFramework.Tenant;
@@ -12,7 +9,6 @@ using BaseFaq.Faq.Common.Persistence.FaqDb;
 using BaseFaq.Faq.Common.Persistence.FaqDb.Entities;
 using BaseFaq.Models.Ai.Contracts.Generation;
 using BaseFaq.Models.Ai.Enums;
-using BaseFaq.Models.Ai.Enums.Generation;
 using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.Tenant.Enums;
 using MassTransit;
@@ -25,7 +21,6 @@ using Microsoft.Extensions.Logging;
 namespace BaseFaq.AI.Business.Generation.Commands.ProcessFaqGenerationRequested;
 
 public sealed class ProcessFaqGenerationRequestedCommandHandler(
-    AiDbContext aiDbContext,
     TenantDbContext tenantDbContext,
     ITenantConnectionStringProvider tenantConnectionStringProvider,
     IConfiguration configuration,
@@ -33,7 +28,8 @@ public sealed class ProcessFaqGenerationRequestedCommandHandler(
     IPublishEndpoint publishEndpoint)
     : IRequestHandler<ProcessFaqGenerationRequestedCommand>
 {
-    private const string PromptProfileFallback = "default";
+    private const string GenerationErrorCode = "GENERATION_FAILED";
+    private const int MaxErrorMessageLength = 2000;
     private const string PromptDomain = "generation";
     private const string PromptVersion = "2026-02-15.generation.v1";
 
@@ -43,132 +39,33 @@ public sealed class ProcessFaqGenerationRequestedCommandHandler(
         ArgumentNullException.ThrowIfNull(command.Message);
 
         var message = command.Message;
-        var processingContext = await TryInitializeProcessingAsync(command, message, cancellationToken);
-        if (processingContext is null)
-        {
-            return;
-        }
 
-        await ExecuteJobLifecycleAsync(message, processingContext, cancellationToken);
-        await MarkProcessedAsync(command.HandlerName, command.MessageId, cancellationToken);
+        try
+        {
+            await ProcessGenerationAsync(message, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(
+                ex,
+                "Generation worker failed for CorrelationId {CorrelationId}, FaqId {FaqId}, TenantId {TenantId}.",
+                message.CorrelationId,
+                message.FaqId,
+                message.TenantId);
+
+            await PublishGenerationFailedSafeAsync(message, Guid.NewGuid(), ex, cancellationToken);
+        }
     }
 
-    private async Task<GenerationProcessingContext?> TryInitializeProcessingAsync(
-        ProcessFaqGenerationRequestedCommand command,
+    private async Task ProcessGenerationAsync(
         FaqGenerationRequestedV1 message,
         CancellationToken cancellationToken)
     {
-        if (await IsMessageAlreadyProcessedAsync(command.HandlerName, command.MessageId, cancellationToken))
-        {
-            return null;
-        }
-
-        if (await IsJobAlreadyCreatedAsync(message, cancellationToken))
-        {
-            await MarkProcessedAsync(command.HandlerName, command.MessageId, cancellationToken);
-            return null;
-        }
-
         var providerContext = await ResolveTenantAiProviderAsync(
             message.TenantId,
             AiCommandType.Generation,
             cancellationToken);
 
-        var job = CreateProcessingJob(message, providerContext);
-        aiDbContext.GenerationJobs.Add(job);
-
-        try
-        {
-            await SaveJobWithTracingAsync("generation.ai_db.job_create", cancellationToken);
-            return new GenerationProcessingContext(job, providerContext);
-        }
-        catch (DbUpdateException ex) when (IsDuplicateJobException(ex))
-        {
-            await MarkProcessedAsync(command.HandlerName, command.MessageId, cancellationToken);
-            return null;
-        }
-    }
-
-    private async Task ExecuteJobLifecycleAsync(
-        FaqGenerationRequestedV1 message,
-        GenerationProcessingContext processingContext,
-        CancellationToken cancellationToken)
-    {
-        try
-        {
-            await ProcessGenerationAsync(
-                message,
-                processingContext.ProviderContext,
-                processingContext.Job,
-                cancellationToken);
-        }
-        catch (Exception ex)
-        {
-            await FailGenerationAsync(message, processingContext.Job, ex, cancellationToken);
-        }
-    }
-
-    private async Task<bool> IsMessageAlreadyProcessedAsync(
-        string handlerName,
-        string messageId,
-        CancellationToken cancellationToken)
-    {
-        return await aiDbContext.ProcessedMessages
-            .AnyAsync(
-                x => x.HandlerName == handlerName && x.MessageId == messageId,
-                cancellationToken);
-    }
-
-    private async Task<bool> IsJobAlreadyCreatedAsync(
-        FaqGenerationRequestedV1 message,
-        CancellationToken cancellationToken)
-    {
-        return await aiDbContext.GenerationJobs
-            .AnyAsync(
-                x =>
-                    x.CorrelationId == message.CorrelationId ||
-                    (x.FaqId == message.FaqId && x.IdempotencyKey == message.IdempotencyKey),
-                cancellationToken);
-    }
-
-    private static GenerationJob CreateProcessingJob(
-        FaqGenerationRequestedV1 message,
-        GenerationAiProviderContext providerContext)
-    {
-        return new GenerationJob
-        {
-            Id = Guid.NewGuid(),
-            CorrelationId = message.CorrelationId,
-            RequestedByUserId = message.RequestedByUserId,
-            FaqId = message.FaqId,
-            Language = message.Language,
-            PromptProfile = BuildPromptProfile(providerContext),
-            IdempotencyKey = message.IdempotencyKey,
-            RequestedUtc = message.RequestedUtc,
-            StartedUtc = DateTime.UtcNow,
-            Status = GenerationJobStatus.Processing,
-            Provider = providerContext.Provider,
-            Model = providerContext.Model
-        };
-    }
-
-    private async Task SaveJobWithTracingAsync(string activityName, CancellationToken cancellationToken)
-    {
-        using var activity =
-            GenerationWorkerTracing.ActivitySource.StartActivity(activityName, ActivityKind.Internal);
-
-        activity?.SetTag("db.system", "postgresql");
-        activity?.SetTag("db.name", "bf_ai_db");
-
-        await aiDbContext.SaveChangesAsync(cancellationToken);
-    }
-
-    private async Task ProcessGenerationAsync(
-        FaqGenerationRequestedV1 message,
-        GenerationAiProviderContext providerContext,
-        GenerationJob job,
-        CancellationToken cancellationToken)
-    {
         var studiedRefs = await LoadStudiedRefsAsync(message, cancellationToken);
         var promptData = BuildPromptData(message, studiedRefs, providerContext);
 
@@ -176,16 +73,8 @@ public sealed class ProcessFaqGenerationRequestedCommandHandler(
             GenerationWorkerTracing.ActivitySource.StartActivity("generation.provider.generate", ActivityKind.Client);
 
         AddProviderActivityTags(providerActivity, providerContext, message, studiedRefs, promptData);
-        AddDraftArtifact(message, studiedRefs, job, promptData);
         await WriteGeneratedFaqItemAsync(message, studiedRefs, cancellationToken);
-
-        job.Status = GenerationJobStatus.Succeeded;
-        job.CompletedUtc = DateTime.UtcNow;
-        job.ErrorCode = null;
-        job.ErrorMessage = null;
-
-        await SaveJobWithTracingAsync("generation.ai_db.job_complete", cancellationToken);
-        await PublishGenerationReadyAsync(message, job.Id, cancellationToken);
+        await PublishGenerationReadyAsync(message, Guid.NewGuid(), cancellationToken);
     }
 
     private async Task<ContentRefStudyResult> LoadStudiedRefsAsync(
@@ -322,38 +211,6 @@ public sealed class ProcessFaqGenerationRequestedCommandHandler(
         providerActivity?.SetTag("basefaq.prompt.provider", promptData.Provider);
     }
 
-    private static void AddDraftArtifact(
-        FaqGenerationRequestedV1 message,
-        ContentRefStudyResult studiedRefs,
-        GenerationJob job,
-        GenerationPromptData promptData)
-    {
-        var draftContent = BuildDraftContent(message.FaqId, studiedRefs);
-
-        job.Artifacts.Add(new GenerationArtifact
-        {
-            GenerationJobId = job.Id,
-            ArtifactType = GenerationArtifactType.Draft,
-            Sequence = 1,
-            Content = Truncate(draftContent, GenerationArtifact.MaxContentLength),
-            MetadataJson = Truncate(
-                JsonSerializer.Serialize(new
-                {
-                    contentRefTotal = studiedRefs.TotalCount,
-                    contentRefProcessed = studiedRefs.ProcessedCount,
-                    contentRefSkipped = studiedRefs.SkippedCount,
-                    processedKinds = studiedRefs.StudiedRefs.Select(x => x.Kind.ToString()).ToArray(),
-                    promptDomain = promptData.Domain,
-                    promptVersion = promptData.Version,
-                    promptProvider = promptData.Provider,
-                    promptTemplateHash = ComputeHash(promptData.Template),
-                    promptInputHash = ComputeHash(promptData.Input),
-                    outputSchemaHash = ComputeHash(promptData.OutputSchema)
-                }),
-                GenerationArtifact.MaxMetadataJsonLength)
-        });
-    }
-
     private async Task PublishGenerationReadyAsync(
         FaqGenerationRequestedV1 message,
         Guid jobId,
@@ -370,79 +227,37 @@ public sealed class ProcessFaqGenerationRequestedCommandHandler(
         }, cancellationToken);
     }
 
-    private async Task FailGenerationAsync(
+    private async Task PublishGenerationFailedSafeAsync(
         FaqGenerationRequestedV1 message,
-        GenerationJob job,
+        Guid jobId,
         Exception ex,
         CancellationToken cancellationToken)
     {
-        job.Status = GenerationJobStatus.Failed;
-        job.CompletedUtc = DateTime.UtcNow;
-
-        const string errorCode = "GENERATION_FAILED";
-        var errorMessage = ex.Message.Length <= GenerationJob.MaxErrorMessageLength
-            ? ex.Message
-            : ex.Message[..GenerationJob.MaxErrorMessageLength];
-
-        job.ErrorCode = errorCode;
-        job.ErrorMessage = errorMessage;
-
-        using var failJobActivity =
-            GenerationWorkerTracing.ActivitySource.StartActivity("generation.ai_db.job_fail", ActivityKind.Internal);
-
-        failJobActivity?.SetTag("db.system", "postgresql");
-        failJobActivity?.SetTag("db.name", "bf_ai_db");
-        failJobActivity?.SetTag("exception.type", ex.GetType().Name);
-
-        await aiDbContext.SaveChangesAsync(cancellationToken);
-        await PublishGenerationFailedAsync(message, job.Id, errorCode, errorMessage, cancellationToken);
-    }
-
-    private async Task PublishGenerationFailedAsync(
-        FaqGenerationRequestedV1 message,
-        Guid jobId,
-        string errorCode,
-        string errorMessage,
-        CancellationToken cancellationToken)
-    {
-        await publishEndpoint.Publish(new FaqGenerationFailedV1
-        {
-            EventId = Guid.NewGuid(),
-            CorrelationId = message.CorrelationId,
-            JobId = jobId,
-            FaqId = message.FaqId,
-            TenantId = message.TenantId,
-            ErrorCode = errorCode,
-            ErrorMessage = errorMessage,
-            OccurredUtc = DateTime.UtcNow
-        }, cancellationToken);
-    }
-
-    private async Task MarkProcessedAsync(string handlerName, string messageId, CancellationToken cancellationToken)
-    {
-        aiDbContext.ProcessedMessages.Add(new ProcessedMessage
-        {
-            HandlerName = handlerName,
-            MessageId = messageId,
-            ProcessedUtc = DateTime.UtcNow
-        });
+        var errorMessage = Truncate(ex.Message, MaxErrorMessageLength);
 
         try
         {
-            await aiDbContext.SaveChangesAsync(cancellationToken);
+            await publishEndpoint.Publish(new FaqGenerationFailedV1
+            {
+                EventId = Guid.NewGuid(),
+                CorrelationId = message.CorrelationId,
+                JobId = jobId,
+                FaqId = message.FaqId,
+                TenantId = message.TenantId,
+                ErrorCode = GenerationErrorCode,
+                ErrorMessage = errorMessage,
+                OccurredUtc = DateTime.UtcNow
+            }, cancellationToken);
         }
-        catch (DbUpdateException)
+        catch (Exception publishEx)
         {
-            // Another consumer execution may persist the same dedupe key first.
+            logger.LogError(
+                publishEx,
+                "Failed to publish generation failure callback. CorrelationId {CorrelationId}, FaqId {FaqId}, TenantId {TenantId}.",
+                message.CorrelationId,
+                message.FaqId,
+                message.TenantId);
         }
-    }
-
-    private static bool IsDuplicateJobException(DbUpdateException ex)
-    {
-        var message = ex.InnerException?.Message ?? ex.Message;
-
-        return message.Contains("IX_GenerationJob_CorrelationId", StringComparison.Ordinal) ||
-               message.Contains("IX_GenerationJob_FaqId_IdempotencyKey", StringComparison.Ordinal);
     }
 
     private static string BuildDraftQuestion(ContentRefStudyResult studyResult)
@@ -482,12 +297,6 @@ public sealed class ProcessFaqGenerationRequestedCommandHandler(
         return value.Length <= maxLength ? value : value[..maxLength];
     }
 
-    private static string ComputeHash(string value)
-    {
-        var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(value));
-        return Convert.ToHexString(bytes);
-    }
-
     private static Guid CreateDeterministicFaqItemId(Guid correlationId, Guid faqId, Guid tenantId)
     {
         var input = $"{correlationId:N}:{faqId:N}:{tenantId:N}";
@@ -497,20 +306,6 @@ public sealed class ProcessFaqGenerationRequestedCommandHandler(
         hash[8] = (byte)((hash[8] & 0x3F) | 0x80);
 
         return new Guid(hash);
-    }
-
-    private static string BuildPromptProfile(GenerationAiProviderContext providerContext)
-    {
-        var provider = providerContext.Provider?.Trim();
-        if (string.IsNullOrWhiteSpace(provider))
-        {
-            return PromptProfileFallback;
-        }
-
-        var profile = $"{provider}-{PromptProfileFallback}";
-        return profile.Length <= GenerationJob.MaxPromptProfileLength
-            ? profile
-            : profile[..GenerationJob.MaxPromptProfileLength];
     }
 
     private static GenerationPromptData BuildPromptData(
@@ -669,5 +464,4 @@ public sealed class ProcessFaqGenerationRequestedCommandHandler(
         string Input,
         string OutputSchema);
 
-    private sealed record GenerationProcessingContext(GenerationJob Job, GenerationAiProviderContext ProviderContext);
 }

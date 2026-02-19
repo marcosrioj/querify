@@ -1,8 +1,6 @@
 using System.Diagnostics;
 using System.Text;
 using System.Text.RegularExpressions;
-using BaseFaq.AI.Persistence.AiDb;
-using BaseFaq.AI.Persistence.AiDb.Entities;
 using BaseFaq.Common.EntityFramework.Tenant;
 using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Faq.Common.Persistence.FaqDb;
@@ -14,19 +12,21 @@ using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace BaseFaq.AI.Business.Matching.Commands.ProcessFaqMatchingRequested;
 
 public sealed class ProcessFaqMatchingRequestedCommandHandler(
-    AiDbContext aiDbContext,
     TenantDbContext tenantDbContext,
     ITenantConnectionStringProvider tenantConnectionStringProvider,
     IConfiguration configuration,
+    ILogger<ProcessFaqMatchingRequestedCommandHandler> logger,
     IPublishEndpoint publishEndpoint)
     : IRequestHandler<ProcessFaqMatchingRequestedCommand>
 {
     private const int MaxCandidates = 5;
     private const int MaxPromptCandidates = 100;
+    private const int MaxErrorMessageLength = 2000;
     private const string SimilarityErrorCode = "MATCHING_FAILED";
     private const string PromptDomain = "matching";
     private const string PromptVersion = "2026-02-15.matching.v1";
@@ -39,33 +39,22 @@ public sealed class ProcessFaqMatchingRequestedCommandHandler(
 
         var message = command.Message;
 
-        if (await IsMessageAlreadyProcessedAsync(command.HandlerName, command.MessageId, cancellationToken))
-        {
-            return;
-        }
-
         try
         {
             var rankedCandidates = await BuildRankedCandidatesAsync(message, cancellationToken);
             await PublishMatchingCompletedAsync(message, rankedCandidates, cancellationToken);
-            await MarkProcessedAsync(command.HandlerName, command.MessageId, cancellationToken);
         }
         catch (Exception ex)
         {
-            await PublishMatchingFailedAsync(message, ex, cancellationToken);
-            await MarkProcessedAsync(command.HandlerName, command.MessageId, cancellationToken);
-        }
-    }
+            logger.LogError(
+                ex,
+                "Matching worker failed for CorrelationId {CorrelationId}, FaqItemId {FaqItemId}, TenantId {TenantId}.",
+                message.CorrelationId,
+                message.FaqItemId,
+                message.TenantId);
 
-    private async Task<bool> IsMessageAlreadyProcessedAsync(
-        string handlerName,
-        string messageId,
-        CancellationToken cancellationToken)
-    {
-        return await aiDbContext.ProcessedMessages
-            .AnyAsync(
-                x => x.HandlerName == handlerName && x.MessageId == messageId,
-                cancellationToken);
+            await PublishMatchingFailedSafeAsync(message, ex, cancellationToken);
+        }
     }
 
     private async Task<MatchingCandidate[]> BuildRankedCandidatesAsync(
@@ -147,43 +136,36 @@ public sealed class ProcessFaqMatchingRequestedCommandHandler(
         }, cancellationToken);
     }
 
-    private async Task PublishMatchingFailedAsync(
+    private async Task PublishMatchingFailedSafeAsync(
         FaqMatchingRequestedV1 message,
         Exception ex,
         CancellationToken cancellationToken)
     {
-        var errorMessage = ex.Message.Length <= GenerationJob.MaxErrorMessageLength
+        var errorMessage = ex.Message.Length <= MaxErrorMessageLength
             ? ex.Message
-            : ex.Message[..GenerationJob.MaxErrorMessageLength];
-
-        await publishEndpoint.Publish(new FaqMatchingFailedV1
-        {
-            EventId = Guid.NewGuid(),
-            CorrelationId = message.CorrelationId,
-            TenantId = message.TenantId,
-            FaqItemId = message.FaqItemId,
-            ErrorCode = SimilarityErrorCode,
-            ErrorMessage = errorMessage,
-            OccurredUtc = DateTime.UtcNow
-        }, cancellationToken);
-    }
-
-    private async Task MarkProcessedAsync(string handlerName, string messageId, CancellationToken cancellationToken)
-    {
-        aiDbContext.ProcessedMessages.Add(new ProcessedMessage
-        {
-            HandlerName = handlerName,
-            MessageId = messageId,
-            ProcessedUtc = DateTime.UtcNow
-        });
+            : ex.Message[..MaxErrorMessageLength];
 
         try
         {
-            await aiDbContext.SaveChangesAsync(cancellationToken);
+            await publishEndpoint.Publish(new FaqMatchingFailedV1
+            {
+                EventId = Guid.NewGuid(),
+                CorrelationId = message.CorrelationId,
+                TenantId = message.TenantId,
+                FaqItemId = message.FaqItemId,
+                ErrorCode = SimilarityErrorCode,
+                ErrorMessage = errorMessage,
+                OccurredUtc = DateTime.UtcNow
+            }, cancellationToken);
         }
-        catch (DbUpdateException)
+        catch (Exception publishEx)
         {
-            // Duplicate dedupe key can happen with concurrent delivery handling.
+            logger.LogError(
+                publishEx,
+                "Failed to publish matching failure callback. CorrelationId {CorrelationId}, FaqItemId {FaqItemId}, TenantId {TenantId}.",
+                message.CorrelationId,
+                message.FaqItemId,
+                message.TenantId);
         }
     }
 
