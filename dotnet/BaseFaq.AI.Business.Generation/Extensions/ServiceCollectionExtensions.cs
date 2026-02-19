@@ -1,5 +1,7 @@
 using BaseFaq.AI.Business.Generation.Commands.ProcessFaqGenerationRequested;
 using BaseFaq.AI.Business.Generation.Consumers;
+using BaseFaq.AI.Business.Generation.Service;
+using BaseFaq.AI.Business.Common.Extensions;
 using BaseFaq.Common.Infrastructure.MassTransit.Extensions;
 using BaseFaq.Common.Infrastructure.MassTransit.Models;
 using BaseFaq.Models.Ai.Contracts.Generation;
@@ -22,6 +24,8 @@ public static class ServiceCollectionExtensions
 
         services.AddMediatR(config =>
             config.RegisterServicesFromAssemblyContaining<ProcessFaqGenerationRequestedCommandHandler>());
+        services.AddAiBusinessCore();
+        services.AddScoped<IFaqGenerationEngine, DeterministicFaqGenerationEngine>();
 
         services.AddMassTransit(x =>
         {

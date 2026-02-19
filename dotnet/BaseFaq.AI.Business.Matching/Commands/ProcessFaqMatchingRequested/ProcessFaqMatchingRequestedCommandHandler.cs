@@ -1,25 +1,23 @@
 using System.Diagnostics;
 using System.Text;
-using System.Text.RegularExpressions;
-using BaseFaq.Common.EntityFramework.Tenant;
-using BaseFaq.Common.Infrastructure.Core.Abstractions;
+using BaseFaq.AI.Business.Common.Abstractions;
+using BaseFaq.AI.Business.Common.Models;
+using BaseFaq.AI.Business.Common.Utilities;
+using BaseFaq.AI.Business.Matching.Service;
 using BaseFaq.Faq.Common.Persistence.FaqDb;
 using BaseFaq.Models.Ai.Contracts.Matching;
-using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.Tenant.Enums;
 using MassTransit;
 using MediatR;
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace BaseFaq.AI.Business.Matching.Commands.ProcessFaqMatchingRequested;
 
 public sealed class ProcessFaqMatchingRequestedCommandHandler(
-    TenantDbContext tenantDbContext,
-    ITenantConnectionStringProvider tenantConnectionStringProvider,
-    IConfiguration configuration,
+    ITenantAiProviderContextResolver tenantAiProviderContextResolver,
+    IFaqDbContextFactory faqDbContextFactory,
+    IFaqMatchingScorer faqMatchingScorer,
     ILogger<ProcessFaqMatchingRequestedCommandHandler> logger,
     IPublishEndpoint publishEndpoint)
     : IRequestHandler<ProcessFaqMatchingRequestedCommand>
@@ -29,8 +27,7 @@ public sealed class ProcessFaqMatchingRequestedCommandHandler(
     private const int MaxErrorMessageLength = 2000;
     private const string SimilarityErrorCode = "MATCHING_FAILED";
     private const string PromptDomain = "matching";
-    private const string PromptVersion = "2026-02-15.matching.v1";
-    private static readonly Regex WordSplitter = new("[^a-z0-9]+", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+    private const string PromptVersion = "2026-02-19.matching.v2";
 
     public async Task Handle(ProcessFaqMatchingRequestedCommand command, CancellationToken cancellationToken)
     {
@@ -61,12 +58,12 @@ public sealed class ProcessFaqMatchingRequestedCommandHandler(
         FaqMatchingRequestedV1 message,
         CancellationToken cancellationToken)
     {
-        var providerContext = await ResolveTenantAiProviderAsync(
+        var providerContext = await tenantAiProviderContextResolver.ResolveAsync(
             message.TenantId,
             AiCommandType.Matching,
             cancellationToken);
 
-        await using var faqDbContext = CreateFaqDbContext(message.TenantId);
+        await using var faqDbContext = faqDbContextFactory.Create(message.TenantId);
 
         var sourceQuestion = await LoadSourceQuestionAsync(faqDbContext, message, cancellationToken);
         var queryText = string.IsNullOrWhiteSpace(message.Query) ? sourceQuestion : message.Query;
@@ -76,17 +73,12 @@ public sealed class ProcessFaqMatchingRequestedCommandHandler(
             sourceQuestion,
             queryText,
             message.Language,
-            candidates.Select(x => new MatchingPromptCandidate(x.Id, x.Question)).ToArray(),
+            candidates,
             providerContext);
 
         AddPromptActivityTags(promptData, candidates.Count, providerContext);
 
-        return candidates
-            .Select(x => new MatchingCandidate(x.Id, ComputeSimilarity(queryText, x.Question)))
-            .Where(x => x.SimilarityScore > 0)
-            .OrderByDescending(x => x.SimilarityScore)
-            .Take(MaxCandidates)
-            .ToArray();
+        return faqMatchingScorer.Rank(queryText, candidates, MaxCandidates);
     }
 
     private static async Task<string> LoadSourceQuestionAsync(
@@ -108,7 +100,7 @@ public sealed class ProcessFaqMatchingRequestedCommandHandler(
         return sourceQuestion;
     }
 
-    private static async Task<List<CandidateQuestion>> LoadCandidateQuestionsAsync(
+    private static async Task<IReadOnlyList<CandidateQuestion>> LoadCandidateQuestionsAsync(
         FaqDbContext faqDbContext,
         FaqMatchingRequestedV1 message,
         CancellationToken cancellationToken)
@@ -141,9 +133,7 @@ public sealed class ProcessFaqMatchingRequestedCommandHandler(
         Exception ex,
         CancellationToken cancellationToken)
     {
-        var errorMessage = ex.Message.Length <= MaxErrorMessageLength
-            ? ex.Message
-            : ex.Message[..MaxErrorMessageLength];
+        var errorMessage = TextBounds.Truncate(ex.Message, MaxErrorMessageLength);
 
         try
         {
@@ -169,38 +159,10 @@ public sealed class ProcessFaqMatchingRequestedCommandHandler(
         }
     }
 
-    private static double ComputeSimilarity(string left, string right)
-    {
-        var leftTerms = Tokenize(left);
-        var rightTerms = Tokenize(right);
-
-        if (leftTerms.Count == 0 || rightTerms.Count == 0)
-        {
-            return 0;
-        }
-
-        var intersection = leftTerms.Intersect(rightTerms).Count();
-        if (intersection == 0)
-        {
-            return 0;
-        }
-
-        var union = leftTerms.Union(rightTerms).Count();
-        return Math.Round(intersection / (double)union, 4);
-    }
-
-    private static HashSet<string> Tokenize(string text)
-    {
-        return WordSplitter
-            .Split(text.Trim().ToLowerInvariant())
-            .Where(x => x.Length > 1)
-            .ToHashSet(StringComparer.Ordinal);
-    }
-
     private static void AddPromptActivityTags(
         MatchingPromptData promptData,
         int candidatesCount,
-        MatchingAiProviderContext providerContext)
+        AiProviderContext providerContext)
     {
         Activity.Current?.SetTag("gen_ai.system", providerContext.Provider);
         Activity.Current?.SetTag("gen_ai.request.model", providerContext.Model);
@@ -215,8 +177,8 @@ public sealed class ProcessFaqMatchingRequestedCommandHandler(
         string sourceQuestion,
         string queryText,
         string language,
-        IReadOnlyCollection<MatchingPromptCandidate> candidates,
-        MatchingAiProviderContext providerContext)
+        IReadOnlyCollection<CandidateQuestion> candidates,
+        AiProviderContext providerContext)
     {
         var provider = NormalizeProvider(providerContext.Provider);
 
@@ -244,7 +206,7 @@ public sealed class ProcessFaqMatchingRequestedCommandHandler(
         string sourceQuestion,
         string queryText,
         string language,
-        IReadOnlyCollection<MatchingPromptCandidate> candidates)
+        IReadOnlyCollection<CandidateQuestion> candidates)
     {
         var builder = new StringBuilder();
         builder.AppendLine("Task: rank FAQ candidates by semantic similarity.");
@@ -256,7 +218,7 @@ public sealed class ProcessFaqMatchingRequestedCommandHandler(
 
         foreach (var candidate in candidates.Take(MaxPromptCandidates))
         {
-            builder.AppendLine($"- faqItemId={candidate.FaqItemId:D}, question={candidate.Question}");
+            builder.AppendLine($"- faqItemId={candidate.Id:D}, question={candidate.Question}");
         }
 
         builder.AppendLine("Return top 5 candidates with score in [0,1], sorted descending.");
@@ -295,76 +257,6 @@ public sealed class ProcessFaqMatchingRequestedCommandHandler(
             : provider.Trim().ToLowerInvariant();
     }
 
-    private async Task<MatchingAiProviderContext> ResolveTenantAiProviderAsync(
-        Guid tenantId,
-        AiCommandType commandType,
-        CancellationToken cancellationToken)
-    {
-        var provider = await tenantDbContext.TenantAiProviders
-            .AsNoTracking()
-            .Where(x => x.TenantId == tenantId && x.AiProvider.Command == commandType)
-            .OrderByDescending(x => x.AiProvider.Provider.ToLower() == "openai")
-            .ThenBy(x => x.AiProvider.Provider)
-            .ThenBy(x => x.AiProvider.Model)
-            .Select(x => new MatchingAiProviderContext(
-                x.AiProvider.Provider,
-                x.AiProvider.Model,
-                x.AiProvider.Prompt,
-                x.AiProviderKey))
-            .FirstOrDefaultAsync(cancellationToken);
-
-        if (provider is null)
-        {
-            throw new InvalidOperationException(
-                $"Tenant '{tenantId}' has no AI provider configured for '{commandType}'.");
-        }
-
-        return provider;
-    }
-
-    private FaqDbContext CreateFaqDbContext(Guid tenantId)
-    {
-        var connectionString = tenantConnectionStringProvider.GetConnectionString(tenantId);
-
-        var options = new DbContextOptionsBuilder<FaqDbContext>()
-            .UseNpgsql(connectionString)
-            .Options;
-
-        return new FaqDbContext(
-            options,
-            new IntegrationSessionService(tenantId, ResolveAiUserId(configuration)),
-            configuration,
-            new StaticTenantConnectionStringProvider(connectionString),
-            new HttpContextAccessor());
-    }
-
-    private static Guid ResolveAiUserId(IConfiguration configuration)
-    {
-        return Guid.TryParse(configuration["Ai:UserId"], out var configuredUserId)
-            ? configuredUserId
-            : Guid.Empty;
-    }
-
-    private sealed class IntegrationSessionService(Guid tenantId, Guid userId) : ISessionService
-    {
-        public Guid GetTenantId(AppEnum app) => tenantId;
-        public Guid GetUserId() => userId;
-    }
-
-    private sealed class StaticTenantConnectionStringProvider(string connectionString)
-        : ITenantConnectionStringProvider
-    {
-        public string GetConnectionString(Guid tenantId) => connectionString;
-    }
-
-    private sealed record MatchingAiProviderContext(
-        string Provider,
-        string Model,
-        string? Prompt,
-        string? ApiKey);
-
-    private sealed record MatchingPromptCandidate(Guid FaqItemId, string Question);
-
     private sealed record MatchingPromptData(
         string Domain,
         string Version,
@@ -372,6 +264,4 @@ public sealed class ProcessFaqMatchingRequestedCommandHandler(
         string Template,
         string Input,
         string OutputSchema);
-
-    private sealed record CandidateQuestion(Guid Id, string Question);
 }

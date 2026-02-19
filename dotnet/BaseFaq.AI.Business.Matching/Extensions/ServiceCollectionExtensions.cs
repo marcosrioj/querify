@@ -1,5 +1,7 @@
 using BaseFaq.AI.Business.Matching.Commands.ProcessFaqMatchingRequested;
 using BaseFaq.AI.Business.Matching.Consumers;
+using BaseFaq.AI.Business.Matching.Service;
+using BaseFaq.AI.Business.Common.Extensions;
 using BaseFaq.Common.Infrastructure.MassTransit.Extensions;
 using BaseFaq.Common.Infrastructure.MassTransit.Models;
 using BaseFaq.Models.Ai.Contracts.Matching;
@@ -22,6 +24,8 @@ public static class ServiceCollectionExtensions
 
         services.AddMediatR(config =>
             config.RegisterServicesFromAssemblyContaining<ProcessFaqMatchingRequestedCommandHandler>());
+        services.AddAiBusinessCore();
+        services.AddScoped<IFaqMatchingScorer, HybridFaqMatchingScorer>();
 
         services.AddMassTransit(x =>
         {

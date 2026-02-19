@@ -7,6 +7,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\BaseFaq.AI.Business.Common\BaseFaq.AI.Business.Common.csproj"/>
         <ProjectReference Include="..\BaseFaq.Common.Infrasctructure.Telemetry\BaseFaq.Common.Infrasctructure.Telemetry.csproj"/>
         <ProjectReference Include="..\BaseFaq.Models.Ai\BaseFaq.Models.Ai.csproj"/>
         <ProjectReference Include="..\BaseFaq.Common.Infrastructure.MassTransit\BaseFaq.Common.Infrastructure.MassTransit.csproj"/>

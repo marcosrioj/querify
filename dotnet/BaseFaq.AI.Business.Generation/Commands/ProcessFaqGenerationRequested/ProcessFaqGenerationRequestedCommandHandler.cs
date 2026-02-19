@@ -1,37 +1,29 @@
 using System.Diagnostics;
-using System.Security.Cryptography;
-using System.Text;
+using BaseFaq.AI.Business.Common.Abstractions;
+using BaseFaq.AI.Business.Common.Utilities;
 using BaseFaq.AI.Business.Generation.Observability;
 using BaseFaq.AI.Business.Generation.Service;
-using BaseFaq.Common.EntityFramework.Tenant;
-using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Faq.Common.Persistence.FaqDb;
 using BaseFaq.Faq.Common.Persistence.FaqDb.Entities;
 using BaseFaq.Models.Ai.Contracts.Generation;
-using BaseFaq.Models.Ai.Enums;
-using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.Tenant.Enums;
 using MassTransit;
 using MediatR;
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace BaseFaq.AI.Business.Generation.Commands.ProcessFaqGenerationRequested;
 
 public sealed class ProcessFaqGenerationRequestedCommandHandler(
-    TenantDbContext tenantDbContext,
-    ITenantConnectionStringProvider tenantConnectionStringProvider,
-    IConfiguration configuration,
+    ITenantAiProviderContextResolver tenantAiProviderContextResolver,
+    IFaqDbContextFactory faqDbContextFactory,
+    IFaqGenerationEngine generationEngine,
     ILogger<ProcessFaqGenerationRequestedCommandHandler> logger,
     IPublishEndpoint publishEndpoint)
     : IRequestHandler<ProcessFaqGenerationRequestedCommand>
 {
     private const string GenerationErrorCode = "GENERATION_FAILED";
     private const int MaxErrorMessageLength = 2000;
-    private const string PromptDomain = "generation";
-    private const string PromptVersion = "2026-02-15.generation.v1";
 
     public async Task Handle(ProcessFaqGenerationRequestedCommand command, CancellationToken cancellationToken)
     {
@@ -61,19 +53,20 @@ public sealed class ProcessFaqGenerationRequestedCommandHandler(
         FaqGenerationRequestedV1 message,
         CancellationToken cancellationToken)
     {
-        var providerContext = await ResolveTenantAiProviderAsync(
+        var providerContext = await tenantAiProviderContextResolver.ResolveAsync(
             message.TenantId,
             AiCommandType.Generation,
             cancellationToken);
 
         var studiedRefs = await LoadStudiedRefsAsync(message, cancellationToken);
-        var promptData = BuildPromptData(message, studiedRefs, providerContext);
+        var generatedDraft = generationEngine.Generate(message, studiedRefs, providerContext);
 
         using var providerActivity =
             GenerationWorkerTracing.ActivitySource.StartActivity("generation.provider.generate", ActivityKind.Client);
 
-        AddProviderActivityTags(providerActivity, providerContext, message, studiedRefs, promptData);
-        await WriteGeneratedFaqItemAsync(message, studiedRefs, cancellationToken);
+        AddProviderActivityTags(providerActivity, providerContext, message, studiedRefs, generatedDraft.PromptData);
+
+        await WriteGeneratedFaqItemAsync(message, generatedDraft, cancellationToken);
         await PublishGenerationReadyAsync(message, Guid.NewGuid(), cancellationToken);
     }
 
@@ -81,7 +74,7 @@ public sealed class ProcessFaqGenerationRequestedCommandHandler(
         FaqGenerationRequestedV1 message,
         CancellationToken cancellationToken)
     {
-        await using var faqDbContext = CreateFaqDbContext(message.TenantId);
+        await using var faqDbContext = faqDbContextFactory.Create(message.TenantId);
 
         var contentRefs = await faqDbContext.FaqContentRefs
             .AsNoTracking()
@@ -100,7 +93,7 @@ public sealed class ProcessFaqGenerationRequestedCommandHandler(
 
     private async Task WriteGeneratedFaqItemAsync(
         FaqGenerationRequestedV1 message,
-        ContentRefStudyResult studiedRefs,
+        GeneratedFaqDraft generatedDraft,
         CancellationToken cancellationToken)
     {
         using var writeActivity =
@@ -112,7 +105,7 @@ public sealed class ProcessFaqGenerationRequestedCommandHandler(
         writeActivity?.SetTag("basefaq.tenant_id", message.TenantId.ToString("D"));
         writeActivity?.SetTag("basefaq.faq_id", message.FaqId.ToString("D"));
 
-        await using var faqDbContext = CreateFaqDbContext(message.TenantId);
+        await using var faqDbContext = faqDbContextFactory.Create(message.TenantId);
 
         var faq = await faqDbContext.Faqs
             .FirstOrDefaultAsync(x => x.Id == message.FaqId, cancellationToken);
@@ -123,10 +116,14 @@ public sealed class ProcessFaqGenerationRequestedCommandHandler(
                 $"FAQ '{message.FaqId}' was not found for tenant '{message.TenantId}'.");
         }
 
-        var itemId = CreateDeterministicFaqItemId(message.CorrelationId, message.FaqId, message.TenantId);
-        var question = Truncate(BuildDraftQuestion(studiedRefs), FaqItem.MaxQuestionLength);
-        var shortAnswer = Truncate(BuildDraftSummary(message.FaqId, studiedRefs), FaqItem.MaxShortAnswerLength);
-        var answer = Truncate(BuildDraftContent(message.FaqId, studiedRefs), FaqItem.MaxAnswerLength);
+        var itemId = DeterministicGuid.CreateV3(
+            message.CorrelationId.ToString("N"),
+            message.FaqId.ToString("N"),
+            message.TenantId.ToString("N"));
+
+        var question = TextBounds.Truncate(generatedDraft.Question, FaqItem.MaxQuestionLength);
+        var shortAnswer = TextBounds.Truncate(generatedDraft.Summary, FaqItem.MaxShortAnswerLength);
+        var answer = TextBounds.Truncate(generatedDraft.Answer, FaqItem.MaxAnswerLength);
 
         var faqItem = await faqDbContext.FaqItems
             .IgnoreQueryFilters()
@@ -148,7 +145,7 @@ public sealed class ProcessFaqGenerationRequestedCommandHandler(
                 CtaTitle = null,
                 CtaUrl = null,
                 VoteScore = 0,
-                AiConfidenceScore = 80,
+                AiConfidenceScore = generatedDraft.Confidence,
                 IsActive = true,
                 Sort = await GetNextSortAsync(faqDbContext, message, cancellationToken)
             };
@@ -163,7 +160,7 @@ public sealed class ProcessFaqGenerationRequestedCommandHandler(
             faqItem.AdditionalInfo = null;
             faqItem.CtaTitle = null;
             faqItem.CtaUrl = null;
-            faqItem.AiConfidenceScore = 80;
+            faqItem.AiConfidenceScore = generatedDraft.Confidence;
             faqItem.IsActive = true;
             faqItem.IsDeleted = false;
             faqItem.DeletedDate = null;
@@ -194,7 +191,7 @@ public sealed class ProcessFaqGenerationRequestedCommandHandler(
 
     private static void AddProviderActivityTags(
         Activity? providerActivity,
-        GenerationAiProviderContext providerContext,
+        BaseFaq.AI.Business.Common.Models.AiProviderContext providerContext,
         FaqGenerationRequestedV1 message,
         ContentRefStudyResult studiedRefs,
         GenerationPromptData promptData)
@@ -233,7 +230,7 @@ public sealed class ProcessFaqGenerationRequestedCommandHandler(
         Exception ex,
         CancellationToken cancellationToken)
     {
-        var errorMessage = Truncate(ex.Message, MaxErrorMessageLength);
+        var errorMessage = TextBounds.Truncate(ex.Message, MaxErrorMessageLength);
 
         try
         {
@@ -259,209 +256,4 @@ public sealed class ProcessFaqGenerationRequestedCommandHandler(
                 message.TenantId);
         }
     }
-
-    private static string BuildDraftQuestion(ContentRefStudyResult studyResult)
-    {
-        if (studyResult.ProcessedCount == 0)
-        {
-            return "Generated draft question based on available content references";
-        }
-
-        var kinds = string.Join(", ", studyResult.StudiedRefs.Select(x => x.Kind.ToString()));
-        return $"Generated draft question based on: {kinds}";
-    }
-
-    private static string BuildDraftSummary(Guid faqId, ContentRefStudyResult studyResult)
-    {
-        return
-            $"Draft summary for FAQ {faqId}. ContentRefs total={studyResult.TotalCount}, processed={studyResult.ProcessedCount}, skipped={studyResult.SkippedCount}.";
-    }
-
-    private static string BuildDraftContent(Guid faqId, ContentRefStudyResult studyResult)
-    {
-        if (studyResult.ProcessedCount == 0)
-        {
-            return
-                $"Generated draft placeholder for FAQ {faqId}. No processable ContentRef kind was found (all were skipped by business rules).";
-        }
-
-        var lines = studyResult.StudiedRefs
-            .Select(x => $"{x.Kind} ({x.Locator}): {x.MainSubject}");
-
-        return
-            $"Generated draft placeholder for FAQ {faqId}. Source study:{Environment.NewLine}{string.Join(Environment.NewLine, lines)}";
-    }
-
-    private static string Truncate(string value, int maxLength)
-    {
-        return value.Length <= maxLength ? value : value[..maxLength];
-    }
-
-    private static Guid CreateDeterministicFaqItemId(Guid correlationId, Guid faqId, Guid tenantId)
-    {
-        var input = $"{correlationId:N}:{faqId:N}:{tenantId:N}";
-        var hash = MD5.HashData(Encoding.UTF8.GetBytes(input));
-
-        hash[6] = (byte)((hash[6] & 0x0F) | (3 << 4));
-        hash[8] = (byte)((hash[8] & 0x3F) | 0x80);
-
-        return new Guid(hash);
-    }
-
-    private static GenerationPromptData BuildPromptData(
-        FaqGenerationRequestedV1 request,
-        ContentRefStudyResult studiedRefs,
-        GenerationAiProviderContext providerContext)
-    {
-        var provider = NormalizeProvider(providerContext.Provider);
-
-        return new GenerationPromptData(
-            PromptDomain,
-            PromptVersion,
-            provider,
-            ResolvePromptTemplate(providerContext.Prompt),
-            BuildPromptInput(request, studiedRefs),
-            BuildOutputSchema());
-    }
-
-    private static string ResolvePromptTemplate(string? prompt)
-    {
-        if (!string.IsNullOrWhiteSpace(prompt))
-        {
-            return prompt;
-        }
-
-        return
-            "You are a multilingual FAQ generation engine. Use only supplied context and return schema-compliant JSON.";
-    }
-
-    private static string BuildPromptInput(FaqGenerationRequestedV1 request, ContentRefStudyResult studiedRefs)
-    {
-        var builder = new StringBuilder();
-        builder.AppendLine("Task: generate a FAQ draft from studied references.");
-        builder.AppendLine($"faqId: {request.FaqId:D}");
-        builder.AppendLine($"tenantId: {request.TenantId:D}");
-        builder.AppendLine($"language: {request.Language}");
-        builder.AppendLine($"refs.total: {studiedRefs.TotalCount}");
-        builder.AppendLine($"refs.processed: {studiedRefs.ProcessedCount}");
-        builder.AppendLine($"refs.skipped: {studiedRefs.SkippedCount}");
-        builder.AppendLine("references:");
-
-        foreach (var studiedRef in studiedRefs.StudiedRefs)
-        {
-            builder.AppendLine(
-                $"- kind={studiedRef.Kind}, locator={studiedRef.Locator}, inferredSubject={studiedRef.MainSubject}");
-        }
-
-        builder.AppendLine("Output must follow the provided JSON schema exactly.");
-        return builder.ToString();
-    }
-
-    private static string BuildOutputSchema()
-    {
-        return """
-               {
-                 "type": "object",
-                 "required": ["question", "summary", "answer", "confidence", "citations", "uncertaintyNotes"],
-                 "properties": {
-                   "question": { "type": "string", "maxLength": 1000 },
-                   "summary": { "type": "string", "maxLength": 250 },
-                   "answer": { "type": "string", "maxLength": 5000 },
-                   "confidence": { "type": "integer", "minimum": 0, "maximum": 100 },
-                   "citations": {
-                     "type": "array",
-                     "items": { "type": "string", "maxLength": 2000 }
-                   },
-                   "uncertaintyNotes": {
-                     "type": "array",
-                     "items": { "type": "string", "maxLength": 500 }
-                   }
-                 }
-               }
-               """;
-    }
-
-    private static string NormalizeProvider(string? provider)
-    {
-        return string.IsNullOrWhiteSpace(provider)
-            ? "unknown"
-            : provider.Trim().ToLowerInvariant();
-    }
-
-    private async Task<GenerationAiProviderContext> ResolveTenantAiProviderAsync(
-        Guid tenantId,
-        AiCommandType commandType,
-        CancellationToken cancellationToken)
-    {
-        var provider = await tenantDbContext.TenantAiProviders
-            .AsNoTracking()
-            .Where(x => x.TenantId == tenantId && x.AiProvider.Command == commandType)
-            .OrderByDescending(x => x.AiProvider.Provider.ToLower() == "openai")
-            .ThenBy(x => x.AiProvider.Provider)
-            .ThenBy(x => x.AiProvider.Model)
-            .Select(x => new GenerationAiProviderContext(
-                x.AiProvider.Provider,
-                x.AiProvider.Model,
-                x.AiProvider.Prompt,
-                x.AiProviderKey))
-            .FirstOrDefaultAsync(cancellationToken);
-
-        if (provider is null)
-        {
-            throw new InvalidOperationException(
-                $"Tenant '{tenantId}' has no AI provider configured for '{commandType}'.");
-        }
-
-        return provider;
-    }
-
-    private FaqDbContext CreateFaqDbContext(Guid tenantId)
-    {
-        var connectionString = tenantConnectionStringProvider.GetConnectionString(tenantId);
-
-        var options = new DbContextOptionsBuilder<FaqDbContext>()
-            .UseNpgsql(connectionString)
-            .Options;
-
-        return new FaqDbContext(
-            options,
-            new IntegrationSessionService(tenantId, ResolveAiUserId(configuration)),
-            configuration,
-            new StaticTenantConnectionStringProvider(connectionString),
-            new HttpContextAccessor());
-    }
-
-    private static Guid ResolveAiUserId(IConfiguration configuration)
-    {
-        return Guid.TryParse(configuration["Ai:UserId"], out var configuredUserId)
-            ? configuredUserId
-            : Guid.Empty;
-    }
-
-    private sealed class IntegrationSessionService(Guid tenantId, Guid userId) : ISessionService
-    {
-        public Guid GetTenantId(AppEnum app) => tenantId;
-        public Guid GetUserId() => userId;
-    }
-
-    private sealed class StaticTenantConnectionStringProvider(string connectionString)
-        : ITenantConnectionStringProvider
-    {
-        public string GetConnectionString(Guid tenantId) => connectionString;
-    }
-
-    private sealed record GenerationAiProviderContext(
-        string Provider,
-        string Model,
-        string? Prompt,
-        string? ApiKey);
-
-    private sealed record GenerationPromptData(
-        string Domain,
-        string Version,
-        string Provider,
-        string Template,
-        string Input,
-        string OutputSchema);
-
 }

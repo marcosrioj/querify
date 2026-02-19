@@ -1,7 +1,10 @@
 using BaseFaq.AI.Business.Generation.Commands.ProcessFaqGenerationRequested;
 using BaseFaq.AI.Business.Generation.Consumers;
+using BaseFaq.AI.Business.Generation.Service;
 using BaseFaq.AI.Business.Matching.Commands.ProcessFaqMatchingRequested;
 using BaseFaq.AI.Business.Matching.Consumers;
+using BaseFaq.AI.Business.Matching.Service;
+using BaseFaq.AI.Business.Common.Extensions;
 using BaseFaq.Common.EntityFramework.Tenant.Extensions;
 using BaseFaq.Common.Infrastructure.MassTransit.Extensions;
 using BaseFaq.Common.Infrastructure.MassTransit.Models;
@@ -18,6 +21,9 @@ public static class ServiceCollectionExtensions
     {
         services.AddTenantDb(configuration.GetConnectionString("TenantDb"));
         services.AddFaqDb();
+        services.AddAiBusinessCore();
+        services.AddScoped<IFaqGenerationEngine, DeterministicFaqGenerationEngine>();
+        services.AddScoped<IFaqMatchingScorer, HybridFaqMatchingScorer>();
 
         services.AddMediatR(config =>
         {
