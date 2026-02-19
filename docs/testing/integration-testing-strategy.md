@@ -423,6 +423,13 @@ Provide a business-aligned and technically rigorous integration testing strategy
   - `dotnet test dotnet/BaseFaq.Faq.Public.Test.IntegrationTests/BaseFaq.Faq.Public.Test.IntegrationTests.csproj`
   - `dotnet test dotnet/BaseFaq.Tenant.BackOffice.Test.IntegrationTests/BaseFaq.Tenant.BackOffice.Test.IntegrationTests.csproj`
   - `dotnet test dotnet/BaseFaq.Tenant.Portal.Test.IntegrationTests/BaseFaq.Tenant.Portal.Test.IntegrationTests.csproj`
+  - `dotnet test dotnet/BaseFaq.AI.Test.IntegrationTest/BaseFaq.AI.Test.IntegrationTest.csproj`
+- Run OpenAI live generation+matching flow (opt-in only):
+  - `BASEFAQ_RUN_OPENAI_INTEGRATION_TESTS=true OPENAI_API_KEY=<key> dotnet test dotnet/BaseFaq.AI.Test.IntegrationTest/BaseFaq.AI.Test.IntegrationTest.csproj --filter FullyQualifiedName~OpenAiGenerationMatchingFlowTests`
+  - You can also configure this flow in `dotnet/BaseFaq.AI.Test.IntegrationTest/appsettings.json` or `dotnet/BaseFaq.AI.Test.IntegrationTest/appsettings.Development.json` using:
+  - `OpenAiIntegrationTest:Enabled`, `OpenAiIntegrationTest:ApiKey`, `OpenAiIntegrationTest:GenerationModel`, `OpenAiIntegrationTest:MatchingModel`.
+  - Optional overrides: `BASEFAQ_OPENAI_GENERATION_MODEL` and `BASEFAQ_OPENAI_MATCHING_MODEL`.
+  - Keep this flow out of default CI because it depends on external provider/network and real credentials.
 
 ### CI workflow
 - Stage 1: restore/build/lint.

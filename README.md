@@ -342,14 +342,46 @@ redis-cli -h <host> -p <port> -a <password> FLUSHALL
 ```
 
 ## Test execution
-Integration tests:
+
+Integration tests (default deterministic suite):
 
 ```bash
 dotnet test dotnet/BaseFaq.Faq.Portal.Test.IntegrationTests/BaseFaq.Faq.Portal.Test.IntegrationTests.csproj
 dotnet test dotnet/BaseFaq.Faq.Public.Test.IntegrationTests/BaseFaq.Faq.Public.Test.IntegrationTests.csproj
 dotnet test dotnet/BaseFaq.Tenant.BackOffice.Test.IntegrationTests/BaseFaq.Tenant.BackOffice.Test.IntegrationTests.csproj
 dotnet test dotnet/BaseFaq.Tenant.Portal.Test.IntegrationTests/BaseFaq.Tenant.Portal.Test.IntegrationTests.csproj
+dotnet test dotnet/BaseFaq.AI.Test.IntegrationTest/BaseFaq.AI.Test.IntegrationTest.csproj
 ```
+
+OpenAI live integration test (generation + matching, opt-in):
+
+```bash
+export BASEFAQ_RUN_OPENAI_INTEGRATION_TESTS=true
+export OPENAI_API_KEY=<your-openai-api-key>
+
+# optional model overrides
+export BASEFAQ_OPENAI_GENERATION_MODEL=gpt-5.2
+export BASEFAQ_OPENAI_MATCHING_MODEL=text-embedding-3-large
+
+dotnet test dotnet/BaseFaq.AI.Test.IntegrationTest/BaseFaq.AI.Test.IntegrationTest.csproj \
+  --filter FullyQualifiedName~OpenAiGenerationMatchingFlowTests
+```
+
+Alternative via appsettings (same project):
+
+- `dotnet/BaseFaq.AI.Test.IntegrationTest/appsettings.json`
+- `dotnet/BaseFaq.AI.Test.IntegrationTest/appsettings.Development.json`
+
+Supported keys:
+
+- `OpenAiIntegrationTest:Enabled`
+- `OpenAiIntegrationTest:ApiKey`
+- `OpenAiIntegrationTest:GenerationModel`
+- `OpenAiIntegrationTest:MatchingModel`
+
+Note:
+
+- Environment variables still take precedence over appsettings values.
 
 ## Auth0 setup (step-by-step)
 You must use an external identity provider. This project expects Auth0 to issue JWTs.
