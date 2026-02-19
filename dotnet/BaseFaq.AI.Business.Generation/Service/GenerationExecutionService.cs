@@ -1,9 +1,6 @@
 using BaseFaq.AI.Business.Common.Abstractions;
-using BaseFaq.AI.Business.Common.Utilities;
 using BaseFaq.AI.Business.Generation.Abstractions;
 using BaseFaq.AI.Business.Generation.Models;
-using BaseFaq.Faq.Common.Persistence.FaqDb;
-using BaseFaq.Faq.Common.Persistence.FaqDb.Entities;
 using BaseFaq.Models.Ai.Contracts.Generation;
 using BaseFaq.Models.Faq.Enums;
 using BaseFaq.Models.Tenant.Enums;
@@ -36,7 +33,14 @@ public sealed class GenerationExecutionService(
             promptData,
             cancellationToken);
 
-        await WriteGeneratedFaqItemAsync(message, generatedDraft, cancellationToken);
+        logger.LogInformation(
+            "FAQ generation completed without DB persistence for CorrelationId {CorrelationId}, FaqId {FaqId}, TenantId {TenantId}. DraftQuestionLength={DraftQuestionLength}, DraftAnswerLength={DraftAnswerLength}, Confidence={Confidence}.",
+            message.CorrelationId,
+            message.FaqId,
+            message.TenantId,
+            generatedDraft.Question.Length,
+            generatedDraft.Answer.Length,
+            generatedDraft.Confidence);
     }
 
     private async Task<ContentRefStudyResult> LoadStudiedRefsAsync(
@@ -60,94 +64,5 @@ public sealed class GenerationExecutionService(
         }
 
         return contentRefStudyService.Study(contentRefs);
-    }
-
-    private async Task WriteGeneratedFaqItemAsync(
-        FaqGenerationRequestedV1 message,
-        GeneratedFaqDraft generatedDraft,
-        CancellationToken cancellationToken)
-    {
-        await using var faqDbContext = faqDbContextFactory.Create(message.TenantId);
-
-        var faq = await faqDbContext.Faqs
-            .FirstOrDefaultAsync(x => x.Id == message.FaqId, cancellationToken);
-
-        if (faq is null)
-        {
-            throw new InvalidOperationException(
-                $"FAQ '{message.FaqId}' was not found for tenant '{message.TenantId}'.");
-        }
-
-        var itemId = DeterministicGuid.CreateV3(
-            message.CorrelationId.ToString("N"),
-            message.FaqId.ToString("N"),
-            message.TenantId.ToString("N"));
-
-        var question = TextBounds.Truncate(generatedDraft.Question, FaqItem.MaxQuestionLength);
-        var shortAnswer = TextBounds.Truncate(generatedDraft.Summary, FaqItem.MaxShortAnswerLength);
-        var answer = TextBounds.Truncate(generatedDraft.Answer, FaqItem.MaxAnswerLength);
-
-        var faqItem = await faqDbContext.FaqItems
-            .IgnoreQueryFilters()
-            .FirstOrDefaultAsync(
-                x => x.Id == itemId && x.FaqId == message.FaqId && x.TenantId == message.TenantId,
-                cancellationToken);
-
-        if (faqItem is null)
-        {
-            faqItem = new FaqItem
-            {
-                Id = itemId,
-                TenantId = message.TenantId,
-                FaqId = message.FaqId,
-                Question = question,
-                ShortAnswer = shortAnswer,
-                Answer = answer,
-                AdditionalInfo = null,
-                CtaTitle = null,
-                CtaUrl = null,
-                VoteScore = 0,
-                AiConfidenceScore = generatedDraft.Confidence,
-                IsActive = true,
-                Sort = await GetNextSortAsync(faqDbContext, message, cancellationToken)
-            };
-
-            faqDbContext.FaqItems.Add(faqItem);
-        }
-        else
-        {
-            faqItem.Question = question;
-            faqItem.ShortAnswer = shortAnswer;
-            faqItem.Answer = answer;
-            faqItem.AdditionalInfo = null;
-            faqItem.CtaTitle = null;
-            faqItem.CtaUrl = null;
-            faqItem.AiConfidenceScore = generatedDraft.Confidence;
-            faqItem.IsActive = true;
-            faqItem.IsDeleted = false;
-            faqItem.DeletedDate = null;
-            faqItem.DeletedBy = null;
-        }
-
-        await faqDbContext.SaveChangesAsync(cancellationToken);
-
-        logger.LogInformation(
-            "FAQ generation write completed for CorrelationId {CorrelationId}, FaqId {FaqId}, TenantId {TenantId}.",
-            message.CorrelationId,
-            message.FaqId,
-            message.TenantId);
-    }
-
-    private static async Task<int> GetNextSortAsync(
-        FaqDbContext faqDbContext,
-        FaqGenerationRequestedV1 message,
-        CancellationToken cancellationToken)
-    {
-        var maxSort = await faqDbContext.FaqItems
-            .Where(x => x.FaqId == message.FaqId && !x.IsDeleted)
-            .Select(x => (int?)x.Sort)
-            .MaxAsync(cancellationToken);
-
-        return (maxSort ?? 0) + 1;
     }
 }

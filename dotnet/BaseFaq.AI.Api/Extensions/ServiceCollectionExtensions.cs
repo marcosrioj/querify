@@ -3,7 +3,6 @@ using BaseFaq.AI.Business.Matching.Extensions;
 using BaseFaq.Common.EntityFramework.Tenant.Extensions;
 using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Common.Infrastructure.MassTransit.Models;
-using BaseFaq.Faq.Common.Persistence.FaqDb.Extensions;
 using BaseFaq.Models.Common.Enums;
 using MassTransit;
 
@@ -16,7 +15,6 @@ public static class ServiceCollectionExtensions
         services.AddHttpContextAccessor();
         services.AddScoped<ISessionService, AiWorkerSessionService>();
         services.AddTenantDb(configuration.GetConnectionString("TenantDb"));
-        services.AddFaqDb();
         services.AddAiGenerationBusiness();
         services.AddAiMatchingBusiness();
 

@@ -8,20 +8,12 @@ namespace BaseFaq.AI.Business.Generation.Service;
 
 public sealed class GenerationPromptBuilder : IGenerationPromptBuilder
 {
-    private const string PromptDomain = "generation";
-    private const string PromptVersion = "2026-02-15.generation.v1";
-
     public GenerationPromptData BuildPromptData(
         FaqGenerationRequestedV1 request,
         ContentRefStudyResult studiedRefs,
         AiProviderContext providerContext)
     {
-        var provider = NormalizeProvider(providerContext.Provider);
-
         return new GenerationPromptData(
-            PromptDomain,
-            PromptVersion,
-            provider,
             ResolvePromptTemplate(providerContext.Prompt),
             BuildPromptInput(request, studiedRefs),
             BuildOutputSchema());
@@ -82,12 +74,5 @@ public sealed class GenerationPromptBuilder : IGenerationPromptBuilder
                  }
                }
                """;
-    }
-
-    private static string NormalizeProvider(string? provider)
-    {
-        return string.IsNullOrWhiteSpace(provider)
-            ? "unknown"
-            : provider.Trim().ToLowerInvariant();
     }
 }

@@ -19,7 +19,6 @@
         <ProjectReference Include="..\BaseFaq.Common.EntityFramework.Tenant\BaseFaq.Common.EntityFramework.Tenant.csproj"/>
         <ProjectReference Include="..\BaseFaq.AI.Business.Generation\BaseFaq.AI.Business.Generation.csproj"/>
         <ProjectReference Include="..\BaseFaq.AI.Business.Matching\BaseFaq.AI.Business.Matching.csproj"/>
-        <ProjectReference Include="..\BaseFaq.Faq.Common.Persistence.FaqDb\BaseFaq.Faq.Common.Persistence.FaqDb.csproj"/>
     </ItemGroup>
 
 </Project>
