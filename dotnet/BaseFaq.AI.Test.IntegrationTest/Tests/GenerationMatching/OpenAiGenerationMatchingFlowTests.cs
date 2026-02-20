@@ -1,4 +1,6 @@
 using BaseFaq.AI.Business.Common.Infrastructure;
+using BaseFaq.AI.Business.Common.Models;
+using BaseFaq.AI.Business.Common.Abstractions;
 using BaseFaq.AI.Business.Common.Providers.Infrastructure;
 using BaseFaq.AI.Business.Common.Providers.Models;
 using BaseFaq.AI.Business.Common.Providers.Strategies.OpenAiCompatible;
@@ -64,7 +66,9 @@ public sealed class OpenAiGenerationMatchingFlowTests
             faqScenario = await SeedFaqScenarioAsync(faqSeedDbContext, tenantId);
         }
 
-        var aiProviderContextResolver = new AiProviderContextResolver(tenantDbContext);
+        var aiProviderContextResolver = new OpenAiRuntimeApiKeyContextResolver(
+            new AiProviderContextResolver(tenantDbContext),
+            settings.ApiKey);
         var faqConnectionStringProvider =
             new SingleTenantConnectionStringProvider(tenantId, faqDatabase.ConnectionString);
         var faqDbContextFactory = new FaqDbContextFactory(faqConnectionStringProvider, configuration);
@@ -258,13 +262,13 @@ public sealed class OpenAiGenerationMatchingFlowTests
             {
                 TenantId = tenantId,
                 AiProviderId = generationProvider.Id,
-                AiProviderKey = settings.ApiKey
+                AiProviderKey = settings.TenantDbProviderKey
             },
             new TenantAiProvider
             {
                 TenantId = tenantId,
                 AiProviderId = matchingProvider.Id,
-                AiProviderKey = settings.ApiKey
+                AiProviderKey = settings.TenantDbProviderKey
             });
 
         await tenantDbContext.SaveChangesAsync();
@@ -391,10 +395,12 @@ public sealed class OpenAiGenerationMatchingFlowTests
         public const string DefaultSimilarCandidateQuestion = "Como redefinir minha senha da conta?";
         private const string DefaultGenerationModel = "gpt-4o-mini";
         private const string DefaultMatchingModel = "text-embedding-3-small";
+        private const string DefaultTenantDbProviderKey = "openai-test-placeholder-key";
 
         public string ApiKey { get; } = apiKey;
         public string GenerationModel { get; } = generationModel;
         public string MatchingModel { get; } = matchingModel;
+        public string TenantDbProviderKey => DefaultTenantDbProviderKey;
         public string SimilarCandidateQuestion => DefaultSimilarCandidateQuestion;
 
         public static bool TryLoad(out OpenAiLiveTestSettings settings)
@@ -437,11 +443,6 @@ public sealed class OpenAiGenerationMatchingFlowTests
             if (string.IsNullOrWhiteSpace(matchingModel))
             {
                 matchingModel = DefaultMatchingModel;
-            }
-
-            if (apiKey.Length > TenantAiProvider.MaxAiProviderKeyLength)
-            {
-                return false;
             }
 
             settings = new OpenAiLiveTestSettings(apiKey.Trim(), generationModel.Trim(), matchingModel.Trim());
@@ -491,6 +492,21 @@ public sealed class OpenAiGenerationMatchingFlowTests
                 "on" => true,
                 _ => false
             };
+        }
+    }
+
+    private sealed class OpenAiRuntimeApiKeyContextResolver(
+        IAiProviderContextResolver innerResolver,
+        string runtimeApiKey)
+        : IAiProviderContextResolver
+    {
+        public async Task<AiProviderContext> ResolveAsync(
+            Guid tenantId,
+            AiCommandType commandType,
+            CancellationToken cancellationToken = default)
+        {
+            var context = await innerResolver.ResolveAsync(tenantId, commandType, cancellationToken);
+            return context with { ApiKey = runtimeApiKey };
         }
     }
 }
