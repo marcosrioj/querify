@@ -90,7 +90,7 @@ public class FaqContentRefCommandQueryTests
         var otherContentRef = await TestDataFactory.SeedContentRefAsync(
             context.DbContext,
             context.SessionService.TenantId,
-            locator: "other");
+            locator: "https://www.example.com/content/other");
         var faqContentRef = await TestDataFactory.SeedFaqContentRefAsync(
             context.DbContext,
             context.SessionService.TenantId,
@@ -252,10 +252,10 @@ public class FaqContentRefCommandQueryTests
         var faq = await TestDataFactory.SeedFaqAsync(context.DbContext, context.SessionService.TenantId);
         var contentRef1 =
             await TestDataFactory.SeedContentRefAsync(context.DbContext, context.SessionService.TenantId,
-                locator: "one");
+                locator: "https://www.example.com/content/one");
         var contentRef2 =
             await TestDataFactory.SeedContentRefAsync(context.DbContext, context.SessionService.TenantId,
-                locator: "two");
+                locator: "https://www.example.com/content/two");
         await TestDataFactory.SeedFaqContentRefAsync(context.DbContext, context.SessionService.TenantId, faq.Id,
             contentRef1.Id);
         await TestDataFactory.SeedFaqContentRefAsync(context.DbContext, context.SessionService.TenantId, faq.Id,
@@ -326,7 +326,7 @@ public class FaqContentRefCommandQueryTests
         {
             Id = Guid.Parse("00000000-0000-0000-0000-000000000130"),
             Kind = BaseFaq.Models.Faq.Enums.ContentRefKind.Web,
-            Locator = "ref-a",
+            Locator = "https://www.example.com/content/ref-a",
             Label = "A",
             Scope = "Scope",
             TenantId = tenantId
@@ -335,7 +335,7 @@ public class FaqContentRefCommandQueryTests
         {
             Id = Guid.Parse("00000000-0000-0000-0000-000000000140"),
             Kind = BaseFaq.Models.Faq.Enums.ContentRefKind.Web,
-            Locator = "ref-b",
+            Locator = "https://www.example.com/content/ref-b",
             Label = "B",
             Scope = "Scope",
             TenantId = tenantId
@@ -395,11 +395,11 @@ public class FaqContentRefCommandQueryTests
         var contentRefA = await TestDataFactory.SeedContentRefAsync(
             context.DbContext,
             context.SessionService.TenantId,
-            locator: "ref-a");
+            locator: "https://www.example.com/content/ref-a");
         var contentRefB = await TestDataFactory.SeedContentRefAsync(
             context.DbContext,
             context.SessionService.TenantId,
-            locator: "ref-b");
+            locator: "https://www.example.com/content/ref-b");
 
         var first = await TestDataFactory.SeedFaqContentRefAsync(
             context.DbContext,
@@ -440,15 +440,15 @@ public class FaqContentRefCommandQueryTests
         var contentRefA = await TestDataFactory.SeedContentRefAsync(
             context.DbContext,
             context.SessionService.TenantId,
-            locator: "ref-a");
+            locator: "https://www.example.com/content/ref-a");
         var contentRefB = await TestDataFactory.SeedContentRefAsync(
             context.DbContext,
             context.SessionService.TenantId,
-            locator: "ref-b");
+            locator: "https://www.example.com/content/ref-b");
         var contentRefC = await TestDataFactory.SeedContentRefAsync(
             context.DbContext,
             context.SessionService.TenantId,
-            locator: "ref-c");
+            locator: "https://www.example.com/content/ref-c");
 
         await TestDataFactory.SeedFaqContentRefAsync(context.DbContext, context.SessionService.TenantId, faq.Id,
             contentRefA.Id);

@@ -178,7 +178,7 @@ public sealed class OpenAiGenerationMatchingFlowTests
             FaqId = faqId,
             TenantId = tenantId,
             RequestedByUserId = requestedByUserId,
-            Language = "pt-BR",
+            Language = "en-US",
             IdempotencyKey = Guid.NewGuid().ToString("N"),
             RequestedUtc = DateTime.UtcNow
         };
@@ -197,7 +197,7 @@ public sealed class OpenAiGenerationMatchingFlowTests
             FaqItemId = faqItemId,
             RequestedByUserId = requestedByUserId,
             Query = query,
-            Language = "pt-BR",
+            Language = "en-US",
             IdempotencyKey = Guid.NewGuid().ToString("N"),
             RequestedUtc = DateTime.UtcNow
         };
@@ -362,7 +362,7 @@ public sealed class OpenAiGenerationMatchingFlowTests
             Provider = AiProviderNames.OpenAi,
             Model = settings.GenerationModel,
             Prompt =
-                "Gere um FAQ item em portugues (pt-BR), com foco em conta/acesso, retornando JSON valido para question/summary/answer/confidence.",
+                "Generate one FAQ item in English (en-US), focused on account access, returning valid JSON for question/summary/answer/confidence.",
             Command = AiCommandType.Generation
         };
 
@@ -370,7 +370,7 @@ public sealed class OpenAiGenerationMatchingFlowTests
         {
             Provider = AiProviderNames.OpenAi,
             Model = settings.MatchingModel,
-            Prompt = "Use embeddings para matching semantico entre perguntas de FAQ.",
+            Prompt = "Use embeddings for semantic matching between FAQ questions.",
             Command = AiCommandType.Matching
         };
 
@@ -401,8 +401,8 @@ public sealed class OpenAiGenerationMatchingFlowTests
     {
         var faq = new FaqEntity
         {
-            Name = "Central de ajuda",
-            Language = "pt-BR",
+            Name = "Help Center",
+            Language = "en-US",
             Status = FaqStatus.Draft,
             SortStrategy = FaqSortStrategy.Sort,
             CtaEnabled = false,
@@ -416,9 +416,9 @@ public sealed class OpenAiGenerationMatchingFlowTests
         var contentRef = new ContentRef
         {
             Kind = ContentRefKind.Web,
-            Locator = "https://docs.basefaq.test/conta/redefinir-senha",
-            Label = "Guia de redefinicao de senha",
-            Scope = "Conta e acesso",
+            Locator = "https://www.example.com/help/account/reset-password",
+            Label = "Password reset guide",
+            Scope = "Account access",
             TenantId = tenantId
         };
 
@@ -435,8 +435,8 @@ public sealed class OpenAiGenerationMatchingFlowTests
         var similarCandidate = new FaqItem
         {
             Question = OpenAiLiveTestSettings.DefaultSimilarCandidateQuestion,
-            ShortAnswer = "Use a opcao de esqueci minha senha.",
-            Answer = "Clique em 'Esqueci minha senha' na tela de login e siga o e-mail de recuperacao.",
+            ShortAnswer = "Use the forgot password option.",
+            Answer = "Click 'Forgot password' on the sign-in page and follow the recovery email instructions.",
             Sort = 1,
             VoteScore = 0,
             AiConfidenceScore = 70,
@@ -447,9 +447,9 @@ public sealed class OpenAiGenerationMatchingFlowTests
 
         var unrelatedCandidate = new FaqItem
         {
-            Question = "Quais formas de pagamento sao aceitas?",
-            ShortAnswer = "Aceitamos cartao e pix.",
-            Answer = "Voce pode pagar com cartao de credito, debito e pix.",
+            Question = "What payment methods are accepted?",
+            ShortAnswer = "We accept cards and instant transfer.",
+            Answer = "You can pay with credit card, debit card, and instant transfer.",
             Sort = 2,
             VoteScore = 0,
             AiConfidenceScore = 70,
@@ -526,7 +526,7 @@ public sealed class OpenAiGenerationMatchingFlowTests
 
     private sealed class OpenAiLiveTestSettings(string apiKey, string generationModel, string matchingModel)
     {
-        public const string DefaultSimilarCandidateQuestion = "Como redefinir minha senha da conta?";
+        public const string DefaultSimilarCandidateQuestion = "How do I reset my account password?";
         private const string DefaultGenerationModel = "gpt-4o-mini";
         private const string DefaultMatchingModel = "text-embedding-3-small";
         private const string DefaultTenantDbProviderKey = "openai-test-placeholder-key";

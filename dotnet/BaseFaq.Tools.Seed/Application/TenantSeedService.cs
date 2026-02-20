@@ -11,7 +11,7 @@ namespace BaseFaq.Tools.Seed.Application;
 
 public sealed class TenantSeedService : ITenantSeedService
 {
-    private const string IaAgentName = "IA Agent";
+    private const string IaAgentName = "AI Agent";
     private const string IaAgentEmail = "iaagent@basefaq.com";
     private const string IaAgentExternalId = "iaagent@basefaq.com";
 

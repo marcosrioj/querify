@@ -55,7 +55,7 @@ public static class TestDataFactory
         var contentRef = new ContentRef
         {
             Kind = kind,
-            Locator = locator ?? "https://example.test/docs",
+            Locator = locator ?? "https://www.example.com/docs",
             Label = "Docs",
             Scope = "Section 1",
             TenantId = tenantId

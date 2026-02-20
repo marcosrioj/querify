@@ -12,10 +12,10 @@ public class ContentRefStudyServiceTests
         var refs = new (ContentRefKind Kind, string Locator)[]
         {
             (ContentRefKind.Manual, "manual://skip"),
-            (ContentRefKind.Web, "https://example.test/web"),
-            (ContentRefKind.Pdf, "https://example.test/file.pdf"),
+            (ContentRefKind.Web, "https://www.example.com/web"),
+            (ContentRefKind.Pdf, "https://www.example.com/file.pdf"),
             (ContentRefKind.Document, "doc://123"),
-            (ContentRefKind.Video, "https://example.test/video"),
+            (ContentRefKind.Video, "https://www.example.com/video"),
             (ContentRefKind.Faq, "faq://skip"),
             (ContentRefKind.FaqItem, "faq-item://skip"),
             (ContentRefKind.Other, "other://skip")
@@ -40,14 +40,14 @@ public class ContentRefStudyServiceTests
     {
         var refs = new (ContentRefKind Kind, string Locator)[]
         {
-            (ContentRefKind.Web, " https://example.test/guide ")
+            (ContentRefKind.Web, " https://www.example.com/guide ")
         };
 
         var service = new ContentRefStudyService();
         var result = service.Study(refs);
         var studied = Assert.Single(result.StudiedRefs);
 
-        Assert.Equal("https://example.test/guide", studied.Locator);
-        Assert.Contains("https://example.test/guide", studied.MainSubject);
+        Assert.Equal("https://www.example.com/guide", studied.Locator);
+        Assert.Contains("https://www.example.com/guide", studied.MainSubject);
     }
 }

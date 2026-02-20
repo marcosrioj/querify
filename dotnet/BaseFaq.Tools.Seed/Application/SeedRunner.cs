@@ -60,7 +60,7 @@ public sealed class SeedRunner(
             var iaAgentUserId = tenantSeeder.EnsureEssentialData(tenantDb);
             console.WriteLine("Essential seed complete.");
             console.WriteLine("AI providers ensured.");
-            console.WriteLine($"IA Agent user id: {iaAgentUserId}");
+            console.WriteLine($"AI Agent user id: {iaAgentUserId}");
             console.WriteLine("Set this value in AI API appsettings: Ai:UserId");
             return 0;
         }
@@ -75,7 +75,7 @@ public sealed class SeedRunner(
             else if (!tenantSeeder.HasEssentialData(tenantDb))
             {
                 console.WriteLine(
-                    "Essential data is missing. Run 'Seed essential data (AI providers + IA Agent user)' first.");
+                    "Essential data is missing. Run 'Seed essential data (AI providers + AI Agent user)' first.");
                 return 1;
             }
 
@@ -154,7 +154,7 @@ public sealed class SeedRunner(
     {
         console.WriteLine("Select action:");
         console.WriteLine("1) Seed dummy data (default)");
-        console.WriteLine("2) Seed essential data (AI providers + IA Agent user)");
+        console.WriteLine("2) Seed essential data (AI providers + AI Agent user)");
         console.WriteLine("3) Clean databases and seed essential + dummy data");
         console.WriteLine("4) Clean databases only");
         console.WriteLine("0) Exit");

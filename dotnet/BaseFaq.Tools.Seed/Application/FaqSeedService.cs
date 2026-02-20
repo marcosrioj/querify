@@ -169,9 +169,9 @@ public sealed class FaqSeedService : IFaqSeedService
                 Kind = kind,
                 Locator = kind switch
                 {
-                    ContentRefKind.Web => $"https://docs.basefaq.local/{i:000}",
-                    ContentRefKind.Pdf => $"https://cdn.basefaq.local/files/guide-{i:000}.pdf",
-                    ContentRefKind.Video => $"https://videos.basefaq.local/watch/{i:000}",
+                    ContentRefKind.Web => $"https://www.example.com/docs/{i:000}",
+                    ContentRefKind.Pdf => $"https://www.example.com/files/guide-{i:000}.pdf",
+                    ContentRefKind.Video => $"https://www.example.com/videos/{i:000}",
                     ContentRefKind.Repository => $"repo://basefaq/faq/{i:000}",
                     ContentRefKind.Document => $"doc://kb/{i:000}",
                     ContentRefKind.Faq => $"faq://{i:000}",
@@ -193,7 +193,7 @@ public sealed class FaqSeedService : IFaqSeedService
         FaqStatus[] statuses,
         FaqSortStrategy[] sortStrategies)
     {
-        var languages = new[] { "en-US", "en-GB", "pt-BR", "es-ES", "fr-FR", "de-DE" };
+        var languages = new[] { "en-US", "en-GB", "en-CA", "en-AU", "en-IE", "en-NZ" };
         var faqs = new List<Faq.Common.Persistence.FaqDb.Entities.Faq>(count);
 
         for (var i = 1; i <= count; i++)

@@ -53,7 +53,7 @@ public class FaqCommandQueryTests
         {
             Id = faq.Id,
             Name = "Updated",
-            Language = "pt-BR",
+            Language = "en-GB",
             Status = FaqStatus.Published,
             SortStrategy = FaqSortStrategy.Vote,
             CtaEnabled = true,
@@ -65,7 +65,7 @@ public class FaqCommandQueryTests
         var updated = await context.DbContext.Faqs.FindAsync(faq.Id);
         Assert.NotNull(updated);
         Assert.Equal("Updated", updated!.Name);
-        Assert.Equal("pt-BR", updated.Language);
+        Assert.Equal("en-GB", updated.Language);
         Assert.Equal(FaqStatus.Published, updated.Status);
         Assert.Equal(FaqSortStrategy.Vote, updated.SortStrategy);
         Assert.True(updated.CtaEnabled);

@@ -102,7 +102,7 @@ public class FaqBusinessRulesTests
     public async Task Sorting_UsesExplicitFields()
     {
         using var context = TestContext.Create();
-        await TestDataFactory.SeedFaqAsync(context.DbContext, context.SessionService.TenantId, "Alpha", "pt-BR");
+        await TestDataFactory.SeedFaqAsync(context.DbContext, context.SessionService.TenantId, "Alpha", "en-ZA");
         await TestDataFactory.SeedFaqAsync(context.DbContext, context.SessionService.TenantId, "Bravo", "en-US");
 
         var handler = new FaqsGetFaqListQueryHandler(context.DbContext);
@@ -119,7 +119,7 @@ public class FaqBusinessRulesTests
         var result = await handler.Handle(request, CancellationToken.None);
 
         Assert.Equal(2, result.TotalCount);
-        Assert.Equal("pt-BR", result.Items[0].Language);
+        Assert.Equal("en-ZA", result.Items[0].Language);
         Assert.Equal("Alpha", result.Items[0].Name);
     }
 

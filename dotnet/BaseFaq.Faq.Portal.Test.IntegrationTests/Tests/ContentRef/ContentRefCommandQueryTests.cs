@@ -22,7 +22,7 @@ public class ContentRefCommandQueryTests
         var request = new ContentRefsCreateContentRefCommand
         {
             Kind = ContentRefKind.Web,
-            Locator = "https://example.test/guide",
+            Locator = "https://www.example.com/guide",
             Label = "Guide",
             Scope = "Section 2"
         };
@@ -32,7 +32,7 @@ public class ContentRefCommandQueryTests
         var contentRef = await context.DbContext.ContentRefs.FindAsync(id);
         Assert.NotNull(contentRef);
         Assert.Equal(ContentRefKind.Web, contentRef!.Kind);
-        Assert.Equal("https://example.test/guide", contentRef.Locator);
+        Assert.Equal("https://www.example.com/guide", contentRef.Locator);
         Assert.Equal("Guide", contentRef.Label);
         Assert.Equal("Section 2", contentRef.Scope);
         Assert.Equal(context.SessionService.TenantId, contentRef.TenantId);
@@ -53,7 +53,7 @@ public class ContentRefCommandQueryTests
         {
             Id = contentRef.Id,
             Kind = ContentRefKind.Pdf,
-            Locator = "manual-2",
+            Locator = "https://www.example.com/files/manual-2.pdf",
             Label = "Updated",
             Scope = "Chapter 3"
         };
@@ -63,7 +63,7 @@ public class ContentRefCommandQueryTests
         var updated = await context.DbContext.ContentRefs.FindAsync(contentRef.Id);
         Assert.NotNull(updated);
         Assert.Equal(ContentRefKind.Pdf, updated!.Kind);
-        Assert.Equal("manual-2", updated.Locator);
+        Assert.Equal("https://www.example.com/files/manual-2.pdf", updated.Locator);
         Assert.Equal("Updated", updated.Label);
         Assert.Equal("Chapter 3", updated.Scope);
     }
@@ -94,7 +94,7 @@ public class ContentRefCommandQueryTests
             context.DbContext,
             context.SessionService.TenantId,
             ContentRefKind.Web,
-            "delete-ref");
+            "https://www.example.com/content/delete-ref");
 
         var handler = new ContentRefsDeleteContentRefCommandHandler(context.DbContext);
         await handler.Handle(new ContentRefsDeleteContentRefCommand { Id = contentRef.Id }, CancellationToken.None);
@@ -145,7 +145,7 @@ public class ContentRefCommandQueryTests
         using var context = TestContext.Create();
         await TestDataFactory.SeedContentRefAsync(context.DbContext, context.SessionService.TenantId);
         await TestDataFactory.SeedContentRefAsync(context.DbContext, context.SessionService.TenantId,
-            ContentRefKind.Video, "video-1");
+            ContentRefKind.Video, "https://www.example.com/videos/1");
 
         var handler = new ContentRefsGetContentRefListQueryHandler(context.DbContext);
         var request = new ContentRefsGetContentRefListQuery
@@ -164,9 +164,9 @@ public class ContentRefCommandQueryTests
     {
         using var context = TestContext.Create();
         await TestDataFactory.SeedContentRefAsync(context.DbContext, context.SessionService.TenantId,
-            ContentRefKind.Web, "b-locator");
+            ContentRefKind.Web, "https://www.example.com/content/b-locator");
         await TestDataFactory.SeedContentRefAsync(context.DbContext, context.SessionService.TenantId,
-            ContentRefKind.Web, "a-locator");
+            ContentRefKind.Web, "https://www.example.com/content/a-locator");
 
         var handler = new ContentRefsGetContentRefListQueryHandler(context.DbContext);
         var request = new ContentRefsGetContentRefListQuery
@@ -181,8 +181,8 @@ public class ContentRefCommandQueryTests
 
         var result = await handler.Handle(request, CancellationToken.None);
 
-        Assert.Equal("b-locator", result.Items[0].Locator);
-        Assert.Equal("a-locator", result.Items[1].Locator);
+        Assert.Equal("https://www.example.com/content/b-locator", result.Items[0].Locator);
+        Assert.Equal("https://www.example.com/content/a-locator", result.Items[1].Locator);
     }
 
     [Fact]
@@ -190,9 +190,9 @@ public class ContentRefCommandQueryTests
     {
         using var context = TestContext.Create();
         var first = await TestDataFactory.SeedContentRefAsync(context.DbContext, context.SessionService.TenantId,
-            ContentRefKind.Web, "z-locator");
+            ContentRefKind.Web, "https://www.example.com/content/z-locator");
         await TestDataFactory.SeedContentRefAsync(context.DbContext, context.SessionService.TenantId,
-            ContentRefKind.Web, "a-locator");
+            ContentRefKind.Web, "https://www.example.com/content/a-locator");
         first.Label = "Updated";
         await context.DbContext.SaveChangesAsync();
 
@@ -209,8 +209,8 @@ public class ContentRefCommandQueryTests
 
         var result = await handler.Handle(request, CancellationToken.None);
 
-        Assert.Equal("z-locator", result.Items[0].Locator);
-        Assert.Equal("a-locator", result.Items[1].Locator);
+        Assert.Equal("https://www.example.com/content/z-locator", result.Items[0].Locator);
+        Assert.Equal("https://www.example.com/content/a-locator", result.Items[1].Locator);
     }
 
     [Fact]
@@ -220,9 +220,9 @@ public class ContentRefCommandQueryTests
         await TestDataFactory.SeedContentRefAsync(context.DbContext, context.SessionService.TenantId,
             ContentRefKind.Manual, "manual");
         await TestDataFactory.SeedContentRefAsync(context.DbContext, context.SessionService.TenantId,
-            ContentRefKind.Web, "b-web");
+            ContentRefKind.Web, "https://www.example.com/content/b-web");
         await TestDataFactory.SeedContentRefAsync(context.DbContext, context.SessionService.TenantId,
-            ContentRefKind.Web, "a-web");
+            ContentRefKind.Web, "https://www.example.com/content/a-web");
 
         var handler = new ContentRefsGetContentRefListQueryHandler(context.DbContext);
         var request = new ContentRefsGetContentRefListQuery
@@ -238,8 +238,8 @@ public class ContentRefCommandQueryTests
         var result = await handler.Handle(request, CancellationToken.None);
 
         Assert.Equal(ContentRefKind.Manual, result.Items[0].Kind);
-        Assert.Equal("b-web", result.Items[1].Locator);
-        Assert.Equal("a-web", result.Items[2].Locator);
+        Assert.Equal("https://www.example.com/content/b-web", result.Items[1].Locator);
+        Assert.Equal("https://www.example.com/content/a-web", result.Items[2].Locator);
     }
 
     [Fact]
@@ -250,17 +250,17 @@ public class ContentRefCommandQueryTests
             context.DbContext,
             context.SessionService.TenantId,
             ContentRefKind.Web,
-            "c-locator");
+            "https://www.example.com/content/c-locator");
         await TestDataFactory.SeedContentRefAsync(
             context.DbContext,
             context.SessionService.TenantId,
             ContentRefKind.Web,
-            "a-locator");
+            "https://www.example.com/content/a-locator");
         await TestDataFactory.SeedContentRefAsync(
             context.DbContext,
             context.SessionService.TenantId,
             ContentRefKind.Web,
-            "b-locator");
+            "https://www.example.com/content/b-locator");
 
         var handler = new ContentRefsGetContentRefListQueryHandler(context.DbContext);
         var request = new ContentRefsGetContentRefListQuery
@@ -277,6 +277,6 @@ public class ContentRefCommandQueryTests
 
         Assert.Equal(3, result.TotalCount);
         Assert.Single(result.Items);
-        Assert.Equal("b-locator", result.Items[0].Locator);
+        Assert.Equal("https://www.example.com/content/b-locator", result.Items[0].Locator);
     }
 }
