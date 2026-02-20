@@ -38,39 +38,107 @@ public sealed class OpenAiGenerationMatchingFlowTests
         using var tenantDatabase = TestDatabase.Create("bf_ai_tenant_test");
         using var faqDatabase = TestDatabase.Create("bf_ai_faq_test");
 
+        var runtimeState = CreateRuntimeState();
+
+        await using var tenantDbContext = await CreateAndSeedTenantDbContextAsync(
+            tenantDatabase.ConnectionString,
+            runtimeState.TenantId,
+            runtimeState.RequestedByUserId,
+            runtimeState.Configuration,
+            faqDatabase.ConnectionString,
+            settings);
+
+        var faqScenario = await CreateAndSeedFaqScenarioAsync(
+            faqDatabase.ConnectionString,
+            runtimeState.TenantId,
+            runtimeState.RequestedByUserId,
+            runtimeState.Configuration);
+
+        var services = BuildLiveFlowServices(
+            tenantDbContext,
+            runtimeState.TenantId,
+            faqDatabase.ConnectionString,
+            runtimeState.Configuration,
+            settings.ApiKey);
+
+        var generationRequested = CreateGenerationRequest(
+            faqScenario.FaqId,
+            runtimeState.TenantId,
+            runtimeState.RequestedByUserId);
+
+        var generatedFaqItemId = await GenerateAndPersistFaqItemAsync(
+            services,
+            generationRequested,
+            runtimeState.TenantId);
+
+        var matchingRequested = CreateMatchingRequest(
+            generatedFaqItemId,
+            runtimeState.TenantId,
+            runtimeState.RequestedByUserId,
+            settings.SimilarCandidateQuestion);
+
+        var rankedCandidates = await services.MatchingExecutionService.ExecuteAsync(
+            matchingRequested,
+            CancellationToken.None);
+
+        AssertExpectedMatchingRanking(rankedCandidates, faqScenario.SimilarCandidateFaqItemId);
+    }
+
+    private static RuntimeState CreateRuntimeState()
+    {
         var tenantId = Guid.NewGuid();
         var requestedByUserId = Guid.NewGuid();
         var aiUserId = Guid.NewGuid();
         var configuration = BuildConfiguration(aiUserId);
 
-        await using var tenantDbContext = CreateTenantDbContext(
-            tenantDatabase.ConnectionString,
+        return new RuntimeState(tenantId, requestedByUserId, configuration);
+    }
+
+    private static async Task<TenantDbContext> CreateAndSeedTenantDbContextAsync(
+        string tenantConnectionString,
+        Guid tenantId,
+        Guid requestedByUserId,
+        IConfiguration configuration,
+        string faqConnectionString,
+        OpenAiLiveTestSettings settings)
+    {
+        var tenantDbContext = CreateTenantDbContext(
+            tenantConnectionString,
             tenantId,
             requestedByUserId,
             configuration);
+
         await tenantDbContext.Database.MigrateAsync();
-        await SeedTenantProviderScenarioAsync(
-            tenantDbContext,
+        await SeedTenantProviderScenarioAsync(tenantDbContext, tenantId, faqConnectionString, settings);
+        return tenantDbContext;
+    }
+
+    private static async Task<(Guid FaqId, Guid SimilarCandidateFaqItemId)> CreateAndSeedFaqScenarioAsync(
+        string faqConnectionString,
+        Guid tenantId,
+        Guid requestedByUserId,
+        IConfiguration configuration)
+    {
+        await using var faqSeedDbContext = CreateFaqDbContext(
+            faqConnectionString,
             tenantId,
-            faqDatabase.ConnectionString,
-            settings);
+            requestedByUserId,
+            configuration);
+        await faqSeedDbContext.Database.MigrateAsync();
+        return await SeedFaqScenarioAsync(faqSeedDbContext, tenantId);
+    }
 
-        (Guid FaqId, Guid SimilarCandidateFaqItemId) faqScenario;
-        await using (var faqSeedDbContext = CreateFaqDbContext(
-                         faqDatabase.ConnectionString,
-                         tenantId,
-                         requestedByUserId,
-                         configuration))
-        {
-            await faqSeedDbContext.Database.MigrateAsync();
-            faqScenario = await SeedFaqScenarioAsync(faqSeedDbContext, tenantId);
-        }
-
+    private static LiveFlowServices BuildLiveFlowServices(
+        TenantDbContext tenantDbContext,
+        Guid tenantId,
+        string faqConnectionString,
+        IConfiguration configuration,
+        string runtimeApiKey)
+    {
         var aiProviderContextResolver = new OpenAiRuntimeApiKeyContextResolver(
             new AiProviderContextResolver(tenantDbContext),
-            settings.ApiKey);
-        var faqConnectionStringProvider =
-            new SingleTenantConnectionStringProvider(tenantId, faqDatabase.ConnectionString);
+            runtimeApiKey);
+        var faqConnectionStringProvider = new SingleTenantConnectionStringProvider(tenantId, faqConnectionString);
         var faqDbContextFactory = new FaqDbContextFactory(faqConnectionStringProvider, configuration);
 
         var runtimeContextResolver = new AiProviderRuntimeContextResolver(new AiProviderProfileRegistry());
@@ -84,87 +152,140 @@ public sealed class OpenAiGenerationMatchingFlowTests
             new OpenAiCompatibleEmbeddingsStrategy(providerHttpClient)
         ]);
 
-        var generationPromptBuilder = new GenerationPromptBuilder();
-        var contentRefStudyService = new ContentRefStudyService();
         var generationProviderClient = new GenerationProviderClient(runtimeContextResolver, textCompletionGateway);
         var matchingProviderClient =
             new MatchingProviderClient(runtimeContextResolver, embeddingsGateway, textCompletionGateway);
         var matchingExecutionService =
             new MatchingExecutionService(aiProviderContextResolver, faqDbContextFactory, matchingProviderClient);
 
-        var generationRequested = new FaqGenerationRequestedV1
+        return new LiveFlowServices(
+            aiProviderContextResolver,
+            faqDbContextFactory,
+            new ContentRefStudyService(),
+            new GenerationPromptBuilder(),
+            generationProviderClient,
+            matchingExecutionService);
+    }
+
+    private static FaqGenerationRequestedV1 CreateGenerationRequest(
+        Guid faqId,
+        Guid tenantId,
+        Guid requestedByUserId)
+    {
+        return new FaqGenerationRequestedV1
         {
             CorrelationId = Guid.NewGuid(),
-            FaqId = faqScenario.FaqId,
+            FaqId = faqId,
             TenantId = tenantId,
             RequestedByUserId = requestedByUserId,
             Language = "pt-BR",
             IdempotencyKey = Guid.NewGuid().ToString("N"),
             RequestedUtc = DateTime.UtcNow
         };
+    }
 
-        var generatedFaqItemId = Guid.Empty;
-        await using (var generationDbContext = faqDbContextFactory.Create(tenantId))
-        {
-            var contentRefs = await generationDbContext.FaqContentRefs
-                .AsNoTracking()
-                .Where(x => x.FaqId == faqScenario.FaqId && x.TenantId == tenantId)
-                .Select(x => new ValueTuple<ContentRefKind, string>(x.ContentRef.Kind, x.ContentRef.Locator))
-                .ToListAsync();
-
-            var studiedRefs = contentRefStudyService.Study(contentRefs);
-            var generationProviderContext = await aiProviderContextResolver.ResolveAsync(
-                tenantId,
-                AiCommandType.Generation);
-            var promptData = generationPromptBuilder.BuildPromptData(
-                generationRequested,
-                studiedRefs,
-                generationProviderContext);
-            var generatedDraft = await generationProviderClient.GenerateDraftAsync(
-                generationProviderContext,
-                promptData,
-                CancellationToken.None);
-
-            Assert.False(string.IsNullOrWhiteSpace(generatedDraft.Question));
-            Assert.False(string.IsNullOrWhiteSpace(generatedDraft.Summary));
-            Assert.False(string.IsNullOrWhiteSpace(generatedDraft.Answer));
-
-            var generatedFaqItem = new FaqItem
-            {
-                Question = Truncate(generatedDraft.Question, FaqItem.MaxQuestionLength),
-                ShortAnswer = Truncate(generatedDraft.Summary, FaqItem.MaxShortAnswerLength),
-                Answer = Truncate(generatedDraft.Answer, FaqItem.MaxAnswerLength),
-                Sort = 99,
-                VoteScore = 0,
-                AiConfidenceScore = Math.Clamp(generatedDraft.Confidence, 0, 100),
-                IsActive = true,
-                FaqId = faqScenario.FaqId,
-                TenantId = tenantId
-            };
-
-            generationDbContext.FaqItems.Add(generatedFaqItem);
-            await generationDbContext.SaveChangesAsync();
-            generatedFaqItemId = generatedFaqItem.Id;
-        }
-
-        var matchingRequested = new FaqMatchingRequestedV1
+    private static FaqMatchingRequestedV1 CreateMatchingRequest(
+        Guid faqItemId,
+        Guid tenantId,
+        Guid requestedByUserId,
+        string query)
+    {
+        return new FaqMatchingRequestedV1
         {
             CorrelationId = Guid.NewGuid(),
             TenantId = tenantId,
-            FaqItemId = generatedFaqItemId,
+            FaqItemId = faqItemId,
             RequestedByUserId = requestedByUserId,
-            Query = settings.SimilarCandidateQuestion,
+            Query = query,
             Language = "pt-BR",
             IdempotencyKey = Guid.NewGuid().ToString("N"),
             RequestedUtc = DateTime.UtcNow
         };
+    }
 
-        var rankedCandidates = await matchingExecutionService.ExecuteAsync(
-            matchingRequested,
+    private static async Task<Guid> GenerateAndPersistFaqItemAsync(
+        LiveFlowServices services,
+        FaqGenerationRequestedV1 generationRequested,
+        Guid tenantId)
+    {
+        await using var generationDbContext = services.FaqDbContextFactory.Create(tenantId);
+        var contentRefs = await LoadGenerationContentRefsAsync(generationDbContext, generationRequested.FaqId, tenantId);
+        var studiedRefs = services.ContentRefStudyService.Study(contentRefs);
+
+        var generationProviderContext = await services.AiProviderContextResolver.ResolveAsync(
+            tenantId,
+            AiCommandType.Generation);
+        var promptData = services.GenerationPromptBuilder.BuildPromptData(
+            generationRequested,
+            studiedRefs,
+            generationProviderContext);
+        var generatedDraft = await services.GenerationProviderClient.GenerateDraftAsync(
+            generationProviderContext,
+            promptData,
             CancellationToken.None);
 
+        AssertGeneratedDraftIsComplete(generatedDraft.Question, generatedDraft.Summary, generatedDraft.Answer);
+
+        var generatedFaqItem = CreateGeneratedFaqItemEntity(
+            generationRequested.FaqId,
+            tenantId,
+            generatedDraft.Question,
+            generatedDraft.Summary,
+            generatedDraft.Answer,
+            generatedDraft.Confidence);
+
+        generationDbContext.FaqItems.Add(generatedFaqItem);
+        await generationDbContext.SaveChangesAsync();
+        return generatedFaqItem.Id;
+    }
+
+    private static Task<List<(ContentRefKind Kind, string Locator)>> LoadGenerationContentRefsAsync(
+        FaqDbContext faqDbContext,
+        Guid faqId,
+        Guid tenantId)
+    {
+        return faqDbContext.FaqContentRefs
+            .AsNoTracking()
+            .Where(x => x.FaqId == faqId && x.TenantId == tenantId)
+            .Select(x => new ValueTuple<ContentRefKind, string>(x.ContentRef.Kind, x.ContentRef.Locator))
+            .ToListAsync();
+    }
+
+    private static FaqItem CreateGeneratedFaqItemEntity(
+        Guid faqId,
+        Guid tenantId,
+        string question,
+        string summary,
+        string answer,
+        int confidence)
+    {
+        return new FaqItem
+        {
+            Question = Truncate(question, FaqItem.MaxQuestionLength),
+            ShortAnswer = Truncate(summary, FaqItem.MaxShortAnswerLength),
+            Answer = Truncate(answer, FaqItem.MaxAnswerLength),
+            Sort = 99,
+            VoteScore = 0,
+            AiConfidenceScore = Math.Clamp(confidence, 0, 100),
+            IsActive = true,
+            FaqId = faqId,
+            TenantId = tenantId
+        };
+    }
+
+    private static void AssertGeneratedDraftIsComplete(string question, string summary, string answer)
+    {
+        Assert.False(string.IsNullOrWhiteSpace(question));
+        Assert.False(string.IsNullOrWhiteSpace(summary));
+        Assert.False(string.IsNullOrWhiteSpace(answer));
+    }
+
+    private static void AssertExpectedMatchingRanking(
+        MatchingCandidate[] rankedCandidates,
+        Guid expectedTopCandidateFaqItemId)
+    {
         Assert.NotEmpty(rankedCandidates);
-        Assert.Equal(faqScenario.SimilarCandidateFaqItemId, rankedCandidates[0].FaqItemId);
+        Assert.Equal(expectedTopCandidateFaqItemId, rankedCandidates[0].FaqItemId);
         Assert.True(rankedCandidates[0].SimilarityScore > 0);
     }
 
@@ -353,6 +474,19 @@ public sealed class OpenAiGenerationMatchingFlowTests
 
         return normalized[..maxLength];
     }
+
+    private sealed record RuntimeState(
+        Guid TenantId,
+        Guid RequestedByUserId,
+        IConfiguration Configuration);
+
+    private sealed record LiveFlowServices(
+        IAiProviderContextResolver AiProviderContextResolver,
+        FaqDbContextFactory FaqDbContextFactory,
+        ContentRefStudyService ContentRefStudyService,
+        GenerationPromptBuilder GenerationPromptBuilder,
+        GenerationProviderClient GenerationProviderClient,
+        MatchingExecutionService MatchingExecutionService);
 
     private sealed class TestSessionService(Guid tenantId, Guid userId) : ISessionService
     {
