@@ -23,10 +23,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		README.md = README.md
 		PROJECT_RULES.md = PROJECT_RULES.md
 		global.json = global.json
-		docker.sh = docker.sh
-		docker.ps1 = docker.ps1
-		docker-base.sh = docker-base.sh
-		docker-base.ps1 = docker-base.ps1
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Infrastructure", "Infrastructure", "{87130428-904D-44AB-82A8-9341EA677BAB}"
@@ -184,6 +180,43 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BaseFaq.AI.Test.IntegrationTest", "dotnet\BaseFaq.AI.Test.IntegrationTest\BaseFaq.AI.Test.IntegrationTest.csproj", "{D41626DF-6F79-4B2C-805B-4A8B55EF8ABF}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BaseFaq.AI.Business.Common", "dotnet\BaseFaq.AI.Business.Common\BaseFaq.AI.Business.Common.csproj", "{0257C3AC-569F-4B89-B76D-4F5B0C5D5DAB}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Sample", "Sample", "{6DAA5A81-E7C6-4146-9B9C-DA1BD0E9E984}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Ai", "Ai", "{E7C59887-9D64-4473-8B86-EBA028C9716B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BaseFaq.Sample.Ai.Generation", "dotnet\BaseFaq.Sample.Ai.Generation\BaseFaq.Sample.Ai.Generation.csproj", "{D838CDB8-6F91-4ECB-BE89-B47283FEA6AD}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docker", "Docker", "{76881929-04FA-4D0C-B312-892431E63843}"
+	ProjectSection(SolutionItems) = preProject
+		docker.ps1 = docker.ps1
+		docker.sh = docker.sh
+		docker-base.ps1 = docker-base.ps1
+		docker-base.sh = docker-base.sh
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Azure", "Azure", "{D9B9D7A0-8885-45A0-A9E9-6B0C0F5850EC}"
+	ProjectSection(SolutionItems) = preProject
+		azure\bootstrap-data.sh = azure\bootstrap-data.sh
+		azure\init-env.sh = azure\init-env.sh
+		azure\deploy.sh = azure\deploy.sh
+		azure\provision.sh = azure\provision.sh
+		azure\README.md = azure\README.md
+		azure\setup.sh = azure\setup.sh
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Env", "Env", "{296E16CC-7649-4636-9947-DF970815E541}"
+	ProjectSection(SolutionItems) = preProject
+		azure\env\dev.env = azure\env\dev.env
+		azure\env\qa.env.example = azure\env\qa.env.example
+		azure\env\dev.env.example = azure\env\dev.env.example
+		azure\env\prod.env.example = azure\env\prod.env.example
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Lib", "Lib", "{7A80D0A7-31A2-45AD-9922-0F6390DA6530}"
+	ProjectSection(SolutionItems) = preProject
+		azure\lib\common.sh = azure\lib\common.sh
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -747,6 +780,18 @@ Global
 		{0257C3AC-569F-4B89-B76D-4F5B0C5D5DAB}.Release|x64.Build.0 = Release|Any CPU
 		{0257C3AC-569F-4B89-B76D-4F5B0C5D5DAB}.Release|x86.ActiveCfg = Release|Any CPU
 		{0257C3AC-569F-4B89-B76D-4F5B0C5D5DAB}.Release|x86.Build.0 = Release|Any CPU
+		{D838CDB8-6F91-4ECB-BE89-B47283FEA6AD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D838CDB8-6F91-4ECB-BE89-B47283FEA6AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D838CDB8-6F91-4ECB-BE89-B47283FEA6AD}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{D838CDB8-6F91-4ECB-BE89-B47283FEA6AD}.Debug|x64.Build.0 = Debug|Any CPU
+		{D838CDB8-6F91-4ECB-BE89-B47283FEA6AD}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{D838CDB8-6F91-4ECB-BE89-B47283FEA6AD}.Debug|x86.Build.0 = Debug|Any CPU
+		{D838CDB8-6F91-4ECB-BE89-B47283FEA6AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D838CDB8-6F91-4ECB-BE89-B47283FEA6AD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D838CDB8-6F91-4ECB-BE89-B47283FEA6AD}.Release|x64.ActiveCfg = Release|Any CPU
+		{D838CDB8-6F91-4ECB-BE89-B47283FEA6AD}.Release|x64.Build.0 = Release|Any CPU
+		{D838CDB8-6F91-4ECB-BE89-B47283FEA6AD}.Release|x86.ActiveCfg = Release|Any CPU
+		{D838CDB8-6F91-4ECB-BE89-B47283FEA6AD}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -833,5 +878,11 @@ Global
 		{B67493EF-9238-4426-8512-AFC099B7910E} = {740CFF7F-5F23-4B02-B7A3-094719C2DFDC}
 		{D41626DF-6F79-4B2C-805B-4A8B55EF8ABF} = {EDF024E6-83E7-472E-AB56-2C42B9F9167D}
 		{0257C3AC-569F-4B89-B76D-4F5B0C5D5DAB} = {740CFF7F-5F23-4B02-B7A3-094719C2DFDC}
+		{E7C59887-9D64-4473-8B86-EBA028C9716B} = {6DAA5A81-E7C6-4146-9B9C-DA1BD0E9E984}
+		{D838CDB8-6F91-4ECB-BE89-B47283FEA6AD} = {E7C59887-9D64-4473-8B86-EBA028C9716B}
+		{76881929-04FA-4D0C-B312-892431E63843} = {1074D984-8543-46F5-862B-C0E88701CBFE}
+		{D9B9D7A0-8885-45A0-A9E9-6B0C0F5850EC} = {1074D984-8543-46F5-862B-C0E88701CBFE}
+		{296E16CC-7649-4636-9947-DF970815E541} = {D9B9D7A0-8885-45A0-A9E9-6B0C0F5850EC}
+		{7A80D0A7-31A2-45AD-9922-0F6390DA6530} = {D9B9D7A0-8885-45A0-A9E9-6B0C0F5850EC}
 	EndGlobalSection
 EndGlobal

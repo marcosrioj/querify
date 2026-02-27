@@ -45,6 +45,23 @@ This document is the operational playbook for local development, integration val
 - `docs/architecture/basefaq-ai-generation-matching-architecture.md`: AI architecture, delivery plan, and operational controls.
 - `docs/operations/secret-manager-key-rotation.md`: AI provider key-management and rotation runbook.
 
+## Azure publish path
+
+- Use stage templates:
+  - `azure/env/dev.env.example`
+  - `azure/env/qa.env.example`
+  - `azure/env/prod.env.example`
+- Initialize stage files quickly:
+  - `./azure/init-env.sh --stage dev`
+  - `./azure/init-env.sh --stage qa`
+  - `./azure/init-env.sh --stage prod`
+- Run full setup by stage:
+  - `./azure/setup.sh --stage dev`
+  - `./azure/setup.sh --stage qa`
+  - `./azure/setup.sh --stage prod`
+- Or run phase-by-phase with `--stage`: `provision.sh`, `bootstrap-data.sh`, `deploy.sh`.
+- Full runbook: `azure/README.md`.
+
 ## Platform scope
 - FAQ Portal API
 - FAQ AI API

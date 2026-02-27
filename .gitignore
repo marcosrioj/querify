@@ -3,4 +3,7 @@
 bin/
 obj/
 **/appsettings.Development.json
+dotnet/BaseFaq.Sample.Ai.Generation/appsettings.json
 BaseFaq.sln.DotSettings.user
+azure/.env
+azure/env/*.env
