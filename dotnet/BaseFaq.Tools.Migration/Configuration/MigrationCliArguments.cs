@@ -5,9 +5,9 @@ namespace BaseFaq.Tools.Migration.Configuration;
 
 internal sealed class MigrationCliArguments
 {
-    public AppEnum? App { get; private init; }
-    public MigrationCommand? Command { get; private init; }
-    public string? MigrationName { get; private init; }
+    public AppEnum? App { get; private set; }
+    public MigrationCommand? Command { get; private set; }
+    public string? MigrationName { get; private set; }
 
     public static MigrationCliArguments Parse(string[] args)
     {
