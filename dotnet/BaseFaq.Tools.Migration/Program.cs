@@ -2,17 +2,50 @@ using BaseFaq.Tools.Migration.Configuration;
 using BaseFaq.Tools.Migration.Prompts;
 using BaseFaq.Tools.Migration.Runners;
 using BaseFaq.Tools.Migration.Utilities;
+using BaseFaq.Models.Common.Enums;
 
 namespace BaseFaq.Tools.Migration;
 
 public static class Program
 {
-    public static int Main()
+    public static int Main(string[] args)
     {
+        MigrationCliArguments cliArguments;
+        try
+        {
+            cliArguments = MigrationCliArguments.Parse(args);
+        }
+        catch (ArgumentException ex)
+        {
+            Console.Error.WriteLine(ex.Message);
+            return 1;
+        }
+
+        var cliMode = args.Length > 0;
+
+        AppEnum app;
+        MigrationCommand command;
+
+        if (cliMode)
+        {
+            app = cliArguments.App ?? AppEnum.Faq;
+
+            if (cliArguments.Command is null)
+            {
+                Console.Error.WriteLine("Missing --command in CLI mode.");
+                return 1;
+            }
+
+            command = cliArguments.Command.Value;
+        }
+        else
+        {
+            app = MigrationPrompt.SelectApp();
+            command = MigrationPrompt.SelectCommand();
+        }
+
         var solutionRoot = SolutionRootLocator.Find();
         var configuration = MigrationsConfiguration.Build(solutionRoot);
-        var app = MigrationPrompt.SelectApp();
-        var command = MigrationPrompt.SelectCommand();
 
         string tenantDbConnectionString;
         try
@@ -37,7 +70,16 @@ public static class Program
             return 1;
         }
 
-        var migrationName = MigrationPrompt.ReadMigrationName();
+        var migrationName = cliMode
+            ? cliArguments.MigrationName
+            : MigrationPrompt.ReadMigrationName();
+
+        if (string.IsNullOrWhiteSpace(migrationName))
+        {
+            Console.Error.WriteLine("Migration name is required for migrations-add command.");
+            return 1;
+        }
+
         return EfMigrationsRunner.AddFaqMigration(solutionRoot, migrationName, app);
     }
 }

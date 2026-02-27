@@ -16,6 +16,7 @@ Auth0 is manual by design (you fill it in the stage env file).
 - `provision.sh`: infra only.
 - `bootstrap-data.sh`: DB bootstrap + essential seed (`AI_USER_ID` sync).
 - `deploy.sh`: image build/push + Container Apps deploy.
+- `run-migrations.sh`: applies tenant + FAQ migrations in non-interactive mode.
 - `setup.sh`: full flow (`provision -> bootstrap-data -> deploy`).
 - `init-env.sh`: creates `env/<stage>.env` from `env/<stage>.env.example`.
 - `check-rg.sh`: checks if the stage Resource Group already exists.
@@ -99,6 +100,7 @@ Modes:
 ```bash
 ./azure/provision.sh --stage dev
 ./azure/bootstrap-data.sh --stage dev
+./azure/run-migrations.sh --stage dev
 ./azure/deploy.sh --stage dev
 ```
 
@@ -127,5 +129,44 @@ You can override env file path in any script:
 
 - `provision.sh` updates generated values in the stage env file (DB/Redis/RabbitMQ endpoints and secrets).
 - `bootstrap-data.sh` updates `AI_USER_ID` in the stage env file.
+- `run-migrations.sh` is recommended for CI/CD deployments where you only need DB migration and no seed reset.
 - `deploy.sh` uses those values directly as app secrets/env vars.
 - Custom domain DNS/CERT binding is still an Azure DNS/SSL operation outside this script.
+
+## GitHub pipeline
+
+Workflow file:
+
+- `.github/workflows/deploy-dev-master.yml`
+
+Trigger:
+
+- every push to `master`
+- manual trigger (`workflow_dispatch`)
+
+Behavior:
+
+- prepares `dev` env file at runtime from GitHub `vars` + `secrets`
+- runs automatic DB migrations (`run-migrations.sh`)
+- deploys only the `dev` APIs (`deploy.sh --stage dev`)
+
+Required GitHub `secrets`:
+
+- `AZURE_CREDENTIALS` (service principal JSON for `azure/login`)
+- `TENANT_DB_CONNECTION_STRING`
+- `REDIS_PASSWORD`
+- `RABBITMQ_PASSWORD`
+- `AI_USER_ID`
+
+Required GitHub `vars` (or keep value in `azure/env/dev.env.example`):
+
+- `AZURE_SUBSCRIPTION_ID`
+- `AZURE_LOCATION`
+- `AZURE_RESOURCE_GROUP`
+- `AZURE_CONTAINERAPPS_ENVIRONMENT`
+- `AZURE_ACR_NAME`
+- `BASEFAQ_ENVIRONMENT`
+- `CONTAINERAPP_PREFIX`
+- Auth vars (`AUTHORITY_URL`, `AUTH_AUDIENCE`, Swagger auth vars)
+- Domain vars (`FAQ_PORTAL_DOMAIN`, `FAQ_PUBLIC_DOMAIN`, `TENANT_BACKOFFICE_DOMAIN`, `TENANT_PORTAL_DOMAIN`,
+  `AI_DOMAIN`)

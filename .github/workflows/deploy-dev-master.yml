@@ -1,0 +1,125 @@
+name: Deploy Dev APIs On Master
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: basefaq-dev-deploy
+  cancel-in-progress: true
+
+jobs:
+  migrate-and-deploy-dev:
+    runs-on: ubuntu-latest
+    environment: dev
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Prepare dev env file
+        shell: bash
+        env:
+          AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+          AZURE_LOCATION: ${{ vars.AZURE_LOCATION }}
+          AZURE_RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
+          AZURE_CONTAINERAPPS_ENVIRONMENT: ${{ vars.AZURE_CONTAINERAPPS_ENVIRONMENT }}
+          AZURE_ACR_NAME: ${{ vars.AZURE_ACR_NAME }}
+          AZURE_ACR_SKU: ${{ vars.AZURE_ACR_SKU }}
+          BASEFAQ_ENVIRONMENT: ${{ vars.BASEFAQ_ENVIRONMENT }}
+          CONTAINERAPP_PREFIX: ${{ vars.CONTAINERAPP_PREFIX }}
+          CORS_ALLOW_ANY_ORIGINS: ${{ vars.CORS_ALLOW_ANY_ORIGINS }}
+          CORS_ALLOWED_ORIGINS: ${{ vars.CORS_ALLOWED_ORIGINS }}
+          REDIS_HOST: ${{ vars.REDIS_HOST }}
+          REDIS_PORT: ${{ vars.REDIS_PORT }}
+          REDIS_USE_SSL: ${{ vars.REDIS_USE_SSL }}
+          RABBITMQ_HOST: ${{ vars.RABBITMQ_HOST }}
+          RABBITMQ_PORT: ${{ vars.RABBITMQ_PORT }}
+          RABBITMQ_USERNAME: ${{ vars.RABBITMQ_USERNAME }}
+          AUTHORITY_URL: ${{ vars.AUTHORITY_URL }}
+          AUTH_AUDIENCE: ${{ vars.AUTH_AUDIENCE }}
+          SWAGGER_AUTH_CLIENT_ID: ${{ vars.SWAGGER_AUTH_CLIENT_ID }}
+          SWAGGER_AUTH_AUDIENCE: ${{ vars.SWAGGER_AUTH_AUDIENCE }}
+          SWAGGER_AUTH_AUTHORIZE_ENDPOINT: ${{ vars.SWAGGER_AUTH_AUTHORIZE_ENDPOINT }}
+          SWAGGER_AUTH_TOKEN_ENDPOINT: ${{ vars.SWAGGER_AUTH_TOKEN_ENDPOINT }}
+          FAQ_PORTAL_DOMAIN: ${{ vars.FAQ_PORTAL_DOMAIN }}
+          FAQ_PUBLIC_DOMAIN: ${{ vars.FAQ_PUBLIC_DOMAIN }}
+          TENANT_BACKOFFICE_DOMAIN: ${{ vars.TENANT_BACKOFFICE_DOMAIN }}
+          TENANT_PORTAL_DOMAIN: ${{ vars.TENANT_PORTAL_DOMAIN }}
+          AI_DOMAIN: ${{ vars.AI_DOMAIN }}
+          OTLP_ENDPOINT: ${{ vars.OTLP_ENDPOINT }}
+          TENANT_DB_CONNECTION_STRING: ${{ secrets.TENANT_DB_CONNECTION_STRING }}
+          REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
+          RABBITMQ_PASSWORD: ${{ secrets.RABBITMQ_PASSWORD }}
+          AI_USER_ID: ${{ secrets.AI_USER_ID }}
+        run: |
+          set -euo pipefail
+          ./azure/init-env.sh --stage dev
+
+          ENV_FILE="azure/env/dev.env"
+          source ./azure/lib/common.sh
+          upsert_if_set() {
+            local key="$1"
+            local value="${2:-}"
+            if [[ -n "${value}" ]]; then
+              upsert_env "${ENV_FILE}" "${key}" "${value}"
+            fi
+          }
+
+          upsert_env "${ENV_FILE}" "BASEFAQ_STAGE" "dev"
+          upsert_if_set "AZURE_SUBSCRIPTION_ID" "${AZURE_SUBSCRIPTION_ID}"
+          upsert_if_set "AZURE_LOCATION" "${AZURE_LOCATION}"
+          upsert_if_set "AZURE_RESOURCE_GROUP" "${AZURE_RESOURCE_GROUP}"
+          upsert_if_set "AZURE_CONTAINERAPPS_ENVIRONMENT" "${AZURE_CONTAINERAPPS_ENVIRONMENT}"
+          upsert_if_set "AZURE_ACR_NAME" "${AZURE_ACR_NAME}"
+          upsert_if_set "AZURE_ACR_SKU" "${AZURE_ACR_SKU}"
+          upsert_if_set "BASEFAQ_ENVIRONMENT" "${BASEFAQ_ENVIRONMENT}"
+          upsert_if_set "CONTAINERAPP_PREFIX" "${CONTAINERAPP_PREFIX}"
+          upsert_if_set "CORS_ALLOW_ANY_ORIGINS" "${CORS_ALLOW_ANY_ORIGINS}"
+          upsert_if_set "CORS_ALLOWED_ORIGINS" "${CORS_ALLOWED_ORIGINS}"
+          upsert_if_set "TENANT_DB_CONNECTION_STRING" "${TENANT_DB_CONNECTION_STRING}"
+          upsert_if_set "REDIS_HOST" "${REDIS_HOST}"
+          upsert_if_set "REDIS_PORT" "${REDIS_PORT}"
+          upsert_if_set "REDIS_PASSWORD" "${REDIS_PASSWORD}"
+          upsert_if_set "REDIS_USE_SSL" "${REDIS_USE_SSL}"
+          upsert_if_set "RABBITMQ_HOST" "${RABBITMQ_HOST}"
+          upsert_if_set "RABBITMQ_PORT" "${RABBITMQ_PORT}"
+          upsert_if_set "RABBITMQ_USERNAME" "${RABBITMQ_USERNAME}"
+          upsert_if_set "RABBITMQ_PASSWORD" "${RABBITMQ_PASSWORD}"
+          upsert_if_set "AUTHORITY_URL" "${AUTHORITY_URL}"
+          upsert_if_set "AUTH_AUDIENCE" "${AUTH_AUDIENCE}"
+          upsert_if_set "SWAGGER_AUTH_CLIENT_ID" "${SWAGGER_AUTH_CLIENT_ID}"
+          upsert_if_set "SWAGGER_AUTH_AUDIENCE" "${SWAGGER_AUTH_AUDIENCE}"
+          upsert_if_set "SWAGGER_AUTH_AUTHORIZE_ENDPOINT" "${SWAGGER_AUTH_AUTHORIZE_ENDPOINT}"
+          upsert_if_set "SWAGGER_AUTH_TOKEN_ENDPOINT" "${SWAGGER_AUTH_TOKEN_ENDPOINT}"
+          upsert_if_set "FAQ_PORTAL_DOMAIN" "${FAQ_PORTAL_DOMAIN}"
+          upsert_if_set "FAQ_PUBLIC_DOMAIN" "${FAQ_PUBLIC_DOMAIN}"
+          upsert_if_set "TENANT_BACKOFFICE_DOMAIN" "${TENANT_BACKOFFICE_DOMAIN}"
+          upsert_if_set "TENANT_PORTAL_DOMAIN" "${TENANT_PORTAL_DOMAIN}"
+          upsert_if_set "AI_DOMAIN" "${AI_DOMAIN}"
+          upsert_if_set "OTLP_ENDPOINT" "${OTLP_ENDPOINT}"
+          upsert_if_set "AI_USER_ID" "${AI_USER_ID}"
+
+      - name: Restore solution
+        run: dotnet restore BaseFaq.sln
+
+      - name: Run migrations (dev)
+        run: ./azure/run-migrations.sh --stage dev --env-file azure/env/dev.env
+
+      - name: Deploy APIs (dev)
+        run: ./azure/deploy.sh --stage dev --env-file azure/env/dev.env

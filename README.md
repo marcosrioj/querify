@@ -62,7 +62,9 @@ This document is the operational playbook for local development, integration val
 - Each stage uses its own Resource Group (`AZURE_RESOURCE_GROUP` in the stage env file), created or reused
   automatically.
 - Optional check: `./azure/check-rg.sh --stage dev` (same for `qa` and `prod`).
-- Or run phase-by-phase with `--stage`: `provision.sh`, `bootstrap-data.sh`, `deploy.sh`.
+- Or run phase-by-phase with `--stage`: `provision.sh`, `bootstrap-data.sh`, `run-migrations.sh`,
+  `deploy.sh`.
+- GitHub pipeline for `master` -> `dev`: `.github/workflows/deploy-dev-master.yml` (automatic migration + API deploy).
 - Full runbook: `azure/README.md`.
 
 ## Platform scope
