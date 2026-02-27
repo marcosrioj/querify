@@ -59,6 +59,9 @@ This document is the operational playbook for local development, integration val
   - `./azure/setup.sh --stage dev`
   - `./azure/setup.sh --stage qa`
   - `./azure/setup.sh --stage prod`
+- Each stage uses its own Resource Group (`AZURE_RESOURCE_GROUP` in the stage env file), created or reused
+  automatically.
+- Optional check: `./azure/check-rg.sh --stage dev` (same for `qa` and `prod`).
 - Or run phase-by-phase with `--stage`: `provision.sh`, `bootstrap-data.sh`, `deploy.sh`.
 - Full runbook: `azure/README.md`.
 

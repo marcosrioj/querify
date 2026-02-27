@@ -18,6 +18,7 @@ Auth0 is manual by design (you fill it in the stage env file).
 - `deploy.sh`: image build/push + Container Apps deploy.
 - `setup.sh`: full flow (`provision -> bootstrap-data -> deploy`).
 - `init-env.sh`: creates `env/<stage>.env` from `env/<stage>.env.example`.
+- `check-rg.sh`: checks if the stage Resource Group already exists.
 
 ## Stage env files
 
@@ -34,6 +35,9 @@ Create concrete env files:
 ./azure/init-env.sh --stage qa
 ./azure/init-env.sh --stage prod
 ```
+
+Each stage has its own Resource Group (`AZURE_RESOURCE_GROUP` in each stage env).
+`provision.sh` will create it if missing, or reuse it if it already exists.
 
 ## Domain convention
 
@@ -66,6 +70,14 @@ Run one command per stage:
 ./azure/setup.sh --stage dev
 ./azure/setup.sh --stage qa
 ./azure/setup.sh --stage prod
+```
+
+Check whether a stage RG already exists:
+
+```bash
+./azure/check-rg.sh --stage dev
+./azure/check-rg.sh --stage qa
+./azure/check-rg.sh --stage prod
 ```
 
 Optional explicit bootstrap mode:
