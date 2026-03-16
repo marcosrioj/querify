@@ -19,6 +19,9 @@ $runtimeDir = Join-Path $scriptDir "runtime"
 $nginxDir = Join-Path $runtimeDir "nginx"
 $nginxConfDir = Join-Path $nginxDir "conf.d"
 $nginxConfFile = Join-Path $nginxConfDir "basefaq-subdomains.conf"
+$certDir = Join-Path $scriptDir "certs"
+$certFile = Join-Path $certDir "dev.basefaq.com.crt"
+$certKeyFile = Join-Path $certDir "dev.basefaq.com.key"
 $hostsBackupDir = Join-Path $runtimeDir "hosts-backups"
 $hostsFile = Join-Path $env:SystemRoot "System32\drivers\etc\hosts"
 
@@ -60,6 +63,10 @@ function Remove-MarkerBlock {
 
 docker compose version | Out-Null
 
+if (-not (Test-Path -Path $certFile -PathType Leaf) -or -not (Test-Path -Path $certKeyFile -PathType Leaf)) {
+    throw "TLS files are required for HTTPS->HTTP redirects. Missing: $certFile or $certKeyFile"
+}
+
 New-Item -ItemType Directory -Path $nginxConfDir -Force | Out-Null
 New-Item -ItemType Directory -Path $hostsBackupDir -Force | Out-Null
 
@@ -73,6 +80,22 @@ server {
     listen 80 default_server;
     server_name _;
     return 404;
+}
+
+server {
+    listen 443 ssl default_server;
+    server_name _;
+    ssl_certificate /etc/nginx/certs/dev.basefaq.com.crt;
+    ssl_certificate_key /etc/nginx/certs/dev.basefaq.com.key;
+    return 404;
+}
+
+server {
+    listen 443 ssl;
+    server_name dev.tenant.backoffice.basefaq.com dev.tenant.portal.basefaq.com dev.faq.portal.basefaq.com dev.faq.public.basefaq.com dev.ai.basefaq.com dev.test.basefaq.com *.test.basefaq.com;
+    ssl_certificate /etc/nginx/certs/dev.basefaq.com.crt;
+    ssl_certificate_key /etc/nginx/certs/dev.basefaq.com.key;
+    return 301 http://$host$request_uri;
 }
 
 server {
@@ -233,6 +256,11 @@ Write-Host "  dev.test.basefaq.com              -> $UpstreamHost`:$TestPort"
 Write-Host ""
 Write-Host "Generated Nginx config:"
 Write-Host "  $nginxConfFile"
+Write-Host "TLS cert files:"
+Write-Host "  $certFile"
+Write-Host "  $certKeyFile"
+Write-Host "Forward external 80 -> machine 80."
+Write-Host "Forward external 443 -> machine 443."
 if ($backupFile) {
     Write-Host ""
     Write-Host "Hosts backup:"

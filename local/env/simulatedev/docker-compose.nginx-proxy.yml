@@ -5,7 +5,9 @@ services:
     restart: unless-stopped
     ports:
       - "80:80"
+      - "443:443"
     volumes:
       - ./runtime/nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./certs:/etc/nginx/certs:ro
     extra_hosts:
       - "host.docker.internal:host-gateway"

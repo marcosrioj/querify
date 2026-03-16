@@ -12,7 +12,9 @@ This folder contains a self-contained helper to expose local APIs behind these s
 The approach is intentionally decoupled from host machine Nginx:
 
 - Nginx runs in Docker (`nginx:alpine`) with config generated inside `local/env/simulatedev/runtime/`.
-- Nginx publishes `80:80`, so requests on machine port `80` are proxied by containerized Nginx.
+- Nginx publishes `80:80` and `443:443`.
+- HTTP requests are proxied to the mapped API ports.
+- HTTPS requests are terminated at nginx and redirected to `http://<same-host><same-path>` on port `80`.
 - Hosts-file entries are always updated by setup and removed by teardown using marker blocks.
 - Cleanup scripts stop the proxy container and remove managed hosts entries.
 
@@ -34,6 +36,8 @@ These defaults match the ports in the current API `launchSettings.json`.
 ## Files
 
 - `docker-compose.nginx-proxy.yml`: reverse proxy stack (Linux/Windows).
+- `certs/dev.basefaq.com.crt`: dev TLS certificate used for HTTPS redirect listener.
+- `certs/dev.basefaq.com.key`: dev TLS private key used for HTTPS redirect listener.
 - `setup-subdomains.sh`: Linux setup.
 - `teardown-subdomains.sh`: Linux cleanup.
 - `setup-subdomains.ps1`: Windows setup.
@@ -105,12 +109,15 @@ Generated artifacts are created under:
 This keeps all helper outputs inside `local/` while preserving host-file backups.
 
 Use elevated permissions when running scripts because hosts-file updates are mandatory.
+HTTPS redirect uses a dev self-signed certificate, so browsers may show a certificate warning before redirecting.
 
 ## Internet-facing machine checklist
 
 - Point DNS `A`/`CNAME` records for all `dev.*.basefaq.com` subdomains to your public IP.
 - Router/NAT forwarding required: `TCP 80 -> <machine_lan_ip>:80` (nginx entrypoint).
+- Router/NAT forwarding required: `TCP 443 -> <machine_lan_ip>:443` (HTTPS redirect entrypoint).
 - Router/NAT forwarding required: `TCP 5000-5999 -> <machine_lan_ip>:5000-5999` (direct backend ports, optional for diagnostics).
 - Do not use `:5000`, `:5002`, `:5010`, `:5020`, `:5030`, `:5999` in public URLs; those are backend API ports.
+- Use `http://...` in public URLs if you want to avoid certificate warnings.
 - Ensure APIs are running on the mapped local ports.
 - Docker compose project used by scripts: `bf_baseservices`.

@@ -9,6 +9,9 @@ COMPOSE_SERVICE="basefaq.local.nginx"
 RUNTIME_DIR="$SCRIPT_DIR/runtime"
 NGINX_CONF_DIR="$RUNTIME_DIR/nginx/conf.d"
 NGINX_CONF_FILE="$NGINX_CONF_DIR/basefaq-subdomains.conf"
+NGINX_CERT_DIR="$SCRIPT_DIR/certs"
+NGINX_CERT_FILE="$NGINX_CERT_DIR/dev.basefaq.com.crt"
+NGINX_CERT_KEY_FILE="$NGINX_CERT_DIR/dev.basefaq.com.key"
 HOSTS_BACKUP_DIR="$RUNTIME_DIR/hosts-backups"
 
 HOSTS_FILE="/etc/hosts"
@@ -36,6 +39,14 @@ check_dependencies() {
     exit 1
   fi
 
+  if [[ ! -f "$NGINX_CERT_FILE" || ! -f "$NGINX_CERT_KEY_FILE" ]]; then
+    echo "TLS files are required for HTTPS->HTTP redirects."
+    echo "Missing files:"
+    echo "  $NGINX_CERT_FILE"
+    echo "  $NGINX_CERT_KEY_FILE"
+    exit 1
+  fi
+
   if [[ "${EUID:-$(id -u)}" -ne 0 ]] && ! command -v sudo >/dev/null 2>&1; then
     echo "root or sudo is required to update /etc/hosts."
     exit 1
@@ -58,6 +69,22 @@ server {
     listen 80 default_server;
     server_name _;
     return 404;
+}
+
+server {
+    listen 443 ssl default_server;
+    server_name _;
+    ssl_certificate /etc/nginx/certs/dev.basefaq.com.crt;
+    ssl_certificate_key /etc/nginx/certs/dev.basefaq.com.key;
+    return 404;
+}
+
+server {
+    listen 443 ssl;
+    server_name dev.tenant.backoffice.basefaq.com dev.tenant.portal.basefaq.com dev.faq.portal.basefaq.com dev.faq.public.basefaq.com dev.ai.basefaq.com dev.test.basefaq.com *.test.basefaq.com;
+    ssl_certificate /etc/nginx/certs/dev.basefaq.com.crt;
+    ssl_certificate_key /etc/nginx/certs/dev.basefaq.com.key;
+    return 301 http://\$host\$request_uri;
 }
 
 server {
@@ -214,6 +241,21 @@ verify_proxy_reachable() {
   exit 1
 }
 
+verify_https_redirect() {
+  local status
+  for _ in {1..20}; do
+    status="$(curl -k -sS -o /dev/null -w "%{http_code}" -H "Host: dev.faq.public.basefaq.com" https://127.0.0.1/ || true)"
+    if [[ "$status" == "301" ]]; then
+      return
+    fi
+    sleep 0.5
+  done
+
+  echo "HTTPS redirect health check failed: expected 301 on port 443."
+  echo "Verify external/host port 443 availability and TLS files in $NGINX_CERT_DIR."
+  exit 1
+}
+
 print_summary() {
   echo
   echo "BaseFAQ local subdomain proxy is ready."
@@ -232,6 +274,7 @@ print_summary() {
   echo "  $NGINX_CONF_FILE"
   echo
   echo "Forward external 80 -> machine 80."
+  echo "Forward external 443 -> machine 443."
 }
 
 main() {
@@ -241,6 +284,7 @@ main() {
   update_hosts_file
   start_proxy
   verify_proxy_reachable
+  verify_https_redirect
   print_summary
 }
 
