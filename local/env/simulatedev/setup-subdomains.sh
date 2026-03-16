@@ -40,7 +40,7 @@ check_dependencies() {
   fi
 
   if [[ ! -f "$NGINX_CERT_FILE" || ! -f "$NGINX_CERT_KEY_FILE" ]]; then
-    echo "TLS files are required for HTTPS->HTTP redirects."
+    echo "TLS files are required for HTTPS listener support."
     echo "Missing files:"
     echo "  $NGINX_CERT_FILE"
     echo "  $NGINX_CERT_KEY_FILE"
@@ -80,16 +80,11 @@ server {
 }
 
 server {
+    listen 80;
     listen 443 ssl;
-    server_name dev.tenant.backoffice.basefaq.com dev.tenant.portal.basefaq.com dev.faq.portal.basefaq.com dev.faq.public.basefaq.com dev.ai.basefaq.com dev.test.basefaq.com *.test.basefaq.com;
+    server_name dev.tenant.backoffice.basefaq.com;
     ssl_certificate /etc/nginx/certs/dev.basefaq.com.crt;
     ssl_certificate_key /etc/nginx/certs/dev.basefaq.com.key;
-    return 301 http://\$host\$request_uri;
-}
-
-server {
-    listen 80;
-    server_name dev.tenant.backoffice.basefaq.com;
 
     location / {
         proxy_pass http://$UPSTREAM_HOST:$TENANT_BACKOFFICE_PORT;
@@ -105,7 +100,10 @@ server {
 
 server {
     listen 80;
+    listen 443 ssl;
     server_name dev.tenant.portal.basefaq.com;
+    ssl_certificate /etc/nginx/certs/dev.basefaq.com.crt;
+    ssl_certificate_key /etc/nginx/certs/dev.basefaq.com.key;
 
     location / {
         proxy_pass http://$UPSTREAM_HOST:$TENANT_PORTAL_PORT;
@@ -121,7 +119,10 @@ server {
 
 server {
     listen 80;
+    listen 443 ssl;
     server_name dev.faq.portal.basefaq.com;
+    ssl_certificate /etc/nginx/certs/dev.basefaq.com.crt;
+    ssl_certificate_key /etc/nginx/certs/dev.basefaq.com.key;
 
     location / {
         proxy_pass http://$UPSTREAM_HOST:$FAQ_PORTAL_PORT;
@@ -137,7 +138,10 @@ server {
 
 server {
     listen 80;
+    listen 443 ssl;
     server_name dev.faq.public.basefaq.com;
+    ssl_certificate /etc/nginx/certs/dev.basefaq.com.crt;
+    ssl_certificate_key /etc/nginx/certs/dev.basefaq.com.key;
 
     location / {
         proxy_pass http://$UPSTREAM_HOST:$FAQ_PUBLIC_PORT;
@@ -153,7 +157,10 @@ server {
 
 server {
     listen 80;
+    listen 443 ssl;
     server_name dev.ai.basefaq.com;
+    ssl_certificate /etc/nginx/certs/dev.basefaq.com.crt;
+    ssl_certificate_key /etc/nginx/certs/dev.basefaq.com.key;
 
     location / {
         proxy_pass http://$UPSTREAM_HOST:$AI_PORT;
@@ -169,7 +176,10 @@ server {
 
 server {
     listen 80;
+    listen 443 ssl;
     server_name dev.test.basefaq.com *.test.basefaq.com;
+    ssl_certificate /etc/nginx/certs/dev.basefaq.com.crt;
+    ssl_certificate_key /etc/nginx/certs/dev.basefaq.com.key;
 
     location / {
         proxy_pass http://$UPSTREAM_HOST:$TEST_PORT;
@@ -241,17 +251,17 @@ verify_proxy_reachable() {
   exit 1
 }
 
-verify_https_redirect() {
+verify_https_reachable() {
   local status
   for _ in {1..20}; do
     status="$(curl -k -sS -o /dev/null -w "%{http_code}" -H "Host: dev.faq.public.basefaq.com" https://127.0.0.1/ || true)"
-    if [[ "$status" == "301" ]]; then
+    if [[ "$status" != "000" && -n "$status" ]]; then
       return
     fi
     sleep 0.5
   done
 
-  echo "HTTPS redirect health check failed: expected 301 on port 443."
+  echo "HTTPS health check failed: port 443 is not reachable on this machine."
   echo "Verify external/host port 443 availability and TLS files in $NGINX_CERT_DIR."
   exit 1
 }
@@ -284,7 +294,7 @@ main() {
   update_hosts_file
   start_proxy
   verify_proxy_reachable
-  verify_https_redirect
+  verify_https_reachable
   print_summary
 }
 

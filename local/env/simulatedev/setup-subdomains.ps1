@@ -64,7 +64,7 @@ function Remove-MarkerBlock {
 docker compose version | Out-Null
 
 if (-not (Test-Path -Path $certFile -PathType Leaf) -or -not (Test-Path -Path $certKeyFile -PathType Leaf)) {
-    throw "TLS files are required for HTTPS->HTTP redirects. Missing: $certFile or $certKeyFile"
+    throw "TLS files are required for HTTPS listener support. Missing: $certFile or $certKeyFile"
 }
 
 New-Item -ItemType Directory -Path $nginxConfDir -Force | Out-Null
@@ -91,16 +91,11 @@ server {
 }
 
 server {
+    listen 80;
     listen 443 ssl;
-    server_name dev.tenant.backoffice.basefaq.com dev.tenant.portal.basefaq.com dev.faq.portal.basefaq.com dev.faq.public.basefaq.com dev.ai.basefaq.com dev.test.basefaq.com *.test.basefaq.com;
+    server_name dev.tenant.backoffice.basefaq.com;
     ssl_certificate /etc/nginx/certs/dev.basefaq.com.crt;
     ssl_certificate_key /etc/nginx/certs/dev.basefaq.com.key;
-    return 301 http://$host$request_uri;
-}
-
-server {
-    listen 80;
-    server_name dev.tenant.backoffice.basefaq.com;
 
     location / {
         proxy_pass http://__UPSTREAM_HOST__:__TENANT_BACKOFFICE_PORT__;
@@ -116,7 +111,10 @@ server {
 
 server {
     listen 80;
+    listen 443 ssl;
     server_name dev.tenant.portal.basefaq.com;
+    ssl_certificate /etc/nginx/certs/dev.basefaq.com.crt;
+    ssl_certificate_key /etc/nginx/certs/dev.basefaq.com.key;
 
     location / {
         proxy_pass http://__UPSTREAM_HOST__:__TENANT_PORTAL_PORT__;
@@ -132,7 +130,10 @@ server {
 
 server {
     listen 80;
+    listen 443 ssl;
     server_name dev.faq.portal.basefaq.com;
+    ssl_certificate /etc/nginx/certs/dev.basefaq.com.crt;
+    ssl_certificate_key /etc/nginx/certs/dev.basefaq.com.key;
 
     location / {
         proxy_pass http://__UPSTREAM_HOST__:__FAQ_PORTAL_PORT__;
@@ -148,7 +149,10 @@ server {
 
 server {
     listen 80;
+    listen 443 ssl;
     server_name dev.faq.public.basefaq.com;
+    ssl_certificate /etc/nginx/certs/dev.basefaq.com.crt;
+    ssl_certificate_key /etc/nginx/certs/dev.basefaq.com.key;
 
     location / {
         proxy_pass http://__UPSTREAM_HOST__:__FAQ_PUBLIC_PORT__;
@@ -164,7 +168,10 @@ server {
 
 server {
     listen 80;
+    listen 443 ssl;
     server_name dev.ai.basefaq.com;
+    ssl_certificate /etc/nginx/certs/dev.basefaq.com.crt;
+    ssl_certificate_key /etc/nginx/certs/dev.basefaq.com.key;
 
     location / {
         proxy_pass http://__UPSTREAM_HOST__:__AI_PORT__;
@@ -180,7 +187,10 @@ server {
 
 server {
     listen 80;
+    listen 443 ssl;
     server_name dev.test.basefaq.com *.test.basefaq.com;
+    ssl_certificate /etc/nginx/certs/dev.basefaq.com.crt;
+    ssl_certificate_key /etc/nginx/certs/dev.basefaq.com.key;
 
     location / {
         proxy_pass http://__UPSTREAM_HOST__:__TEST_PORT__;
