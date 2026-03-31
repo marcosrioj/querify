@@ -1,0 +1,16 @@
+{
+  "name": "basefaq-multi-agent-system",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "BaseFaq PR-first multi-agent runtime built with the OpenAI Agents SDK.",
+  "scripts": {
+    "catalog": "node src/cli.js --catalog",
+    "run": "node src/cli.js",
+    "check": "node --check src/cli.js && node --check src/domain-context.js && node --check src/gates.js && node --check src/run-team.js && node --check src/team.js && node --check src/tools.js"
+  },
+  "dependencies": {
+    "@openai/agents": "latest",
+    "zod": "^4.0.0"
+  }
+}

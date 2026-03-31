@@ -3,6 +3,7 @@
 ## Architecture
 
 - `docs/architecture/basefaq-ai-generation-matching-architecture.md`
+- `docs/architecture/basefaq-multi-agent-system.md`
 
 ## Testing
 
@@ -11,6 +12,10 @@
 ## Operations
 
 - `docs/operations/secret-manager-key-rotation.md`
+
+## Release
+
+- `docs/release/README.md`
 
 ## Standards
 
