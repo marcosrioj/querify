@@ -1,9 +1,7 @@
 using BaseFaq.AI.Business.Generation.Extensions;
 using BaseFaq.AI.Business.Matching.Extensions;
 using BaseFaq.Common.EntityFramework.Tenant.Extensions;
-using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Common.Infrastructure.MassTransit.Models;
-using BaseFaq.Models.Common.Enums;
 using MassTransit;
 
 namespace BaseFaq.AI.Api.Extensions;
@@ -13,7 +11,6 @@ public static class ServiceCollectionExtensions
     public static void AddFeatures(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddHttpContextAccessor();
-        services.AddScoped<ISessionService, AiWorkerSessionService>();
         services.AddTenantDb(configuration.GetConnectionString("TenantDb"));
         services.AddAiGenerationBusiness();
         services.AddAiMatchingBusiness();
@@ -38,17 +35,6 @@ public static class ServiceCollectionExtensions
                 cfg.ConfigureMatchingWorker(context, matchingRabbitMq);
             });
         });
-    }
-
-    private sealed class AiWorkerSessionService : ISessionService
-    {
-        public Guid GetTenantId(AppEnum app)
-        {
-            throw new InvalidOperationException(
-                "AI worker session tenant is not available. Use tenant-aware message payloads with IFaqDbContextFactory.");
-        }
-
-        public Guid GetUserId() => Guid.Empty;
     }
 
     private static RabbitMqOption GetRabbitMqOption(

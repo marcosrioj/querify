@@ -1,4 +1,6 @@
 using BaseFaq.AI.Api.Extensions;
+using BaseFaq.AI.Api.Infrastructure;
+using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Common.Infrasctructure.Telemetry.Extensions;
 
 namespace BaseFaq.AI.Api;
@@ -20,6 +22,8 @@ public class Program
             c.SetMinimumLevel(LogLevel.Information);
             c.AddConsole();
         });
+
+        builder.Services.AddScoped<ISessionService, AiWorkerSessionService>();
 
         builder.Services.AddTelemetry(
             builder.Configuration,
