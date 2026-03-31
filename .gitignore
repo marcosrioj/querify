@@ -1,5 +1,7 @@
 /.idea/
 /.git/
+/node_modules/
+/frontend/demos/
 bin/
 obj/
 **/appsettings.Development.json
