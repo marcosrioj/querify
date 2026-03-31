@@ -1,4 +1,5 @@
 import { run } from '@openai/agents';
+import { createHash } from 'node:crypto';
 import { promises as fs } from 'node:fs';
 import { resolve } from 'node:path';
 
@@ -12,6 +13,11 @@ function stringifyOutput(value) {
   }
 
   return JSON.stringify(value, null, 2);
+}
+
+function buildTraceGroupId(task) {
+  const hash = createHash('sha256').update(task).digest('hex').slice(0, 24);
+  return `basefaq_${hash}`;
 }
 
 async function persistRunSummary(task, result) {
@@ -75,7 +81,19 @@ Execution requirements:
 - Name the required human approval surface before concluding.
 `.trim();
 
-  const result = await run(lead, input);
+  const result = await run(lead, input, {
+    workflowName: 'BaseFaq Multi-Agent Delivery',
+    groupId: buildTraceGroupId(task),
+    traceIncludeSensitiveData: process.env.BASEFAQ_AGENT_TRACE_SENSITIVE_DATA === '1',
+    traceMetadata: {
+      product: 'BaseFaq',
+      runtime: 'agents',
+      orchestration: 'lead-plus-specialists',
+    },
+    tracing: process.env.OPENAI_TRACING_EXPORT_API_KEY
+      ? { apiKey: process.env.OPENAI_TRACING_EXPORT_API_KEY }
+      : undefined,
+  });
   const persisted = await persistRunSummary(task, result);
 
   return {

@@ -7,6 +7,7 @@ import { promisify } from 'node:util';
 import { z } from 'zod';
 
 import { BASEFAQ_DOMAIN_CONTEXT } from './domain-context.js';
+import { createToolGuardrails } from './guardrails.js';
 import { buildApprovalPlan, listSpecialistCatalog, PROTECTED_PATH_PREFIXES } from './gates.js';
 
 const execFileAsync = promisify(execFile);
@@ -188,12 +189,14 @@ export function createLeadTools() {
       name: 'get_basefaq_context',
       description: 'Return the current BaseFaq repository and architecture context.',
       parameters: z.object({}),
+      ...createToolGuardrails({ id: 'lead' }),
       execute: async () => BASEFAQ_DOMAIN_CONTEXT,
     }),
     tool({
       name: 'get_specialist_catalog',
       description: 'Return the BaseFaq specialist catalog, delivery roots, and ownership map.',
       parameters: z.object({}),
+      ...createToolGuardrails({ id: 'lead' }),
       execute: async () => formatCatalogMarkdown(),
     }),
     tool({
@@ -206,6 +209,7 @@ export function createLeadTools() {
         decision: z.string().min(10),
         riskLevel: z.enum(['low', 'medium', 'high']).default('medium'),
       }),
+      ...createToolGuardrails({ id: 'lead' }),
       execute: async ({ title, rationale, decision, riskLevel }) => {
         const decisionDirectory = resolve(STATE_ROOT, 'decisions');
         await ensureDirectory(decisionDirectory);
@@ -233,6 +237,8 @@ export function createLeadTools() {
 }
 
 export function createSpecialistTools(profile) {
+  const sharedGuardrails = createToolGuardrails(profile);
+
   return [
     tool({
       name: 'read_repo_file',
@@ -240,6 +246,7 @@ export function createSpecialistTools(profile) {
       parameters: z.object({
         path: z.string().min(1),
       }),
+      ...sharedGuardrails,
       execute: async ({ path }) => {
         const relativePath = normalizeRelativePath(path);
         assertReadablePath(profile, relativePath);
@@ -260,6 +267,7 @@ export function createSpecialistTools(profile) {
         path: z.string().default('.'),
         maxDepth: z.number().int().min(0).max(6).default(2),
       }),
+      ...sharedGuardrails,
       execute: async ({ path, maxDepth }) => {
         const relativePath = normalizeRelativePath(path);
         assertReadablePath(profile, relativePath);
@@ -277,6 +285,7 @@ export function createSpecialistTools(profile) {
         path: z.string().default('.'),
         maxMatches: z.number().int().min(1).max(200).default(50),
       }),
+      ...sharedGuardrails,
       execute: async ({ pattern, path, maxMatches }) => {
         const relativePath = normalizeRelativePath(path);
         assertReadablePath(profile, relativePath);
@@ -328,6 +337,7 @@ export function createSpecialistTools(profile) {
         workingDirectory: z.string().default('.'),
         timeoutSeconds: z.number().int().min(1).max(120).default(30),
       }),
+      ...sharedGuardrails,
       needsApproval: async (_context, { command }) => commandNeedsApproval(command),
       execute: async ({ command, workingDirectory, timeoutSeconds }) => {
         const relativePath = normalizeRelativePath(workingDirectory);
@@ -357,6 +367,7 @@ export function createSpecialistTools(profile) {
         path: z.string().min(1),
         content: z.string(),
       }),
+      ...sharedGuardrails,
       execute: async ({ path, content }) => {
         const relativePath = normalizeRelativePath(path);
         assertWritablePath(profile, relativePath);
@@ -382,6 +393,7 @@ export function createSpecialistTools(profile) {
         replace: z.string(),
         replaceAll: z.boolean().default(false),
       }),
+      ...sharedGuardrails,
       execute: async ({ path, search, replace, replaceAll }) => {
         const relativePath = normalizeRelativePath(path);
         assertWritablePath(profile, relativePath);
@@ -420,6 +432,7 @@ export function createSpecialistTools(profile) {
         rollback: z.string().default('Revert the branch or the merge commit.'),
         followUp: z.array(z.string()).default([]),
       }),
+      ...sharedGuardrails,
       execute: async ({
         title,
         summary,
@@ -491,6 +504,7 @@ export function createSpecialistTools(profile) {
       name: 'get_specialist_policy',
       description: 'Return the specialist ownership, delivery root, and BaseFaq operating context.',
       parameters: z.object({}),
+      ...sharedGuardrails,
       execute: async () => {
         return {
           specialist: profile.name,

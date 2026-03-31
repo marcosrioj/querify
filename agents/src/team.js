@@ -1,6 +1,9 @@
-import { Agent } from '@openai/agents';
+import { Agent, handoff } from '@openai/agents';
+import { RECOMMENDED_PROMPT_PREFIX, removeAllTools } from '@openai/agents-core/extensions';
+import { z } from 'zod';
 
 import { BASEFAQ_DOMAIN_CONTEXT, TEAM_OPERATING_RULES } from './domain-context.js';
+import { createLeadInputGuardrail, createLeadOutputGuardrail } from './guardrails.js';
 import { SPECIALIST_PROFILES, listSpecialistCatalog } from './gates.js';
 import { createLeadTools, createSpecialistTools } from './tools.js';
 
@@ -8,8 +11,16 @@ function formatSharedRules() {
   return TEAM_OPERATING_RULES.map((rule) => `- ${rule}`).join('\n');
 }
 
+const SpecialistHandoffPayload = z.object({
+  goal: z.string().min(5),
+  deliverable: z.string().min(3).optional(),
+  riskLevel: z.enum(['low', 'medium', 'high']).optional(),
+});
+
 function buildSpecialistInstructions(profile) {
   return `
+${RECOMMENDED_PROMPT_PREFIX}
+
 You are ${profile.name}.
 
 Mission:
@@ -46,6 +57,8 @@ function buildLeadInstructions() {
     .join('\n');
 
   return `
+${RECOMMENDED_PROMPT_PREFIX}
+
 You are the BaseFaq Agent Lead.
 
 Mission:
@@ -68,6 +81,7 @@ ${formatSharedRules()}
 - Send threat review, testing, QA, or supply-chain hardening to the security specialist.
 - Send release documentation and final PR packaging to the docs/release specialist when documentation is part of the deliverable.
 - Keep the current .NET AI worker runtime separate from the agents runtime under agents/.
+- When delegating to a specialist, provide a concise handoff payload with goal, deliverable, and risk level.
 - The final answer must name the recommended PR approval surface and the required human gates.
 `.trim();
 }
@@ -87,19 +101,35 @@ function createSpecialistAgent(profile) {
   });
 }
 
+function createSpecialistHandoff(profile, specialistAgent) {
+  return handoff(specialistAgent, {
+    toolNameOverride: `delegate_to_${profile.id}_agent`,
+    toolDescriptionOverride: `${profile.handoffDescription} Write only inside ${profile.writeScopes.join(', ')}.`,
+    inputType: SpecialistHandoffPayload,
+    inputFilter: removeAllTools,
+  });
+}
+
 export function createBaseFaqTeam() {
-  const specialists = SPECIALIST_PROFILES.map((profile) => createSpecialistAgent(profile));
+  const specialists = SPECIALIST_PROFILES.map((profile) => ({
+    profile,
+    agent: createSpecialistAgent(profile),
+  }));
+
+  const handoffs = specialists.map(({ profile, agent }) => createSpecialistHandoff(profile, agent));
   const lead = Agent.create({
     name: 'BaseFaq Agent Lead',
     model: process.env.BASEFAQ_AGENT_LEAD_MODEL || 'gpt-5',
     instructions: buildLeadInstructions(),
-    handoffs: specialists,
+    handoffs,
     tools: createLeadTools(),
+    inputGuardrails: [createLeadInputGuardrail()],
+    outputGuardrails: [createLeadOutputGuardrail()],
   });
 
   return {
     lead,
-    specialists,
+    specialists: specialists.map((item) => item.agent),
   };
 }
 
