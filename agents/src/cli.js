@@ -6,6 +6,16 @@ import { runBaseFaqTeam } from './run-team.js';
 import { formatTeamCatalog } from './team.js';
 import { getRuntimePaths } from './tools.js';
 
+function loadLocalEnvironment() {
+  const envPath = resolve(process.cwd(), '.env');
+
+  if (!existsSync(envPath) || !statSync(envPath).isFile()) {
+    return;
+  }
+
+  process.loadEnvFile(envPath);
+}
+
 function parseArguments(argv) {
   const options = {
     catalog: false,
@@ -89,6 +99,7 @@ function readTaskFromStdin() {
 }
 
 async function main() {
+  loadLocalEnvironment();
   const args = parseArguments(process.argv.slice(2));
 
   if (args.catalog) {

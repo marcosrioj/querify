@@ -13,9 +13,75 @@ function formatSharedRules() {
 
 const SpecialistHandoffPayload = z.object({
   goal: z.string().min(5),
-  deliverable: z.string().min(3).optional(),
-  riskLevel: z.enum(['low', 'medium', 'high']).optional(),
+  deliverable: z.string().min(3).nullable(),
+  riskLevel: z.enum(['low', 'medium', 'high']).nullable(),
 });
+
+function formatDelegationPayload(profile, payload) {
+  const lines = [
+    `Agent Lead delegation for ${profile.name}:`,
+    `- Goal: ${payload.goal}`,
+  ];
+
+  if (payload.deliverable) {
+    lines.push(`- Deliverable: ${payload.deliverable}`);
+  }
+
+  lines.push(`- Risk level: ${payload.riskLevel || 'medium'}`);
+  lines.push(`- Delivery root: ${profile.deliveryRoot}`);
+
+  return lines.join('\n');
+}
+
+function extractDelegationPayload(handoffInputData, profile) {
+  const handoffCall = handoffInputData.newItems.find(
+    (item) =>
+      item?.type === 'handoff_call_item' &&
+      item?.rawItem?.name === `delegate_to_${profile.id}_agent` &&
+      typeof item?.rawItem?.arguments === 'string',
+  );
+
+  if (!handoffCall) {
+    return null;
+  }
+
+  try {
+    return SpecialistHandoffPayload.parse(JSON.parse(handoffCall.rawItem.arguments));
+  } catch {
+    return null;
+  }
+}
+
+function preserveDelegationContext(profile) {
+  return (handoffInputData) => {
+    const filtered = removeAllTools(handoffInputData);
+    const payload = extractDelegationPayload(handoffInputData, profile);
+
+    if (!payload) {
+      return filtered;
+    }
+
+    const delegationNote = formatDelegationPayload(profile, payload);
+
+    if (typeof filtered.inputHistory === 'string') {
+      return {
+        ...filtered,
+        inputHistory: `${filtered.inputHistory}\n\n${delegationNote}`,
+      };
+    }
+
+    return {
+      ...filtered,
+      inputHistory: [
+        ...filtered.inputHistory,
+        {
+          role: 'system',
+          content: delegationNote,
+        },
+      ],
+    };
+  };
+}
 
 function buildSpecialistInstructions(profile) {
   return `
@@ -105,8 +171,9 @@ function createSpecialistHandoff(profile, specialistAgent) {
   return handoff(specialistAgent, {
     toolNameOverride: `delegate_to_${profile.id}_agent`,
     toolDescriptionOverride: `${profile.handoffDescription} Write only inside ${profile.writeScopes.join(', ')}.`,
+    onHandoff: () => {},
     inputType: SpecialistHandoffPayload,
-    inputFilter: removeAllTools,
+    inputFilter: preserveDelegationContext(profile),
   });
 }
 
