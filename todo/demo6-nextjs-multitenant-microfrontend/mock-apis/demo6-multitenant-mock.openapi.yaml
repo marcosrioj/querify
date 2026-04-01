@@ -1,0 +1,1263 @@
+openapi: 3.1.0
+info:
+  title: Demo6 Multitenant Mock API
+  version: 0.1.0
+  description: |
+    Mock contract set for the first Demo6 BaseFaq micro-frontend.
+
+    Goals:
+    - Mirror the current BaseFaq API shape where routes already exist.
+    - Fill the missing SaaS gaps for billing, checkout, and provisioning.
+    - Let the frontend run in mock mode before all backend services are implemented.
+servers:
+  - url: http://localhost:3000/api/mock
+    description: Suggested local mock server exposed by the Next.js app
+tags:
+  - name: Identity
+  - name: Tenant Portal
+  - name: FAQ Portal
+  - name: FAQ Public
+  - name: Commerce
+  - name: Provisioning
+paths:
+  /identity/session:
+    get:
+      tags: [Identity]
+      summary: Get the current demo session
+      responses:
+        '200':
+          description: Current session
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IdentitySession'
+              examples:
+                default:
+                  value:
+                    userId: "0f4d8ec3-7cd8-4a19-9d47-1af4ea0e6001"
+                    givenName: "Alicia"
+                    surName: "Brown"
+                    email: "alicia@example.com"
+                    tenants:
+                      - id: "11111111-1111-1111-1111-111111111111"
+                        slug: "acme-faq"
+                        name: "Acme FAQ"
+                        edition: "Pro"
+                        app: "Faq"
+                        isActive: true
+                    activeTenantId: "11111111-1111-1111-1111-111111111111"
+                    mode: "mock"
+  /identity/sign-in:
+    post:
+      tags: [Identity]
+      summary: Start a mock sign-in session
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email:
+                  type: string
+                  format: email
+                givenName:
+                  type: string
+                surName:
+                  type: string
+      responses:
+        '200':
+          description: Session created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IdentitySession'
+  /identity/sign-out:
+    post:
+      tags: [Identity]
+      summary: End the mock session
+      responses:
+        '204':
+          description: Signed out
+
+  /tenant/tenants/GetAll:
+    get:
+      tags: [Tenant Portal]
+      summary: List tenants available to the current user
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Tenant summaries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TenantSummary'
+  /tenant/tenants/CreateOrUpdate:
+    post:
+      tags: [Tenant Portal]
+      summary: Create or update the current tenant profile
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TenantCreateOrUpdateRequest'
+      responses:
+        '200':
+          description: Success flag
+          content:
+            application/json:
+              schema:
+                type: boolean
+  /tenant/tenants/GetClientKey:
+    get:
+      tags: [Tenant Portal]
+      summary: Get the client key for public FAQ access
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Current client key
+          content:
+            application/json:
+              schema:
+                type: string
+                example: "ck_live_demo_acme_123"
+  /tenant/tenants/GenerateNewClientKey:
+    post:
+      tags: [Tenant Portal]
+      summary: Rotate the client key
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Rotated client key
+          content:
+            application/json:
+              schema:
+                type: string
+                example: "ck_live_demo_acme_456"
+  /tenant/tenants/SetAiProviderCredentials:
+    post:
+      tags: [Tenant Portal]
+      summary: Save tenant AI provider credentials
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TenantSetAiProviderCredentialsRequest'
+      responses:
+        '200':
+          description: Success flag
+          content:
+            application/json:
+              schema:
+                type: boolean
+  /tenant/aiproviders/GetAll:
+    get:
+      tags: [Tenant Portal]
+      summary: List supported AI providers
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: AI providers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AiProvider'
+  /tenant/tenants/GetConfiguredAiProviders:
+    get:
+      tags: [Tenant Portal]
+      summary: Get AI providers configured for the current tenant
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Configured AI providers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TenantAiProvider'
+  /tenant/tenants/IsAiProviderKeyConfigured/{command}:
+    get:
+      tags: [Tenant Portal]
+      summary: Check whether the AI key is configured for a command
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: command
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/AiCommandType'
+      responses:
+        '200':
+          description: Configuration flag
+          content:
+            application/json:
+              schema:
+                type: boolean
+  /user/UserProfile:
+    get:
+      tags: [Tenant Portal]
+      summary: Get the current user profile
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+    put:
+      tags: [Tenant Portal]
+      summary: Update the current user profile
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserProfileUpdateRequest'
+      responses:
+        '200':
+          description: Success flag
+          content:
+            application/json:
+              schema:
+                type: boolean
+
+  /faqs/faq:
+    get:
+      tags: [FAQ Portal, FAQ Public]
+      summary: List FAQs for tenant authoring or public preview
+      parameters:
+        - $ref: '#/components/parameters/MaxResultCount'
+        - $ref: '#/components/parameters/SkipCount'
+        - $ref: '#/components/parameters/Sorting'
+        - name: includeFaqItems
+          in: query
+          schema:
+            type: boolean
+        - name: includeContentRefs
+          in: query
+          schema:
+            type: boolean
+        - name: includeTags
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: FAQ page
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagedFaqResult'
+    post:
+      tags: [FAQ Portal]
+      summary: Create an FAQ
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantIdHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FaqUpsertRequest'
+      responses:
+        '201':
+          description: FAQ created
+          content:
+            application/json:
+              schema:
+                type: string
+                format: uuid
+  /faqs/faq/{faqId}:
+    get:
+      tags: [FAQ Portal, FAQ Public]
+      summary: Get an FAQ by id
+      parameters:
+        - $ref: '#/components/parameters/FaqId'
+        - name: includeFaqItems
+          in: query
+          schema:
+            type: boolean
+        - name: includeContentRefs
+          in: query
+          schema:
+            type: boolean
+        - name: includeTags
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: FAQ detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FaqDetail'
+    put:
+      tags: [FAQ Portal]
+      summary: Update an FAQ
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/FaqId'
+        - $ref: '#/components/parameters/TenantIdHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FaqUpsertRequest'
+      responses:
+        '200':
+          description: FAQ updated
+          content:
+            application/json:
+              schema:
+                type: string
+                format: uuid
+    delete:
+      tags: [FAQ Portal]
+      summary: Delete an FAQ
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/FaqId'
+        - $ref: '#/components/parameters/TenantIdHeader'
+      responses:
+        '204':
+          description: FAQ deleted
+  /faqs/faq/{faqId}/generation-request:
+    post:
+      tags: [FAQ Portal]
+      summary: Request FAQ generation for an FAQ
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/FaqId'
+        - $ref: '#/components/parameters/TenantIdHeader'
+      responses:
+        '202':
+          description: Generation accepted
+          content:
+            application/json:
+              schema:
+                type: string
+                format: uuid
+
+  /faqs/faq-item:
+    get:
+      tags: [FAQ Portal]
+      summary: List FAQ items
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantIdHeader'
+        - $ref: '#/components/parameters/MaxResultCount'
+        - $ref: '#/components/parameters/SkipCount'
+        - $ref: '#/components/parameters/Sorting'
+      responses:
+        '200':
+          description: FAQ item page
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagedFaqItemResult'
+    post:
+      tags: [FAQ Portal, FAQ Public]
+      summary: Create an FAQ item
+      parameters:
+        - $ref: '#/components/parameters/TenantIdHeaderOptional'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FaqItemUpsertRequest'
+      responses:
+        '201':
+          description: FAQ item created
+          content:
+            application/json:
+              schema:
+                type: string
+                format: uuid
+  /faqs/faq-item/{faqItemId}:
+    get:
+      tags: [FAQ Portal]
+      summary: Get an FAQ item by id
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/FaqItemId'
+        - $ref: '#/components/parameters/TenantIdHeader'
+      responses:
+        '200':
+          description: FAQ item
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FaqItem'
+    put:
+      tags: [FAQ Portal]
+      summary: Update an FAQ item
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/FaqItemId'
+        - $ref: '#/components/parameters/TenantIdHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FaqItemUpsertRequest'
+      responses:
+        '200':
+          description: FAQ item updated
+          content:
+            application/json:
+              schema:
+                type: string
+                format: uuid
+    delete:
+      tags: [FAQ Portal]
+      summary: Delete an FAQ item
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/FaqItemId'
+        - $ref: '#/components/parameters/TenantIdHeader'
+      responses:
+        '204':
+          description: FAQ item deleted
+  /faqs/faq-item/search:
+    get:
+      tags: [FAQ Public]
+      summary: Search FAQ items
+      parameters:
+        - $ref: '#/components/parameters/ClientKeyHeader'
+        - $ref: '#/components/parameters/MaxResultCount'
+        - $ref: '#/components/parameters/SkipCount'
+        - name: search
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: FAQ item page
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagedFaqItemResult'
+  /faqs/vote:
+    post:
+      tags: [FAQ Public]
+      summary: Submit a vote for an FAQ item
+      parameters:
+        - $ref: '#/components/parameters/ClientKeyHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VoteCreateRequest'
+      responses:
+        '201':
+          description: Vote created
+          content:
+            application/json:
+              schema:
+                type: string
+                format: uuid
+
+  /commerce/plans:
+    get:
+      tags: [Commerce]
+      summary: List plans for purchase
+      responses:
+        '200':
+          description: Plan catalog
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Plan'
+  /commerce/checkout-sessions:
+    post:
+      tags: [Commerce]
+      summary: Create a mock checkout session
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CheckoutSessionCreateRequest'
+      responses:
+        '201':
+          description: Checkout session created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CheckoutSession'
+  /commerce/checkout-sessions/{checkoutSessionId}:
+    get:
+      tags: [Commerce]
+      summary: Get checkout session state
+      parameters:
+        - $ref: '#/components/parameters/CheckoutSessionId'
+      responses:
+        '200':
+          description: Checkout session
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CheckoutSession'
+  /commerce/subscription:
+    get:
+      tags: [Commerce]
+      summary: Get the current tenant subscription
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantIdHeader'
+      responses:
+        '200':
+          description: Subscription
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
+  /commerce/subscription/change-plan:
+    post:
+      tags: [Commerce]
+      summary: Change the current tenant plan
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantIdHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [planCode, billingCycle]
+              properties:
+                planCode:
+                  type: string
+                billingCycle:
+                  $ref: '#/components/schemas/BillingCycle'
+      responses:
+        '200':
+          description: Updated subscription
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
+  /commerce/subscription/cancel:
+    post:
+      tags: [Commerce]
+      summary: Cancel the current tenant subscription
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantIdHeader'
+      responses:
+        '200':
+          description: Updated subscription
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
+  /commerce/invoices:
+    get:
+      tags: [Commerce]
+      summary: List tenant invoices
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantIdHeader'
+      responses:
+        '200':
+          description: Invoices
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Invoice'
+  /commerce/payment-methods:
+    get:
+      tags: [Commerce]
+      summary: List payment methods
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantIdHeader'
+      responses:
+        '200':
+          description: Payment methods
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PaymentMethod'
+    post:
+      tags: [Commerce]
+      summary: Add a payment method
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantIdHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [brand, last4, expiryMonth, expiryYear]
+              properties:
+                brand:
+                  type: string
+                last4:
+                  type: string
+                expiryMonth:
+                  type: integer
+                expiryYear:
+                  type: integer
+      responses:
+        '201':
+          description: Payment method added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentMethod'
+
+  /provisioning/tenant-signups:
+    post:
+      tags: [Provisioning]
+      summary: Start tenant provisioning after checkout
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TenantSignupRequest'
+      responses:
+        '202':
+          description: Provisioning accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProvisioningStatus'
+  /provisioning/tenant-signups/{signupId}:
+    get:
+      tags: [Provisioning]
+      summary: Get tenant provisioning status
+      parameters:
+        - $ref: '#/components/parameters/SignupId'
+      responses:
+        '200':
+          description: Provisioning status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProvisioningStatus'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    TenantIdHeader:
+      name: X-Tenant-Id
+      in: header
+      required: true
+      schema:
+        type: string
+        format: uuid
+    TenantIdHeaderOptional:
+      name: X-Tenant-Id
+      in: header
+      required: false
+      schema:
+        type: string
+        format: uuid
+    ClientKeyHeader:
+      name: X-Client-Key
+      in: header
+      required: true
+      schema:
+        type: string
+    FaqId:
+      name: faqId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    FaqItemId:
+      name: faqItemId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    CheckoutSessionId:
+      name: checkoutSessionId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    SignupId:
+      name: signupId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    MaxResultCount:
+      name: maxResultCount
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        default: 10
+    SkipCount:
+      name: skipCount
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 0
+        default: 0
+    Sorting:
+      name: sorting
+      in: query
+      required: false
+      schema:
+        type: string
+  schemas:
+    IdentitySession:
+      type: object
+      required: [userId, givenName, email, tenants, activeTenantId, mode]
+      properties:
+        userId:
+          type: string
+          format: uuid
+        givenName:
+          type: string
+        surName:
+          type: string
+        email:
+          type: string
+          format: email
+        tenants:
+          type: array
+          items:
+            $ref: '#/components/schemas/TenantSummary'
+        activeTenantId:
+          type: string
+          format: uuid
+        mode:
+          type: string
+          enum: [mock, live]
+    TenantSummary:
+      type: object
+      required: [id, slug, name, edition, app, isActive]
+      properties:
+        id:
+          type: string
+          format: uuid
+        slug:
+          type: string
+        name:
+          type: string
+        edition:
+          $ref: '#/components/schemas/TenantEdition'
+        app:
+          type: string
+          enum: [Tenant, Faq]
+        isActive:
+          type: boolean
+    TenantCreateOrUpdateRequest:
+      type: object
+      required: [name, edition]
+      properties:
+        name:
+          type: string
+        edition:
+          $ref: '#/components/schemas/TenantEdition'
+    TenantSetAiProviderCredentialsRequest:
+      type: object
+      required: [aiProviderId, aiProviderKey]
+      properties:
+        aiProviderId:
+          type: string
+          format: uuid
+        aiProviderKey:
+          type: string
+    TenantEdition:
+      type: string
+      enum: [Free, Starter, Pro, Business, Enterprise]
+    AiCommandType:
+      oneOf:
+        - type: integer
+          enum: [10, 20]
+        - type: string
+          enum: [Generation, Matching]
+    AiProvider:
+      type: object
+      required: [id, provider, model, prompt, command]
+      properties:
+        id:
+          type: string
+          format: uuid
+        provider:
+          type: string
+        model:
+          type: string
+        prompt:
+          type: string
+        command:
+          $ref: '#/components/schemas/AiCommandType'
+    TenantAiProvider:
+      type: object
+      required: [id, tenantId, aiProviderId, provider, model, command, isAiProviderKeyConfigured]
+      properties:
+        id:
+          type: string
+          format: uuid
+        tenantId:
+          type: string
+          format: uuid
+        aiProviderId:
+          type: string
+          format: uuid
+        provider:
+          type: string
+        model:
+          type: string
+        command:
+          $ref: '#/components/schemas/AiCommandType'
+        isAiProviderKeyConfigured:
+          type: boolean
+    UserProfile:
+      type: object
+      required: [givenName, email, phoneNumber]
+      properties:
+        givenName:
+          type: string
+        surName:
+          type: string
+        email:
+          type: string
+          format: email
+        phoneNumber:
+          type: string
+    UserProfileUpdateRequest:
+      type: object
+      required: [givenName]
+      properties:
+        givenName:
+          type: string
+        surName:
+          type: string
+        phoneNumber:
+          type: string
+    FaqStatus:
+      type: string
+      enum: [Draft, Published, Archived]
+    FaqSortStrategy:
+      type: string
+      enum: [Sort, Vote, Newest, AiConfidence]
+    CtaTarget:
+      type: string
+      enum: [Self, Blank]
+    Faq:
+      type: object
+      required: [id, name, language, status, sortStrategy, ctaEnabled, ctaTarget]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        language:
+          type: string
+        status:
+          $ref: '#/components/schemas/FaqStatus'
+        sortStrategy:
+          $ref: '#/components/schemas/FaqSortStrategy'
+        ctaEnabled:
+          type: boolean
+        ctaTarget:
+          $ref: '#/components/schemas/CtaTarget'
+    FaqDetail:
+      allOf:
+        - $ref: '#/components/schemas/Faq'
+        - type: object
+          properties:
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/FaqItem'
+    FaqUpsertRequest:
+      type: object
+      required: [name, language, status, sortStrategy]
+      properties:
+        name:
+          type: string
+        language:
+          type: string
+        status:
+          $ref: '#/components/schemas/FaqStatus'
+        sortStrategy:
+          $ref: '#/components/schemas/FaqSortStrategy'
+        ctaEnabled:
+          type: boolean
+        ctaTarget:
+          $ref: '#/components/schemas/CtaTarget'
+    FaqItem:
+      type: object
+      required:
+        - id
+        - question
+        - shortAnswer
+        - sort
+        - voteScore
+        - aiConfidenceScore
+        - isActive
+        - faqId
+      properties:
+        id:
+          type: string
+          format: uuid
+        question:
+          type: string
+        shortAnswer:
+          type: string
+        answer:
+          type: string
+        additionalInfo:
+          type: string
+        ctaTitle:
+          type: string
+        ctaUrl:
+          type: string
+          format: uri
+        sort:
+          type: integer
+        voteScore:
+          type: integer
+        aiConfidenceScore:
+          type: integer
+        isActive:
+          type: boolean
+        faqId:
+          type: string
+          format: uuid
+        contentRefId:
+          type: string
+          format: uuid
+    FaqItemUpsertRequest:
+      type: object
+      required:
+        - question
+        - shortAnswer
+        - sort
+        - voteScore
+        - aiConfidenceScore
+        - isActive
+        - faqId
+      properties:
+        question:
+          type: string
+        shortAnswer:
+          type: string
+        answer:
+          type: string
+        additionalInfo:
+          type: string
+        ctaTitle:
+          type: string
+        ctaUrl:
+          type: string
+          format: uri
+        sort:
+          type: integer
+        voteScore:
+          type: integer
+        aiConfidenceScore:
+          type: integer
+        isActive:
+          type: boolean
+        faqId:
+          type: string
+          format: uuid
+        contentRefId:
+          type: string
+          format: uuid
+    VoteCreateRequest:
+      type: object
+      required: [like, faqItemId]
+      properties:
+        like:
+          type: boolean
+        unLikeReason:
+          type: string
+          enum:
+            - ConfusingOrUnclear
+            - NotRelevant
+            - RelevantButNotHelpful
+            - LengthIssue
+        faqItemId:
+          type: string
+          format: uuid
+    PagedFaqResult:
+      type: object
+      required: [items, totalCount]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Faq'
+        totalCount:
+          type: integer
+    PagedFaqItemResult:
+      type: object
+      required: [items, totalCount]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/FaqItem'
+        totalCount:
+          type: integer
+    Money:
+      type: object
+      required: [currency, amount]
+      properties:
+        currency:
+          type: string
+          example: USD
+        amount:
+          type: number
+          format: float
+    BillingCycle:
+      type: string
+      enum: [monthly, annual]
+    Plan:
+      type: object
+      required:
+        - code
+        - name
+        - edition
+        - description
+        - billingCycle
+        - price
+        - features
+      properties:
+        code:
+          type: string
+          example: pro
+        name:
+          type: string
+        edition:
+          $ref: '#/components/schemas/TenantEdition'
+        description:
+          type: string
+        billingCycle:
+          $ref: '#/components/schemas/BillingCycle'
+        price:
+          $ref: '#/components/schemas/Money'
+        features:
+          type: array
+          items:
+            type: string
+    CheckoutSessionCreateRequest:
+      type: object
+      required:
+        - planCode
+        - billingCycle
+        - tenantName
+        - tenantSlug
+        - email
+      properties:
+        planCode:
+          type: string
+        billingCycle:
+          $ref: '#/components/schemas/BillingCycle'
+        tenantName:
+          type: string
+        tenantSlug:
+          type: string
+        email:
+          type: string
+          format: email
+        givenName:
+          type: string
+        surName:
+          type: string
+    CheckoutSession:
+      type: object
+      required:
+        - id
+        - status
+        - planCode
+        - billingCycle
+        - checkoutUrl
+        - tenantName
+        - tenantSlug
+        - email
+      properties:
+        id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [created, completed, expired]
+        planCode:
+          type: string
+        billingCycle:
+          $ref: '#/components/schemas/BillingCycle'
+        checkoutUrl:
+          type: string
+          format: uri
+        tenantName:
+          type: string
+        tenantSlug:
+          type: string
+        email:
+          type: string
+          format: email
+    Subscription:
+      type: object
+      required:
+        - tenantId
+        - planCode
+        - edition
+        - status
+        - billingCycle
+        - renewsAt
+      properties:
+        tenantId:
+          type: string
+          format: uuid
+        planCode:
+          type: string
+        edition:
+          $ref: '#/components/schemas/TenantEdition'
+        status:
+          type: string
+          enum: [trialing, active, past_due, canceled]
+        billingCycle:
+          $ref: '#/components/schemas/BillingCycle'
+        renewsAt:
+          type: string
+          format: date-time
+    Invoice:
+      type: object
+      required: [id, invoiceNumber, status, issuedAt, total]
+      properties:
+        id:
+          type: string
+          format: uuid
+        invoiceNumber:
+          type: string
+        status:
+          type: string
+          enum: [paid, open, void]
+        issuedAt:
+          type: string
+          format: date-time
+        total:
+          $ref: '#/components/schemas/Money'
+        downloadUrl:
+          type: string
+          format: uri
+    PaymentMethod:
+      type: object
+      required: [id, brand, last4, expiryMonth, expiryYear, isDefault]
+      properties:
+        id:
+          type: string
+          format: uuid
+        brand:
+          type: string
+        last4:
+          type: string
+        expiryMonth:
+          type: integer
+        expiryYear:
+          type: integer
+        isDefault:
+          type: boolean
+    TenantSignupRequest:
+      type: object
+      required:
+        - checkoutSessionId
+        - tenantName
+        - tenantSlug
+        - edition
+        - email
+      properties:
+        checkoutSessionId:
+          type: string
+          format: uuid
+        tenantName:
+          type: string
+        tenantSlug:
+          type: string
+        edition:
+          $ref: '#/components/schemas/TenantEdition'
+        email:
+          type: string
+          format: email
+        givenName:
+          type: string
+        surName:
+          type: string
+    ProvisioningStatus:
+      type: object
+      required: [signupId, status]
+      properties:
+        signupId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [queued, provisioning, ready, failed]
+        tenant:
+          $ref: '#/components/schemas/TenantSummary'
+        message:
+          type: string
