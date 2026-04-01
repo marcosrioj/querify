@@ -15,3 +15,4 @@ BaseFaq.sln.DotSettings.user
 azure/.env
 azure/env/*.env
 .codex
+agents/package-lock.json
