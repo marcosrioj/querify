@@ -31,7 +31,7 @@ This is better for real projects because:
 - responsibilities are clearer
 - outputs are easier to review
 - risky changes can be routed to the correct specialist
-- the system can be governed through pull requests and approvals
+- the system can be governed through owned scopes, validation, and human review where it still matters
 
 ## What “Multi-Agent” Means Here
 
@@ -48,7 +48,7 @@ This is intentionally designed to feel like a real software team:
 - the Lead coordinates
 - specialists own their domains
 - risky work still needs human approval
-- final acceptance happens in GitHub Pull Requests
+- final acceptance stays human-controlled
 
 ## What It Is Not
 
@@ -129,8 +129,9 @@ The Lead agent:
 - decides what the request really means
 - breaks it into smaller pieces
 - routes work to the right specialist
+- stays in control while specialists return their work
 - consolidates the final result
-- explains what needs human approval
+- reports changed paths, validation, blockers, and any required human follow-up
 
 If you are not technical, think of the Lead as the engineering manager or tech lead of the AI team.
 
@@ -288,30 +289,30 @@ The specialist can use repository-local tools to:
 - list directories
 - run allowed local commands
 - write only in its owned scopes
-- prepare a PR packet
+- record a delivery summary when a durable handoff artifact is needed
 
-### Step 5. The system produces a reviewable result
+### Step 5. The system produces a direct implementation result
 
 The result may include:
 
 - code or document changes
-- a PR packet
+- a delivery summary
 - validation notes
-- required approvers
+- recommended reviewers for risky work
 - rollout or rollback notes
 
-### Step 6. A human reviews and approves
+### Step 6. Humans stay on the risky boundaries
 
 This is important.
 
 The agents can prepare work.
-They do not replace human merge authority.
+They do not replace human merge or deployment authority.
 
-Final approval happens in:
+High-risk review still happens in:
 
-- GitHub Pull Requests
+- the team's normal human-controlled merge flow
 
-Deployment approval after merge happens in:
+Deployment approval still happens in:
 
 - protected GitHub Environments
 - Azure promotion flow
@@ -395,7 +396,7 @@ The runtime includes:
 These guardrails help block:
 
 - obvious secrets
-- attempts to bypass PR-first governance
+- attempts to bypass production or human safety controls
 - risky tool usage
 - sensitive output leakage
 
@@ -415,12 +416,13 @@ This system is designed for real engineering work, not a demo-only environment.
 - plan work
 - route work to specialists
 - edit files in approved scopes
-- prepare PR-ready outputs
+- implement code in approved scopes
+- record delivery-ready summaries when needed
 
 ### What agents are not allowed to do by default
 
 - deploy directly to production
-- bypass pull requests
+- bypass required human review for risky rollout work
 - ignore tenant boundaries
 - freely move across all folders without ownership
 - expose secrets in traces or outputs
@@ -531,6 +533,12 @@ Why this exists:
 
 - security review may deserve a stronger model than routine specialist work
 
+### `BASEFAQ_AGENT_MAX_TURNS`
+
+Maximum orchestration turns allowed for a run before the SDK stops execution.
+
+Use a higher value for larger implementation tasks that require more repository discovery and tool work.
+
 ### `OPENAI_TRACING_EXPORT_API_KEY`
 
 Optional tracing export key if you want traces exported through OpenAI tracing.
@@ -542,6 +550,14 @@ Controls whether sensitive inputs and outputs should be included in traces.
 Default recommendation:
 
 - leave this off
+
+### `BASEFAQ_AGENT_SHOW_PROGRESS`
+
+Controls whether the CLI prints live orchestration progress to stderr while the Lead and specialists work.
+
+Default recommendation:
+
+- leave this on
 
 ## Task Document Format
 
@@ -642,7 +658,7 @@ Improve the FAQ generation flow so it remains tenant-safe and easier to monitor.
 ## Acceptance Criteria
 - [ ] generation flow documented
 - [ ] tenant propagation reviewed
-- [ ] required approvals clearly identified
+- [ ] required human follow-up clearly identified
 ```
 
 What would happen next:
@@ -651,15 +667,15 @@ What would happen next:
 - the Backend agent may inspect `dotnet/BaseFaq.AI.*`
 - the Data agent may review tenant safety
 - the Docs agent may update documentation
-- the final response should say who must approve the PR
+- the final response should say what changed, how it was validated, and whether any human follow-up is still needed
 
-## Approval Model
+## Review And Rollout Model
 
 This is the most important operational rule.
 
-### Where final code approval happens
+### Where high-risk review happens
 
-- GitHub Pull Requests
+- the team's normal human-controlled merge flow
 
 ### Where deployment approval happens
 
@@ -686,7 +702,7 @@ They are not allowed to become the final authority.
   Defines repository-local tools and domain boundaries
 
 - `src/gates.js`
-  Defines ownership and approval expectations
+  Defines ownership and review expectations
 
 - `src/run-team.js`
   Runs the orchestration and tracing configuration
@@ -694,11 +710,11 @@ They are not allowed to become the final authority.
 - `context/basefaq-product-map.md`
   Explains how the runtime maps to the BaseFaq repository
 
-- `policies/pr-first-governance.md`
-  Explains approval and governance rules
+- `policies/implementation-governance.md`
+  Explains direct-implementation governance rules
 
 - `templates/*.md`
-  Reusable task, work-order, PR, and release templates
+  Reusable task, work-order, delivery-summary, and release templates
 
 ## Short Glossary
 
@@ -726,9 +742,9 @@ A safety rule that blocks or constrains unsafe behavior.
 
 A recorded execution trail that helps explain what happened during a run.
 
-### PR-first
+### Direct implementation
 
-A working model where changes are prepared for Pull Request review instead of being pushed straight into production.
+A working model where agents implement changes directly in the repository, then report changed paths, validation, blockers, and any required human follow-up.
 
 ## Final Mental Model
 
@@ -739,4 +755,4 @@ If you want the shortest possible explanation:
 - The Lead agent coordinates specialists.
 - Specialists work only in their domains.
 - Safety rules limit what can happen automatically.
-- Humans still approve the final PRs and deployments.
+- Humans still review high-risk changes and control deployments.

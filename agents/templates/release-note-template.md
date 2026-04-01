@@ -25,6 +25,6 @@
 
 ## Evidence
 
-- PR links:
+- Delivery summary or run references:
 - Trace or run references:
 - Test references:

@@ -16,7 +16,7 @@ export const SPECIALIST_PROFILES = [
       `Use ${FRONTEND_BASELINE} as the visual implementation reference for future BaseFaq experiences.`,
       'Do not publish runnable frontend code here; keep implementation notes connected to frontend deliverables.',
     ],
-    approvers: {
+    reviewers: {
       low: ['UI/UX reviewer'],
       medium: ['UI/UX reviewer', 'Frontend reviewer'],
       high: ['Product design lead', 'Frontend lead'],
@@ -36,7 +36,7 @@ export const SPECIALIST_PROFILES = [
       'Favor API-driven micro-frontends that can consume BaseFaq backends through explicit client adapters.',
       'Keep framework decisions, route ownership, and shared contracts explicit.',
     ],
-    approvers: {
+    reviewers: {
       low: ['Frontend reviewer'],
       medium: ['Frontend reviewer', 'UI/UX reviewer'],
       high: ['Frontend lead', 'Platform reviewer'],
@@ -56,7 +56,7 @@ export const SPECIALIST_PROFILES = [
       'Prefer additive changes over architectural churn.',
       'When working in the AI area, keep the existing .NET worker runtime separate from the new agents runtime.',
     ],
-    approvers: {
+    reviewers: {
       low: ['Backend reviewer'],
       medium: ['Backend reviewer', 'Adjacent domain reviewer'],
       high: ['Backend lead', 'Security reviewer'],
@@ -76,7 +76,7 @@ export const SPECIALIST_PROFILES = [
       'Assume tenant isolation is a first-order requirement.',
       'Require rollback notes and validation steps for any migration or persistence change.',
     ],
-    approvers: {
+    reviewers: {
       low: ['Data reviewer'],
       medium: ['Data reviewer', 'Backend reviewer'],
       high: ['Data lead', 'Backend lead', 'Security reviewer'],
@@ -96,7 +96,7 @@ export const SPECIALIST_PROFILES = [
       'Treat CI/CD, container, and cloud changes as high-scrutiny surfaces.',
       'Prefer declarative configuration and explicit rollback guidance.',
     ],
-    approvers: {
+    reviewers: {
       low: ['Platform reviewer'],
       medium: ['Platform reviewer', 'Security reviewer'],
       high: ['Platform lead', 'Security lead'],
@@ -116,7 +116,7 @@ export const SPECIALIST_PROFILES = [
       'Strengthen tests and release quality rather than bypassing them.',
       'Keep supply-chain evidence and CI gates explicit.',
     ],
-    approvers: {
+    reviewers: {
       low: ['QA reviewer'],
       medium: ['QA reviewer', 'Security reviewer'],
       high: ['Security lead', 'Platform lead'],
@@ -134,9 +134,9 @@ export const SPECIALIST_PROFILES = [
     operatingFocus: [
       'Translate implementation outcomes into durable docs and release-ready artifacts.',
       'Keep docs tied to the actual repository structure and current BaseFaq boundaries.',
-      'Capture approvals, evidence, and rollout notes in the release packet.',
+      'Capture review expectations, evidence, and rollout notes in the release packet.',
     ],
-    approvers: {
+    reviewers: {
       low: ['Docs reviewer'],
       medium: ['Docs reviewer', 'Owning domain reviewer'],
       high: ['Release manager', 'Owning domain lead'],
@@ -172,7 +172,7 @@ export function listSpecialistCatalog() {
     deliveryRoot: profile.deliveryRoot,
     writeScopes: profile.writeScopes,
     handoffDescription: profile.handoffDescription,
-    approvers: profile.approvers,
+    reviewers: profile.reviewers,
   }));
 }
 
@@ -192,32 +192,29 @@ function touchesProtectedPath(changedPaths) {
   );
 }
 
-export function buildApprovalPlan({ specialistId, riskLevel = 'medium', changedPaths = [] }) {
+export function buildReviewPlan({ specialistId, riskLevel = 'medium', changedPaths = [] }) {
   const profile = getSpecialistProfile(specialistId);
   const normalizedRisk = normalizeRiskLevel(riskLevel);
   const effectiveRisk = touchesProtectedPath(changedPaths) ? 'high' : normalizedRisk;
 
-  const gates = [
-    'GitHub Pull Request review',
-    'PR-first delivery packet present',
-  ];
+  const gates = ['Record local validation results or explain what is still missing'];
 
   if (effectiveRisk === 'high') {
-    gates.push('Human review before merge');
+    gates.push('Human review required before protected merges or deployment');
   }
 
   if (
     changedPaths.some((changedPath) => changedPath === 'azure' || changedPath.startsWith('azure/'))
   ) {
-    gates.push('Protected GitHub Environment approval before deployment');
+    gates.push('Protected environment approval before deployment');
   }
 
   return {
     specialist: profile.name,
     riskLevel: effectiveRisk,
-    approvers: [...new Set(profile.approvers[effectiveRisk])],
+    reviewers: [...new Set(profile.reviewers[effectiveRisk])],
     gates,
-    approvalSurface: 'GitHub Pull Requests',
-    deploymentSurface: 'GitHub Environments / Azure promotion after merge',
+    deliverySurface: 'Direct repository implementation',
+    rolloutSurface: 'Human-controlled merge and deployment flow',
   };
 }

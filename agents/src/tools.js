@@ -8,7 +8,7 @@ import { z } from 'zod';
 
 import { BASEFAQ_DOMAIN_CONTEXT } from './domain-context.js';
 import { createToolGuardrails } from './guardrails.js';
-import { buildApprovalPlan, listSpecialistCatalog, PROTECTED_PATH_PREFIXES } from './gates.js';
+import { buildReviewPlan, listSpecialistCatalog, PROTECTED_PATH_PREFIXES } from './gates.js';
 
 const execFileAsync = promisify(execFile);
 const CURRENT_FILE = fileURLToPath(import.meta.url);
@@ -420,16 +420,16 @@ export function createSpecialistTools(profile) {
       },
     }),
     tool({
-      name: 'record_pr_packet',
+      name: 'record_delivery_summary',
       description:
-        'Create a PR packet under agents/.state/prs with the required approval and validation summary.',
+        'Create a delivery summary under agents/.state/deliveries with validation, review guidance, rollback notes, and follow-up items.',
       parameters: z.object({
         title: z.string().min(5),
         summary: z.string().min(10),
         riskLevel: z.enum(['low', 'medium', 'high']).default('medium'),
         changedPaths: z.array(z.string()).default([]),
         validation: z.array(z.string()).default([]),
-        rollback: z.string().default('Revert the branch or the merge commit.'),
+        rollback: z.string().default('Revert the changed files or restore the previous working tree state.'),
         followUp: z.array(z.string()).default([]),
       }),
       ...sharedGuardrails,
@@ -443,25 +443,25 @@ export function createSpecialistTools(profile) {
         followUp,
       }) => {
         const normalizedPaths = changedPaths.map((changedPath) => normalizeRelativePath(changedPath));
-        const approvalPlan = buildApprovalPlan({
+        const reviewPlan = buildReviewPlan({
           specialistId: profile.id,
           riskLevel,
           changedPaths: normalizedPaths,
         });
 
-        const prDirectory = resolve(STATE_ROOT, 'prs');
-        await ensureDirectory(prDirectory);
+        const deliveryDirectory = resolve(STATE_ROOT, 'deliveries');
+        await ensureDirectory(deliveryDirectory);
 
         const fileName = `${new Date().toISOString().replace(/[:.]/g, '-')}-${slugify(title)}.md`;
-        const absolutePath = resolve(prDirectory, fileName);
-        const relativeStatePath = `agents/.state/prs/${fileName}`;
+        const absolutePath = resolve(deliveryDirectory, fileName);
+        const relativeStatePath = `agents/.state/deliveries/${fileName}`;
         const markdown = [
           `# ${title}`,
           '',
           `- Specialist: ${profile.name}`,
-          `- Risk level: ${approvalPlan.riskLevel}`,
-          `- Approval surface: ${approvalPlan.approvalSurface}`,
-          `- Deployment surface: ${approvalPlan.deploymentSurface}`,
+          `- Risk level: ${reviewPlan.riskLevel}`,
+          `- Delivery surface: ${reviewPlan.deliverySurface}`,
+          `- Rollout surface: ${reviewPlan.rolloutSurface}`,
           '',
           '## Summary',
           summary,
@@ -469,11 +469,11 @@ export function createSpecialistTools(profile) {
           '## Changed Paths',
           ...(normalizedPaths.length ? normalizedPaths.map((item) => `- ${item}`) : ['- None supplied']),
           '',
-          '## Required Approvers',
-          ...approvalPlan.approvers.map((item) => `- ${item}`),
+          '## Recommended Reviewers',
+          ...reviewPlan.reviewers.map((item) => `- ${item}`),
           '',
-          '## Blocking Gates',
-          ...approvalPlan.gates.map((item) => `- ${item}`),
+          '## Review Gates',
+          ...reviewPlan.gates.map((item) => `- ${item}`),
           '',
           '## Validation',
           ...(validation.length ? validation.map((item) => `- ${item}`) : ['- Validation not provided']),
@@ -486,17 +486,17 @@ export function createSpecialistTools(profile) {
         ].join('\n');
 
         await fs.writeFile(absolutePath, markdown, 'utf8');
-        await writeTrace(profile, 'record_pr_packet', {
+        await writeTrace(profile, 'record_delivery_summary', {
           title,
           path: relativeStatePath,
-          riskLevel: approvalPlan.riskLevel,
+          riskLevel: reviewPlan.riskLevel,
         });
 
         return {
           path: relativeStatePath,
-          approvers: approvalPlan.approvers,
-          gates: approvalPlan.gates,
-          approvalSurface: approvalPlan.approvalSurface,
+          reviewers: reviewPlan.reviewers,
+          gates: reviewPlan.gates,
+          deliverySurface: reviewPlan.deliverySurface,
         };
       },
     }),
@@ -511,7 +511,7 @@ export function createSpecialistTools(profile) {
           deliveryRoot: profile.deliveryRoot,
           writeScopes: profile.writeScopes,
           operatingFocus: profile.operatingFocus,
-          approvalModel: profile.approvers,
+          reviewModel: profile.reviewers,
           context: BASEFAQ_DOMAIN_CONTEXT,
         };
       },

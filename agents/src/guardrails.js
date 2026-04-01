@@ -13,12 +13,11 @@ const SECRET_PATTERNS = [
   /\bpassword\b/i,
 ];
 
-const PRODUCTION_BYPASS_PATTERNS = [
+const UNSAFE_DELIVERY_PATTERNS = [
   /deploy\s+directly\s+to\s+prod/i,
   /push\s+straight\s+to\s+main/i,
-  /skip\s+the\s+pr/i,
-  /bypass\s+approval/i,
   /apply\s+directly\s+in\s+production/i,
+  /skip\s+production\s+approval/i,
 ];
 
 const DANGEROUS_COMMAND_PATTERNS = [
@@ -54,7 +53,7 @@ export function containsSensitiveData(value) {
 
 export function containsProductionBypassInstruction(value) {
   const text = normalizeText(value);
-  return PRODUCTION_BYPASS_PATTERNS.some((pattern) => pattern.test(text));
+  return UNSAFE_DELIVERY_PATTERNS.some((pattern) => pattern.test(text));
 }
 
 function containsDangerousNetworkCommand(value) {
@@ -78,7 +77,7 @@ export function createLeadInputGuardrail() {
 
       if (containsProductionBypassInstruction(normalized)) {
         return {
-          outputInfo: 'The request attempted to bypass PR-first or human approval controls.',
+          outputInfo: 'The request attempted to bypass production or human safety controls.',
           tripwireTriggered: true,
         };
       }
@@ -96,13 +95,13 @@ export function createLeadOutputGuardrail() {
     name: 'BaseFaq Lead Output Guardrail',
     execute: async ({ agentOutput }) => {
       const normalized = normalizeText(agentOutput);
-      const mentionsApprovalSurface = /github pull requests/i.test(normalized);
-      const mentionsHumanGate = /\bhuman\b.*\bapproval\b|\bgate\b/i.test(normalized);
+      const mentionsChangedPaths = /\bchanged paths?\b/i.test(normalized);
+      const mentionsValidation = /\bvalidation\b|\btests?\b|\bblockers\b/i.test(normalized);
 
-      if (!mentionsApprovalSurface || !mentionsHumanGate) {
+      if (!mentionsChangedPaths || !mentionsValidation) {
         return {
           outputInfo:
-            'The final answer must include the GitHub Pull Request approval surface and the required human gates.',
+            'The final answer must include changed paths plus validation or blocker information.',
           tripwireTriggered: true,
         };
       }

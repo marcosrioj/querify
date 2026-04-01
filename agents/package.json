@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "BaseFaq PR-first multi-agent runtime built with the OpenAI Agents SDK.",
+  "description": "BaseFaq direct-implementation multi-agent runtime built with the OpenAI Agents SDK.",
   "scripts": {
     "catalog": "node src/cli.js --catalog",
     "run": "node src/cli.js",

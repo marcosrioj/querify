@@ -11,7 +11,7 @@ The new multi-agent runtime is intentionally isolated in `agents/` so it can evo
 This separation keeps two concerns distinct:
 
 - `dotnet/BaseFaq.AI.*`: product-facing asynchronous AI generation and matching runtime
-- `agents/`: engineering execution runtime based on OpenAI Agents SDK, handoffs, tools, and PR-first governance
+- `agents/`: engineering execution runtime based on OpenAI Agents SDK, handoffs, tools, and direct-implementation governance
 
 ## Current BaseFaq Mapping
 
@@ -59,8 +59,8 @@ This separation keeps two concerns distinct:
 - Reads the request
 - Decomposes the work
 - Routes to specialists through handoffs
-- Consolidates validation and approval expectations
-- Prepares a PR-ready response
+- Consolidates changed paths, validation, blockers, and follow-up review guidance
+- Prepares the final direct-implementation response
 
 ### Specialists
 
@@ -79,16 +79,16 @@ The runtime uses local repository tools with specialist write scopes:
 - file reads and repository search
 - bounded shell commands
 - file creation and replacement in owned scopes
-- PR packet generation under `agents/.state/`
+- delivery summary generation under `agents/.state/`
 
 High-risk shell actions require approval interruptions. Final code approval remains outside the runtime.
 
-## Approval Model
+## Review And Rollout Model
 
-### Where approvals happen
+### Where review happens
 
-- Pull request approval: GitHub Pull Requests
-- Deployment approval after merge: protected GitHub Environments and Azure promotion
+- High-risk review: the team's normal human-controlled merge flow
+- Deployment approval: protected GitHub Environments and Azure promotion
 
 ### High-risk changes that always require human review
 

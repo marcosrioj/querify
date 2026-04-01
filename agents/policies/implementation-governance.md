@@ -1,16 +1,10 @@
-# PR-First Governance
+# Implementation Governance
 
 ## Core Rule
 
-Every implementation change must be prepared for a GitHub pull request. Agents may inspect, plan, edit within approved repository scopes, and assemble evidence, but the final acceptance point is always the GitHub PR review flow.
+Agents implement directly in the repository inside approved scopes. Delivery is the changed files plus validation, blockers, rollback notes, and follow-up guidance. The runtime does not publish external review artifacts as part of normal delivery.
 
-## Where PRs Are Approved
-
-- Code and documentation approvals: GitHub Pull Requests.
-- Deployment approvals after merge: protected GitHub Environments and the Azure promotion flow.
-- Emergency or production overrides: human-only, outside the agent runtime.
-
-## Risk Levels
+## Human Review Expectations
 
 ### Low risk
 
@@ -18,7 +12,7 @@ Every implementation change must be prepared for a GitHub pull request. Agents m
 - Isolated UI/UX artifacts
 - Localized frontend refactors with no contract changes
 
-Approval:
+Recommended review:
 
 - Standard reviewer for the owning domain
 
@@ -28,7 +22,7 @@ Approval:
 - New frontend modules consuming existing APIs
 - Test, observability, or release automation improvements
 
-Approval:
+Recommended review:
 
 - Owning domain reviewer
 - One adjacent reviewer when cross-domain behavior changes
@@ -40,26 +34,26 @@ Approval:
 - Azure, CI/CD, container, or secret-management changes
 - Security-sensitive flows, authentication, authorization, or supply-chain changes
 
-Approval:
+Required review:
 
 - Owning domain reviewer
-- Required domain lead or platform/security approver
-- Human sign-off before merge
+- Required domain lead or platform/security reviewer
+- Human sign-off before protected merge or deployment
 
 ## Mandatory Gates
 
 - No direct production edits.
 - No secret material in prompts, files, or traces.
 - No cross-tenant data leakage.
-- No PR merge without explicit human review.
+- High-risk changes require human review before protected merges or deployment.
 - No deploy to Azure production without environment approval.
 
-## Evidence Required In Every PR Packet
+## Evidence Required In Every Delivery Summary
 
 - Summary of scope
 - Changed paths
 - Risk level
-- Required approvers
+- Recommended reviewers
 - Tests executed or missing
 - Rollback note
 - Follow-up items or known gaps

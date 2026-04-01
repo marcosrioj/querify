@@ -54,7 +54,7 @@ BaseFaq is a multi-tenant FAQ platform with separate API surfaces for tenant adm
 ## Non-Negotiable Rules
 
 - Work in English only.
-- Use PR-first delivery.
+- Prefer direct implementation inside owned scopes.
 - Do not write secrets into the repository.
 - Do not bypass tenant boundaries or infer tenant context from ambient state inside worker processes.
 - Do not modify production systems directly from the agent runtime.

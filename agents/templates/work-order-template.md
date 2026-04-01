@@ -22,7 +22,7 @@
 
 - Risk level:
 - Required gates:
-- Required approvers:
+- Recommended reviewers:
 
 ## Acceptance Criteria
 

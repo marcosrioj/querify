@@ -37,7 +37,7 @@ export const BASEFAQ_REPO_FACTS = {
 
 export const TEAM_OPERATING_RULES = [
   'Work in English only.',
-  'Operate with a PR-first workflow.',
+  'Prefer direct repository implementation when the task is clear and within scope.',
   'Never write secrets into the repository or agent traces.',
   'Do not perform direct production changes.',
   'Escalate or require approval for high-risk shell actions.',

@@ -19,7 +19,7 @@
 - Read operations are allowed inside the repository.
 - Write operations must stay within the assigned specialist scope.
 - Production, cloud, and destructive operations stay human-gated.
-- Delivery must remain PR-first even when the runtime can edit files locally.
+- Delivery is direct repository implementation; use validation notes and delivery summaries instead of PR packaging.
 
 ## Trace Handling
 

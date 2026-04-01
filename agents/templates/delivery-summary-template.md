@@ -1,4 +1,4 @@
-# Pull Request Packet
+# Delivery Summary
 
 ## What changed
 
@@ -12,11 +12,11 @@
 
 - Paths:
 
-## Risk and gates
+## Risk and review
 
 - Risk level:
-- Required approvers:
-- Blocking gates:
+- Recommended reviewers:
+- Required gates:
 
 ## Validation
 

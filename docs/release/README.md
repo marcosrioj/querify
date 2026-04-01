@@ -13,4 +13,4 @@ This folder is the delivery root for the Docs and Release Manager agent when rel
 ## Keep Separate
 
 - temporary run-state artifacts stay in `agents/.state/`
-- code review approval still happens in GitHub Pull Requests
+- release artifacts support human-controlled merge and deployment decisions
