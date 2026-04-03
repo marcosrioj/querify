@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useFaqList, useRequestFaqGeneration } from '@/domains/faq/hooks';
 import { useTenantWorkspace } from '@/domains/tenants/hooks';
 import { AiCommandType } from '@/shared/constants/backend-enums';
-import { PageHeader } from '@/shared/layout/page-layouts';
+import { PageHeader, PageSurface } from '@/shared/layout/page-layouts';
 import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui';
 import { EmptyState } from '@/shared/ui/placeholder-state';
 
@@ -13,7 +13,7 @@ function AiWorkspacePage() {
   const requestGeneration = useRequestFaqGeneration();
 
   return (
-    <div className="space-y-6">
+    <PageSurface className="space-y-5 lg:space-y-7.5">
       <PageHeader
         eyebrow="AI"
         title="AI workspace"
@@ -95,7 +95,7 @@ function AiWorkspacePage() {
           ) : null}
         </CardContent>
       </Card>
-    </div>
+    </PageSurface>
   );
 }
 

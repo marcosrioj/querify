@@ -1,7 +1,7 @@
 import { RouteObject } from 'react-router-dom';
 import { useCurrentWorkspace } from '@/domains/tenants/hooks';
 import { usePermission } from '@/platform/permissions/permissions';
-import { PageHeader, SectionGrid } from '@/shared/layout/page-layouts';
+import { PageHeader, PageSurface, SectionGrid } from '@/shared/layout/page-layouts';
 import { EmptyState } from '@/shared/ui/placeholder-state';
 import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui';
 import { tenantEditionLabels } from '@/shared/constants/backend-enums';
@@ -15,7 +15,7 @@ function BillingPage() {
   ];
 
   return (
-    <div className="space-y-6">
+    <PageSurface className="space-y-5 lg:space-y-7.5">
       <PageHeader
         eyebrow="Billing"
         title="Plan and usage"
@@ -94,7 +94,7 @@ function BillingPage() {
           </div>
         </CardContent>
       </Card>
-    </div>
+    </PageSurface>
   );
 }
 

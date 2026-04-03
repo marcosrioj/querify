@@ -4,7 +4,7 @@ import { useContentRefList } from '@/domains/content-refs/hooks';
 import { useFaqItemList } from '@/domains/faq-items/hooks';
 import { useFaqList } from '@/domains/faq/hooks';
 import { useAuth } from '@/platform/auth/auth-context';
-import { PageHeader, SectionGrid } from '@/shared/layout/page-layouts';
+import { PageHeader, PageSurface, SectionGrid } from '@/shared/layout/page-layouts';
 import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui';
 import { tenantEditionLabels } from '@/shared/constants/backend-enums';
 
@@ -25,7 +25,7 @@ export function DashboardPage() {
   });
 
   return (
-    <div className="space-y-6">
+    <PageSurface className="space-y-5 lg:space-y-7.5">
       <PageHeader
         eyebrow="Dashboard"
         title={`Welcome back${user?.name ? `, ${user.name}` : ''}`}
@@ -76,7 +76,7 @@ export function DashboardPage() {
         ]}
       />
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
+      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px] lg:gap-7.5">
         <Card>
           <CardHeader>
             <CardTitle>Recommended next actions</CardTitle>
@@ -115,6 +115,6 @@ export function DashboardPage() {
           </CardContent>
         </Card>
       </div>
-    </div>
+    </PageSurface>
   );
 }

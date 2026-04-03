@@ -9,11 +9,15 @@ import {
   DropdownMenuTrigger,
 } from '@/shared/ui';
 
-export function NotificationsMenu() {
+export function NotificationsMenu({
+  triggerVariant = 'outline',
+}: {
+  triggerVariant?: 'outline' | 'ghost';
+}) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button mode="icon" variant="outline">
+        <Button mode="icon" variant={triggerVariant}>
           <Bell className="size-4" />
         </Button>
       </DropdownMenuTrigger>

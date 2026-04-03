@@ -17,19 +17,49 @@ const shortcuts = [
   { label: 'Open content refs', to: '/app/content-refs' },
 ];
 
-export function PortalCommandDialog() {
+export function PortalCommandDialog({
+  variant = 'toolbar',
+}: {
+  variant?: 'toolbar' | 'icon' | 'sidebar';
+}) {
   const [open, setOpen] = useState(false);
 
   return (
     <>
-      <Button
-        variant="outline"
-        className="hidden min-w-[180px] justify-start text-muted-foreground md:flex"
-        onClick={() => setOpen(true)}
-      >
-        <Search className="size-4" />
-        Search portal
-      </Button>
+      {variant === 'toolbar' ? (
+        <Button
+          variant="outline"
+          className="hidden min-w-[180px] justify-start text-muted-foreground xl:flex"
+          onClick={() => setOpen(true)}
+        >
+          <Search className="size-4" />
+          Search portal
+        </Button>
+      ) : null}
+
+      {variant === 'icon' ? (
+        <Button
+          variant="ghost"
+          mode="icon"
+          className="hover:bg-background hover:[&_svg]:text-primary"
+          onClick={() => setOpen(true)}
+        >
+          <Search className="size-4" />
+        </Button>
+      ) : null}
+
+      {variant === 'sidebar' ? (
+        <Button
+          variant="outline"
+          className="w-full justify-start text-muted-foreground"
+          onClick={() => setOpen(true)}
+        >
+          <Search className="size-4" />
+          Search portal
+          <span className="ms-auto text-xs text-muted-foreground">cmd + /</span>
+        </Button>
+      ) : null}
+
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-xl">
           <DialogHeader>

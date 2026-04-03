@@ -1,7 +1,8 @@
-import { Outlet } from 'react-router-dom';
+import { Link, Outlet } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { toAbsoluteUrl } from '@/lib/helpers';
 import { RuntimeEnv } from '@/platform/runtime/env';
+import { Card, CardContent } from '@/shared/ui';
 
 export function AuthLayout() {
   return (
@@ -9,20 +10,55 @@ export function AuthLayout() {
       <Helmet>
         <title>Sign in | {RuntimeEnv.appName}</title>
       </Helmet>
-      <div className="relative min-h-screen overflow-hidden bg-mono text-mono-foreground">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(60,122,255,0.25),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(15,172,146,0.18),transparent_25%)]" />
-        <div className="relative z-10 grid min-h-screen lg:grid-cols-[minmax(0,460px)_1fr]">
-          <div className="flex items-center justify-center px-6 py-12 lg:px-12">
-            <div className="w-full max-w-md">
+
+      <style>
+        {`
+          .portal-auth-bg {
+            background-image: url('${toAbsoluteUrl('/media/app/auth-bg.png')}');
+          }
+        `}
+      </style>
+
+      <div className="grid grow lg:grid-cols-2">
+        <div className="order-2 flex items-center justify-center p-8 lg:order-1 lg:p-10">
+          <Card className="w-full max-w-[440px]">
+            <CardContent className="p-6 lg:p-8">
               <Outlet />
-            </div>
-          </div>
-          <div className="hidden items-center justify-center border-l border-white/10 px-8 lg:flex">
-            <div className="max-w-xl">
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="portal-auth-bg order-1 m-5 hidden rounded-xl border border-border bg-cover bg-center bg-no-repeat lg:flex">
+          <div className="flex w-full flex-col justify-between gap-6 p-8 lg:p-12">
+            <Link to="/login">
+              <img
+                src={toAbsoluteUrl('/media/app/default-logo.svg')}
+                className="h-[28px] dark:hidden"
+                alt="BaseFAQ Portal"
+              />
+              <img
+                src={toAbsoluteUrl('/media/app/default-logo-dark.svg')}
+                className="hidden h-[28px] dark:block"
+                alt="BaseFAQ Portal"
+              />
+            </Link>
+
+            <div className="max-w-xl space-y-5">
+              <div className="space-y-3">
+                <h1 className="text-2xl font-semibold text-mono">
+                  Portal access, restored on the real demo foundation
+                </h1>
+                <p className="text-base font-medium text-secondary-foreground">
+                  Sign in to manage tenant FAQs, answer catalogs, content
+                  references, billing visibility, and AI controls from the
+                  customer-facing BaseFAQ workspace.
+                </p>
+              </div>
+
               <img
                 src={toAbsoluteUrl('/media/app/auth-screen.png')}
                 alt="BaseFAQ Portal"
-                className="w-full rounded-[28px] border border-white/10 shadow-2xl"
+                className="w-full rounded-xl border border-border shadow-xs"
               />
             </div>
           </div>

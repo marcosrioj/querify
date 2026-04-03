@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { MailPlus, Trash2 } from 'lucide-react';
-import { PageHeader } from '@/shared/layout/page-layouts';
+import { ListLayout, PageHeader } from '@/shared/layout/page-layouts';
 import { useTenant } from '@/platform/tenant/tenant-context';
 import { useAuth } from '@/platform/auth/auth-context';
 import { usePermission } from '@/platform/permissions/permissions';
@@ -19,9 +19,6 @@ import {
   Button,
   Card,
   CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
   Dialog,
   DialogContent,
   DialogDescription,
@@ -126,48 +123,50 @@ export function MembersPage() {
   ];
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        eyebrow="Members"
-        title="Tenant access"
-        description="No Portal members API exists in the repository yet. This page uses an isolated temporary adapter so the Portal boundary and permission UX can still be exercised without pulling in BackOffice endpoints."
-        actions={
-          <Button disabled={!canManageMembers || !currentTenant} onClick={() => setOpen(true)}>
-            <MailPlus className="size-4" />
-            Invite member
-          </Button>
+    <>
+      <ListLayout
+        header={
+          <PageHeader
+            eyebrow="Members"
+            title="Tenant access"
+            description="No Portal members API exists in the repository yet. This page uses an isolated temporary adapter so the Portal boundary and permission UX can still be exercised without pulling in BackOffice endpoints."
+            actions={
+              <Button
+                disabled={!canManageMembers || !currentTenant}
+                onClick={() => setOpen(true)}
+              >
+                <MailPlus className="size-4" />
+                Invite member
+              </Button>
+            }
+          />
         }
-      />
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Access roster</CardTitle>
-          <CardDescription>
-            Temporary local adapter keyed by tenant id. Replace it when a Portal
-            members contract is added.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {currentTenant ? (
-            <DataTable
-              columns={columns}
-              rows={members}
-              getRowId={(row) => row.id}
-              emptyState={
-                <EmptyState
-                  title="No members yet"
-                  description="Invite the first tenant user to start collaborative FAQ management."
-                />
-              }
-            />
-          ) : (
-            <EmptyState
-              title="No active tenant"
-              description="Select or create a tenant workspace before managing members."
-            />
-          )}
-        </CardContent>
-      </Card>
+      >
+        {currentTenant ? (
+          <DataTable
+            title="Access roster"
+            description="Temporary local adapter keyed by tenant id. Replace it when a Portal members contract is added."
+            columns={columns}
+            rows={members}
+            getRowId={(row) => row.id}
+            emptyState={
+              <EmptyState
+                title="No members yet"
+                description="Invite the first tenant user to start collaborative FAQ management."
+              />
+            }
+          />
+        ) : (
+          <Card>
+            <CardContent className="p-5">
+              <EmptyState
+                title="No active tenant"
+                description="Select or create a tenant workspace before managing members."
+              />
+            </CardContent>
+          </Card>
+        )}
+      </ListLayout>
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
@@ -207,6 +206,6 @@ export function MembersPage() {
           </Form>
         </DialogContent>
       </Dialog>
-    </div>
+    </>
   );
 }

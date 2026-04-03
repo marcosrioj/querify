@@ -1,9 +1,33 @@
 import { Fragment, PropsWithChildren, ReactNode } from 'react';
 import { ArrowLeft } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useMatches } from 'react-router-dom';
+import { AppRouteHandle } from '@/app/router/route-types';
 import { Container } from '@/shared/layout/container';
 import { Button, Card, CardContent } from '@/shared/ui';
 import { cn } from '@/lib/utils';
+
+function useCurrentRouteHandle() {
+  return useMatches()
+    .map((match) => match.handle as AppRouteHandle | undefined)
+    .filter((handle): handle is AppRouteHandle => Boolean(handle?.title))
+    .at(-1);
+}
+
+function shouldRenderPageTitle(
+  title: ReactNode,
+  handle: AppRouteHandle | undefined,
+  backTo: string | undefined,
+) {
+  if (backTo || typeof title !== 'string' || !handle) {
+    return true;
+  }
+
+  const normalizedTitle = title.trim().toLowerCase();
+  const routeTitle = handle.title.trim().toLowerCase();
+  const routeBreadcrumb = handle.breadcrumb?.trim().toLowerCase();
+
+  return normalizedTitle !== routeTitle && normalizedTitle !== routeBreadcrumb;
+}
 
 export function PageHeader({
   eyebrow,
@@ -18,6 +42,9 @@ export function PageHeader({
   actions?: ReactNode;
   backTo?: string;
 }) {
+  const currentHandle = useCurrentRouteHandle();
+  const renderTitle = shouldRenderPageTitle(title, currentHandle, backTo);
+
   return (
     <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
       <div className="space-y-2">
@@ -26,24 +53,29 @@ export function PageHeader({
             {eyebrow}
           </p>
         ) : null}
-        <div className="flex flex-wrap items-center gap-3">
-          {backTo ? (
-            <Button asChild mode="icon" variant="outline">
-              <Link to={backTo}>
-                <ArrowLeft className="size-4" />
-              </Link>
-            </Button>
-          ) : null}
-          <h1 className="text-2xl font-semibold tracking-tight text-mono lg:text-3xl">
-            {title}
-          </h1>
-        </div>
+
+        {renderTitle ? (
+          <div className="flex flex-wrap items-center gap-3">
+            {backTo ? (
+              <Button asChild mode="icon" variant="outline" size="sm">
+                <Link to={backTo}>
+                  <ArrowLeft className="size-4" />
+                </Link>
+              </Button>
+            ) : null}
+            <h2 className="text-xl font-semibold tracking-tight text-mono lg:text-2xl">
+              {title}
+            </h2>
+          </div>
+        ) : null}
+
         {description ? (
           <p className="max-w-3xl text-sm leading-6 text-muted-foreground">
             {description}
           </p>
         ) : null}
       </div>
+
       {actions ? (
         <div className="flex flex-wrap items-center gap-3">{actions}</div>
       ) : null}
@@ -55,9 +87,7 @@ export function PageSurface({
   children,
   className,
 }: PropsWithChildren<{ className?: string }>) {
-  return (
-    <Container className={cn('pb-10 pt-1', className)}>{children}</Container>
-  );
+  return <Container className={cn('pb-10', className)}>{children}</Container>;
 }
 
 export function ListLayout({
@@ -69,9 +99,13 @@ export function ListLayout({
   filters?: ReactNode;
 }>) {
   return (
-    <PageSurface className="space-y-6">
+    <PageSurface className="space-y-5 lg:space-y-7.5">
       {header}
-      {filters ? <Card><CardContent className="p-4">{filters}</CardContent></Card> : null}
+      {filters ? (
+        <Card>
+          <CardContent className="p-4 lg:p-5">{filters}</CardContent>
+        </Card>
+      ) : null}
       {children}
     </PageSurface>
   );
@@ -86,11 +120,11 @@ export function DetailLayout({
   sidebar?: ReactNode;
 }>) {
   return (
-    <PageSurface className="space-y-6">
+    <PageSurface className="space-y-5 lg:space-y-7.5">
       {header}
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
-        <div className="space-y-6">{children}</div>
-        {sidebar ? <div className="space-y-6">{sidebar}</div> : null}
+      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_320px] lg:gap-7.5">
+        <div className="space-y-5 lg:space-y-7.5">{children}</div>
+        {sidebar ? <div className="space-y-5 lg:space-y-7.5">{sidebar}</div> : null}
       </div>
     </PageSurface>
   );
@@ -134,11 +168,11 @@ export function SettingsLayout({
   items: Array<{ key: string; label: string; href: string }>;
 }>) {
   return (
-    <PageSurface className="space-y-6">
+    <PageSurface className="space-y-5 lg:space-y-7.5">
       {header}
-      <div className="grid gap-6 xl:grid-cols-[260px_minmax(0,1fr)]">
+      <div className="grid gap-5 xl:grid-cols-[260px_minmax(0,1fr)] lg:gap-7.5">
         <SettingsNav items={items} currentKey={currentKey} />
-        <div className="space-y-6">{children}</div>
+        <div className="space-y-5 lg:space-y-7.5">{children}</div>
       </div>
     </PageSurface>
   );
@@ -150,7 +184,7 @@ export function SectionGrid({
   items: Array<{ title: string; value: ReactNode; description?: ReactNode }>;
 }) {
   return (
-    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+    <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4 lg:gap-7.5">
       {items.map((item) => (
         <Card key={item.title}>
           <CardContent className="space-y-2 p-5">
