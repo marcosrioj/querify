@@ -16,8 +16,15 @@ import { useTenant } from '@/platform/tenant/tenant-context';
 
 export const faqItemKeys = {
   all: ['portal', 'faq-items'] as const,
-  list: (page: number, pageSize: number, sorting?: string) =>
-    [...faqItemKeys.all, 'list', page, pageSize, sorting] as const,
+  list: (params: {
+    page: number;
+    pageSize: number;
+    sorting?: string;
+    searchText?: string;
+    faqId?: string;
+    contentRefId?: string;
+    isActive?: boolean;
+  }) => [...faqItemKeys.all, 'list', params] as const,
   detail: (id: string) => [...faqItemKeys.all, 'detail', id] as const,
 };
 
@@ -25,18 +32,27 @@ export function useFaqItemList({
   page,
   pageSize,
   sorting,
+  searchText,
+  faqId,
+  contentRefId,
+  isActive,
 }: {
   page: number;
   pageSize: number;
   sorting?: string;
+  searchText?: string;
+  faqId?: string;
+  contentRefId?: string;
+  isActive?: boolean;
 }) {
   const { session, status } = useAuth();
   const { currentTenantId } = useTenant();
+  const params = { page, pageSize, sorting, searchText, faqId, contentRefId, isActive };
 
   return useQuery({
-    queryKey: faqItemKeys.list(page, pageSize, sorting),
+    queryKey: faqItemKeys.list(params),
     queryFn: () =>
-      listFaqItems(session?.accessToken, currentTenantId, page, pageSize, sorting),
+      listFaqItems(session?.accessToken, currentTenantId, params),
     enabled: status === 'ready' && Boolean(currentTenantId),
     placeholderData: (previous) => previous,
   });

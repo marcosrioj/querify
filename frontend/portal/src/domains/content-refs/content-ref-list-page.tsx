@@ -1,5 +1,5 @@
 import { Pencil, Plus, Trash2 } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useDeferredValue, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDeleteContentRef, useContentRefList } from '@/domains/content-refs/hooks';
 import type { ContentRefDto } from '@/domains/content-refs/types';
@@ -28,20 +28,21 @@ export function ContentRefListPage() {
   const [sorting, setSorting] = useState('UpdatedDate DESC');
   const [search, setSearch] = useState('');
   const [kindFilter, setKindFilter] = useState('all');
+  const deferredSearch = useDeferredValue(search.trim());
+  const apiKind = kindFilter === 'all' ? undefined : Number(kindFilter);
 
-  const contentRefQuery = useContentRefList({ page, pageSize, sorting });
+  useEffect(() => {
+    setPage(1);
+  }, [apiKind, deferredSearch, sorting]);
+
+  const contentRefQuery = useContentRefList({
+    page,
+    pageSize,
+    sorting,
+    searchText: deferredSearch || undefined,
+    kind: apiKind,
+  });
   const deleteContentRef = useDeleteContentRef();
-
-  const rows = useMemo(() => {
-    return (contentRefQuery.data?.items ?? []).filter((contentRef) => {
-      const matchesSearch =
-        contentRef.locator.toLowerCase().includes(search.toLowerCase()) ||
-        (contentRef.label ?? '').toLowerCase().includes(search.toLowerCase());
-      const matchesKind =
-        kindFilter === 'all' || contentRef.kind === Number(kindFilter);
-      return matchesSearch && matchesKind;
-    });
-  }, [contentRefQuery.data?.items, kindFilter, search]);
 
   const columns: DataTableColumn<ContentRefDto>[] = [
     {
@@ -108,7 +109,7 @@ export function ContentRefListPage() {
         <PageHeader
           eyebrow="Content Refs"
           title="Content references"
-          description="Backed by the real Portal content ref endpoints. Search filters are client-side on the loaded page until the backend adds filter contracts."
+          description="Backed by the real Portal content ref endpoints. Search, kind filtering, sorting, and paging are API-driven."
           actions={
             <Button asChild>
               <Link to="/app/content-refs/new">
@@ -124,7 +125,7 @@ export function ContentRefListPage() {
           <Input
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search loaded content refs"
+            placeholder="Search content refs"
           />
           <Select value={kindFilter} onValueChange={setKindFilter}>
             <SelectTrigger>
@@ -157,7 +158,7 @@ export function ContentRefListPage() {
       <DataTable
         title="Source material registry"
         columns={columns}
-        rows={rows}
+        rows={contentRefQuery.data?.items ?? []}
         getRowId={(row) => row.id}
         loading={contentRefQuery.isLoading}
         onRowClick={(contentRef) => navigate(`/app/content-refs/${contentRef.id}`)}

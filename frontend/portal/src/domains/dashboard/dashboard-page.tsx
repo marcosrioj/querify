@@ -90,13 +90,13 @@ export function DashboardPage() {
               <Link to="/app/settings/tenant">Review tenant setup</Link>
             </Button>
             <Button asChild variant="outline" className="justify-start">
-              <Link to="/app/faq">Open FAQ catalog</Link>
+              <Link to="/app/faq">Open FAQ workspace</Link>
             </Button>
             <Button asChild variant="outline" className="justify-start">
-              <Link to="/app/faq-items">Manage FAQ items</Link>
+              <Link to="/app/faq/new">Create new FAQ</Link>
             </Button>
             <Button asChild variant="outline" className="justify-start">
-              <Link to="/app/content-refs">Open content refs</Link>
+              <Link to="/app/faq">Review answer and source coverage</Link>
             </Button>
           </CardContent>
         </Card>

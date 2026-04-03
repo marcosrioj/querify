@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useFaqList } from '@/domains/faq/hooks';
 import { useContentRefList } from '@/domains/content-refs/hooks';
 import { useCreateFaqItem, useFaqItem, useUpdateFaqItem } from '@/domains/faq-items/hooks';
@@ -13,8 +13,12 @@ import { SelectField, SwitchField, TextField, TextareaField } from '@/shared/ui/
 
 export function FaqItemFormPage({ mode }: { mode: 'create' | 'edit' }) {
   const navigate = useNavigate();
-  const { id } = useParams();
-  const itemQuery = useFaqItem(mode === 'edit' ? id : undefined);
+  const { id: faqId, itemId } = useParams();
+  const [searchParams] = useSearchParams();
+  const resolvedItemId = itemId;
+  const preselectedFaqId = faqId ?? searchParams.get('faqId') ?? '';
+  const preselectedContentRefId = searchParams.get('contentRefId') ?? '';
+  const itemQuery = useFaqItem(mode === 'edit' ? resolvedItemId : undefined);
   const faqOptionsQuery = useFaqList({ page: 1, pageSize: 100, sorting: 'Name ASC' });
   const contentRefQuery = useContentRefList({
     page: 1,
@@ -22,7 +26,7 @@ export function FaqItemFormPage({ mode }: { mode: 'create' | 'edit' }) {
     sorting: 'Label ASC',
   });
   const createFaqItem = useCreateFaqItem();
-  const updateFaqItem = useUpdateFaqItem(id ?? '');
+  const updateFaqItem = useUpdateFaqItem(resolvedItemId ?? '');
 
   const form = useForm<FaqItemFormValues>({
     resolver: zodResolver(faqItemFormSchema),
@@ -37,8 +41,8 @@ export function FaqItemFormPage({ mode }: { mode: 'create' | 'edit' }) {
       voteScore: 0,
       aiConfidenceScore: 0,
       isActive: true,
-      faqId: '',
-      contentRefId: '',
+      faqId: preselectedFaqId,
+      contentRefId: preselectedContentRefId,
     },
   });
 
@@ -59,9 +63,23 @@ export function FaqItemFormPage({ mode }: { mode: 'create' | 'edit' }) {
       aiConfidenceScore: itemQuery.data.aiConfidenceScore,
       isActive: itemQuery.data.isActive,
       faqId: itemQuery.data.faqId,
-      contentRefId: itemQuery.data.contentRefId ?? '',
+      contentRefId: preselectedContentRefId || itemQuery.data.contentRefId || '',
     });
-  }, [form, itemQuery.data]);
+  }, [form, itemQuery.data, preselectedContentRefId]);
+
+  const selectedFaq = faqOptionsQuery.data?.items.find(
+    (faq) => faq.id === form.watch('faqId'),
+  );
+  const selectedContentRef = contentRefQuery.data?.items.find(
+    (contentRef) => contentRef.id === form.watch('contentRefId'),
+  );
+  const currentFaqId = form.watch('faqId') || itemQuery.data?.faqId || preselectedFaqId;
+  const backTo =
+    mode === 'edit' && currentFaqId && resolvedItemId
+      ? `/app/faq/${currentFaqId}/items/${resolvedItemId}`
+      : currentFaqId
+        ? `/app/faq/${currentFaqId}`
+        : '/app/faq';
 
   const isSubmitting = createFaqItem.isPending || updateFaqItem.isPending;
 
@@ -72,7 +90,7 @@ export function FaqItemFormPage({ mode }: { mode: 'create' | 'edit' }) {
           eyebrow="FAQ Items"
           title={mode === 'create' ? 'Create FAQ item' : 'Edit FAQ item'}
           description="The FAQ Item DTO is CRUD-heavy and preserved as-is from the backend contract."
-          backTo={mode === 'edit' && id ? `/app/faq-items/${id}` : '/app/faq-items'}
+          backTo={backTo}
         />
       }
       sidebar={
@@ -89,6 +107,17 @@ export function FaqItemFormPage({ mode }: { mode: 'create' | 'edit' }) {
                 { label: 'Create route', value: 'POST /api/faqs/faq-item' },
                 { label: 'Update route', value: 'PUT /api/faqs/faq-item/{id}' },
                 { label: 'Associations', value: 'FAQ required, Content Ref optional' },
+                {
+                  label: 'Selected FAQ',
+                  value: selectedFaq?.name || (mode === 'create' ? 'Choose in form' : itemQuery.data?.faqId || 'Loading'),
+                },
+                {
+                  label: 'Selected content ref',
+                  value:
+                    selectedContentRef?.label ||
+                    selectedContentRef?.locator ||
+                    'Optional',
+                },
               ]}
             />
           </CardContent>
@@ -125,12 +154,18 @@ export function FaqItemFormPage({ mode }: { mode: 'create' | 'edit' }) {
 
                   if (mode === 'create') {
                     const createdId = await createFaqItem.mutateAsync(body);
-                    navigate(`/app/faq-items/${createdId}`);
+                    navigate(
+                      body.faqId ? `/app/faq/${body.faqId}/items/${createdId}` : '/app/faq',
+                    );
                     return;
                   }
 
                   await updateFaqItem.mutateAsync(body);
-                  navigate(`/app/faq-items/${id}`);
+                  navigate(
+                    body.faqId && resolvedItemId
+                      ? `/app/faq/${body.faqId}/items/${resolvedItemId}`
+                      : '/app/faq',
+                  );
                 })}
               >
                 <TextField control={form.control} name="question" label="Question" />
@@ -199,11 +234,7 @@ export function FaqItemFormPage({ mode }: { mode: 'create' | 'edit' }) {
                     {mode === 'create' ? 'Create FAQ item' : 'Save changes'}
                   </Button>
                   <Button asChild variant="outline">
-                    <Link
-                      to={mode === 'edit' && id ? `/app/faq-items/${id}` : '/app/faq-items'}
-                    >
-                      Cancel
-                    </Link>
+                    <Link to={backTo}>Cancel</Link>
                   </Button>
                 </div>
               </form>

@@ -6,6 +6,7 @@ using BaseFaq.Faq.Portal.Business.FaqItem.Queries.GetFaqItem;
 using BaseFaq.Faq.Portal.Business.FaqItem.Queries.GetFaqItemList;
 using BaseFaq.Faq.Portal.Test.IntegrationTests.Helpers;
 using BaseFaq.Models.Faq.Dtos.FaqItem;
+using BaseFaq.Models.Faq.Enums;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
 
@@ -451,5 +452,74 @@ public class FaqItemCommandQueryTests
         Assert.Equal(3, result.TotalCount);
         Assert.Single(result.Items);
         Assert.Equal("Bravo", result.Items[0].Question);
+    }
+
+    [Fact]
+    public async Task GetFaqItemList_FiltersByFaqContentRefActiveStateAndSearchText()
+    {
+        using var context = TestContext.Create();
+        var faqA = await TestDataFactory.SeedFaqAsync(context.DbContext, context.SessionService.TenantId, "FAQ A");
+        var faqB = await TestDataFactory.SeedFaqAsync(context.DbContext, context.SessionService.TenantId, "FAQ B");
+        var contentRefA = await TestDataFactory.SeedContentRefAsync(context.DbContext, context.SessionService.TenantId);
+        var contentRefB = await TestDataFactory.SeedContentRefAsync(
+            context.DbContext,
+            context.SessionService.TenantId,
+            ContentRefKind.Video,
+            "https://www.example.com/video");
+
+        var matching = new Common.Persistence.FaqDb.Entities.FaqItem
+        {
+            Question = "How does billing work?",
+            ShortAnswer = "Billing short answer",
+            Answer = "Billing answer",
+            AdditionalInfo = "Billing extra details",
+            CtaTitle = "Billing",
+            CtaUrl = "https://example.test/billing",
+            Sort = 1,
+            VoteScore = 10,
+            AiConfidenceScore = 90,
+            IsActive = true,
+            FaqId = faqA.Id,
+            ContentRefId = contentRefA.Id,
+            TenantId = context.SessionService.TenantId
+        };
+        var nonMatching = new Common.Persistence.FaqDb.Entities.FaqItem
+        {
+            Question = "How does support work?",
+            ShortAnswer = "Support short answer",
+            Answer = "Support answer",
+            AdditionalInfo = "Support extra details",
+            CtaTitle = "Support",
+            CtaUrl = "https://example.test/support",
+            Sort = 2,
+            VoteScore = 5,
+            AiConfidenceScore = 20,
+            IsActive = false,
+            FaqId = faqB.Id,
+            ContentRefId = contentRefB.Id,
+            TenantId = context.SessionService.TenantId
+        };
+
+        context.DbContext.FaqItems.AddRange(matching, nonMatching);
+        await context.DbContext.SaveChangesAsync();
+
+        var handler = new FaqItemsGetFaqItemListQueryHandler(context.DbContext);
+        var request = new FaqItemsGetFaqItemListQuery
+        {
+            Request = new FaqItemGetAllRequestDto
+            {
+                SkipCount = 0,
+                MaxResultCount = 10,
+                SearchText = "billing",
+                FaqId = faqA.Id,
+                ContentRefId = contentRefA.Id,
+                IsActive = true
+            }
+        };
+
+        var result = await handler.Handle(request, CancellationToken.None);
+
+        Assert.Single(result.Items);
+        Assert.Equal(matching.Id, result.Items[0].Id);
     }
 }

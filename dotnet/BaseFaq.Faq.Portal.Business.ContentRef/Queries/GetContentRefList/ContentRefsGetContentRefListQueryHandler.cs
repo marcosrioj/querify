@@ -18,6 +18,7 @@ public class ContentRefsGetContentRefListQueryHandler(FaqDbContext dbContext)
         ArgumentNullException.ThrowIfNull(request.Request);
 
         var query = dbContext.ContentRefs.AsNoTracking();
+        query = ApplyFilters(query, request.Request, dbContext);
         query = ApplySorting(query, request.Request.Sorting);
 
         var totalCount = await query.CountAsync(cancellationToken);
@@ -36,6 +37,47 @@ public class ContentRefsGetContentRefListQueryHandler(FaqDbContext dbContext)
             .ToListAsync(cancellationToken);
 
         return new PagedResultDto<ContentRefDto>(totalCount, items);
+    }
+
+    private static IQueryable<Common.Persistence.FaqDb.Entities.ContentRef> ApplyFilters(
+        IQueryable<Common.Persistence.FaqDb.Entities.ContentRef> query,
+        ContentRefGetAllRequestDto request,
+        FaqDbContext dbContext)
+    {
+        if (request.Kind.HasValue)
+        {
+            query = query.Where(contentRef => contentRef.Kind == request.Kind.Value);
+        }
+
+        if (request.FaqId.HasValue)
+        {
+            query = query.Where(contentRef =>
+                dbContext.FaqContentRefs.Any(faqContentRef =>
+                    faqContentRef.FaqId == request.FaqId.Value &&
+                    faqContentRef.ContentRefId == contentRef.Id) ||
+                dbContext.FaqItems.Any(faqItem =>
+                    faqItem.FaqId == request.FaqId.Value &&
+                    faqItem.ContentRefId == contentRef.Id));
+        }
+
+        if (request.FaqItemId.HasValue)
+        {
+            query = query.Where(contentRef =>
+                dbContext.FaqItems.Any(faqItem =>
+                    faqItem.Id == request.FaqItemId.Value &&
+                    faqItem.ContentRefId == contentRef.Id));
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.SearchText))
+        {
+            var pattern = $"%{request.SearchText.Trim()}%";
+            query = query.Where(contentRef =>
+                EF.Functions.ILike(contentRef.Locator, pattern) ||
+                (contentRef.Label != null && EF.Functions.ILike(contentRef.Label, pattern)) ||
+                (contentRef.Scope != null && EF.Functions.ILike(contentRef.Scope, pattern)));
+        }
+
+        return query;
     }
 
     private static IQueryable<Common.Persistence.FaqDb.Entities.ContentRef> ApplySorting(

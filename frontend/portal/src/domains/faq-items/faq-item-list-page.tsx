@@ -1,5 +1,5 @@
 import { Pencil, Plus, Trash2 } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useDeferredValue, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useFaqList } from '@/domains/faq/hooks';
 import { useContentRefList } from '@/domains/content-refs/hooks';
@@ -26,8 +26,23 @@ export function FaqItemListPage() {
   const [search, setSearch] = useState('');
   const [activeFilter, setActiveFilter] = useState('all');
   const [faqFilter, setFaqFilter] = useState('all');
+  const deferredSearch = useDeferredValue(search.trim());
+  const apiFaqId = faqFilter === 'all' ? undefined : faqFilter;
+  const apiIsActive =
+    activeFilter === 'all' ? undefined : activeFilter === 'true';
 
-  const faqItemQuery = useFaqItemList({ page, pageSize, sorting });
+  useEffect(() => {
+    setPage(1);
+  }, [apiFaqId, apiIsActive, deferredSearch, sorting]);
+
+  const faqItemQuery = useFaqItemList({
+    page,
+    pageSize,
+    sorting,
+    searchText: deferredSearch || undefined,
+    faqId: apiFaqId,
+    isActive: apiIsActive,
+  });
   const faqOptionsQuery = useFaqList({ page: 1, pageSize: 100, sorting: 'Name ASC' });
   const contentRefQuery = useContentRefList({
     page: 1,
@@ -52,19 +67,6 @@ export function FaqItemListPage() {
       ),
     [contentRefQuery.data?.items],
   );
-
-  const rows = useMemo(() => {
-    return (faqItemQuery.data?.items ?? []).filter((item) => {
-      const matchesSearch =
-        item.question.toLowerCase().includes(search.toLowerCase()) ||
-        item.shortAnswer.toLowerCase().includes(search.toLowerCase());
-      const matchesActive =
-        activeFilter === 'all' || String(item.isActive) === activeFilter;
-      const matchesFaq = faqFilter === 'all' || item.faqId === faqFilter;
-
-      return matchesSearch && matchesActive && matchesFaq;
-    });
-  }, [activeFilter, faqFilter, faqItemQuery.data?.items, search]);
 
   const columns: DataTableColumn<FaqItemDto>[] = [
     {
@@ -133,7 +135,7 @@ export function FaqItemListPage() {
         <PageHeader
           eyebrow="FAQ Items"
           title="FAQ Items"
-          description="Backed by the real FAQ Item Portal CRUD endpoints. Search and filters are client-side on the loaded page until the backend adds filter contracts."
+          description="Backed by the real FAQ Item Portal CRUD endpoints. Search, filters, sorting, and paging are API-driven."
           actions={
             <Button asChild>
               <Link to="/app/faq-items/new">
@@ -149,7 +151,7 @@ export function FaqItemListPage() {
           <Input
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search loaded FAQ items"
+            placeholder="Search FAQ items"
           />
           <Select value={faqFilter} onValueChange={setFaqFilter}>
             <SelectTrigger>
@@ -192,7 +194,7 @@ export function FaqItemListPage() {
       <DataTable
         title="Answer catalog"
         columns={columns}
-        rows={rows}
+        rows={faqItemQuery.data?.items ?? []}
         getRowId={(row) => row.id}
         loading={faqItemQuery.isLoading}
         onRowClick={(item) => navigate(`/app/faq-items/${item.id}`)}

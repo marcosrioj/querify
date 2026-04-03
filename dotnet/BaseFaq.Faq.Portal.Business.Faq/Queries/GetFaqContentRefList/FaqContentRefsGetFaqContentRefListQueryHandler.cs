@@ -17,6 +17,7 @@ public class FaqContentRefsGetFaqContentRefListQueryHandler(FaqDbContext dbConte
         ArgumentNullException.ThrowIfNull(request.Request);
 
         var query = dbContext.FaqContentRefs.AsNoTracking();
+        query = ApplyFilters(query, request.Request);
         query = ApplySorting(query, request.Request.Sorting);
 
         var totalCount = await query.CountAsync(cancellationToken);
@@ -33,6 +34,23 @@ public class FaqContentRefsGetFaqContentRefListQueryHandler(FaqDbContext dbConte
             .ToListAsync(cancellationToken);
 
         return new PagedResultDto<FaqContentRefDto>(totalCount, items);
+    }
+
+    private static IQueryable<Common.Persistence.FaqDb.Entities.FaqContentRef> ApplyFilters(
+        IQueryable<Common.Persistence.FaqDb.Entities.FaqContentRef> query,
+        FaqContentRefGetAllRequestDto request)
+    {
+        if (request.FaqId.HasValue)
+        {
+            query = query.Where(faqContentRef => faqContentRef.FaqId == request.FaqId.Value);
+        }
+
+        if (request.ContentRefId.HasValue)
+        {
+            query = query.Where(faqContentRef => faqContentRef.ContentRefId == request.ContentRefId.Value);
+        }
+
+        return query;
     }
 
     private static IQueryable<Common.Persistence.FaqDb.Entities.FaqContentRef> ApplySorting(

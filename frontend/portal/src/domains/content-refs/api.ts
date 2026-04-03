@@ -10,16 +10,35 @@ import { toPagedQuery } from '@/shared/lib/pagination';
 export function listContentRefs(
   accessToken: string | undefined,
   tenantId: string | undefined,
-  page: number,
-  pageSize: number,
-  sorting?: string,
+  {
+    page,
+    pageSize,
+    sorting,
+    searchText,
+    kind,
+    faqId,
+    faqItemId,
+  }: {
+    page: number;
+    pageSize: number;
+    sorting?: string;
+    searchText?: string;
+    kind?: number;
+    faqId?: string;
+    faqItemId?: string;
+  },
 ) {
   return portalRequest<PagedResultDto<ContentRefDto>>({
     service: 'faq',
     path: '/api/faqs/content-ref',
     accessToken: requireAccessToken(accessToken),
     tenantId: requireTenantId(tenantId),
-    query: toPagedQuery(page, pageSize, sorting),
+    query: toPagedQuery(page, pageSize, sorting, {
+      SearchText: searchText,
+      Kind: kind,
+      FaqId: faqId,
+      FaqItemId: faqItemId,
+    }),
   });
 }
 

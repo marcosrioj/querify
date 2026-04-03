@@ -279,4 +279,47 @@ public class ContentRefCommandQueryTests
         Assert.Single(result.Items);
         Assert.Equal("https://www.example.com/content/b-locator", result.Items[0].Locator);
     }
+
+    [Fact]
+    public async Task GetContentRefList_FiltersByFaqKindAndSearchText()
+    {
+        using var context = TestContext.Create();
+        var faq = await TestDataFactory.SeedFaqAsync(context.DbContext, context.SessionService.TenantId);
+        var matching = await TestDataFactory.SeedContentRefAsync(
+            context.DbContext,
+            context.SessionService.TenantId,
+            ContentRefKind.Web,
+            "https://www.example.com/billing");
+        matching.Label = "Billing docs";
+        var nonMatching = await TestDataFactory.SeedContentRefAsync(
+            context.DbContext,
+            context.SessionService.TenantId,
+            ContentRefKind.Video,
+            "https://www.example.com/support");
+        nonMatching.Label = "Support video";
+        await context.DbContext.SaveChangesAsync();
+        await TestDataFactory.SeedFaqContentRefAsync(
+            context.DbContext,
+            context.SessionService.TenantId,
+            faq.Id,
+            matching.Id);
+
+        var handler = new ContentRefsGetContentRefListQueryHandler(context.DbContext);
+        var request = new ContentRefsGetContentRefListQuery
+        {
+            Request = new ContentRefGetAllRequestDto
+            {
+                SkipCount = 0,
+                MaxResultCount = 10,
+                SearchText = "billing",
+                Kind = ContentRefKind.Web,
+                FaqId = faq.Id
+            }
+        };
+
+        var result = await handler.Handle(request, CancellationToken.None);
+
+        Assert.Single(result.Items);
+        Assert.Equal(matching.Id, result.Items[0].Id);
+    }
 }

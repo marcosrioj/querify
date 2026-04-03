@@ -6,16 +6,32 @@ import { toPagedQuery } from '@/shared/lib/pagination';
 export function listFaqs(
   accessToken: string | undefined,
   tenantId: string | undefined,
-  page: number,
-  pageSize: number,
-  sorting?: string,
+  {
+    page,
+    pageSize,
+    sorting,
+    searchText,
+    status,
+    faqIds,
+  }: {
+    page: number;
+    pageSize: number;
+    sorting?: string;
+    searchText?: string;
+    status?: number;
+    faqIds?: string[];
+  },
 ) {
   return portalRequest<PagedResultDto<FaqDto>>({
     service: 'faq',
     path: '/api/faqs/faq',
     accessToken: requireAccessToken(accessToken),
     tenantId: requireTenantId(tenantId),
-    query: toPagedQuery(page, pageSize, sorting),
+    query: toPagedQuery(page, pageSize, sorting, {
+      SearchText: searchText,
+      Status: status,
+      FaqIds: faqIds,
+    }),
   });
 }
 

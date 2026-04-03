@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useContentRef, useCreateContentRef, useUpdateContentRef } from '@/domains/content-refs/hooks';
 import { contentRefFormSchema, type ContentRefFormValues } from '@/domains/content-refs/schemas';
 import {
@@ -15,10 +15,22 @@ import { SelectField, TextField } from '@/shared/ui/form-fields';
 
 export function ContentRefFormPage({ mode }: { mode: 'create' | 'edit' }) {
   const navigate = useNavigate();
-  const { id } = useParams();
-  const contentRefQuery = useContentRef(mode === 'edit' ? id : undefined);
+  const { id: faqId, contentRefId } = useParams();
+  const [searchParams] = useSearchParams();
+  const originatingFaqItemId = searchParams.get('faqItemId') ?? '';
+  const resolvedContentRefId = contentRefId;
+  const contentRefQuery = useContentRef(mode === 'edit' ? resolvedContentRefId : undefined);
   const createContentRef = useCreateContentRef();
-  const updateContentRef = useUpdateContentRef(id ?? '');
+  const updateContentRef = useUpdateContentRef(resolvedContentRefId ?? '');
+  const backTo = faqId ? `/app/faq/${faqId}` : '/app/faq';
+  const detailPath =
+    mode === 'edit' && faqId && resolvedContentRefId
+      ? `/app/faq/${faqId}/content-refs/${resolvedContentRefId}`
+      : backTo;
+  const buildDetailPath = (nextContentRefId: string) =>
+    faqId
+      ? `/app/faq/${faqId}/content-refs/${nextContentRefId}${originatingFaqItemId ? `?faqItemId=${originatingFaqItemId}` : ''}`
+      : '/app/faq';
 
   const form = useForm<ContentRefFormValues>({
     resolver: zodResolver(contentRefFormSchema),
@@ -52,7 +64,7 @@ export function ContentRefFormPage({ mode }: { mode: 'create' | 'edit' }) {
           eyebrow="Content Refs"
           title={mode === 'create' ? 'Create content ref' : 'Edit content ref'}
           description="These fields map directly to the real Content Ref DTOs."
-          backTo={mode === 'edit' && id ? `/app/content-refs/${id}` : '/app/content-refs'}
+          backTo={detailPath}
         />
       }
       sidebar={
@@ -103,12 +115,12 @@ export function ContentRefFormPage({ mode }: { mode: 'create' | 'edit' }) {
 
                   if (mode === 'create') {
                     const createdId = await createContentRef.mutateAsync(body);
-                    navigate(`/app/content-refs/${createdId}`);
+                    navigate(buildDetailPath(createdId));
                     return;
                   }
 
                   await updateContentRef.mutateAsync(body);
-                  navigate(`/app/content-refs/${id}`);
+                  navigate(detailPath);
                 })}
               >
                 <SelectField
@@ -135,13 +147,7 @@ export function ContentRefFormPage({ mode }: { mode: 'create' | 'edit' }) {
                     {mode === 'create' ? 'Create content ref' : 'Save changes'}
                   </Button>
                   <Button asChild variant="outline">
-                    <Link
-                      to={
-                        mode === 'edit' && id ? `/app/content-refs/${id}` : '/app/content-refs'
-                      }
-                    >
-                      Cancel
-                    </Link>
+                    <Link to={detailPath}>Cancel</Link>
                   </Button>
                 </div>
               </form>

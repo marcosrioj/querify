@@ -16,8 +16,15 @@ import { useTenant } from '@/platform/tenant/tenant-context';
 
 export const contentRefKeys = {
   all: ['portal', 'content-refs'] as const,
-  list: (page: number, pageSize: number, sorting?: string) =>
-    [...contentRefKeys.all, 'list', page, pageSize, sorting] as const,
+  list: (params: {
+    page: number;
+    pageSize: number;
+    sorting?: string;
+    searchText?: string;
+    kind?: number;
+    faqId?: string;
+    faqItemId?: string;
+  }) => [...contentRefKeys.all, 'list', params] as const,
   detail: (id: string) => [...contentRefKeys.all, 'detail', id] as const,
 };
 
@@ -25,18 +32,27 @@ export function useContentRefList({
   page,
   pageSize,
   sorting,
+  searchText,
+  kind,
+  faqId,
+  faqItemId,
 }: {
   page: number;
   pageSize: number;
   sorting?: string;
+  searchText?: string;
+  kind?: number;
+  faqId?: string;
+  faqItemId?: string;
 }) {
   const { session, status } = useAuth();
   const { currentTenantId } = useTenant();
+  const params = { page, pageSize, sorting, searchText, kind, faqId, faqItemId };
 
   return useQuery({
-    queryKey: contentRefKeys.list(page, pageSize, sorting),
+    queryKey: contentRefKeys.list(params),
     queryFn: () =>
-      listContentRefs(session?.accessToken, currentTenantId, page, pageSize, sorting),
+      listContentRefs(session?.accessToken, currentTenantId, params),
     enabled: status === 'ready' && Boolean(currentTenantId),
     placeholderData: (previous) => previous,
   });

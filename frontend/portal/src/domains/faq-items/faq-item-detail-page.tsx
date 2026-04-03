@@ -1,30 +1,63 @@
-import { Pencil, Trash2 } from 'lucide-react';
+import { Link2, Pencil, Trash2 } from 'lucide-react';
+import { useMemo } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useFaqList } from '@/domains/faq/hooks';
-import { useContentRefList } from '@/domains/content-refs/hooks';
+import { useContentRef } from '@/domains/content-refs/hooks';
 import { useDeleteFaqItem, useFaqItem } from '@/domains/faq-items/hooks';
-import { DetailLayout, KeyValueList, PageHeader } from '@/shared/layout/page-layouts';
+import { DetailLayout, KeyValueList, PageHeader, SectionGrid } from '@/shared/layout/page-layouts';
 import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui';
 import { EmptyState, ErrorState } from '@/shared/ui/placeholder-state';
+import { ContentRefKindBadge } from '@/shared/ui/status-badges';
 
 export function FaqItemDetailPage() {
   const navigate = useNavigate();
-  const { id } = useParams();
-  const itemQuery = useFaqItem(id);
-  const faqOptionsQuery = useFaqList({ page: 1, pageSize: 100, sorting: 'Name ASC' });
-  const contentRefQuery = useContentRefList({
+  const { id: faqId, itemId } = useParams();
+  const resolvedItemId = itemId;
+  const itemQuery = useFaqItem(resolvedItemId);
+  const faqOptionsQuery = useFaqList({
     page: 1,
-    pageSize: 100,
-    sorting: 'Label ASC',
+    pageSize: 1,
+    sorting: 'Name ASC',
+    faqIds: itemQuery.data?.faqId ? [itemQuery.data.faqId] : faqId ? [faqId] : undefined,
   });
+  const linkedContentRefQuery = useContentRef(itemQuery.data?.contentRefId);
   const deleteFaqItem = useDeleteFaqItem();
 
-  const faqName = faqOptionsQuery.data?.items.find((faq) => faq.id === itemQuery.data?.faqId)?.name;
-  const contentRefLabel = contentRefQuery.data?.items.find(
-    (contentRef) => contentRef.id === itemQuery.data?.contentRefId,
+  const parentFaq = faqOptionsQuery.data?.items.find(
+    (faq) => faq.id === itemQuery.data?.faqId,
   );
+  const resolvedFaqId = faqId ?? parentFaq?.id ?? itemQuery.data?.faqId;
+  const linkedContentRef = linkedContentRefQuery.data;
+  const backTo = resolvedFaqId ? `/app/faq/${resolvedFaqId}` : '/app/faq';
+  const editPath =
+    resolvedFaqId && resolvedItemId
+      ? `/app/faq/${resolvedFaqId}/items/${resolvedItemId}/edit`
+      : backTo;
+  const contentRefPath =
+    linkedContentRef && resolvedFaqId
+      ? `/app/faq/${resolvedFaqId}/content-refs/${linkedContentRef.id}`
+      : '';
+  const createContentRefPath =
+    resolvedFaqId && resolvedItemId
+      ? `/app/faq/${resolvedFaqId}/content-refs/new?faqItemId=${resolvedItemId}`
+      : backTo;
+  const answerState = useMemo(() => {
+    if (!itemQuery.data) {
+      return 'Loading';
+    }
 
-  if (!id) {
+    if (itemQuery.data.answer && itemQuery.data.additionalInfo) {
+      return 'Full answer package';
+    }
+
+    if (itemQuery.data.answer) {
+      return 'Expanded answer';
+    }
+
+    return 'Short answer only';
+  }, [itemQuery.data]);
+
+  if (!resolvedItemId) {
     return (
       <ErrorState
         title="Invalid FAQ item route"
@@ -40,11 +73,26 @@ export function FaqItemDetailPage() {
           eyebrow="FAQ Items"
           title={itemQuery.data?.question ?? 'FAQ item detail'}
           description="This detail screen is backed by the live FAQ Item endpoint."
-          backTo="/app/faq-items"
+          backTo={backTo}
           actions={
             <>
+              {resolvedFaqId ? (
+                <Button asChild>
+                  <Link to={`/app/faq/${resolvedFaqId}`}>
+                    <Link2 className="size-4" />
+                    Open FAQ
+                  </Link>
+                </Button>
+              ) : null}
+              {contentRefPath ? (
+                <Button asChild variant="outline">
+                  <Link to={contentRefPath}>
+                    Source material
+                  </Link>
+                </Button>
+              ) : null}
               <Button asChild variant="outline">
-                <Link to={`/app/faq-items/${id}/edit`}>
+                <Link to={editPath}>
                   <Pencil className="size-4" />
                   Edit
                 </Link>
@@ -53,7 +101,7 @@ export function FaqItemDetailPage() {
                 variant="destructive"
                 onClick={() => {
                   if (itemQuery.data && window.confirm(`Delete FAQ item "${itemQuery.data.question}"?`)) {
-                    void deleteFaqItem.mutateAsync(id).then(() => navigate('/app/faq-items'));
+                    void deleteFaqItem.mutateAsync(resolvedItemId).then(() => navigate(backTo));
                   }
                 }}
               >
@@ -82,11 +130,11 @@ export function FaqItemDetailPage() {
                       </Badge>
                     ),
                   },
-                  { label: 'FAQ', value: faqName ?? itemQuery.data.faqId },
+                  { label: 'FAQ', value: parentFaq?.name ?? itemQuery.data.faqId },
                   {
                     label: 'Content ref',
                     value:
-                      contentRefLabel?.label || contentRefLabel?.locator || 'None linked',
+                      linkedContentRef?.label || linkedContentRef?.locator || 'None linked',
                   },
                   { label: 'Sort', value: String(itemQuery.data.sort) },
                   { label: 'Vote score', value: String(itemQuery.data.voteScore) },
@@ -109,9 +157,40 @@ export function FaqItemDetailPage() {
         />
       ) : itemQuery.data ? (
         <>
+          <SectionGrid
+            items={[
+              {
+                title: 'Answer package',
+                value: answerState,
+                description: 'How much response content is currently authored',
+              },
+              {
+                title: 'CTA',
+                value: itemQuery.data.ctaUrl ? 'Configured' : 'Missing',
+                description:
+                  itemQuery.data.ctaTitle || itemQuery.data.ctaUrl
+                    ? 'This answer can drive a next step'
+                    : 'No CTA configured for this answer',
+              },
+              {
+                title: 'Source material',
+                value: linkedContentRef ? 'Linked' : 'Missing',
+                description:
+                  linkedContentRef
+                    ? 'Generation can use the connected content ref'
+                    : 'Attach a content ref for better generation quality',
+              },
+              {
+                title: 'Parent FAQ',
+                value: parentFaq?.name ?? 'Unknown FAQ',
+                description: 'This answer belongs to the FAQ shown here',
+              },
+            ]}
+          />
+
           <Card>
             <CardHeader>
-              <CardTitle>Answer content</CardTitle>
+              <CardTitle>Answer package</CardTitle>
               <CardDescription>
                 `answer`, `additionalInfo`, and CTA fields are stored directly on the FAQ Item entity.
               </CardDescription>
@@ -158,6 +237,67 @@ export function FaqItemDetailPage() {
                   description="Add a CTA title and URL if this answer should drive an external action."
                 />
               )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Relationship context</CardTitle>
+              <CardDescription>
+                This is where the answer sits in the knowledge workflow.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-4 md:grid-cols-2">
+              <div className="rounded-2xl border border-border p-4">
+                <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
+                  Parent FAQ
+                </p>
+                <p className="mt-2 font-medium text-mono">
+                  {parentFaq?.name ?? itemQuery.data.faqId}
+                </p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  The answer inherits visibility and workflow context from this FAQ.
+                </p>
+                {parentFaq ? (
+                  <Button asChild variant="outline" size="sm" className="mt-4">
+                    <Link to={backTo}>Open FAQ</Link>
+                  </Button>
+                ) : null}
+              </div>
+
+              <div className="rounded-2xl border border-border p-4">
+                <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
+                  Source material
+                </p>
+                {linkedContentRef ? (
+                  <>
+                    <div className="mt-2 flex flex-wrap items-center gap-2">
+                      <p className="font-medium text-mono">
+                        {linkedContentRef.label || 'Untitled content ref'}
+                      </p>
+                      <ContentRefKindBadge kind={linkedContentRef.kind} />
+                    </div>
+                    <p className="mt-1 break-all text-sm text-muted-foreground">
+                      {linkedContentRef.locator}
+                    </p>
+                    <Button asChild variant="outline" size="sm" className="mt-4">
+                      <Link to={contentRefPath}>
+                        Open content ref
+                      </Link>
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <p className="mt-2 font-medium text-mono">No content ref linked</p>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Link source material to improve generation quality and answer traceability.
+                    </p>
+                    <Button asChild variant="outline" size="sm" className="mt-4">
+                      <Link to={createContentRefPath}>Create source material</Link>
+                    </Button>
+                  </>
+                )}
+              </div>
             </CardContent>
           </Card>
         </>

@@ -14,8 +14,14 @@ import { useTenant } from '@/platform/tenant/tenant-context';
 
 export const faqKeys = {
   all: ['portal', 'faq'] as const,
-  list: (page: number, pageSize: number, sorting?: string) =>
-    [...faqKeys.all, 'list', page, pageSize, sorting] as const,
+  list: (params: {
+    page: number;
+    pageSize: number;
+    sorting?: string;
+    searchText?: string;
+    status?: number;
+    faqIds?: string[];
+  }) => [...faqKeys.all, 'list', params] as const,
   detail: (id: string) => [...faqKeys.all, 'detail', id] as const,
 };
 
@@ -23,19 +29,26 @@ export function useFaqList({
   page,
   pageSize,
   sorting,
+  searchText,
+  status: faqStatus,
+  faqIds,
 }: {
   page: number;
   pageSize: number;
   sorting?: string;
+  searchText?: string;
+  status?: number;
+  faqIds?: string[];
 }) {
-  const { session, status } = useAuth();
+  const { session, status: authStatus } = useAuth();
   const { currentTenantId } = useTenant();
+  const params = { page, pageSize, sorting, searchText, status: faqStatus, faqIds };
 
   return useQuery({
-    queryKey: faqKeys.list(page, pageSize, sorting),
+    queryKey: faqKeys.list(params),
     queryFn: () =>
-      listFaqs(session?.accessToken, currentTenantId, page, pageSize, sorting),
-    enabled: status === 'ready' && Boolean(currentTenantId),
+      listFaqs(session?.accessToken, currentTenantId, params),
+    enabled: authStatus === 'ready' && Boolean(currentTenantId),
     placeholderData: (previous) => previous,
   });
 }

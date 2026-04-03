@@ -201,4 +201,40 @@ public class FaqCommandQueryTests
         Assert.Equal(2, result.TotalCount);
         Assert.Equal(first.Id, result.Items[0].Id);
     }
+
+    [Fact]
+    public async Task GetFaqList_FiltersByFaqIdsStatusAndSearchText()
+    {
+        using var context = TestContext.Create();
+        var matching = await TestDataFactory.SeedFaqAsync(
+            context.DbContext,
+            context.SessionService.TenantId,
+            "Billing FAQ",
+            "en-US",
+            FaqStatus.Published);
+        await TestDataFactory.SeedFaqAsync(
+            context.DbContext,
+            context.SessionService.TenantId,
+            "Support FAQ",
+            "pt-BR",
+            FaqStatus.Draft);
+
+        var handler = new FaqsGetFaqListQueryHandler(context.DbContext);
+        var request = new FaqsGetFaqListQuery
+        {
+            Request = new FaqGetAllRequestDto
+            {
+                SkipCount = 0,
+                MaxResultCount = 10,
+                SearchText = "billing",
+                Status = FaqStatus.Published,
+                FaqIds = [matching.Id]
+            }
+        };
+
+        var result = await handler.Handle(request, CancellationToken.None);
+
+        Assert.Single(result.Items);
+        Assert.Equal(matching.Id, result.Items[0].Id);
+    }
 }

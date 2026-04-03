@@ -25,7 +25,40 @@ public class FaqItemsGetFaqItemListQueryHandler(FaqDbContext dbContext)
     private IQueryable<Common.Persistence.FaqDb.Entities.FaqItem> BuildSortedQuery(FaqItemsGetFaqItemListQuery request)
     {
         var query = dbContext.FaqItems.AsNoTracking();
+        query = ApplyFilters(query, request.Request);
         return ApplySorting(query, request.Request.Sorting);
+    }
+
+    private static IQueryable<Common.Persistence.FaqDb.Entities.FaqItem> ApplyFilters(
+        IQueryable<Common.Persistence.FaqDb.Entities.FaqItem> query,
+        FaqItemGetAllRequestDto request)
+    {
+        if (request.FaqId.HasValue)
+        {
+            query = query.Where(item => item.FaqId == request.FaqId.Value);
+        }
+
+        if (request.ContentRefId.HasValue)
+        {
+            query = query.Where(item => item.ContentRefId == request.ContentRefId.Value);
+        }
+
+        if (request.IsActive.HasValue)
+        {
+            query = query.Where(item => item.IsActive == request.IsActive.Value);
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.SearchText))
+        {
+            var pattern = $"%{request.SearchText.Trim()}%";
+            query = query.Where(item =>
+                EF.Functions.ILike(item.Question, pattern) ||
+                EF.Functions.ILike(item.ShortAnswer, pattern) ||
+                (item.Answer != null && EF.Functions.ILike(item.Answer, pattern)) ||
+                (item.AdditionalInfo != null && EF.Functions.ILike(item.AdditionalInfo, pattern)));
+        }
+
+        return query;
     }
 
     private static async Task<List<FaqItemDto>> LoadItemsAsync(

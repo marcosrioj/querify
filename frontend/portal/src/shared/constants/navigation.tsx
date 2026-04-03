@@ -2,9 +2,7 @@ import {
   Bot,
   CircleDollarSign,
   FileQuestion,
-  Files,
   Gauge,
-  MessageSquareQuote,
   Settings,
   Users,
 } from 'lucide-react';
@@ -28,23 +26,9 @@ export const portalNavigation: NavigationItem[] = [
   {
     key: 'faq',
     label: 'FAQs',
-    description: 'Tenant FAQ products',
+    description: 'Knowledge base, answers, and source material',
     path: '/app/faq',
     icon: FileQuestion,
-  },
-  {
-    key: 'faq-items',
-    label: 'FAQ Items',
-    description: 'Answer catalog and associations',
-    path: '/app/faq-items',
-    icon: MessageSquareQuote,
-  },
-  {
-    key: 'content-refs',
-    label: 'Content Refs',
-    description: 'Reusable source materials',
-    path: '/app/content-refs',
-    icon: Files,
   },
   {
     key: 'members',

@@ -12,9 +12,9 @@ import {
 
 const shortcuts = [
   { label: 'Go to dashboard', to: '/app/dashboard' },
-  { label: 'Open FAQs', to: '/app/faq' },
-  { label: 'Open FAQ items', to: '/app/faq-items' },
-  { label: 'Open content refs', to: '/app/content-refs' },
+  { label: 'Open FAQ workspace', to: '/app/faq' },
+  { label: 'Create FAQ', to: '/app/faq/new' },
+  { label: 'Open billing', to: '/app/billing' },
 ];
 
 export function PortalCommandDialog({

@@ -15,6 +15,7 @@ public class FaqsGetFaqListQueryHandler(FaqDbContext dbContext)
         ArgumentNullException.ThrowIfNull(request.Request);
 
         var query = dbContext.Faqs.AsNoTracking();
+        query = ApplyFilters(query, request.Request);
         query = ApplySorting(query, request.Request.Sorting);
 
         var totalCount = await query.CountAsync(cancellationToken);
@@ -35,6 +36,31 @@ public class FaqsGetFaqListQueryHandler(FaqDbContext dbContext)
             .ToListAsync(cancellationToken);
 
         return new PagedResultDto<FaqDto>(totalCount, items);
+    }
+
+    private static IQueryable<Common.Persistence.FaqDb.Entities.Faq> ApplyFilters(
+        IQueryable<Common.Persistence.FaqDb.Entities.Faq> query,
+        FaqGetAllRequestDto request)
+    {
+        if (request.FaqIds is { Count: > 0 })
+        {
+            query = query.Where(faq => request.FaqIds.Contains(faq.Id));
+        }
+
+        if (request.Status.HasValue)
+        {
+            query = query.Where(faq => faq.Status == request.Status.Value);
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.SearchText))
+        {
+            var pattern = $"%{request.SearchText.Trim()}%";
+            query = query.Where(faq =>
+                EF.Functions.ILike(faq.Name, pattern) ||
+                EF.Functions.ILike(faq.Language, pattern));
+        }
+
+        return query;
     }
 
     private static IQueryable<Common.Persistence.FaqDb.Entities.Faq> ApplySorting(

@@ -10,16 +10,35 @@ import { toPagedQuery } from '@/shared/lib/pagination';
 export function listFaqItems(
   accessToken: string | undefined,
   tenantId: string | undefined,
-  page: number,
-  pageSize: number,
-  sorting?: string,
+  {
+    page,
+    pageSize,
+    sorting,
+    searchText,
+    faqId,
+    contentRefId,
+    isActive,
+  }: {
+    page: number;
+    pageSize: number;
+    sorting?: string;
+    searchText?: string;
+    faqId?: string;
+    contentRefId?: string;
+    isActive?: boolean;
+  },
 ) {
   return portalRequest<PagedResultDto<FaqItemDto>>({
     service: 'faq',
     path: '/api/faqs/faq-item',
     accessToken: requireAccessToken(accessToken),
     tenantId: requireTenantId(tenantId),
-    query: toPagedQuery(page, pageSize, sorting),
+    query: toPagedQuery(page, pageSize, sorting, {
+      SearchText: searchText,
+      FaqId: faqId,
+      ContentRefId: contentRefId,
+      IsActive: isActive,
+    }),
   });
 }
 

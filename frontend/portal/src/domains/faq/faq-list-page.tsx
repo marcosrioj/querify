@@ -1,6 +1,6 @@
 import { Pencil, Plus, Trash2, WandSparkles } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useMemo, useState } from 'react';
+import { useDeferredValue, useEffect, useState } from 'react';
 import { useDeleteFaq, useFaqList, useRequestFaqGeneration } from '@/domains/faq/hooks';
 import { faqStatusLabels, FaqStatus, faqSortStrategyLabels } from '@/shared/constants/backend-enums';
 import { FaqDto } from '@/domains/faq/types';
@@ -25,22 +25,22 @@ export function FaqListPage() {
   const [sorting, setSorting] = useState('UpdatedDate DESC');
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const deferredSearch = useDeferredValue(search.trim());
+  const apiStatus = statusFilter === 'all' ? undefined : Number(statusFilter);
 
-  const faqQuery = useFaqList({ page, pageSize, sorting });
+  useEffect(() => {
+    setPage(1);
+  }, [apiStatus, deferredSearch, sorting]);
+
+  const faqQuery = useFaqList({
+    page,
+    pageSize,
+    sorting,
+    searchText: deferredSearch || undefined,
+    status: apiStatus,
+  });
   const deleteFaq = useDeleteFaq();
   const requestGeneration = useRequestFaqGeneration();
-
-  const rows = useMemo(() => {
-    return (faqQuery.data?.items ?? []).filter((faq) => {
-      const matchesSearch =
-        faq.name.toLowerCase().includes(search.toLowerCase()) ||
-        faq.language.toLowerCase().includes(search.toLowerCase());
-      const matchesStatus =
-        statusFilter === 'all' || faq.status === Number(statusFilter);
-
-      return matchesSearch && matchesStatus;
-    });
-  }, [faqQuery.data?.items, search, statusFilter]);
 
   const columns: DataTableColumn<FaqDto>[] = [
     {
@@ -113,7 +113,7 @@ export function FaqListPage() {
         <PageHeader
           eyebrow="FAQ"
           title="FAQs"
-          description="Backed by the real FAQ Portal CRUD endpoints. Sorting and paging are server-driven; text search is client-side on the loaded page until the backend exposes filter contracts."
+          description="Backed by the real FAQ Portal CRUD endpoints. Search, status filtering, sorting, and paging are all API-driven."
           actions={
             <Button asChild>
               <Link to="/app/faq/new">
@@ -129,7 +129,7 @@ export function FaqListPage() {
           <Input
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search loaded FAQs"
+            placeholder="Search FAQs"
           />
           <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger>
@@ -161,9 +161,9 @@ export function FaqListPage() {
     >
       <DataTable
         title="Catalog"
-        description="Current page filters are local because the API does not yet expose FAQ search parameters."
+        description="Results reflect the current API query state."
         columns={columns}
-        rows={rows}
+        rows={faqQuery.data?.items ?? []}
         getRowId={(row) => row.id}
         loading={faqQuery.isLoading}
         onRowClick={(faq) => navigate(`/app/faq/${faq.id}`)}
