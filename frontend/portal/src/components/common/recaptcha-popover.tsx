@@ -21,7 +21,7 @@ export function RecaptchaPopover({
   verifyButtonText = 'Verify & Submit',
 }: RecaptchaPopoverProps) {
   const { containerRef, getToken, resetCaptcha, initializeRecaptcha } =
-    useRecaptchaV2(process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || '');
+    useRecaptchaV2(import.meta.env.VITE_RECAPTCHA_SITE_KEY || '');
 
   const handleOpenChange = (newOpen: boolean) => {
     onOpenChange(newOpen);

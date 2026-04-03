@@ -1,20 +1,27 @@
 import React, { useEffect, useState } from 'react';
-import { SupabaseAdapter } from '@/auth/adapters/supabase-adapter';
 
 /**
  * A simple component that displays the status of the Supabase connection.
  * This can be used during development to verify that Supabase is properly connected.
  */
-export const SupabaseStatus: React.FC = () => {
+export const SupabaseStatus: React.FC<{
+  checkConnection?: () => Promise<boolean>;
+}> = ({ checkConnection }) => {
   const [status, setStatus] = useState<'checking' | 'connected' | 'error'>(
     'checking',
   );
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const checkConnection = async () => {
+    const runConnectionCheck = async () => {
+      if (!checkConnection) {
+        setStatus('error');
+        setError('No Supabase adapter has been configured for this app.');
+        return;
+      }
+
       try {
-        const isAvailable = await SupabaseAdapter.isAvailable();
+        const isAvailable = await checkConnection();
         if (isAvailable) {
           setStatus('connected');
         } else {
@@ -27,8 +34,8 @@ export const SupabaseStatus: React.FC = () => {
       }
     };
 
-    checkConnection();
-  }, []);
+    void runConnectionCheck();
+  }, [checkConnection]);
 
   return (
     <div className="p-4 rounded-md border">

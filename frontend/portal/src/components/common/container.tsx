@@ -1,7 +1,6 @@
 import { type ReactNode } from 'react';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
-import { useSettings } from '@/providers/settings-provider';
 
 const containerVariants = cva('w-full mx-auto px-4 lg:px-6', {
   variants: {
@@ -22,8 +21,7 @@ export interface ContainerProps extends VariantProps<typeof containerVariants> {
 }
 
 export function Container({ children, width, className = '' }: ContainerProps) {
-  const { settings } = useSettings();
-  const effectiveWidth = width ?? settings.container ?? 'fixed';
+  const effectiveWidth = width ?? 'fixed';
 
   return (
     <div
