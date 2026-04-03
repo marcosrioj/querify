@@ -226,7 +226,17 @@ Then you can use this in tenant connection strings:
 Host=host.docker.internal;Port=5432;Database=bf_faq_db_01;Username=postgres;Password=Pass123$;
 ```
 
-## Step 3) Run APIs locally
+## Step 3) Run app hosts locally
+Portal frontend:
+
+```bash
+cd apps/portal
+npm run dev
+```
+
+Endpoint:
+- HTTP: `http://localhost:5500`
+
 FAQ Portal API:
 
 ```bash
@@ -282,8 +292,8 @@ Endpoints:
 - HTTP: `http://localhost:5030`
 - HTTPS: `https://localhost:5031`
 
-## Step 4) (Optional) Run APIs in Docker
-APIs (Docker):
+## Step 4) (Optional) Run app/API services in Docker
+App/API services (Docker):
 
 ```bash
 docker compose -p bf_services -f docker/docker-compose.yml up -d --build
@@ -291,6 +301,7 @@ docker compose -p bf_services -f docker/docker-compose.yml up -d --build
 
 This compose file:
 - Runs these services:
+  - `basefaq.portal.app`
   - `basefaq.faq.portal.api`
   - `basefaq.tenant.backoffice.api`
   - `basefaq.tenant.portal.api`
@@ -299,7 +310,7 @@ This compose file:
 - Wires the service to the `bf-network` network created by the base services.
 - Uses the repo root as the build context, so run the command from the repo root.
 
-If you run APIs in Docker, this repo defaults to `host.docker.internal` in `appsettings.json` so the same values work for host + Docker.
+If you run app/API services in Docker, this repo defaults to `host.docker.internal` in `appsettings.json` so the same values work for host + Docker.
 
 ## Step 5) Telemetry (OpenTelemetry)
 - Shared baseline lives in `dotnet/BaseFaq.Common.Infrasctructure.Telemetry`.
@@ -338,6 +349,7 @@ Note: the script removes the BaseFaq Docker images and prunes dangling Docker im
 - Grafana UI: `http://localhost:3000` (default `admin` / `admin`)
 - RabbitMQ Exporter metrics endpoint: `http://localhost:9419/metrics`
 - Redis: `localhost:6379`
+- Portal app (local/Docker): `http://localhost:5500`
 - FAQ Portal API (Docker): `http://localhost:5010`
 - Tenant Back Office API (Docker): `http://localhost:5000`
 - Tenant Portal API (Docker): `http://localhost:5002`
@@ -419,6 +431,10 @@ Create a Single Page Application:
 - Allowed Web Origins: `http://localhost:5010`, `http://localhost:5000`, `http://localhost:5002`
 - Ensure the app is public (no client secret required)
 - In the app's **APIs** tab, authorize access to your API identifier (Audience)
+
+If you also plan to use the Portal frontend in `apps/portal`, create or update a dedicated Portal SPA client with:
+- Allowed Callback URL: `http://localhost:5500/login`
+- Allowed Web Origin: `http://localhost:5500`
 
 ### 3) Configure BaseFaq apps
 Edit `dotnet/BaseFaq.Faq.Portal.Api/appsettings.json`, `dotnet/BaseFaq.Tenant.BackOffice.Api/appsettings.json`, and `dotnet/BaseFaq.Tenant.Portal.Api/appsettings.json`:

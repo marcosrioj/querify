@@ -54,8 +54,8 @@ cp .env.example .env
 Set `VITE_AUTH0_CLIENT_ID` to a real Portal SPA Auth0 client before expecting live sign-in to work.
 
 For local Portal login, the Auth0 application must allow:
-- Callback URL: `http://localhost:5173/login`
-- Web Origin: `http://localhost:5173`
+- Callback URL: `http://localhost:5500/login`
+- Web Origin: `http://localhost:5500`
 
 Do not reuse the backend `SwaggerOptions:swaggerAuth:ClientId` value as the Portal SPA client unless that Auth0 application has also been updated to allow the Portal callback URL above. The backend README documents that client for Swagger UI callback pages on ports `5000`, `5002`, and `5010`.
 
@@ -64,6 +64,8 @@ Do not reuse the backend `SwaggerOptions:swaggerAuth:ClientId` value as the Port
 ```bash
 npm run dev
 ```
+
+The Vite dev server runs on `http://localhost:5500`.
 
 4. Build validation
 
@@ -82,3 +84,4 @@ npm run build
 
 - `npm run build`: passing
 - `npm run lint`: blocked by the inherited ESLint/AJV toolchain issue in the baseline dependency stack
+- `docker compose -p bf_services -f docker/docker-compose.yml up -d --build`: includes `basefaq.portal.app` on `http://localhost:5500`
