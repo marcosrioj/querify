@@ -1,4 +1,5 @@
-import { ChevronDown, LogOut } from 'lucide-react';
+import { ChevronDown, LogOut, Moon } from 'lucide-react';
+import { useTheme } from 'next-themes';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/platform/auth/auth-context';
 import {
@@ -11,6 +12,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  Switch,
 } from '@/shared/ui';
 import { RoleBadge } from '@/shared/ui/status-badges';
 import { getInitials } from '@/lib/helpers';
@@ -21,7 +23,12 @@ export function UserMenu({
   variant?: 'full' | 'compact';
 }) {
   const { user, logout } = useAuth();
+  const { resolvedTheme, setTheme } = useTheme();
   const initials = getInitials(user?.name ?? user?.email, 2);
+
+  const handleThemeToggle = (checked: boolean) => {
+    setTheme(checked ? 'dark' : 'light');
+  };
 
   return (
     <DropdownMenu>
@@ -68,6 +75,22 @@ export function UserMenu({
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
           <Link to="/app/settings/security">Security</Link>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          className="gap-2"
+          onSelect={(event) => event.preventDefault()}
+        >
+          <Moon className="size-4" />
+          <div className="flex grow items-center justify-between gap-2">
+            <span>Dark mode</span>
+            <Switch
+              size="sm"
+              checked={resolvedTheme === 'dark'}
+              aria-label="Toggle dark mode"
+              onCheckedChange={handleThemeToggle}
+            />
+          </div>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem
