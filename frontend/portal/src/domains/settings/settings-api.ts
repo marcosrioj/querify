@@ -1,0 +1,35 @@
+import { portalRequest, requireAccessToken } from '@/platform/api/http-client';
+
+export type UserProfileDto = {
+  givenName: string;
+  surName?: string | null;
+  email: string;
+  phoneNumber: string;
+};
+
+export type UserProfileUpdateRequestDto = {
+  givenName: string;
+  surName?: string | null;
+  phoneNumber?: string | null;
+};
+
+export function getUserProfile(accessToken?: string) {
+  return portalRequest<UserProfileDto>({
+    service: 'tenant',
+    path: '/api/user/UserProfile',
+    accessToken: requireAccessToken(accessToken),
+  });
+}
+
+export function updateUserProfile(
+  accessToken: string | undefined,
+  body: UserProfileUpdateRequestDto,
+) {
+  return portalRequest<boolean>({
+    service: 'tenant',
+    path: '/api/user/UserProfile',
+    method: 'PUT',
+    accessToken: requireAccessToken(accessToken),
+    body,
+  });
+}
