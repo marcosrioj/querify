@@ -154,12 +154,14 @@ export function FaqItemListPage() {
         />
       }
       filters={
-        <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_220px_220px_220px]">
-          <Input
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search FAQ items"
-          />
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_220px_220px_220px]">
+          <div className="sm:col-span-2 xl:col-span-1">
+            <Input
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Search FAQ items"
+            />
+          </div>
           <Select value={faqFilter} onValueChange={setFaqFilter}>
             <SelectTrigger>
               <SelectValue placeholder="Filter by FAQ" />

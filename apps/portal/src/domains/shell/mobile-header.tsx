@@ -39,7 +39,7 @@ export function MobileHeader() {
           <SheetContent
             side="left"
             close={false}
-            className="w-[275px] gap-0 p-0"
+            className="w-[min(275px,85vw)] gap-0 p-0"
           >
             <SheetHeader className="sr-only">
               <SheetTitle>Portal navigation</SheetTitle>

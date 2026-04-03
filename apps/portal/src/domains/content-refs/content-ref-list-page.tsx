@@ -64,7 +64,7 @@ export function ContentRefListPage() {
           <div className="font-medium text-mono">
             {contentRef.label || 'Untitled content ref'}
           </div>
-          <div className="max-w-[360px] truncate text-sm text-muted-foreground">
+          <div className="break-all text-sm text-muted-foreground lg:max-w-[360px] lg:truncate lg:break-normal">
             {contentRef.locator}
           </div>
         </div>
@@ -127,12 +127,14 @@ export function ContentRefListPage() {
         />
       }
       filters={
-        <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_220px_220px]">
-          <Input
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search content refs"
-          />
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_220px_220px]">
+          <div className="sm:col-span-2 xl:col-span-1">
+            <Input
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Search content refs"
+            />
+          </div>
           <Select value={kindFilter} onValueChange={setKindFilter}>
             <SelectTrigger>
               <SelectValue placeholder="Filter by kind" />

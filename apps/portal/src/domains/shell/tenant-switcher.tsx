@@ -16,7 +16,7 @@ export function TenantSwitcher() {
 
   return (
     <Select value={currentTenantId} onValueChange={setCurrentTenantId}>
-      <SelectTrigger className="w-[220px]">
+      <SelectTrigger className="w-full min-w-0 sm:w-[220px]">
         <SelectValue placeholder="Select workspace" />
       </SelectTrigger>
       <SelectContent>

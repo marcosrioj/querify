@@ -78,7 +78,40 @@ function BillingPage() {
           </CardHeading>
         </CardHeader>
         <CardContent>
-          <div className="overflow-hidden rounded-xl border border-border">
+          <div className="space-y-3 lg:hidden">
+            {placeholderInvoices.map((invoice) => (
+              <div key={invoice.id} className="rounded-xl border border-border/80 bg-card p-4">
+                <div className="space-y-3">
+                  <div>
+                    <p className="text-[0.6875rem] font-medium uppercase tracking-[0.16em] text-muted-foreground">
+                      Invoice
+                    </p>
+                    <p className="mt-1.5 font-medium text-mono">{invoice.id}</p>
+                  </div>
+                  <div>
+                    <p className="text-[0.6875rem] font-medium uppercase tracking-[0.16em] text-muted-foreground">
+                      Date
+                    </p>
+                    <p className="mt-1.5 text-sm">{invoice.date}</p>
+                  </div>
+                  <div>
+                    <p className="text-[0.6875rem] font-medium uppercase tracking-[0.16em] text-muted-foreground">
+                      Status
+                    </p>
+                    <p className="mt-1.5 text-sm">{invoice.status}</p>
+                  </div>
+                  <div>
+                    <p className="text-[0.6875rem] font-medium uppercase tracking-[0.16em] text-muted-foreground">
+                      Amount
+                    </p>
+                    <p className="mt-1.5 text-sm font-medium">{invoice.amount}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="hidden overflow-hidden rounded-xl border border-border lg:block">
             <Table>
               <TableHeader className="bg-muted/50">
                 <TableRow>

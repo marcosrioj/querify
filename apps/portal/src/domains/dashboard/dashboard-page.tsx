@@ -80,10 +80,10 @@ function MetricCard({
 }) {
   return (
     <Card>
-      <CardContent className="flex items-start justify-between gap-4 p-5">
-        <div className="space-y-2">
+      <CardContent className="flex flex-col gap-4 p-5 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0 space-y-2">
           <p className="text-sm text-muted-foreground">{title}</p>
-          <p className="text-3xl font-semibold tracking-tight text-mono">{value}</p>
+          <p className="break-words text-3xl font-semibold tracking-tight text-mono">{value}</p>
           <p className="text-sm text-muted-foreground">{description}</p>
         </div>
         <div
@@ -140,7 +140,7 @@ function EmptyMiniState({
 
 function AnswerRow({ item }: { item: FaqItemDto }) {
   return (
-    <div className="flex items-start justify-between gap-4 rounded-2xl border border-border/70 px-4 py-3">
+    <div className="flex flex-col gap-4 rounded-2xl border border-border/70 px-4 py-3 sm:flex-row sm:items-start sm:justify-between">
       <div className="min-w-0 space-y-2">
         <Link
           to={`/app/faq/${item.faqId}/items/${item.id}`}
@@ -157,7 +157,7 @@ function AnswerRow({ item }: { item: FaqItemDto }) {
           </Badge>
         </div>
       </div>
-      <div className="space-y-1 text-right text-xs text-muted-foreground">
+      <div className="space-y-1 text-left text-xs text-muted-foreground sm:text-right">
         <div className="font-semibold text-mono">Vote {item.voteScore}</div>
         <div className="font-semibold text-mono">
           AI {item.aiConfidenceScore}
@@ -169,7 +169,7 @@ function AnswerRow({ item }: { item: FaqItemDto }) {
 
 function FaqRow({ faq }: { faq: FaqDto }) {
   return (
-    <div className="flex items-start justify-between gap-4 rounded-2xl border border-border/70 px-4 py-3">
+    <div className="flex flex-col gap-3 rounded-2xl border border-border/70 px-4 py-3 sm:flex-row sm:items-start sm:justify-between">
       <div className="min-w-0 space-y-1.5">
         <Link
           to={`/app/faq/${faq.id}`}
@@ -189,12 +189,12 @@ function FaqRow({ faq }: { faq: FaqDto }) {
 function SourceRow({ contentRef }: { contentRef: ContentRefDto }) {
   return (
     <div className="rounded-2xl border border-border/70 px-4 py-3">
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0 space-y-1.5">
           <p className="truncate text-sm font-medium text-mono">
             {contentRef.label || 'Untitled source'}
           </p>
-          <p className="truncate text-sm text-muted-foreground">
+          <p className="break-all text-sm text-muted-foreground sm:break-words lg:truncate">
             {contentRef.locator}
           </p>
         </div>
@@ -416,7 +416,7 @@ export function DashboardPage() {
               </Button>
             </div>
 
-            <div className="grid gap-3 md:grid-cols-3">
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
               {heroHighlights.map((highlight) => (
                 <div
                   key={highlight.label}
@@ -448,7 +448,7 @@ export function DashboardPage() {
             </CardHeading>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="flex items-center gap-5">
+            <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
               <ProgressRadial
                 value={readinessScore}
                 size={148}
@@ -695,7 +695,7 @@ export function DashboardPage() {
 
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)_minmax(0,1fr)] lg:gap-7.5">
         <Card>
-          <CardHeader className="flex-row items-start justify-between gap-3">
+          <CardHeader className="gap-3 sm:flex-row sm:items-start sm:justify-between">
             <CardHeading>
               <CardTitle>Answer leaderboard</CardTitle>
               <CardDescription>
@@ -723,7 +723,7 @@ export function DashboardPage() {
         </Card>
 
         <Card>
-          <CardHeader className="flex-row items-start justify-between gap-3">
+          <CardHeader className="gap-3 sm:flex-row sm:items-start sm:justify-between">
             <CardHeading>
               <CardTitle>Recent FAQs</CardTitle>
               <CardDescription>
@@ -789,7 +789,7 @@ export function DashboardPage() {
               aiProviders.map((provider) => (
                 <div
                   key={provider.id}
-                  className="flex items-start justify-between gap-4 rounded-2xl border border-border/70 px-4 py-3"
+                  className="flex flex-col gap-4 rounded-2xl border border-border/70 px-4 py-3 sm:flex-row sm:items-start sm:justify-between"
                 >
                   <div className="min-w-0 space-y-1.5">
                     <div className="flex flex-wrap items-center gap-2">
@@ -800,7 +800,7 @@ export function DashboardPage() {
                         {commandLabel(provider.command)}
                       </Badge>
                     </div>
-                    <p className="truncate text-sm text-muted-foreground">
+                    <p className="break-words text-sm text-muted-foreground lg:truncate">
                       {provider.model}
                     </p>
                   </div>

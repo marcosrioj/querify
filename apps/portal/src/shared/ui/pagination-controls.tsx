@@ -24,26 +24,28 @@ export function PaginationControls({
         <span className="font-medium text-foreground">{end}</span> of{' '}
         <span className="font-medium text-foreground">{totalCount}</span>
       </p>
-      <div className="flex items-center gap-2">
+      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 sm:flex sm:flex-wrap sm:items-center">
         <Button
           variant="outline"
           size="sm"
+          className="justify-center"
           disabled={page <= 1}
           onClick={() => onPageChange(page - 1)}
         >
           <ChevronLeft className="size-4" />
-          Previous
+          <span className="hidden sm:inline">Previous</span>
         </Button>
-        <span className="min-w-[96px] text-center text-sm">
+        <span className="min-w-0 text-center text-sm sm:min-w-[96px]">
           Page {page} / {pageCount}
         </span>
         <Button
           variant="outline"
           size="sm"
+          className="justify-center"
           disabled={page >= pageCount}
           onClick={() => onPageChange(page + 1)}
         >
-          Next
+          <span className="hidden sm:inline">Next</span>
           <ChevronRight className="size-4" />
         </Button>
       </div>

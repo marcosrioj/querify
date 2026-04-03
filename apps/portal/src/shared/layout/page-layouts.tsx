@@ -47,7 +47,7 @@ export function PageHeader({
 
   return (
     <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
-      <div className="space-y-3">
+      <div className="min-w-0 space-y-3">
         {eyebrow ? (
           <p className="inline-flex w-fit rounded-full border border-primary/15 bg-primary/8 px-3 py-1 text-[0.6875rem] font-medium uppercase tracking-[0.2em] text-primary">
             {eyebrow}
@@ -55,7 +55,7 @@ export function PageHeader({
         ) : null}
 
         {renderTitle ? (
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-start gap-3">
             {backTo ? (
               <Button asChild mode="icon" variant="outline" size="sm">
                 <Link to={backTo}>
@@ -77,7 +77,9 @@ export function PageHeader({
       </div>
 
       {actions ? (
-        <div className="flex flex-wrap items-center gap-3">{actions}</div>
+        <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center lg:justify-end [&>*]:w-full sm:[&>*]:w-auto">
+          {actions}
+        </div>
       ) : null}
     </div>
   );
@@ -129,7 +131,7 @@ export function DetailLayout({
       {header}
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_320px] lg:gap-7.5">
         <div className="space-y-5 lg:space-y-7.5">{children}</div>
-        {sidebar ? <div className="space-y-5 lg:space-y-7.5">{sidebar}</div> : null}
+        {sidebar ? <div className="min-w-0 space-y-5 lg:space-y-7.5">{sidebar}</div> : null}
       </div>
     </PageSurface>
   );
@@ -151,7 +153,7 @@ export function SettingsNav({
               asChild
               key={item.key}
               variant={item.key === currentKey ? 'secondary' : 'ghost'}
-              className="justify-start"
+              className="w-full justify-start"
             >
               <Link to={item.href}>{item.label}</Link>
             </Button>
@@ -177,7 +179,7 @@ export function SettingsLayout({
       {header}
       <div className="grid gap-5 xl:grid-cols-[260px_minmax(0,1fr)] lg:gap-7.5">
         <SettingsNav items={items} currentKey={currentKey} />
-        <div className="space-y-5 lg:space-y-7.5">{children}</div>
+        <div className="min-w-0 space-y-5 lg:space-y-7.5">{children}</div>
       </div>
     </PageSurface>
   );
@@ -189,14 +191,16 @@ export function SectionGrid({
   items: Array<{ title: string; value: ReactNode; description?: ReactNode }>;
 }) {
   return (
-    <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4 lg:gap-7.5">
+    <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4 lg:gap-7.5">
       {items.map((item) => (
         <Card key={item.title} className="bg-muted/10">
-          <CardContent className="space-y-2.5 p-5">
+          <CardContent className="min-w-0 space-y-2.5 p-5">
             <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
               {item.title}
             </p>
-            <p className="text-2xl font-semibold tracking-tight text-mono">{item.value}</p>
+            <div className="break-words text-xl font-semibold tracking-tight text-mono sm:text-2xl">
+              {item.value}
+            </div>
             {item.description ? (
               <p className="text-sm leading-5 text-muted-foreground">{item.description}</p>
             ) : null}
@@ -216,9 +220,9 @@ export function KeyValueList({
     <dl className="overflow-hidden rounded-xl border border-border/70">
       {items.map((item) => (
         <Fragment key={item.label}>
-          <div className="flex items-start justify-between gap-4 border-b border-border/70 px-4 py-3 last:border-b-0">
+          <div className="flex flex-col gap-1.5 border-b border-border/70 px-4 py-3 last:border-b-0 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
             <dt className="text-sm text-muted-foreground">{item.label}</dt>
-            <dd className="text-right text-sm font-medium text-foreground">
+            <dd className="break-words text-left text-sm font-medium text-foreground sm:text-right">
               {item.value}
             </dd>
           </div>
