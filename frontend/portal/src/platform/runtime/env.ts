@@ -21,6 +21,7 @@ export const RuntimeEnv = {
     'https://basefaq.com',
   ),
   auth0ClientId: readEnv(import.meta.env.VITE_AUTH0_CLIENT_ID),
+  auth0RedirectUri: readEnv(import.meta.env.VITE_AUTH0_REDIRECT_URI),
   auth0PasswordResetUrl: readEnv(import.meta.env.VITE_AUTH0_PASSWORD_RESET_URL),
 } as const;
 

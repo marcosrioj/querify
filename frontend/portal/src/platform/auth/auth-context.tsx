@@ -31,6 +31,10 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
+const resolveRedirectUri = () =>
+  RuntimeEnv.auth0RedirectUri ||
+  `${window.location.origin}${RuntimeEnv.baseUrl}login`;
+
 const base64UrlDecode = (value: string) => {
   const normalized = value.replace(/-/g, '+').replace(/_/g, '/');
   const padded = normalized.padEnd(
@@ -140,7 +144,7 @@ export function PortalAuthProvider({ children }: PropsWithChildren) {
           clientId: RuntimeEnv.auth0ClientId,
           authorizationParams: {
             audience: RuntimeEnv.auth0Audience,
-            redirect_uri: `${window.location.origin}${RuntimeEnv.baseUrl}login`,
+            redirect_uri: resolveRedirectUri(),
           },
           cacheLocation: 'localstorage',
           useRefreshTokens: true,
@@ -204,7 +208,7 @@ export function PortalAuthProvider({ children }: PropsWithChildren) {
         await client.loginWithRedirect({
           authorizationParams: {
             audience: RuntimeEnv.auth0Audience,
-            redirect_uri: `${window.location.origin}${RuntimeEnv.baseUrl}login`,
+            redirect_uri: resolveRedirectUri(),
           },
           appState: {
             nextPath,

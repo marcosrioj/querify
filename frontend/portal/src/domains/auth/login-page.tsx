@@ -4,10 +4,15 @@ import { useAuth } from '@/platform/auth/auth-context';
 import { RuntimeEnv } from '@/platform/runtime/env';
 import { Alert, AlertDescription, Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui';
 
+const SWAGGER_UI_CLIENT_ID = 'fDJib60pSRhbtNRPhqYfZR9J8JqBCpz5';
+
 export function LoginPage() {
   const { isConfigured, status, error, login } = useAuth();
   const [searchParams] = useSearchParams();
   const nextPath = searchParams.get('next') ?? '/app/dashboard';
+  const callbackUrl =
+    RuntimeEnv.auth0RedirectUri || `${window.location.origin}${RuntimeEnv.baseUrl}login`;
+  const isUsingSwaggerClient = RuntimeEnv.auth0ClientId === SWAGGER_UI_CLIENT_ID;
 
   if (status === 'ready') {
     return <Navigate to={nextPath} replace />;
@@ -46,6 +51,17 @@ export function LoginPage() {
           </Alert>
         ) : null}
 
+        {isUsingSwaggerClient ? (
+          <Alert variant="destructive">
+            <AlertDescription>
+              The configured `VITE_AUTH0_CLIENT_ID` matches the Swagger UI Auth0
+              client from the .NET APIs. That application is documented with
+              Swagger callback URLs only, so Portal login will fail unless Auth0
+              also allows <span className="font-medium">{callbackUrl}</span>.
+            </AlertDescription>
+          </Alert>
+        ) : null}
+
         <div className="rounded-2xl border border-white/10 bg-black/10 p-4 text-sm text-mono-foreground/75">
           <div className="flex items-center gap-2 font-medium text-white">
             <LockKeyhole className="size-4" />
@@ -59,6 +75,10 @@ export function LoginPage() {
             <div className="flex items-center justify-between gap-3">
               <dt>Audience</dt>
               <dd className="truncate text-right">{RuntimeEnv.auth0Audience}</dd>
+            </div>
+            <div className="flex items-center justify-between gap-3">
+              <dt>Callback</dt>
+              <dd className="truncate text-right">{callbackUrl}</dd>
             </div>
           </dl>
         </div>
