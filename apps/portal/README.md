@@ -57,6 +57,10 @@ For local Portal login, the Auth0 application must allow:
 - Callback URL: `http://localhost:5500/login`
 - Web Origin: `http://localhost:5500`
 
+If you run the local `simulatedev` reverse proxy helper, the same Portal app is also exposed at `http://dev.portal.basefaq.com`, so Auth0 should additionally allow:
+- Callback URL: `http://dev.portal.basefaq.com/login`
+- Web Origin: `http://dev.portal.basefaq.com`
+
 Do not reuse the backend `SwaggerOptions:swaggerAuth:ClientId` value as the Portal SPA client unless that Auth0 application has also been updated to allow the Portal callback URL above. The backend README documents that client for Swagger UI callback pages on ports `5000`, `5002`, and `5010`.
 
 3. Run the app
@@ -66,6 +70,8 @@ npm run dev
 ```
 
 The Vite dev server runs on `http://localhost:5500`.
+
+When `local/env/simulatedev/setup-subdomains.sh` or `setup-subdomains.ps1` is active, the app is also reachable through the local hostname `http://dev.portal.basefaq.com`.
 
 4. Build validation
 

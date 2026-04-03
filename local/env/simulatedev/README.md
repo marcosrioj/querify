@@ -2,6 +2,7 @@
 
 This folder contains a self-contained helper to expose local APIs behind these subdomains:
 
+- `dev.portal.basefaq.com`
 - `dev.tenant.portal.basefaq.com`
 - `dev.tenant.backoffice.basefaq.com`
 - `dev.faq.public.basefaq.com`
@@ -17,8 +18,9 @@ The approach is intentionally decoupled from host machine Nginx:
 - Hosts-file entries are always updated by setup and removed by teardown using marker blocks.
 - Cleanup scripts stop the proxy container and remove managed hosts entries.
 
-## API mapping
+## App and API mapping
 
+- `dev.portal.basefaq.com` -> `http://<upstream-host>:5500`
 - `dev.tenant.backoffice.basefaq.com` -> `http://<upstream-host>:5000`
 - `dev.tenant.portal.basefaq.com` -> `http://<upstream-host>:5002`
 - `dev.faq.portal.basefaq.com` -> `http://<upstream-host>:5010`
@@ -79,6 +81,7 @@ You can override defaults through environment variables (Linux) or parameters (P
   - `HOST_IP` / `-HostIp` (default `127.0.0.1`)
   - `UPSTREAM_HOST` / `-UpstreamHost` (default `host.docker.internal`)
 - API ports:
+  - `PORTAL_APP_PORT` / `-PortalAppPort`
   - `TENANT_BACKOFFICE_PORT` / `-TenantBackOfficePort`
   - `TENANT_PORTAL_PORT` / `-TenantPortalPort`
   - `FAQ_PORTAL_PORT` / `-FaqPortalPort`
@@ -89,13 +92,13 @@ You can override defaults through environment variables (Linux) or parameters (P
 Linux example:
 
 ```bash
-TENANT_PORTAL_PORT=6002 ./local/env/simulatedev/setup-subdomains.sh
+PORTAL_APP_PORT=6500 TENANT_PORTAL_PORT=6002 ./local/env/simulatedev/setup-subdomains.sh
 ```
 
 PowerShell example:
 
 ```powershell
-.\local\env\simulatedev\setup-subdomains.ps1 -TenantPortalPort 6002
+.\local\env\simulatedev\setup-subdomains.ps1 -PortalAppPort 6500 -TenantPortalPort 6002
 ```
 
 ## Generated runtime files

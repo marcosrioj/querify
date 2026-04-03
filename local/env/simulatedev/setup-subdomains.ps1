@@ -3,6 +3,7 @@ param(
     [string]$UpstreamHost = "host.docker.internal",
     [int]$TenantBackOfficePort = 5000,
     [int]$TenantPortalPort = 5002,
+    [int]$PortalAppPort = 5500,
     [int]$FaqPortalPort = 5010,
     [int]$FaqPublicPort = 5020,
     [int]$AiPort = 5030,
@@ -88,6 +89,25 @@ server {
     ssl_certificate /etc/nginx/certs/dev.basefaq.com.crt;
     ssl_certificate_key /etc/nginx/certs/dev.basefaq.com.key;
     return 404;
+}
+
+server {
+    listen 80;
+    listen 443 ssl;
+    server_name dev.portal.basefaq.com;
+    ssl_certificate /etc/nginx/certs/dev.basefaq.com.crt;
+    ssl_certificate_key /etc/nginx/certs/dev.basefaq.com.key;
+
+    location / {
+        proxy_pass http://__UPSTREAM_HOST__:__PORTAL_APP_PORT__;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+    }
 }
 
 server {
@@ -209,6 +229,7 @@ $nginxConfig = $nginxTemplate.
     Replace("__UPSTREAM_HOST__", $UpstreamHost).
     Replace("__TENANT_BACKOFFICE_PORT__", $TenantBackOfficePort.ToString()).
     Replace("__TENANT_PORTAL_PORT__", $TenantPortalPort.ToString()).
+    Replace("__PORTAL_APP_PORT__", $PortalAppPort.ToString()).
     Replace("__FAQ_PORTAL_PORT__", $FaqPortalPort.ToString()).
     Replace("__FAQ_PUBLIC_PORT__", $FaqPublicPort.ToString()).
     Replace("__AI_PORT__", $AiPort.ToString()).
@@ -233,6 +254,7 @@ if ($cleanHosts.Count -gt 0 -and $cleanHosts[$cleanHosts.Count - 1] -ne "") {
 }
 
 $null = $cleanHosts.Add($markerBegin)
+$null = $cleanHosts.Add("$HostIp dev.portal.basefaq.com")
 $null = $cleanHosts.Add("$HostIp dev.tenant.backoffice.basefaq.com")
 $null = $cleanHosts.Add("$HostIp dev.tenant.portal.basefaq.com")
 $null = $cleanHosts.Add("$HostIp dev.faq.portal.basefaq.com")
@@ -257,6 +279,7 @@ Write-Host "Docker compose project: $composeProject"
 Write-Host "Upstream host: $UpstreamHost"
 Write-Host ""
 Write-Host "Domain mappings:"
+Write-Host "  dev.portal.basefaq.com            -> $UpstreamHost`:$PortalAppPort"
 Write-Host "  dev.tenant.backoffice.basefaq.com -> $UpstreamHost`:$TenantBackOfficePort"
 Write-Host "  dev.tenant.portal.basefaq.com     -> $UpstreamHost`:$TenantPortalPort"
 Write-Host "  dev.faq.portal.basefaq.com        -> $UpstreamHost`:$FaqPortalPort"
