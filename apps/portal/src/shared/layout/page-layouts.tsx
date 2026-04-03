@@ -1,10 +1,10 @@
-import { Fragment, PropsWithChildren, ReactNode } from 'react';
-import { ArrowLeft } from 'lucide-react';
-import { Link, useMatches } from 'react-router-dom';
-import { AppRouteHandle } from '@/app/router/route-types';
-import { Container } from '@/shared/layout/container';
-import { Button, Card, CardContent } from '@/shared/ui';
-import { cn } from '@/lib/utils';
+import { Fragment, PropsWithChildren, ReactNode } from "react";
+import { ArrowLeft } from "lucide-react";
+import { Link, useMatches } from "react-router-dom";
+import { AppRouteHandle } from "@/app/router/route-types";
+import { Container } from "@/shared/layout/container";
+import { Button, Card, CardContent, ContextHint } from "@/shared/ui";
+import { cn } from "@/lib/utils";
 
 function useCurrentRouteHandle() {
   return useMatches()
@@ -18,7 +18,7 @@ function shouldRenderPageTitle(
   handle: AppRouteHandle | undefined,
   backTo: string | undefined,
 ) {
-  if (backTo || typeof title !== 'string' || !handle) {
+  if (backTo || typeof title !== "string" || !handle) {
     return true;
   }
 
@@ -33,25 +33,38 @@ export function PageHeader({
   eyebrow,
   title,
   description,
+  descriptionMode = "inline",
   actions,
   backTo,
 }: {
   eyebrow?: string;
   title: ReactNode;
   description?: ReactNode;
+  descriptionMode?: "inline" | "hint";
   actions?: ReactNode;
   backTo?: string;
 }) {
   const currentHandle = useCurrentRouteHandle();
   const renderTitle = shouldRenderPageTitle(title, currentHandle, backTo);
+  const descriptionHint =
+    description && descriptionMode === "hint" ? (
+      <ContextHint
+        content={description}
+        label="Page details"
+        className="mt-0.5"
+      />
+    ) : null;
 
   return (
     <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
       <div className="min-w-0 space-y-3">
         {eyebrow ? (
-          <p className="inline-flex w-fit rounded-full border border-primary/15 bg-primary/8 px-3 py-1 text-[0.6875rem] font-medium uppercase tracking-[0.2em] text-primary">
-            {eyebrow}
-          </p>
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="inline-flex w-fit rounded-full border border-primary/15 bg-primary/8 px-3 py-1 text-[0.6875rem] font-medium uppercase tracking-[0.2em] text-primary">
+              {eyebrow}
+            </p>
+            {!renderTitle ? descriptionHint : null}
+          </div>
         ) : null}
 
         {renderTitle ? (
@@ -63,16 +76,21 @@ export function PageHeader({
                 </Link>
               </Button>
             ) : null}
-            <h2 className="text-2xl font-semibold tracking-tight text-mono lg:text-3xl">
-              {title}
-            </h2>
+            <div className="flex min-w-0 flex-wrap items-start gap-2">
+              <h2 className="text-2xl font-semibold tracking-tight text-mono lg:text-3xl">
+                {title}
+              </h2>
+              {descriptionHint}
+            </div>
           </div>
         ) : null}
 
-        {description ? (
+        {description && descriptionMode === "inline" ? (
           <p className="max-w-2xl text-sm leading-6 text-muted-foreground">
             {description}
           </p>
+        ) : !eyebrow && !renderTitle ? (
+          descriptionHint
         ) : null}
       </div>
 
@@ -89,7 +107,7 @@ export function PageSurface({
   children,
   className,
 }: PropsWithChildren<{ className?: string }>) {
-  return <Container className={cn('pb-10', className)}>{children}</Container>;
+  return <Container className={cn("pb-10", className)}>{children}</Container>;
 }
 
 export function ListLayout({
@@ -131,7 +149,9 @@ export function DetailLayout({
       {header}
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_320px] lg:gap-7.5">
         <div className="space-y-5 lg:space-y-7.5">{children}</div>
-        {sidebar ? <div className="min-w-0 space-y-5 lg:space-y-7.5">{sidebar}</div> : null}
+        {sidebar ? (
+          <div className="min-w-0 space-y-5 lg:space-y-7.5">{sidebar}</div>
+        ) : null}
       </div>
     </PageSurface>
   );
@@ -152,7 +172,7 @@ export function SettingsNav({
             <Button
               asChild
               key={item.key}
-              variant={item.key === currentKey ? 'secondary' : 'ghost'}
+              variant={item.key === currentKey ? "secondary" : "ghost"}
               className="w-full justify-start"
             >
               <Link to={item.href}>{item.label}</Link>
@@ -188,21 +208,44 @@ export function SettingsLayout({
 export function SectionGrid({
   items,
 }: {
-  items: Array<{ title: string; value: ReactNode; description?: ReactNode }>;
+  items: Array<{
+    key?: string;
+    title: ReactNode;
+    titleHint?: ReactNode;
+    value: ReactNode;
+    description?: ReactNode;
+  }>;
 }) {
   return (
     <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4 lg:gap-7.5">
-      {items.map((item) => (
-        <Card key={item.title} className="bg-muted/10">
+      {items.map((item, index) => (
+        <Card
+          key={
+            item.key ??
+            (typeof item.title === "string"
+              ? item.title
+              : `section-grid-${index}`)
+          }
+          className="bg-muted/10"
+        >
           <CardContent className="min-w-0 space-y-2.5 p-5">
-            <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
-              {item.title}
+            <p className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
+              <span>{item.title}</span>
+              {item.titleHint ? (
+                <ContextHint
+                  content={item.titleHint}
+                  label="Metric details"
+                  className="size-4 text-[inherit]"
+                />
+              ) : null}
             </p>
             <div className="break-words text-xl font-semibold tracking-tight text-mono sm:text-2xl">
               {item.value}
             </div>
             {item.description ? (
-              <p className="text-sm leading-5 text-muted-foreground">{item.description}</p>
+              <p className="text-sm leading-5 text-muted-foreground">
+                {item.description}
+              </p>
             ) : null}
           </CardContent>
         </Card>

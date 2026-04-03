@@ -1,6 +1,8 @@
-import { Control, FieldValues, Path } from 'react-hook-form';
+import { ReactNode } from "react";
+import { Control, FieldValues, Path } from "react-hook-form";
 import {
   Checkbox,
+  ContextHint,
   FormControl,
   FormDescription,
   FormField,
@@ -15,21 +17,32 @@ import {
   SelectValue,
   Switch,
   Textarea,
-} from '@/shared/ui';
+} from "@/shared/ui";
 
 type BaseFieldProps<TFieldValues extends FieldValues> = {
   control: Control<TFieldValues>;
   name: Path<TFieldValues>;
-  label: string;
-  description?: string;
+  label: ReactNode;
+  description?: ReactNode;
+  hint?: ReactNode;
 };
+
+function FieldLabel({ label, hint }: { label: ReactNode; hint?: ReactNode }) {
+  return (
+    <div className="flex items-center gap-1.5">
+      <FormLabel>{label}</FormLabel>
+      {hint ? <ContextHint content={hint} label="Field details" /> : null}
+    </div>
+  );
+}
 
 export function TextField<TFieldValues extends FieldValues>({
   control,
   name,
   label,
   description,
-  type = 'text',
+  hint,
+  type = "text",
   placeholder,
 }: BaseFieldProps<TFieldValues> & {
   type?: string;
@@ -41,11 +54,13 @@ export function TextField<TFieldValues extends FieldValues>({
       name={name}
       render={({ field }) => (
         <FormItem>
-          <FormLabel>{label}</FormLabel>
+          <FieldLabel label={label} hint={hint} />
           <FormControl>
             <Input {...field} type={type} placeholder={placeholder} />
           </FormControl>
-          {description ? <FormDescription>{description}</FormDescription> : null}
+          {description ? (
+            <FormDescription>{description}</FormDescription>
+          ) : null}
           <FormMessage />
         </FormItem>
       )}
@@ -58,6 +73,7 @@ export function TextareaField<TFieldValues extends FieldValues>({
   name,
   label,
   description,
+  hint,
   placeholder,
   rows = 6,
 }: BaseFieldProps<TFieldValues> & {
@@ -70,11 +86,13 @@ export function TextareaField<TFieldValues extends FieldValues>({
       name={name}
       render={({ field }) => (
         <FormItem>
-          <FormLabel>{label}</FormLabel>
+          <FieldLabel label={label} hint={hint} />
           <FormControl>
             <Textarea {...field} placeholder={placeholder} rows={rows} />
           </FormControl>
-          {description ? <FormDescription>{description}</FormDescription> : null}
+          {description ? (
+            <FormDescription>{description}</FormDescription>
+          ) : null}
           <FormMessage />
         </FormItem>
       )}
@@ -87,6 +105,7 @@ export function SwitchField<TFieldValues extends FieldValues>({
   name,
   label,
   description,
+  hint,
 }: BaseFieldProps<TFieldValues>) {
   return (
     <FormField
@@ -96,13 +115,16 @@ export function SwitchField<TFieldValues extends FieldValues>({
         <FormItem className="rounded-xl border border-border p-4">
           <div className="flex items-center justify-between gap-4">
             <div className="space-y-1">
-              <FormLabel>{label}</FormLabel>
+              <FieldLabel label={label} hint={hint} />
               {description ? (
                 <FormDescription>{description}</FormDescription>
               ) : null}
             </div>
             <FormControl>
-              <Switch checked={Boolean(field.value)} onCheckedChange={field.onChange} />
+              <Switch
+                checked={Boolean(field.value)}
+                onCheckedChange={field.onChange}
+              />
             </FormControl>
           </div>
           <FormMessage />
@@ -117,6 +139,7 @@ export function CheckboxField<TFieldValues extends FieldValues>({
   name,
   label,
   description,
+  hint,
 }: BaseFieldProps<TFieldValues>) {
   return (
     <FormField
@@ -125,11 +148,16 @@ export function CheckboxField<TFieldValues extends FieldValues>({
       render={({ field }) => (
         <FormItem className="flex flex-row items-start gap-3 rounded-xl border border-border p-4">
           <FormControl>
-            <Checkbox checked={Boolean(field.value)} onCheckedChange={field.onChange} />
+            <Checkbox
+              checked={Boolean(field.value)}
+              onCheckedChange={field.onChange}
+            />
           </FormControl>
           <div className="space-y-1 leading-none">
-            <FormLabel>{label}</FormLabel>
-            {description ? <FormDescription>{description}</FormDescription> : null}
+            <FieldLabel label={label} hint={hint} />
+            {description ? (
+              <FormDescription>{description}</FormDescription>
+            ) : null}
             <FormMessage />
           </div>
         </FormItem>
@@ -143,6 +171,7 @@ export function SelectField<TFieldValues extends FieldValues>({
   name,
   label,
   description,
+  hint,
   options,
   placeholder,
 }: BaseFieldProps<TFieldValues> & {
@@ -155,7 +184,7 @@ export function SelectField<TFieldValues extends FieldValues>({
       name={name}
       render={({ field }) => (
         <FormItem>
-          <FormLabel>{label}</FormLabel>
+          <FieldLabel label={label} hint={hint} />
           <Select
             onValueChange={field.onChange}
             value={field.value ? String(field.value) : undefined}
@@ -173,7 +202,9 @@ export function SelectField<TFieldValues extends FieldValues>({
               ))}
             </SelectContent>
           </Select>
-          {description ? <FormDescription>{description}</FormDescription> : null}
+          {description ? (
+            <FormDescription>{description}</FormDescription>
+          ) : null}
           <FormMessage />
         </FormItem>
       )}

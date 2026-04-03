@@ -16,7 +16,7 @@ export function SecuritySettingsPage() {
         <PageHeader
           eyebrow="Settings"
           title="Security"
-          description="Review the identity provider backing this workspace session."
+          description="See how this session is signed in."
         />
       }
     >

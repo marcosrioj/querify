@@ -1,16 +1,20 @@
-import { useEffect, useMemo } from 'react';
-import { Pencil, Plus, Trash2 } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useContentRefList } from '@/domains/content-refs/hooks';
-import { useFaqList } from '@/domains/faq/hooks';
-import { useDeleteFaqItem, useFaqItemList } from '@/domains/faq-items/hooks';
-import type { FaqItemDto } from '@/domains/faq-items/types';
-import { ListLayout, PageHeader, SectionGrid } from '@/shared/layout/page-layouts';
-import { clampPage } from '@/shared/lib/pagination';
-import { useListQueryState } from '@/shared/lib/use-list-query-state';
-import { DataTable, type DataTableColumn } from '@/shared/ui/data-table';
-import { PaginationControls } from '@/shared/ui/pagination-controls';
-import { EmptyState, ErrorState } from '@/shared/ui/placeholder-state';
+import { useEffect, useMemo } from "react";
+import { Pencil, Plus, Trash2 } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { useContentRefList } from "@/domains/content-refs/hooks";
+import { useFaqList } from "@/domains/faq/hooks";
+import { useDeleteFaqItem, useFaqItemList } from "@/domains/faq-items/hooks";
+import type { FaqItemDto } from "@/domains/faq-items/types";
+import {
+  ListLayout,
+  PageHeader,
+  SectionGrid,
+} from "@/shared/layout/page-layouts";
+import { clampPage } from "@/shared/lib/pagination";
+import { useListQueryState } from "@/shared/lib/use-list-query-state";
+import { DataTable, type DataTableColumn } from "@/shared/ui/data-table";
+import { PaginationControls } from "@/shared/ui/pagination-controls";
+import { EmptyState, ErrorState } from "@/shared/ui/placeholder-state";
 import {
   Badge,
   Button,
@@ -20,18 +24,18 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/shared/ui';
+} from "@/shared/ui";
 
 const sortingOptions = [
-  { value: 'UpdatedDate DESC', label: 'Last updated' },
-  { value: 'Question ASC', label: 'Question A-Z' },
-  { value: 'VoteScore DESC', label: 'Vote score' },
-  { value: 'AiConfidenceScore DESC', label: 'AI confidence' },
+  { value: "UpdatedDate DESC", label: "Last updated" },
+  { value: "Question ASC", label: "Question A-Z" },
+  { value: "VoteScore DESC", label: "Vote score" },
+  { value: "AiConfidenceScore DESC", label: "AI confidence" },
 ];
 
 const FAQ_ITEM_FILTER_DEFAULTS = {
-  active: 'all',
-  faq: 'all',
+  active: "all",
+  faq: "all",
 } as const;
 
 export function FaqItemListPage() {
@@ -49,13 +53,14 @@ export function FaqItemListPage() {
     setSorting,
     sorting,
   } = useListQueryState({
-    defaultSorting: 'UpdatedDate DESC',
+    defaultSorting: "UpdatedDate DESC",
     filterDefaults: FAQ_ITEM_FILTER_DEFAULTS,
   });
   const activeFilter = filters.active;
   const faqFilter = filters.faq;
-  const apiFaqId = faqFilter === 'all' ? undefined : faqFilter;
-  const apiIsActive = activeFilter === 'all' ? undefined : activeFilter === 'true';
+  const apiFaqId = faqFilter === "all" ? undefined : faqFilter;
+  const apiIsActive =
+    activeFilter === "all" ? undefined : activeFilter === "true";
 
   const faqItemQuery = useFaqItemList({
     page,
@@ -79,18 +84,24 @@ export function FaqItemListPage() {
     }
   }, [faqItemQuery.data?.totalCount, page, pageSize, setPage]);
 
-  const faqOptionsQuery = useFaqList({ page: 1, pageSize: 100, sorting: 'Name ASC' });
+  const faqOptionsQuery = useFaqList({
+    page: 1,
+    pageSize: 100,
+    sorting: "Name ASC",
+  });
   const contentRefQuery = useContentRefList({
     page: 1,
     pageSize: 100,
-    sorting: 'Label ASC',
+    sorting: "Label ASC",
   });
   const deleteFaqItem = useDeleteFaqItem();
   const itemRows = faqItemQuery.data?.items ?? [];
 
   const faqLookup = useMemo(
     () =>
-      Object.fromEntries((faqOptionsQuery.data?.items ?? []).map((faq) => [faq.id, faq.name])),
+      Object.fromEntries(
+        (faqOptionsQuery.data?.items ?? []).map((faq) => [faq.id, faq.name]),
+      ),
     [faqOptionsQuery.data?.items],
   );
 
@@ -108,44 +119,53 @@ export function FaqItemListPage() {
   const sourcedCount = itemRows.filter((item) => item.contentRefId).length;
   const unsourcedCount = itemRows.filter((item) => !item.contentRefId).length;
   const activeFilterLabel =
-    activeFilter === 'all' ? 'All states' : activeFilter === 'true' ? 'Active only' : 'Inactive only';
-  const selectedFaqLabel = faqFilter === 'all' ? 'All FAQs' : faqLookup[faqFilter] ?? 'Selected FAQ';
+    activeFilter === "all"
+      ? "All states"
+      : activeFilter === "true"
+        ? "Active only"
+        : "Inactive only";
+  const selectedFaqLabel =
+    faqFilter === "all" ? "All FAQs" : (faqLookup[faqFilter] ?? "Selected FAQ");
 
   const columns: DataTableColumn<FaqItemDto>[] = [
     {
-      key: 'question',
-      header: 'FAQ item',
+      key: "question",
+      header: "Q&A item",
       cell: (item) => (
         <div className="space-y-1">
           <div className="font-medium text-mono">{item.question}</div>
-          <div className="text-sm text-muted-foreground">{item.shortAnswer}</div>
+          <div className="text-sm text-muted-foreground">
+            {item.shortAnswer}
+          </div>
         </div>
       ),
     },
     {
-      key: 'faq',
-      header: 'FAQ',
+      key: "faq",
+      header: "FAQ",
       cell: (item) => faqLookup[item.faqId] ?? item.faqId,
     },
     {
-      key: 'status',
-      header: 'Status',
+      key: "status",
+      header: "Status",
       cell: (item) => (
-        <Badge variant={item.isActive ? 'success' : 'mono'}>
-          {item.isActive ? 'Active' : 'Inactive'}
+        <Badge variant={item.isActive ? "success" : "mono"}>
+          {item.isActive ? "Active" : "Inactive"}
         </Badge>
       ),
     },
     {
-      key: 'contentRef',
-      header: 'Content ref',
+      key: "contentRef",
+      header: "Source",
       cell: (item) =>
-        item.contentRefId ? contentRefLookup[item.contentRefId] ?? item.contentRefId : 'None',
+        item.contentRefId
+          ? (contentRefLookup[item.contentRefId] ?? item.contentRefId)
+          : "None",
     },
     {
-      key: 'actions',
-      header: 'Actions',
-      className: 'w-[140px]',
+      key: "actions",
+      header: "Actions",
+      className: "w-[140px]",
       cell: (item) => (
         <div
           className="flex items-center justify-end gap-1"
@@ -160,7 +180,7 @@ export function FaqItemListPage() {
             variant="ghost"
             mode="icon"
             onClick={() => {
-              if (window.confirm(`Delete FAQ item "${item.question}"?`)) {
+              if (window.confirm(`Delete Q&A item "${item.question}"?`)) {
                 void deleteFaqItem.mutateAsync(item.id);
               }
             }}
@@ -176,14 +196,15 @@ export function FaqItemListPage() {
     <ListLayout
       header={
         <PageHeader
-          eyebrow="FAQ Items"
-          title="FAQ Items"
-          description="Manage answer records, link source material, and keep each FAQ ready for publishing."
+          eyebrow="Q&A items"
+          title="Q&A items"
+          description="Manage each question, answer, score, and source link."
+          descriptionMode="hint"
           actions={
             <Button asChild>
               <Link to="/app/faq-items/new">
                 <Plus className="size-4" />
-                New FAQ item
+                New Q&A item
               </Link>
             </Button>
           }
@@ -195,10 +216,13 @@ export function FaqItemListPage() {
             <Input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="Search FAQ items"
+              placeholder="Search Q&A items"
             />
           </div>
-          <Select value={faqFilter} onValueChange={(value) => setFilter('faq', value)}>
+          <Select
+            value={faqFilter}
+            onValueChange={(value) => setFilter("faq", value)}
+          >
             <SelectTrigger>
               <SelectValue placeholder="Filter by FAQ" />
             </SelectTrigger>
@@ -211,7 +235,10 @@ export function FaqItemListPage() {
               ))}
             </SelectContent>
           </Select>
-          <Select value={activeFilter} onValueChange={(value) => setFilter('active', value)}>
+          <Select
+            value={activeFilter}
+            onValueChange={(value) => setFilter("active", value)}
+          >
             <SelectTrigger>
               <SelectValue placeholder="Active state" />
             </SelectTrigger>
@@ -223,7 +250,7 @@ export function FaqItemListPage() {
           </Select>
           <Select value={sorting} onValueChange={setSorting}>
             <SelectTrigger>
-              <SelectValue placeholder="Sort FAQ items" />
+              <SelectValue placeholder="Sort Q&A items" />
             </SelectTrigger>
             <SelectContent>
               {sortingOptions.map((option) => (
@@ -239,30 +266,35 @@ export function FaqItemListPage() {
       <SectionGrid
         items={[
           {
-            title: 'Answer records',
+            title: "Total",
             value: faqItemQuery.data?.totalCount ?? 0,
-            description: debouncedSearch ? `Search: ${debouncedSearch}` : selectedFaqLabel,
+            description: debouncedSearch
+              ? `Search: ${debouncedSearch}`
+              : selectedFaqLabel,
           },
           {
-            title: 'Active on page',
+            title: "Active",
             value: activeCount,
             description: activeFilterLabel,
           },
           {
-            title: 'Linked sources',
+            title: "Sourced",
             value: sourcedCount,
-            description: sourcedCount ? 'Answers already grounded in content' : 'No sources linked in this slice',
+            titleHint: sourcedCount
+              ? "Already linked to a source."
+              : "No sources linked in this slice.",
           },
           {
-            title: 'Missing sources',
+            title: "Unsourced",
             value: unsourcedCount,
-            description: 'Candidates for enrichment',
+            titleHint: "Candidates for enrichment.",
           },
         ]}
       />
       <DataTable
-        title="Answer catalog"
-        description="Open an answer to refine copy, scoring, CTA, and source linkage."
+        title="Q&A items"
+        description="Open a Q&A item to review the question, answer, score, and CTA."
+        descriptionMode="hint"
         columns={columns}
         rows={itemRows}
         getRowId={(row) => row.id}
@@ -270,11 +302,16 @@ export function FaqItemListPage() {
         onRowClick={(item) => navigate(`/app/faq-items/${item.id}`)}
         toolbar={
           <>
-            <Badge variant="outline">{faqItemQuery.data?.totalCount ?? 0} total</Badge>
-            <Badge variant={activeFilter === 'all' ? 'outline' : 'success'} appearance="outline">
+            <Badge variant="outline">
+              {faqItemQuery.data?.totalCount ?? 0} total
+            </Badge>
+            <Badge
+              variant={activeFilter === "all" ? "outline" : "success"}
+              appearance="outline"
+            >
               {activeFilterLabel}
             </Badge>
-            {faqFilter !== 'all' ? (
+            {faqFilter !== "all" ? (
               <Badge variant="info" appearance="outline">
                 {selectedFaqLabel}
               </Badge>
@@ -283,16 +320,16 @@ export function FaqItemListPage() {
         }
         emptyState={
           <EmptyState
-            title="No answers in view"
-            description="Create FAQ items and connect them to the right knowledge space."
-            action={{ label: 'Create FAQ item', to: '/app/faq-items/new' }}
+            title="No Q&A items in view"
+            description="Create a Q&A item and link it to the right FAQ."
+            action={{ label: "New Q&A item", to: "/app/faq-items/new" }}
           />
         }
         errorState={
           faqItemQuery.isError ? (
             <ErrorState
-              title="Unable to load FAQ items"
-              description="Refresh the answer catalog and try again."
+              title="Unable to load Q&A items"
+              description="Refresh the Q&A list and try again."
               retry={() => void faqItemQuery.refetch()}
             />
           ) : undefined

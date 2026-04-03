@@ -1,15 +1,37 @@
-import { Pencil, Plus, Trash2 } from 'lucide-react';
-import { useMemo } from 'react';
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { useFaqList } from '@/domains/faq/hooks';
-import { useFaqItemList } from '@/domains/faq-items/hooks';
-import { useContentRef, useDeleteContentRef } from '@/domains/content-refs/hooks';
-import { DetailLayout, KeyValueList, PageHeader, SectionGrid } from '@/shared/layout/page-layouts';
-import { useLocalPagination } from '@/shared/lib/use-local-pagination';
-import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardHeading, CardTitle } from '@/shared/ui';
-import { PaginationControls } from '@/shared/ui/pagination-controls';
-import { ContentRefKindBadge } from '@/shared/ui/status-badges';
-import { EmptyState, ErrorState } from '@/shared/ui/placeholder-state';
+import { Pencil, Plus, Trash2 } from "lucide-react";
+import { useMemo } from "react";
+import {
+  Link,
+  useNavigate,
+  useParams,
+  useSearchParams,
+} from "react-router-dom";
+import { useFaqList } from "@/domains/faq/hooks";
+import { useFaqItemList } from "@/domains/faq-items/hooks";
+import {
+  useContentRef,
+  useDeleteContentRef,
+} from "@/domains/content-refs/hooks";
+import {
+  DetailLayout,
+  KeyValueList,
+  PageHeader,
+  SectionGrid,
+} from "@/shared/layout/page-layouts";
+import { useLocalPagination } from "@/shared/lib/use-local-pagination";
+import {
+  Badge,
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
+  CardHeading,
+  CardTitle,
+  ContextHint,
+} from "@/shared/ui";
+import { PaginationControls } from "@/shared/ui/pagination-controls";
+import { ContentRefKindBadge } from "@/shared/ui/status-badges";
+import { EmptyState, ErrorState } from "@/shared/ui/placeholder-state";
 
 const DETAIL_PAGE_SIZE_OPTIONS = [5, 10, 20];
 
@@ -18,12 +40,12 @@ export function ContentRefDetailPage() {
   const { id: faqId, contentRefId } = useParams();
   const [searchParams] = useSearchParams();
   const resolvedContentRefId = contentRefId;
-  const originatingFaqItemId = searchParams.get('faqItemId') ?? '';
+  const originatingFaqItemId = searchParams.get("faqItemId") ?? "";
   const contentRefQuery = useContentRef(resolvedContentRefId);
   const faqItemQuery = useFaqItemList({
     page: 1,
     pageSize: 100,
-    sorting: 'Question ASC',
+    sorting: "Question ASC",
     faqId,
     contentRefId: resolvedContentRefId,
   });
@@ -31,13 +53,19 @@ export function ContentRefDetailPage() {
 
   const relatedItems = faqItemQuery.data?.items ?? [];
   const relatedFaqIds = useMemo(
-    () => Array.from(new Set([...(faqId ? [faqId] : []), ...relatedItems.map((item) => item.faqId)])),
+    () =>
+      Array.from(
+        new Set([
+          ...(faqId ? [faqId] : []),
+          ...relatedItems.map((item) => item.faqId),
+        ]),
+      ),
     [faqId, relatedItems],
   );
   const faqQuery = useFaqList({
     page: 1,
     pageSize: Math.max(relatedFaqIds.length, 1),
-    sorting: 'Name ASC',
+    sorting: "Name ASC",
     faqIds: relatedFaqIds.length ? relatedFaqIds : undefined,
   });
   const relatedFaqs = useMemo(() => {
@@ -63,11 +91,11 @@ export function ContentRefDetailPage() {
     defaultPageSize: DETAIL_PAGE_SIZE_OPTIONS[0],
   });
   const resolvedFaqId = faqId ?? relatedFaqs[0]?.id ?? relatedItems[0]?.faqId;
-  const backTo = resolvedFaqId ? `/app/faq/${resolvedFaqId}` : '/app/faq';
+  const backTo = resolvedFaqId ? `/app/faq/${resolvedFaqId}` : "/app/faq";
   const createFaqItemPath =
     resolvedFaqId && resolvedContentRefId
       ? `/app/faq/${resolvedFaqId}/items/new?contentRefId=${resolvedContentRefId}`
-      : '/app/faq';
+      : "/app/faq";
   const editPath =
     resolvedFaqId && resolvedContentRefId
       ? `/app/faq/${resolvedFaqId}/content-refs/${resolvedContentRefId}/edit`
@@ -75,13 +103,13 @@ export function ContentRefDetailPage() {
   const attachOriginItemPath =
     resolvedFaqId && originatingFaqItemId && resolvedContentRefId
       ? `/app/faq/${resolvedFaqId}/items/${originatingFaqItemId}/edit?contentRefId=${resolvedContentRefId}`
-      : '';
+      : "";
 
   if (!resolvedContentRefId) {
     return (
       <ErrorState
-        title="Invalid content ref route"
-        description="Content ref detail routes require an identifier."
+        title="Invalid source route"
+        description="Source routes need an identifier."
       />
     );
   }
@@ -90,21 +118,22 @@ export function ContentRefDetailPage() {
     <DetailLayout
       header={
         <PageHeader
-          eyebrow="Content Refs"
-          title={contentRefQuery.data?.label || 'Content ref detail'}
-          description={contentRefQuery.data?.locator || 'Loading content ref detail'}
+          eyebrow="Sources"
+          title={contentRefQuery.data?.label || "Source"}
+          description="See where this source is used and keep the reference up to date."
+          descriptionMode="hint"
           backTo={backTo}
           actions={
             <>
               <Button asChild>
                 <Link to={createFaqItemPath}>
                   <Plus className="size-4" />
-                  Create FAQ item
+                  New Q&A item
                 </Link>
               </Button>
               {attachOriginItemPath ? (
                 <Button asChild variant="outline">
-                  <Link to={attachOriginItemPath}>Attach to FAQ item</Link>
+                  <Link to={attachOriginItemPath}>Link to Q&A item</Link>
                 </Button>
               ) : null}
               <Button asChild variant="outline">
@@ -119,10 +148,12 @@ export function ContentRefDetailPage() {
                   if (
                     contentRefQuery.data &&
                     window.confirm(
-                      `Delete content ref "${contentRefQuery.data.label || contentRefQuery.data.locator}"?`,
+                      `Delete source "${contentRefQuery.data.label || contentRefQuery.data.locator}"?`,
                     )
                   ) {
-                    void deleteContentRef.mutateAsync(resolvedContentRefId).then(() => navigate(backTo));
+                    void deleteContentRef
+                      .mutateAsync(resolvedContentRefId)
+                      .then(() => navigate(backTo));
                   }
                 }}
               >
@@ -137,8 +168,13 @@ export function ContentRefDetailPage() {
         <Card>
           <CardHeader>
             <CardHeading>
-              <CardTitle>At a glance</CardTitle>
-              <CardDescription>Source type, scope, and downstream usage.</CardDescription>
+              <CardTitle className="flex flex-wrap items-center gap-2">
+                <span>Overview</span>
+                <ContextHint
+                  content="Source type, scope, and downstream usage."
+                  label="Overview details"
+                />
+              </CardTitle>
             </CardHeading>
           </CardHeader>
           <CardContent>
@@ -146,12 +182,17 @@ export function ContentRefDetailPage() {
               <KeyValueList
                 items={[
                   {
-                    label: 'Kind',
-                    value: <ContentRefKindBadge kind={contentRefQuery.data.kind} />,
+                    label: "Kind",
+                    value: (
+                      <ContentRefKindBadge kind={contentRefQuery.data.kind} />
+                    ),
                   },
-                  { label: 'Scope', value: contentRefQuery.data.scope || 'No scope' },
-                  { label: 'Related FAQs', value: String(relatedFaqs.length) },
-                  { label: 'Related FAQ items', value: String(relatedItems.length) },
+                  {
+                    label: "Scope",
+                    value: contentRefQuery.data.scope || "No scope",
+                  },
+                  { label: "FAQs", value: String(relatedFaqs.length) },
+                  { label: "Q&A items", value: String(relatedItems.length) },
                 ]}
               />
             ) : null}
@@ -161,8 +202,8 @@ export function ContentRefDetailPage() {
     >
       {contentRefQuery.isError ? (
         <ErrorState
-          title="Unable to load content ref"
-          description="The content ref detail request failed."
+          title="Unable to load source"
+          description="The source request failed."
           retry={() => void contentRefQuery.refetch()}
         />
       ) : contentRefQuery.data ? (
@@ -170,30 +211,28 @@ export function ContentRefDetailPage() {
           <SectionGrid
             items={[
               {
-                title: 'Type',
+                title: "Type",
                 value: <ContentRefKindBadge kind={contentRefQuery.data.kind} />,
-                description: 'How this source is classified',
+                titleHint: "How this source is classified.",
               },
               {
-                title: 'FAQ items using it',
+                title: "Q&A items",
                 value: relatedItems.length,
-                description:
-                  relatedItems.length
-                    ? 'Answers already linked'
-                    : 'No answer records linked yet',
+                description: relatedItems.length
+                  ? "Q&A items already linked"
+                  : "No Q&A items linked yet",
               },
               {
-                title: 'FAQs affected',
+                title: "FAQs",
                 value: relatedFaqs.length,
-                description:
-                  relatedFaqs.length
-                    ? 'Knowledge spaces currently relying on it'
-                    : 'No FAQs currently depend on this source',
+                description: relatedFaqs.length
+                  ? "Knowledge spaces currently relying on it"
+                  : "No FAQs currently depend on this source",
               },
               {
-                title: 'Scope',
-                value: contentRefQuery.data.scope || 'Not set',
-                description: 'Optional grouping label',
+                title: "Scope",
+                value: contentRefQuery.data.scope || "Not set",
+                titleHint: "Optional grouping label.",
               },
             ]}
           />
@@ -201,37 +240,50 @@ export function ContentRefDetailPage() {
           <Card>
             <CardHeader>
               <CardHeading>
-                <CardTitle>Locator</CardTitle>
-                <CardDescription>
-                  The durable pointer editors and ingestion use for this source.
-                </CardDescription>
+                <CardTitle className="flex flex-wrap items-center gap-2">
+                  <span>Reference</span>
+                  <ContextHint
+                    content="The link or path saved for this source."
+                    label="Reference details"
+                  />
+                </CardTitle>
               </CardHeading>
             </CardHeader>
             <CardContent className="space-y-3">
-              <p className="break-all text-sm leading-6">{contentRefQuery.data.locator}</p>
+              <p className="break-all text-sm leading-6">
+                {contentRefQuery.data.locator}
+              </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
               <CardHeading>
-                <CardTitle>FAQs using this content ref</CardTitle>
-                <CardDescription>
-                  Knowledge spaces already drawing from this source.
-                </CardDescription>
+                <CardTitle className="flex flex-wrap items-center gap-2">
+                  <span>FAQs</span>
+                  <ContextHint
+                    content="Knowledge spaces already drawing from this source."
+                    label="FAQ usage details"
+                  />
+                </CardTitle>
               </CardHeading>
             </CardHeader>
             <CardContent className="space-y-3">
               {relatedFaqs.length ? (
                 <>
                   {relatedFaqsPagination.pagedItems.map((faq) => (
-                    <div key={faq.id} className="rounded-2xl border border-border bg-muted/15 p-4">
+                    <div
+                      key={faq.id}
+                      className="rounded-2xl border border-border bg-muted/15 p-4"
+                    >
                       <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                         <div>
                           <p className="font-medium text-mono">{faq.name}</p>
                           <p className="mt-1 text-sm text-muted-foreground">
-                            Used by {faq.usageCount} linked{' '}
-                            {faq.usageCount === 1 ? 'FAQ item' : 'FAQ items'}
+                            Used by {faq.usageCount} linked{" "}
+                            {faq.usageCount === 1
+                              ? "Q&A item"
+                              : "Q&A items"}
                           </p>
                         </div>
                         <Button asChild variant="outline" size="sm">
@@ -240,7 +292,8 @@ export function ContentRefDetailPage() {
                       </div>
                     </div>
                   ))}
-                  {relatedFaqsPagination.totalCount > DETAIL_PAGE_SIZE_OPTIONS[0] ? (
+                  {relatedFaqsPagination.totalCount >
+                  DETAIL_PAGE_SIZE_OPTIONS[0] ? (
                     <PaginationControls
                       page={relatedFaqsPagination.page}
                       pageSize={relatedFaqsPagination.pageSize}
@@ -253,9 +306,9 @@ export function ContentRefDetailPage() {
                 </>
               ) : (
                 <EmptyState
-                  title="No FAQs using this content ref"
-                  description="Link this source to answers so it becomes part of the workspace knowledge flow."
-                  action={{ label: 'Create FAQ item', to: createFaqItemPath }}
+                  title="No FAQs yet"
+                  description="Link this source to a Q&A item so it shows up in a FAQ."
+                  action={{ label: "New Q&A item", to: createFaqItemPath }}
                 />
               )}
             </CardContent>
@@ -264,45 +317,57 @@ export function ContentRefDetailPage() {
           <Card>
             <CardHeader>
               <CardHeading>
-                <CardTitle>FAQ items using this content ref</CardTitle>
-                <CardDescription>
-                  Answers currently attached to this source.
-                </CardDescription>
+                <CardTitle className="flex flex-wrap items-center gap-2">
+                  <span>Q&A items</span>
+                  <ContextHint
+                    content="Q&A items currently linked to this source."
+                    label="Q&A item usage details"
+                  />
+                </CardTitle>
               </CardHeading>
             </CardHeader>
             <CardContent className="space-y-3">
               {relatedItems.length ? (
                 <>
                   {relatedItemsPagination.pagedItems.map((item) => (
-                    <div key={item.id} className="rounded-2xl border border-border bg-muted/15 p-4">
+                    <div
+                      key={item.id}
+                      className="rounded-2xl border border-border bg-muted/15 p-4"
+                    >
                       <div className="flex items-start justify-between gap-3">
                         <div>
                           <div className="flex flex-wrap items-center gap-2">
-                            <p className="font-medium text-mono">{item.question}</p>
-                            <Badge variant={item.isActive ? 'success' : 'mono'}>
-                              {item.isActive ? 'Active' : 'Inactive'}
+                            <p className="font-medium text-mono">
+                              {item.question}
+                            </p>
+                            <Badge variant={item.isActive ? "success" : "mono"}>
+                              {item.isActive ? "Active" : "Inactive"}
                             </Badge>
                           </div>
                           <p className="mt-1 text-sm text-muted-foreground">
                             {item.shortAnswer}
                           </p>
                           <p className="mt-3 text-xs text-muted-foreground">
-                            FAQ:{' '}
+                            FAQ:{" "}
                             <Link
                               className="font-medium text-primary hover:underline"
                               to={`/app/faq/${item.faqId}`}
                             >
-                              {relatedFaqs.find((faq) => faq.id === item.faqId)?.name ?? item.faqId}
+                              {relatedFaqs.find((faq) => faq.id === item.faqId)
+                                ?.name ?? item.faqId}
                             </Link>
                           </p>
                         </div>
                         <Button asChild variant="outline" size="sm">
-                          <Link to={`/app/faq/${item.faqId}/items/${item.id}`}>Open</Link>
+                          <Link to={`/app/faq/${item.faqId}/items/${item.id}`}>
+                            Open
+                          </Link>
                         </Button>
                       </div>
                     </div>
                   ))}
-                  {relatedItemsPagination.totalCount > DETAIL_PAGE_SIZE_OPTIONS[0] ? (
+                  {relatedItemsPagination.totalCount >
+                  DETAIL_PAGE_SIZE_OPTIONS[0] ? (
                     <PaginationControls
                       page={relatedItemsPagination.page}
                       pageSize={relatedItemsPagination.pageSize}
@@ -315,9 +380,9 @@ export function ContentRefDetailPage() {
                 </>
               ) : (
                 <EmptyState
-                  title="No FAQ items linked"
-                  description="Attach this source to answers so teams can reuse it across the workspace."
-                  action={{ label: 'Create FAQ item', to: createFaqItemPath }}
+                  title="No Q&A items yet"
+                  description="Link this source to a Q&A item so teams can reuse it."
+                  action={{ label: "New Q&A item", to: createFaqItemPath }}
                 />
               )}
             </CardContent>
@@ -326,7 +391,7 @@ export function ContentRefDetailPage() {
       ) : (
         <Card>
           <CardContent className="py-8 text-sm text-muted-foreground">
-            Loading content ref…
+            Loading source…
           </CardContent>
         </Card>
       )}

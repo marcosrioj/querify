@@ -79,7 +79,7 @@ export function useCreateContentRef() {
     mutationFn: (body: ContentRefCreateRequestDto) =>
       createContentRef(session?.accessToken, currentTenantId, body),
     onSuccess: async () => {
-      toast.success('Content ref created.');
+      toast.success('Source created.');
       await queryClient.invalidateQueries({ queryKey: contentRefKeys.all });
     },
   });
@@ -95,7 +95,7 @@ export function useUpdateContentRef(id: string) {
     mutationFn: (body: ContentRefUpdateRequestDto) =>
       updateContentRef(session?.accessToken, currentTenantId, id, body),
     onSuccess: async () => {
-      toast.success('Content ref updated.');
+      toast.success('Source updated.');
       await queryClient.invalidateQueries({ queryKey: contentRefKeys.all });
     },
   });
@@ -111,7 +111,7 @@ export function useDeleteContentRef() {
     mutationFn: (id: string) =>
       deleteContentRef(session?.accessToken, currentTenantId, id),
     onSuccess: async () => {
-      toast.success('Content ref deleted.');
+      toast.success('Source deleted.');
       await queryClient.invalidateQueries({ queryKey: contentRefKeys.all });
     },
   });

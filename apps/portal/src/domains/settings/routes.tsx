@@ -16,8 +16,8 @@ export const SettingsRoutes: RouteObject[] = [
         path: 'general',
         element: <GeneralSettingsPage />,
         handle: {
-          title: 'General settings',
-          breadcrumb: 'General',
+          title: 'Appearance',
+          breadcrumb: 'Appearance',
           navKey: 'settings',
         },
       },
@@ -34,7 +34,7 @@ export const SettingsRoutes: RouteObject[] = [
         path: 'security',
         element: <SecuritySettingsPage />,
         handle: {
-          title: 'Security settings',
+          title: 'Security',
           breadcrumb: 'Security',
           navKey: 'settings',
         },
@@ -43,8 +43,8 @@ export const SettingsRoutes: RouteObject[] = [
         path: 'tenant',
         element: <TenantSettingsPage />,
         handle: {
-          title: 'Tenant settings',
-          breadcrumb: 'Tenant',
+          title: 'Workspace',
+          breadcrumb: 'Workspace',
           navKey: 'settings',
         },
       },

@@ -1,16 +1,38 @@
-import { Pencil, Plus, Trash2, WandSparkles } from 'lucide-react';
-import { useMemo } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
-import { useDeleteFaq, useFaq, useRequestFaqGeneration } from '@/domains/faq/hooks';
-import { useFaqItemList } from '@/domains/faq-items/hooks';
-import { useContentRefList } from '@/domains/content-refs/hooks';
-import { FaqStatus } from '@/shared/constants/backend-enums';
-import { DetailLayout, KeyValueList, PageHeader, SectionGrid } from '@/shared/layout/page-layouts';
-import { useLocalPagination } from '@/shared/lib/use-local-pagination';
-import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardHeading, CardTitle } from '@/shared/ui';
-import { PaginationControls } from '@/shared/ui/pagination-controls';
-import { ErrorState, EmptyState } from '@/shared/ui/placeholder-state';
-import { ContentRefKindBadge, FaqStatusBadge, SortStrategyBadge } from '@/shared/ui/status-badges';
+import { Pencil, Plus, Trash2, WandSparkles } from "lucide-react";
+import { useMemo } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import {
+  useDeleteFaq,
+  useFaq,
+  useRequestFaqGeneration,
+} from "@/domains/faq/hooks";
+import { useFaqItemList } from "@/domains/faq-items/hooks";
+import { useContentRefList } from "@/domains/content-refs/hooks";
+import { FaqStatus } from "@/shared/constants/backend-enums";
+import {
+  DetailLayout,
+  KeyValueList,
+  PageHeader,
+  SectionGrid,
+} from "@/shared/layout/page-layouts";
+import { useLocalPagination } from "@/shared/lib/use-local-pagination";
+import {
+  Badge,
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
+  CardHeading,
+  CardTitle,
+  ContextHint,
+} from "@/shared/ui";
+import { PaginationControls } from "@/shared/ui/pagination-controls";
+import { ErrorState, EmptyState } from "@/shared/ui/placeholder-state";
+import {
+  ContentRefKindBadge,
+  FaqStatusBadge,
+  SortStrategyBadge,
+} from "@/shared/ui/status-badges";
 
 const DETAIL_PAGE_SIZE_OPTIONS = [5, 10, 20];
 
@@ -21,13 +43,13 @@ export function FaqDetailPage() {
   const faqItemQuery = useFaqItemList({
     page: 1,
     pageSize: 100,
-    sorting: 'Question ASC',
+    sorting: "Question ASC",
     faqId: id,
   });
   const contentRefQuery = useContentRefList({
     page: 1,
     pageSize: 100,
-    sorting: 'Label ASC',
+    sorting: "Label ASC",
     faqId: id,
   });
   const deleteFaq = useDeleteFaq();
@@ -48,11 +70,10 @@ export function FaqDetailPage() {
       );
     });
 
-    return (contentRefQuery.data?.items ?? [])
-      .map((contentRef) => ({
-        ...contentRef,
-        usageCount: usageByContentRef.get(contentRef.id) ?? 0,
-      }));
+    return (contentRefQuery.data?.items ?? []).map((contentRef) => ({
+      ...contentRef,
+      usageCount: usageByContentRef.get(contentRef.id) ?? 0,
+    }));
   }, [contentRefQuery.data?.items, relatedItems]);
 
   const activeItemCount = relatedItems.filter((item) => item.isActive).length;
@@ -83,21 +104,22 @@ export function FaqDetailPage() {
       header={
         <PageHeader
           eyebrow="FAQ"
-          title={faqQuery.data?.name ?? 'FAQ detail'}
-          description="Review the answers, sources, and readiness of this knowledge space."
+          title={faqQuery.data?.name ?? "FAQ"}
+          description="See this FAQ, its Q&A items, sources, and publish status."
+          descriptionMode="hint"
           backTo="/app/faq"
           actions={
             <>
               <Button asChild>
                 <Link to={createFaqItemPath}>
                   <Plus className="size-4" />
-                  Add FAQ item
+                  New Q&A item
                 </Link>
               </Button>
               <Button asChild variant="outline">
                 <Link to={createContentRefPath}>
                   <Plus className="size-4" />
-                  Add content ref
+                  New source
                 </Link>
               </Button>
               <Button
@@ -118,8 +140,13 @@ export function FaqDetailPage() {
               <Button
                 variant="destructive"
                 onClick={() => {
-                  if (faqQuery.data && window.confirm(`Delete FAQ "${faqQuery.data.name}"?`)) {
-                    void deleteFaq.mutateAsync(id).then(() => navigate('/app/faq'));
+                  if (
+                    faqQuery.data &&
+                    window.confirm(`Delete FAQ "${faqQuery.data.name}"?`)
+                  ) {
+                    void deleteFaq
+                      .mutateAsync(id)
+                      .then(() => navigate("/app/faq"));
                   }
                 }}
               >
@@ -134,27 +161,40 @@ export function FaqDetailPage() {
         <Card>
           <CardHeader>
             <CardHeading>
-              <CardTitle>At a glance</CardTitle>
-              <CardDescription>Key publishing and orchestration settings.</CardDescription>
+              <CardTitle className="flex flex-wrap items-center gap-2">
+                <span>Overview</span>
+                <ContextHint
+                  content="Key publishing and orchestration settings."
+                  label="Overview details"
+                />
+              </CardTitle>
             </CardHeading>
           </CardHeader>
           <CardContent>
             {faqQuery.data ? (
               <KeyValueList
                 items={[
-                  { label: 'Status', value: <FaqStatusBadge status={faqQuery.data.status} /> },
                   {
-                    label: 'Sort strategy',
-                    value: <SortStrategyBadge value={faqQuery.data.sortStrategy} />,
+                    label: "Status",
+                    value: <FaqStatusBadge status={faqQuery.data.status} />,
                   },
-                  { label: 'Language', value: faqQuery.data.language },
-                  { label: 'CTA', value: faqQuery.data.ctaEnabled ? 'Enabled' : 'Disabled' },
                   {
-                    label: 'Related FAQ items',
+                    label: "Sort",
+                    value: (
+                      <SortStrategyBadge value={faqQuery.data.sortStrategy} />
+                    ),
+                  },
+                  { label: "Language", value: faqQuery.data.language },
+                  {
+                    label: "CTA",
+                    value: faqQuery.data.ctaEnabled ? "Enabled" : "Disabled",
+                  },
+                  {
+                    label: "Q&A items",
                     value: String(relatedItems.length),
                   },
                   {
-                    label: 'Linked content refs',
+                    label: "Sources",
                     value: String(relatedContentRefs.length),
                   },
                 ]}
@@ -175,34 +215,34 @@ export function FaqDetailPage() {
           <SectionGrid
             items={[
               {
-                title: 'FAQ items',
+                title: "Q&A items",
                 value: relatedItems.length,
                 description:
-                  relatedItems.length === 1 ? '1 answer linked' : `${relatedItems.length} answers linked`,
+                  relatedItems.length === 1
+                    ? "1 item linked"
+                    : `${relatedItems.length} items linked`,
               },
               {
-                title: 'Active answers',
+                title: "Active",
                 value: activeItemCount,
                 description:
                   activeItemCount === relatedItems.length
-                    ? 'Everything in view is active'
-                    : 'Some answers still need activation',
+                    ? "Everything in view is active"
+                    : "Some Q&A items still need activation",
               },
               {
-                title: 'Source coverage',
+                title: "Sources",
                 value: relatedContentRefs.length,
-                description:
-                  relatedContentRefs.length
-                    ? 'Sources already connected'
-                    : 'No content refs linked yet',
+                description: relatedContentRefs.length
+                  ? "Sources already connected"
+                  : "No sources linked yet",
               },
               {
-                title: 'Generation readiness',
-                value: generationReady ? 'Ready' : 'Needs setup',
-                description:
-                  generationReady
-                    ? 'Answers and sources are in place'
-                    : 'Add answers and sources before generating',
+                title: "Ready",
+                value: generationReady ? "Ready" : "Needs setup",
+                description: generationReady
+                  ? "Q&A items and sources are ready"
+                  : "Add Q&A items and sources first",
               },
             ]}
           />
@@ -210,37 +250,44 @@ export function FaqDetailPage() {
           <Card>
             <CardHeader>
               <CardHeading>
-                <CardTitle>Operational state</CardTitle>
-                <CardDescription>
-                  Monitor readiness before you publish or request generation.
-                </CardDescription>
+                <CardTitle className="flex flex-wrap items-center gap-2">
+                  <span>Status</span>
+                  <ContextHint
+                    content="Monitor readiness before you publish or request generation."
+                    label="Status details"
+                  />
+                </CardTitle>
               </CardHeading>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex flex-wrap gap-2">
-                <Badge variant={generationReady ? 'success' : 'warning'}>
-                  {generationReady ? 'Ready for generation request' : 'Needs content and answer coverage'}
+                <Badge variant={generationReady ? "success" : "warning"}>
+                  {generationReady
+                    ? "Ready for generation request"
+                    : "Needs content and Q&A coverage"}
                 </Badge>
                 <Badge variant="outline">
-                  {faqQuery.data.ctaEnabled ? 'CTA enabled' : 'CTA disabled'}
+                  {faqQuery.data.ctaEnabled ? "CTA enabled" : "CTA disabled"}
                 </Badge>
               </div>
               <KeyValueList
                 items={[
                   {
-                    label: 'Visibility',
+                    label: "Visibility",
                     value:
                       faqQuery.data.status === FaqStatus.Published
-                        ? 'Customer-facing'
-                        : 'Internal or draft',
+                        ? "Customer-facing"
+                        : "Internal or draft",
                   },
                   {
-                    label: 'Generation',
-                    value: generationReady ? 'Ready to request' : 'Waiting on setup',
+                    label: "Generation",
+                    value: generationReady
+                      ? "Ready to request"
+                      : "Waiting on setup",
                   },
                   {
-                    label: 'Request tracking',
-                    value: 'Correlation id only',
+                    label: "Request tracking",
+                    value: "Correlation id only",
                   },
                 ]}
               />
@@ -250,10 +297,13 @@ export function FaqDetailPage() {
           <Card>
             <CardHeader>
               <CardHeading>
-                <CardTitle>Related FAQ items</CardTitle>
-                <CardDescription>
-                  Answers currently attached to this FAQ.
-                </CardDescription>
+                <CardTitle className="flex flex-wrap items-center gap-2">
+                  <span>Q&A items</span>
+                  <ContextHint
+                    content="Q&A items currently attached to this FAQ."
+                    label="Q&A item details"
+                  />
+                </CardTitle>
               </CardHeading>
             </CardHeader>
             <CardContent className="space-y-3">
@@ -267,9 +317,11 @@ export function FaqDetailPage() {
                       <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                         <div>
                           <div className="flex flex-wrap items-center gap-2">
-                            <p className="font-medium text-mono">{item.question}</p>
-                            <Badge variant={item.isActive ? 'success' : 'mono'}>
-                              {item.isActive ? 'Active' : 'Inactive'}
+                            <p className="font-medium text-mono">
+                              {item.question}
+                            </p>
+                            <Badge variant={item.isActive ? "success" : "mono"}>
+                              {item.isActive ? "Active" : "Inactive"}
                             </Badge>
                           </div>
                           <p className="mt-1 text-sm text-muted-foreground">
@@ -281,31 +333,36 @@ export function FaqDetailPage() {
                             <span>AI {item.aiConfidenceScore}</span>
                             {item.contentRefId ? (
                               <span>
-                                Linked to{' '}
+                                Linked to{" "}
                                 <Link
                                   className="font-medium text-primary hover:underline"
                                   to={`/app/faq/${id}/content-refs/${item.contentRefId}`}
                                 >
-                                  source material
+                                  source
                                 </Link>
                               </span>
                             ) : (
-                              <span>No content ref linked yet</span>
+                              <span>No source linked yet</span>
                             )}
                           </div>
                         </div>
                         <div className="flex flex-wrap gap-2">
                           <Button asChild variant="ghost" size="sm">
-                            <Link to={`/app/faq/${id}/items/${item.id}/edit`}>Edit</Link>
+                            <Link to={`/app/faq/${id}/items/${item.id}/edit`}>
+                              Edit
+                            </Link>
                           </Button>
                           <Button asChild variant="outline" size="sm">
-                            <Link to={`/app/faq/${id}/items/${item.id}`}>Open</Link>
+                            <Link to={`/app/faq/${id}/items/${item.id}`}>
+                              Open
+                            </Link>
                           </Button>
                         </div>
                       </div>
                     </div>
                   ))}
-                  {relatedItemsPagination.totalCount > DETAIL_PAGE_SIZE_OPTIONS[0] ? (
+                  {relatedItemsPagination.totalCount >
+                  DETAIL_PAGE_SIZE_OPTIONS[0] ? (
                     <PaginationControls
                       page={relatedItemsPagination.page}
                       pageSize={relatedItemsPagination.pageSize}
@@ -318,9 +375,9 @@ export function FaqDetailPage() {
                 </>
               ) : (
                 <EmptyState
-                  title="No FAQ items linked"
-                  description="Create answers inside this FAQ to start filling its knowledge coverage."
-                  action={{ label: 'Create FAQ item', to: createFaqItemPath }}
+                  title="No Q&A items yet"
+                  description="Create a Q&A item to start filling this FAQ."
+                  action={{ label: "New Q&A item", to: createFaqItemPath }}
                 />
               )}
             </CardContent>
@@ -329,10 +386,13 @@ export function FaqDetailPage() {
           <Card>
             <CardHeader>
               <CardHeading>
-                <CardTitle>Connected content refs</CardTitle>
-                <CardDescription>
-                  Source material already supporting this FAQ.
-                </CardDescription>
+                <CardTitle className="flex flex-wrap items-center gap-2">
+                  <span>Sources</span>
+                  <ContextHint
+                    content="Source material already supporting this FAQ."
+                    label="Source details"
+                  />
+                </CardTitle>
               </CardHeading>
             </CardHeader>
             <CardContent className="space-y-3">
@@ -347,7 +407,7 @@ export function FaqDetailPage() {
                         <div>
                           <div className="flex flex-wrap items-center gap-2">
                             <p className="font-medium text-mono">
-                              {contentRef.label || 'Untitled content ref'}
+                              {contentRef.label || "Untitled source"}
                             </p>
                             <ContentRefKindBadge kind={contentRef.kind} />
                           </div>
@@ -355,32 +415,42 @@ export function FaqDetailPage() {
                             {contentRef.locator}
                           </p>
                           <p className="mt-3 text-xs text-muted-foreground">
-                            Used by {contentRef.usageCount}{' '}
-                            {contentRef.usageCount === 1 ? 'FAQ item' : 'FAQ items'} in this FAQ
+                            Used by {contentRef.usageCount}{" "}
+                            {contentRef.usageCount === 1
+                              ? "Q&A item"
+                              : "Q&A items"}{" "}
+                            in this FAQ
                           </p>
                         </div>
                         <Button asChild variant="outline" size="sm">
-                          <Link to={`/app/faq/${id}/content-refs/${contentRef.id}`}>Open</Link>
+                          <Link
+                            to={`/app/faq/${id}/content-refs/${contentRef.id}`}
+                          >
+                            Open
+                          </Link>
                         </Button>
                       </div>
                     </div>
                   ))}
-                  {relatedContentRefsPagination.totalCount > DETAIL_PAGE_SIZE_OPTIONS[0] ? (
+                  {relatedContentRefsPagination.totalCount >
+                  DETAIL_PAGE_SIZE_OPTIONS[0] ? (
                     <PaginationControls
                       page={relatedContentRefsPagination.page}
                       pageSize={relatedContentRefsPagination.pageSize}
                       totalCount={relatedContentRefsPagination.totalCount}
                       onPageChange={relatedContentRefsPagination.setPage}
-                      onPageSizeChange={relatedContentRefsPagination.setPageSize}
+                      onPageSizeChange={
+                        relatedContentRefsPagination.setPageSize
+                      }
                       pageSizeOptions={DETAIL_PAGE_SIZE_OPTIONS}
                     />
                   ) : null}
                 </>
               ) : (
                 <EmptyState
-                  title="No content refs connected"
-                  description="Attach source material to the answers in this FAQ so generation has something to work from."
-                  action={{ label: 'Add content ref', to: createContentRefPath }}
+                  title="No sources yet"
+                  description="Link sources to your Q&A items so generation has real content to use."
+                  action={{ label: "New source", to: createContentRefPath }}
                 />
               )}
             </CardContent>

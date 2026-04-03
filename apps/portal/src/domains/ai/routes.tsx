@@ -23,8 +23,8 @@ function AiWorkspacePage() {
     <PageSurface className="space-y-5 lg:space-y-7.5">
       <PageHeader
         eyebrow="AI"
-        title="AI workspace"
-        description="See provider readiness and launch generation from the same operational surface."
+        title="AI"
+        description="Check providers and run FAQ generation."
       />
 
       <SectionGrid
@@ -140,7 +140,7 @@ export const AiRoutes: RouteObject[] = [
     path: 'ai',
     element: <AiWorkspacePage />,
     handle: {
-      title: 'AI workspace',
+      title: 'AI',
       breadcrumb: 'AI',
       navKey: 'ai',
     },

@@ -11,43 +11,53 @@ import {
   Sparkles,
   WandSparkles,
   type LucideIcon,
-} from 'lucide-react';
-import { Link } from 'react-router-dom';
-import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, XAxis, YAxis } from 'recharts';
+} from "lucide-react";
+import { Link } from "react-router-dom";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  Pie,
+  PieChart,
+  XAxis,
+  YAxis,
+} from "recharts";
 import {
   useCurrentWorkspace,
   useTenantWorkspace,
-} from '@/domains/tenants/hooks';
-import { useContentRefList } from '@/domains/content-refs/hooks';
-import { type ContentRefDto } from '@/domains/content-refs/types';
-import { useFaqItemList } from '@/domains/faq-items/hooks';
-import { type FaqItemDto } from '@/domains/faq-items/types';
-import { useFaqList } from '@/domains/faq/hooks';
-import { type FaqDto } from '@/domains/faq/types';
-import { useAuth } from '@/platform/auth/auth-context';
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
-import { Progress, ProgressRadial } from '@/components/ui/progress';
-import { PageHeader, PageSurface } from '@/shared/layout/page-layouts';
+} from "@/domains/tenants/hooks";
+import { useContentRefList } from "@/domains/content-refs/hooks";
+import { type ContentRefDto } from "@/domains/content-refs/types";
+import { useFaqItemList } from "@/domains/faq-items/hooks";
+import { type FaqItemDto } from "@/domains/faq-items/types";
+import { useFaqList } from "@/domains/faq/hooks";
+import { type FaqDto } from "@/domains/faq/types";
+import { useAuth } from "@/platform/auth/auth-context";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
+import { Progress, ProgressRadial } from "@/components/ui/progress";
+import { PageHeader, PageSurface } from "@/shared/layout/page-layouts";
 import {
   Badge,
   Button,
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardHeading,
   CardTitle,
   CardToolbar,
-} from '@/shared/ui';
+  ContextHint,
+} from "@/shared/ui";
 import {
   AiCommandType,
   FaqStatus,
   tenantEditionLabels,
-} from '@/shared/constants/backend-enums';
-import {
-  ContentRefKindBadge,
-  FaqStatusBadge,
-} from '@/shared/ui/status-badges';
+} from "@/shared/constants/backend-enums";
+import { ContentRefKindBadge, FaqStatusBadge } from "@/shared/ui/status-badges";
 
 function toPercent(value: number, total: number) {
   if (total <= 0) {
@@ -58,11 +68,11 @@ function toPercent(value: number, total: number) {
 }
 
 function formatNumber(value: number) {
-  return new Intl.NumberFormat('en-US').format(value);
+  return new Intl.NumberFormat("en-US").format(value);
 }
 
 function commandLabel(value: AiCommandType) {
-  return value === AiCommandType.Generation ? 'Generation' : 'Matching';
+  return value === AiCommandType.Generation ? "Generation" : "Matching";
 }
 
 function MetricCard({
@@ -83,7 +93,9 @@ function MetricCard({
       <CardContent className="flex flex-col gap-4 p-5 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0 space-y-2">
           <p className="text-sm text-muted-foreground">{title}</p>
-          <p className="break-words text-3xl font-semibold tracking-tight text-mono">{value}</p>
+          <p className="break-words text-3xl font-semibold tracking-tight text-mono">
+            {value}
+          </p>
           <p className="text-sm text-muted-foreground">{description}</p>
         </div>
         <div
@@ -149,11 +161,17 @@ function AnswerRow({ item }: { item: FaqItemDto }) {
           {item.question}
         </Link>
         <div className="flex flex-wrap items-center gap-2">
-          <Badge variant={item.isActive ? 'success' : 'warning'} appearance="light">
-            {item.isActive ? 'Active' : 'Inactive'}
+          <Badge
+            variant={item.isActive ? "success" : "warning"}
+            appearance="light"
+          >
+            {item.isActive ? "Active" : "Inactive"}
           </Badge>
-          <Badge variant={item.contentRefId ? 'primary' : 'outline'} appearance="light">
-            {item.contentRefId ? 'Source linked' : 'No source'}
+          <Badge
+            variant={item.contentRefId ? "primary" : "outline"}
+            appearance="light"
+          >
+            {item.contentRefId ? "Source linked" : "No source"}
           </Badge>
         </div>
       </div>
@@ -192,7 +210,7 @@ function SourceRow({ contentRef }: { contentRef: ContentRefDto }) {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0 space-y-1.5">
           <p className="truncate text-sm font-medium text-mono">
-            {contentRef.label || 'Untitled source'}
+            {contentRef.label || "Untitled source"}
           </p>
           <p className="break-all text-sm text-muted-foreground sm:break-words lg:truncate">
             {contentRef.locator}
@@ -201,7 +219,7 @@ function SourceRow({ contentRef }: { contentRef: ContentRefDto }) {
         <ContentRefKindBadge kind={contentRef.kind} />
       </div>
       <p className="mt-2 text-xs text-muted-foreground">
-        {contentRef.scope || 'No scope assigned'}
+        {contentRef.scope || "No scope assigned"}
       </p>
     </div>
   );
@@ -214,41 +232,41 @@ export function DashboardPage() {
   const faqOverviewQuery = useFaqList({
     page: 1,
     pageSize: 4,
-    sorting: 'UpdatedDate DESC',
+    sorting: "UpdatedDate DESC",
   });
   const faqPublishedQuery = useFaqList({
     page: 1,
     pageSize: 1,
-    sorting: 'UpdatedDate DESC',
+    sorting: "UpdatedDate DESC",
     status: FaqStatus.Published,
   });
   const faqDraftQuery = useFaqList({
     page: 1,
     pageSize: 1,
-    sorting: 'UpdatedDate DESC',
+    sorting: "UpdatedDate DESC",
     status: FaqStatus.Draft,
   });
   const faqArchivedQuery = useFaqList({
     page: 1,
     pageSize: 1,
-    sorting: 'UpdatedDate DESC',
+    sorting: "UpdatedDate DESC",
     status: FaqStatus.Archived,
   });
   const faqItemTopQuery = useFaqItemList({
     page: 1,
     pageSize: 5,
-    sorting: 'VoteScore DESC',
+    sorting: "VoteScore DESC",
   });
   const faqItemActiveQuery = useFaqItemList({
     page: 1,
     pageSize: 1,
-    sorting: 'UpdatedDate DESC',
+    sorting: "UpdatedDate DESC",
     isActive: true,
   });
   const contentRefOverviewQuery = useContentRefList({
     page: 1,
     pageSize: 5,
-    sorting: 'UpdatedDate DESC',
+    sorting: "UpdatedDate DESC",
   });
 
   const totalFaqs = faqOverviewQuery.data?.totalCount ?? 0;
@@ -271,61 +289,60 @@ export function DashboardPage() {
     aiProviders.length,
   );
   const readinessScore = Math.round(
-    (
-      publishedFaqPercent +
+    (publishedFaqPercent +
       activeAnswerPercent +
       providerCoveragePercent +
-      (clientKeyReady ? 100 : 0)
-    ) / 4,
+      (clientKeyReady ? 100 : 0)) /
+      4,
   );
 
   const assetMixData = [
     {
-      name: 'FAQs',
+      name: "FAQs",
       total: totalFaqs,
-      fill: 'var(--chart-1)',
+      fill: "var(--chart-1)",
     },
     {
-      name: 'Answers',
+      name: "Q&A items",
       total: totalFaqItems,
-      fill: 'var(--chart-2)',
+      fill: "var(--chart-2)",
     },
     {
-      name: 'Sources',
+      name: "Sources",
       total: totalContentRefs,
-      fill: 'var(--chart-3)',
+      fill: "var(--chart-3)",
     },
   ];
   const faqLifecycleData = [
     {
-      name: 'Published',
+      name: "Published",
       total: publishedFaqs,
-      fill: 'var(--chart-2)',
+      fill: "var(--chart-2)",
     },
     {
-      name: 'Draft',
+      name: "Draft",
       total: draftFaqs,
-      fill: 'var(--chart-3)',
+      fill: "var(--chart-3)",
     },
     {
-      name: 'Archived',
+      name: "Archived",
       total: archivedFaqs,
-      fill: 'var(--chart-4)',
+      fill: "var(--chart-4)",
     },
   ];
   const heroHighlights = [
     {
-      label: 'Published portfolio',
+      label: "Published",
       value: `${publishedFaqPercent}%`,
       description: `${publishedFaqs} of ${totalFaqs} FAQs are live`,
     },
     {
-      label: 'Inactive answers',
+      label: "Inactive",
       value: formatNumber(inactiveFaqItems),
-      description: 'Answers still blocked from end users',
+      description: "Q&A items still inactive",
     },
     {
-      label: 'Provider keys secured',
+      label: "AI keys",
       value: `${providerCoveragePercent}%`,
       description: `${configuredAiProviders} of ${aiProviders.length} providers ready`,
     },
@@ -335,18 +352,19 @@ export function DashboardPage() {
     <PageSurface className="space-y-5 lg:space-y-7.5">
       <PageHeader
         eyebrow="Dashboard"
-        title={`Knowledge operations${user?.name ? ` for ${user.name}` : ''}`}
-        description="A tighter operational view of tenant FAQs, answer health, source coverage, and AI setup using only the current Portal contracts."
+        title="Dashboard"
+        description="Quick view of FAQs, Q&A items, sources, and AI setup."
+        descriptionMode="hint"
         actions={
           <>
             <Button asChild>
               <Link to="/app/faq/new">
                 <WandSparkles className="size-4" />
-                Create FAQ
+                New FAQ
               </Link>
             </Button>
             <Button asChild variant="outline">
-              <Link to="/app/settings/tenant">Tenant settings</Link>
+              <Link to="/app/settings/tenant">Settings</Link>
             </Button>
           </>
         }
@@ -357,7 +375,7 @@ export function DashboardPage() {
           className="relative overflow-hidden border-none text-white shadow-xl shadow-slate-950/10"
           style={{
             backgroundImage:
-              'linear-gradient(135deg, hsl(205 92% 47%) 0%, hsl(221 83% 29%) 55%, hsl(224 64% 18%) 100%)',
+              "linear-gradient(135deg, hsl(205 92% 47%) 0%, hsl(221 83% 29%) 55%, hsl(224 64% 18%) 100%)",
           }}
         >
           <div className="pointer-events-none absolute inset-0 overflow-hidden">
@@ -367,22 +385,24 @@ export function DashboardPage() {
           <CardContent className="relative space-y-8 p-6 lg:p-7.5">
             <div className="flex flex-wrap items-center gap-2 text-xs font-medium uppercase tracking-[0.24em] text-white/70">
               <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[0.6875rem] tracking-[0.2em] text-white">
-                {currentWorkspace?.slug ?? 'workspace-pending'}
+                {currentWorkspace?.slug ?? "workspace-pending"}
               </span>
               {currentWorkspace ? (
                 <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[0.6875rem] tracking-[0.2em] text-white">
-                  {currentWorkspace.isActive ? 'Active workspace' : 'Inactive workspace'}
+                  {currentWorkspace.isActive
+                    ? "Active workspace"
+                    : "Inactive workspace"}
                 </span>
               ) : null}
               <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[0.6875rem] tracking-[0.2em] text-white">
-                {user?.role ?? 'Member'} access
+                {user?.role ?? "Member"} access
               </span>
             </div>
 
             <div className="max-w-3xl space-y-3">
               <div className="flex flex-wrap items-center gap-3">
                 <h2 className="text-2xl font-semibold tracking-tight lg:text-3xl">
-                  {currentWorkspace?.name ?? 'Set up your tenant workspace'}
+                  {currentWorkspace?.name ?? "Set up your tenant workspace"}
                 </h2>
                 {currentWorkspace ? (
                   <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-medium text-white">
@@ -391,9 +411,8 @@ export function DashboardPage() {
                 ) : null}
               </div>
               <p className="max-w-2xl text-sm leading-6 text-white/78">
-                Focus the Portal on what matters for BaseFAQ operations: publishable
-                FAQ coverage, answer activation, connected source material, and
-                AI providers that are ready for tenant traffic.
+                Track FAQ coverage, Q&A item health, source links, and AI
+                readiness for the current workspace.
               </p>
             </div>
 
@@ -403,7 +422,7 @@ export function DashboardPage() {
                 className="border-white/20 bg-white text-slate-950 shadow-none hover:bg-white/90"
               >
                 <Link to="/app/faq">
-                  Open FAQ workspace
+                  Open FAQs
                   <ArrowUpRight className="size-4" />
                 </Link>
               </Button>
@@ -412,7 +431,7 @@ export function DashboardPage() {
                 variant="outline"
                 className="border-white/20 bg-white/10 text-white hover:bg-white/15"
               >
-                <Link to="/app/settings/tenant">Review AI configuration</Link>
+                <Link to="/app/settings/tenant">AI settings</Link>
               </Button>
             </div>
 
@@ -440,11 +459,13 @@ export function DashboardPage() {
         <Card>
           <CardHeader>
             <CardHeading>
-              <CardTitle>Launch readiness</CardTitle>
-              <CardDescription>
-                Readiness is weighted across published FAQs, active answers, AI
-                provider keys, and public client key availability.
-              </CardDescription>
+              <CardTitle className="flex flex-wrap items-center gap-2">
+                <span>Readiness</span>
+                <ContextHint
+                  content="Readiness is weighted across published FAQs, active Q&A items, AI provider keys, and public client key availability."
+                  label="Readiness details"
+                />
+              </CardTitle>
             </CardHeading>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -470,18 +491,21 @@ export function DashboardPage() {
               <div className="space-y-3">
                 <div className="flex items-center gap-2 text-sm font-medium text-foreground">
                   <Gauge className="size-4 text-primary" />
-                  Tenant knowledge is operationally visible.
+                  Workspace health at a glance.
                 </div>
                 <p className="text-sm leading-6 text-muted-foreground">
-                  This score stays grounded in current Portal APIs instead of
-                  placeholder growth metrics.
+                  This score uses live Portal data instead of placeholder growth
+                  metrics.
                 </p>
                 <div className="flex flex-wrap gap-2">
-                  <Badge variant={clientKeyReady ? 'success' : 'warning'} appearance="light">
-                    {clientKeyReady ? 'Client key live' : 'Client key missing'}
+                  <Badge
+                    variant={clientKeyReady ? "success" : "warning"}
+                    appearance="light"
+                  >
+                    {clientKeyReady ? "Client key live" : "Client key missing"}
                   </Badge>
                   <Badge
-                    variant={configuredAiProviders > 0 ? 'primary' : 'outline'}
+                    variant={configuredAiProviders > 0 ? "primary" : "outline"}
                     appearance="light"
                   >
                     {configuredAiProviders} secured providers
@@ -492,30 +516,30 @@ export function DashboardPage() {
 
             <div className="space-y-4">
               <ReadinessRow
-                label="Published FAQ coverage"
+                label="Published"
                 value={publishedFaqPercent}
                 helper={`${publishedFaqs} published, ${draftFaqs} draft, ${archivedFaqs} archived`}
                 indicatorClassName="bg-emerald-500"
               />
               <ReadinessRow
-                label="Active answer coverage"
+                label="Active Q&A items"
                 value={activeAnswerPercent}
-                helper={`${activeFaqItems} active answers, ${inactiveFaqItems} inactive`}
+                helper={`${activeFaqItems} active, ${inactiveFaqItems} inactive`}
                 indicatorClassName="bg-blue-500"
               />
               <ReadinessRow
-                label="AI provider key coverage"
+                label="AI keys"
                 value={providerCoveragePercent}
                 helper={`${configuredAiProviders} providers secured for tenant use`}
                 indicatorClassName="bg-cyan-500"
               />
               <ReadinessRow
-                label="Client app key"
+                label="Client key"
                 value={clientKeyReady ? 100 : 0}
                 helper={
                   clientKeyReady
-                    ? 'Public client key is available for Portal integrations'
-                    : 'Generate a client key before embedding tenant AI features'
+                    ? "Public client key is available for Portal integrations"
+                    : "Generate a client key before embedding tenant AI features"
                 }
                 indicatorClassName="bg-amber-500"
               />
@@ -527,28 +551,28 @@ export function DashboardPage() {
       <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4 lg:gap-7.5">
         <MetricCard
           icon={BookOpen}
-          title="FAQ spaces"
+          title="FAQs"
           value={formatNumber(totalFaqs)}
           description={`${formatNumber(publishedFaqs)} currently published`}
           toneClassName="bg-blue-500/10 text-blue-600 dark:bg-blue-500/15 dark:text-blue-300"
         />
         <MetricCard
           icon={Sparkles}
-          title="Published FAQs"
+          title="Published"
           value={formatNumber(publishedFaqs)}
           description={`${formatNumber(draftFaqs)} still waiting in draft`}
           toneClassName="bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-300"
         />
         <MetricCard
           icon={MessageSquare}
-          title="Live answers"
+          title="Q&A items"
           value={formatNumber(activeFaqItems)}
-          description={`${formatNumber(inactiveFaqItems)} inactive answers need attention`}
+          description={`${formatNumber(inactiveFaqItems)} inactive items need attention`}
           toneClassName="bg-cyan-500/10 text-cyan-600 dark:bg-cyan-500/15 dark:text-cyan-300"
         />
         <MetricCard
           icon={Files}
-          title="Source refs"
+          title="Sources"
           value={formatNumber(totalContentRefs)}
           description={`${contentRefOverviewQuery.data?.items.length ?? 0} recent sources loaded on this page`}
           toneClassName="bg-amber-500/10 text-amber-600 dark:bg-amber-500/15 dark:text-amber-300"
@@ -559,19 +583,21 @@ export function DashboardPage() {
         <Card>
           <CardHeader>
             <CardHeading>
-              <CardTitle>Knowledge asset mix</CardTitle>
-              <CardDescription>
-                The current tenant footprint across FAQ spaces, answer rows, and
-                reusable source material.
-              </CardDescription>
+              <CardTitle className="flex flex-wrap items-center gap-2">
+                <span>Assets</span>
+                <ContextHint
+                  content="The current tenant footprint across FAQs, Q&A items, and reusable sources."
+                  label="Asset details"
+                />
+              </CardTitle>
             </CardHeading>
           </CardHeader>
           <CardContent className="space-y-4">
             <ChartContainer
               config={{
                 total: {
-                  label: 'Records',
-                  color: 'var(--chart-1)',
+                  label: "Records",
+                  color: "var(--chart-1)",
                 },
               }}
               className="h-[220px] w-full min-w-0 aspect-auto sm:h-[290px]"
@@ -587,7 +613,11 @@ export function DashboardPage() {
                   tickLine={false}
                   tickMargin={10}
                 />
-                <YAxis allowDecimals={false} axisLine={false} tickLine={false} />
+                <YAxis
+                  allowDecimals={false}
+                  axisLine={false}
+                  tickLine={false}
+                />
                 <ChartTooltip
                   cursor={false}
                   content={<ChartTooltipContent indicator="dot" />}
@@ -625,19 +655,21 @@ export function DashboardPage() {
         <Card>
           <CardHeader>
             <CardHeading>
-              <CardTitle>FAQ lifecycle</CardTitle>
-              <CardDescription>
-                A compact view of what is ready for users versus what is still in
-                editorial flow.
-              </CardDescription>
+              <CardTitle className="flex flex-wrap items-center gap-2">
+                <span>FAQ status</span>
+                <ContextHint
+                  content="A compact view of what is ready for users versus what is still in editorial flow."
+                  label="FAQ status details"
+                />
+              </CardTitle>
             </CardHeading>
           </CardHeader>
           <CardContent className="space-y-6">
             <ChartContainer
               config={{
                 total: {
-                  label: 'FAQs',
-                  color: 'var(--chart-2)',
+                  label: "FAQs",
+                  color: "var(--chart-2)",
                 },
               }}
               className="mx-auto h-[220px] w-full min-w-0 max-w-[320px] aspect-auto sm:h-[280px]"
@@ -697,14 +729,17 @@ export function DashboardPage() {
         <Card>
           <CardHeader className="gap-3 sm:flex-row sm:items-start sm:justify-between">
             <CardHeading>
-              <CardTitle>Answer leaderboard</CardTitle>
-              <CardDescription>
-                Highest vote scores in the current tenant answer catalog.
-              </CardDescription>
+              <CardTitle className="flex flex-wrap items-center gap-2">
+                <span>Top Q&A items</span>
+                <ContextHint
+                  content="Highest vote scores in the current Q&A list."
+                  label="Top Q&A item details"
+                />
+              </CardTitle>
             </CardHeading>
             <CardToolbar>
               <Button asChild variant="ghost" mode="link">
-                <Link to="/app/faq">Open FAQ workspace</Link>
+                <Link to="/app/faq">Open FAQs</Link>
               </Button>
             </CardToolbar>
           </CardHeader>
@@ -715,8 +750,8 @@ export function DashboardPage() {
               ))
             ) : (
               <EmptyMiniState
-                title="No answers ranked yet"
-                description="Create FAQ items to start measuring answer quality and coverage."
+                title="No Q&A items yet"
+                description="Create a Q&A item to start tracking quality and coverage."
               />
             )}
           </CardContent>
@@ -725,10 +760,13 @@ export function DashboardPage() {
         <Card>
           <CardHeader className="gap-3 sm:flex-row sm:items-start sm:justify-between">
             <CardHeading>
-              <CardTitle>Recent FAQs</CardTitle>
-              <CardDescription>
-                The latest FAQ spaces loaded from the Portal API.
-              </CardDescription>
+              <CardTitle className="flex flex-wrap items-center gap-2">
+                <span>Recent FAQs</span>
+                <ContextHint
+                  content="The latest FAQs loaded from the Portal API."
+                  label="Recent FAQ details"
+                />
+              </CardTitle>
             </CardHeading>
             <CardToolbar>
               <Button asChild variant="ghost" mode="link">
@@ -743,8 +781,8 @@ export function DashboardPage() {
               ))
             ) : (
               <EmptyMiniState
-                title="No FAQs created"
-                description="Start a knowledge collection to organize answers per topic or product."
+                title="No FAQs yet"
+                description="Create a FAQ to group Q&A items by topic or product."
               />
             )}
           </CardContent>
@@ -753,10 +791,13 @@ export function DashboardPage() {
         <Card>
           <CardHeader>
             <CardHeading>
-              <CardTitle>Source intake</CardTitle>
-              <CardDescription>
-                Recent content references available to support generation quality.
-              </CardDescription>
+              <CardTitle className="flex flex-wrap items-center gap-2">
+                <span>Recent sources</span>
+                <ContextHint
+                  content="Recent sources available to support generation quality."
+                  label="Recent source details"
+                />
+              </CardTitle>
             </CardHeading>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -766,8 +807,8 @@ export function DashboardPage() {
               ))
             ) : (
               <EmptyMiniState
-                title="No source material yet"
-                description="Attach web pages, PDFs, documents, or repositories to improve answer grounding."
+                title="No sources yet"
+                description="Attach web pages, PDFs, docs, or repos to support your Q&A items."
               />
             )}
           </CardContent>
@@ -778,10 +819,13 @@ export function DashboardPage() {
         <Card>
           <CardHeader>
             <CardHeading>
-              <CardTitle>AI provider stack</CardTitle>
-              <CardDescription>
-                Provider credentials currently configured for this workspace.
-              </CardDescription>
+              <CardTitle className="flex flex-wrap items-center gap-2">
+                <span>AI providers</span>
+                <ContextHint
+                  content="Provider credentials currently configured for this workspace."
+                  label="AI provider details"
+                />
+              </CardTitle>
             </CardHeading>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -806,17 +850,19 @@ export function DashboardPage() {
                   </div>
                   <Badge
                     variant={
-                      provider.isAiProviderKeyConfigured ? 'success' : 'warning'
+                      provider.isAiProviderKeyConfigured ? "success" : "warning"
                     }
                     appearance="light"
                   >
-                    {provider.isAiProviderKeyConfigured ? 'Secured' : 'Needs key'}
+                    {provider.isAiProviderKeyConfigured
+                      ? "Secured"
+                      : "Needs key"}
                   </Badge>
                 </div>
               ))
             ) : (
               <EmptyMiniState
-                title="No AI providers configured"
+                title="No AI providers"
                 description="Connect at least one provider in tenant settings before enabling AI workflows."
               />
             )}
@@ -826,47 +872,60 @@ export function DashboardPage() {
         <Card>
           <CardHeader>
             <CardHeading>
-              <CardTitle>Known gaps</CardTitle>
-              <CardDescription>
-                Current Portal limits still visible in the backend surface.
-              </CardDescription>
+              <CardTitle className="flex flex-wrap items-center gap-2">
+                <span>Gaps</span>
+                <ContextHint
+                  content="Current Portal limits still visible in the backend surface."
+                  label="Gap details"
+                />
+              </CardTitle>
             </CardHeading>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="flex gap-3 rounded-2xl border border-border/70 px-4 py-3">
               <CircleAlert className="mt-0.5 size-4 shrink-0 text-amber-500" />
               <div>
-                <p className="text-sm font-medium text-mono">Members API is still temporary</p>
+                <p className="text-sm font-medium text-mono">
+                  Members API is still temporary
+                </p>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Portal member management remains backed by the temporary adapter.
+                  Portal member management remains backed by the temporary
+                  adapter.
                 </p>
               </div>
             </div>
             <div className="flex gap-3 rounded-2xl border border-border/70 px-4 py-3">
               <ShieldCheck className="mt-0.5 size-4 shrink-0 text-blue-500" />
               <div>
-                <p className="text-sm font-medium text-mono">Billing is not exposed yet</p>
+                <p className="text-sm font-medium text-mono">
+                  Billing is not exposed yet
+                </p>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Edition visibility exists, but billing and invoicing endpoints do not.
+                  Edition visibility exists, but billing and invoicing endpoints
+                  do not.
                 </p>
               </div>
             </div>
             <div className="flex gap-3 rounded-2xl border border-border/70 px-4 py-3">
               <BrainCircuit className="mt-0.5 size-4 shrink-0 text-cyan-500" />
               <div>
-                <p className="text-sm font-medium text-mono">AI jobs have no history endpoint</p>
+                <p className="text-sm font-medium text-mono">
+                  AI jobs have no history endpoint
+                </p>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Generation requests can be triggered, but job listings and status dashboards are not exposed.
+                  Generation requests can be triggered, but job listings and
+                  status dashboards are not exposed.
                 </p>
               </div>
             </div>
             <div className="rounded-2xl border border-dashed border-border px-4 py-3">
               <div className="flex items-center gap-2 text-sm font-medium text-mono">
                 <Bot className="size-4 text-primary" />
-                Highest signal setup path
+                Next steps
               </div>
               <p className="mt-2 text-sm text-muted-foreground">
-                Publish key FAQs, activate answers, attach source refs, then secure tenant AI providers.
+                Publish key FAQs, activate answers, attach source refs, then
+                secure tenant AI providers.
               </p>
             </div>
           </CardContent>

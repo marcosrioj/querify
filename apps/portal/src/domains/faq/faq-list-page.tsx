@@ -1,16 +1,24 @@
-import { useEffect } from 'react';
-import { Pencil, Plus, Trash2, WandSparkles } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useDeleteFaq, useFaqList, useRequestFaqGeneration } from '@/domains/faq/hooks';
-import { FaqDto } from '@/domains/faq/types';
-import { faqStatusLabels, FaqStatus } from '@/shared/constants/backend-enums';
-import { ListLayout, PageHeader, SectionGrid } from '@/shared/layout/page-layouts';
-import { clampPage } from '@/shared/lib/pagination';
-import { useListQueryState } from '@/shared/lib/use-list-query-state';
-import { DataTable, type DataTableColumn } from '@/shared/ui/data-table';
-import { PaginationControls } from '@/shared/ui/pagination-controls';
-import { EmptyState, ErrorState } from '@/shared/ui/placeholder-state';
-import { FaqStatusBadge, SortStrategyBadge } from '@/shared/ui/status-badges';
+import { useEffect } from "react";
+import { Pencil, Plus, Trash2, WandSparkles } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import {
+  useDeleteFaq,
+  useFaqList,
+  useRequestFaqGeneration,
+} from "@/domains/faq/hooks";
+import { FaqDto } from "@/domains/faq/types";
+import { faqStatusLabels, FaqStatus } from "@/shared/constants/backend-enums";
+import {
+  ListLayout,
+  PageHeader,
+  SectionGrid,
+} from "@/shared/layout/page-layouts";
+import { clampPage } from "@/shared/lib/pagination";
+import { useListQueryState } from "@/shared/lib/use-list-query-state";
+import { DataTable, type DataTableColumn } from "@/shared/ui/data-table";
+import { PaginationControls } from "@/shared/ui/pagination-controls";
+import { EmptyState, ErrorState } from "@/shared/ui/placeholder-state";
+import { FaqStatusBadge, SortStrategyBadge } from "@/shared/ui/status-badges";
 import {
   Badge,
   Button,
@@ -20,17 +28,17 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/shared/ui';
+} from "@/shared/ui";
 
 const sortingOptions = [
-  { value: 'UpdatedDate DESC', label: 'Last updated' },
-  { value: 'Name ASC', label: 'Name A-Z' },
-  { value: 'Language ASC', label: 'Language' },
-  { value: 'Status ASC', label: 'Status' },
+  { value: "UpdatedDate DESC", label: "Last updated" },
+  { value: "Name ASC", label: "Name A-Z" },
+  { value: "Language ASC", label: "Language" },
+  { value: "Status ASC", label: "Status" },
 ];
 
 const FAQ_FILTER_DEFAULTS = {
-  status: 'all',
+  status: "all",
 } as const;
 
 export function FaqListPage() {
@@ -48,11 +56,11 @@ export function FaqListPage() {
     setSorting,
     sorting,
   } = useListQueryState({
-    defaultSorting: 'UpdatedDate DESC',
+    defaultSorting: "UpdatedDate DESC",
     filterDefaults: FAQ_FILTER_DEFAULTS,
   });
   const statusFilter = filters.status;
-  const apiStatus = statusFilter === 'all' ? undefined : Number(statusFilter);
+  const apiStatus = statusFilter === "all" ? undefined : Number(statusFilter);
 
   const faqQuery = useFaqList({
     page,
@@ -78,17 +86,25 @@ export function FaqListPage() {
   const deleteFaq = useDeleteFaq();
   const requestGeneration = useRequestFaqGeneration();
   const faqRows = faqQuery.data?.items ?? [];
-  const publishedCount = faqRows.filter((faq) => faq.status === FaqStatus.Published).length;
-  const draftCount = faqRows.filter((faq) => faq.status === FaqStatus.Draft).length;
+  const publishedCount = faqRows.filter(
+    (faq) => faq.status === FaqStatus.Published,
+  ).length;
+  const draftCount = faqRows.filter(
+    (faq) => faq.status === FaqStatus.Draft,
+  ).length;
   const ctaEnabledCount = faqRows.filter((faq) => faq.ctaEnabled).length;
-  const sortingLabel = sortingOptions.find((option) => option.value === sorting)?.label ?? 'Custom';
+  const sortingLabel =
+    sortingOptions.find((option) => option.value === sorting)?.label ??
+    "Custom";
   const activeStatusLabel =
-    statusFilter === 'all' ? 'All statuses' : faqStatusLabels[Number(statusFilter) as FaqStatus];
+    statusFilter === "all"
+      ? "All statuses"
+      : faqStatusLabels[Number(statusFilter) as FaqStatus];
 
   const columns: DataTableColumn<FaqDto>[] = [
     {
-      key: 'name',
-      header: 'FAQ',
+      key: "name",
+      header: "FAQ",
       cell: (faq) => (
         <div className="space-y-1">
           <div className="font-medium text-mono">{faq.name}</div>
@@ -97,24 +113,24 @@ export function FaqListPage() {
       ),
     },
     {
-      key: 'status',
-      header: 'Status',
+      key: "status",
+      header: "Status",
       cell: (faq) => <FaqStatusBadge status={faq.status} />,
     },
     {
-      key: 'sort',
-      header: 'Sort strategy',
+      key: "sort",
+      header: "Sort",
       cell: (faq) => <SortStrategyBadge value={faq.sortStrategy} />,
     },
     {
-      key: 'cta',
-      header: 'CTA',
-      cell: (faq) => (faq.ctaEnabled ? 'Enabled' : 'Disabled'),
+      key: "cta",
+      header: "CTA",
+      cell: (faq) => (faq.ctaEnabled ? "Enabled" : "Disabled"),
     },
     {
-      key: 'actions',
-      header: 'Actions',
-      className: 'w-[180px]',
+      key: "actions",
+      header: "Actions",
+      className: "w-[180px]",
       cell: (faq) => (
         <div
           className="flex items-center justify-end gap-1"
@@ -154,9 +170,10 @@ export function FaqListPage() {
     <ListLayout
       header={
         <PageHeader
-          eyebrow="FAQ"
+          eyebrow="FAQs"
           title="FAQs"
-          description="Shape knowledge spaces, review readiness, and open each FAQ to manage answers and sources."
+          description="Create FAQs and manage their Q&A items and sources."
+          descriptionMode="hint"
           actions={
             <Button asChild>
               <Link to="/app/faq/new">
@@ -176,7 +193,10 @@ export function FaqListPage() {
               placeholder="Search FAQs"
             />
           </div>
-          <Select value={statusFilter} onValueChange={(value) => setFilter('status', value)}>
+          <Select
+            value={statusFilter}
+            onValueChange={(value) => setFilter("status", value)}
+          >
             <SelectTrigger>
               <SelectValue placeholder="Filter by status" />
             </SelectTrigger>
@@ -207,30 +227,37 @@ export function FaqListPage() {
       <SectionGrid
         items={[
           {
-            title: 'Catalog size',
+            title: "Total",
             value: faqQuery.data?.totalCount ?? 0,
-            description: debouncedSearch ? `Search: ${debouncedSearch}` : activeStatusLabel,
+            description: debouncedSearch
+              ? `Search: ${debouncedSearch}`
+              : activeStatusLabel,
           },
           {
-            title: 'Published on page',
+            title: "Published",
             value: publishedCount,
-            description: publishedCount ? 'Ready for customer traffic' : 'Nothing published in this slice',
+            description: publishedCount
+              ? "Ready for customer traffic"
+              : "Nothing published in this slice",
           },
           {
-            title: 'Drafts on page',
+            title: "Drafts",
             value: draftCount,
-            description: draftCount ? 'Still being curated' : 'No draft work in view',
+            description: draftCount
+              ? "Still being curated"
+              : "No draft work in view",
           },
           {
-            title: 'CTA enabled',
+            title: "CTA",
             value: ctaEnabledCount,
             description: `${sortingLabel} order`,
           },
         ]}
       />
       <DataTable
-        title="Knowledge spaces"
-        description="Open a FAQ to review answers, source links, and generation readiness."
+        title="FAQs"
+        description="Open a FAQ to review Q&A items, sources, and publish status."
+        descriptionMode="hint"
         columns={columns}
         rows={faqRows}
         getRowId={(row) => row.id}
@@ -238,8 +265,13 @@ export function FaqListPage() {
         onRowClick={(faq) => navigate(`/app/faq/${faq.id}`)}
         toolbar={
           <>
-            <Badge variant="outline">{faqQuery.data?.totalCount ?? 0} total</Badge>
-            <Badge variant={statusFilter === 'all' ? 'outline' : 'info'} appearance="outline">
+            <Badge variant="outline">
+              {faqQuery.data?.totalCount ?? 0} total
+            </Badge>
+            <Badge
+              variant={statusFilter === "all" ? "outline" : "info"}
+              appearance="outline"
+            >
               {activeStatusLabel}
             </Badge>
           </>
@@ -247,8 +279,8 @@ export function FaqListPage() {
         emptyState={
           <EmptyState
             title="No FAQs in view"
-            description="Create a FAQ to start shaping this workspace knowledge base."
-            action={{ label: 'Create FAQ', to: '/app/faq/new' }}
+            description="Create a FAQ to start building help content for this workspace."
+            action={{ label: "Create FAQ", to: "/app/faq/new" }}
           />
         }
         errorState={

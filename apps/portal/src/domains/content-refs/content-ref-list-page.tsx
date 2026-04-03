@@ -1,19 +1,26 @@
-import { useEffect } from 'react';
-import { Pencil, Plus, Trash2 } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useContentRefList, useDeleteContentRef } from '@/domains/content-refs/hooks';
-import type { ContentRefDto } from '@/domains/content-refs/types';
+import { useEffect } from "react";
+import { Pencil, Plus, Trash2 } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import {
+  useContentRefList,
+  useDeleteContentRef,
+} from "@/domains/content-refs/hooks";
+import type { ContentRefDto } from "@/domains/content-refs/types";
 import {
   ContentRefKind,
   contentRefKindLabels,
-} from '@/shared/constants/backend-enums';
-import { ListLayout, PageHeader, SectionGrid } from '@/shared/layout/page-layouts';
-import { clampPage } from '@/shared/lib/pagination';
-import { useListQueryState } from '@/shared/lib/use-list-query-state';
-import { DataTable, type DataTableColumn } from '@/shared/ui/data-table';
-import { PaginationControls } from '@/shared/ui/pagination-controls';
-import { EmptyState, ErrorState } from '@/shared/ui/placeholder-state';
-import { ContentRefKindBadge } from '@/shared/ui/status-badges';
+} from "@/shared/constants/backend-enums";
+import {
+  ListLayout,
+  PageHeader,
+  SectionGrid,
+} from "@/shared/layout/page-layouts";
+import { clampPage } from "@/shared/lib/pagination";
+import { useListQueryState } from "@/shared/lib/use-list-query-state";
+import { DataTable, type DataTableColumn } from "@/shared/ui/data-table";
+import { PaginationControls } from "@/shared/ui/pagination-controls";
+import { EmptyState, ErrorState } from "@/shared/ui/placeholder-state";
+import { ContentRefKindBadge } from "@/shared/ui/status-badges";
 import {
   Badge,
   Button,
@@ -23,17 +30,17 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/shared/ui';
+} from "@/shared/ui";
 
 const sortingOptions = [
-  { value: 'UpdatedDate DESC', label: 'Last updated' },
-  { value: 'Label ASC', label: 'Label A-Z' },
-  { value: 'Kind ASC', label: 'Kind' },
-  { value: 'Locator ASC', label: 'Locator' },
+  { value: "UpdatedDate DESC", label: "Last updated" },
+  { value: "Label ASC", label: "Label A-Z" },
+  { value: "Kind ASC", label: "Kind" },
+  { value: "Locator ASC", label: "Locator" },
 ];
 
 const CONTENT_REF_FILTER_DEFAULTS = {
-  kind: 'all',
+  kind: "all",
 } as const;
 
 export function ContentRefListPage() {
@@ -51,11 +58,11 @@ export function ContentRefListPage() {
     setSorting,
     sorting,
   } = useListQueryState({
-    defaultSorting: 'UpdatedDate DESC',
+    defaultSorting: "UpdatedDate DESC",
     filterDefaults: CONTENT_REF_FILTER_DEFAULTS,
   });
   const kindFilter = filters.kind;
-  const apiKind = kindFilter === 'all' ? undefined : Number(kindFilter);
+  const apiKind = kindFilter === "all" ? undefined : Number(kindFilter);
 
   const contentRefQuery = useContentRefList({
     page,
@@ -80,25 +87,33 @@ export function ContentRefListPage() {
 
   const deleteContentRef = useDeleteContentRef();
   const contentRefRows = contentRefQuery.data?.items ?? [];
-  const scopedCount = contentRefRows.filter((contentRef) => Boolean(contentRef.scope)).length;
-  const unlabeledCount = contentRefRows.filter((contentRef) => !contentRef.label).length;
+  const scopedCount = contentRefRows.filter((contentRef) =>
+    Boolean(contentRef.scope),
+  ).length;
+  const unlabeledCount = contentRefRows.filter(
+    (contentRef) => !contentRef.label,
+  ).length;
   const selectedKindLabel =
-    kindFilter === 'all' ? 'All kinds' : contentRefKindLabels[Number(kindFilter) as ContentRefKind];
-  const sortingLabel = sortingOptions.find((option) => option.value === sorting)?.label ?? 'Custom';
+    kindFilter === "all"
+      ? "All kinds"
+      : contentRefKindLabels[Number(kindFilter) as ContentRefKind];
+  const sortingLabel =
+    sortingOptions.find((option) => option.value === sorting)?.label ??
+    "Custom";
 
   const columns: DataTableColumn<ContentRefDto>[] = [
     {
-      key: 'kind',
-      header: 'Kind',
+      key: "kind",
+      header: "Type",
       cell: (contentRef) => <ContentRefKindBadge kind={contentRef.kind} />,
     },
     {
-      key: 'locator',
-      header: 'Locator',
+      key: "locator",
+      header: "Source",
       cell: (contentRef) => (
         <div className="space-y-1">
           <div className="font-medium text-mono">
-            {contentRef.label || 'Untitled content ref'}
+            {contentRef.label || "Untitled source"}
           </div>
           <div className="break-all text-sm text-muted-foreground lg:max-w-[360px] lg:truncate lg:break-normal">
             {contentRef.locator}
@@ -107,14 +122,14 @@ export function ContentRefListPage() {
       ),
     },
     {
-      key: 'scope',
-      header: 'Scope',
-      cell: (contentRef) => contentRef.scope || 'No scope',
+      key: "scope",
+      header: "Scope",
+      cell: (contentRef) => contentRef.scope || "No scope",
     },
     {
-      key: 'actions',
-      header: 'Actions',
-      className: 'w-[140px]',
+      key: "actions",
+      header: "Actions",
+      className: "w-[140px]",
       cell: (contentRef) => (
         <div
           className="flex items-center justify-end gap-1"
@@ -131,7 +146,7 @@ export function ContentRefListPage() {
             onClick={() => {
               if (
                 window.confirm(
-                  `Delete content ref "${contentRef.label || contentRef.locator}"?`,
+                  `Delete source "${contentRef.label || contentRef.locator}"?`,
                 )
               ) {
                 void deleteContentRef.mutateAsync(contentRef.id);
@@ -149,14 +164,15 @@ export function ContentRefListPage() {
     <ListLayout
       header={
         <PageHeader
-          eyebrow="Content Refs"
-          title="Content references"
-          description="Track reusable source material for answers, generation, and future curation work."
+          eyebrow="Sources"
+          title="Sources"
+          description="Keep the pages, docs, and files behind your Q&A items."
+          descriptionMode="hint"
           actions={
             <Button asChild>
               <Link to="/app/content-refs/new">
                 <Plus className="size-4" />
-                New content ref
+                New source
               </Link>
             </Button>
           }
@@ -168,10 +184,13 @@ export function ContentRefListPage() {
             <Input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="Search content refs"
+              placeholder="Search sources"
             />
           </div>
-          <Select value={kindFilter} onValueChange={(value) => setFilter('kind', value)}>
+          <Select
+            value={kindFilter}
+            onValueChange={(value) => setFilter("kind", value)}
+          >
             <SelectTrigger>
               <SelectValue placeholder="Filter by kind" />
             </SelectTrigger>
@@ -186,7 +205,7 @@ export function ContentRefListPage() {
           </Select>
           <Select value={sorting} onValueChange={setSorting}>
             <SelectTrigger>
-              <SelectValue placeholder="Sort content refs" />
+              <SelectValue placeholder="Sort sources" />
             </SelectTrigger>
             <SelectContent>
               {sortingOptions.map((option) => (
@@ -202,54 +221,71 @@ export function ContentRefListPage() {
       <SectionGrid
         items={[
           {
-            title: 'Source catalog',
+            title: "Total",
             value: contentRefQuery.data?.totalCount ?? 0,
-            description: debouncedSearch ? `Search: ${debouncedSearch}` : selectedKindLabel,
+            description: debouncedSearch
+              ? `Search: ${debouncedSearch}`
+              : selectedKindLabel,
           },
           {
-            title: 'Scoped sources',
+            title: "Scoped",
             value: scopedCount,
-            description: scopedCount ? 'Grouped for cleaner reuse' : 'No scope labels in this slice',
+            titleHint: scopedCount
+              ? "Grouped for cleaner reuse."
+              : "No scope labels in this slice.",
           },
           {
-            title: 'Untitled sources',
+            title: "Untitled",
             value: unlabeledCount,
-            description: unlabeledCount ? 'Good candidates for cleanup' : 'Labels are in good shape',
+            titleHint: unlabeledCount
+              ? "Good candidates for cleanup."
+              : "Labels are in good shape.",
           },
           {
-            title: 'View order',
+            title: "Sort",
             value: sortingLabel,
-            description: 'Current catalog sort',
+            titleHint: "Current catalog sort.",
           },
         ]}
       />
       <DataTable
-        title="Source material registry"
-        description="Open a content ref to see where it is reused across FAQs and answers."
+        title="Sources"
+        description="Open a source to see which FAQs and Q&A items use it."
+        descriptionMode="hint"
         columns={columns}
         rows={contentRefRows}
         getRowId={(row) => row.id}
         loading={contentRefQuery.isLoading}
-        onRowClick={(contentRef) => navigate(`/app/content-refs/${contentRef.id}`)}
+        onRowClick={(contentRef) =>
+          navigate(`/app/content-refs/${contentRef.id}`)
+        }
         toolbar={
           <>
-            <Badge variant="outline">{contentRefQuery.data?.totalCount ?? 0} total</Badge>
-            <Badge variant={kindFilter === 'all' ? 'outline' : 'info'} appearance="outline">
+            <Badge variant="outline">
+              {contentRefQuery.data?.totalCount ?? 0} total
+            </Badge>
+            <Badge
+              variant={kindFilter === "all" ? "outline" : "info"}
+              appearance="outline"
+            >
               {selectedKindLabel}
             </Badge>
           </>
         }
         emptyState={
           <EmptyState
-            title="No source material in view"
-            description="Create content refs to ground answer generation and editorial review."
-            action={{ label: 'Create content ref', to: '/app/content-refs/new' }}
+            title="No sources in view"
+            description="Create sources to support Q&A items and AI output."
+            action={{
+              label: "New source",
+              to: "/app/content-refs/new",
+            }}
           />
         }
         errorState={
           contentRefQuery.isError ? (
             <ErrorState
-              title="Unable to load content refs"
+              title="Unable to load sources"
               description="Refresh the source catalog and try again."
               retry={() => void contentRefQuery.refetch()}
             />

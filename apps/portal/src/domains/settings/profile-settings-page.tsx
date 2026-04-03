@@ -49,7 +49,7 @@ export function ProfileSettingsPage() {
         <PageHeader
           eyebrow="Settings"
           title="Profile"
-          description="Keep your contact details current for workspace operations."
+          description="Update your name and contact info."
         />
       }
     >

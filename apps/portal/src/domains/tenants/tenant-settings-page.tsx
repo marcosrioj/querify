@@ -72,8 +72,8 @@ export function TenantSettingsPage() {
       header={
         <PageHeader
           eyebrow="Settings"
-          title="Tenant"
-          description="Manage workspace identity, public access keys, and AI provider readiness."
+          title="Workspace"
+          description="Update workspace info, client key, and AI providers."
         />
       }
     >

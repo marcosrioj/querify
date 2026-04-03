@@ -46,12 +46,11 @@ export function AuthLayout() {
             <div className="max-w-xl space-y-5">
               <div className="space-y-3">
                 <h1 className="text-2xl font-semibold text-mono">
-                  Portal access, restored on the real demo foundation
+                  Manage your BaseFAQ workspace
                 </h1>
                 <p className="text-base font-medium text-secondary-foreground">
-                  Sign in to manage tenant FAQs, answer catalogs, content
-                  references, billing visibility, and AI controls from the
-                  customer-facing BaseFAQ workspace.
+                  Sign in to manage FAQs, Q&A items, sources, billing, and AI
+                  settings.
                 </p>
               </div>
 

@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import { ReactNode } from "react";
 import {
   Card,
   CardContent,
@@ -14,7 +14,8 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/shared/ui';
+} from "@/shared/ui";
+import { ContextHint } from "@/shared/ui/context-hint";
 
 export type DataTableColumn<T> = {
   key: string;
@@ -27,6 +28,7 @@ export type DataTableColumn<T> = {
 export function DataTable<T>({
   title,
   description,
+  descriptionMode = "inline",
   columns,
   rows,
   getRowId,
@@ -37,8 +39,9 @@ export function DataTable<T>({
   footer,
   onRowClick,
 }: {
-  title?: string;
-  description?: string;
+  title?: ReactNode;
+  description?: ReactNode;
+  descriptionMode?: "inline" | "hint";
   columns: DataTableColumn<T>[];
   rows: T[];
   getRowId: (row: T) => string;
@@ -54,22 +57,40 @@ export function DataTable<T>({
       return column.mobileLabel;
     }
 
-    if (typeof column.header === 'string') {
+    if (typeof column.header === "string") {
       return column.header;
     }
 
     return column.key;
   };
 
+  const titleHint =
+    description && descriptionMode === "hint" ? (
+      <ContextHint
+        content={description}
+        label="Table details"
+        className="mt-0.5"
+      />
+    ) : null;
+
   return (
     <Card>
       {title || description || toolbar ? (
         <CardHeader className="gap-4 md:flex-row md:items-start md:justify-between">
           <CardHeading>
-            {title ? <CardTitle>{title}</CardTitle> : null}
-            {description ? <CardDescription>{description}</CardDescription> : null}
+            {title ? (
+              <CardTitle className="flex flex-wrap items-start gap-2">
+                <span>{title}</span>
+                {titleHint}
+              </CardTitle>
+            ) : null}
+            {description && descriptionMode === "inline" ? (
+              <CardDescription>{description}</CardDescription>
+            ) : null}
           </CardHeading>
-          {toolbar ? <CardToolbar className="flex-wrap gap-2">{toolbar}</CardToolbar> : null}
+          {toolbar ? (
+            <CardToolbar className="flex-wrap gap-2">{toolbar}</CardToolbar>
+          ) : null}
         </CardHeader>
       ) : null}
 
@@ -105,12 +126,12 @@ export function DataTable<T>({
                           return;
                         }
 
-                        if (event.key === 'Enter' || event.key === ' ') {
+                        if (event.key === "Enter" || event.key === " ") {
                           event.preventDefault();
                           onRowClick(row);
                         }
                       }}
-                      role={onRowClick ? 'button' : undefined}
+                      role={onRowClick ? "button" : undefined}
                       tabIndex={onRowClick ? 0 : undefined}
                     >
                       <div className="space-y-3">
@@ -159,11 +180,14 @@ export function DataTable<T>({
                     : rows.map((row) => (
                         <TableRow
                           key={getRowId(row)}
-                          className={onRowClick ? 'cursor-pointer' : undefined}
+                          className={onRowClick ? "cursor-pointer" : undefined}
                           onClick={() => onRowClick?.(row)}
                         >
                           {columns.map((column) => (
-                            <TableCell key={column.key} className={column.className}>
+                            <TableCell
+                              key={column.key}
+                              className={column.className}
+                            >
                               {column.cell(row)}
                             </TableCell>
                           ))}

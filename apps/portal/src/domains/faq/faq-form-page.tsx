@@ -1,10 +1,10 @@
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
-import { Link } from 'react-router-dom';
-import { faqFormSchema, type FaqFormValues } from '@/domains/faq/schemas';
-import { useCreateFaq, useFaq, useUpdateFaq } from '@/domains/faq/hooks';
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { Link } from "react-router-dom";
+import { faqFormSchema, type FaqFormValues } from "@/domains/faq/schemas";
+import { useCreateFaq, useFaq, useUpdateFaq } from "@/domains/faq/hooks";
 import {
   ctaTargetLabels,
   faqSortStrategyLabels,
@@ -12,24 +12,37 @@ import {
   CtaTarget,
   FaqSortStrategy,
   FaqStatus,
-} from '@/shared/constants/backend-enums';
-import { DetailLayout, KeyValueList, PageHeader } from '@/shared/layout/page-layouts';
-import { Button, Card, CardContent, CardDescription, CardHeader, CardHeading, CardTitle, Form } from '@/shared/ui';
-import { SelectField, SwitchField, TextField } from '@/shared/ui/form-fields';
-import { ErrorState } from '@/shared/ui/placeholder-state';
+} from "@/shared/constants/backend-enums";
+import {
+  DetailLayout,
+  KeyValueList,
+  PageHeader,
+} from "@/shared/layout/page-layouts";
+import {
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
+  CardHeading,
+  CardTitle,
+  ContextHint,
+  Form,
+} from "@/shared/ui";
+import { SelectField, SwitchField, TextField } from "@/shared/ui/form-fields";
+import { ErrorState } from "@/shared/ui/placeholder-state";
 
-export function FaqFormPage({ mode }: { mode: 'create' | 'edit' }) {
+export function FaqFormPage({ mode }: { mode: "create" | "edit" }) {
   const navigate = useNavigate();
   const { id } = useParams();
-  const faqQuery = useFaq(mode === 'edit' ? id : undefined);
+  const faqQuery = useFaq(mode === "edit" ? id : undefined);
   const createFaq = useCreateFaq();
-  const updateFaq = useUpdateFaq(id ?? '');
+  const updateFaq = useUpdateFaq(id ?? "");
 
   const form = useForm<FaqFormValues>({
     resolver: zodResolver(faqFormSchema),
     defaultValues: {
-      name: '',
-      language: 'en-US',
+      name: "",
+      language: "en-US",
       status: FaqStatus.Draft,
       sortStrategy: FaqSortStrategy.Sort,
       ctaEnabled: false,
@@ -59,27 +72,34 @@ export function FaqFormPage({ mode }: { mode: 'create' | 'edit' }) {
       header={
         <PageHeader
           eyebrow="FAQ"
-          title={mode === 'create' ? 'Create FAQ' : 'Edit FAQ'}
-          description="Set the identity, status, and CTA behavior of this knowledge space."
-          backTo={mode === 'edit' && id ? `/app/faq/${id}` : '/app/faq'}
+          title={mode === "create" ? "New FAQ" : "Edit FAQ"}
+          description="Set the name, status, and CTA rules for this FAQ."
+          descriptionMode="hint"
+          backTo={mode === "edit" && id ? `/app/faq/${id}` : "/app/faq"}
         />
       }
       sidebar={
         <Card>
           <CardHeader>
             <CardHeading>
-              <CardTitle>Quick notes</CardTitle>
-              <CardDescription>
-                Keep the FAQ simple, searchable, and ready for publication.
-              </CardDescription>
+              <CardTitle className="flex flex-wrap items-center gap-2">
+                <span>Quick notes</span>
+                <ContextHint
+                  content="Keep the FAQ simple, searchable, and ready for publication."
+                  label="Quick notes details"
+                />
+              </CardTitle>
             </CardHeading>
           </CardHeader>
           <CardContent>
             <KeyValueList
               items={[
-                { label: 'Language', value: 'Use the locale customers will search in' },
-                { label: 'Status', value: 'Draft, published, or archived' },
-                { label: 'CTA', value: 'Optional next step for answer cards' },
+                {
+                  label: "Language",
+                  value: "Use the locale customers will search in",
+                },
+                { label: "Status", value: "Draft, published, or archived" },
+                { label: "CTA", value: "Optional next step for Q&A items" },
               ]}
             />
           </CardContent>
@@ -96,10 +116,13 @@ export function FaqFormPage({ mode }: { mode: 'create' | 'edit' }) {
         <Card>
           <CardHeader>
             <CardHeading>
-              <CardTitle>{mode === 'create' ? 'New FAQ' : 'FAQ settings'}</CardTitle>
-              <CardDescription>
-                Define how this knowledge space should behave across the portal.
-              </CardDescription>
+              <CardTitle className="flex flex-wrap items-center gap-2">
+                <span>Details</span>
+                <ContextHint
+                  content="Set how this FAQ should behave across the portal."
+                  label="Form details"
+                />
+              </CardTitle>
             </CardHeading>
           </CardHeader>
           <CardContent>
@@ -110,11 +133,13 @@ export function FaqFormPage({ mode }: { mode: 'create' | 'edit' }) {
                   const body = {
                     ...values,
                     status: Number(values.status) as FaqStatus,
-                    sortStrategy: Number(values.sortStrategy) as FaqSortStrategy,
+                    sortStrategy: Number(
+                      values.sortStrategy,
+                    ) as FaqSortStrategy,
                     ctaTarget: Number(values.ctaTarget) as CtaTarget,
                   };
 
-                  if (mode === 'create') {
+                  if (mode === "create") {
                     const createdId = await createFaq.mutateAsync(body);
                     navigate(`/app/faq/${createdId}`);
                     return;
@@ -125,7 +150,11 @@ export function FaqFormPage({ mode }: { mode: 'create' | 'edit' }) {
                 })}
               >
                 <div className="grid gap-4 md:grid-cols-2">
-                  <TextField control={form.control} name="name" label="FAQ name" />
+                  <TextField
+                    control={form.control}
+                    name="name"
+                    label="FAQ name"
+                  />
                   <TextField
                     control={form.control}
                     name="language"
@@ -138,15 +167,17 @@ export function FaqFormPage({ mode }: { mode: 'create' | 'edit' }) {
                     control={form.control}
                     name="status"
                     label="Status"
-                    options={Object.entries(faqStatusLabels).map(([value, label]) => ({
-                      value,
-                      label,
-                    }))}
+                    options={Object.entries(faqStatusLabels).map(
+                      ([value, label]) => ({
+                        value,
+                        label,
+                      }),
+                    )}
                   />
                   <SelectField
                     control={form.control}
                     name="sortStrategy"
-                    label="Sort strategy"
+                    label="Sort"
                     options={Object.entries(faqSortStrategyLabels).map(
                       ([value, label]) => ({
                         value,
@@ -159,23 +190,27 @@ export function FaqFormPage({ mode }: { mode: 'create' | 'edit' }) {
                   control={form.control}
                   name="ctaEnabled"
                   label="Enable CTA"
-                  description="Controls whether FAQ items can surface CTA links."
+                  description="Controls whether Q&A items can show CTA links."
                 />
                 <SelectField
                   control={form.control}
                   name="ctaTarget"
                   label="CTA target"
-                  options={Object.entries(ctaTargetLabels).map(([value, label]) => ({
-                    value,
-                    label,
-                  }))}
+                  options={Object.entries(ctaTargetLabels).map(
+                    ([value, label]) => ({
+                      value,
+                      label,
+                    }),
+                  )}
                 />
                 <div className="flex flex-wrap items-center gap-3">
                   <Button type="submit" disabled={isSubmitting}>
-                    {mode === 'create' ? 'Create FAQ' : 'Save changes'}
+                    {mode === "create" ? "Create FAQ" : "Save changes"}
                   </Button>
                   <Button asChild variant="outline">
-                    <Link to={mode === 'edit' && id ? `/app/faq/${id}` : '/app/faq'}>
+                    <Link
+                      to={mode === "edit" && id ? `/app/faq/${id}` : "/app/faq"}
+                    >
                       Cancel
                     </Link>
                   </Button>

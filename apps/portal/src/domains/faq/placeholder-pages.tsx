@@ -5,13 +5,13 @@ export function FaqPlaceholderPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow="FAQ"
-        title="FAQ management"
-        description="The route boundary is in place. The next pass wires the real FAQ Portal CRUD adapters, detail flow, and forms."
+        eyebrow="FAQs"
+        title="FAQs"
+        description="This page is still being connected."
       />
       <EmptyState
-        title="FAQ CRUD wiring in progress"
-        description="This foundation route will be replaced by the real FAQ list, detail, create, edit, and generation request flows."
+        title="FAQ page coming soon"
+        description="The real list, detail, create, edit, and generation flow will show here."
       />
     </div>
   );

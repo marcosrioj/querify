@@ -132,8 +132,8 @@ export function MembersPage() {
         header={
           <PageHeader
             eyebrow="Members"
-            title="Tenant access"
-            description="Manage workspace access, role coverage, and invitations for the current BaseFAQ team."
+            title="Members"
+            description="Invite people, set roles, and track pending invites."
             actions={
               <Button
                 disabled={!canManageMembers || !currentTenant}
@@ -174,8 +174,8 @@ export function MembersPage() {
         ) : null}
         {currentTenant ? (
           <DataTable
-            title="Access roster"
-            description="See who can manage this workspace and which invites still need action."
+            title="Members"
+            description="See who has access and which invites are still pending."
             columns={columns}
             rows={members}
             getRowId={(row) => row.id}

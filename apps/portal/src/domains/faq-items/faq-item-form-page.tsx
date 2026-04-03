@@ -1,42 +1,76 @@
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { useFaqList } from '@/domains/faq/hooks';
-import { useContentRefList } from '@/domains/content-refs/hooks';
-import { useCreateFaqItem, useFaqItem, useUpdateFaqItem } from '@/domains/faq-items/hooks';
-import { faqItemFormSchema, type FaqItemFormValues } from '@/domains/faq-items/schemas';
-import { DetailLayout, KeyValueList, PageHeader } from '@/shared/layout/page-layouts';
-import { Button, Card, CardContent, CardDescription, CardHeader, CardHeading, CardTitle, Form } from '@/shared/ui';
-import { ErrorState } from '@/shared/ui/placeholder-state';
-import { SelectField, SwitchField, TextField, TextareaField } from '@/shared/ui/form-fields';
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import {
+  Link,
+  useNavigate,
+  useParams,
+  useSearchParams,
+} from "react-router-dom";
+import { useFaqList } from "@/domains/faq/hooks";
+import { useContentRefList } from "@/domains/content-refs/hooks";
+import {
+  useCreateFaqItem,
+  useFaqItem,
+  useUpdateFaqItem,
+} from "@/domains/faq-items/hooks";
+import {
+  faqItemFormSchema,
+  type FaqItemFormValues,
+} from "@/domains/faq-items/schemas";
+import {
+  DetailLayout,
+  KeyValueList,
+  PageHeader,
+} from "@/shared/layout/page-layouts";
+import {
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
+  CardHeading,
+  CardTitle,
+  ContextHint,
+  Form,
+} from "@/shared/ui";
+import { ErrorState } from "@/shared/ui/placeholder-state";
+import {
+  SelectField,
+  SwitchField,
+  TextField,
+  TextareaField,
+} from "@/shared/ui/form-fields";
 
-export function FaqItemFormPage({ mode }: { mode: 'create' | 'edit' }) {
+export function FaqItemFormPage({ mode }: { mode: "create" | "edit" }) {
   const navigate = useNavigate();
   const { id: faqId, itemId } = useParams();
   const [searchParams] = useSearchParams();
   const resolvedItemId = itemId;
-  const preselectedFaqId = faqId ?? searchParams.get('faqId') ?? '';
-  const preselectedContentRefId = searchParams.get('contentRefId') ?? '';
-  const itemQuery = useFaqItem(mode === 'edit' ? resolvedItemId : undefined);
-  const faqOptionsQuery = useFaqList({ page: 1, pageSize: 100, sorting: 'Name ASC' });
+  const preselectedFaqId = faqId ?? searchParams.get("faqId") ?? "";
+  const preselectedContentRefId = searchParams.get("contentRefId") ?? "";
+  const itemQuery = useFaqItem(mode === "edit" ? resolvedItemId : undefined);
+  const faqOptionsQuery = useFaqList({
+    page: 1,
+    pageSize: 100,
+    sorting: "Name ASC",
+  });
   const contentRefQuery = useContentRefList({
     page: 1,
     pageSize: 100,
-    sorting: 'Label ASC',
+    sorting: "Label ASC",
   });
   const createFaqItem = useCreateFaqItem();
-  const updateFaqItem = useUpdateFaqItem(resolvedItemId ?? '');
+  const updateFaqItem = useUpdateFaqItem(resolvedItemId ?? "");
 
   const form = useForm<FaqItemFormValues>({
     resolver: zodResolver(faqItemFormSchema),
     defaultValues: {
-      question: '',
-      shortAnswer: '',
-      answer: '',
-      additionalInfo: '',
-      ctaTitle: '',
-      ctaUrl: '',
+      question: "",
+      shortAnswer: "",
+      answer: "",
+      additionalInfo: "",
+      ctaTitle: "",
+      ctaUrl: "",
       sort: 10,
       voteScore: 0,
       aiConfidenceScore: 0,
@@ -54,32 +88,34 @@ export function FaqItemFormPage({ mode }: { mode: 'create' | 'edit' }) {
     form.reset({
       question: itemQuery.data.question,
       shortAnswer: itemQuery.data.shortAnswer,
-      answer: itemQuery.data.answer ?? '',
-      additionalInfo: itemQuery.data.additionalInfo ?? '',
-      ctaTitle: itemQuery.data.ctaTitle ?? '',
-      ctaUrl: itemQuery.data.ctaUrl ?? '',
+      answer: itemQuery.data.answer ?? "",
+      additionalInfo: itemQuery.data.additionalInfo ?? "",
+      ctaTitle: itemQuery.data.ctaTitle ?? "",
+      ctaUrl: itemQuery.data.ctaUrl ?? "",
       sort: itemQuery.data.sort,
       voteScore: itemQuery.data.voteScore,
       aiConfidenceScore: itemQuery.data.aiConfidenceScore,
       isActive: itemQuery.data.isActive,
       faqId: itemQuery.data.faqId,
-      contentRefId: preselectedContentRefId || itemQuery.data.contentRefId || '',
+      contentRefId:
+        preselectedContentRefId || itemQuery.data.contentRefId || "",
     });
   }, [form, itemQuery.data, preselectedContentRefId]);
 
   const selectedFaq = faqOptionsQuery.data?.items.find(
-    (faq) => faq.id === form.watch('faqId'),
+    (faq) => faq.id === form.watch("faqId"),
   );
   const selectedContentRef = contentRefQuery.data?.items.find(
-    (contentRef) => contentRef.id === form.watch('contentRefId'),
+    (contentRef) => contentRef.id === form.watch("contentRefId"),
   );
-  const currentFaqId = form.watch('faqId') || itemQuery.data?.faqId || preselectedFaqId;
+  const currentFaqId =
+    form.watch("faqId") || itemQuery.data?.faqId || preselectedFaqId;
   const backTo =
-    mode === 'edit' && currentFaqId && resolvedItemId
+    mode === "edit" && currentFaqId && resolvedItemId
       ? `/app/faq/${currentFaqId}/items/${resolvedItemId}`
       : currentFaqId
         ? `/app/faq/${currentFaqId}`
-        : '/app/faq';
+        : "/app/faq";
 
   const isSubmitting = createFaqItem.isPending || updateFaqItem.isPending;
 
@@ -87,9 +123,10 @@ export function FaqItemFormPage({ mode }: { mode: 'create' | 'edit' }) {
     <DetailLayout
       header={
         <PageHeader
-          eyebrow="FAQ Items"
-          title={mode === 'create' ? 'Create FAQ item' : 'Edit FAQ item'}
-          description="Define the answer, scoring, and source linkage for this FAQ item."
+          eyebrow="Q&A items"
+          title={mode === "create" ? "New Q&A item" : "Edit Q&A item"}
+          description="Write the question and answer, set score, and link a source."
+          descriptionMode="hint"
           backTo={backTo}
         />
       }
@@ -97,28 +134,44 @@ export function FaqItemFormPage({ mode }: { mode: 'create' | 'edit' }) {
         <Card>
           <CardHeader>
             <CardHeading>
-              <CardTitle>Quick notes</CardTitle>
-              <CardDescription>
-                Keep each answer clear, ranked, and connected to a FAQ.
-              </CardDescription>
+              <CardTitle className="flex flex-wrap items-center gap-2">
+                <span>Quick notes</span>
+                <ContextHint
+                  content="Keep each Q&A item clear, ranked, and linked to a FAQ."
+                  label="Quick notes details"
+                />
+              </CardTitle>
             </CardHeading>
           </CardHeader>
           <CardContent>
             <KeyValueList
               items={[
-                { label: 'Associations', value: 'FAQ required, source optional' },
-                { label: 'Scoring', value: 'Sort, vote, and AI confidence affect ranking' },
-                { label: 'CTA', value: 'Optional title and URL for the next step' },
                 {
-                  label: 'Selected FAQ',
-                  value: selectedFaq?.name || (mode === 'create' ? 'Choose in form' : itemQuery.data?.faqId || 'Loading'),
+                  label: "Associations",
+                  value: "FAQ required, source optional",
                 },
                 {
-                  label: 'Selected content ref',
+                  label: "Scoring",
+                  value: "Sort, vote, and AI confidence affect ranking",
+                },
+                {
+                  label: "CTA",
+                  value: "Optional title and URL for the next step",
+                },
+                {
+                  label: "Selected FAQ",
+                  value:
+                    selectedFaq?.name ||
+                    (mode === "create"
+                      ? "Choose in form"
+                      : itemQuery.data?.faqId || "Loading"),
+                },
+                {
+                  label: "Selected source",
                   value:
                     selectedContentRef?.label ||
                     selectedContentRef?.locator ||
-                    'Optional',
+                    "Optional",
                 },
               ]}
             />
@@ -128,18 +181,21 @@ export function FaqItemFormPage({ mode }: { mode: 'create' | 'edit' }) {
     >
       {itemQuery.isError ? (
         <ErrorState
-          title="Unable to load FAQ item"
-          description="The FAQ item detail request failed."
+          title="Unable to load Q&A item"
+          description="The Q&A item request failed."
           retry={() => void itemQuery.refetch()}
         />
       ) : (
         <Card>
           <CardHeader>
             <CardHeading>
-              <CardTitle>{mode === 'create' ? 'New FAQ item' : 'FAQ item settings'}</CardTitle>
-              <CardDescription>
-                Shape the answer package customers and editors will rely on.
-              </CardDescription>
+              <CardTitle className="flex flex-wrap items-center gap-2">
+                <span>Details</span>
+                <ContextHint
+                  content="Write the question, answer, and source details people rely on."
+                  label="Form details"
+                />
+              </CardTitle>
             </CardHeading>
           </CardHeader>
           <CardContent>
@@ -156,10 +212,12 @@ export function FaqItemFormPage({ mode }: { mode: 'create' | 'edit' }) {
                     contentRefId: values.contentRefId || undefined,
                   };
 
-                  if (mode === 'create') {
+                  if (mode === "create") {
                     const createdId = await createFaqItem.mutateAsync(body);
                     navigate(
-                      body.faqId ? `/app/faq/${body.faqId}/items/${createdId}` : '/app/faq',
+                      body.faqId
+                        ? `/app/faq/${body.faqId}/items/${createdId}`
+                        : "/app/faq",
                     );
                     return;
                   }
@@ -168,11 +226,15 @@ export function FaqItemFormPage({ mode }: { mode: 'create' | 'edit' }) {
                   navigate(
                     body.faqId && resolvedItemId
                       ? `/app/faq/${body.faqId}/items/${resolvedItemId}`
-                      : '/app/faq',
+                      : "/app/faq",
                   );
                 })}
               >
-                <TextField control={form.control} name="question" label="Question" />
+                <TextField
+                  control={form.control}
+                  name="question"
+                  label="Question"
+                />
                 <TextField
                   control={form.control}
                   name="shortAnswer"
@@ -191,18 +253,25 @@ export function FaqItemFormPage({ mode }: { mode: 'create' | 'edit' }) {
                   <SelectField
                     control={form.control}
                     name="contentRefId"
-                    label="Content ref"
+                    label="Source"
                     options={[
-                      { value: '', label: 'None' },
-                      ...(contentRefQuery.data?.items ?? []).map((contentRef) => ({
-                        value: contentRef.id,
-                        label: contentRef.label || contentRef.locator,
-                      })),
+                      { value: "", label: "None" },
+                      ...(contentRefQuery.data?.items ?? []).map(
+                        (contentRef) => ({
+                          value: contentRef.id,
+                          label: contentRef.label || contentRef.locator,
+                        }),
+                      ),
                     ]}
                   />
                 </div>
                 <div className="grid gap-4 md:grid-cols-3">
-                  <TextField control={form.control} name="sort" label="Sort" type="number" />
+                  <TextField
+                    control={form.control}
+                    name="sort"
+                    label="Sort"
+                    type="number"
+                  />
                   <TextField
                     control={form.control}
                     name="voteScore"
@@ -216,7 +285,12 @@ export function FaqItemFormPage({ mode }: { mode: 'create' | 'edit' }) {
                     type="number"
                   />
                 </div>
-                <TextareaField control={form.control} name="answer" label="Answer" rows={7} />
+                <TextareaField
+                  control={form.control}
+                  name="answer"
+                  label="Full answer"
+                  rows={7}
+                />
                 <TextareaField
                   control={form.control}
                   name="additionalInfo"
@@ -224,18 +298,26 @@ export function FaqItemFormPage({ mode }: { mode: 'create' | 'edit' }) {
                   rows={4}
                 />
                 <div className="grid gap-4 md:grid-cols-2">
-                  <TextField control={form.control} name="ctaTitle" label="CTA title" />
-                  <TextField control={form.control} name="ctaUrl" label="CTA URL" />
+                  <TextField
+                    control={form.control}
+                    name="ctaTitle"
+                    label="CTA title"
+                  />
+                  <TextField
+                    control={form.control}
+                    name="ctaUrl"
+                    label="CTA URL"
+                  />
                 </div>
                 <SwitchField
                   control={form.control}
                   name="isActive"
                   label="Active"
-                  description="Inactive FAQ items stay in the dataset but should not be surfaced to end users."
+                  hint="Inactive Q&A items stay saved but stay hidden from end users."
                 />
                 <div className="flex flex-wrap items-center gap-3">
                   <Button type="submit" disabled={isSubmitting}>
-                    {mode === 'create' ? 'Create FAQ item' : 'Save changes'}
+                    {mode === "create" ? "Create Q&A item" : "Save changes"}
                   </Button>
                   <Button asChild variant="outline">
                     <Link to={backTo}>Cancel</Link>

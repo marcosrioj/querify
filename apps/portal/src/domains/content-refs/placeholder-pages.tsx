@@ -5,13 +5,13 @@ export function ContentRefPlaceholderPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow="Content Refs"
-        title="Content reference management"
-        description="The route boundary is in place. The next pass wires the live Portal content ref CRUD surface."
+        eyebrow="Sources"
+        title="Sources"
+        description="This page is still being connected."
       />
       <EmptyState
-        title="Content ref CRUD wiring in progress"
-        description="This route will be replaced by live list, detail, create, and edit flows backed by `api/faqs/content-ref`."
+        title="Source page coming soon"
+        description="The real list, detail, create, and edit flow will show here."
       />
     </div>
   );

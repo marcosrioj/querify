@@ -14,8 +14,8 @@ export function GeneralSettingsPage() {
       header={
         <PageHeader
           eyebrow="Settings"
-          title="General"
-          description="Adjust how the portal looks and feels for your current device."
+          title="Appearance"
+          description="Choose how the portal looks on this device."
         />
       }
     >

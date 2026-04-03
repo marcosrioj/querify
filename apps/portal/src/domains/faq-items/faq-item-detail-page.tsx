@@ -1,13 +1,27 @@
-import { Link2, Pencil, Trash2 } from 'lucide-react';
-import { useMemo } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
-import { useFaqList } from '@/domains/faq/hooks';
-import { useContentRef } from '@/domains/content-refs/hooks';
-import { useDeleteFaqItem, useFaqItem } from '@/domains/faq-items/hooks';
-import { DetailLayout, KeyValueList, PageHeader, SectionGrid } from '@/shared/layout/page-layouts';
-import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardHeading, CardTitle } from '@/shared/ui';
-import { EmptyState, ErrorState } from '@/shared/ui/placeholder-state';
-import { ContentRefKindBadge } from '@/shared/ui/status-badges';
+import { Link2, Pencil, Trash2 } from "lucide-react";
+import { useMemo } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { useFaqList } from "@/domains/faq/hooks";
+import { useContentRef } from "@/domains/content-refs/hooks";
+import { useDeleteFaqItem, useFaqItem } from "@/domains/faq-items/hooks";
+import {
+  DetailLayout,
+  KeyValueList,
+  PageHeader,
+  SectionGrid,
+} from "@/shared/layout/page-layouts";
+import {
+  Badge,
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
+  CardHeading,
+  CardTitle,
+  ContextHint,
+} from "@/shared/ui";
+import { EmptyState, ErrorState } from "@/shared/ui/placeholder-state";
+import { ContentRefKindBadge } from "@/shared/ui/status-badges";
 
 export function FaqItemDetailPage() {
   const navigate = useNavigate();
@@ -17,8 +31,12 @@ export function FaqItemDetailPage() {
   const faqOptionsQuery = useFaqList({
     page: 1,
     pageSize: 1,
-    sorting: 'Name ASC',
-    faqIds: itemQuery.data?.faqId ? [itemQuery.data.faqId] : faqId ? [faqId] : undefined,
+    sorting: "Name ASC",
+    faqIds: itemQuery.data?.faqId
+      ? [itemQuery.data.faqId]
+      : faqId
+        ? [faqId]
+        : undefined,
   });
   const linkedContentRefQuery = useContentRef(itemQuery.data?.contentRefId);
   const deleteFaqItem = useDeleteFaqItem();
@@ -28,7 +46,7 @@ export function FaqItemDetailPage() {
   );
   const resolvedFaqId = faqId ?? parentFaq?.id ?? itemQuery.data?.faqId;
   const linkedContentRef = linkedContentRefQuery.data;
-  const backTo = resolvedFaqId ? `/app/faq/${resolvedFaqId}` : '/app/faq';
+  const backTo = resolvedFaqId ? `/app/faq/${resolvedFaqId}` : "/app/faq";
   const editPath =
     resolvedFaqId && resolvedItemId
       ? `/app/faq/${resolvedFaqId}/items/${resolvedItemId}/edit`
@@ -36,32 +54,32 @@ export function FaqItemDetailPage() {
   const contentRefPath =
     linkedContentRef && resolvedFaqId
       ? `/app/faq/${resolvedFaqId}/content-refs/${linkedContentRef.id}`
-      : '';
+      : "";
   const createContentRefPath =
     resolvedFaqId && resolvedItemId
       ? `/app/faq/${resolvedFaqId}/content-refs/new?faqItemId=${resolvedItemId}`
       : backTo;
   const answerState = useMemo(() => {
     if (!itemQuery.data) {
-      return 'Loading';
+      return "Loading";
     }
 
     if (itemQuery.data.answer && itemQuery.data.additionalInfo) {
-      return 'Full answer package';
+      return "Full answer package";
     }
 
     if (itemQuery.data.answer) {
-      return 'Expanded answer';
+      return "Expanded answer";
     }
 
-    return 'Short answer only';
+    return "Short answer only";
   }, [itemQuery.data]);
 
   if (!resolvedItemId) {
     return (
       <ErrorState
-        title="Invalid FAQ item route"
-        description="FAQ item detail routes require an identifier."
+        title="Invalid Q&A item route"
+        description="Q&A item routes need an identifier."
       />
     );
   }
@@ -70,9 +88,10 @@ export function FaqItemDetailPage() {
     <DetailLayout
       header={
         <PageHeader
-          eyebrow="FAQ Items"
-          title={itemQuery.data?.question ?? 'FAQ item detail'}
-          description="Review answer quality, CTA state, and source linkage for this item."
+          eyebrow="Q&A items"
+          title={itemQuery.data?.question ?? "Q&A item"}
+          description="Review the question, answer, CTA, and source for this item."
+          descriptionMode="hint"
           backTo={backTo}
           actions={
             <>
@@ -86,9 +105,7 @@ export function FaqItemDetailPage() {
               ) : null}
               {contentRefPath ? (
                 <Button asChild variant="outline">
-                  <Link to={contentRefPath}>
-                    Source material
-                  </Link>
+                  <Link to={contentRefPath}>Source</Link>
                 </Button>
               ) : null}
               <Button asChild variant="outline">
@@ -100,8 +117,15 @@ export function FaqItemDetailPage() {
               <Button
                 variant="destructive"
                 onClick={() => {
-                  if (itemQuery.data && window.confirm(`Delete FAQ item "${itemQuery.data.question}"?`)) {
-                    void deleteFaqItem.mutateAsync(resolvedItemId).then(() => navigate(backTo));
+                  if (
+                    itemQuery.data &&
+                    window.confirm(
+                      `Delete Q&A item "${itemQuery.data.question}"?`,
+                    )
+                  ) {
+                    void deleteFaqItem
+                      .mutateAsync(resolvedItemId)
+                      .then(() => navigate(backTo));
                   }
                 }}
               >
@@ -116,8 +140,13 @@ export function FaqItemDetailPage() {
         <Card>
           <CardHeader>
             <CardHeading>
-              <CardTitle>At a glance</CardTitle>
-              <CardDescription>Ranking, visibility, and relationship details.</CardDescription>
+              <CardTitle className="flex flex-wrap items-center gap-2">
+                <span>Overview</span>
+                <ContextHint
+                  content="Ranking, visibility, and relationship details."
+                  label="Overview details"
+                />
+              </CardTitle>
             </CardHeading>
           </CardHeader>
           <CardContent>
@@ -125,23 +154,33 @@ export function FaqItemDetailPage() {
               <KeyValueList
                 items={[
                   {
-                    label: 'Status',
+                    label: "Status",
                     value: (
-                      <Badge variant={itemQuery.data.isActive ? 'success' : 'mono'}>
-                        {itemQuery.data.isActive ? 'Active' : 'Inactive'}
+                      <Badge
+                        variant={itemQuery.data.isActive ? "success" : "mono"}
+                      >
+                        {itemQuery.data.isActive ? "Active" : "Inactive"}
                       </Badge>
                     ),
                   },
-                  { label: 'FAQ', value: parentFaq?.name ?? itemQuery.data.faqId },
                   {
-                    label: 'Content ref',
-                    value:
-                      linkedContentRef?.label || linkedContentRef?.locator || 'None linked',
+                    label: "FAQ",
+                    value: parentFaq?.name ?? itemQuery.data.faqId,
                   },
-                  { label: 'Sort', value: String(itemQuery.data.sort) },
-                  { label: 'Vote score', value: String(itemQuery.data.voteScore) },
                   {
-                    label: 'AI confidence',
+                    label: "Source",
+                    value:
+                      linkedContentRef?.label ||
+                      linkedContentRef?.locator ||
+                      "None linked",
+                  },
+                  { label: "Sort", value: String(itemQuery.data.sort) },
+                  {
+                    label: "Vote score",
+                    value: String(itemQuery.data.voteScore),
+                  },
+                  {
+                    label: "AI confidence",
                     value: String(itemQuery.data.aiConfidenceScore),
                   },
                 ]}
@@ -153,8 +192,8 @@ export function FaqItemDetailPage() {
     >
       {itemQuery.isError ? (
         <ErrorState
-          title="Unable to load FAQ item"
-          description="The FAQ item detail request failed."
+          title="Unable to load Q&A item"
+          description="The Q&A item request failed."
           retry={() => void itemQuery.refetch()}
         />
       ) : itemQuery.data ? (
@@ -162,30 +201,29 @@ export function FaqItemDetailPage() {
           <SectionGrid
             items={[
               {
-                title: 'Answer package',
+                title: "Answer depth",
                 value: answerState,
-                description: 'Current answer depth',
+                titleHint: "Current answer depth.",
               },
               {
-                title: 'CTA',
-                value: itemQuery.data.ctaUrl ? 'Configured' : 'Missing',
+                title: "CTA",
+                value: itemQuery.data.ctaUrl ? "Configured" : "Missing",
                 description:
                   itemQuery.data.ctaTitle || itemQuery.data.ctaUrl
-                    ? 'This answer can drive the next step'
-                    : 'No CTA configured for this answer',
+                    ? "This answer can drive the next step"
+                    : "No CTA configured for this answer",
               },
               {
-                title: 'Source material',
-                value: linkedContentRef ? 'Linked' : 'Missing',
-                description:
-                  linkedContentRef
-                    ? 'Connected to reusable source material'
-                    : 'Attach a source to improve traceability',
+                title: "Source",
+                value: linkedContentRef ? "Linked" : "Missing",
+                description: linkedContentRef
+                  ? "Connected to reusable source material"
+                  : "Attach a source to improve traceability",
               },
               {
-                title: 'Parent FAQ',
-                value: parentFaq?.name ?? 'Unknown FAQ',
-                description: 'Knowledge space this answer belongs to',
+                title: "FAQ",
+                value: parentFaq?.name ?? "Unknown FAQ",
+                titleHint: "FAQ this Q&A item belongs to.",
               },
             ]}
           />
@@ -193,18 +231,31 @@ export function FaqItemDetailPage() {
           <Card>
             <CardHeader>
               <CardHeading>
-                <CardTitle>Answer package</CardTitle>
-                <CardDescription>
-                  The full answer, supporting notes, and CTA live together here.
-                </CardDescription>
+                <CardTitle className="flex flex-wrap items-center gap-2">
+                  <span>Question & answer</span>
+                  <ContextHint
+                    content="The question, answer, notes, and CTA live together here."
+                    label="Question and answer details"
+                  />
+                </CardTitle>
               </CardHeading>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
                 <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
+                  Question
+                </p>
+                <p className="mt-2 text-sm leading-6">
+                  {itemQuery.data.question}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
                   Short answer
                 </p>
-                <p className="mt-2 text-sm leading-6">{itemQuery.data.shortAnswer}</p>
+                <p className="mt-2 text-sm leading-6">
+                  {itemQuery.data.shortAnswer}
+                </p>
               </div>
               {itemQuery.data.answer ? (
                 <div>
@@ -229,16 +280,16 @@ export function FaqItemDetailPage() {
               {itemQuery.data.ctaTitle || itemQuery.data.ctaUrl ? (
                 <div className="rounded-2xl border border-border bg-muted/15 p-4">
                   <p className="font-medium text-mono">
-                    {itemQuery.data.ctaTitle || 'CTA'}
+                    {itemQuery.data.ctaTitle || "CTA"}
                   </p>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    {itemQuery.data.ctaUrl || 'No URL configured'}
+                    {itemQuery.data.ctaUrl || "No URL configured"}
                   </p>
                 </div>
               ) : (
                 <EmptyState
-                  title="No CTA configured"
-                  description="Add a CTA title and URL if this answer should drive an external action."
+                  title="No CTA"
+                  description="Add a CTA if this Q&A item should drive an external action."
                 />
               )}
             </CardContent>
@@ -247,16 +298,19 @@ export function FaqItemDetailPage() {
           <Card>
             <CardHeader>
               <CardHeading>
-                <CardTitle>Relationship context</CardTitle>
-                <CardDescription>
-                  See where this answer sits in the broader knowledge flow.
-                </CardDescription>
+                <CardTitle className="flex flex-wrap items-center gap-2">
+                  <span>Links</span>
+                  <ContextHint
+                    content="See which FAQ and source this Q&A item belongs to."
+                    label="Relationship details"
+                  />
+                </CardTitle>
               </CardHeading>
             </CardHeader>
             <CardContent className="grid gap-4 md:grid-cols-2">
               <div className="rounded-2xl border border-border bg-muted/15 p-4">
                 <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-                  Parent FAQ
+                  FAQ
                 </p>
                 <p className="mt-2 font-medium text-mono">
                   {parentFaq?.name ?? itemQuery.data.faqId}
@@ -273,33 +327,43 @@ export function FaqItemDetailPage() {
 
               <div className="rounded-2xl border border-border bg-muted/15 p-4">
                 <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-                  Source material
+                  Source
                 </p>
                 {linkedContentRef ? (
                   <>
                     <div className="mt-2 flex flex-wrap items-center gap-2">
                       <p className="font-medium text-mono">
-                        {linkedContentRef.label || 'Untitled content ref'}
+                        {linkedContentRef.label || "Untitled source"}
                       </p>
                       <ContentRefKindBadge kind={linkedContentRef.kind} />
                     </div>
                     <p className="mt-1 break-all text-sm text-muted-foreground">
                       {linkedContentRef.locator}
                     </p>
-                    <Button asChild variant="outline" size="sm" className="mt-4">
-                      <Link to={contentRefPath}>
-                        Open content ref
-                      </Link>
+                    <Button
+                      asChild
+                      variant="outline"
+                      size="sm"
+                      className="mt-4"
+                    >
+                      <Link to={contentRefPath}>Open source</Link>
                     </Button>
                   </>
                 ) : (
                   <>
-                    <p className="mt-2 font-medium text-mono">No content ref linked</p>
+                    <p className="mt-2 font-medium text-mono">
+                      No source linked
+                    </p>
                     <p className="mt-1 text-sm text-muted-foreground">
                       Link source material to improve quality and traceability.
                     </p>
-                    <Button asChild variant="outline" size="sm" className="mt-4">
-                      <Link to={createContentRefPath}>Create source material</Link>
+                    <Button
+                      asChild
+                      variant="outline"
+                      size="sm"
+                      className="mt-4"
+                    >
+                      <Link to={createContentRefPath}>New source</Link>
                     </Button>
                   </>
                 )}
@@ -310,7 +374,7 @@ export function FaqItemDetailPage() {
       ) : (
         <Card>
           <CardContent className="py-8 text-sm text-muted-foreground">
-            Loading FAQ item…
+            Loading Q&A item…
           </CardContent>
         </Card>
       )}

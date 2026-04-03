@@ -79,7 +79,7 @@ export function useCreateFaqItem() {
     mutationFn: (body: FaqItemCreateRequestDto) =>
       createFaqItem(session?.accessToken, currentTenantId, body),
     onSuccess: async () => {
-      toast.success('FAQ item created.');
+      toast.success('Q&A item created.');
       await queryClient.invalidateQueries({ queryKey: faqItemKeys.all });
     },
   });
@@ -95,7 +95,7 @@ export function useUpdateFaqItem(id: string) {
     mutationFn: (body: FaqItemUpdateRequestDto) =>
       updateFaqItem(session?.accessToken, currentTenantId, id, body),
     onSuccess: async () => {
-      toast.success('FAQ item updated.');
+      toast.success('Q&A item updated.');
       await queryClient.invalidateQueries({ queryKey: faqItemKeys.all });
     },
   });
@@ -111,7 +111,7 @@ export function useDeleteFaqItem() {
     mutationFn: (id: string) =>
       deleteFaqItem(session?.accessToken, currentTenantId, id),
     onSuccess: async () => {
-      toast.success('FAQ item deleted.');
+      toast.success('Q&A item deleted.');
       await queryClient.invalidateQueries({ queryKey: faqItemKeys.all });
     },
   });
