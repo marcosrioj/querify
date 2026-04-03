@@ -11,7 +11,7 @@ services:
       - VITE_PORTAL_FAQ_API_URL=http://localhost:5010
       - VITE_AUTH0_DOMAIN=basefaq.us.auth0.com
       - VITE_AUTH0_AUDIENCE=https://basefaq.com
-      - VITE_AUTH0_CLIENT_ID=
+      - VITE_AUTH0_CLIENT_ID=fDJib60pSRhbtNRPhqYfZR9J8JqBCpz5
       - VITE_AUTH0_PASSWORD_RESET_URL=
     depends_on:
       - basefaq.faq.portal.api
