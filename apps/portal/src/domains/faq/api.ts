@@ -21,6 +21,7 @@ export function listFaqs(
     status?: number;
     faqIds?: string[];
   },
+  signal?: AbortSignal,
 ) {
   return portalRequest<PagedResultDto<FaqDto>>({
     service: 'faq',
@@ -32,6 +33,7 @@ export function listFaqs(
       Status: status,
       FaqIds: faqIds,
     }),
+    signal,
   });
 }
 

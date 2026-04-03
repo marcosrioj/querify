@@ -27,6 +27,7 @@ export function listFaqItems(
     contentRefId?: string;
     isActive?: boolean;
   },
+  signal?: AbortSignal,
 ) {
   return portalRequest<PagedResultDto<FaqItemDto>>({
     service: 'faq',
@@ -39,6 +40,7 @@ export function listFaqItems(
       ContentRefId: contentRefId,
       IsActive: isActive,
     }),
+    signal,
   });
 }
 

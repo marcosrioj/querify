@@ -51,8 +51,8 @@ export function useFaqItemList({
 
   return useQuery({
     queryKey: faqItemKeys.list(params),
-    queryFn: () =>
-      listFaqItems(session?.accessToken, currentTenantId, params),
+    queryFn: ({ signal }) =>
+      listFaqItems(session?.accessToken, currentTenantId, params, signal),
     enabled: status === 'ready' && Boolean(currentTenantId),
     placeholderData: (previous) => previous,
   });

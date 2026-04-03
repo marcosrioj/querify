@@ -5,9 +5,13 @@ import { useFaqList } from '@/domains/faq/hooks';
 import { useFaqItemList } from '@/domains/faq-items/hooks';
 import { useContentRef, useDeleteContentRef } from '@/domains/content-refs/hooks';
 import { DetailLayout, KeyValueList, PageHeader, SectionGrid } from '@/shared/layout/page-layouts';
+import { useLocalPagination } from '@/shared/lib/use-local-pagination';
 import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardHeading, CardTitle } from '@/shared/ui';
+import { PaginationControls } from '@/shared/ui/pagination-controls';
 import { ContentRefKindBadge } from '@/shared/ui/status-badges';
 import { EmptyState, ErrorState } from '@/shared/ui/placeholder-state';
+
+const DETAIL_PAGE_SIZE_OPTIONS = [5, 10, 20];
 
 export function ContentRefDetailPage() {
   const navigate = useNavigate();
@@ -50,6 +54,14 @@ export function ContentRefDetailPage() {
         usageCount: usageByFaq.get(faq.id) ?? 0,
       }));
   }, [faqQuery.data?.items, relatedItems]);
+  const relatedFaqsPagination = useLocalPagination({
+    items: relatedFaqs,
+    defaultPageSize: DETAIL_PAGE_SIZE_OPTIONS[0],
+  });
+  const relatedItemsPagination = useLocalPagination({
+    items: relatedItems,
+    defaultPageSize: DETAIL_PAGE_SIZE_OPTIONS[0],
+  });
   const resolvedFaqId = faqId ?? relatedFaqs[0]?.id ?? relatedItems[0]?.faqId;
   const backTo = resolvedFaqId ? `/app/faq/${resolvedFaqId}` : '/app/faq';
   const createFaqItemPath =
@@ -211,22 +223,34 @@ export function ContentRefDetailPage() {
             </CardHeader>
             <CardContent className="space-y-3">
               {relatedFaqs.length ? (
-                relatedFaqs.map((faq) => (
-                  <div key={faq.id} className="rounded-2xl border border-border bg-muted/15 p-4">
-                    <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                      <div>
-                        <p className="font-medium text-mono">{faq.name}</p>
-                        <p className="mt-1 text-sm text-muted-foreground">
-                          Used by {faq.usageCount} linked{' '}
-                          {faq.usageCount === 1 ? 'FAQ item' : 'FAQ items'}
-                        </p>
+                <>
+                  {relatedFaqsPagination.pagedItems.map((faq) => (
+                    <div key={faq.id} className="rounded-2xl border border-border bg-muted/15 p-4">
+                      <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                        <div>
+                          <p className="font-medium text-mono">{faq.name}</p>
+                          <p className="mt-1 text-sm text-muted-foreground">
+                            Used by {faq.usageCount} linked{' '}
+                            {faq.usageCount === 1 ? 'FAQ item' : 'FAQ items'}
+                          </p>
+                        </div>
+                        <Button asChild variant="outline" size="sm">
+                          <Link to={`/app/faq/${faq.id}`}>Open FAQ</Link>
+                        </Button>
                       </div>
-                      <Button asChild variant="outline" size="sm">
-                        <Link to={`/app/faq/${faq.id}`}>Open FAQ</Link>
-                      </Button>
                     </div>
-                  </div>
-                ))
+                  ))}
+                  {relatedFaqsPagination.totalCount > DETAIL_PAGE_SIZE_OPTIONS[0] ? (
+                    <PaginationControls
+                      page={relatedFaqsPagination.page}
+                      pageSize={relatedFaqsPagination.pageSize}
+                      totalCount={relatedFaqsPagination.totalCount}
+                      onPageChange={relatedFaqsPagination.setPage}
+                      onPageSizeChange={relatedFaqsPagination.setPageSize}
+                      pageSizeOptions={DETAIL_PAGE_SIZE_OPTIONS}
+                    />
+                  ) : null}
+                </>
               ) : (
                 <EmptyState
                   title="No FAQs using this content ref"
@@ -248,35 +272,47 @@ export function ContentRefDetailPage() {
             </CardHeader>
             <CardContent className="space-y-3">
               {relatedItems.length ? (
-                relatedItems.map((item) => (
-                  <div key={item.id} className="rounded-2xl border border-border bg-muted/15 p-4">
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <div className="flex flex-wrap items-center gap-2">
-                          <p className="font-medium text-mono">{item.question}</p>
-                          <Badge variant={item.isActive ? 'success' : 'mono'}>
-                            {item.isActive ? 'Active' : 'Inactive'}
-                          </Badge>
+                <>
+                  {relatedItemsPagination.pagedItems.map((item) => (
+                    <div key={item.id} className="rounded-2xl border border-border bg-muted/15 p-4">
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <p className="font-medium text-mono">{item.question}</p>
+                            <Badge variant={item.isActive ? 'success' : 'mono'}>
+                              {item.isActive ? 'Active' : 'Inactive'}
+                            </Badge>
+                          </div>
+                          <p className="mt-1 text-sm text-muted-foreground">
+                            {item.shortAnswer}
+                          </p>
+                          <p className="mt-3 text-xs text-muted-foreground">
+                            FAQ:{' '}
+                            <Link
+                              className="font-medium text-primary hover:underline"
+                              to={`/app/faq/${item.faqId}`}
+                            >
+                              {relatedFaqs.find((faq) => faq.id === item.faqId)?.name ?? item.faqId}
+                            </Link>
+                          </p>
                         </div>
-                        <p className="mt-1 text-sm text-muted-foreground">
-                          {item.shortAnswer}
-                        </p>
-                        <p className="mt-3 text-xs text-muted-foreground">
-                          FAQ:{' '}
-                          <Link
-                            className="font-medium text-primary hover:underline"
-                            to={`/app/faq/${item.faqId}`}
-                          >
-                            {relatedFaqs.find((faq) => faq.id === item.faqId)?.name ?? item.faqId}
-                          </Link>
-                        </p>
+                        <Button asChild variant="outline" size="sm">
+                          <Link to={`/app/faq/${item.faqId}/items/${item.id}`}>Open</Link>
+                        </Button>
                       </div>
-                      <Button asChild variant="outline" size="sm">
-                        <Link to={`/app/faq/${item.faqId}/items/${item.id}`}>Open</Link>
-                      </Button>
                     </div>
-                  </div>
-                ))
+                  ))}
+                  {relatedItemsPagination.totalCount > DETAIL_PAGE_SIZE_OPTIONS[0] ? (
+                    <PaginationControls
+                      page={relatedItemsPagination.page}
+                      pageSize={relatedItemsPagination.pageSize}
+                      totalCount={relatedItemsPagination.totalCount}
+                      onPageChange={relatedItemsPagination.setPage}
+                      onPageSizeChange={relatedItemsPagination.setPageSize}
+                      pageSizeOptions={DETAIL_PAGE_SIZE_OPTIONS}
+                    />
+                  ) : null}
+                </>
               ) : (
                 <EmptyState
                   title="No FAQ items linked"

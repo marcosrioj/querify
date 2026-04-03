@@ -1,15 +1,26 @@
+import { useEffect } from 'react';
 import { Pencil, Plus, Trash2, WandSparkles } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useDeferredValue, useEffect, useState } from 'react';
 import { useDeleteFaq, useFaqList, useRequestFaqGeneration } from '@/domains/faq/hooks';
-import { faqStatusLabels, FaqStatus } from '@/shared/constants/backend-enums';
 import { FaqDto } from '@/domains/faq/types';
+import { faqStatusLabels, FaqStatus } from '@/shared/constants/backend-enums';
 import { ListLayout, PageHeader, SectionGrid } from '@/shared/layout/page-layouts';
+import { clampPage } from '@/shared/lib/pagination';
+import { useListQueryState } from '@/shared/lib/use-list-query-state';
 import { DataTable, type DataTableColumn } from '@/shared/ui/data-table';
 import { PaginationControls } from '@/shared/ui/pagination-controls';
 import { EmptyState, ErrorState } from '@/shared/ui/placeholder-state';
 import { FaqStatusBadge, SortStrategyBadge } from '@/shared/ui/status-badges';
-import { Badge, Button, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui';
+import {
+  Badge,
+  Button,
+  Input,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/shared/ui';
 
 const sortingOptions = [
   { value: 'UpdatedDate DESC', label: 'Last updated' },
@@ -18,27 +29,52 @@ const sortingOptions = [
   { value: 'Status ASC', label: 'Status' },
 ];
 
+const FAQ_FILTER_DEFAULTS = {
+  status: 'all',
+} as const;
+
 export function FaqListPage() {
   const navigate = useNavigate();
-  const [page, setPage] = useState(1);
-  const [pageSize] = useState(12);
-  const [sorting, setSorting] = useState('UpdatedDate DESC');
-  const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const deferredSearch = useDeferredValue(search.trim());
+  const {
+    debouncedSearch,
+    filters,
+    page,
+    pageSize,
+    search,
+    setFilter,
+    setPage,
+    setPageSize,
+    setSearch,
+    setSorting,
+    sorting,
+  } = useListQueryState({
+    defaultSorting: 'UpdatedDate DESC',
+    filterDefaults: FAQ_FILTER_DEFAULTS,
+  });
+  const statusFilter = filters.status;
   const apiStatus = statusFilter === 'all' ? undefined : Number(statusFilter);
-
-  useEffect(() => {
-    setPage(1);
-  }, [apiStatus, deferredSearch, sorting]);
 
   const faqQuery = useFaqList({
     page,
     pageSize,
     sorting,
-    searchText: deferredSearch || undefined,
+    searchText: debouncedSearch || undefined,
     status: apiStatus,
   });
+
+  useEffect(() => {
+    const totalCount = faqQuery.data?.totalCount;
+
+    if (totalCount === undefined) {
+      return;
+    }
+
+    const nextPage = clampPage(page, totalCount, pageSize);
+    if (nextPage !== page) {
+      setPage(nextPage, { replace: true });
+    }
+  }, [faqQuery.data?.totalCount, page, pageSize, setPage]);
+
   const deleteFaq = useDeleteFaq();
   const requestGeneration = useRequestFaqGeneration();
   const faqRows = faqQuery.data?.items ?? [];
@@ -140,7 +176,7 @@ export function FaqListPage() {
               placeholder="Search FAQs"
             />
           </div>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <Select value={statusFilter} onValueChange={(value) => setFilter('status', value)}>
             <SelectTrigger>
               <SelectValue placeholder="Filter by status" />
             </SelectTrigger>
@@ -173,7 +209,7 @@ export function FaqListPage() {
           {
             title: 'Catalog size',
             value: faqQuery.data?.totalCount ?? 0,
-            description: deferredSearch ? `Search: ${deferredSearch}` : activeStatusLabel,
+            description: debouncedSearch ? `Search: ${debouncedSearch}` : activeStatusLabel,
           },
           {
             title: 'Published on page',
@@ -231,6 +267,8 @@ export function FaqListPage() {
               pageSize={pageSize}
               totalCount={faqQuery.data.totalCount}
               onPageChange={setPage}
+              onPageSizeChange={setPageSize}
+              isFetching={faqQuery.isFetching}
             />
           ) : undefined
         }

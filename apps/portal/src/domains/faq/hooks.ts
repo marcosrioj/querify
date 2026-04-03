@@ -46,8 +46,8 @@ export function useFaqList({
 
   return useQuery({
     queryKey: faqKeys.list(params),
-    queryFn: () =>
-      listFaqs(session?.accessToken, currentTenantId, params),
+    queryFn: ({ signal }) =>
+      listFaqs(session?.accessToken, currentTenantId, params, signal),
     enabled: authStatus === 'ready' && Boolean(currentTenantId),
     placeholderData: (previous) => previous,
   });

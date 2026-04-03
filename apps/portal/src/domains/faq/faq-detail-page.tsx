@@ -6,9 +6,13 @@ import { useFaqItemList } from '@/domains/faq-items/hooks';
 import { useContentRefList } from '@/domains/content-refs/hooks';
 import { FaqStatus } from '@/shared/constants/backend-enums';
 import { DetailLayout, KeyValueList, PageHeader, SectionGrid } from '@/shared/layout/page-layouts';
+import { useLocalPagination } from '@/shared/lib/use-local-pagination';
 import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardHeading, CardTitle } from '@/shared/ui';
+import { PaginationControls } from '@/shared/ui/pagination-controls';
 import { ErrorState, EmptyState } from '@/shared/ui/placeholder-state';
 import { ContentRefKindBadge, FaqStatusBadge, SortStrategyBadge } from '@/shared/ui/status-badges';
+
+const DETAIL_PAGE_SIZE_OPTIONS = [5, 10, 20];
 
 export function FaqDetailPage() {
   const navigate = useNavigate();
@@ -54,6 +58,14 @@ export function FaqDetailPage() {
   const activeItemCount = relatedItems.filter((item) => item.isActive).length;
   const generationReady =
     relatedItems.length > 0 && relatedContentRefs.length > 0;
+  const relatedItemsPagination = useLocalPagination({
+    items: relatedItems,
+    defaultPageSize: DETAIL_PAGE_SIZE_OPTIONS[0],
+  });
+  const relatedContentRefsPagination = useLocalPagination({
+    items: relatedContentRefs,
+    defaultPageSize: DETAIL_PAGE_SIZE_OPTIONS[0],
+  });
   const createFaqItemPath = `/app/faq/${id}/items/new`;
   const createContentRefPath = `/app/faq/${id}/content-refs/new`;
 
@@ -246,52 +258,64 @@ export function FaqDetailPage() {
             </CardHeader>
             <CardContent className="space-y-3">
               {relatedItems.length ? (
-                relatedItems.map((item) => (
-                  <div
-                    key={item.id}
-                    className="rounded-2xl border border-border bg-muted/15 p-4"
-                  >
-                    <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                      <div>
-                        <div className="flex flex-wrap items-center gap-2">
-                          <p className="font-medium text-mono">{item.question}</p>
-                          <Badge variant={item.isActive ? 'success' : 'mono'}>
-                            {item.isActive ? 'Active' : 'Inactive'}
-                          </Badge>
+                <>
+                  {relatedItemsPagination.pagedItems.map((item) => (
+                    <div
+                      key={item.id}
+                      className="rounded-2xl border border-border bg-muted/15 p-4"
+                    >
+                      <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                        <div>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <p className="font-medium text-mono">{item.question}</p>
+                            <Badge variant={item.isActive ? 'success' : 'mono'}>
+                              {item.isActive ? 'Active' : 'Inactive'}
+                            </Badge>
+                          </div>
+                          <p className="mt-1 text-sm text-muted-foreground">
+                            {item.shortAnswer}
+                          </p>
+                          <div className="mt-3 flex flex-wrap gap-2 text-xs text-muted-foreground">
+                            <span>Sort {item.sort}</span>
+                            <span>Vote {item.voteScore}</span>
+                            <span>AI {item.aiConfidenceScore}</span>
+                            {item.contentRefId ? (
+                              <span>
+                                Linked to{' '}
+                                <Link
+                                  className="font-medium text-primary hover:underline"
+                                  to={`/app/faq/${id}/content-refs/${item.contentRefId}`}
+                                >
+                                  source material
+                                </Link>
+                              </span>
+                            ) : (
+                              <span>No content ref linked yet</span>
+                            )}
+                          </div>
                         </div>
-                        <p className="mt-1 text-sm text-muted-foreground">
-                          {item.shortAnswer}
-                        </p>
-                        <div className="mt-3 flex flex-wrap gap-2 text-xs text-muted-foreground">
-                          <span>Sort {item.sort}</span>
-                          <span>Vote {item.voteScore}</span>
-                          <span>AI {item.aiConfidenceScore}</span>
-                          {item.contentRefId ? (
-                            <span>
-                              Linked to{' '}
-                              <Link
-                                className="font-medium text-primary hover:underline"
-                                to={`/app/faq/${id}/content-refs/${item.contentRefId}`}
-                              >
-                                source material
-                              </Link>
-                            </span>
-                          ) : (
-                            <span>No content ref linked yet</span>
-                          )}
+                        <div className="flex flex-wrap gap-2">
+                          <Button asChild variant="ghost" size="sm">
+                            <Link to={`/app/faq/${id}/items/${item.id}/edit`}>Edit</Link>
+                          </Button>
+                          <Button asChild variant="outline" size="sm">
+                            <Link to={`/app/faq/${id}/items/${item.id}`}>Open</Link>
+                          </Button>
                         </div>
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        <Button asChild variant="ghost" size="sm">
-                          <Link to={`/app/faq/${id}/items/${item.id}/edit`}>Edit</Link>
-                        </Button>
-                        <Button asChild variant="outline" size="sm">
-                          <Link to={`/app/faq/${id}/items/${item.id}`}>Open</Link>
-                        </Button>
                       </div>
                     </div>
-                  </div>
-                ))
+                  ))}
+                  {relatedItemsPagination.totalCount > DETAIL_PAGE_SIZE_OPTIONS[0] ? (
+                    <PaginationControls
+                      page={relatedItemsPagination.page}
+                      pageSize={relatedItemsPagination.pageSize}
+                      totalCount={relatedItemsPagination.totalCount}
+                      onPageChange={relatedItemsPagination.setPage}
+                      onPageSizeChange={relatedItemsPagination.setPageSize}
+                      pageSizeOptions={DETAIL_PAGE_SIZE_OPTIONS}
+                    />
+                  ) : null}
+                </>
               ) : (
                 <EmptyState
                   title="No FAQ items linked"
@@ -313,33 +337,45 @@ export function FaqDetailPage() {
             </CardHeader>
             <CardContent className="space-y-3">
               {relatedContentRefs.length ? (
-                relatedContentRefs.map((contentRef) => (
-                  <div
-                    key={contentRef.id}
-                    className="rounded-2xl border border-border bg-muted/15 p-4"
-                  >
-                    <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                      <div>
-                        <div className="flex flex-wrap items-center gap-2">
-                          <p className="font-medium text-mono">
-                            {contentRef.label || 'Untitled content ref'}
+                <>
+                  {relatedContentRefsPagination.pagedItems.map((contentRef) => (
+                    <div
+                      key={contentRef.id}
+                      className="rounded-2xl border border-border bg-muted/15 p-4"
+                    >
+                      <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                        <div>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <p className="font-medium text-mono">
+                              {contentRef.label || 'Untitled content ref'}
+                            </p>
+                            <ContentRefKindBadge kind={contentRef.kind} />
+                          </div>
+                          <p className="mt-1 break-all text-sm text-muted-foreground">
+                            {contentRef.locator}
                           </p>
-                          <ContentRefKindBadge kind={contentRef.kind} />
+                          <p className="mt-3 text-xs text-muted-foreground">
+                            Used by {contentRef.usageCount}{' '}
+                            {contentRef.usageCount === 1 ? 'FAQ item' : 'FAQ items'} in this FAQ
+                          </p>
                         </div>
-                        <p className="mt-1 break-all text-sm text-muted-foreground">
-                          {contentRef.locator}
-                        </p>
-                        <p className="mt-3 text-xs text-muted-foreground">
-                          Used by {contentRef.usageCount}{' '}
-                          {contentRef.usageCount === 1 ? 'FAQ item' : 'FAQ items'} in this FAQ
-                        </p>
+                        <Button asChild variant="outline" size="sm">
+                          <Link to={`/app/faq/${id}/content-refs/${contentRef.id}`}>Open</Link>
+                        </Button>
                       </div>
-                      <Button asChild variant="outline" size="sm">
-                        <Link to={`/app/faq/${id}/content-refs/${contentRef.id}`}>Open</Link>
-                      </Button>
                     </div>
-                  </div>
-                ))
+                  ))}
+                  {relatedContentRefsPagination.totalCount > DETAIL_PAGE_SIZE_OPTIONS[0] ? (
+                    <PaginationControls
+                      page={relatedContentRefsPagination.page}
+                      pageSize={relatedContentRefsPagination.pageSize}
+                      totalCount={relatedContentRefsPagination.totalCount}
+                      onPageChange={relatedContentRefsPagination.setPage}
+                      onPageSizeChange={relatedContentRefsPagination.setPageSize}
+                      pageSizeOptions={DETAIL_PAGE_SIZE_OPTIONS}
+                    />
+                  ) : null}
+                </>
               ) : (
                 <EmptyState
                   title="No content refs connected"

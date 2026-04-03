@@ -27,6 +27,7 @@ export function listContentRefs(
     faqId?: string;
     faqItemId?: string;
   },
+  signal?: AbortSignal,
 ) {
   return portalRequest<PagedResultDto<ContentRefDto>>({
     service: 'faq',
@@ -39,6 +40,7 @@ export function listContentRefs(
       FaqId: faqId,
       FaqItemId: faqItemId,
     }),
+    signal,
   });
 }
 

@@ -51,8 +51,8 @@ export function useContentRefList({
 
   return useQuery({
     queryKey: contentRefKeys.list(params),
-    queryFn: () =>
-      listContentRefs(session?.accessToken, currentTenantId, params),
+    queryFn: ({ signal }) =>
+      listContentRefs(session?.accessToken, currentTenantId, params, signal),
     enabled: status === 'ready' && Boolean(currentTenantId),
     placeholderData: (previous) => previous,
   });

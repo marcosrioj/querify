@@ -1,15 +1,26 @@
+import { useEffect, useMemo } from 'react';
 import { Pencil, Plus, Trash2 } from 'lucide-react';
-import { useDeferredValue, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useFaqList } from '@/domains/faq/hooks';
 import { useContentRefList } from '@/domains/content-refs/hooks';
+import { useFaqList } from '@/domains/faq/hooks';
 import { useDeleteFaqItem, useFaqItemList } from '@/domains/faq-items/hooks';
 import type { FaqItemDto } from '@/domains/faq-items/types';
 import { ListLayout, PageHeader, SectionGrid } from '@/shared/layout/page-layouts';
+import { clampPage } from '@/shared/lib/pagination';
+import { useListQueryState } from '@/shared/lib/use-list-query-state';
 import { DataTable, type DataTableColumn } from '@/shared/ui/data-table';
 import { PaginationControls } from '@/shared/ui/pagination-controls';
 import { EmptyState, ErrorState } from '@/shared/ui/placeholder-state';
-import { Badge, Button, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui';
+import {
+  Badge,
+  Button,
+  Input,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/shared/ui';
 
 const sortingOptions = [
   { value: 'UpdatedDate DESC', label: 'Last updated' },
@@ -18,31 +29,56 @@ const sortingOptions = [
   { value: 'AiConfidenceScore DESC', label: 'AI confidence' },
 ];
 
+const FAQ_ITEM_FILTER_DEFAULTS = {
+  active: 'all',
+  faq: 'all',
+} as const;
+
 export function FaqItemListPage() {
   const navigate = useNavigate();
-  const [page, setPage] = useState(1);
-  const [pageSize] = useState(12);
-  const [sorting, setSorting] = useState('UpdatedDate DESC');
-  const [search, setSearch] = useState('');
-  const [activeFilter, setActiveFilter] = useState('all');
-  const [faqFilter, setFaqFilter] = useState('all');
-  const deferredSearch = useDeferredValue(search.trim());
+  const {
+    debouncedSearch,
+    filters,
+    page,
+    pageSize,
+    search,
+    setFilter,
+    setPage,
+    setPageSize,
+    setSearch,
+    setSorting,
+    sorting,
+  } = useListQueryState({
+    defaultSorting: 'UpdatedDate DESC',
+    filterDefaults: FAQ_ITEM_FILTER_DEFAULTS,
+  });
+  const activeFilter = filters.active;
+  const faqFilter = filters.faq;
   const apiFaqId = faqFilter === 'all' ? undefined : faqFilter;
-  const apiIsActive =
-    activeFilter === 'all' ? undefined : activeFilter === 'true';
-
-  useEffect(() => {
-    setPage(1);
-  }, [apiFaqId, apiIsActive, deferredSearch, sorting]);
+  const apiIsActive = activeFilter === 'all' ? undefined : activeFilter === 'true';
 
   const faqItemQuery = useFaqItemList({
     page,
     pageSize,
     sorting,
-    searchText: deferredSearch || undefined,
+    searchText: debouncedSearch || undefined,
     faqId: apiFaqId,
     isActive: apiIsActive,
   });
+
+  useEffect(() => {
+    const totalCount = faqItemQuery.data?.totalCount;
+
+    if (totalCount === undefined) {
+      return;
+    }
+
+    const nextPage = clampPage(page, totalCount, pageSize);
+    if (nextPage !== page) {
+      setPage(nextPage, { replace: true });
+    }
+  }, [faqItemQuery.data?.totalCount, page, pageSize, setPage]);
+
   const faqOptionsQuery = useFaqList({ page: 1, pageSize: 100, sorting: 'Name ASC' });
   const contentRefQuery = useContentRefList({
     page: 1,
@@ -162,7 +198,7 @@ export function FaqItemListPage() {
               placeholder="Search FAQ items"
             />
           </div>
-          <Select value={faqFilter} onValueChange={setFaqFilter}>
+          <Select value={faqFilter} onValueChange={(value) => setFilter('faq', value)}>
             <SelectTrigger>
               <SelectValue placeholder="Filter by FAQ" />
             </SelectTrigger>
@@ -175,7 +211,7 @@ export function FaqItemListPage() {
               ))}
             </SelectContent>
           </Select>
-          <Select value={activeFilter} onValueChange={setActiveFilter}>
+          <Select value={activeFilter} onValueChange={(value) => setFilter('active', value)}>
             <SelectTrigger>
               <SelectValue placeholder="Active state" />
             </SelectTrigger>
@@ -205,7 +241,7 @@ export function FaqItemListPage() {
           {
             title: 'Answer records',
             value: faqItemQuery.data?.totalCount ?? 0,
-            description: deferredSearch ? `Search: ${deferredSearch}` : selectedFaqLabel,
+            description: debouncedSearch ? `Search: ${debouncedSearch}` : selectedFaqLabel,
           },
           {
             title: 'Active on page',
@@ -268,6 +304,8 @@ export function FaqItemListPage() {
               pageSize={pageSize}
               totalCount={faqItemQuery.data.totalCount}
               onPageChange={setPage}
+              onPageSizeChange={setPageSize}
+              isFetching={faqItemQuery.isFetching}
             />
           ) : undefined
         }

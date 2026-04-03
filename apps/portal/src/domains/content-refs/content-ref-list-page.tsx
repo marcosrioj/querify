@@ -1,18 +1,29 @@
+import { useEffect } from 'react';
 import { Pencil, Plus, Trash2 } from 'lucide-react';
-import { useDeferredValue, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useDeleteContentRef, useContentRefList } from '@/domains/content-refs/hooks';
+import { useContentRefList, useDeleteContentRef } from '@/domains/content-refs/hooks';
 import type { ContentRefDto } from '@/domains/content-refs/types';
 import {
   ContentRefKind,
   contentRefKindLabels,
 } from '@/shared/constants/backend-enums';
 import { ListLayout, PageHeader, SectionGrid } from '@/shared/layout/page-layouts';
+import { clampPage } from '@/shared/lib/pagination';
+import { useListQueryState } from '@/shared/lib/use-list-query-state';
 import { DataTable, type DataTableColumn } from '@/shared/ui/data-table';
 import { PaginationControls } from '@/shared/ui/pagination-controls';
 import { EmptyState, ErrorState } from '@/shared/ui/placeholder-state';
 import { ContentRefKindBadge } from '@/shared/ui/status-badges';
-import { Badge, Button, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui';
+import {
+  Badge,
+  Button,
+  Input,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/shared/ui';
 
 const sortingOptions = [
   { value: 'UpdatedDate DESC', label: 'Last updated' },
@@ -21,27 +32,52 @@ const sortingOptions = [
   { value: 'Locator ASC', label: 'Locator' },
 ];
 
+const CONTENT_REF_FILTER_DEFAULTS = {
+  kind: 'all',
+} as const;
+
 export function ContentRefListPage() {
   const navigate = useNavigate();
-  const [page, setPage] = useState(1);
-  const [pageSize] = useState(12);
-  const [sorting, setSorting] = useState('UpdatedDate DESC');
-  const [search, setSearch] = useState('');
-  const [kindFilter, setKindFilter] = useState('all');
-  const deferredSearch = useDeferredValue(search.trim());
+  const {
+    debouncedSearch,
+    filters,
+    page,
+    pageSize,
+    search,
+    setFilter,
+    setPage,
+    setPageSize,
+    setSearch,
+    setSorting,
+    sorting,
+  } = useListQueryState({
+    defaultSorting: 'UpdatedDate DESC',
+    filterDefaults: CONTENT_REF_FILTER_DEFAULTS,
+  });
+  const kindFilter = filters.kind;
   const apiKind = kindFilter === 'all' ? undefined : Number(kindFilter);
-
-  useEffect(() => {
-    setPage(1);
-  }, [apiKind, deferredSearch, sorting]);
 
   const contentRefQuery = useContentRefList({
     page,
     pageSize,
     sorting,
-    searchText: deferredSearch || undefined,
+    searchText: debouncedSearch || undefined,
     kind: apiKind,
   });
+
+  useEffect(() => {
+    const totalCount = contentRefQuery.data?.totalCount;
+
+    if (totalCount === undefined) {
+      return;
+    }
+
+    const nextPage = clampPage(page, totalCount, pageSize);
+    if (nextPage !== page) {
+      setPage(nextPage, { replace: true });
+    }
+  }, [contentRefQuery.data?.totalCount, page, pageSize, setPage]);
+
   const deleteContentRef = useDeleteContentRef();
   const contentRefRows = contentRefQuery.data?.items ?? [];
   const scopedCount = contentRefRows.filter((contentRef) => Boolean(contentRef.scope)).length;
@@ -135,7 +171,7 @@ export function ContentRefListPage() {
               placeholder="Search content refs"
             />
           </div>
-          <Select value={kindFilter} onValueChange={setKindFilter}>
+          <Select value={kindFilter} onValueChange={(value) => setFilter('kind', value)}>
             <SelectTrigger>
               <SelectValue placeholder="Filter by kind" />
             </SelectTrigger>
@@ -168,7 +204,7 @@ export function ContentRefListPage() {
           {
             title: 'Source catalog',
             value: contentRefQuery.data?.totalCount ?? 0,
-            description: deferredSearch ? `Search: ${deferredSearch}` : selectedKindLabel,
+            description: debouncedSearch ? `Search: ${debouncedSearch}` : selectedKindLabel,
           },
           {
             title: 'Scoped sources',
@@ -226,6 +262,8 @@ export function ContentRefListPage() {
               pageSize={pageSize}
               totalCount={contentRefQuery.data.totalCount}
               onPageChange={setPage}
+              onPageSizeChange={setPageSize}
+              isFetching={contentRefQuery.isFetching}
             />
           ) : undefined
         }
