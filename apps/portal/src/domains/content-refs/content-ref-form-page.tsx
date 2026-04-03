@@ -63,7 +63,7 @@ export function ContentRefFormPage({ mode }: { mode: 'create' | 'edit' }) {
         <PageHeader
           eyebrow="Content Refs"
           title={mode === 'create' ? 'Create content ref' : 'Edit content ref'}
-          description="These fields map directly to the real Content Ref DTOs."
+          description="Capture reusable source material for answers and generation."
           backTo={detailPath}
         />
       }
@@ -71,18 +71,18 @@ export function ContentRefFormPage({ mode }: { mode: 'create' | 'edit' }) {
         <Card>
           <CardHeader>
             <CardHeading>
-              <CardTitle>Contract notes</CardTitle>
+              <CardTitle>Quick notes</CardTitle>
               <CardDescription>
-                Content Refs are reusable tenant assets for FAQ workflows.
+                Good source records stay durable, labeled, and easy to reuse.
               </CardDescription>
             </CardHeading>
           </CardHeader>
           <CardContent>
             <KeyValueList
               items={[
-                { label: 'Create route', value: 'POST /api/faqs/content-ref' },
-                { label: 'Update route', value: 'PUT /api/faqs/content-ref/{id}' },
-                { label: 'Kinds', value: 'Web, Pdf, Document, Video, Repository, Manual' },
+                { label: 'Kinds', value: 'Web, PDF, document, video, repository, manual' },
+                { label: 'Locator', value: 'Use a stable URI or file path reference' },
+                { label: 'Scope', value: 'Optional grouping label for the workspace' },
               ]}
             />
           </CardContent>
@@ -101,7 +101,7 @@ export function ContentRefFormPage({ mode }: { mode: 'create' | 'edit' }) {
             <CardHeading>
               <CardTitle>{mode === 'create' ? 'New content ref' : 'Content ref settings'}</CardTitle>
               <CardDescription>
-                Keep locators durable. FAQ generation depends on processable content ref kinds for ingestion.
+                Make this source easy to identify, reuse, and ingest later.
               </CardDescription>
             </CardHeading>
           </CardHeader>

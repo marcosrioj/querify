@@ -72,7 +72,7 @@ export function FaqItemDetailPage() {
         <PageHeader
           eyebrow="FAQ Items"
           title={itemQuery.data?.question ?? 'FAQ item detail'}
-          description="This detail screen is backed by the live FAQ Item endpoint."
+          description="Review answer quality, CTA state, and source linkage for this item."
           backTo={backTo}
           actions={
             <>
@@ -116,8 +116,8 @@ export function FaqItemDetailPage() {
         <Card>
           <CardHeader>
             <CardHeading>
-              <CardTitle>Metadata</CardTitle>
-              <CardDescription>Direct fields from the backend DTO.</CardDescription>
+              <CardTitle>At a glance</CardTitle>
+              <CardDescription>Ranking, visibility, and relationship details.</CardDescription>
             </CardHeading>
           </CardHeader>
           <CardContent>
@@ -164,14 +164,14 @@ export function FaqItemDetailPage() {
               {
                 title: 'Answer package',
                 value: answerState,
-                description: 'How much response content is currently authored',
+                description: 'Current answer depth',
               },
               {
                 title: 'CTA',
                 value: itemQuery.data.ctaUrl ? 'Configured' : 'Missing',
                 description:
                   itemQuery.data.ctaTitle || itemQuery.data.ctaUrl
-                    ? 'This answer can drive a next step'
+                    ? 'This answer can drive the next step'
                     : 'No CTA configured for this answer',
               },
               {
@@ -179,13 +179,13 @@ export function FaqItemDetailPage() {
                 value: linkedContentRef ? 'Linked' : 'Missing',
                 description:
                   linkedContentRef
-                    ? 'Generation can use the connected content ref'
-                    : 'Attach a content ref for better generation quality',
+                    ? 'Connected to reusable source material'
+                    : 'Attach a source to improve traceability',
               },
               {
                 title: 'Parent FAQ',
                 value: parentFaq?.name ?? 'Unknown FAQ',
-                description: 'This answer belongs to the FAQ shown here',
+                description: 'Knowledge space this answer belongs to',
               },
             ]}
           />
@@ -195,7 +195,7 @@ export function FaqItemDetailPage() {
               <CardHeading>
                 <CardTitle>Answer package</CardTitle>
                 <CardDescription>
-                  `answer`, `additionalInfo`, and CTA fields are stored directly on the FAQ Item entity.
+                  The full answer, supporting notes, and CTA live together here.
                 </CardDescription>
               </CardHeading>
             </CardHeader>
@@ -227,7 +227,7 @@ export function FaqItemDetailPage() {
                 </div>
               ) : null}
               {itemQuery.data.ctaTitle || itemQuery.data.ctaUrl ? (
-                <div className="rounded-2xl border border-border p-4">
+                <div className="rounded-2xl border border-border bg-muted/15 p-4">
                   <p className="font-medium text-mono">
                     {itemQuery.data.ctaTitle || 'CTA'}
                   </p>
@@ -249,12 +249,12 @@ export function FaqItemDetailPage() {
               <CardHeading>
                 <CardTitle>Relationship context</CardTitle>
                 <CardDescription>
-                  This is where the answer sits in the knowledge workflow.
+                  See where this answer sits in the broader knowledge flow.
                 </CardDescription>
               </CardHeading>
             </CardHeader>
             <CardContent className="grid gap-4 md:grid-cols-2">
-              <div className="rounded-2xl border border-border p-4">
+              <div className="rounded-2xl border border-border bg-muted/15 p-4">
                 <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
                   Parent FAQ
                 </p>
@@ -262,7 +262,7 @@ export function FaqItemDetailPage() {
                   {parentFaq?.name ?? itemQuery.data.faqId}
                 </p>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  The answer inherits visibility and workflow context from this FAQ.
+                  Publishing and visibility flow from this FAQ.
                 </p>
                 {parentFaq ? (
                   <Button asChild variant="outline" size="sm" className="mt-4">
@@ -271,7 +271,7 @@ export function FaqItemDetailPage() {
                 ) : null}
               </div>
 
-              <div className="rounded-2xl border border-border p-4">
+              <div className="rounded-2xl border border-border bg-muted/15 p-4">
                 <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
                   Source material
                 </p>
@@ -296,7 +296,7 @@ export function FaqItemDetailPage() {
                   <>
                     <p className="mt-2 font-medium text-mono">No content ref linked</p>
                     <p className="mt-1 text-sm text-muted-foreground">
-                      Link source material to improve generation quality and answer traceability.
+                      Link source material to improve quality and traceability.
                     </p>
                     <Button asChild variant="outline" size="sm" className="mt-4">
                       <Link to={createContentRefPath}>Create source material</Link>

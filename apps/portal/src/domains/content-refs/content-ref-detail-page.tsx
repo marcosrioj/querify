@@ -125,8 +125,8 @@ export function ContentRefDetailPage() {
         <Card>
           <CardHeader>
             <CardHeading>
-              <CardTitle>Metadata</CardTitle>
-              <CardDescription>Direct fields from the content ref DTO.</CardDescription>
+              <CardTitle>At a glance</CardTitle>
+              <CardDescription>Source type, scope, and downstream usage.</CardDescription>
             </CardHeading>
           </CardHeader>
           <CardContent>
@@ -160,14 +160,14 @@ export function ContentRefDetailPage() {
               {
                 title: 'Type',
                 value: <ContentRefKindBadge kind={contentRefQuery.data.kind} />,
-                description: 'How this source material is classified',
+                description: 'How this source is classified',
               },
               {
                 title: 'FAQ items using it',
                 value: relatedItems.length,
                 description:
                   relatedItems.length
-                    ? 'Direct answer records linked to this content ref'
+                    ? 'Answers already linked'
                     : 'No answer records linked yet',
               },
               {
@@ -175,13 +175,13 @@ export function ContentRefDetailPage() {
                 value: relatedFaqs.length,
                 description:
                   relatedFaqs.length
-                    ? 'Unique FAQs currently relying on this source'
+                    ? 'Knowledge spaces currently relying on it'
                     : 'No FAQs currently depend on this source',
               },
               {
                 title: 'Scope',
                 value: contentRefQuery.data.scope || 'Not set',
-                description: 'Optional tenant-side grouping label',
+                description: 'Optional grouping label',
               },
             ]}
           />
@@ -191,7 +191,7 @@ export function ContentRefDetailPage() {
               <CardHeading>
                 <CardTitle>Locator</CardTitle>
                 <CardDescription>
-                  This is the source material pointer stored in the backend.
+                  The durable pointer editors and ingestion use for this source.
                 </CardDescription>
               </CardHeading>
             </CardHeader>
@@ -205,14 +205,14 @@ export function ContentRefDetailPage() {
               <CardHeading>
                 <CardTitle>FAQs using this content ref</CardTitle>
                 <CardDescription>
-                  This shows where the source material is already influencing the knowledge base.
+                  Knowledge spaces already drawing from this source.
                 </CardDescription>
               </CardHeading>
             </CardHeader>
             <CardContent className="space-y-3">
               {relatedFaqs.length ? (
                 relatedFaqs.map((faq) => (
-                  <div key={faq.id} className="rounded-2xl border border-border p-4">
+                  <div key={faq.id} className="rounded-2xl border border-border bg-muted/15 p-4">
                     <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                       <div>
                         <p className="font-medium text-mono">{faq.name}</p>
@@ -230,7 +230,7 @@ export function ContentRefDetailPage() {
               ) : (
                 <EmptyState
                   title="No FAQs using this content ref"
-                  description="Create FAQ items linked to this source material to make it part of a tenant FAQ workflow."
+                  description="Link this source to answers so it becomes part of the workspace knowledge flow."
                   action={{ label: 'Create FAQ item', to: createFaqItemPath }}
                 />
               )}
@@ -242,14 +242,14 @@ export function ContentRefDetailPage() {
               <CardHeading>
                 <CardTitle>FAQ items using this content ref</CardTitle>
                 <CardDescription>
-                  The FAQ Item API is queried with the current content ref id instead of filtering loaded rows in the browser.
+                  Answers currently attached to this source.
                 </CardDescription>
               </CardHeading>
             </CardHeader>
             <CardContent className="space-y-3">
               {relatedItems.length ? (
                 relatedItems.map((item) => (
-                  <div key={item.id} className="rounded-2xl border border-border p-4">
+                  <div key={item.id} className="rounded-2xl border border-border bg-muted/15 p-4">
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <div className="flex flex-wrap items-center gap-2">
@@ -280,7 +280,7 @@ export function ContentRefDetailPage() {
               ) : (
                 <EmptyState
                   title="No FAQ items linked"
-                  description="Associate this content ref to FAQ items to reuse the source material across answers."
+                  description="Attach this source to answers so teams can reuse it across the workspace."
                   action={{ label: 'Create FAQ item', to: createFaqItemPath }}
                 />
               )}

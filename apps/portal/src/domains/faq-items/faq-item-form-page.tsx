@@ -89,7 +89,7 @@ export function FaqItemFormPage({ mode }: { mode: 'create' | 'edit' }) {
         <PageHeader
           eyebrow="FAQ Items"
           title={mode === 'create' ? 'Create FAQ item' : 'Edit FAQ item'}
-          description="The FAQ Item DTO is CRUD-heavy and preserved as-is from the backend contract."
+          description="Define the answer, scoring, and source linkage for this FAQ item."
           backTo={backTo}
         />
       }
@@ -97,18 +97,18 @@ export function FaqItemFormPage({ mode }: { mode: 'create' | 'edit' }) {
         <Card>
           <CardHeader>
             <CardHeading>
-              <CardTitle>Contract notes</CardTitle>
+              <CardTitle>Quick notes</CardTitle>
               <CardDescription>
-                This form uses the real FAQ Item request DTO fields without inventing client-only properties.
+                Keep each answer clear, ranked, and connected to a FAQ.
               </CardDescription>
             </CardHeading>
           </CardHeader>
           <CardContent>
             <KeyValueList
               items={[
-                { label: 'Create route', value: 'POST /api/faqs/faq-item' },
-                { label: 'Update route', value: 'PUT /api/faqs/faq-item/{id}' },
-                { label: 'Associations', value: 'FAQ required, Content Ref optional' },
+                { label: 'Associations', value: 'FAQ required, source optional' },
+                { label: 'Scoring', value: 'Sort, vote, and AI confidence affect ranking' },
+                { label: 'CTA', value: 'Optional title and URL for the next step' },
                 {
                   label: 'Selected FAQ',
                   value: selectedFaq?.name || (mode === 'create' ? 'Choose in form' : itemQuery.data?.faqId || 'Loading'),
@@ -138,7 +138,7 @@ export function FaqItemFormPage({ mode }: { mode: 'create' | 'edit' }) {
             <CardHeading>
               <CardTitle>{mode === 'create' ? 'New FAQ item' : 'FAQ item settings'}</CardTitle>
               <CardDescription>
-                Use sort, vote score, and AI confidence exactly as the backend expects them.
+                Shape the answer package customers and editors will rely on.
               </CardDescription>
             </CardHeading>
           </CardHeader>

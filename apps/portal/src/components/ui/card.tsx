@@ -35,7 +35,7 @@ const cardVariants = cva('flex flex-col items-stretch text-card-foreground round
   },
 });
 
-const cardHeaderVariants = cva('flex items-center justify-between flex-wrap px-5 min-h-14 gap-2.5', {
+const cardHeaderVariants = cva('flex flex-col gap-3 px-5 py-4 md:flex-row md:items-start md:justify-between', {
   variants: {
     variant: {
       default: 'border-b border-border',
@@ -71,7 +71,7 @@ const cardTableVariants = cva('grid grow', {
   },
 });
 
-const cardFooterVariants = cva('flex items-center px-5 min-h-14', {
+const cardFooterVariants = cva('flex items-center px-5 py-4', {
   variants: {
     variant: {
       default: 'border-t border-border',
@@ -122,25 +122,25 @@ function CardFooter({ className, ...props }: React.HTMLAttributes<HTMLDivElement
 
 // Other Components
 function CardHeading({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div data-slot="card-heading" className={cn('space-y-1', className)} {...props} />;
+  return <div data-slot="card-heading" className={cn('space-y-1.5', className)} {...props} />;
 }
 
 function CardToolbar({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div data-slot="card-toolbar" className={cn('flex items-center gap-2.5', className)} {...props} />;
+  return <div data-slot="card-toolbar" className={cn('flex flex-wrap items-center gap-2.5', className)} {...props} />;
 }
 
 function CardTitle({ className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) {
   return (
     <h3
       data-slot="card-title"
-      className={cn('text-base font-semibold leading-none tracking-tight', className)}
+      className={cn('text-base font-semibold leading-5 tracking-tight text-mono', className)}
       {...props}
     />
   );
 }
 
 function CardDescription({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div data-slot="card-description" className={cn('text-sm text-muted-foreground', className)} {...props} />;
+  return <div data-slot="card-description" className={cn('text-sm leading-5 text-muted-foreground', className)} {...props} />;
 }
 
 // Exports

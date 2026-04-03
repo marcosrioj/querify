@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { MailPlus, Trash2 } from 'lucide-react';
-import { ListLayout, PageHeader } from '@/shared/layout/page-layouts';
+import { ListLayout, PageHeader, SectionGrid } from '@/shared/layout/page-layouts';
 import { useTenant } from '@/platform/tenant/tenant-context';
 import { useAuth } from '@/platform/auth/auth-context';
 import { usePermission } from '@/platform/permissions/permissions';
@@ -61,6 +61,10 @@ export function MembersPage() {
       role: 'Member',
     },
   });
+  const activeCount = members.filter((member) => member.status === 'active').length;
+  const pendingCount = members.filter((member) => member.status === 'pending').length;
+  const adminCount = members.filter((member) => member.role === 'Admin').length;
+  const currentUserCount = members.filter((member) => member.isCurrentUser).length;
 
   const columns: DataTableColumn<MemberRecord>[] = [
     {
@@ -129,7 +133,7 @@ export function MembersPage() {
           <PageHeader
             eyebrow="Members"
             title="Tenant access"
-            description="No Portal members API exists in the repository yet. This page uses an isolated temporary adapter so the Portal boundary and permission UX can still be exercised without pulling in BackOffice endpoints."
+            description="Manage workspace access, role coverage, and invitations for the current BaseFAQ team."
             actions={
               <Button
                 disabled={!canManageMembers || !currentTenant}
@@ -143,16 +147,50 @@ export function MembersPage() {
         }
       >
         {currentTenant ? (
+          <SectionGrid
+            items={[
+              {
+                title: 'Workspace',
+                value: currentTenant.name,
+                description: currentTenant.slug,
+              },
+              {
+                title: 'Active members',
+                value: activeCount,
+                description: activeCount ? 'Already inside the workspace' : 'No active members yet',
+              },
+              {
+                title: 'Pending invites',
+                value: pendingCount,
+                description: pendingCount ? 'Waiting for acceptance' : 'No invites outstanding',
+              },
+              {
+                title: 'Admins',
+                value: adminCount,
+                description: currentUserCount ? 'Includes your current access' : 'No current user context',
+              },
+            ]}
+          />
+        ) : null}
+        {currentTenant ? (
           <DataTable
             title="Access roster"
-            description="Temporary local adapter keyed by tenant id. Replace it when a Portal members contract is added."
+            description="See who can manage this workspace and which invites still need action."
             columns={columns}
             rows={members}
             getRowId={(row) => row.id}
+            toolbar={
+              <>
+                <Badge variant="outline">{members.length} people</Badge>
+                <Badge variant={pendingCount ? 'warning' : 'outline'} appearance="outline">
+                  {pendingCount ? `${pendingCount} pending` : 'No pending invites'}
+                </Badge>
+              </>
+            }
             emptyState={
               <EmptyState
                 title="No members yet"
-                description="Invite the first tenant user to start collaborative FAQ management."
+                description="Invite the first teammate to start collaborative FAQ operations."
               />
             }
           />
@@ -161,7 +199,7 @@ export function MembersPage() {
             <CardContent className="p-5">
               <EmptyState
                 title="No active tenant"
-                description="Select or create a tenant workspace before managing members."
+                description="Select a workspace before managing access."
               />
             </CardContent>
           </Card>
@@ -173,7 +211,7 @@ export function MembersPage() {
           <DialogHeader>
             <DialogTitle>Invite member</DialogTitle>
             <DialogDescription>
-              Temporary local invite flow until the Portal members API is available.
+              Add a teammate and assign their initial role.
             </DialogDescription>
           </DialogHeader>
           <Form {...form}>

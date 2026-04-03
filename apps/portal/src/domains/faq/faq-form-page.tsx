@@ -60,7 +60,7 @@ export function FaqFormPage({ mode }: { mode: 'create' | 'edit' }) {
         <PageHeader
           eyebrow="FAQ"
           title={mode === 'create' ? 'Create FAQ' : 'Edit FAQ'}
-          description="The form payload mirrors the real FAQ create/update DTOs from the .NET models."
+          description="Set the identity, status, and CTA behavior of this knowledge space."
           backTo={mode === 'edit' && id ? `/app/faq/${id}` : '/app/faq'}
         />
       }
@@ -68,19 +68,18 @@ export function FaqFormPage({ mode }: { mode: 'create' | 'edit' }) {
         <Card>
           <CardHeader>
             <CardHeading>
-              <CardTitle>Contract notes</CardTitle>
+              <CardTitle>Quick notes</CardTitle>
               <CardDescription>
-                The backend currently accepts name, language, status, sort strategy,
-                and CTA settings only.
+                Keep the FAQ simple, searchable, and ready for publication.
               </CardDescription>
             </CardHeading>
           </CardHeader>
           <CardContent>
             <KeyValueList
               items={[
-                { label: 'Create route', value: 'POST /api/faqs/faq' },
-                { label: 'Update route', value: 'PUT /api/faqs/faq/{id}' },
-                { label: 'Tenant scope', value: 'X-Tenant-Id header required' },
+                { label: 'Language', value: 'Use the locale customers will search in' },
+                { label: 'Status', value: 'Draft, published, or archived' },
+                { label: 'CTA', value: 'Optional next step for answer cards' },
               ]}
             />
           </CardContent>
@@ -99,7 +98,7 @@ export function FaqFormPage({ mode }: { mode: 'create' | 'edit' }) {
             <CardHeading>
               <CardTitle>{mode === 'create' ? 'New FAQ' : 'FAQ settings'}</CardTitle>
               <CardDescription>
-                Keep the language code aligned with the backend generation constraints.
+                Define how this knowledge space should behave across the portal.
               </CardDescription>
             </CardHeading>
           </CardHeader>

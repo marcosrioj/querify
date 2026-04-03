@@ -6,7 +6,7 @@ import { KeyRound, Sparkles } from 'lucide-react';
 import { useCurrentWorkspace, useGenerateClientKey, useSetAiProviderCredentials, useTenantWorkspace, useUpdateTenantWorkspace } from '@/domains/tenants/hooks';
 import { settingsNavItems } from '@/domains/settings/settings-nav';
 import { AiCommandType, TenantEdition, tenantEditionLabels } from '@/shared/constants/backend-enums';
-import { KeyValueList, PageHeader, SettingsLayout } from '@/shared/layout/page-layouts';
+import { KeyValueList, PageHeader, SectionGrid, SettingsLayout } from '@/shared/layout/page-layouts';
 import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardHeading, CardTitle, CardToolbar, Form } from '@/shared/ui';
 import { SelectField, TextField } from '@/shared/ui/form-fields';
 import { EmptyState } from '@/shared/ui/placeholder-state';
@@ -57,6 +57,14 @@ export function TenantSettingsPage() {
     });
   }, [currentWorkspace, workspaceForm]);
 
+  const configuredProviders = aiProvidersQuery.data ?? [];
+  const credentialedProviderCount = configuredProviders.filter(
+    (provider) => provider.isAiProviderKeyConfigured,
+  ).length;
+  const generationProviderCount = configuredProviders.filter(
+    (provider) => provider.command === AiCommandType.Generation,
+  ).length;
+
   return (
     <SettingsLayout
       currentKey="tenant"
@@ -65,22 +73,49 @@ export function TenantSettingsPage() {
         <PageHeader
           eyebrow="Settings"
           title="Tenant"
-          description="These forms are wired to the real Tenant Portal API surface: tenant rename/update, public client key generation, and AI provider credential assignment."
+          description="Manage workspace identity, public access keys, and AI provider readiness."
         />
       }
     >
+      <SectionGrid
+        items={[
+          {
+            title: 'Edition',
+            value: currentWorkspace ? tenantEditionLabels[currentWorkspace.edition] : 'No workspace',
+            description: currentWorkspace?.slug || 'Choose or create a workspace',
+          },
+          {
+            title: 'Public key',
+            value: clientKeyQuery.data ? 'Live' : 'Missing',
+            description: clientKeyQuery.data ? 'Ready for previews and embeds' : 'Generate one to expose public experiences',
+          },
+          {
+            title: 'AI providers',
+            value: configuredProviders.length,
+            description: configuredProviders.length
+              ? `${credentialedProviderCount} with credentials stored`
+              : 'No providers configured yet',
+          },
+          {
+            title: 'Generation models',
+            value: generationProviderCount,
+            description: 'Providers available for content generation',
+          },
+        ]}
+      />
+
       {!currentWorkspace ? (
         <Card>
           <CardContent className="p-5">
             <EmptyState
               title="No active tenant workspace"
-              description="`GET /api/tenant/tenants/GetAll` returned no active FAQ workspace for this user. Create a tenant name and edition below to provision the Portal-side tenant records."
+              description="Create or select a workspace before managing keys and provider credentials."
             />
           </CardContent>
         </Card>
       ) : (
         <Card>
-          <CardHeader className="flex-row items-start justify-between gap-4">
+          <CardHeader className="gap-4">
             <CardHeading>
               <CardTitle>{currentWorkspace.name}</CardTitle>
               <CardDescription>
@@ -110,9 +145,9 @@ export function TenantSettingsPage() {
         <Card>
           <CardHeader>
             <CardHeading>
-              <CardTitle>Branding and plan</CardTitle>
+              <CardTitle>Workspace profile</CardTitle>
               <CardDescription>
-                Uses `POST /api/tenant/tenants/CreateOrUpdate`.
+                Rename the workspace and choose the active plan tier.
               </CardDescription>
             </CardHeading>
           </CardHeader>
@@ -155,18 +190,18 @@ export function TenantSettingsPage() {
             <CardHeading>
               <CardTitle>Public preview key</CardTitle>
               <CardDescription>
-                Uses `GET /api/tenant/tenants/GetClientKey` and `POST /api/tenant/tenants/GenerateNewClientKey`.
+                Use this key for public previews and embedded experiences.
               </CardDescription>
             </CardHeading>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="rounded-2xl border border-border bg-muted/40 p-4">
+            <div className="rounded-2xl border border-border bg-muted/30 p-4">
               <div className="flex items-center gap-2 text-sm font-medium text-mono">
                 <KeyRound className="size-4" />
                 Current client key
               </div>
               <p className="mt-3 break-all text-sm text-muted-foreground">
-                {clientKeyQuery.data || 'No public client key has been generated yet.'}
+                {clientKeyQuery.data || 'No client key has been generated yet.'}
               </p>
             </div>
             <Button
@@ -188,13 +223,13 @@ export function TenantSettingsPage() {
             <CardHeading>
               <CardTitle>Configured AI providers</CardTitle>
               <CardDescription>
-                Uses `GET /api/tenant/tenants/GetConfiguredAiProviders`.
+                Review which providers are ready for matching and generation.
               </CardDescription>
             </CardHeading>
           </CardHeader>
           <CardContent className="grid gap-4 md:grid-cols-2">
             {(aiProvidersQuery.data ?? []).map((provider) => (
-              <div key={provider.id} className="rounded-2xl border border-border p-4">
+              <div key={provider.id} className="rounded-2xl border border-border bg-muted/15 p-4">
                 <div className="flex items-center justify-between gap-3">
                   <div>
                     <p className="font-medium text-mono">{provider.provider}</p>
@@ -206,8 +241,8 @@ export function TenantSettingsPage() {
                 </div>
                 <p className="mt-3 text-sm text-muted-foreground">
                   {provider.isAiProviderKeyConfigured
-                    ? 'Credential present for the current tenant.'
-                    : 'Provider registered but no credential stored yet.'}
+                    ? 'Credential stored for this workspace.'
+                    : 'Provider available, but credentials are still missing.'}
                 </p>
               </div>
             ))}
@@ -215,7 +250,7 @@ export function TenantSettingsPage() {
             {!aiProvidersQuery.isLoading && !aiProvidersQuery.data?.length ? (
               <EmptyState
                 title="No AI providers configured"
-                description="The Tenant Portal API returned no configured providers for this user’s active workspace."
+                description="Add a provider before connecting credentials or launching generation."
               />
             ) : null}
           </CardContent>
@@ -226,7 +261,7 @@ export function TenantSettingsPage() {
             <CardHeading>
               <CardTitle>Store provider credentials</CardTitle>
               <CardDescription>
-                Uses `POST /api/tenant/tenants/SetAiProviderCredentials`.
+                Attach or rotate provider secrets for this workspace.
               </CardDescription>
             </CardHeading>
           </CardHeader>
@@ -256,7 +291,7 @@ export function TenantSettingsPage() {
                   name="aiProviderKey"
                   label="Provider secret"
                   placeholder="Paste provider API key"
-                  description="The backend contract expects raw provider credentials."
+                  description="Stored against the selected provider."
                 />
                 <Button type="submit" disabled={storeCredentials.isPending}>
                   <Sparkles className="size-4" />

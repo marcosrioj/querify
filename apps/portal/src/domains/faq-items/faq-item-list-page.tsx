@@ -5,7 +5,7 @@ import { useFaqList } from '@/domains/faq/hooks';
 import { useContentRefList } from '@/domains/content-refs/hooks';
 import { useDeleteFaqItem, useFaqItemList } from '@/domains/faq-items/hooks';
 import type { FaqItemDto } from '@/domains/faq-items/types';
-import { ListLayout, PageHeader } from '@/shared/layout/page-layouts';
+import { ListLayout, PageHeader, SectionGrid } from '@/shared/layout/page-layouts';
 import { DataTable, type DataTableColumn } from '@/shared/ui/data-table';
 import { PaginationControls } from '@/shared/ui/pagination-controls';
 import { EmptyState, ErrorState } from '@/shared/ui/placeholder-state';
@@ -50,6 +50,7 @@ export function FaqItemListPage() {
     sorting: 'Label ASC',
   });
   const deleteFaqItem = useDeleteFaqItem();
+  const itemRows = faqItemQuery.data?.items ?? [];
 
   const faqLookup = useMemo(
     () =>
@@ -67,6 +68,12 @@ export function FaqItemListPage() {
       ),
     [contentRefQuery.data?.items],
   );
+  const activeCount = itemRows.filter((item) => item.isActive).length;
+  const sourcedCount = itemRows.filter((item) => item.contentRefId).length;
+  const unsourcedCount = itemRows.filter((item) => !item.contentRefId).length;
+  const activeFilterLabel =
+    activeFilter === 'all' ? 'All states' : activeFilter === 'true' ? 'Active only' : 'Inactive only';
+  const selectedFaqLabel = faqFilter === 'all' ? 'All FAQs' : faqLookup[faqFilter] ?? 'Selected FAQ';
 
   const columns: DataTableColumn<FaqItemDto>[] = [
     {
@@ -135,7 +142,7 @@ export function FaqItemListPage() {
         <PageHeader
           eyebrow="FAQ Items"
           title="FAQ Items"
-          description="Backed by the real FAQ Item Portal CRUD endpoints. Search, filters, sorting, and paging are API-driven."
+          description="Manage answer records, link source material, and keep each FAQ ready for publishing."
           actions={
             <Button asChild>
               <Link to="/app/faq-items/new">
@@ -191,17 +198,55 @@ export function FaqItemListPage() {
         </div>
       }
     >
+      <SectionGrid
+        items={[
+          {
+            title: 'Answer records',
+            value: faqItemQuery.data?.totalCount ?? 0,
+            description: deferredSearch ? `Search: ${deferredSearch}` : selectedFaqLabel,
+          },
+          {
+            title: 'Active on page',
+            value: activeCount,
+            description: activeFilterLabel,
+          },
+          {
+            title: 'Linked sources',
+            value: sourcedCount,
+            description: sourcedCount ? 'Answers already grounded in content' : 'No sources linked in this slice',
+          },
+          {
+            title: 'Missing sources',
+            value: unsourcedCount,
+            description: 'Candidates for enrichment',
+          },
+        ]}
+      />
       <DataTable
         title="Answer catalog"
+        description="Open an answer to refine copy, scoring, CTA, and source linkage."
         columns={columns}
-        rows={faqItemQuery.data?.items ?? []}
+        rows={itemRows}
         getRowId={(row) => row.id}
         loading={faqItemQuery.isLoading}
         onRowClick={(item) => navigate(`/app/faq-items/${item.id}`)}
+        toolbar={
+          <>
+            <Badge variant="outline">{faqItemQuery.data?.totalCount ?? 0} total</Badge>
+            <Badge variant={activeFilter === 'all' ? 'outline' : 'success'} appearance="outline">
+              {activeFilterLabel}
+            </Badge>
+            {faqFilter !== 'all' ? (
+              <Badge variant="info" appearance="outline">
+                {selectedFaqLabel}
+              </Badge>
+            ) : null}
+          </>
+        }
         emptyState={
           <EmptyState
-            title="No FAQ items on this page"
-            description="Create answer records and associate them with FAQs."
+            title="No answers in view"
+            description="Create FAQ items and connect them to the right knowledge space."
             action={{ label: 'Create FAQ item', to: '/app/faq-items/new' }}
           />
         }
@@ -209,7 +254,7 @@ export function FaqItemListPage() {
           faqItemQuery.isError ? (
             <ErrorState
               title="Unable to load FAQ items"
-              description="The FAQ Item Portal API request failed."
+              description="Refresh the answer catalog and try again."
               retry={() => void faqItemQuery.refetch()}
             />
           ) : undefined

@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useFaqList, useRequestFaqGeneration } from '@/domains/faq/hooks';
 import { useTenantWorkspace } from '@/domains/tenants/hooks';
 import { AiCommandType } from '@/shared/constants/backend-enums';
-import { PageHeader, PageSurface } from '@/shared/layout/page-layouts';
+import { PageHeader, PageSurface, SectionGrid } from '@/shared/layout/page-layouts';
 import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardHeading, CardTitle } from '@/shared/ui';
 import { EmptyState } from '@/shared/ui/placeholder-state';
 
@@ -11,13 +11,45 @@ function AiWorkspacePage() {
   const { aiProvidersQuery } = useTenantWorkspace();
   const faqQuery = useFaqList({ page: 1, pageSize: 6, sorting: 'UpdatedDate DESC' });
   const requestGeneration = useRequestFaqGeneration();
+  const providers = aiProvidersQuery.data ?? [];
+  const generationProviders = providers.filter(
+    (provider) => provider.command === AiCommandType.Generation,
+  ).length;
+  const readyProviders = providers.filter(
+    (provider) => provider.isAiProviderKeyConfigured,
+  ).length;
 
   return (
     <PageSurface className="space-y-5 lg:space-y-7.5">
       <PageHeader
         eyebrow="AI"
         title="AI workspace"
-        description="This area stays Portal-facing. It exposes real tenant AI provider configuration data and leaves job tracking as a placeholder until a dedicated API exists."
+        description="See provider readiness and launch generation from the same operational surface."
+      />
+
+      <SectionGrid
+        items={[
+          {
+            title: 'Providers',
+            value: providers.length,
+            description: providers.length ? `${readyProviders} ready to use` : 'No providers configured',
+          },
+          {
+            title: 'Generation models',
+            value: generationProviders,
+            description: 'Available for answer generation',
+          },
+          {
+            title: 'Credential coverage',
+            value: readyProviders,
+            description: providers.length ? 'Providers with stored secrets' : 'Waiting for provider setup',
+          },
+          {
+            title: 'Launchable FAQs',
+            value: faqQuery.data?.items.length ?? 0,
+            description: 'Recent knowledge spaces ready for action',
+          },
+        ]}
       />
 
       <Card>
@@ -25,13 +57,13 @@ function AiWorkspacePage() {
           <CardHeading>
             <CardTitle>Configured providers</CardTitle>
             <CardDescription>
-              Backed by the real Tenant Portal AI provider endpoints.
+              Review what is ready for matching and generation.
             </CardDescription>
           </CardHeading>
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {(aiProvidersQuery.data ?? []).map((provider) => (
-            <div key={provider.id} className="rounded-2xl border border-border p-4">
+          {providers.map((provider) => (
+            <div key={provider.id} className="rounded-2xl border border-border bg-muted/15 p-4">
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <p className="font-medium text-mono">{provider.provider}</p>
@@ -49,10 +81,10 @@ function AiWorkspacePage() {
             </div>
           ))}
 
-          {!aiProvidersQuery.isLoading && !aiProvidersQuery.data?.length ? (
+          {!aiProvidersQuery.isLoading && !providers.length ? (
             <EmptyState
               title="No AI providers"
-              description="Configure tenant AI providers in Settings before exposing generation controls to users."
+              description="Configure providers in settings before launching generation."
             />
           ) : null}
         </CardContent>
@@ -63,7 +95,7 @@ function AiWorkspacePage() {
           <CardHeading>
             <CardTitle>Generation launchpad</CardTitle>
             <CardDescription>
-              The backend supports generation requests per FAQ, but not job tracking.
+              Trigger generation directly from the latest FAQs.
             </CardDescription>
           </CardHeading>
         </CardHeader>
@@ -93,7 +125,7 @@ function AiWorkspacePage() {
           {!faqQuery.isLoading && !faqQuery.data?.items.length ? (
             <EmptyState
               title="No FAQs available for generation"
-              description="Create FAQs and associate processable content references before requesting generation."
+              description="Create a FAQ and connect source material before launching generation."
               action={{ label: 'Create FAQ', to: '/app/faq/new' }}
             />
           ) : null}

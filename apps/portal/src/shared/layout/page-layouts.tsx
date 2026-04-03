@@ -46,10 +46,10 @@ export function PageHeader({
   const renderTitle = shouldRenderPageTitle(title, currentHandle, backTo);
 
   return (
-    <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-      <div className="space-y-2">
+    <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+      <div className="space-y-3">
         {eyebrow ? (
-          <p className="text-xs font-medium uppercase tracking-[0.24em] text-primary">
+          <p className="inline-flex w-fit rounded-full border border-primary/15 bg-primary/8 px-3 py-1 text-[0.6875rem] font-medium uppercase tracking-[0.2em] text-primary">
             {eyebrow}
           </p>
         ) : null}
@@ -63,14 +63,14 @@ export function PageHeader({
                 </Link>
               </Button>
             ) : null}
-            <h2 className="text-xl font-semibold tracking-tight text-mono lg:text-2xl">
+            <h2 className="text-2xl font-semibold tracking-tight text-mono lg:text-3xl">
               {title}
             </h2>
           </div>
         ) : null}
 
         {description ? (
-          <p className="max-w-3xl text-sm leading-6 text-muted-foreground">
+          <p className="max-w-2xl text-sm leading-6 text-muted-foreground">
             {description}
           </p>
         ) : null}
@@ -102,8 +102,13 @@ export function ListLayout({
     <PageSurface className="space-y-5 lg:space-y-7.5">
       {header}
       {filters ? (
-        <Card>
-          <CardContent className="p-4 lg:p-5">{filters}</CardContent>
+        <Card className="border-dashed bg-muted/20">
+          <CardContent className="space-y-3 p-4 lg:p-5">
+            <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
+              Refine view
+            </p>
+            {filters}
+          </CardContent>
         </Card>
       ) : null}
       {children}
@@ -186,12 +191,14 @@ export function SectionGrid({
   return (
     <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4 lg:gap-7.5">
       {items.map((item) => (
-        <Card key={item.title}>
-          <CardContent className="space-y-2 p-5">
-            <p className="text-sm text-muted-foreground">{item.title}</p>
-            <p className="text-2xl font-semibold text-mono">{item.value}</p>
+        <Card key={item.title} className="bg-muted/10">
+          <CardContent className="space-y-2.5 p-5">
+            <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
+              {item.title}
+            </p>
+            <p className="text-2xl font-semibold tracking-tight text-mono">{item.value}</p>
             {item.description ? (
-              <p className="text-sm text-muted-foreground">{item.description}</p>
+              <p className="text-sm leading-5 text-muted-foreground">{item.description}</p>
             ) : null}
           </CardContent>
         </Card>
@@ -206,10 +213,10 @@ export function KeyValueList({
   items: Array<{ label: string; value: ReactNode }>;
 }) {
   return (
-    <dl className="space-y-4">
+    <dl className="overflow-hidden rounded-xl border border-border/70">
       {items.map((item) => (
         <Fragment key={item.label}>
-          <div className="flex items-start justify-between gap-3">
+          <div className="flex items-start justify-between gap-4 border-b border-border/70 px-4 py-3 last:border-b-0">
             <dt className="text-sm text-muted-foreground">{item.label}</dt>
             <dd className="text-right text-sm font-medium text-foreground">
               {item.value}

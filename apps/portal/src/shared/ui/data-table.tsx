@@ -60,13 +60,13 @@ export function DataTable<T>({
         </CardHeader>
       ) : null}
 
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-5">
         {errorState ? (
           errorState
         ) : (
-          <div className="overflow-hidden rounded-xl border border-border">
+          <div className="overflow-hidden rounded-xl border border-border/80 bg-card">
             <Table>
-              <TableHeader className="bg-muted/50">
+              <TableHeader className="bg-muted/40">
                 <TableRow>
                   {columns.map((column) => (
                     <TableHead key={column.key} className={column.className}>

@@ -12,13 +12,13 @@ export function EmptyState({
   action?: { label: string; to: string };
 }) {
   return (
-    <Card className="border-dashed">
+    <Card className="border-dashed bg-muted/10">
       <CardContent className="flex flex-col items-center gap-4 py-12 text-center">
-        <div className="rounded-full bg-primary/10 p-3 text-primary">
+        <div className="rounded-full border border-primary/15 bg-primary/10 p-3 text-primary">
           <Inbox className="size-5" />
         </div>
         <div className="space-y-2">
-          <h3 className="text-lg font-semibold text-mono">{title}</h3>
+          <h3 className="text-base font-semibold text-mono">{title}</h3>
           <p className="max-w-lg text-sm leading-6 text-muted-foreground">
             {description}
           </p>
@@ -46,13 +46,13 @@ export function ErrorState({
   retry?: () => void;
 }) {
   return (
-    <Card className="border-destructive/30">
+    <Card className="border-destructive/30 bg-destructive/5">
       <CardContent className="flex flex-col items-center gap-4 py-10 text-center">
-        <div className="rounded-full bg-destructive/10 p-3 text-destructive">
+        <div className="rounded-full border border-destructive/15 bg-destructive/10 p-3 text-destructive">
           <AlertTriangle className="size-5" />
         </div>
         <div className="space-y-2">
-          <h3 className="text-lg font-semibold text-mono">{title}</h3>
+          <h3 className="text-base font-semibold text-mono">{title}</h3>
           <p className="max-w-lg text-sm leading-6 text-muted-foreground">
             {description}
           </p>

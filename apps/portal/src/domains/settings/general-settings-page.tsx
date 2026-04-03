@@ -1,11 +1,11 @@
 import { MoonStar, Sparkles } from 'lucide-react';
 import { useTheme } from 'next-themes';
-import { PageHeader, SettingsLayout } from '@/shared/layout/page-layouts';
+import { PageHeader, SectionGrid, SettingsLayout } from '@/shared/layout/page-layouts';
 import { Button, Card, CardContent, CardDescription, CardHeader, CardHeading, CardTitle } from '@/shared/ui';
 import { settingsNavItems } from '@/domains/settings/settings-nav';
 
 export function GeneralSettingsPage() {
-  const { setTheme } = useTheme();
+  const { resolvedTheme, setTheme, theme } = useTheme();
 
   return (
     <SettingsLayout
@@ -15,21 +15,44 @@ export function GeneralSettingsPage() {
         <PageHeader
           eyebrow="Settings"
           title="General"
-          description="Portal-level preferences stay local to the frontend foundation until dedicated APIs exist."
+          description="Adjust how the portal looks and feels for your current device."
         />
       }
     >
+      <SectionGrid
+        items={[
+          {
+            title: 'Current theme',
+            value: resolvedTheme === 'dark' ? 'Dark' : 'Light',
+            description: 'Applied theme right now',
+          },
+          {
+            title: 'Preference',
+            value:
+              theme === 'system' || !theme
+                ? 'System'
+                : theme === 'dark'
+                  ? 'Dark'
+                  : 'Light',
+            description: 'Saved user choice',
+          },
+          {
+            title: 'Sync scope',
+            value: 'This browser',
+            description: 'Stored locally for the portal app',
+          },
+        ]}
+      />
       <Card>
         <CardHeader>
           <CardHeading>
-            <CardTitle>Workspace preferences</CardTitle>
+            <CardTitle>Appearance</CardTitle>
             <CardDescription>
-              These controls are frontend-only and intentionally isolated from the
-              .NET services.
+              Choose how the workspace should render on this device.
             </CardDescription>
           </CardHeading>
         </CardHeader>
-        <CardContent className="flex flex-wrap gap-3">
+        <CardContent className="grid gap-3 md:grid-cols-3">
           <Button variant="outline" onClick={() => setTheme('light')}>
             <Sparkles className="size-4" />
             Use light theme

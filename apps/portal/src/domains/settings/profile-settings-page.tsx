@@ -49,7 +49,7 @@ export function ProfileSettingsPage() {
         <PageHeader
           eyebrow="Settings"
           title="Profile"
-          description="This screen is backed by the real Tenant Portal profile endpoints."
+          description="Keep your contact details current for workspace operations."
         />
       }
     >
@@ -58,7 +58,7 @@ export function ProfileSettingsPage() {
           <CardHeading>
             <CardTitle>User profile</CardTitle>
             <CardDescription>
-              Uses `GET /api/user/UserProfile` and `PUT /api/user/UserProfile`.
+              Update the details your team sees across the portal.
             </CardDescription>
           </CardHeading>
         </CardHeader>

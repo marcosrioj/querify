@@ -19,7 +19,7 @@ function BillingPage() {
       <PageHeader
         eyebrow="Billing"
         title="Plan and usage"
-        description="The repo does not expose a Portal billing API yet, so this page is limited to current tenant edition visibility and scaffolded customer-facing controls."
+        description="Track plan visibility, billing ownership, and invoice placeholders from one workspace view."
       />
 
       <SectionGrid
@@ -29,12 +29,24 @@ function BillingPage() {
             value: currentWorkspace
               ? tenantEditionLabels[currentWorkspace.edition]
               : 'Unknown',
-            description: 'Derived from the active tenant summary',
+            description: currentWorkspace?.slug || 'No active workspace',
           },
           {
-            title: 'Billing owner actions',
+            title: 'Billing access',
             value: canManageBilling ? 'Enabled' : 'Hidden',
-            description: 'Current frontend permission mapping',
+            description: canManageBilling ? 'Workspace owner controls visible' : 'Restricted by role',
+          },
+          {
+            title: 'Invoices shown',
+            value: placeholderInvoices.length,
+            description: 'Preview rows until the live billing surface lands',
+          },
+          {
+            title: 'Billing contact',
+            value: currentWorkspace?.slug ? 'Configured' : 'Missing',
+            description: currentWorkspace?.slug
+              ? `${currentWorkspace.slug}@billing.basefaq.com`
+              : 'No workspace contact yet',
           },
         ]}
       />
@@ -44,13 +56,12 @@ function BillingPage() {
           <CardHeading>
             <CardTitle>Subscription management</CardTitle>
             <CardDescription>
-              Self-service billing stays Portal-side, but the live endpoints are not in
-              the current backend.
+              Review the workspace billing contact and self-serve controls.
             </CardDescription>
           </CardHeading>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="rounded-2xl border border-border bg-muted/40 p-4 text-sm text-muted-foreground">
+          <div className="rounded-2xl border border-border bg-muted/30 p-4 text-sm text-muted-foreground">
             Billing contact: {currentWorkspace?.slug ? `${currentWorkspace.slug}@billing.basefaq.com` : 'Not configured'}
           </div>
           <Button disabled={!canManageBilling}>Manage subscription</Button>
@@ -62,7 +73,7 @@ function BillingPage() {
           <CardHeading>
             <CardTitle>Invoice history</CardTitle>
             <CardDescription>
-              Placeholder table until the Portal billing API exists.
+              Recent invoice placeholders for the current workspace.
             </CardDescription>
           </CardHeading>
         </CardHeader>
@@ -92,8 +103,8 @@ function BillingPage() {
 
           <div className="mt-4">
             <EmptyState
-              title="Live billing API pending"
-              description="Replace this placeholder table when invoice history and payment method endpoints are added to the Portal surface."
+              title="Live billing surface pending"
+              description="Invoice history and payment methods will move here when the customer billing APIs land."
             />
           </div>
         </CardContent>

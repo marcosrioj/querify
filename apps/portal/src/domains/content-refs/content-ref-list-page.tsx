@@ -7,12 +7,12 @@ import {
   ContentRefKind,
   contentRefKindLabels,
 } from '@/shared/constants/backend-enums';
-import { ListLayout, PageHeader } from '@/shared/layout/page-layouts';
+import { ListLayout, PageHeader, SectionGrid } from '@/shared/layout/page-layouts';
 import { DataTable, type DataTableColumn } from '@/shared/ui/data-table';
 import { PaginationControls } from '@/shared/ui/pagination-controls';
 import { EmptyState, ErrorState } from '@/shared/ui/placeholder-state';
 import { ContentRefKindBadge } from '@/shared/ui/status-badges';
-import { Button, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui';
+import { Badge, Button, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui';
 
 const sortingOptions = [
   { value: 'UpdatedDate DESC', label: 'Last updated' },
@@ -43,6 +43,12 @@ export function ContentRefListPage() {
     kind: apiKind,
   });
   const deleteContentRef = useDeleteContentRef();
+  const contentRefRows = contentRefQuery.data?.items ?? [];
+  const scopedCount = contentRefRows.filter((contentRef) => Boolean(contentRef.scope)).length;
+  const unlabeledCount = contentRefRows.filter((contentRef) => !contentRef.label).length;
+  const selectedKindLabel =
+    kindFilter === 'all' ? 'All kinds' : contentRefKindLabels[Number(kindFilter) as ContentRefKind];
+  const sortingLabel = sortingOptions.find((option) => option.value === sorting)?.label ?? 'Custom';
 
   const columns: DataTableColumn<ContentRefDto>[] = [
     {
@@ -109,7 +115,7 @@ export function ContentRefListPage() {
         <PageHeader
           eyebrow="Content Refs"
           title="Content references"
-          description="Backed by the real Portal content ref endpoints. Search, kind filtering, sorting, and paging are API-driven."
+          description="Track reusable source material for answers, generation, and future curation work."
           actions={
             <Button asChild>
               <Link to="/app/content-refs/new">
@@ -155,17 +161,50 @@ export function ContentRefListPage() {
         </div>
       }
     >
+      <SectionGrid
+        items={[
+          {
+            title: 'Source catalog',
+            value: contentRefQuery.data?.totalCount ?? 0,
+            description: deferredSearch ? `Search: ${deferredSearch}` : selectedKindLabel,
+          },
+          {
+            title: 'Scoped sources',
+            value: scopedCount,
+            description: scopedCount ? 'Grouped for cleaner reuse' : 'No scope labels in this slice',
+          },
+          {
+            title: 'Untitled sources',
+            value: unlabeledCount,
+            description: unlabeledCount ? 'Good candidates for cleanup' : 'Labels are in good shape',
+          },
+          {
+            title: 'View order',
+            value: sortingLabel,
+            description: 'Current catalog sort',
+          },
+        ]}
+      />
       <DataTable
         title="Source material registry"
+        description="Open a content ref to see where it is reused across FAQs and answers."
         columns={columns}
-        rows={contentRefQuery.data?.items ?? []}
+        rows={contentRefRows}
         getRowId={(row) => row.id}
         loading={contentRefQuery.isLoading}
         onRowClick={(contentRef) => navigate(`/app/content-refs/${contentRef.id}`)}
+        toolbar={
+          <>
+            <Badge variant="outline">{contentRefQuery.data?.totalCount ?? 0} total</Badge>
+            <Badge variant={kindFilter === 'all' ? 'outline' : 'info'} appearance="outline">
+              {selectedKindLabel}
+            </Badge>
+          </>
+        }
         emptyState={
           <EmptyState
-            title="No content refs on this page"
-            description="Create content references to build reusable source material for FAQ generation and curation."
+            title="No source material in view"
+            description="Create content refs to ground answer generation and editorial review."
             action={{ label: 'Create content ref', to: '/app/content-refs/new' }}
           />
         }
@@ -173,7 +212,7 @@ export function ContentRefListPage() {
           contentRefQuery.isError ? (
             <ErrorState
               title="Unable to load content refs"
-              description="The Content Ref Portal API request failed."
+              description="Refresh the source catalog and try again."
               retry={() => void contentRefQuery.refetch()}
             />
           ) : undefined

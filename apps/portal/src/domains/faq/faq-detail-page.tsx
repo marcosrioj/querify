@@ -4,6 +4,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useDeleteFaq, useFaq, useRequestFaqGeneration } from '@/domains/faq/hooks';
 import { useFaqItemList } from '@/domains/faq-items/hooks';
 import { useContentRefList } from '@/domains/content-refs/hooks';
+import { FaqStatus } from '@/shared/constants/backend-enums';
 import { DetailLayout, KeyValueList, PageHeader, SectionGrid } from '@/shared/layout/page-layouts';
 import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardHeading, CardTitle } from '@/shared/ui';
 import { ErrorState, EmptyState } from '@/shared/ui/placeholder-state';
@@ -71,7 +72,7 @@ export function FaqDetailPage() {
         <PageHeader
           eyebrow="FAQ"
           title={faqQuery.data?.name ?? 'FAQ detail'}
-          description="The detail view uses the live FAQ endpoint with API-filtered answer and source lists scoped to this FAQ."
+          description="Review the answers, sources, and readiness of this knowledge space."
           backTo="/app/faq"
           actions={
             <>
@@ -121,8 +122,8 @@ export function FaqDetailPage() {
         <Card>
           <CardHeader>
             <CardHeading>
-              <CardTitle>FAQ settings</CardTitle>
-              <CardDescription>Direct mapping from the real DTO.</CardDescription>
+              <CardTitle>At a glance</CardTitle>
+              <CardDescription>Key publishing and orchestration settings.</CardDescription>
             </CardHeading>
           </CardHeader>
           <CardContent>
@@ -165,22 +166,22 @@ export function FaqDetailPage() {
                 title: 'FAQ items',
                 value: relatedItems.length,
                 description:
-                  relatedItems.length === 1 ? '1 answer record linked' : `${relatedItems.length} answer records linked`,
+                  relatedItems.length === 1 ? '1 answer linked' : `${relatedItems.length} answers linked`,
               },
               {
                 title: 'Active answers',
                 value: activeItemCount,
                 description:
                   activeItemCount === relatedItems.length
-                    ? 'All linked items are active'
-                    : 'Some answers are inactive or still drafts',
+                    ? 'Everything in view is active'
+                    : 'Some answers still need activation',
               },
               {
                 title: 'Source coverage',
                 value: relatedContentRefs.length,
                 description:
                   relatedContentRefs.length
-                    ? 'Unique content refs linked through FAQ items'
+                    ? 'Sources already connected'
                     : 'No content refs linked yet',
               },
               {
@@ -188,8 +189,8 @@ export function FaqDetailPage() {
                 value: generationReady ? 'Ready' : 'Needs setup',
                 description:
                   generationReady
-                    ? 'This FAQ has answer records and source material'
-                    : 'Add answer records and source material before generation',
+                    ? 'Answers and sources are in place'
+                    : 'Add answers and sources before generating',
               },
             ]}
           />
@@ -197,14 +198,13 @@ export function FaqDetailPage() {
           <Card>
             <CardHeader>
               <CardHeading>
-                <CardTitle>Knowledge workflow</CardTitle>
+                <CardTitle>Operational state</CardTitle>
                 <CardDescription>
-                  Manage the FAQ itself, the answer records inside it, and the source
-                  material those answers depend on from one place.
+                  Monitor readiness before you publish or request generation.
                 </CardDescription>
               </CardHeading>
             </CardHeader>
-            <CardContent className="space-y-3 text-sm leading-6 text-muted-foreground">
+            <CardContent className="space-y-4">
               <div className="flex flex-wrap gap-2">
                 <Badge variant={generationReady ? 'success' : 'warning'}>
                   {generationReady ? 'Ready for generation request' : 'Needs content and answer coverage'}
@@ -213,9 +213,25 @@ export function FaqDetailPage() {
                   {faqQuery.data.ctaEnabled ? 'CTA enabled' : 'CTA disabled'}
                 </Badge>
               </div>
-              <p>The backend validates that the FAQ exists inside the selected tenant context.</p>
-              <p>Generation requests succeed only when at least one processable content source is linked through FAQ items.</p>
-              <p>There is no jobs/status listing endpoint yet, so the mutation returns only a correlation id.</p>
+              <KeyValueList
+                items={[
+                  {
+                    label: 'Visibility',
+                    value:
+                      faqQuery.data.status === FaqStatus.Published
+                        ? 'Customer-facing'
+                        : 'Internal or draft',
+                  },
+                  {
+                    label: 'Generation',
+                    value: generationReady ? 'Ready to request' : 'Waiting on setup',
+                  },
+                  {
+                    label: 'Request tracking',
+                    value: 'Correlation id only',
+                  },
+                ]}
+              />
             </CardContent>
           </Card>
 
@@ -224,7 +240,7 @@ export function FaqDetailPage() {
               <CardHeading>
                 <CardTitle>Related FAQ items</CardTitle>
                 <CardDescription>
-                  Loaded from the FAQ item endpoint with the current FAQ id applied at the API layer.
+                  Answers currently attached to this FAQ.
                 </CardDescription>
               </CardHeading>
             </CardHeader>
@@ -233,7 +249,7 @@ export function FaqDetailPage() {
                 relatedItems.map((item) => (
                   <div
                     key={item.id}
-                    className="rounded-2xl border border-border p-4"
+                    className="rounded-2xl border border-border bg-muted/15 p-4"
                   >
                     <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                       <div>
@@ -279,7 +295,7 @@ export function FaqDetailPage() {
               ) : (
                 <EmptyState
                   title="No FAQ items linked"
-                  description="Create FAQ items and associate them with this FAQ to populate answer content."
+                  description="Create answers inside this FAQ to start filling its knowledge coverage."
                   action={{ label: 'Create FAQ item', to: createFaqItemPath }}
                 />
               )}
@@ -291,7 +307,7 @@ export function FaqDetailPage() {
               <CardHeading>
                 <CardTitle>Connected content refs</CardTitle>
                 <CardDescription>
-                  These are the source materials currently used by the FAQ items inside this FAQ.
+                  Source material already supporting this FAQ.
                 </CardDescription>
               </CardHeading>
             </CardHeader>
@@ -300,7 +316,7 @@ export function FaqDetailPage() {
                 relatedContentRefs.map((contentRef) => (
                   <div
                     key={contentRef.id}
-                    className="rounded-2xl border border-border p-4"
+                    className="rounded-2xl border border-border bg-muted/15 p-4"
                   >
                     <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                       <div>
@@ -327,7 +343,7 @@ export function FaqDetailPage() {
               ) : (
                 <EmptyState
                   title="No content refs connected"
-                  description="Link content refs to FAQ items so generation and curation have real source material."
+                  description="Attach source material to the answers in this FAQ so generation has something to work from."
                   action={{ label: 'Add content ref', to: createContentRefPath }}
                 />
               )}

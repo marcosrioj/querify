@@ -2,14 +2,14 @@ import { Pencil, Plus, Trash2, WandSparkles } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDeferredValue, useEffect, useState } from 'react';
 import { useDeleteFaq, useFaqList, useRequestFaqGeneration } from '@/domains/faq/hooks';
-import { faqStatusLabels, FaqStatus, faqSortStrategyLabels } from '@/shared/constants/backend-enums';
+import { faqStatusLabels, FaqStatus } from '@/shared/constants/backend-enums';
 import { FaqDto } from '@/domains/faq/types';
-import { ListLayout, PageHeader } from '@/shared/layout/page-layouts';
+import { ListLayout, PageHeader, SectionGrid } from '@/shared/layout/page-layouts';
 import { DataTable, type DataTableColumn } from '@/shared/ui/data-table';
 import { PaginationControls } from '@/shared/ui/pagination-controls';
 import { EmptyState, ErrorState } from '@/shared/ui/placeholder-state';
 import { FaqStatusBadge, SortStrategyBadge } from '@/shared/ui/status-badges';
-import { Button, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui';
+import { Badge, Button, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui';
 
 const sortingOptions = [
   { value: 'UpdatedDate DESC', label: 'Last updated' },
@@ -41,6 +41,13 @@ export function FaqListPage() {
   });
   const deleteFaq = useDeleteFaq();
   const requestGeneration = useRequestFaqGeneration();
+  const faqRows = faqQuery.data?.items ?? [];
+  const publishedCount = faqRows.filter((faq) => faq.status === FaqStatus.Published).length;
+  const draftCount = faqRows.filter((faq) => faq.status === FaqStatus.Draft).length;
+  const ctaEnabledCount = faqRows.filter((faq) => faq.ctaEnabled).length;
+  const sortingLabel = sortingOptions.find((option) => option.value === sorting)?.label ?? 'Custom';
+  const activeStatusLabel =
+    statusFilter === 'all' ? 'All statuses' : faqStatusLabels[Number(statusFilter) as FaqStatus];
 
   const columns: DataTableColumn<FaqDto>[] = [
     {
@@ -113,7 +120,7 @@ export function FaqListPage() {
         <PageHeader
           eyebrow="FAQ"
           title="FAQs"
-          description="Backed by the real FAQ Portal CRUD endpoints. Search, status filtering, sorting, and paging are all API-driven."
+          description="Shape knowledge spaces, review readiness, and open each FAQ to manage answers and sources."
           actions={
             <Button asChild>
               <Link to="/app/faq/new">
@@ -159,18 +166,50 @@ export function FaqListPage() {
         </div>
       }
     >
+      <SectionGrid
+        items={[
+          {
+            title: 'Catalog size',
+            value: faqQuery.data?.totalCount ?? 0,
+            description: deferredSearch ? `Search: ${deferredSearch}` : activeStatusLabel,
+          },
+          {
+            title: 'Published on page',
+            value: publishedCount,
+            description: publishedCount ? 'Ready for customer traffic' : 'Nothing published in this slice',
+          },
+          {
+            title: 'Drafts on page',
+            value: draftCount,
+            description: draftCount ? 'Still being curated' : 'No draft work in view',
+          },
+          {
+            title: 'CTA enabled',
+            value: ctaEnabledCount,
+            description: `${sortingLabel} order`,
+          },
+        ]}
+      />
       <DataTable
-        title="Catalog"
-        description="Results reflect the current API query state."
+        title="Knowledge spaces"
+        description="Open a FAQ to review answers, source links, and generation readiness."
         columns={columns}
-        rows={faqQuery.data?.items ?? []}
+        rows={faqRows}
         getRowId={(row) => row.id}
         loading={faqQuery.isLoading}
         onRowClick={(faq) => navigate(`/app/faq/${faq.id}`)}
+        toolbar={
+          <>
+            <Badge variant="outline">{faqQuery.data?.totalCount ?? 0} total</Badge>
+            <Badge variant={statusFilter === 'all' ? 'outline' : 'info'} appearance="outline">
+              {activeStatusLabel}
+            </Badge>
+          </>
+        }
         emptyState={
           <EmptyState
-            title="No FAQs on this page"
-            description="Create a FAQ to start structuring your tenant knowledge base."
+            title="No FAQs in view"
+            description="Create a FAQ to start shaping this workspace knowledge base."
             action={{ label: 'Create FAQ', to: '/app/faq/new' }}
           />
         }
@@ -178,7 +217,7 @@ export function FaqListPage() {
           faqQuery.isError ? (
             <ErrorState
               title="Unable to load FAQs"
-              description="The FAQ Portal API request failed."
+              description="Refresh the catalog and try again."
               retry={() => void faqQuery.refetch()}
             />
           ) : undefined
