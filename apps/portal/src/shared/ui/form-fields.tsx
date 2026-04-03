@@ -19,6 +19,8 @@ import {
   Textarea,
 } from "@/shared/ui";
 
+const EMPTY_SELECT_VALUE = "__empty_select_value__";
+
 type BaseFieldProps<TFieldValues extends FieldValues> = {
   control: Control<TFieldValues>;
   name: Path<TFieldValues>;
@@ -178,36 +180,58 @@ export function SelectField<TFieldValues extends FieldValues>({
   options: Array<{ value: string; label: string }>;
   placeholder?: string;
 }) {
+  const hasEmptyOption = options.some((option) => option.value === "");
+
   return (
     <FormField
       control={control}
       name={name}
-      render={({ field }) => (
-        <FormItem>
-          <FieldLabel label={label} hint={hint} />
-          <Select
-            onValueChange={field.onChange}
-            value={field.value ? String(field.value) : undefined}
-          >
-            <FormControl>
-              <SelectTrigger>
-                <SelectValue placeholder={placeholder} />
-              </SelectTrigger>
-            </FormControl>
-            <SelectContent>
-              {options.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {description ? (
-            <FormDescription>{description}</FormDescription>
-          ) : null}
-          <FormMessage />
-        </FormItem>
-      )}
+      render={({ field }) => {
+        const fieldValue =
+          field.value === undefined || field.value === null
+            ? undefined
+            : String(field.value);
+        const selectValue =
+          fieldValue === ""
+            ? hasEmptyOption
+              ? EMPTY_SELECT_VALUE
+              : undefined
+            : fieldValue;
+
+        return (
+          <FormItem>
+            <FieldLabel label={label} hint={hint} />
+            <Select
+              onValueChange={(value) =>
+                field.onChange(value === EMPTY_SELECT_VALUE ? "" : value)
+              }
+              value={selectValue}
+            >
+              <FormControl>
+                <SelectTrigger>
+                  <SelectValue placeholder={placeholder} />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                {options.map((option) => {
+                  const optionValue =
+                    option.value === "" ? EMPTY_SELECT_VALUE : option.value;
+
+                  return (
+                    <SelectItem key={optionValue} value={optionValue}>
+                      {option.label}
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
+            {description ? (
+              <FormDescription>{description}</FormDescription>
+            ) : null}
+            <FormMessage />
+          </FormItem>
+        );
+      }}
     />
   );
 }
