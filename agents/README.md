@@ -95,11 +95,11 @@ It respects the current one.
 
 BaseFaq already includes a frontend demo baseline:
 
-- `frontend/demos/metronic-tailwind-react-demos/typescript/nextjs`
+- `apps/demos/metronic-tailwind-react-demos/typescript/nextjs`
 
 The preferred reference layout is:
 
-- `frontend/demos/metronic-tailwind-react-demos/typescript/nextjs/app/components/layouts/demo6`
+- `apps/demos/metronic-tailwind-react-demos/typescript/nextjs/app/components/layouts/demo6`
 
 That means the frontend agent does not start from nothing.
 It starts from an agreed reference point.
@@ -156,7 +156,7 @@ It owns the design and UX thinking that should guide implementation.
 
 Owns:
 
-- `frontend/`
+- `apps/`
 
 This agent is responsible for:
 
@@ -448,7 +448,7 @@ Here is the simplest way to understand the main folders involved.
 - `dotnet/`
   The main BaseFaq backend code
 
-- `frontend/`
+- `apps/`
   The frontend workspace and demo baseline
 
 - `uiux/`

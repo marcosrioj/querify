@@ -4,7 +4,7 @@ Owner: BaseFaq Docs and Release Manager Agent
 
 ## Current status
 
-`frontend/portal` is currently a specification stub, not a runnable app scaffold.
+`apps/portal` is currently a specification stub, not a runnable app scaffold.
 The repository-facing README defines the intended portal app scope, route ownership, adapter domains, and runtime modes, but the implementation has not been created yet.
 
 ## Confirmed scope from the portal brief
@@ -38,10 +38,10 @@ The repository-facing README defines the intended portal app scope, route owners
 
 ## Delivery expectation
 
-The next implementation step is the creation of the `frontend/portal` Next.js TypeScript workspace using the Demo6 baseline under:
+The next implementation step is the creation of the `apps/portal` Next.js TypeScript workspace using the Demo6 baseline under:
 
-- `frontend/demos/metronic-tailwind-react-demos/typescript/nextjs`
-- `frontend/demos/metronic-tailwind-react-demos/typescript/nextjs/app/components/layouts/demo6`
+- `apps/demos/metronic-tailwind-react-demos/typescript/nextjs`
+- `apps/demos/metronic-tailwind-react-demos/typescript/nextjs/app/components/layouts/demo6`
 
 The portal app should preserve server-side handling for `X-Tenant-Id` and `X-Client-Key`, keep tenant secrets out of client state, and make unsupported live features explicit fallback states.
 
@@ -49,7 +49,7 @@ The portal app should preserve server-side handling for `X-Tenant-Id` and `X-Cli
 
 - Confirmed the portal README exists and describes the intended app boundary.
 - Confirmed the implementation brief exists under `todo/demo6-nextjs-multitenant-microfrontend/`.
-- Confirmed there are no implementation files for `frontend/portal` in this delivery.
+- Confirmed there are no implementation files for `apps/portal` in this delivery.
 
 ## Blockers
 
@@ -58,6 +58,6 @@ The portal app should preserve server-side handling for `X-Tenant-Id` and `X-Cli
 
 ## Follow-up items
 
-- Create the `frontend/portal` app scaffold.
+- Create the `apps/portal` app scaffold.
 - Translate the task package into route-level and adapter-level implementation work.
 - Add release validation notes once the app can be run locally.

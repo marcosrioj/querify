@@ -1,7 +1,7 @@
 /.idea/
 /.git/
 **/node_modules/
-/frontend/demos/
+/apps/demos/
 /agents/node_modules/
 /agents/dist/
 /agents/.env
@@ -16,5 +16,5 @@ azure/.env
 azure/env/*.env
 .codex
 agents/package-lock.json
-frontend/portal/.env
-frontend/portal/dist/
+apps/portal/.env
+apps/portal/dist/

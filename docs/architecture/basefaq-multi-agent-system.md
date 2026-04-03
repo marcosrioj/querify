@@ -18,12 +18,12 @@ This separation keeps two concerns distinct:
 ### UI/UX
 
 - Delivery root: `uiux/`
-- Reference source: the Demo6 Next.js TypeScript layout in `frontend/demos/.../demo6`
+- Reference source: the Demo6 Next.js TypeScript layout in `apps/demos/.../demo6`
 
 ### Frontend / Micro-frontends
 
-- Delivery root: `frontend/`
-- Baseline: `frontend/demos/metronic-tailwind-react-demos/typescript/nextjs`
+- Delivery root: `apps/`
+- Baseline: `apps/demos/metronic-tailwind-react-demos/typescript/nextjs`
 - Direction: API-driven micro-frontends that can consume BaseFaq backends through explicit adapters
 
 ### Backend / Microservices / APIs
