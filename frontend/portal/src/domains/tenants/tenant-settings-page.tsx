@@ -4,8 +4,9 @@ import { z } from 'zod';
 import { useEffect } from 'react';
 import { KeyRound, Sparkles } from 'lucide-react';
 import { useCurrentWorkspace, useGenerateClientKey, useSetAiProviderCredentials, useTenantWorkspace, useUpdateTenantWorkspace } from '@/domains/tenants/hooks';
+import { settingsNavItems } from '@/domains/settings/settings-nav';
 import { AiCommandType, TenantEdition, tenantEditionLabels } from '@/shared/constants/backend-enums';
-import { KeyValueList, PageHeader } from '@/shared/layout/page-layouts';
+import { KeyValueList, PageHeader, SettingsLayout } from '@/shared/layout/page-layouts';
 import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Form } from '@/shared/ui';
 import { SelectField, TextField } from '@/shared/ui/form-fields';
 import { EmptyState } from '@/shared/ui/placeholder-state';
@@ -57,18 +58,26 @@ export function TenantSettingsPage() {
   }, [currentWorkspace, workspaceForm]);
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        eyebrow="Tenant"
-        title="Workspace controls"
-        description="These forms are wired to the real Tenant Portal API surface: tenant rename/update, public client key generation, and AI provider credential assignment."
-      />
-
-      {!currentWorkspace ? (
-        <EmptyState
-          title="No active tenant workspace"
-          description="`GET /api/tenant/tenants/GetAll` returned no active FAQ workspace for this user. Create a tenant name and edition below to provision the Portal-side tenant records."
+    <SettingsLayout
+      currentKey="tenant"
+      items={settingsNavItems}
+      header={
+        <PageHeader
+          eyebrow="Settings"
+          title="Tenant"
+          description="These forms are wired to the real Tenant Portal API surface: tenant rename/update, public client key generation, and AI provider credential assignment."
         />
+      }
+    >
+      {!currentWorkspace ? (
+        <Card>
+          <CardContent className="p-5">
+            <EmptyState
+              title="No active tenant workspace"
+              description="`GET /api/tenant/tenants/GetAll` returned no active FAQ workspace for this user. Create a tenant name and edition below to provision the Portal-side tenant records."
+            />
+          </CardContent>
+        </Card>
       ) : (
         <Card>
           <CardHeader className="flex-row items-start justify-between gap-4">
@@ -95,7 +104,7 @@ export function TenantSettingsPage() {
         </Card>
       )}
 
-      <div className="grid gap-6 xl:grid-cols-2">
+      <div className="grid gap-5 xl:grid-cols-2 lg:gap-7.5">
         <Card>
           <CardHeader>
             <CardTitle>Branding and plan</CardTitle>
@@ -167,7 +176,7 @@ export function TenantSettingsPage() {
         </Card>
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
+      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px] lg:gap-7.5">
         <Card>
           <CardHeader>
             <CardTitle>Configured AI providers</CardTitle>
@@ -248,6 +257,6 @@ export function TenantSettingsPage() {
           </CardContent>
         </Card>
       </div>
-    </div>
+    </SettingsLayout>
   );
 }

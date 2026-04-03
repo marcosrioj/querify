@@ -17,3 +17,4 @@ azure/env/*.env
 .codex
 agents/package-lock.json
 frontend/portal/.env
+frontend/portal/dist/
