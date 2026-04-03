@@ -9,7 +9,7 @@ import {
   contentRefKindLabels,
 } from '@/shared/constants/backend-enums';
 import { DetailLayout, KeyValueList, PageHeader } from '@/shared/layout/page-layouts';
-import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Form } from '@/shared/ui';
+import { Button, Card, CardContent, CardDescription, CardHeader, CardHeading, CardTitle, Form } from '@/shared/ui';
 import { ErrorState } from '@/shared/ui/placeholder-state';
 import { SelectField, TextField } from '@/shared/ui/form-fields';
 
@@ -70,10 +70,12 @@ export function ContentRefFormPage({ mode }: { mode: 'create' | 'edit' }) {
       sidebar={
         <Card>
           <CardHeader>
-            <CardTitle>Contract notes</CardTitle>
-            <CardDescription>
-              Content Refs are reusable tenant assets for FAQ workflows.
-            </CardDescription>
+            <CardHeading>
+              <CardTitle>Contract notes</CardTitle>
+              <CardDescription>
+                Content Refs are reusable tenant assets for FAQ workflows.
+              </CardDescription>
+            </CardHeading>
           </CardHeader>
           <CardContent>
             <KeyValueList
@@ -96,10 +98,12 @@ export function ContentRefFormPage({ mode }: { mode: 'create' | 'edit' }) {
       ) : (
         <Card>
           <CardHeader>
-            <CardTitle>{mode === 'create' ? 'New content ref' : 'Content ref settings'}</CardTitle>
-            <CardDescription>
-              Keep locators durable. FAQ generation depends on processable content ref kinds for ingestion.
-            </CardDescription>
+            <CardHeading>
+              <CardTitle>{mode === 'create' ? 'New content ref' : 'Content ref settings'}</CardTitle>
+              <CardDescription>
+                Keep locators durable. FAQ generation depends on processable content ref kinds for ingestion.
+              </CardDescription>
+            </CardHeading>
           </CardHeader>
           <CardContent>
             <Form {...form}>

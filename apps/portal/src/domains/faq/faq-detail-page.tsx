@@ -5,7 +5,7 @@ import { useDeleteFaq, useFaq, useRequestFaqGeneration } from '@/domains/faq/hoo
 import { useFaqItemList } from '@/domains/faq-items/hooks';
 import { useContentRefList } from '@/domains/content-refs/hooks';
 import { DetailLayout, KeyValueList, PageHeader, SectionGrid } from '@/shared/layout/page-layouts';
-import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Badge } from '@/shared/ui';
+import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardHeading, CardTitle } from '@/shared/ui';
 import { ErrorState, EmptyState } from '@/shared/ui/placeholder-state';
 import { ContentRefKindBadge, FaqStatusBadge, SortStrategyBadge } from '@/shared/ui/status-badges';
 
@@ -120,8 +120,10 @@ export function FaqDetailPage() {
       sidebar={
         <Card>
           <CardHeader>
-            <CardTitle>FAQ settings</CardTitle>
-            <CardDescription>Direct mapping from the real DTO.</CardDescription>
+            <CardHeading>
+              <CardTitle>FAQ settings</CardTitle>
+              <CardDescription>Direct mapping from the real DTO.</CardDescription>
+            </CardHeading>
           </CardHeader>
           <CardContent>
             {faqQuery.data ? (
@@ -194,11 +196,13 @@ export function FaqDetailPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Knowledge workflow</CardTitle>
-              <CardDescription>
-                Manage the FAQ itself, the answer records inside it, and the source
-                material those answers depend on from one place.
-              </CardDescription>
+              <CardHeading>
+                <CardTitle>Knowledge workflow</CardTitle>
+                <CardDescription>
+                  Manage the FAQ itself, the answer records inside it, and the source
+                  material those answers depend on from one place.
+                </CardDescription>
+              </CardHeading>
             </CardHeader>
             <CardContent className="space-y-3 text-sm leading-6 text-muted-foreground">
               <div className="flex flex-wrap gap-2">
@@ -217,10 +221,12 @@ export function FaqDetailPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Related FAQ items</CardTitle>
-              <CardDescription>
-                Loaded from the FAQ item endpoint with the current FAQ id applied at the API layer.
-              </CardDescription>
+              <CardHeading>
+                <CardTitle>Related FAQ items</CardTitle>
+                <CardDescription>
+                  Loaded from the FAQ item endpoint with the current FAQ id applied at the API layer.
+                </CardDescription>
+              </CardHeading>
             </CardHeader>
             <CardContent className="space-y-3">
               {relatedItems.length ? (
@@ -282,10 +288,12 @@ export function FaqDetailPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Connected content refs</CardTitle>
-              <CardDescription>
-                These are the source materials currently used by the FAQ items inside this FAQ.
-              </CardDescription>
+              <CardHeading>
+                <CardTitle>Connected content refs</CardTitle>
+                <CardDescription>
+                  These are the source materials currently used by the FAQ items inside this FAQ.
+                </CardDescription>
+              </CardHeading>
             </CardHeader>
             <CardContent className="space-y-3">
               {relatedContentRefs.length ? (

@@ -5,7 +5,7 @@ import { useFaqList } from '@/domains/faq/hooks';
 import { useFaqItemList } from '@/domains/faq-items/hooks';
 import { useContentRef, useDeleteContentRef } from '@/domains/content-refs/hooks';
 import { DetailLayout, KeyValueList, PageHeader, SectionGrid } from '@/shared/layout/page-layouts';
-import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui';
+import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardHeading, CardTitle } from '@/shared/ui';
 import { ContentRefKindBadge } from '@/shared/ui/status-badges';
 import { EmptyState, ErrorState } from '@/shared/ui/placeholder-state';
 
@@ -124,8 +124,10 @@ export function ContentRefDetailPage() {
       sidebar={
         <Card>
           <CardHeader>
-            <CardTitle>Metadata</CardTitle>
-            <CardDescription>Direct fields from the content ref DTO.</CardDescription>
+            <CardHeading>
+              <CardTitle>Metadata</CardTitle>
+              <CardDescription>Direct fields from the content ref DTO.</CardDescription>
+            </CardHeading>
           </CardHeader>
           <CardContent>
             {contentRefQuery.data ? (
@@ -186,10 +188,12 @@ export function ContentRefDetailPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Locator</CardTitle>
-              <CardDescription>
-                This is the source material pointer stored in the backend.
-              </CardDescription>
+              <CardHeading>
+                <CardTitle>Locator</CardTitle>
+                <CardDescription>
+                  This is the source material pointer stored in the backend.
+                </CardDescription>
+              </CardHeading>
             </CardHeader>
             <CardContent className="space-y-3">
               <p className="break-all text-sm leading-6">{contentRefQuery.data.locator}</p>
@@ -198,10 +202,12 @@ export function ContentRefDetailPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>FAQs using this content ref</CardTitle>
-              <CardDescription>
-                This shows where the source material is already influencing the knowledge base.
-              </CardDescription>
+              <CardHeading>
+                <CardTitle>FAQs using this content ref</CardTitle>
+                <CardDescription>
+                  This shows where the source material is already influencing the knowledge base.
+                </CardDescription>
+              </CardHeading>
             </CardHeader>
             <CardContent className="space-y-3">
               {relatedFaqs.length ? (
@@ -233,10 +239,12 @@ export function ContentRefDetailPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>FAQ items using this content ref</CardTitle>
-              <CardDescription>
-                The FAQ Item API is queried with the current content ref id instead of filtering loaded rows in the browser.
-              </CardDescription>
+              <CardHeading>
+                <CardTitle>FAQ items using this content ref</CardTitle>
+                <CardDescription>
+                  The FAQ Item API is queried with the current content ref id instead of filtering loaded rows in the browser.
+                </CardDescription>
+              </CardHeading>
             </CardHeader>
             <CardContent className="space-y-3">
               {relatedItems.length ? (

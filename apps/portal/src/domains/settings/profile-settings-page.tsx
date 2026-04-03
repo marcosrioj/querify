@@ -5,7 +5,7 @@ import { z } from 'zod';
 import { PageHeader, SettingsLayout } from '@/shared/layout/page-layouts';
 import { settingsNavItems } from '@/domains/settings/settings-nav';
 import { useUpdateUserProfile, useUserProfile } from '@/domains/settings/settings-hooks';
-import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Form } from '@/shared/ui';
+import { Button, Card, CardContent, CardDescription, CardHeader, CardHeading, CardTitle, Form } from '@/shared/ui';
 import { TextField } from '@/shared/ui/form-fields';
 
 const profileSchema = z.object({
@@ -55,10 +55,12 @@ export function ProfileSettingsPage() {
     >
       <Card>
         <CardHeader>
-          <CardTitle>User profile</CardTitle>
-          <CardDescription>
-            Uses `GET /api/user/UserProfile` and `PUT /api/user/UserProfile`.
-          </CardDescription>
+          <CardHeading>
+            <CardTitle>User profile</CardTitle>
+            <CardDescription>
+              Uses `GET /api/user/UserProfile` and `PUT /api/user/UserProfile`.
+            </CardDescription>
+          </CardHeading>
         </CardHeader>
         <CardContent>
           <Form {...form}>

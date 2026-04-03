@@ -4,7 +4,7 @@ import { useFaqList, useRequestFaqGeneration } from '@/domains/faq/hooks';
 import { useTenantWorkspace } from '@/domains/tenants/hooks';
 import { AiCommandType } from '@/shared/constants/backend-enums';
 import { PageHeader, PageSurface } from '@/shared/layout/page-layouts';
-import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui';
+import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardHeading, CardTitle } from '@/shared/ui';
 import { EmptyState } from '@/shared/ui/placeholder-state';
 
 function AiWorkspacePage() {
@@ -22,10 +22,12 @@ function AiWorkspacePage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Configured providers</CardTitle>
-          <CardDescription>
-            Backed by the real Tenant Portal AI provider endpoints.
-          </CardDescription>
+          <CardHeading>
+            <CardTitle>Configured providers</CardTitle>
+            <CardDescription>
+              Backed by the real Tenant Portal AI provider endpoints.
+            </CardDescription>
+          </CardHeading>
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {(aiProvidersQuery.data ?? []).map((provider) => (
@@ -58,10 +60,12 @@ function AiWorkspacePage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Generation launchpad</CardTitle>
-          <CardDescription>
-            The backend supports generation requests per FAQ, but not job tracking.
-          </CardDescription>
+          <CardHeading>
+            <CardTitle>Generation launchpad</CardTitle>
+            <CardDescription>
+              The backend supports generation requests per FAQ, but not job tracking.
+            </CardDescription>
+          </CardHeading>
         </CardHeader>
         <CardContent className="space-y-3">
           {(faqQuery.data?.items ?? []).map((faq) => (

@@ -14,7 +14,7 @@ import {
   FaqStatus,
 } from '@/shared/constants/backend-enums';
 import { DetailLayout, KeyValueList, PageHeader } from '@/shared/layout/page-layouts';
-import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Form } from '@/shared/ui';
+import { Button, Card, CardContent, CardDescription, CardHeader, CardHeading, CardTitle, Form } from '@/shared/ui';
 import { SelectField, SwitchField, TextField } from '@/shared/ui/form-fields';
 import { ErrorState } from '@/shared/ui/placeholder-state';
 
@@ -67,11 +67,13 @@ export function FaqFormPage({ mode }: { mode: 'create' | 'edit' }) {
       sidebar={
         <Card>
           <CardHeader>
-            <CardTitle>Contract notes</CardTitle>
-            <CardDescription>
-              The backend currently accepts name, language, status, sort strategy,
-              and CTA settings only.
-            </CardDescription>
+            <CardHeading>
+              <CardTitle>Contract notes</CardTitle>
+              <CardDescription>
+                The backend currently accepts name, language, status, sort strategy,
+                and CTA settings only.
+              </CardDescription>
+            </CardHeading>
           </CardHeader>
           <CardContent>
             <KeyValueList
@@ -94,10 +96,12 @@ export function FaqFormPage({ mode }: { mode: 'create' | 'edit' }) {
       ) : (
         <Card>
           <CardHeader>
-            <CardTitle>{mode === 'create' ? 'New FAQ' : 'FAQ settings'}</CardTitle>
-            <CardDescription>
-              Keep the language code aligned with the backend generation constraints.
-            </CardDescription>
+            <CardHeading>
+              <CardTitle>{mode === 'create' ? 'New FAQ' : 'FAQ settings'}</CardTitle>
+              <CardDescription>
+                Keep the language code aligned with the backend generation constraints.
+              </CardDescription>
+            </CardHeading>
           </CardHeader>
           <CardContent>
             <Form {...form}>

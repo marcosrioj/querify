@@ -35,7 +35,9 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
+  CardHeading,
   CardTitle,
+  CardToolbar,
 } from '@/shared/ui';
 import {
   AiCommandType,
@@ -437,11 +439,13 @@ export function DashboardPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Launch readiness</CardTitle>
-            <CardDescription>
-              Readiness is weighted across published FAQs, active answers, AI
-              provider keys, and public client key availability.
-            </CardDescription>
+            <CardHeading>
+              <CardTitle>Launch readiness</CardTitle>
+              <CardDescription>
+                Readiness is weighted across published FAQs, active answers, AI
+                provider keys, and public client key availability.
+              </CardDescription>
+            </CardHeading>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="flex items-center gap-5">
@@ -554,11 +558,13 @@ export function DashboardPage() {
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)] lg:gap-7.5">
         <Card>
           <CardHeader>
-            <CardTitle>Knowledge asset mix</CardTitle>
-            <CardDescription>
-              The current tenant footprint across FAQ spaces, answer rows, and
-              reusable source material.
-            </CardDescription>
+            <CardHeading>
+              <CardTitle>Knowledge asset mix</CardTitle>
+              <CardDescription>
+                The current tenant footprint across FAQ spaces, answer rows, and
+                reusable source material.
+              </CardDescription>
+            </CardHeading>
           </CardHeader>
           <CardContent className="space-y-4">
             <ChartContainer
@@ -618,11 +624,13 @@ export function DashboardPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>FAQ lifecycle</CardTitle>
-            <CardDescription>
-              A compact view of what is ready for users versus what is still in
-              editorial flow.
-            </CardDescription>
+            <CardHeading>
+              <CardTitle>FAQ lifecycle</CardTitle>
+              <CardDescription>
+                A compact view of what is ready for users versus what is still in
+                editorial flow.
+              </CardDescription>
+            </CardHeading>
           </CardHeader>
           <CardContent className="space-y-6">
             <ChartContainer
@@ -688,15 +696,17 @@ export function DashboardPage() {
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)_minmax(0,1fr)] lg:gap-7.5">
         <Card>
           <CardHeader className="flex-row items-start justify-between gap-3">
-            <div className="space-y-1.5">
+            <CardHeading>
               <CardTitle>Answer leaderboard</CardTitle>
               <CardDescription>
                 Highest vote scores in the current tenant answer catalog.
               </CardDescription>
-            </div>
-            <Button asChild variant="ghost" mode="link">
-              <Link to="/app/faq">Open FAQ workspace</Link>
-            </Button>
+            </CardHeading>
+            <CardToolbar>
+              <Button asChild variant="ghost" mode="link">
+                <Link to="/app/faq">Open FAQ workspace</Link>
+              </Button>
+            </CardToolbar>
           </CardHeader>
           <CardContent className="space-y-3">
             {faqItemTopQuery.data?.items.length ? (
@@ -714,15 +724,17 @@ export function DashboardPage() {
 
         <Card>
           <CardHeader className="flex-row items-start justify-between gap-3">
-            <div className="space-y-1.5">
+            <CardHeading>
               <CardTitle>Recent FAQs</CardTitle>
               <CardDescription>
                 The latest FAQ spaces loaded from the Portal API.
               </CardDescription>
-            </div>
-            <Button asChild variant="ghost" mode="link">
-              <Link to="/app/faq">View all</Link>
-            </Button>
+            </CardHeading>
+            <CardToolbar>
+              <Button asChild variant="ghost" mode="link">
+                <Link to="/app/faq">View all</Link>
+              </Button>
+            </CardToolbar>
           </CardHeader>
           <CardContent className="space-y-3">
             {faqOverviewQuery.data?.items.length ? (
@@ -740,10 +752,12 @@ export function DashboardPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Source intake</CardTitle>
-            <CardDescription>
-              Recent content references available to support generation quality.
-            </CardDescription>
+            <CardHeading>
+              <CardTitle>Source intake</CardTitle>
+              <CardDescription>
+                Recent content references available to support generation quality.
+              </CardDescription>
+            </CardHeading>
           </CardHeader>
           <CardContent className="space-y-3">
             {contentRefOverviewQuery.data?.items.length ? (
@@ -763,10 +777,12 @@ export function DashboardPage() {
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_420px] lg:gap-7.5">
         <Card>
           <CardHeader>
-            <CardTitle>AI provider stack</CardTitle>
-            <CardDescription>
-              Provider credentials currently configured for this workspace.
-            </CardDescription>
+            <CardHeading>
+              <CardTitle>AI provider stack</CardTitle>
+              <CardDescription>
+                Provider credentials currently configured for this workspace.
+              </CardDescription>
+            </CardHeading>
           </CardHeader>
           <CardContent className="space-y-3">
             {aiProviders.length ? (
@@ -809,10 +825,12 @@ export function DashboardPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Known gaps</CardTitle>
-            <CardDescription>
-              Current Portal limits still visible in the backend surface.
-            </CardDescription>
+            <CardHeading>
+              <CardTitle>Known gaps</CardTitle>
+              <CardDescription>
+                Current Portal limits still visible in the backend surface.
+              </CardDescription>
+            </CardHeading>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="flex gap-3 rounded-2xl border border-border/70 px-4 py-3">

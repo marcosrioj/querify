@@ -4,6 +4,8 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
+  CardHeading,
+  CardToolbar,
   CardTitle,
   Skeleton,
   Table,
@@ -50,11 +52,11 @@ export function DataTable<T>({
     <Card>
       {title || description || toolbar ? (
         <CardHeader className="gap-4 md:flex-row md:items-start md:justify-between">
-          <div className="space-y-1.5">
+          <CardHeading>
             {title ? <CardTitle>{title}</CardTitle> : null}
             {description ? <CardDescription>{description}</CardDescription> : null}
-          </div>
-          {toolbar ? <div className="flex flex-wrap gap-2">{toolbar}</div> : null}
+          </CardHeading>
+          {toolbar ? <CardToolbar className="flex-wrap gap-2">{toolbar}</CardToolbar> : null}
         </CardHeader>
       ) : null}
 

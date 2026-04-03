@@ -7,7 +7,7 @@ import { useContentRefList } from '@/domains/content-refs/hooks';
 import { useCreateFaqItem, useFaqItem, useUpdateFaqItem } from '@/domains/faq-items/hooks';
 import { faqItemFormSchema, type FaqItemFormValues } from '@/domains/faq-items/schemas';
 import { DetailLayout, KeyValueList, PageHeader } from '@/shared/layout/page-layouts';
-import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Form } from '@/shared/ui';
+import { Button, Card, CardContent, CardDescription, CardHeader, CardHeading, CardTitle, Form } from '@/shared/ui';
 import { ErrorState } from '@/shared/ui/placeholder-state';
 import { SelectField, SwitchField, TextField, TextareaField } from '@/shared/ui/form-fields';
 
@@ -96,10 +96,12 @@ export function FaqItemFormPage({ mode }: { mode: 'create' | 'edit' }) {
       sidebar={
         <Card>
           <CardHeader>
-            <CardTitle>Contract notes</CardTitle>
-            <CardDescription>
-              This form uses the real FAQ Item request DTO fields without inventing client-only properties.
-            </CardDescription>
+            <CardHeading>
+              <CardTitle>Contract notes</CardTitle>
+              <CardDescription>
+                This form uses the real FAQ Item request DTO fields without inventing client-only properties.
+              </CardDescription>
+            </CardHeading>
           </CardHeader>
           <CardContent>
             <KeyValueList
@@ -133,10 +135,12 @@ export function FaqItemFormPage({ mode }: { mode: 'create' | 'edit' }) {
       ) : (
         <Card>
           <CardHeader>
-            <CardTitle>{mode === 'create' ? 'New FAQ item' : 'FAQ item settings'}</CardTitle>
-            <CardDescription>
-              Use sort, vote score, and AI confidence exactly as the backend expects them.
-            </CardDescription>
+            <CardHeading>
+              <CardTitle>{mode === 'create' ? 'New FAQ item' : 'FAQ item settings'}</CardTitle>
+              <CardDescription>
+                Use sort, vote score, and AI confidence exactly as the backend expects them.
+              </CardDescription>
+            </CardHeading>
           </CardHeader>
           <CardContent>
             <Form {...form}>

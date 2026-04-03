@@ -3,7 +3,7 @@ import { PageHeader, SettingsLayout } from '@/shared/layout/page-layouts';
 import { settingsNavItems } from '@/domains/settings/settings-nav';
 import { useAuth } from '@/platform/auth/auth-context';
 import { RuntimeEnv } from '@/platform/runtime/env';
-import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui';
+import { Button, Card, CardContent, CardDescription, CardHeader, CardHeading, CardTitle } from '@/shared/ui';
 
 export function SecuritySettingsPage() {
   const { user, logout } = useAuth();
@@ -22,10 +22,12 @@ export function SecuritySettingsPage() {
     >
       <Card>
         <CardHeader>
-          <CardTitle>Identity provider</CardTitle>
-          <CardDescription>
-            Auth0 configuration aligned with backend JWT validation.
-          </CardDescription>
+          <CardHeading>
+            <CardTitle>Identity provider</CardTitle>
+            <CardDescription>
+              Auth0 configuration aligned with backend JWT validation.
+            </CardDescription>
+          </CardHeading>
         </CardHeader>
         <CardContent className="space-y-4 text-sm text-muted-foreground">
           <div className="rounded-2xl border border-border bg-muted/40 p-4">

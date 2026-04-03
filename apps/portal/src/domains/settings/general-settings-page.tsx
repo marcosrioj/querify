@@ -1,7 +1,7 @@
 import { MoonStar, Sparkles } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { PageHeader, SettingsLayout } from '@/shared/layout/page-layouts';
-import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui';
+import { Button, Card, CardContent, CardDescription, CardHeader, CardHeading, CardTitle } from '@/shared/ui';
 import { settingsNavItems } from '@/domains/settings/settings-nav';
 
 export function GeneralSettingsPage() {
@@ -21,11 +21,13 @@ export function GeneralSettingsPage() {
     >
       <Card>
         <CardHeader>
-          <CardTitle>Workspace preferences</CardTitle>
-          <CardDescription>
-            These controls are frontend-only and intentionally isolated from the
-            .NET services.
-          </CardDescription>
+          <CardHeading>
+            <CardTitle>Workspace preferences</CardTitle>
+            <CardDescription>
+              These controls are frontend-only and intentionally isolated from the
+              .NET services.
+            </CardDescription>
+          </CardHeading>
         </CardHeader>
         <CardContent className="flex flex-wrap gap-3">
           <Button variant="outline" onClick={() => setTheme('light')}>

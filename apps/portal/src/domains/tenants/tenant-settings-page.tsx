@@ -7,7 +7,7 @@ import { useCurrentWorkspace, useGenerateClientKey, useSetAiProviderCredentials,
 import { settingsNavItems } from '@/domains/settings/settings-nav';
 import { AiCommandType, TenantEdition, tenantEditionLabels } from '@/shared/constants/backend-enums';
 import { KeyValueList, PageHeader, SettingsLayout } from '@/shared/layout/page-layouts';
-import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Form } from '@/shared/ui';
+import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardHeading, CardTitle, CardToolbar, Form } from '@/shared/ui';
 import { SelectField, TextField } from '@/shared/ui/form-fields';
 import { EmptyState } from '@/shared/ui/placeholder-state';
 import { TenantEditionBadge } from '@/shared/ui/status-badges';
@@ -81,13 +81,15 @@ export function TenantSettingsPage() {
       ) : (
         <Card>
           <CardHeader className="flex-row items-start justify-between gap-4">
-            <div className="space-y-1.5">
+            <CardHeading>
               <CardTitle>{currentWorkspace.name}</CardTitle>
               <CardDescription>
                 Current workspace slug: {currentWorkspace.slug}
               </CardDescription>
-            </div>
-            <TenantEditionBadge edition={currentWorkspace.edition} />
+            </CardHeading>
+            <CardToolbar>
+              <TenantEditionBadge edition={currentWorkspace.edition} />
+            </CardToolbar>
           </CardHeader>
           <CardContent>
             <KeyValueList
@@ -107,10 +109,12 @@ export function TenantSettingsPage() {
       <div className="grid gap-5 xl:grid-cols-2 lg:gap-7.5">
         <Card>
           <CardHeader>
-            <CardTitle>Branding and plan</CardTitle>
-            <CardDescription>
-              Uses `POST /api/tenant/tenants/CreateOrUpdate`.
-            </CardDescription>
+            <CardHeading>
+              <CardTitle>Branding and plan</CardTitle>
+              <CardDescription>
+                Uses `POST /api/tenant/tenants/CreateOrUpdate`.
+              </CardDescription>
+            </CardHeading>
           </CardHeader>
           <CardContent>
             <Form {...workspaceForm}>
@@ -148,10 +152,12 @@ export function TenantSettingsPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Public preview key</CardTitle>
-            <CardDescription>
-              Uses `GET /api/tenant/tenants/GetClientKey` and `POST /api/tenant/tenants/GenerateNewClientKey`.
-            </CardDescription>
+            <CardHeading>
+              <CardTitle>Public preview key</CardTitle>
+              <CardDescription>
+                Uses `GET /api/tenant/tenants/GetClientKey` and `POST /api/tenant/tenants/GenerateNewClientKey`.
+              </CardDescription>
+            </CardHeading>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="rounded-2xl border border-border bg-muted/40 p-4">
@@ -179,10 +185,12 @@ export function TenantSettingsPage() {
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px] lg:gap-7.5">
         <Card>
           <CardHeader>
-            <CardTitle>Configured AI providers</CardTitle>
-            <CardDescription>
-              Uses `GET /api/tenant/tenants/GetConfiguredAiProviders`.
-            </CardDescription>
+            <CardHeading>
+              <CardTitle>Configured AI providers</CardTitle>
+              <CardDescription>
+                Uses `GET /api/tenant/tenants/GetConfiguredAiProviders`.
+              </CardDescription>
+            </CardHeading>
           </CardHeader>
           <CardContent className="grid gap-4 md:grid-cols-2">
             {(aiProvidersQuery.data ?? []).map((provider) => (
@@ -215,10 +223,12 @@ export function TenantSettingsPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Store provider credentials</CardTitle>
-            <CardDescription>
-              Uses `POST /api/tenant/tenants/SetAiProviderCredentials`.
-            </CardDescription>
+            <CardHeading>
+              <CardTitle>Store provider credentials</CardTitle>
+              <CardDescription>
+                Uses `POST /api/tenant/tenants/SetAiProviderCredentials`.
+              </CardDescription>
+            </CardHeading>
           </CardHeader>
           <CardContent>
             <Form {...credentialsForm}>

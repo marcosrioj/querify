@@ -3,7 +3,7 @@ import { useCurrentWorkspace } from '@/domains/tenants/hooks';
 import { usePermission } from '@/platform/permissions/permissions';
 import { PageHeader, PageSurface, SectionGrid } from '@/shared/layout/page-layouts';
 import { EmptyState } from '@/shared/ui/placeholder-state';
-import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui';
+import { Button, Card, CardContent, CardDescription, CardHeader, CardHeading, CardTitle, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui';
 import { tenantEditionLabels } from '@/shared/constants/backend-enums';
 
 function BillingPage() {
@@ -41,11 +41,13 @@ function BillingPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Subscription management</CardTitle>
-          <CardDescription>
-            Self-service billing stays Portal-side, but the live endpoints are not in
-            the current backend.
-          </CardDescription>
+          <CardHeading>
+            <CardTitle>Subscription management</CardTitle>
+            <CardDescription>
+              Self-service billing stays Portal-side, but the live endpoints are not in
+              the current backend.
+            </CardDescription>
+          </CardHeading>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="rounded-2xl border border-border bg-muted/40 p-4 text-sm text-muted-foreground">
@@ -57,10 +59,12 @@ function BillingPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Invoice history</CardTitle>
-          <CardDescription>
-            Placeholder table until the Portal billing API exists.
-          </CardDescription>
+          <CardHeading>
+            <CardTitle>Invoice history</CardTitle>
+            <CardDescription>
+              Placeholder table until the Portal billing API exists.
+            </CardDescription>
+          </CardHeading>
         </CardHeader>
         <CardContent>
           <div className="overflow-hidden rounded-xl border border-border">

@@ -5,7 +5,7 @@ import { useFaqList } from '@/domains/faq/hooks';
 import { useContentRef } from '@/domains/content-refs/hooks';
 import { useDeleteFaqItem, useFaqItem } from '@/domains/faq-items/hooks';
 import { DetailLayout, KeyValueList, PageHeader, SectionGrid } from '@/shared/layout/page-layouts';
-import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui';
+import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardHeading, CardTitle } from '@/shared/ui';
 import { EmptyState, ErrorState } from '@/shared/ui/placeholder-state';
 import { ContentRefKindBadge } from '@/shared/ui/status-badges';
 
@@ -115,8 +115,10 @@ export function FaqItemDetailPage() {
       sidebar={
         <Card>
           <CardHeader>
-            <CardTitle>Metadata</CardTitle>
-            <CardDescription>Direct fields from the backend DTO.</CardDescription>
+            <CardHeading>
+              <CardTitle>Metadata</CardTitle>
+              <CardDescription>Direct fields from the backend DTO.</CardDescription>
+            </CardHeading>
           </CardHeader>
           <CardContent>
             {itemQuery.data ? (
@@ -190,10 +192,12 @@ export function FaqItemDetailPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Answer package</CardTitle>
-              <CardDescription>
-                `answer`, `additionalInfo`, and CTA fields are stored directly on the FAQ Item entity.
-              </CardDescription>
+              <CardHeading>
+                <CardTitle>Answer package</CardTitle>
+                <CardDescription>
+                  `answer`, `additionalInfo`, and CTA fields are stored directly on the FAQ Item entity.
+                </CardDescription>
+              </CardHeading>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
@@ -242,10 +246,12 @@ export function FaqItemDetailPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Relationship context</CardTitle>
-              <CardDescription>
-                This is where the answer sits in the knowledge workflow.
-              </CardDescription>
+              <CardHeading>
+                <CardTitle>Relationship context</CardTitle>
+                <CardDescription>
+                  This is where the answer sits in the knowledge workflow.
+                </CardDescription>
+              </CardHeading>
             </CardHeader>
             <CardContent className="grid gap-4 md:grid-cols-2">
               <div className="rounded-2xl border border-border p-4">
