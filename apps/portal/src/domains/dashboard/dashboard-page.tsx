@@ -574,7 +574,7 @@ export function DashboardPage() {
                   color: 'var(--chart-1)',
                 },
               }}
-              className="min-h-[290px] w-full"
+              className="h-[220px] w-full min-w-0 aspect-auto sm:h-[290px]"
             >
               <BarChart
                 data={assetMixData}
@@ -640,7 +640,7 @@ export function DashboardPage() {
                   color: 'var(--chart-2)',
                 },
               }}
-              className="mx-auto min-h-[280px] w-full max-w-[320px]"
+              className="mx-auto h-[220px] w-full min-w-0 max-w-[320px] aspect-auto sm:h-[280px]"
             >
               <PieChart>
                 <ChartTooltip
