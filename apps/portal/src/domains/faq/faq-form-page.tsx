@@ -125,38 +125,31 @@ export function FaqFormPage({ mode }: { mode: "create" | "edit" }) {
         mode === "edit" && faqQuery.isLoading ? (
           <SidebarSummarySkeleton />
         ) : (
-          <>
-            <ProgressChecklistCard
-              title="Set up this FAQ without guesswork"
-              description="Complete the basics first, then decide visibility and CTA behavior. The form stays lightweight until those decisions matter."
-              steps={formSteps}
-            />
-            <Card>
-              <CardHeader>
-                <CardHeading>
-                  <CardTitle className="flex flex-wrap items-center gap-2">
-                    <span>Quick notes</span>
-                    <ContextHint
-                      content="Keep the FAQ simple, searchable, and ready for publication."
-                      label="Quick notes details"
-                    />
-                  </CardTitle>
-                </CardHeading>
-              </CardHeader>
-              <CardContent>
-                <KeyValueList
-                  items={[
-                    {
-                      label: "Language",
-                      value: "Use the locale customers will search in",
-                    },
-                    { label: "Status", value: "Draft, published, or archived" },
-                    { label: "CTA", value: "Optional next step for Q&A items" },
-                  ]}
-                />
-              </CardContent>
-            </Card>
-          </>
+          <Card>
+            <CardHeader>
+              <CardHeading>
+                <CardTitle className="flex flex-wrap items-center gap-2">
+                  <span>Quick notes</span>
+                  <ContextHint
+                    content="Keep the FAQ simple, searchable, and ready for publication."
+                    label="Quick notes details"
+                  />
+                </CardTitle>
+              </CardHeading>
+            </CardHeader>
+            <CardContent>
+              <KeyValueList
+                items={[
+                  {
+                    label: "Language",
+                    value: "Use the locale customers will search in",
+                  },
+                  { label: "Status", value: "Draft, published, or archived" },
+                  { label: "CTA", value: "Optional next step for Q&A items" },
+                ]}
+              />
+            </CardContent>
+          </Card>
         )
       }
     >
@@ -169,156 +162,160 @@ export function FaqFormPage({ mode }: { mode: "create" | "edit" }) {
       ) : mode === "edit" && faqQuery.isLoading ? (
         <FormCardSkeleton fields={6} />
       ) : (
-        <Card>
-          <CardHeader>
-            <CardHeading>
-              <CardTitle className="flex flex-wrap items-center gap-2">
-                <span>Details</span>
-                <ContextHint
-                  content="Set how this FAQ should behave across the portal."
-                  label="Form details"
-                />
-              </CardTitle>
-            </CardHeading>
-          </CardHeader>
-          <CardContent>
-            <Form {...form}>
-              <form
-                className="space-y-4"
-                onSubmit={form.handleSubmit(async (values) => {
-                  const body = {
-                    ...values,
-                    status: Number(values.status) as FaqStatus,
-                    sortStrategy: Number(
-                      values.sortStrategy,
-                    ) as FaqSortStrategy,
-                    ctaTarget: Number(values.ctaTarget) as CtaTarget,
-                  };
-
-                  if (mode === "create") {
-                    const createdId = await createFaq.mutateAsync(body);
-                    navigate(`/app/faq/${createdId}`);
-                    return;
-                  }
-
-                  await updateFaq.mutateAsync(body);
-                  navigate(`/app/faq/${id}`);
-                })}
-              >
-                <div className="space-y-1">
-                  <p className="text-xs font-medium uppercase tracking-[0.2em] text-primary">
-                    Start here
-                  </p>
-                  <h3 className="text-lg font-semibold tracking-tight text-mono">
-                    Basics
-                  </h3>
-                  <p className="text-sm leading-6 text-muted-foreground">
-                    Name the FAQ clearly and set the language people will search in.
-                  </p>
-                </div>
-                <div className="grid gap-4 md:grid-cols-2">
-                  <TextField
-                    control={form.control}
-                    name="name"
-                    label="FAQ name"
-                    placeholder="e.g. Product onboarding FAQ"
-                    description="Keep the name specific enough that teammates can find it quickly."
+        <>
+          <Card>
+            <CardHeader>
+              <CardHeading>
+                <CardTitle className="flex flex-wrap items-center gap-2">
+                  <span>Details</span>
+                  <ContextHint
+                    content="Set how this FAQ should behave across the portal."
+                    label="Form details"
                   />
-                  <TextField
+                </CardTitle>
+              </CardHeading>
+            </CardHeader>
+            <CardContent>
+              <Form {...form}>
+                <form
+                  className="space-y-4"
+                  onSubmit={form.handleSubmit(async (values) => {
+                    const body = {
+                      ...values,
+                      status: Number(values.status) as FaqStatus,
+                      sortStrategy: Number(
+                        values.sortStrategy,
+                      ) as FaqSortStrategy,
+                      ctaTarget: Number(values.ctaTarget) as CtaTarget,
+                    };
+
+                    if (mode === "create") {
+                      const createdId = await createFaq.mutateAsync(body);
+                      navigate(`/app/faq/${createdId}`);
+                      return;
+                    }
+
+                    await updateFaq.mutateAsync(body);
+                    navigate(`/app/faq/${id}`);
+                  })}
+                >
+                  <div className="space-y-1">
+                    <h3 className="text-lg font-semibold tracking-tight text-mono">
+                      Basics
+                    </h3>
+                    <p className="text-sm leading-6 text-muted-foreground">
+                      Name the FAQ clearly and set the language people will search in.
+                    </p>
+                  </div>
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <TextField
+                      control={form.control}
+                      name="name"
+                      label="FAQ name"
+                      placeholder="e.g. Product onboarding FAQ"
+                      description="Keep the name specific enough that teammates can find it quickly."
+                    />
+                    <TextField
+                      control={form.control}
+                      name="language"
+                      label="Language"
+                      description="Use the locale customers will search in, for example en-US."
+                      placeholder="en-US"
+                    />
+                  </div>
+                  <div className="space-y-1 pt-2">
+                    <p className="text-xs font-medium uppercase tracking-[0.2em] text-primary">
+                      Configure behavior
+                    </p>
+                    <h3 className="text-lg font-semibold tracking-tight text-mono">
+                      Visibility and ranking
+                    </h3>
+                    <p className="text-sm leading-6 text-muted-foreground">
+                      Decide when this FAQ should be visible and how its answers should be ordered.
+                    </p>
+                  </div>
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <SelectField
+                      control={form.control}
+                      name="status"
+                      label="Status"
+                      description="Draft keeps the FAQ private while you build. Publish only when the answers are ready."
+                      options={Object.entries(faqStatusLabels).map(
+                        ([value, label]) => ({
+                          value,
+                          label,
+                        }),
+                      )}
+                    />
+                    <SelectField
+                      control={form.control}
+                      name="sortStrategy"
+                      label="Sort strategy"
+                      description="Choose whether answers follow manual order or other ranking logic."
+                      options={Object.entries(faqSortStrategyLabels).map(
+                        ([value, label]) => ({
+                          value,
+                          label,
+                        }),
+                      )}
+                    />
+                  </div>
+                  <div className="space-y-1 pt-2">
+                    <p className="text-xs font-medium uppercase tracking-[0.2em] text-primary">
+                      Optional
+                    </p>
+                    <h3 className="text-lg font-semibold tracking-tight text-mono">
+                      CTA behavior
+                    </h3>
+                    <p className="text-sm leading-6 text-muted-foreground">
+                      Add a next step only if answers in this FAQ should route users somewhere else.
+                    </p>
+                  </div>
+                  <SwitchField
                     control={form.control}
-                    name="language"
-                    label="Language"
-                    description="Use the locale customers will search in, for example en-US."
-                    placeholder="en-US"
+                    name="ctaEnabled"
+                    label="Enable CTA"
+                    description="Controls whether Q&A items can show CTA links."
                   />
-                </div>
-                <div className="space-y-1 pt-2">
-                  <p className="text-xs font-medium uppercase tracking-[0.2em] text-primary">
-                    Configure behavior
-                  </p>
-                  <h3 className="text-lg font-semibold tracking-tight text-mono">
-                    Visibility and ranking
-                  </h3>
-                  <p className="text-sm leading-6 text-muted-foreground">
-                    Decide when this FAQ should be visible and how its answers should be ordered.
-                  </p>
-                </div>
-                <div className="grid gap-4 md:grid-cols-2">
                   <SelectField
                     control={form.control}
-                    name="status"
-                    label="Status"
-                    description="Draft keeps the FAQ private while you build. Publish only when the answers are ready."
-                    options={Object.entries(faqStatusLabels).map(
+                    name="ctaTarget"
+                    label="CTA target"
+                    description={
+                      ctaEnabled
+                        ? "Choose where the CTA should open when a Q&A item includes a link."
+                        : "Enable CTA first to choose the target behavior."
+                    }
+                    disabled={!ctaEnabled}
+                    options={Object.entries(ctaTargetLabels).map(
                       ([value, label]) => ({
                         value,
                         label,
                       }),
                     )}
                   />
-                  <SelectField
-                    control={form.control}
-                    name="sortStrategy"
-                    label="Sort strategy"
-                    description="Choose whether answers follow manual order or other ranking logic."
-                    options={Object.entries(faqSortStrategyLabels).map(
-                      ([value, label]) => ({
-                        value,
-                        label,
-                      }),
-                    )}
-                  />
-                </div>
-                <div className="space-y-1 pt-2">
-                  <p className="text-xs font-medium uppercase tracking-[0.2em] text-primary">
-                    Optional
-                  </p>
-                  <h3 className="text-lg font-semibold tracking-tight text-mono">
-                    CTA behavior
-                  </h3>
-                  <p className="text-sm leading-6 text-muted-foreground">
-                    Add a next step only if answers in this FAQ should route users somewhere else.
-                  </p>
-                </div>
-                <SwitchField
-                  control={form.control}
-                  name="ctaEnabled"
-                  label="Enable CTA"
-                  description="Controls whether Q&A items can show CTA links."
-                />
-                <SelectField
-                  control={form.control}
-                  name="ctaTarget"
-                  label="CTA target"
-                  description={
-                    ctaEnabled
-                      ? "Choose where the CTA should open when a Q&A item includes a link."
-                      : "Enable CTA first to choose the target behavior."
-                  }
-                  disabled={!ctaEnabled}
-                  options={Object.entries(ctaTargetLabels).map(
-                    ([value, label]) => ({
-                      value,
-                      label,
-                    }),
-                  )}
-                />
-                <div className="flex flex-wrap items-center gap-3">
-                  <Button type="submit" disabled={isSubmitting}>
-                    {mode === "create" ? "Create FAQ" : "Save changes"}
-                  </Button>
-                  <Button asChild variant="outline">
-                    <Link
-                      to={mode === "edit" && id ? `/app/faq/${id}` : "/app/faq"}
-                    >
-                      Cancel
-                    </Link>
-                  </Button>
-                </div>
-              </form>
-            </Form>
-          </CardContent>
-        </Card>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <Button type="submit" disabled={isSubmitting}>
+                      {mode === "create" ? "Create FAQ" : "Save changes"}
+                    </Button>
+                    <Button asChild variant="outline">
+                      <Link
+                        to={mode === "edit" && id ? `/app/faq/${id}` : "/app/faq"}
+                      >
+                        Cancel
+                      </Link>
+                    </Button>
+                  </div>
+                </form>
+              </Form>
+            </CardContent>
+          </Card>
+          <ProgressChecklistCard
+            title="Set up this FAQ without guesswork"
+            description="Complete the basics first, then decide visibility and CTA behavior. The form stays lightweight until those decisions matter."
+            steps={formSteps}
+          />
+        </>
       )}
     </DetailLayout>
   );
