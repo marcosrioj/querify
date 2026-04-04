@@ -142,15 +142,19 @@ export function FaqListPage() {
               <Pencil className="size-4" />
             </Link>
           </Button>
-          <Button
-            variant="ghost"
-            mode="icon"
-            onClick={() => {
-              void requestGeneration.mutateAsync(faq.id);
-            }}
-          >
-            <WandSparkles className="size-4" />
-          </Button>
+          <ConfirmAction
+            title={`Run AI generation for "${faq.name}"?`}
+            description="This queues generation for the FAQ and uses the configured AI provider setup for the current workspace."
+            confirmLabel="Run generation"
+            variant="primary"
+            isPending={requestGeneration.isPending}
+            onConfirm={() => requestGeneration.mutateAsync(faq.id)}
+            trigger={
+              <Button variant="ghost" mode="icon">
+                <WandSparkles className="size-4" />
+              </Button>
+            }
+          />
           <ConfirmAction
             title={`Delete FAQ "${faq.name}"?`}
             description="This removes the FAQ from the workspace. You will need to recreate it if you change your mind later."

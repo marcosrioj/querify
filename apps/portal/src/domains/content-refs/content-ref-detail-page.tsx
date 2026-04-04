@@ -1,4 +1,4 @@
-import { Pencil, Plus, Trash2 } from "lucide-react";
+import { ExternalLink, Pencil, Plus, Trash2 } from "lucide-react";
 import { useMemo } from "react";
 import {
   Link,
@@ -108,6 +108,10 @@ export function ContentRefDetailPage() {
     resolvedFaqId && originatingFaqItemId && resolvedContentRefId
       ? `/app/faq/${resolvedFaqId}/items/${originatingFaqItemId}/edit?contentRefId=${resolvedContentRefId}`
       : "";
+  const isExternalLocator = Boolean(
+    contentRefQuery.data?.locator &&
+      /^https?:\/\//i.test(contentRefQuery.data.locator),
+  );
   const sourceSteps = [
     {
       id: "saved",
@@ -303,6 +307,18 @@ export function ContentRefDetailPage() {
               <p className="break-all text-sm leading-6">
                 {contentRefQuery.data.locator}
               </p>
+              {isExternalLocator ? (
+                <Button asChild variant="outline" size="sm">
+                  <a
+                    href={contentRefQuery.data.locator}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    <ExternalLink className="size-4" />
+                    Open reference
+                  </a>
+                </Button>
+              ) : null}
             </CardContent>
           </Card>
 

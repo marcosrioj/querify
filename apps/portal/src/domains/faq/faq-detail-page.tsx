@@ -173,15 +173,20 @@ export function FaqDetailPage() {
                   New source
                 </Link>
               </Button>
-              <Button
-                variant="outline"
-                onClick={() => {
-                  void requestGeneration.mutateAsync(id);
-                }}
-              >
-                <WandSparkles className="size-4" />
-                Request generation
-              </Button>
+              <ConfirmAction
+                title={`Run AI generation for "${faqQuery.data?.name ?? "this FAQ"}"?`}
+                description="This queues generation for the FAQ and uses the configured AI provider setup for the current workspace."
+                confirmLabel="Run generation"
+                variant="primary"
+                isPending={requestGeneration.isPending}
+                onConfirm={() => requestGeneration.mutateAsync(id)}
+                trigger={
+                  <Button variant="outline">
+                    <WandSparkles className="size-4" />
+                    Request generation
+                  </Button>
+                }
+              />
               <Button asChild variant="outline">
                 <Link to={faqEditPath}>
                   <Pencil className="size-4" />

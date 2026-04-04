@@ -28,6 +28,7 @@ import {
   ContextHint,
   Form,
   FormCardSkeleton,
+  FormSectionHeading,
   ProgressChecklistCard,
   SidebarSummarySkeleton,
 } from "@/shared/ui";
@@ -199,14 +200,10 @@ export function FaqFormPage({ mode }: { mode: "create" | "edit" }) {
                     navigate(`/app/faq/${id}`);
                   })}
                 >
-                  <div className="space-y-1">
-                    <h3 className="text-lg font-semibold tracking-tight text-mono">
-                      Basics
-                    </h3>
-                    <p className="text-sm leading-6 text-muted-foreground">
-                      Name the FAQ clearly and set the language people will search in.
-                    </p>
-                  </div>
+                  <FormSectionHeading
+                    title="Basics"
+                    description="Name the FAQ clearly and set the language people will search in."
+                  />
                   <div className="grid gap-4 md:grid-cols-2">
                     <TextField
                       control={form.control}
@@ -223,17 +220,11 @@ export function FaqFormPage({ mode }: { mode: "create" | "edit" }) {
                       placeholder="en-US"
                     />
                   </div>
-                  <div className="space-y-1 pt-2">
-                    <p className="text-xs font-medium uppercase tracking-[0.2em] text-primary">
-                      Configure behavior
-                    </p>
-                    <h3 className="text-lg font-semibold tracking-tight text-mono">
-                      Visibility and ranking
-                    </h3>
-                    <p className="text-sm leading-6 text-muted-foreground">
-                      Decide when this FAQ should be visible and how its answers should be ordered.
-                    </p>
-                  </div>
+                  <FormSectionHeading
+                    title="Visibility and ranking"
+                    description="Decide when this FAQ should be visible and how its answers should be ordered."
+                    className="pt-2"
+                  />
                   <div className="grid gap-4 md:grid-cols-2">
                     <SelectField
                       control={form.control}
@@ -260,17 +251,11 @@ export function FaqFormPage({ mode }: { mode: "create" | "edit" }) {
                       )}
                     />
                   </div>
-                  <div className="space-y-1 pt-2">
-                    <p className="text-xs font-medium uppercase tracking-[0.2em] text-primary">
-                      Optional
-                    </p>
-                    <h3 className="text-lg font-semibold tracking-tight text-mono">
-                      CTA behavior
-                    </h3>
-                    <p className="text-sm leading-6 text-muted-foreground">
-                      Add a next step only if answers in this FAQ should route users somewhere else.
-                    </p>
-                  </div>
+                  <FormSectionHeading
+                    title="CTA behavior"
+                    description="Add a next step only if answers in this FAQ should route users somewhere else."
+                    className="pt-2"
+                  />
                   <SwitchField
                     control={form.control}
                     name="ctaEnabled"

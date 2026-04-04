@@ -1,5 +1,5 @@
 import { type ReactNode, useState } from "react";
-import { LoaderCircle, TriangleAlert } from "lucide-react";
+import { LoaderCircle, Sparkles, TriangleAlert } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -47,8 +47,18 @@ export function ConfirmAction({
       <AlertDialogTrigger asChild>{trigger}</AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <div className="flex size-11 items-center justify-center rounded-2xl border border-destructive/15 bg-destructive/10 text-destructive">
-            <TriangleAlert className="size-5" />
+          <div
+            className={
+              variant === "destructive"
+                ? "flex size-11 items-center justify-center rounded-2xl border border-destructive/15 bg-destructive/10 text-destructive"
+                : "flex size-11 items-center justify-center rounded-2xl border border-primary/15 bg-primary/10 text-primary"
+            }
+          >
+            {variant === "destructive" ? (
+              <TriangleAlert className="size-5" />
+            ) : (
+              <Sparkles className="size-5" />
+            )}
           </div>
           <AlertDialogTitle>{title}</AlertDialogTitle>
           <AlertDialogDescription>{description}</AlertDialogDescription>

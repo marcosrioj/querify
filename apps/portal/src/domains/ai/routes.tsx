@@ -4,7 +4,7 @@ import { useFaqList, useRequestFaqGeneration } from '@/domains/faq/hooks';
 import { useTenantWorkspace } from '@/domains/tenants/hooks';
 import { AiCommandType } from '@/shared/constants/backend-enums';
 import { PageHeader, PageSurface, SectionGrid } from '@/shared/layout/page-layouts';
-import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardHeading, CardTitle } from '@/shared/ui';
+import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardHeading, CardTitle, ConfirmAction } from '@/shared/ui';
 import { EmptyState } from '@/shared/ui/placeholder-state';
 
 function AiWorkspacePage() {
@@ -107,14 +107,19 @@ function AiWorkspacePage() {
                 <p className="text-sm text-muted-foreground">{faq.language}</p>
               </div>
               <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    void requestGeneration.mutateAsync(faq.id);
-                  }}
-                >
-                  Request generation
-                </Button>
+                <ConfirmAction
+                  title={`Run AI generation for "${faq.name}"?`}
+                  description="This queues generation for the FAQ and uses the configured AI provider setup for the current workspace."
+                  confirmLabel="Run generation"
+                  variant="primary"
+                  isPending={requestGeneration.isPending}
+                  onConfirm={() => requestGeneration.mutateAsync(faq.id)}
+                  trigger={
+                    <Button variant="outline">
+                      Request generation
+                    </Button>
+                  }
+                />
                 <Button asChild variant="ghost">
                   <Link to={`/app/faq/${faq.id}`}>Open FAQ</Link>
                 </Button>
