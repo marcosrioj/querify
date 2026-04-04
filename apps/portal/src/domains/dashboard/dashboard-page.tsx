@@ -51,6 +51,7 @@ import {
   CardTitle,
   CardToolbar,
   ContextHint,
+  ProgressChecklistCard,
 } from "@/shared/ui";
 import {
   AiCommandType,
@@ -282,6 +283,7 @@ export function DashboardPage() {
     (provider) => provider.isAiProviderKeyConfigured,
   ).length;
   const clientKeyReady = Boolean(clientKeyQuery.data);
+  const primaryFaqId = faqOverviewQuery.data?.items[0]?.id;
   const publishedFaqPercent = toPercent(publishedFaqs, totalFaqs);
   const activeAnswerPercent = toPercent(activeFaqItems, totalFaqItems);
   const providerCoveragePercent = toPercent(
@@ -347,6 +349,69 @@ export function DashboardPage() {
       description: `${configuredAiProviders} of ${aiProviders.length} providers ready`,
     },
   ];
+  const onboardingSteps = [
+    {
+      id: "faq",
+      label: "Create your first FAQ",
+      description: totalFaqs
+        ? `${formatNumber(totalFaqs)} FAQ records already exist in this workspace.`
+        : "Define the first FAQ so the workspace has a customer-facing destination.",
+      complete: totalFaqs > 0,
+    },
+    {
+      id: "item",
+      label: "Add a Q&A item",
+      description: totalFaqItems
+        ? `${formatNumber(totalFaqItems)} Q&A items are already filling out the knowledge base.`
+        : "Write the first answer so visitors can actually resolve a question.",
+      complete: totalFaqItems > 0,
+    },
+    {
+      id: "source",
+      label: "Connect a source",
+      description: totalContentRefs
+        ? `${formatNumber(totalContentRefs)} reusable sources are already linked.`
+        : "Attach source material so answers stay traceable and reusable.",
+      complete: totalContentRefs > 0,
+    },
+    {
+      id: "publish",
+      label: "Publish a FAQ",
+      description: publishedFaqs
+        ? `${formatNumber(publishedFaqs)} FAQs are already live for customers.`
+        : "Move one FAQ out of draft so the workflow reaches a visible outcome.",
+      complete: publishedFaqs > 0,
+    },
+  ];
+  const nextOnboardingAction =
+    totalFaqs === 0
+      ? { label: "Create first FAQ", to: "/app/faq/new" }
+      : totalFaqItems === 0 && primaryFaqId
+        ? {
+            label: "Add first Q&A item",
+            to: `/app/faq/${primaryFaqId}/items/new`,
+          }
+        : totalContentRefs === 0 && primaryFaqId
+          ? {
+              label: "Add first source",
+              to: `/app/faq/${primaryFaqId}/content-refs/new`,
+            }
+          : publishedFaqs === 0 && primaryFaqId
+            ? {
+                label: "Review publish settings",
+                to: `/app/faq/${primaryFaqId}/edit`,
+              }
+            : {
+                label: "Open FAQs",
+                to: "/app/faq",
+              };
+  const heroPrimaryAction = onboardingSteps.every((step) => step.complete)
+    ? { label: "Open FAQs", to: "/app/faq" }
+    : { label: "Start here", to: nextOnboardingAction.to };
+  const heroSecondaryAction =
+    !clientKeyReady || configuredAiProviders === 0
+      ? { label: "AI settings", to: "/app/settings/tenant" }
+      : { label: "Workspace settings", to: "/app/settings/tenant" };
 
   return (
     <PageSurface className="space-y-5 lg:space-y-7.5">
@@ -421,8 +486,8 @@ export function DashboardPage() {
                 asChild
                 className="border-white/20 bg-white text-slate-950 shadow-none hover:bg-white/90"
               >
-                <Link to="/app/faq">
-                  Open FAQs
+                <Link to={heroPrimaryAction.to}>
+                  {heroPrimaryAction.label}
                   <ArrowUpRight className="size-4" />
                 </Link>
               </Button>
@@ -431,8 +496,20 @@ export function DashboardPage() {
                 variant="outline"
                 className="border-white/20 bg-white/10 text-white hover:bg-white/15"
               >
-                <Link to="/app/settings/tenant">AI settings</Link>
+                <Link to={heroSecondaryAction.to}>{heroSecondaryAction.label}</Link>
               </Button>
+            </div>
+
+            <div className="rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur-xs">
+              <p className="text-xs font-medium uppercase tracking-[0.22em] text-white/70">
+                Next recommended step
+              </p>
+              <p className="mt-2 text-lg font-semibold tracking-tight text-white">
+                {nextOnboardingAction.label}
+              </p>
+              <p className="mt-1 text-sm text-white/72">
+                Keep the workspace moving toward a published FAQ with traceable answers.
+              </p>
             </div>
 
             <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
@@ -547,6 +624,14 @@ export function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      <ProgressChecklistCard
+        title="Launch a usable FAQ in four steps"
+        description="This replaces a lecture-style setup flow with a simple sequence that shows what to do next and how much is already complete."
+        steps={onboardingSteps}
+        action={nextOnboardingAction}
+        secondaryAction={{ label: "Open dashboard settings", to: "/app/settings/tenant" }}
+      />
 
       <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4 lg:gap-7.5">
         <MetricCard

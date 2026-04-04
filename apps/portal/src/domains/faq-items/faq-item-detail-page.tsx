@@ -18,7 +18,11 @@ import {
   CardHeader,
   CardHeading,
   CardTitle,
+  ConfirmAction,
   ContextHint,
+  DetailPageSkeleton,
+  ProgressChecklistCard,
+  SidebarSummarySkeleton,
 } from "@/shared/ui";
 import { EmptyState, ErrorState } from "@/shared/ui/placeholder-state";
 import { ContentRefKindBadge } from "@/shared/ui/status-badges";
@@ -59,6 +63,9 @@ export function FaqItemDetailPage() {
     resolvedFaqId && resolvedItemId
       ? `/app/faq/${resolvedFaqId}/content-refs/new?faqItemId=${resolvedItemId}`
       : backTo;
+  const contentCoverageReady = Boolean(
+    itemQuery.data?.answer || itemQuery.data?.additionalInfo,
+  );
   const answerState = useMemo(() => {
     if (!itemQuery.data) {
       return "Loading";
@@ -74,6 +81,51 @@ export function FaqItemDetailPage() {
 
     return "Short answer only";
   }, [itemQuery.data]);
+  const itemSteps = [
+    {
+      id: "question",
+      label: "Capture the core answer",
+      description: itemQuery.data
+        ? "The question and short answer are already saved."
+        : "Start by saving the core question and short answer.",
+      complete: Boolean(itemQuery.data),
+    },
+    {
+      id: "depth",
+      label: "Add more context",
+      description: contentCoverageReady
+        ? "This item already goes beyond the short summary."
+        : "Add a full answer or supporting notes so the item is more helpful than a one-line response.",
+      complete: contentCoverageReady,
+    },
+    {
+      id: "source",
+      label: "Link a source",
+      description: linkedContentRef
+        ? "This answer is already tied to reusable source material."
+        : "Attach a source to improve trust and traceability.",
+      complete: Boolean(linkedContentRef),
+    },
+    {
+      id: "visibility",
+      label: "Make it active",
+      description: itemQuery.data?.isActive
+        ? "This answer is active and can surface in the FAQ."
+        : "Inactive answers stay saved but hidden from end users.",
+      complete: Boolean(itemQuery.data?.isActive),
+    },
+  ];
+  const nextItemAction =
+    !linkedContentRef && createContentRefPath
+      ? { label: "Link a source", to: createContentRefPath }
+      : !itemQuery.data?.isActive
+        ? { label: "Review visibility", to: editPath }
+        : { label: "Edit Q&A item", to: editPath };
+  const showLoadingState =
+    !itemQuery.data &&
+    (itemQuery.isLoading ||
+      faqOptionsQuery.isLoading ||
+      linkedContentRefQuery.isLoading);
 
   if (!resolvedItemId) {
     return (
@@ -114,43 +166,44 @@ export function FaqItemDetailPage() {
                   Edit
                 </Link>
               </Button>
-              <Button
-                variant="destructive"
-                onClick={() => {
-                  if (
-                    itemQuery.data &&
-                    window.confirm(
-                      `Delete Q&A item "${itemQuery.data.question}"?`,
-                    )
-                  ) {
-                    void deleteFaqItem
-                      .mutateAsync(resolvedItemId)
-                      .then(() => navigate(backTo));
-                  }
-                }}
-              >
-                <Trash2 className="size-4" />
-                Delete
-              </Button>
+              <ConfirmAction
+                title={`Delete Q&A item "${itemQuery.data?.question ?? "this item"}"?`}
+                description="This removes the answer record from the FAQ workflow. Keep it only if you no longer need it."
+                confirmLabel="Delete Q&A item"
+                isPending={deleteFaqItem.isPending}
+                onConfirm={() =>
+                  deleteFaqItem
+                    .mutateAsync(resolvedItemId)
+                    .then(() => navigate(backTo))
+                }
+                trigger={
+                  <Button variant="destructive">
+                    <Trash2 className="size-4" />
+                    Delete
+                  </Button>
+                }
+              />
             </>
           }
         />
       }
       sidebar={
-        <Card>
-          <CardHeader>
-            <CardHeading>
-              <CardTitle className="flex flex-wrap items-center gap-2">
-                <span>Overview</span>
-                <ContextHint
-                  content="Ranking, visibility, and relationship details."
-                  label="Overview details"
-                />
-              </CardTitle>
-            </CardHeading>
-          </CardHeader>
-          <CardContent>
-            {itemQuery.data ? (
+        showLoadingState ? (
+          <SidebarSummarySkeleton />
+        ) : itemQuery.data ? (
+          <Card>
+            <CardHeader>
+              <CardHeading>
+                <CardTitle className="flex flex-wrap items-center gap-2">
+                  <span>Overview</span>
+                  <ContextHint
+                    content="Ranking, visibility, and relationship details."
+                    label="Overview details"
+                  />
+                </CardTitle>
+              </CardHeading>
+            </CardHeader>
+            <CardContent>
               <KeyValueList
                 items={[
                   {
@@ -185,9 +238,9 @@ export function FaqItemDetailPage() {
                   },
                 ]}
               />
-            ) : null}
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        ) : null
       }
     >
       {itemQuery.isError ? (
@@ -196,6 +249,8 @@ export function FaqItemDetailPage() {
           description="The Q&A item request failed."
           retry={() => void itemQuery.refetch()}
         />
+      ) : showLoadingState ? (
+        <DetailPageSkeleton cards={2} />
       ) : itemQuery.data ? (
         <>
           <SectionGrid
@@ -370,13 +425,19 @@ export function FaqItemDetailPage() {
               </div>
             </CardContent>
           </Card>
+
+          <ProgressChecklistCard
+            title="Tighten this answer before it goes live"
+            description="Use the checklist to spot missing depth, source coverage, or visibility settings without scanning the whole page."
+            steps={itemSteps}
+            action={nextItemAction}
+            secondaryAction={
+              resolvedFaqId ? { label: "Open FAQ", to: backTo } : undefined
+            }
+          />
         </>
       ) : (
-        <Card>
-          <CardContent className="py-8 text-sm text-muted-foreground">
-            Loading Q&A item…
-          </CardContent>
-        </Card>
+        <DetailPageSkeleton cards={2} />
       )}
     </DetailLayout>
   );

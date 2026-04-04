@@ -27,6 +27,16 @@ export {
 } from "@/components/ui/card";
 export { Checkbox } from "@/components/ui/checkbox";
 export {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+export {
   Dialog,
   DialogClose,
   DialogContent,
@@ -60,6 +70,7 @@ export {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+export { Progress, ProgressCircle, ProgressRadial } from "@/components/ui/progress";
 export {
   Select,
   SelectContent,
@@ -88,4 +99,14 @@ export {
 } from "@/components/ui/table";
 export { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 export { Textarea } from "@/components/ui/textarea";
+export { ConfirmAction } from "@/shared/ui/confirm-action";
 export { ContextHint } from "@/shared/ui/context-hint";
+export {
+  DetailPageSkeleton,
+  FormCardSkeleton,
+  SidebarSummarySkeleton,
+} from "@/shared/ui/loading-states";
+export {
+  ProgressChecklistCard,
+  type ProgressChecklistStep,
+} from "@/shared/ui/progress-checklist";

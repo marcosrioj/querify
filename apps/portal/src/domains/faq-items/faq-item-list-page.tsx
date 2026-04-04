@@ -18,6 +18,7 @@ import { EmptyState, ErrorState } from "@/shared/ui/placeholder-state";
 import {
   Badge,
   Button,
+  ConfirmAction,
   Input,
   Select,
   SelectContent,
@@ -176,17 +177,18 @@ export function FaqItemListPage() {
               <Pencil className="size-4" />
             </Link>
           </Button>
-          <Button
-            variant="ghost"
-            mode="icon"
-            onClick={() => {
-              if (window.confirm(`Delete Q&A item "${item.question}"?`)) {
-                void deleteFaqItem.mutateAsync(item.id);
-              }
-            }}
-          >
-            <Trash2 className="size-4 text-destructive" />
-          </Button>
+          <ConfirmAction
+            title={`Delete Q&A item "${item.question}"?`}
+            description="This removes the answer record from the workspace list. Keep it only if you no longer need it."
+            confirmLabel="Delete Q&A item"
+            isPending={deleteFaqItem.isPending}
+            onConfirm={() => deleteFaqItem.mutateAsync(item.id)}
+            trigger={
+              <Button variant="ghost" mode="icon">
+                <Trash2 className="size-4 text-destructive" />
+              </Button>
+            }
+          />
         </div>
       ),
     },

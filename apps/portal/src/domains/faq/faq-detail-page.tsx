@@ -24,7 +24,11 @@ import {
   CardHeader,
   CardHeading,
   CardTitle,
+  ConfirmAction,
   ContextHint,
+  DetailPageSkeleton,
+  ProgressChecklistCard,
+  SidebarSummarySkeleton,
 } from "@/shared/ui";
 import { PaginationControls } from "@/shared/ui/pagination-controls";
 import { ErrorState, EmptyState } from "@/shared/ui/placeholder-state";
@@ -89,6 +93,53 @@ export function FaqDetailPage() {
   });
   const createFaqItemPath = `/app/faq/${id}/items/new`;
   const createContentRefPath = `/app/faq/${id}/content-refs/new`;
+  const faqEditPath = `/app/faq/${id}/edit`;
+  const setupSteps = [
+    {
+      id: "details",
+      label: "Create the FAQ shell",
+      description: faqQuery.data
+        ? `The FAQ exists as ${faqQuery.data.language} content.`
+        : "Create the FAQ record so the rest of the workflow has a home.",
+      complete: Boolean(faqQuery.data),
+    },
+    {
+      id: "items",
+      label: "Add a Q&A item",
+      description: relatedItems.length
+        ? `${relatedItems.length} Q&A item${relatedItems.length === 1 ? "" : "s"} already linked.`
+        : "Add the first question and answer so this FAQ has usable content.",
+      complete: relatedItems.length > 0,
+    },
+    {
+      id: "sources",
+      label: "Link a source",
+      description: relatedContentRefs.length
+        ? `${relatedContentRefs.length} source${relatedContentRefs.length === 1 ? "" : "s"} already connected.`
+        : "Attach source material so answers are traceable and reusable.",
+      complete: relatedContentRefs.length > 0,
+    },
+    {
+      id: "publish",
+      label: "Publish when ready",
+      description:
+        faqQuery.data?.status === FaqStatus.Published
+          ? "This FAQ is already customer-facing."
+          : "Keep it in draft until at least one answer and source are in place.",
+      complete: faqQuery.data?.status === FaqStatus.Published,
+    },
+  ];
+  const nextSetupAction =
+    relatedItems.length === 0
+      ? { label: "Start here", to: createFaqItemPath }
+      : relatedContentRefs.length === 0
+        ? { label: "Add a source", to: createContentRefPath }
+        : faqQuery.data?.status !== FaqStatus.Published
+          ? { label: "Review publish settings", to: faqEditPath }
+          : { label: "Add another Q&A item", to: createFaqItemPath };
+  const showLoadingState =
+    !faqQuery.data &&
+    (faqQuery.isLoading || faqItemQuery.isLoading || contentRefQuery.isLoading);
 
   if (!id) {
     return (
@@ -132,46 +183,47 @@ export function FaqDetailPage() {
                 Request generation
               </Button>
               <Button asChild variant="outline">
-                <Link to={`/app/faq/${id}/edit`}>
+                <Link to={faqEditPath}>
                   <Pencil className="size-4" />
                   Edit
                 </Link>
               </Button>
-              <Button
-                variant="destructive"
-                onClick={() => {
-                  if (
-                    faqQuery.data &&
-                    window.confirm(`Delete FAQ "${faqQuery.data.name}"?`)
-                  ) {
-                    void deleteFaq
-                      .mutateAsync(id)
-                      .then(() => navigate("/app/faq"));
-                  }
-                }}
-              >
-                <Trash2 className="size-4" />
-                Delete
-              </Button>
+              <ConfirmAction
+                title={`Delete FAQ "${faqQuery.data?.name ?? "this FAQ"}"?`}
+                description="This action removes the FAQ record from the portal. Review any linked content before continuing."
+                confirmLabel="Delete FAQ"
+                isPending={deleteFaq.isPending}
+                onConfirm={() =>
+                  deleteFaq.mutateAsync(id).then(() => navigate("/app/faq"))
+                }
+                trigger={
+                  <Button variant="destructive">
+                    <Trash2 className="size-4" />
+                    Delete
+                  </Button>
+                }
+              />
             </>
           }
         />
       }
       sidebar={
-        <Card>
-          <CardHeader>
-            <CardHeading>
-              <CardTitle className="flex flex-wrap items-center gap-2">
-                <span>Overview</span>
-                <ContextHint
-                  content="Key publishing and orchestration settings."
-                  label="Overview details"
-                />
-              </CardTitle>
-            </CardHeading>
-          </CardHeader>
-          <CardContent>
-            {faqQuery.data ? (
+        showLoadingState ? (
+          <SidebarSummarySkeleton />
+        ) : faqQuery.data ? (
+          <Card>
+            <CardHeader>
+              <CardHeading>
+                <CardTitle className="flex flex-wrap items-center gap-2">
+                  <span>Overview</span>
+                  <ContextHint
+                    content="Key publishing and orchestration settings."
+                    label="Overview details"
+                  />
+                </CardTitle>
+              </CardHeading>
+            </CardHeader>
+            <CardContent>
               <KeyValueList
                 items={[
                   {
@@ -199,9 +251,9 @@ export function FaqDetailPage() {
                   },
                 ]}
               />
-            ) : null}
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        ) : null
       }
     >
       {faqQuery.isError ? (
@@ -210,6 +262,8 @@ export function FaqDetailPage() {
           description="The FAQ detail request failed."
           retry={() => void faqQuery.refetch()}
         />
+      ) : showLoadingState ? (
+        <DetailPageSkeleton cards={3} />
       ) : faqQuery.data ? (
         <>
           <SectionGrid
@@ -455,13 +509,17 @@ export function FaqDetailPage() {
               )}
             </CardContent>
           </Card>
+
+          <ProgressChecklistCard
+            title="Move this FAQ to a real result"
+            description="Follow the next recommended step instead of hunting through every action in the screen."
+            steps={setupSteps}
+            action={nextSetupAction}
+            secondaryAction={{ label: "Edit FAQ", to: faqEditPath }}
+          />
         </>
       ) : (
-        <Card>
-          <CardContent className="py-8 text-sm text-muted-foreground">
-            Loading FAQ…
-          </CardContent>
-        </Card>
+        <DetailPageSkeleton cards={2} />
       )}
     </DetailLayout>
   );

@@ -19,6 +19,7 @@ import {
   Button,
   Card,
   CardContent,
+  ConfirmAction,
   Dialog,
   DialogContent,
   DialogDescription,
@@ -105,22 +106,28 @@ export function MembersPage() {
           className="flex items-center justify-end"
           onClick={(event) => event.stopPropagation()}
         >
-          <Button
-            variant="ghost"
-            mode="icon"
-            disabled={!canManageMembers || member.isCurrentUser}
-            onClick={() => {
-              if (
-                currentTenant &&
-                window.confirm(`Remove ${member.email} from this workspace?`)
-              ) {
-                removeTemporaryMember(currentTenant.id, member.id);
-                setRevision((value) => value + 1);
+          <ConfirmAction
+            title={`Remove ${member.email} from this workspace?`}
+            description="This removes their access to the current workspace but does not delete their account."
+            confirmLabel="Remove member"
+            onConfirm={() => {
+              if (!currentTenant) {
+                return;
               }
+
+              removeTemporaryMember(currentTenant.id, member.id);
+              setRevision((value) => value + 1);
             }}
-          >
-            <Trash2 className="size-4 text-destructive" />
-          </Button>
+            trigger={
+              <Button
+                variant="ghost"
+                mode="icon"
+                disabled={!canManageMembers || member.isCurrentUser}
+              >
+                <Trash2 className="size-4 text-destructive" />
+              </Button>
+            }
+          />
         </div>
       ),
     },

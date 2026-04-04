@@ -46,9 +46,11 @@ export function TextField<TFieldValues extends FieldValues>({
   hint,
   type = "text",
   placeholder,
+  disabled = false,
 }: BaseFieldProps<TFieldValues> & {
   type?: string;
   placeholder?: string;
+  disabled?: boolean;
 }) {
   return (
     <FormField
@@ -58,7 +60,12 @@ export function TextField<TFieldValues extends FieldValues>({
         <FormItem>
           <FieldLabel label={label} hint={hint} />
           <FormControl>
-            <Input {...field} type={type} placeholder={placeholder} />
+            <Input
+              {...field}
+              type={type}
+              placeholder={placeholder}
+              disabled={disabled}
+            />
           </FormControl>
           {description ? (
             <FormDescription>{description}</FormDescription>
@@ -78,9 +85,11 @@ export function TextareaField<TFieldValues extends FieldValues>({
   hint,
   placeholder,
   rows = 6,
+  disabled = false,
 }: BaseFieldProps<TFieldValues> & {
   placeholder?: string;
   rows?: number;
+  disabled?: boolean;
 }) {
   return (
     <FormField
@@ -90,7 +99,12 @@ export function TextareaField<TFieldValues extends FieldValues>({
         <FormItem>
           <FieldLabel label={label} hint={hint} />
           <FormControl>
-            <Textarea {...field} placeholder={placeholder} rows={rows} />
+            <Textarea
+              {...field}
+              placeholder={placeholder}
+              rows={rows}
+              disabled={disabled}
+            />
           </FormControl>
           {description ? (
             <FormDescription>{description}</FormDescription>
@@ -108,7 +122,10 @@ export function SwitchField<TFieldValues extends FieldValues>({
   label,
   description,
   hint,
-}: BaseFieldProps<TFieldValues>) {
+  disabled = false,
+}: BaseFieldProps<TFieldValues> & {
+  disabled?: boolean;
+}) {
   return (
     <FormField
       control={control}
@@ -126,6 +143,7 @@ export function SwitchField<TFieldValues extends FieldValues>({
               <Switch
                 checked={Boolean(field.value)}
                 onCheckedChange={field.onChange}
+                disabled={disabled}
               />
             </FormControl>
           </div>
@@ -142,7 +160,10 @@ export function CheckboxField<TFieldValues extends FieldValues>({
   label,
   description,
   hint,
-}: BaseFieldProps<TFieldValues>) {
+  disabled = false,
+}: BaseFieldProps<TFieldValues> & {
+  disabled?: boolean;
+}) {
   return (
     <FormField
       control={control}
@@ -153,6 +174,7 @@ export function CheckboxField<TFieldValues extends FieldValues>({
             <Checkbox
               checked={Boolean(field.value)}
               onCheckedChange={field.onChange}
+              disabled={disabled}
             />
           </FormControl>
           <div className="space-y-1 leading-none">
@@ -176,9 +198,11 @@ export function SelectField<TFieldValues extends FieldValues>({
   hint,
   options,
   placeholder,
+  disabled = false,
 }: BaseFieldProps<TFieldValues> & {
   options: Array<{ value: string; label: string }>;
   placeholder?: string;
+  disabled?: boolean;
 }) {
   const hasEmptyOption = options.some((option) => option.value === "");
 
@@ -206,6 +230,7 @@ export function SelectField<TFieldValues extends FieldValues>({
                 field.onChange(value === EMPTY_SELECT_VALUE ? "" : value)
               }
               value={selectValue}
+              disabled={disabled}
             >
               <FormControl>
                 <SelectTrigger>

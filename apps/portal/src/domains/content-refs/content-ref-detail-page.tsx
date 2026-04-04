@@ -27,7 +27,11 @@ import {
   CardHeader,
   CardHeading,
   CardTitle,
+  ConfirmAction,
   ContextHint,
+  DetailPageSkeleton,
+  ProgressChecklistCard,
+  SidebarSummarySkeleton,
 } from "@/shared/ui";
 import { PaginationControls } from "@/shared/ui/pagination-controls";
 import { ContentRefKindBadge } from "@/shared/ui/status-badges";
@@ -104,6 +108,49 @@ export function ContentRefDetailPage() {
     resolvedFaqId && originatingFaqItemId && resolvedContentRefId
       ? `/app/faq/${resolvedFaqId}/items/${originatingFaqItemId}/edit?contentRefId=${resolvedContentRefId}`
       : "";
+  const sourceSteps = [
+    {
+      id: "saved",
+      label: "Save the reference",
+      description: contentRefQuery.data
+        ? "The underlying locator is already stored."
+        : "Create the source record so teams can attach it to answers.",
+      complete: Boolean(contentRefQuery.data),
+    },
+    {
+      id: "label",
+      label: "Label it for reuse",
+      description: contentRefQuery.data?.label
+        ? `Current label: ${contentRefQuery.data.label}`
+        : "A clear label makes this source easier to find later.",
+      complete: Boolean(contentRefQuery.data?.label),
+    },
+    {
+      id: "items",
+      label: "Link a Q&A item",
+      description: relatedItems.length
+        ? `${relatedItems.length} Q&A item${relatedItems.length === 1 ? "" : "s"} already use this source.`
+        : "Attach the source to at least one answer so it starts doing real work.",
+      complete: relatedItems.length > 0,
+    },
+    {
+      id: "faqs",
+      label: "Reuse it in a FAQ",
+      description: relatedFaqs.length
+        ? `${relatedFaqs.length} FAQ${relatedFaqs.length === 1 ? "" : "s"} already depend on it.`
+        : "Once a linked answer exists, this source becomes part of FAQ coverage.",
+      complete: relatedFaqs.length > 0,
+    },
+  ];
+  const nextSourceAction =
+    !contentRefQuery.data?.label
+      ? { label: "Add a label", to: editPath }
+      : relatedItems.length === 0
+        ? { label: "Link a Q&A item", to: createFaqItemPath }
+        : { label: "Edit source", to: editPath };
+  const showLoadingState =
+    !contentRefQuery.data &&
+    (contentRefQuery.isLoading || faqItemQuery.isLoading || faqQuery.isLoading);
 
   if (!resolvedContentRefId) {
     return (
@@ -142,43 +189,44 @@ export function ContentRefDetailPage() {
                   Edit
                 </Link>
               </Button>
-              <Button
-                variant="destructive"
-                onClick={() => {
-                  if (
-                    contentRefQuery.data &&
-                    window.confirm(
-                      `Delete source "${contentRefQuery.data.label || contentRefQuery.data.locator}"?`,
-                    )
-                  ) {
-                    void deleteContentRef
-                      .mutateAsync(resolvedContentRefId)
-                      .then(() => navigate(backTo));
-                  }
-                }}
-              >
-                <Trash2 className="size-4" />
-                Delete
-              </Button>
+              <ConfirmAction
+                title={`Delete source "${contentRefQuery.data?.label || contentRefQuery.data?.locator || "this source"}"?`}
+                description="This removes the source record from the portal. Keep it only if you no longer want it reused."
+                confirmLabel="Delete source"
+                isPending={deleteContentRef.isPending}
+                onConfirm={() =>
+                  deleteContentRef
+                    .mutateAsync(resolvedContentRefId)
+                    .then(() => navigate(backTo))
+                }
+                trigger={
+                  <Button variant="destructive">
+                    <Trash2 className="size-4" />
+                    Delete
+                  </Button>
+                }
+              />
             </>
           }
         />
       }
       sidebar={
-        <Card>
-          <CardHeader>
-            <CardHeading>
-              <CardTitle className="flex flex-wrap items-center gap-2">
-                <span>Overview</span>
-                <ContextHint
-                  content="Source type, scope, and downstream usage."
-                  label="Overview details"
-                />
-              </CardTitle>
-            </CardHeading>
-          </CardHeader>
-          <CardContent>
-            {contentRefQuery.data ? (
+        showLoadingState ? (
+          <SidebarSummarySkeleton />
+        ) : contentRefQuery.data ? (
+          <Card>
+            <CardHeader>
+              <CardHeading>
+                <CardTitle className="flex flex-wrap items-center gap-2">
+                  <span>Overview</span>
+                  <ContextHint
+                    content="Source type, scope, and downstream usage."
+                    label="Overview details"
+                  />
+                </CardTitle>
+              </CardHeading>
+            </CardHeader>
+            <CardContent>
               <KeyValueList
                 items={[
                   {
@@ -195,9 +243,9 @@ export function ContentRefDetailPage() {
                   { label: "Q&A items", value: String(relatedItems.length) },
                 ]}
               />
-            ) : null}
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        ) : null
       }
     >
       {contentRefQuery.isError ? (
@@ -206,6 +254,8 @@ export function ContentRefDetailPage() {
           description="The source request failed."
           retry={() => void contentRefQuery.refetch()}
         />
+      ) : showLoadingState ? (
+        <DetailPageSkeleton cards={2} />
       ) : contentRefQuery.data ? (
         <>
           <SectionGrid
@@ -387,13 +437,19 @@ export function ContentRefDetailPage() {
               )}
             </CardContent>
           </Card>
+
+          <ProgressChecklistCard
+            title="Turn this source into something reusable"
+            description="A good source is labeled, easy to find, and linked to answers teams already trust."
+            steps={sourceSteps}
+            action={nextSourceAction}
+            secondaryAction={
+              resolvedFaqId ? { label: "Open FAQ", to: backTo } : undefined
+            }
+          />
         </>
       ) : (
-        <Card>
-          <CardContent className="py-8 text-sm text-muted-foreground">
-            Loading source…
-          </CardContent>
-        </Card>
+        <DetailPageSkeleton cards={2} />
       )}
     </DetailLayout>
   );

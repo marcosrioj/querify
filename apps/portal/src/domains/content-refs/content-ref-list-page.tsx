@@ -24,6 +24,7 @@ import { ContentRefKindBadge } from "@/shared/ui/status-badges";
 import {
   Badge,
   Button,
+  ConfirmAction,
   Input,
   Select,
   SelectContent,
@@ -140,21 +141,18 @@ export function ContentRefListPage() {
               <Pencil className="size-4" />
             </Link>
           </Button>
-          <Button
-            variant="ghost"
-            mode="icon"
-            onClick={() => {
-              if (
-                window.confirm(
-                  `Delete source "${contentRef.label || contentRef.locator}"?`,
-                )
-              ) {
-                void deleteContentRef.mutateAsync(contentRef.id);
-              }
-            }}
-          >
-            <Trash2 className="size-4 text-destructive" />
-          </Button>
+          <ConfirmAction
+            title={`Delete source "${contentRef.label || contentRef.locator}"?`}
+            description="This removes the source record from the workspace list. Keep it only if you no longer want it reused."
+            confirmLabel="Delete source"
+            isPending={deleteContentRef.isPending}
+            onConfirm={() => deleteContentRef.mutateAsync(contentRef.id)}
+            trigger={
+              <Button variant="ghost" mode="icon">
+                <Trash2 className="size-4 text-destructive" />
+              </Button>
+            }
+          />
         </div>
       ),
     },

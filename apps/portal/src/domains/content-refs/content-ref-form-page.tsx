@@ -34,6 +34,8 @@ import {
   CardTitle,
   ContextHint,
   Form,
+  FormCardSkeleton,
+  SidebarSummarySkeleton,
 } from "@/shared/ui";
 import { ErrorState } from "@/shared/ui/placeholder-state";
 import { SelectField, TextField } from "@/shared/ui/form-fields";
@@ -96,37 +98,41 @@ export function ContentRefFormPage({ mode }: { mode: "create" | "edit" }) {
         />
       }
       sidebar={
-        <Card>
-          <CardHeader>
-            <CardHeading>
-              <CardTitle className="flex flex-wrap items-center gap-2">
-                <span>Quick notes</span>
-                <ContextHint
-                  content="Good source records stay durable, labeled, and easy to reuse."
-                  label="Quick notes details"
-                />
-              </CardTitle>
-            </CardHeading>
-          </CardHeader>
-          <CardContent>
-            <KeyValueList
-              items={[
-                {
-                  label: "Kinds",
-                  value: "Web, PDF, document, video, repository, manual",
-                },
-                {
-                  label: "Reference",
-                  value: "Use a stable URI or file path reference",
-                },
-                {
-                  label: "Scope",
-                  value: "Optional grouping label for the workspace",
-                },
-              ]}
-            />
-          </CardContent>
-        </Card>
+        mode === "edit" && contentRefQuery.isLoading ? (
+          <SidebarSummarySkeleton />
+        ) : (
+          <Card>
+            <CardHeader>
+              <CardHeading>
+                <CardTitle className="flex flex-wrap items-center gap-2">
+                  <span>Quick notes</span>
+                  <ContextHint
+                    content="Good source records stay durable, labeled, and easy to reuse."
+                    label="Quick notes details"
+                  />
+                </CardTitle>
+              </CardHeading>
+            </CardHeader>
+            <CardContent>
+              <KeyValueList
+                items={[
+                  {
+                    label: "Kinds",
+                    value: "Web, PDF, document, video, repository, manual",
+                  },
+                  {
+                    label: "Reference",
+                    value: "Use a stable URI or file path reference",
+                  },
+                  {
+                    label: "Scope",
+                    value: "Optional grouping label for the workspace",
+                  },
+                ]}
+              />
+            </CardContent>
+          </Card>
+        )
       }
     >
       {contentRefQuery.isError ? (
@@ -135,6 +141,8 @@ export function ContentRefFormPage({ mode }: { mode: "create" | "edit" }) {
           description="The source request failed."
           retry={() => void contentRefQuery.refetch()}
         />
+      ) : mode === "edit" && contentRefQuery.isLoading ? (
+        <FormCardSkeleton fields={4} />
       ) : (
         <Card>
           <CardHeader>

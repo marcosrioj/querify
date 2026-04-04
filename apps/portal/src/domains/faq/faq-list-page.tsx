@@ -22,6 +22,7 @@ import { FaqStatusBadge, SortStrategyBadge } from "@/shared/ui/status-badges";
 import {
   Badge,
   Button,
+  ConfirmAction,
   Input,
   Select,
   SelectContent,
@@ -150,17 +151,18 @@ export function FaqListPage() {
           >
             <WandSparkles className="size-4" />
           </Button>
-          <Button
-            variant="ghost"
-            mode="icon"
-            onClick={() => {
-              if (window.confirm(`Delete FAQ "${faq.name}"?`)) {
-                void deleteFaq.mutateAsync(faq.id);
-              }
-            }}
-          >
-            <Trash2 className="size-4 text-destructive" />
-          </Button>
+          <ConfirmAction
+            title={`Delete FAQ "${faq.name}"?`}
+            description="This removes the FAQ from the workspace. You will need to recreate it if you change your mind later."
+            confirmLabel="Delete FAQ"
+            isPending={deleteFaq.isPending}
+            onConfirm={() => deleteFaq.mutateAsync(faq.id)}
+            trigger={
+              <Button variant="ghost" mode="icon">
+                <Trash2 className="size-4 text-destructive" />
+              </Button>
+            }
+          />
         </div>
       ),
     },
@@ -172,13 +174,13 @@ export function FaqListPage() {
         <PageHeader
           eyebrow="FAQs"
           title="FAQs"
-          description="Create FAQs and manage their Q&A items and sources."
+          description="Create clean FAQ spaces, then fill them with Q&A items and source material."
           descriptionMode="hint"
           actions={
             <Button asChild>
               <Link to="/app/faq/new">
                 <Plus className="size-4" />
-                New FAQ
+                {faqQuery.data?.totalCount ? "New FAQ" : "Start here"}
               </Link>
             </Button>
           }
@@ -280,7 +282,7 @@ export function FaqListPage() {
           <EmptyState
             title="No FAQs in view"
             description="Create a FAQ to start building help content for this workspace."
-            action={{ label: "Create FAQ", to: "/app/faq/new" }}
+            action={{ label: "Start here", to: "/app/faq/new" }}
           />
         }
         errorState={

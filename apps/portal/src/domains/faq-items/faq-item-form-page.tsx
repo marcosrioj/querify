@@ -32,6 +32,8 @@ import {
   CardTitle,
   ContextHint,
   Form,
+  FormCardSkeleton,
+  SidebarSummarySkeleton,
 } from "@/shared/ui";
 import { ErrorState } from "@/shared/ui/placeholder-state";
 import {
@@ -131,52 +133,56 @@ export function FaqItemFormPage({ mode }: { mode: "create" | "edit" }) {
         />
       }
       sidebar={
-        <Card>
-          <CardHeader>
-            <CardHeading>
-              <CardTitle className="flex flex-wrap items-center gap-2">
-                <span>Quick notes</span>
-                <ContextHint
-                  content="Keep each Q&A item clear, ranked, and linked to a FAQ."
-                  label="Quick notes details"
-                />
-              </CardTitle>
-            </CardHeading>
-          </CardHeader>
-          <CardContent>
-            <KeyValueList
-              items={[
-                {
-                  label: "Associations",
-                  value: "FAQ required, source optional",
-                },
-                {
-                  label: "Scoring",
-                  value: "Sort, vote, and AI confidence affect ranking",
-                },
-                {
-                  label: "CTA",
-                  value: "Optional title and URL for the next step",
-                },
-                {
-                  label: "Selected FAQ",
-                  value:
-                    selectedFaq?.name ||
-                    (mode === "create"
-                      ? "Choose in form"
-                      : itemQuery.data?.faqId || "Loading"),
-                },
-                {
-                  label: "Selected source",
-                  value:
-                    selectedContentRef?.label ||
-                    selectedContentRef?.locator ||
-                    "Optional",
-                },
-              ]}
-            />
-          </CardContent>
-        </Card>
+        mode === "edit" && itemQuery.isLoading ? (
+          <SidebarSummarySkeleton />
+        ) : (
+          <Card>
+            <CardHeader>
+              <CardHeading>
+                <CardTitle className="flex flex-wrap items-center gap-2">
+                  <span>Quick notes</span>
+                  <ContextHint
+                    content="Keep each Q&A item clear, ranked, and linked to a FAQ."
+                    label="Quick notes details"
+                  />
+                </CardTitle>
+              </CardHeading>
+            </CardHeader>
+            <CardContent>
+              <KeyValueList
+                items={[
+                  {
+                    label: "Associations",
+                    value: "FAQ required, source optional",
+                  },
+                  {
+                    label: "Scoring",
+                    value: "Sort, vote, and AI confidence affect ranking",
+                  },
+                  {
+                    label: "CTA",
+                    value: "Optional title and URL for the next step",
+                  },
+                  {
+                    label: "Selected FAQ",
+                    value:
+                      selectedFaq?.name ||
+                      (mode === "create"
+                        ? "Choose in form"
+                        : itemQuery.data?.faqId || "Loading"),
+                  },
+                  {
+                    label: "Selected source",
+                    value:
+                      selectedContentRef?.label ||
+                      selectedContentRef?.locator ||
+                      "Optional",
+                  },
+                ]}
+              />
+            </CardContent>
+          </Card>
+        )
       }
     >
       {itemQuery.isError ? (
@@ -185,6 +191,8 @@ export function FaqItemFormPage({ mode }: { mode: "create" | "edit" }) {
           description="The Q&A item request failed."
           retry={() => void itemQuery.refetch()}
         />
+      ) : mode === "edit" && itemQuery.isLoading ? (
+        <FormCardSkeleton fields={8} />
       ) : (
         <Card>
           <CardHeader>
