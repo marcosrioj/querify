@@ -1,3 +1,4 @@
+import { CreditCard, Mail, Receipt, ShieldCheck } from 'lucide-react';
 import { RouteObject } from 'react-router-dom';
 import { useCurrentWorkspace } from '@/domains/tenants/hooks';
 import { usePermission } from '@/platform/permissions/permissions';
@@ -30,16 +31,19 @@ function BillingPage() {
               ? tenantEditionLabels[currentWorkspace.edition]
               : 'Unknown',
             description: currentWorkspace?.slug || 'No active workspace',
+            icon: CreditCard,
           },
           {
             title: 'Billing access',
             value: canManageBilling ? 'Enabled' : 'Hidden',
             description: canManageBilling ? 'Workspace owner controls visible' : 'Restricted by role',
+            icon: ShieldCheck,
           },
           {
             title: 'Invoices shown',
             value: placeholderInvoices.length,
             description: 'Preview rows until the live billing surface lands',
+            icon: Receipt,
           },
           {
             title: 'Billing contact',
@@ -47,6 +51,7 @@ function BillingPage() {
             description: currentWorkspace?.slug
               ? `${currentWorkspace.slug}@billing.basefaq.com`
               : 'No workspace contact yet',
+            icon: Mail,
           },
         ]}
       />

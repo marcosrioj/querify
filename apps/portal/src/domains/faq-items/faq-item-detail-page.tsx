@@ -1,4 +1,4 @@
-import { Link2, Pencil, Trash2 } from "lucide-react";
+import { ArrowUpRight, BookOpen, FileText, Files, Link2, Pencil, Trash2 } from "lucide-react";
 import { useMemo } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useFaqList } from "@/domains/faq/hooks";
@@ -268,6 +268,7 @@ export function FaqItemDetailPage() {
                 title: "Answer depth",
                 value: answerState,
                 titleHint: "Current answer depth.",
+                icon: FileText,
               },
               {
                 title: "CTA",
@@ -281,6 +282,7 @@ export function FaqItemDetailPage() {
                   : itemQuery.data.ctaTitle || itemQuery.data.ctaUrl
                     ? "This answer can drive the next step"
                     : "No CTA configured for this answer",
+                icon: ArrowUpRight,
               },
               {
                 title: "Source",
@@ -288,11 +290,13 @@ export function FaqItemDetailPage() {
                 description: linkedContentRef
                   ? "Connected to reusable source material"
                   : "Attach a source to improve traceability",
+                icon: Files,
               },
               {
                 title: "FAQ",
                 value: parentFaq?.name ?? "Unknown FAQ",
                 titleHint: "FAQ this Q&A item belongs to.",
+                icon: BookOpen,
               },
             ]}
           />

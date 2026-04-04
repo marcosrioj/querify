@@ -1,3 +1,4 @@
+import { BookOpen, Bot, ShieldCheck, WandSparkles } from 'lucide-react';
 import { RouteObject } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import { useFaqList, useRequestFaqGeneration } from '@/domains/faq/hooks';
@@ -33,21 +34,25 @@ function AiWorkspacePage() {
             title: 'Providers',
             value: providers.length,
             description: providers.length ? `${readyProviders} ready to use` : 'No providers configured',
+            icon: Bot,
           },
           {
             title: 'Generation models',
             value: generationProviders,
             description: 'Available for answer generation',
+            icon: WandSparkles,
           },
           {
             title: 'Credential coverage',
             value: readyProviders,
             description: providers.length ? 'Providers with stored secrets' : 'Waiting for provider setup',
+            icon: ShieldCheck,
           },
           {
             title: 'Launchable FAQs',
             value: faqQuery.data?.items.length ?? 0,
             description: 'Recent knowledge spaces ready for action',
+            icon: BookOpen,
           },
         ]}
       />

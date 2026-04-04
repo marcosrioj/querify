@@ -1,5 +1,14 @@
 import { useEffect } from "react";
-import { Pencil, Plus, Trash2, WandSparkles } from "lucide-react";
+import {
+  ArrowUpRight,
+  BookOpen,
+  FileText,
+  Pencil,
+  Plus,
+  Sparkles,
+  Trash2,
+  WandSparkles,
+} from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   useDeleteFaq,
@@ -238,6 +247,7 @@ export function FaqListPage() {
             description: debouncedSearch
               ? `Search: ${debouncedSearch}`
               : activeStatusLabel,
+            icon: BookOpen,
           },
           {
             title: "Published",
@@ -245,6 +255,7 @@ export function FaqListPage() {
             description: publishedCount
               ? "Ready for customer traffic"
               : "Nothing published in this slice",
+            icon: Sparkles,
           },
           {
             title: "Drafts",
@@ -252,11 +263,13 @@ export function FaqListPage() {
             description: draftCount
               ? "Still being curated"
               : "No draft work in view",
+            icon: FileText,
           },
           {
             title: "CTA",
             value: ctaEnabledCount,
             description: `${sortingLabel} order`,
+            icon: ArrowUpRight,
           },
         ]}
       />

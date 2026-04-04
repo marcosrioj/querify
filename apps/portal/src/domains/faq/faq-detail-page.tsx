@@ -1,4 +1,12 @@
-import { Pencil, Plus, Trash2, WandSparkles } from "lucide-react";
+import {
+  Files,
+  MessageSquare,
+  Pencil,
+  Plus,
+  ShieldCheck,
+  Trash2,
+  WandSparkles,
+} from "lucide-react";
 import { useMemo } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
@@ -280,6 +288,7 @@ export function FaqDetailPage() {
                   relatedItems.length === 1
                     ? "1 item linked"
                     : `${relatedItems.length} items linked`,
+                icon: MessageSquare,
               },
               {
                 title: "Active",
@@ -288,6 +297,7 @@ export function FaqDetailPage() {
                   activeItemCount === relatedItems.length
                     ? "Everything in view is active"
                     : "Some Q&A items still need activation",
+                icon: ShieldCheck,
               },
               {
                 title: "Sources",
@@ -295,6 +305,7 @@ export function FaqDetailPage() {
                 description: relatedContentRefs.length
                   ? "Sources already connected"
                   : "No sources linked yet",
+                icon: Files,
               },
               {
                 title: "Ready",
@@ -302,6 +313,7 @@ export function FaqDetailPage() {
                 description: generationReady
                   ? "Q&A items and sources are ready"
                   : "Add Q&A items and sources first",
+                icon: WandSparkles,
               },
             ]}
           />

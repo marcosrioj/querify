@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Pencil, Plus, Trash2 } from "lucide-react";
+import { ArrowUpDown, Files, FolderOpen, Pencil, Plus, Trash2 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   useContentRefList,
@@ -224,6 +224,7 @@ export function ContentRefListPage() {
             description: debouncedSearch
               ? `Search: ${debouncedSearch}`
               : selectedKindLabel,
+            icon: Files,
           },
           {
             title: "Scoped",
@@ -231,6 +232,7 @@ export function ContentRefListPage() {
             titleHint: scopedCount
               ? "Grouped for cleaner reuse."
               : "No scope labels in this slice.",
+            icon: FolderOpen,
           },
           {
             title: "Untitled",
@@ -238,11 +240,13 @@ export function ContentRefListPage() {
             titleHint: unlabeledCount
               ? "Good candidates for cleanup."
               : "Labels are in good shape.",
+            icon: Files,
           },
           {
             title: "Sort",
             value: sortingLabel,
             titleHint: "Current catalog sort.",
+            icon: ArrowUpDown,
           },
         ]}
       />

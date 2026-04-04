@@ -1,4 +1,4 @@
-import { ExternalLink, Pencil, Plus, Trash2 } from "lucide-react";
+import { BookOpen, ExternalLink, FileText, FolderOpen, MessageSquare, Pencil, Plus, Trash2 } from "lucide-react";
 import { useMemo } from "react";
 import {
   Link,
@@ -268,6 +268,7 @@ export function ContentRefDetailPage() {
                 title: "Type",
                 value: <ContentRefKindBadge kind={contentRefQuery.data.kind} />,
                 titleHint: "How this source is classified.",
+                icon: FileText,
               },
               {
                 title: "Q&A items",
@@ -275,6 +276,7 @@ export function ContentRefDetailPage() {
                 description: relatedItems.length
                   ? "Q&A items already linked"
                   : "No Q&A items linked yet",
+                icon: MessageSquare,
               },
               {
                 title: "FAQs",
@@ -282,11 +284,13 @@ export function ContentRefDetailPage() {
                 description: relatedFaqs.length
                   ? "Knowledge spaces currently relying on it"
                   : "No FAQs currently depend on this source",
+                icon: BookOpen,
               },
               {
                 title: "Scope",
                 value: contentRefQuery.data.scope || "Not set",
                 titleHint: "Optional grouping label.",
+                icon: FolderOpen,
               },
             ]}
           />

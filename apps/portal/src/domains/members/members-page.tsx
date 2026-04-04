@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { MailPlus, Trash2 } from 'lucide-react';
+import { Building2, MailPlus, ShieldCheck, Trash2, Users } from 'lucide-react';
 import { ListLayout, PageHeader, SectionGrid } from '@/shared/layout/page-layouts';
 import { useTenant } from '@/platform/tenant/tenant-context';
 import { useAuth } from '@/platform/auth/auth-context';
@@ -160,21 +160,25 @@ export function MembersPage() {
                 title: 'Workspace',
                 value: currentTenant.name,
                 description: currentTenant.slug,
+                icon: Building2,
               },
               {
                 title: 'Active members',
                 value: activeCount,
                 description: activeCount ? 'Already inside the workspace' : 'No active members yet',
+                icon: Users,
               },
               {
                 title: 'Pending invites',
                 value: pendingCount,
                 description: pendingCount ? 'Waiting for acceptance' : 'No invites outstanding',
+                icon: MailPlus,
               },
               {
                 title: 'Admins',
                 value: adminCount,
                 description: currentUserCount ? 'Includes your current access' : 'No current user context',
+                icon: ShieldCheck,
               },
             ]}
           />

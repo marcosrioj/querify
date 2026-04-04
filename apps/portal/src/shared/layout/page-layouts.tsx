@@ -1,5 +1,5 @@
 import { Fragment, PropsWithChildren, ReactNode } from "react";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, type LucideIcon } from "lucide-react";
 import { Link, useMatches } from "react-router-dom";
 import { AppRouteHandle } from "@/app/router/route-types";
 import { Container } from "@/shared/layout/container";
@@ -214,8 +214,17 @@ export function SectionGrid({
     titleHint?: ReactNode;
     value: ReactNode;
     description?: ReactNode;
+    icon?: LucideIcon;
+    iconToneClassName?: string;
   }>;
 }) {
+  const toneClassNames = [
+    "bg-blue-500/10 text-blue-600 dark:bg-blue-500/15 dark:text-blue-300",
+    "bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-300",
+    "bg-cyan-500/10 text-cyan-600 dark:bg-cyan-500/15 dark:text-cyan-300",
+    "bg-amber-500/10 text-amber-600 dark:bg-amber-500/15 dark:text-amber-300",
+  ];
+
   return (
     <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4 lg:gap-7.5">
       {items.map((item, index) => (
@@ -228,24 +237,36 @@ export function SectionGrid({
           }
           className="bg-muted/10"
         >
-          <CardContent className="min-w-0 space-y-2.5 p-5">
-            <p className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
-              <span>{item.title}</span>
-              {item.titleHint ? (
-                <ContextHint
-                  content={item.titleHint}
-                  label="Metric details"
-                  className="size-4 text-[inherit]"
-                />
-              ) : null}
-            </p>
-            <div className="break-words text-xl font-semibold tracking-tight text-mono sm:text-2xl">
-              {item.value}
-            </div>
-            {item.description ? (
-              <p className="text-sm leading-5 text-muted-foreground">
-                {item.description}
+          <CardContent className="relative min-w-0 p-5">
+            <div className="min-w-0 space-y-2.5">
+              <p className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
+                <span>{item.title}</span>
+                {item.titleHint ? (
+                  <ContextHint
+                    content={item.titleHint}
+                    label="Metric details"
+                    className="size-4 text-[inherit]"
+                  />
+                ) : null}
               </p>
+              <div className="break-words text-2xl font-semibold tracking-tight text-mono sm:text-3xl">
+                {item.value}
+              </div>
+              {item.description ? (
+                <p className="text-sm leading-6 text-muted-foreground">
+                  {item.description}
+                </p>
+              ) : null}
+            </div>
+            {item.icon ? (
+              <div
+                className={cn(
+                  "pointer-events-none absolute right-5 top-5 flex size-11 items-center justify-center rounded-2xl",
+                  item.iconToneClassName ?? toneClassNames[index % toneClassNames.length],
+                )}
+              >
+                <item.icon className="size-5" />
+              </div>
             ) : null}
           </CardContent>
         </Card>

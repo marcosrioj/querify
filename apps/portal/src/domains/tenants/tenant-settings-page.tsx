@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { useEffect } from 'react';
-import { KeyRound, Sparkles } from 'lucide-react';
+import { Bot, Building2, KeyRound, Sparkles, WandSparkles } from 'lucide-react';
 import { useCurrentWorkspace, useGenerateClientKey, useSetAiProviderCredentials, useTenantWorkspace, useUpdateTenantWorkspace } from '@/domains/tenants/hooks';
 import { settingsNavItems } from '@/domains/settings/settings-nav';
 import { AiCommandType, TenantEdition, tenantEditionLabels } from '@/shared/constants/backend-enums';
@@ -83,11 +83,13 @@ export function TenantSettingsPage() {
             title: 'Edition',
             value: currentWorkspace ? tenantEditionLabels[currentWorkspace.edition] : 'No workspace',
             description: currentWorkspace?.slug || 'Choose or create a workspace',
+            icon: Building2,
           },
           {
             title: 'Public key',
             value: clientKeyQuery.data ? 'Live' : 'Missing',
             description: clientKeyQuery.data ? 'Ready for previews and embeds' : 'Generate one to expose public experiences',
+            icon: KeyRound,
           },
           {
             title: 'AI providers',
@@ -95,11 +97,13 @@ export function TenantSettingsPage() {
             description: configuredProviders.length
               ? `${credentialedProviderCount} with credentials stored`
               : 'No providers configured yet',
+            icon: Bot,
           },
           {
             title: 'Generation models',
             value: generationProviderCount,
             description: 'Providers available for content generation',
+            icon: WandSparkles,
           },
         ]}
       />

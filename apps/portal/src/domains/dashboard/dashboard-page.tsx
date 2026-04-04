@@ -91,7 +91,7 @@ function MetricCard({
 }) {
   return (
     <Card>
-      <CardContent className="flex flex-col gap-4 p-5 sm:flex-row sm:items-start sm:justify-between">
+      <CardContent className="relative p-5">
         <div className="min-w-0 space-y-2">
           <p className="text-sm text-muted-foreground">{title}</p>
           <p className="break-words text-3xl font-semibold tracking-tight text-mono">
@@ -100,7 +100,7 @@ function MetricCard({
           <p className="text-sm text-muted-foreground">{description}</p>
         </div>
         <div
-          className={`flex size-11 shrink-0 items-center justify-center rounded-2xl ${toneClassName}`}
+          className={`pointer-events-none absolute right-5 top-5 flex size-11 items-center justify-center rounded-2xl ${toneClassName}`}
         >
           <Icon className="size-5" />
         </div>

@@ -1,5 +1,13 @@
 import { useEffect, useMemo } from "react";
-import { Pencil, Plus, Trash2 } from "lucide-react";
+import {
+  CircleAlert,
+  Link2,
+  MessageSquare,
+  Pencil,
+  Plus,
+  ShieldCheck,
+  Trash2,
+} from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useContentRefList } from "@/domains/content-refs/hooks";
 import { useFaqList } from "@/domains/faq/hooks";
@@ -273,11 +281,13 @@ export function FaqItemListPage() {
             description: debouncedSearch
               ? `Search: ${debouncedSearch}`
               : selectedFaqLabel,
+            icon: MessageSquare,
           },
           {
             title: "Active",
             value: activeCount,
             description: activeFilterLabel,
+            icon: ShieldCheck,
           },
           {
             title: "Sourced",
@@ -285,11 +295,13 @@ export function FaqItemListPage() {
             titleHint: sourcedCount
               ? "Already linked to a source."
               : "No sources linked in this slice.",
+            icon: Link2,
           },
           {
             title: "Unsourced",
             value: unsourcedCount,
             titleHint: "Candidates for enrichment.",
+            icon: CircleAlert,
           },
         ]}
       />
