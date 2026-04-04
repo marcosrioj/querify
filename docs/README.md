@@ -20,3 +20,7 @@
 ## Standards
 
 - `docs/standards/solution-cqrs-write-rules.md`
+
+## Frontend
+
+- `docs/frontend/portal-app-ui-prompt-guidance.md`
