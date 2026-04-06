@@ -1,6 +1,15 @@
-import { ReactNode } from "react";
+import { ReactNode, useState } from "react";
+import { Sparkles, TriangleAlert } from "lucide-react";
 import { Control, FieldValues, Path } from "react-hook-form";
 import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  Button,
   Checkbox,
   ContextHint,
   FormControl,
@@ -29,6 +38,27 @@ type BaseFieldProps<TFieldValues extends FieldValues> = {
   label: ReactNode;
   description?: ReactNode;
   hint?: ReactNode;
+};
+
+type SwitchFieldConfirmationValue<T> = T | ((nextChecked: boolean) => T);
+
+type SwitchFieldConfirmation = {
+  title: SwitchFieldConfirmationValue<ReactNode>;
+  description: SwitchFieldConfirmationValue<ReactNode>;
+  confirmLabel?: SwitchFieldConfirmationValue<string>;
+  cancelLabel?: string;
+  variant?: SwitchFieldConfirmationValue<"primary" | "destructive">;
+};
+
+const activeStatusConfirmation: SwitchFieldConfirmation = {
+  title: (nextChecked) =>
+    nextChecked ? "Activate this record?" : "Deactivate this record?",
+  description: (nextChecked) =>
+    nextChecked
+      ? "Active records can return to normal product flows and become available again to teammates or end users. Confirm this only when the content is ready to be used."
+      : "Inactive records stay saved for editing and history, but should stop appearing in normal product flows. Confirm this when the content is outdated, under review, or temporarily unavailable.",
+  confirmLabel: (nextChecked) => (nextChecked ? "Activate" : "Deactivate"),
+  variant: (nextChecked) => (nextChecked ? "primary" : "destructive"),
 };
 
 function buildFieldHelpContent({
@@ -72,6 +102,113 @@ function FieldLabel({
         <ContextHint content={helpContent} label="Field details" />
       ) : null}
     </div>
+  );
+}
+
+function resolveSwitchFieldConfirmationValue<T>(
+  value: SwitchFieldConfirmationValue<T>,
+  nextChecked: boolean,
+) {
+  return typeof value === "function"
+    ? (value as (nextChecked: boolean) => T)(nextChecked)
+    : value;
+}
+
+function ConfirmingSwitchControl({
+  checked,
+  disabled,
+  onCheckedChange,
+  confirmation,
+}: {
+  checked: boolean;
+  disabled?: boolean;
+  onCheckedChange: (checked: boolean) => void;
+  confirmation?: SwitchFieldConfirmation;
+}) {
+  const [pendingChecked, setPendingChecked] = useState<boolean | null>(null);
+  const nextChecked = pendingChecked ?? checked;
+  const isOpen = pendingChecked !== null;
+  const title = confirmation
+    ? resolveSwitchFieldConfirmationValue(confirmation.title, nextChecked)
+    : null;
+  const description = confirmation
+    ? resolveSwitchFieldConfirmationValue(
+        confirmation.description,
+        nextChecked,
+      )
+    : null;
+  const confirmLabel = confirmation
+    ? resolveSwitchFieldConfirmationValue(
+        confirmation.confirmLabel ?? "Confirm",
+        nextChecked,
+      )
+    : "Confirm";
+  const variant = confirmation
+    ? resolveSwitchFieldConfirmationValue(
+        confirmation.variant ?? "primary",
+        nextChecked,
+      )
+    : "primary";
+  const iconClassName =
+    variant === "destructive"
+      ? "flex size-11 items-center justify-center rounded-2xl border border-destructive/15 bg-destructive/10 text-destructive"
+      : "flex size-11 items-center justify-center rounded-2xl border border-primary/15 bg-primary/10 text-primary";
+
+  return (
+    <>
+      <Switch
+        checked={checked}
+        onCheckedChange={(value) => {
+          if (!confirmation || value === checked) {
+            onCheckedChange(value);
+            return;
+          }
+
+          setPendingChecked(value);
+        }}
+        disabled={disabled}
+      />
+      <AlertDialog
+        open={isOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            setPendingChecked(null);
+          }
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <div className={iconClassName}>
+              {variant === "destructive" ? (
+                <TriangleAlert className="size-5" />
+              ) : (
+                <Sparkles className="size-5" />
+              )}
+            </div>
+            <AlertDialogTitle>{title}</AlertDialogTitle>
+            <AlertDialogDescription>{description}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>
+              {confirmation?.cancelLabel ?? "Cancel"}
+            </AlertDialogCancel>
+            <Button
+              variant={variant}
+              onClick={() => {
+                if (pendingChecked === null) {
+                  return;
+                }
+
+                onCheckedChange(pendingChecked);
+                setPendingChecked(null);
+              }}
+            >
+              {confirmLabel}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
 
@@ -160,9 +297,21 @@ export function SwitchField<TFieldValues extends FieldValues>({
   description,
   hint,
   disabled = false,
+  confirmation,
 }: BaseFieldProps<TFieldValues> & {
   disabled?: boolean;
+  confirmation?: SwitchFieldConfirmation | false;
 }) {
+  const normalizedFieldName = String(name).replace(/\./g, "").toLowerCase();
+  const resolvedConfirmation =
+    confirmation === false
+      ? undefined
+      : confirmation ??
+        (normalizedFieldName.endsWith("isactive") ||
+        normalizedFieldName.endsWith("active")
+          ? activeStatusConfirmation
+          : undefined);
+
   return (
     <FormField
       control={control}
@@ -179,10 +328,11 @@ export function SwitchField<TFieldValues extends FieldValues>({
               ) : null}
             </div>
             <FormControl>
-              <Switch
+              <ConfirmingSwitchControl
                 checked={Boolean(field.value)}
                 onCheckedChange={field.onChange}
                 disabled={disabled}
+                confirmation={resolvedConfirmation}
               />
             </FormControl>
           </div>
