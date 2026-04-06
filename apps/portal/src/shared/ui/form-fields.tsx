@@ -31,11 +31,46 @@ type BaseFieldProps<TFieldValues extends FieldValues> = {
   hint?: ReactNode;
 };
 
-function FieldLabel({ label, hint }: { label: ReactNode; hint?: ReactNode }) {
+function buildFieldHelpContent({
+  description,
+  hint,
+}: {
+  description?: ReactNode;
+  hint?: ReactNode;
+}) {
+  if (!description && !hint) {
+    return null;
+  }
+
+  if (description && hint) {
+    return (
+      <div className="space-y-2">
+        <div>{description}</div>
+        <div className="border-t border-border pt-2">{hint}</div>
+      </div>
+    );
+  }
+
+  return description ?? hint;
+}
+
+function FieldLabel({
+  label,
+  description,
+  hint,
+}: {
+  label: ReactNode;
+  description?: ReactNode;
+  hint?: ReactNode;
+}) {
+  const helpContent = buildFieldHelpContent({ description, hint });
+
   return (
     <div className="flex items-center gap-1.5">
       <FormLabel>{label}</FormLabel>
-      {hint ? <ContextHint content={hint} label="Field details" /> : null}
+      {helpContent ? (
+        <ContextHint content={helpContent} label="Field details" />
+      ) : null}
     </div>
   );
 }
@@ -60,7 +95,7 @@ export function TextField<TFieldValues extends FieldValues>({
       name={name}
       render={({ field }) => (
         <FormItem>
-          <FieldLabel label={label} hint={hint} />
+          <FieldLabel label={label} description={description} hint={hint} />
           <FormControl>
             <Input
               {...field}
@@ -70,7 +105,7 @@ export function TextField<TFieldValues extends FieldValues>({
             />
           </FormControl>
           {description ? (
-            <FormDescription>{description}</FormDescription>
+            <FormDescription className="sr-only">{description}</FormDescription>
           ) : null}
           <FormMessage />
         </FormItem>
@@ -99,7 +134,7 @@ export function TextareaField<TFieldValues extends FieldValues>({
       name={name}
       render={({ field }) => (
         <FormItem>
-          <FieldLabel label={label} hint={hint} />
+          <FieldLabel label={label} description={description} hint={hint} />
           <FormControl>
             <Textarea
               {...field}
@@ -109,7 +144,7 @@ export function TextareaField<TFieldValues extends FieldValues>({
             />
           </FormControl>
           {description ? (
-            <FormDescription>{description}</FormDescription>
+            <FormDescription className="sr-only">{description}</FormDescription>
           ) : null}
           <FormMessage />
         </FormItem>
@@ -136,9 +171,11 @@ export function SwitchField<TFieldValues extends FieldValues>({
         <FormItem className="rounded-xl border border-border p-4">
           <div className="flex items-center justify-between gap-4">
             <div className="space-y-1">
-              <FieldLabel label={label} hint={hint} />
+              <FieldLabel label={label} description={description} hint={hint} />
               {description ? (
-                <FormDescription>{description}</FormDescription>
+                <FormDescription className="sr-only">
+                  {description}
+                </FormDescription>
               ) : null}
             </div>
             <FormControl>
@@ -180,9 +217,11 @@ export function CheckboxField<TFieldValues extends FieldValues>({
             />
           </FormControl>
           <div className="space-y-1 leading-none">
-            <FieldLabel label={label} hint={hint} />
+            <FieldLabel label={label} description={description} hint={hint} />
             {description ? (
-              <FormDescription>{description}</FormDescription>
+              <FormDescription className="sr-only">
+                {description}
+              </FormDescription>
             ) : null}
             <FormMessage />
           </div>
@@ -226,7 +265,7 @@ export function SelectField<TFieldValues extends FieldValues>({
 
         return (
           <FormItem>
-            <FieldLabel label={label} hint={hint} />
+            <FieldLabel label={label} description={description} hint={hint} />
             <Select
               onValueChange={(value) =>
                 field.onChange(value === EMPTY_SELECT_VALUE ? "" : value)
@@ -253,7 +292,9 @@ export function SelectField<TFieldValues extends FieldValues>({
               </SelectContent>
             </Select>
             {description ? (
-              <FormDescription>{description}</FormDescription>
+              <FormDescription className="sr-only">
+                {description}
+              </FormDescription>
             ) : null}
             <FormMessage />
           </FormItem>
@@ -301,7 +342,7 @@ export function SearchSelectField<TFieldValues extends FieldValues>({
       name={name}
       render={({ field }) => (
         <FormItem>
-          <FieldLabel label={label} hint={hint} />
+          <FieldLabel label={label} description={description} hint={hint} />
           <FormControl>
             <SearchSelect
               value={
@@ -325,7 +366,7 @@ export function SearchSelectField<TFieldValues extends FieldValues>({
             />
           </FormControl>
           {description ? (
-            <FormDescription>{description}</FormDescription>
+            <FormDescription className="sr-only">{description}</FormDescription>
           ) : null}
           <FormMessage />
         </FormItem>
