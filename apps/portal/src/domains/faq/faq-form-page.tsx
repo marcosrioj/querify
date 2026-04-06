@@ -32,7 +32,12 @@ import {
   ProgressChecklistCard,
   SidebarSummarySkeleton,
 } from "@/shared/ui";
-import { SelectField, SwitchField, TextField } from "@/shared/ui/form-fields";
+import {
+  SelectField,
+  SwitchField,
+  TextField,
+  type SelectFieldConfirmation,
+} from "@/shared/ui/form-fields";
 import { ErrorState } from "@/shared/ui/placeholder-state";
 
 function normalizeCtaTargetValue(
@@ -64,6 +69,26 @@ function toCtaTargetFieldValue(
 ): string {
   return String(normalizeCtaTargetValue(value));
 }
+
+const faqStatusConfirmation: SelectFieldConfirmation = {
+  title: ({ nextOption }) =>
+    `Change FAQ status to ${nextOption?.label ?? "this option"}?`,
+  description: ({ nextValue }) => {
+    switch (Number(nextValue)) {
+      case FaqStatus.Published:
+        return "Published FAQs are treated as ready for customer-facing use. Confirm this only when the answers, sources, and CTA behavior are ready.";
+      case FaqStatus.Archived:
+        return "Archived FAQs stay saved for history, but should stop being used as active content. Confirm this when the FAQ is obsolete or intentionally retired.";
+      case FaqStatus.Draft:
+      default:
+        return "Draft keeps the FAQ in a working state while the team is still reviewing answers, sources, or CTA rules.";
+    }
+  },
+  confirmLabel: ({ nextOption }) =>
+    `Set as ${nextOption?.label ?? "selected status"}`,
+  variant: ({ nextValue }) =>
+    Number(nextValue) === FaqStatus.Archived ? "destructive" : "primary",
+};
 
 export function FaqFormPage({ mode }: { mode: "create" | "edit" }) {
   const navigate = useNavigate();
@@ -270,6 +295,7 @@ export function FaqFormPage({ mode }: { mode: "create" | "edit" }) {
                       name="status"
                       label="Status"
                       description="Draft keeps the FAQ private while you build. Publish only when the answers are ready."
+                      confirmation={faqStatusConfirmation}
                       options={Object.entries(faqStatusLabels).map(
                         ([value, label]) => ({
                           value,
