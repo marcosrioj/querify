@@ -10,7 +10,7 @@ namespace BaseFaq.Tools.Seed.Application;
 public sealed class FaqSeedService : IFaqSeedService
 {
     private const string SeedLanguage = "en-US";
-    private const string SourceSnapshotDate = "2026-04-05";
+    private const string SourceSnapshotDate = "2026-04-06";
 
     public bool HasData(FaqDbContext dbContext)
     {

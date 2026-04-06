@@ -16,11 +16,11 @@ public sealed record SeedCounts(
         UserCount: 1,
         TenantCount: 1,
         TenantConnectionsPerApp: 1,
-        FaqCount: 8,
-        ItemsPerFaq: 4,
-        TagCount: 32,
-        ContentRefCount: 32,
+        FaqCount: 16,
+        ItemsPerFaq: 10,
+        TagCount: 64,
+        ContentRefCount: 128,
         TagsPerFaq: 4,
-        ContentRefsPerFaq: 4,
+        ContentRefsPerFaq: 8,
         VotesPerItem: 6);
 }
