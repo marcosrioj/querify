@@ -224,48 +224,94 @@ export function FaqDetailPage() {
         showLoadingState ? (
           <SidebarSummarySkeleton />
         ) : faqQuery.data ? (
-          <Card>
-            <CardHeader>
-              <CardHeading>
-                <CardTitle className="flex flex-wrap items-center gap-2">
-                  <span>Overview</span>
-                  <ContextHint
-                    content="Key publishing and orchestration settings."
-                    label="Overview details"
-                  />
-                </CardTitle>
-              </CardHeading>
-            </CardHeader>
-            <CardContent>
-              <KeyValueList
-                items={[
-                  {
-                    label: "Status",
-                    value: <FaqStatusBadge status={faqQuery.data.status} />,
-                  },
-                  {
-                    label: "Sort",
-                    value: (
-                      <SortStrategyBadge value={faqQuery.data.sortStrategy} />
-                    ),
-                  },
-                  { label: "Language", value: faqQuery.data.language },
-                  {
-                    label: "CTA",
-                    value: faqQuery.data.ctaEnabled ? "Enabled" : "Disabled",
-                  },
-                  {
-                    label: "Q&A items",
-                    value: String(relatedItems.length),
-                  },
-                  {
-                    label: "Sources",
-                    value: String(relatedContentRefs.length),
-                  },
-                ]}
-              />
-            </CardContent>
-          </Card>
+          <>
+            <Card>
+              <CardHeader>
+                <CardHeading>
+                  <CardTitle className="flex flex-wrap items-center gap-2">
+                    <span>Overview</span>
+                    <ContextHint
+                      content="Key publishing and orchestration settings."
+                      label="Overview details"
+                    />
+                  </CardTitle>
+                </CardHeading>
+              </CardHeader>
+              <CardContent>
+                <KeyValueList
+                  items={[
+                    {
+                      label: "Sort",
+                      value: (
+                        <SortStrategyBadge value={faqQuery.data.sortStrategy} />
+                      ),
+                    },
+                    { label: "Language", value: faqQuery.data.language },
+                    {
+                      label: "CTA",
+                      value: faqQuery.data.ctaEnabled ? "Enabled" : "Disabled",
+                    },
+                    {
+                      label: "Q&A items",
+                      value: String(relatedItems.length),
+                    },
+                    {
+                      label: "Sources",
+                      value: String(relatedContentRefs.length),
+                    },
+                  ]}
+                />
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardHeading>
+                  <CardTitle className="flex flex-wrap items-center gap-2">
+                    <span>Status</span>
+                    <ContextHint
+                      content="Monitor readiness before you publish or request generation."
+                      label="Status details"
+                    />
+                  </CardTitle>
+                </CardHeading>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex flex-wrap gap-2">
+                  <FaqStatusBadge status={faqQuery.data.status} />
+                  <Badge variant={generationReady ? "success" : "warning"}>
+                    {generationReady
+                      ? "Ready for generation request"
+                      : "Needs content and Q&A coverage"}
+                  </Badge>
+                  <Badge variant="outline">
+                    {faqQuery.data.ctaEnabled ? "CTA enabled" : "CTA disabled"}
+                  </Badge>
+                </div>
+                <KeyValueList
+                  items={[
+                    {
+                      label: "Visibility",
+                      value:
+                        faqQuery.data.status === FaqStatus.Published
+                          ? "Customer-facing"
+                          : "Internal or draft",
+                    },
+                    {
+                      label: "Generation",
+                      value: generationReady
+                        ? "Ready to request"
+                        : "Waiting on setup",
+                    },
+                    {
+                      label: "Request tracking",
+                      value: "Correlation id only",
+                    },
+                  ]}
+                />
+              </CardContent>
+            </Card>
+          </>
         ) : null
       }
     >
@@ -317,53 +363,6 @@ export function FaqDetailPage() {
               },
             ]}
           />
-
-          <Card>
-            <CardHeader>
-              <CardHeading>
-                <CardTitle className="flex flex-wrap items-center gap-2">
-                  <span>Status</span>
-                  <ContextHint
-                    content="Monitor readiness before you publish or request generation."
-                    label="Status details"
-                  />
-                </CardTitle>
-              </CardHeading>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex flex-wrap gap-2">
-                <Badge variant={generationReady ? "success" : "warning"}>
-                  {generationReady
-                    ? "Ready for generation request"
-                    : "Needs content and Q&A coverage"}
-                </Badge>
-                <Badge variant="outline">
-                  {faqQuery.data.ctaEnabled ? "CTA enabled" : "CTA disabled"}
-                </Badge>
-              </div>
-              <KeyValueList
-                items={[
-                  {
-                    label: "Visibility",
-                    value:
-                      faqQuery.data.status === FaqStatus.Published
-                        ? "Customer-facing"
-                        : "Internal or draft",
-                  },
-                  {
-                    label: "Generation",
-                    value: generationReady
-                      ? "Ready to request"
-                      : "Waiting on setup",
-                  },
-                  {
-                    label: "Request tracking",
-                    value: "Correlation id only",
-                  },
-                ]}
-              />
-            </CardContent>
-          </Card>
 
           <Card>
             <CardHeader>
