@@ -35,6 +35,36 @@ import {
 import { SelectField, SwitchField, TextField } from "@/shared/ui/form-fields";
 import { ErrorState } from "@/shared/ui/placeholder-state";
 
+function normalizeCtaTargetValue(
+  value: CtaTarget | string | null | undefined,
+): CtaTarget {
+  if (typeof value === "number") {
+    return value;
+  }
+
+  if (typeof value === "string") {
+    const numericValue = Number(value);
+
+    if (!Number.isNaN(numericValue)) {
+      return numericValue as CtaTarget;
+    }
+
+    const enumValue = CtaTarget[value as keyof typeof CtaTarget];
+
+    if (typeof enumValue === "number") {
+      return enumValue;
+    }
+  }
+
+  return CtaTarget.Blank;
+}
+
+function toCtaTargetFieldValue(
+  value: CtaTarget | string | null | undefined,
+): string {
+  return String(normalizeCtaTargetValue(value));
+}
+
 export function FaqFormPage({ mode }: { mode: "create" | "edit" }) {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -50,7 +80,7 @@ export function FaqFormPage({ mode }: { mode: "create" | "edit" }) {
       status: FaqStatus.Draft,
       sortStrategy: FaqSortStrategy.Sort,
       ctaEnabled: false,
-      ctaTarget: CtaTarget.Self,
+      ctaTarget: toCtaTargetFieldValue(CtaTarget.Blank) as unknown as CtaTarget,
     },
   });
 
@@ -65,7 +95,9 @@ export function FaqFormPage({ mode }: { mode: "create" | "edit" }) {
       status: faqQuery.data.status,
       sortStrategy: faqQuery.data.sortStrategy,
       ctaEnabled: faqQuery.data.ctaEnabled,
-      ctaTarget: faqQuery.data.ctaTarget,
+      ctaTarget: toCtaTargetFieldValue(
+        faqQuery.data.ctaTarget,
+      ) as unknown as CtaTarget,
     });
   }, [faqQuery.data, form]);
 
@@ -75,6 +107,9 @@ export function FaqFormPage({ mode }: { mode: "create" | "edit" }) {
   const statusValue = form.watch("status");
   const ctaEnabled = form.watch("ctaEnabled");
   const ctaTargetValue = form.watch("ctaTarget");
+  const ctaTargetFieldKey = `cta-target-${String(ctaEnabled)}-${String(
+    ctaTargetValue,
+  )}`;
   const formSteps = [
     {
       id: "name",
@@ -107,7 +142,11 @@ export function FaqFormPage({ mode }: { mode: "create" | "edit" }) {
       description: ctaEnabled
         ? "CTA is enabled, so choose where linked actions should open."
         : "Leave CTA off until this FAQ needs a next-step action.",
-      complete: !ctaEnabled || Boolean(ctaTargetValue),
+      complete:
+        !ctaEnabled ||
+        (ctaTargetValue !== undefined &&
+          ctaTargetValue !== null &&
+          String(ctaTargetValue) !== ""),
     },
   ];
 
@@ -187,7 +226,7 @@ export function FaqFormPage({ mode }: { mode: "create" | "edit" }) {
                       sortStrategy: Number(
                         values.sortStrategy,
                       ) as FaqSortStrategy,
-                      ctaTarget: Number(values.ctaTarget) as CtaTarget,
+                      ctaTarget: normalizeCtaTargetValue(values.ctaTarget),
                     };
 
                     if (mode === "create") {
@@ -263,6 +302,7 @@ export function FaqFormPage({ mode }: { mode: "create" | "edit" }) {
                     description="Controls whether Q&A items can show CTA links."
                   />
                   <SelectField
+                    key={ctaTargetFieldKey}
                     control={form.control}
                     name="ctaTarget"
                     label="CTA target"
@@ -285,7 +325,9 @@ export function FaqFormPage({ mode }: { mode: "create" | "edit" }) {
                     </Button>
                     <Button asChild variant="outline">
                       <Link
-                        to={mode === "edit" && id ? `/app/faq/${id}` : "/app/faq"}
+                        to={
+                          mode === "edit" && id ? `/app/faq/${id}` : "/app/faq"
+                        }
                       >
                         Cancel
                       </Link>
