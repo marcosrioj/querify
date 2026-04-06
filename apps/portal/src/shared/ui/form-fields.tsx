@@ -15,6 +15,8 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
+  SearchSelect,
+  type SearchSelectOption,
   Switch,
   Textarea,
 } from "@/shared/ui";
@@ -257,6 +259,77 @@ export function SelectField<TFieldValues extends FieldValues>({
           </FormItem>
         );
       }}
+    />
+  );
+}
+
+export function SearchSelectField<TFieldValues extends FieldValues>({
+  control,
+  name,
+  label,
+  description,
+  hint,
+  options,
+  selectedOption,
+  placeholder,
+  searchPlaceholder,
+  emptyMessage,
+  loading = false,
+  disabled = false,
+  allowClear = false,
+  clearLabel,
+  resultCountHint,
+  searchValue,
+  onSearchChange,
+}: BaseFieldProps<TFieldValues> & {
+  options: SearchSelectOption[];
+  selectedOption?: SearchSelectOption | null;
+  placeholder?: string;
+  searchPlaceholder?: string;
+  emptyMessage?: string;
+  loading?: boolean;
+  disabled?: boolean;
+  allowClear?: boolean;
+  clearLabel?: string;
+  resultCountHint?: string;
+  searchValue?: string;
+  onSearchChange?: (value: string) => void;
+}) {
+  return (
+    <FormField
+      control={control}
+      name={name}
+      render={({ field }) => (
+        <FormItem>
+          <FieldLabel label={label} hint={hint} />
+          <FormControl>
+            <SearchSelect
+              value={
+                field.value === undefined || field.value === null
+                  ? ""
+                  : String(field.value)
+              }
+              onValueChange={field.onChange}
+              options={options}
+              selectedOption={selectedOption}
+              placeholder={placeholder}
+              searchPlaceholder={searchPlaceholder}
+              emptyMessage={emptyMessage}
+              loading={loading}
+              disabled={disabled}
+              allowClear={allowClear}
+              clearLabel={clearLabel}
+              resultCountHint={resultCountHint}
+              searchValue={searchValue}
+              onSearchChange={onSearchChange}
+            />
+          </FormControl>
+          {description ? (
+            <FormDescription>{description}</FormDescription>
+          ) : null}
+          <FormMessage />
+        </FormItem>
+      )}
     />
   );
 }

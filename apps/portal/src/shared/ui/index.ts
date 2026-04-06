@@ -70,7 +70,11 @@ export {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-export { Progress, ProgressCircle, ProgressRadial } from "@/components/ui/progress";
+export {
+  Progress,
+  ProgressCircle,
+  ProgressRadial,
+} from "@/components/ui/progress";
 export {
   Select,
   SelectContent,
@@ -111,3 +115,7 @@ export {
   ProgressChecklistCard,
   type ProgressChecklistStep,
 } from "@/shared/ui/progress-checklist";
+export {
+  SearchSelect,
+  type SearchSelectOption,
+} from "@/shared/ui/search-select";

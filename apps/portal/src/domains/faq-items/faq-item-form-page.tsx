@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect } from "react";
+import { startTransition, useDeferredValue, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import {
   Link,
@@ -7,8 +7,10 @@ import {
   useParams,
   useSearchParams,
 } from "react-router-dom";
-import { useFaqList } from "@/domains/faq/hooks";
-import { useContentRefList } from "@/domains/content-refs/hooks";
+import { useContentRef, useContentRefList } from "@/domains/content-refs/hooks";
+import type { ContentRefDto } from "@/domains/content-refs/types";
+import { useFaq, useFaqList } from "@/domains/faq/hooks";
+import type { FaqDto } from "@/domains/faq/types";
 import {
   useCreateFaqItem,
   useFaqItem,
@@ -42,11 +44,53 @@ import {
 } from "@/shared/ui";
 import { ErrorState } from "@/shared/ui/placeholder-state";
 import {
-  SelectField,
+  SearchSelectField,
   SwitchField,
   TextField,
   TextareaField,
 } from "@/shared/ui/form-fields";
+import {
+  contentRefKindLabels,
+  faqStatusLabels,
+} from "@/shared/constants/backend-enums";
+
+function buildFaqOption(faq: FaqDto) {
+  const statusLabel = faqStatusLabels[faq.status];
+
+  return {
+    value: faq.id,
+    label: faq.name,
+    description: `${faq.language} • ${statusLabel} • CTA ${
+      faq.ctaEnabled ? "enabled" : "disabled"
+    }`,
+    keywords: [
+      faq.name,
+      faq.language,
+      statusLabel,
+      faq.ctaEnabled ? "cta enabled" : "cta disabled",
+    ],
+  };
+}
+
+function buildContentRefOption(contentRef: ContentRefDto) {
+  const primaryLabel = contentRef.label || contentRef.locator;
+  const secondaryDetails = [
+    contentRefKindLabels[contentRef.kind],
+    contentRef.label ? contentRef.locator : contentRef.scope || undefined,
+  ].filter(Boolean);
+
+  return {
+    value: contentRef.id,
+    label: primaryLabel,
+    description: secondaryDetails.join(" • "),
+    keywords: [
+      primaryLabel,
+      contentRef.locator,
+      contentRef.scope ?? "",
+      contentRefKindLabels[contentRef.kind],
+    ],
+  };
+}
 
 export function FaqItemFormPage({ mode }: { mode: "create" | "edit" }) {
   const navigate = useNavigate();
@@ -55,17 +99,11 @@ export function FaqItemFormPage({ mode }: { mode: "create" | "edit" }) {
   const resolvedItemId = itemId;
   const preselectedFaqId = faqId ?? searchParams.get("faqId") ?? "";
   const preselectedContentRefId = searchParams.get("contentRefId") ?? "";
+  const [faqSearch, setFaqSearch] = useState("");
+  const [contentRefSearch, setContentRefSearch] = useState("");
+  const deferredFaqSearch = useDeferredValue(faqSearch.trim());
+  const deferredContentRefSearch = useDeferredValue(contentRefSearch.trim());
   const itemQuery = useFaqItem(mode === "edit" ? resolvedItemId : undefined);
-  const faqOptionsQuery = useFaqList({
-    page: 1,
-    pageSize: 100,
-    sorting: "Name ASC",
-  });
-  const contentRefQuery = useContentRefList({
-    page: 1,
-    pageSize: 100,
-    sorting: "Label ASC",
-  });
   const createFaqItem = useCreateFaqItem();
   const updateFaqItem = useUpdateFaqItem(resolvedItemId ?? "");
 
@@ -85,6 +123,32 @@ export function FaqItemFormPage({ mode }: { mode: "create" | "edit" }) {
       faqId: preselectedFaqId,
       contentRefId: preselectedContentRefId,
     },
+  });
+
+  const watchedFaqId = form.watch("faqId");
+  const watchedContentRefId = form.watch("contentRefId");
+  const currentFaqId =
+    watchedFaqId || itemQuery.data?.faqId || preselectedFaqId;
+  const currentContentRefId =
+    watchedContentRefId ??
+    itemQuery.data?.contentRefId ??
+    preselectedContentRefId ??
+    "";
+  const selectedFaqQuery = useFaq(currentFaqId || undefined);
+  const selectedContentRefQuery = useContentRef(
+    currentContentRefId || undefined,
+  );
+  const faqOptionsQuery = useFaqList({
+    page: 1,
+    pageSize: 20,
+    sorting: "Name ASC",
+    searchText: deferredFaqSearch || undefined,
+  });
+  const contentRefQuery = useContentRefList({
+    page: 1,
+    pageSize: 20,
+    sorting: "Label ASC",
+    searchText: deferredContentRefSearch || undefined,
   });
 
   useEffect(() => {
@@ -109,16 +173,23 @@ export function FaqItemFormPage({ mode }: { mode: "create" | "edit" }) {
     });
   }, [form, itemQuery.data, preselectedContentRefId]);
 
-  const selectedFaq = faqOptionsQuery.data?.items.find(
-    (faq) => faq.id === form.watch("faqId"),
+  const selectedFaq =
+    faqOptionsQuery.data?.items.find((faq) => faq.id === currentFaqId) ??
+    selectedFaqQuery.data;
+  const selectedContentRef =
+    contentRefQuery.data?.items.find(
+      (contentRef) => contentRef.id === currentContentRefId,
+    ) ?? selectedContentRefQuery.data;
+  const faqOptions = (faqOptionsQuery.data?.items ?? []).map(buildFaqOption);
+  const contentRefOptions = (contentRefQuery.data?.items ?? []).map(
+    buildContentRefOption,
   );
-  const selectedContentRef = contentRefQuery.data?.items.find(
-    (contentRef) => contentRef.id === form.watch("contentRefId"),
-  );
+  const selectedFaqOption = selectedFaq ? buildFaqOption(selectedFaq) : null;
+  const selectedContentRefOption = selectedContentRef
+    ? buildContentRefOption(selectedContentRef)
+    : null;
   const questionValue = form.watch("question");
   const shortAnswerValue = form.watch("shortAnswer");
-  const currentFaqId =
-    form.watch("faqId") || itemQuery.data?.faqId || preselectedFaqId;
   const faqAllowsCta = Boolean(selectedFaq?.ctaEnabled);
   const backTo =
     mode === "edit" && currentFaqId && resolvedItemId
@@ -126,8 +197,24 @@ export function FaqItemFormPage({ mode }: { mode: "create" | "edit" }) {
       : currentFaqId
         ? `/app/faq/${currentFaqId}`
         : "/app/faq";
-  const faqSettingsPath = currentFaqId ? `/app/faq/${currentFaqId}/edit` : "/app/faq";
+  const faqSettingsPath = currentFaqId
+    ? `/app/faq/${currentFaqId}/edit`
+    : "/app/faq";
   const isEditingCurrentFaq = currentFaqId === itemQuery.data?.faqId;
+  const faqResultHint = faqOptionsQuery.data
+    ? faqOptionsQuery.data.totalCount > faqOptions.length
+      ? `Showing ${faqOptions.length} of ${faqOptionsQuery.data.totalCount} FAQs. Keep typing to narrow the list.`
+      : `${faqOptionsQuery.data.totalCount} FAQ${
+          faqOptionsQuery.data.totalCount === 1 ? "" : "s"
+        } ready to pick.`
+    : undefined;
+  const contentRefResultHint = contentRefQuery.data
+    ? contentRefQuery.data.totalCount > contentRefOptions.length
+      ? `Showing ${contentRefOptions.length} of ${contentRefQuery.data.totalCount} sources. Keep typing to narrow the list.`
+      : `${contentRefQuery.data.totalCount} source${
+          contentRefQuery.data.totalCount === 1 ? "" : "s"
+        } ready to pick.`
+    : undefined;
   const formSteps = [
     {
       id: "question",
@@ -320,30 +407,49 @@ export function FaqItemFormPage({ mode }: { mode: "create" | "edit" }) {
                     className="pt-2"
                   />
                   <div className="grid gap-4 md:grid-cols-2">
-                    <SelectField
+                    <SearchSelectField
                       control={form.control}
                       name="faqId"
                       label="FAQ"
                       description="Required. The parent FAQ controls publish state and CTA behavior."
-                      options={(faqOptionsQuery.data?.items ?? []).map((faq) => ({
-                        value: faq.id,
-                        label: faq.name,
-                      }))}
+                      placeholder="Search and choose the parent FAQ"
+                      searchPlaceholder="Search by FAQ name, language, or status"
+                      emptyMessage={
+                        deferredFaqSearch
+                          ? "No FAQs match this search."
+                          : "No FAQs available."
+                      }
+                      options={faqOptions}
+                      selectedOption={selectedFaqOption}
+                      loading={faqOptionsQuery.isFetching}
+                      resultCountHint={faqResultHint}
+                      searchValue={faqSearch}
+                      onSearchChange={(value) =>
+                        startTransition(() => setFaqSearch(value))
+                      }
                     />
-                    <SelectField
+                    <SearchSelectField
                       control={form.control}
                       name="contentRefId"
                       label="Source"
                       description="Optional, but linking a source improves traceability."
-                      options={[
-                        { value: "", label: "None" },
-                        ...(contentRefQuery.data?.items ?? []).map(
-                          (contentRef) => ({
-                            value: contentRef.id,
-                            label: contentRef.label || contentRef.locator,
-                          }),
-                        ),
-                      ]}
+                      placeholder="Search and link a source"
+                      searchPlaceholder="Search by source label, type, scope, or URL"
+                      emptyMessage={
+                        deferredContentRefSearch
+                          ? "No sources match this search."
+                          : "No sources available."
+                      }
+                      options={contentRefOptions}
+                      selectedOption={selectedContentRefOption}
+                      loading={contentRefQuery.isFetching}
+                      allowClear
+                      clearLabel="Remove linked source"
+                      resultCountHint={contentRefResultHint}
+                      searchValue={contentRefSearch}
+                      onSearchChange={(value) =>
+                        startTransition(() => setContentRefSearch(value))
+                      }
                     />
                   </div>
                   <FormSectionHeading
@@ -403,7 +509,8 @@ export function FaqItemFormPage({ mode }: { mode: "create" | "edit" }) {
                         <div className="space-y-1">
                           <AlertTitle>Select an FAQ first</AlertTitle>
                           <AlertDescription>
-                            CTA fields stay unavailable until you choose the FAQ that controls this answer.
+                            CTA fields stay unavailable until you choose the FAQ
+                            that controls this answer.
                           </AlertDescription>
                         </div>
                       </Alert>
@@ -413,12 +520,15 @@ export function FaqItemFormPage({ mode }: { mode: "create" | "edit" }) {
                           <div className="space-y-1">
                             <AlertTitle>CTA disabled by FAQ</AlertTitle>
                             <AlertDescription>
-                              Enable CTA on the parent FAQ before you can add or edit CTA values for this Q&A item.
+                              Enable CTA on the parent FAQ before you can add or
+                              edit CTA values for this Q&A item.
                             </AlertDescription>
                           </div>
                         </Alert>
                         <Button asChild variant="outline" size="sm">
-                          <Link to={faqSettingsPath}>Open FAQ CTA settings</Link>
+                          <Link to={faqSettingsPath}>
+                            Open FAQ CTA settings
+                          </Link>
                         </Button>
                       </div>
                     ) : (
@@ -426,7 +536,8 @@ export function FaqItemFormPage({ mode }: { mode: "create" | "edit" }) {
                         <div className="space-y-1">
                           <AlertTitle>CTA available</AlertTitle>
                           <AlertDescription>
-                            This FAQ allows item-level CTA values, so you can define the next step below.
+                            This FAQ allows item-level CTA values, so you can
+                            define the next step below.
                           </AlertDescription>
                         </div>
                       </Alert>
