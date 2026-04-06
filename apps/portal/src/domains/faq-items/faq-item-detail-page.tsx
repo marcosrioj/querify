@@ -263,6 +263,7 @@ export function FaqItemDetailPage() {
       ) : itemQuery.data ? (
         <>
           <SectionGrid
+            valueClassName="text-xl sm:text-xl"
             items={[
               {
                 title: "Answer depth",

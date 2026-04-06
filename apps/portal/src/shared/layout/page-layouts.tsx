@@ -207,6 +207,7 @@ export function SettingsLayout({
 
 export function SectionGrid({
   items,
+  valueClassName,
 }: {
   items: Array<{
     key?: string;
@@ -217,6 +218,7 @@ export function SectionGrid({
     icon?: LucideIcon;
     iconToneClassName?: string;
   }>;
+  valueClassName?: string;
 }) {
   const toneClassNames = [
     "bg-blue-500/10 text-blue-600 dark:bg-blue-500/15 dark:text-blue-300",
@@ -249,7 +251,12 @@ export function SectionGrid({
                   />
                 ) : null}
               </p>
-              <div className="break-words text-2xl font-semibold tracking-tight text-mono sm:text-3xl">
+              <div
+                className={cn(
+                  "break-words text-2xl font-semibold tracking-tight text-mono sm:text-3xl",
+                  valueClassName,
+                )}
+              >
                 {item.value}
               </div>
               {item.description ? (
