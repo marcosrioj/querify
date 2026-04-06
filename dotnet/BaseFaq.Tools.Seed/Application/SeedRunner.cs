@@ -65,7 +65,7 @@ public sealed class SeedRunner(
             return 0;
         }
 
-        if (action is SeedAction.SeedDummyOnly or SeedAction.CleanAndSeed)
+        if (action is SeedAction.SeedSampleOnly or SeedAction.CleanAndSeed)
         {
             if (action == SeedAction.CleanAndSeed)
             {
@@ -85,7 +85,7 @@ public sealed class SeedRunner(
                 return 0;
             }
 
-            var seedTenantId = tenantSeeder.SeedDummyData(
+            var seedTenantId = tenantSeeder.SeedSampleData(
                 tenantDb,
                 new TenantSeedRequest(tenantBuilder.ToString(), faqBuilder.ToString()),
                 counts);
@@ -153,9 +153,9 @@ public sealed class SeedRunner(
     private static SeedAction PromptAction(IConsoleAdapter console)
     {
         console.WriteLine("Select action:");
-        console.WriteLine("1) Seed dummy data (default)");
+        console.WriteLine("1) Seed realistic sample FAQ data (default)");
         console.WriteLine("2) Seed essential data (AI providers + AI Agent user)");
-        console.WriteLine("3) Clean databases and seed essential + dummy data");
+        console.WriteLine("3) Clean databases and seed essential + sample FAQ data");
         console.WriteLine("4) Clean databases only");
         console.WriteLine("0) Exit");
         console.Write("Choice: ");
@@ -166,13 +166,13 @@ public sealed class SeedRunner(
             "3" => SeedAction.CleanAndSeed,
             "4" => SeedAction.CleanOnly,
             "0" => SeedAction.Exit,
-            _ => SeedAction.SeedDummyOnly
+            _ => SeedAction.SeedSampleOnly
         };
     }
 
     private enum SeedAction
     {
-        SeedDummyOnly,
+        SeedSampleOnly,
         SeedEssentialOnly,
         CleanAndSeed,
         CleanOnly,

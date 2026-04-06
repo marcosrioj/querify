@@ -1,14 +1,16 @@
 using BaseFaq.Faq.Common.Persistence.FaqDb;
 using BaseFaq.Faq.Common.Persistence.FaqDb.Entities;
+using BaseFaq.Models.Faq.Enums;
 using BaseFaq.Tools.Seed.Abstractions;
 using BaseFaq.Tools.Seed.Configuration;
-using BaseFaq.Models.Faq.Enums;
+using FaqEntity = BaseFaq.Faq.Common.Persistence.FaqDb.Entities.Faq;
 
 namespace BaseFaq.Tools.Seed.Application;
 
 public sealed class FaqSeedService : IFaqSeedService
 {
-    private const int SeedRandom = 2048;
+    private const string SeedLanguage = "en-US";
+    private const string SourceSnapshotDate = "2026-04-05";
 
     public bool HasData(FaqDbContext dbContext)
     {
@@ -23,15 +25,39 @@ public sealed class FaqSeedService : IFaqSeedService
 
     public void Seed(FaqDbContext dbContext, Guid tenantId, SeedCounts counts)
     {
-        var random = new Random(SeedRandom);
-        var statuses = Enum.GetValues<FaqStatus>();
-        var sortStrategies = Enum.GetValues<FaqSortStrategy>();
-        var contentKinds = Enum.GetValues<ContentRefKind>();
-        var unlikeReasons = Enum.GetValues<UnLikeReason>();
+        var selectedFaqs = SelectCatalog(counts);
+        if (selectedFaqs.Count == 0)
+        {
+            return;
+        }
 
-        var tags = BuildTags(counts.TagCount, tenantId);
-        var contentRefs = BuildContentRefs(counts.ContentRefCount, tenantId, contentKinds, random);
-        var faqs = BuildFaqs(counts.FaqCount, tenantId, statuses, sortStrategies);
+        var unlikeReasons = Enum.GetValues<UnLikeReason>();
+        var userAgentSamples = new[]
+        {
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36",
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_4) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15",
+            "Mozilla/5.0 (iPhone; CPU iPhone OS 18_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.1 Mobile/15E148 Safari/604.1"
+        };
+
+        var tags = BuildTags(selectedFaqs, tenantId, counts.TagCount);
+        var tagsByValue = tags.ToDictionary(tag => tag.Value, StringComparer.OrdinalIgnoreCase);
+
+        var contentRefs = BuildContentRefs(selectedFaqs, tenantId, counts.ContentRefCount);
+        var contentRefsByUrl = contentRefs.ToDictionary(contentRef => contentRef.Locator, StringComparer.OrdinalIgnoreCase);
+
+        var faqs = selectedFaqs
+            .Select(definition => new FaqEntity
+            {
+                Id = Guid.NewGuid(),
+                TenantId = tenantId,
+                Name = definition.Name,
+                Language = SeedLanguage,
+                Status = FaqStatus.Published,
+                SortStrategy = FaqSortStrategy.Sort,
+                CtaEnabled = true,
+                CtaTarget = CtaTarget.Blank
+            })
+            .ToList();
 
         dbContext.Tags.AddRange(tags);
         dbContext.ContentRefs.AddRange(contentRefs);
@@ -43,88 +69,78 @@ public sealed class FaqSeedService : IFaqSeedService
         var faqContentRefs = new List<FaqContentRef>();
         var votes = new List<Vote>();
 
-        var tagCursor = 0;
-        var contentCursor = 0;
-        var userAgentSamples = new[]
+        for (var faqIndex = 0; faqIndex < selectedFaqs.Count; faqIndex++)
         {
-            "Mozilla/5.0 (Seed) BaseFaqBot/1.0",
-            "Mozilla/5.0 (Seed) BaseFaqBot/1.1",
-            "Mozilla/5.0 (Seed) BaseFaqBot/1.2"
-        };
+            var faqDefinition = selectedFaqs[faqIndex];
+            var faqEntity = faqs[faqIndex];
 
-        foreach (var faq in faqs)
-        {
-            for (var i = 1; i <= counts.ItemsPerFaq; i++)
+            foreach (var tagValue in faqDefinition.Tags
+                         .Where(tagsByValue.ContainsKey)
+                         .Distinct(StringComparer.OrdinalIgnoreCase)
+                         .Take(Math.Max(0, counts.TagsPerFaq)))
             {
+                faqTags.Add(new FaqTag
+                {
+                    Id = Guid.NewGuid(),
+                    TenantId = tenantId,
+                    FaqId = faqEntity.Id,
+                    TagId = tagsByValue[tagValue].Id
+                });
+            }
+
+            foreach (var sourceUrl in faqDefinition.Items
+                         .Select(item => item.SourceUrl)
+                         .Distinct(StringComparer.OrdinalIgnoreCase)
+                         .Where(contentRefsByUrl.ContainsKey)
+                         .Take(Math.Max(0, counts.ContentRefsPerFaq)))
+            {
+                faqContentRefs.Add(new FaqContentRef
+                {
+                    Id = Guid.NewGuid(),
+                    TenantId = tenantId,
+                    FaqId = faqEntity.Id,
+                    ContentRefId = contentRefsByUrl[sourceUrl].Id
+                });
+            }
+
+            for (var itemIndex = 0; itemIndex < faqDefinition.Items.Count; itemIndex++)
+            {
+                var itemDefinition = faqDefinition.Items[itemIndex];
                 var itemId = Guid.NewGuid();
-                var includeAnswer = i % 5 != 0;
-                var includeAdditional = i % 4 == 0;
-                var includeCta = faq.CtaEnabled && i % 3 == 0;
-                var contentRefId = i % 2 == 0 ? contentRefs[contentCursor % contentRefs.Count].Id : (Guid?)null;
+                var contentRefId = contentRefsByUrl.TryGetValue(itemDefinition.SourceUrl, out var contentRef)
+                    ? contentRef.Id
+                    : (Guid?)null;
+
+                var voteBatch = BuildVotes(
+                    tenantId,
+                    itemId,
+                    faqIndex,
+                    itemIndex,
+                    counts.VotesPerItem,
+                    itemDefinition.HelpfulVotePercent,
+                    unlikeReasons,
+                    userAgentSamples);
 
                 faqItems.Add(new FaqItem
                 {
                     Id = itemId,
                     TenantId = tenantId,
-                    FaqId = faq.Id,
-                    Question = $"How do I complete task {i:00} for {faq.Name}?",
-                    ShortAnswer = $"Follow the steps for {faq.Name} task {i:00}.",
-                    Answer = includeAnswer ? $"Detailed guidance for {faq.Name} task {i:00}." : null,
-                    AdditionalInfo = includeAdditional ? $"Extra notes for {faq.Name} task {i:00}." : null,
-                    CtaTitle = includeCta ? "Open task guide" : null,
-                    CtaUrl = includeCta ? $"https://portal.basefaq.local/{faq.Id}/tasks/{i:00}" : null,
-                    Sort = i,
-                    VoteScore = random.Next(-5, 20),
-                    AiConfidenceScore = random.Next(40, 100),
-                    IsActive = i % 11 != 0,
+                    FaqId = faqEntity.Id,
+                    Question = itemDefinition.Question,
+                    ShortAnswer = itemDefinition.ShortAnswer,
+                    Answer = itemDefinition.Answer,
+                    AdditionalInfo = $"Official source: {itemDefinition.SourceName}. Retrieved {SourceSnapshotDate}.",
+                    CtaTitle = $"Open {itemDefinition.SourceName}",
+                    CtaUrl = itemDefinition.SourceUrl,
+                    Sort = itemIndex + 1,
+                    VoteScore = voteBatch.VoteScore,
+                    AiConfidenceScore = Math.Clamp(itemDefinition.AiConfidenceScore, 0, 100),
+                    IsActive = true,
                     ContentRefId = contentRefId
                 });
 
-                for (var v = 0; v < counts.VotesPerItem; v++)
-                {
-                    var like = v % 2 == 0;
-                    votes.Add(new Vote
-                    {
-                        Id = Guid.NewGuid(),
-                        TenantId = tenantId,
-                        FaqItemId = itemId,
-                        Like = like,
-                        UserPrint = $"seed-userprint-{faq.Id:N}-{i:00}-{v:00}",
-                        Ip = $"192.168.{i % 255}.{v + 10}",
-                        UserAgent = userAgentSamples[(i + v) % userAgentSamples.Length],
-                        UnLikeReason = like ? null : unlikeReasons[(i + v) % unlikeReasons.Length]
-                    });
-                }
-
-                contentCursor++;
+                votes.AddRange(voteBatch.Votes);
             }
-
-            for (var t = 0; t < counts.TagsPerFaq; t++)
-            {
-                var tag = tags[(tagCursor + t) % tags.Count];
-                faqTags.Add(new FaqTag
-                {
-                    Id = Guid.NewGuid(),
-                    TenantId = tenantId,
-                    FaqId = faq.Id,
-                    TagId = tag.Id
-                });
-            }
-
-            for (var c = 0; c < counts.ContentRefsPerFaq; c++)
-            {
-                var contentRef = contentRefs[(contentCursor + c) % contentRefs.Count];
-                faqContentRefs.Add(new FaqContentRef
-                {
-                    Id = Guid.NewGuid(),
-                    TenantId = tenantId,
-                    FaqId = faq.Id,
-                    ContentRefId = contentRef.Id
-                });
-            }
-
-            tagCursor += counts.TagsPerFaq;
-            contentCursor += counts.ContentRefsPerFaq;
         }
 
         dbContext.FaqItems.AddRange(faqItems);
@@ -136,86 +152,98 @@ public sealed class FaqSeedService : IFaqSeedService
         dbContext.SaveChanges();
     }
 
-    private static List<Tag> BuildTags(int count, Guid tenantId)
+    private static List<SeedFaqDefinition> SelectCatalog(SeedCounts counts)
     {
-        var tags = new List<Tag>(count);
-        for (var i = 1; i <= count; i++)
-        {
-            tags.Add(new Tag
+        return FaqSeedCatalog.Build()
+            .Take(Math.Max(0, counts.FaqCount))
+            .Select(definition => definition with
+            {
+                Items = definition.Items.Take(Math.Max(0, counts.ItemsPerFaq)).ToArray()
+            })
+            .Where(definition => definition.Items.Count > 0)
+            .ToList();
+    }
+
+    private static List<Tag> BuildTags(
+        IReadOnlyCollection<SeedFaqDefinition> faqDefinitions,
+        Guid tenantId,
+        int maxTagCount)
+    {
+        return faqDefinitions
+            .SelectMany(definition => definition.Tags)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Take(Math.Max(0, maxTagCount))
+            .Select(tagValue => new Tag
             {
                 Id = Guid.NewGuid(),
                 TenantId = tenantId,
-                Value = $"tag-{i:000}"
-            });
-        }
-
-        return tags;
+                Value = tagValue
+            })
+            .ToList();
     }
 
     private static List<ContentRef> BuildContentRefs(
-        int count,
+        IReadOnlyCollection<SeedFaqDefinition> faqDefinitions,
         Guid tenantId,
-        ContentRefKind[] contentKinds,
-        Random random)
+        int maxContentRefCount)
     {
-        var contentRefs = new List<ContentRef>(count);
-        for (var i = 1; i <= count; i++)
-        {
-            var kind = contentKinds[(i - 1) % contentKinds.Length];
-            contentRefs.Add(new ContentRef
+        return faqDefinitions
+            .SelectMany(definition => definition.Items)
+            .DistinctBy(item => item.SourceUrl, StringComparer.OrdinalIgnoreCase)
+            .Take(Math.Max(0, maxContentRefCount))
+            .Select(item => new ContentRef
             {
                 Id = Guid.NewGuid(),
                 TenantId = tenantId,
-                Kind = kind,
-                Locator = kind switch
-                {
-                    ContentRefKind.Web => $"https://www.example.com/docs/{i:000}",
-                    ContentRefKind.Pdf => $"https://www.example.com/files/guide-{i:000}.pdf",
-                    ContentRefKind.Video => $"https://www.example.com/videos/{i:000}",
-                    ContentRefKind.Repository => $"repo://basefaq/faq/{i:000}",
-                    ContentRefKind.Document => $"doc://kb/{i:000}",
-                    ContentRefKind.Faq => $"faq://{i:000}",
-                    ContentRefKind.FaqItem => $"faq-item://{i:000}",
-                    ContentRefKind.Manual => $"manual://base/{i:000}",
-                    _ => $"other://ref/{i:000}"
-                },
-                Label = $"Reference {i:000}",
-                Scope = i % 3 == 0 ? $"Section {random.Next(1, 12)}" : null
-            });
-        }
-
-        return contentRefs;
+                Kind = ContentRefKind.Web,
+                Locator = item.SourceUrl,
+                Label = item.SourceLabel
+            })
+            .ToList();
     }
 
-    private static List<Faq.Common.Persistence.FaqDb.Entities.Faq> BuildFaqs(
-        int count,
+    private static VoteBatch BuildVotes(
         Guid tenantId,
-        FaqStatus[] statuses,
-        FaqSortStrategy[] sortStrategies)
+        Guid faqItemId,
+        int faqIndex,
+        int itemIndex,
+        int votesPerItem,
+        int helpfulVotePercent,
+        UnLikeReason[] unlikeReasons,
+        string[] userAgentSamples)
     {
-        var languages = new[] { "en-US", "en-GB", "en-CA", "en-AU", "en-IE", "en-NZ" };
-        var faqs = new List<Faq.Common.Persistence.FaqDb.Entities.Faq>(count);
-
-        for (var i = 1; i <= count; i++)
+        var safeVotesPerItem = Math.Max(0, votesPerItem);
+        if (safeVotesPerItem == 0)
         {
-            var status = statuses[(i - 1) % statuses.Length];
-            var sort = sortStrategies[(i - 1) % sortStrategies.Length];
-            var ctaEnabled = i % 2 == 0;
-            var ctaTarget = i % 3 == 0 ? CtaTarget.Blank : CtaTarget.Self;
+            return new VoteBatch(0, []);
+        }
 
-            faqs.Add(new Faq.Common.Persistence.FaqDb.Entities.Faq
+        var likeCount = (int)Math.Round(
+            safeVotesPerItem * Math.Clamp(helpfulVotePercent, 0, 100) / 100d,
+            MidpointRounding.AwayFromZero);
+        likeCount = Math.Clamp(likeCount, 0, safeVotesPerItem);
+
+        var votes = new List<Vote>(safeVotesPerItem);
+        for (var voteIndex = 0; voteIndex < safeVotesPerItem; voteIndex++)
+        {
+            var like = voteIndex < likeCount;
+            votes.Add(new Vote
             {
                 Id = Guid.NewGuid(),
                 TenantId = tenantId,
-                Name = $"FAQ {i:000}",
-                Language = languages[(i - 1) % languages.Length],
-                Status = status,
-                SortStrategy = sort,
-                CtaEnabled = ctaEnabled,
-                CtaTarget = ctaTarget
+                FaqItemId = faqItemId,
+                Like = like,
+                UserPrint = $"seed-feedback-{faqIndex + 1:00}-{itemIndex + 1:00}-{voteIndex + 1:00}",
+                Ip = $"198.51.100.{((faqIndex * 40) + (itemIndex * 7) + voteIndex) % 200 + 1}",
+                UserAgent = userAgentSamples[(faqIndex + itemIndex + voteIndex) % userAgentSamples.Length],
+                UnLikeReason = like ? null : unlikeReasons[(faqIndex + itemIndex + voteIndex) % unlikeReasons.Length]
             });
         }
 
-        return faqs;
+        return new VoteBatch(
+            VoteScore: likeCount - (safeVotesPerItem - likeCount),
+            Votes: votes);
     }
+
+    private sealed record VoteBatch(int VoteScore, List<Vote> Votes);
 }

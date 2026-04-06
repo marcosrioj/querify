@@ -46,7 +46,7 @@ public sealed class TenantSeedService : ITenantSeedService
         });
     }
 
-    public Guid SeedDummyData(TenantDbContext dbContext, TenantSeedRequest request, SeedCounts counts)
+    public Guid SeedSampleData(TenantDbContext dbContext, TenantSeedRequest request, SeedCounts counts)
     {
         var existingExternalIds = dbContext.Users.AsNoTracking().Select(user => user.ExternalId).ToHashSet();
         var existingSlugs = dbContext.Tenants.AsNoTracking().Select(tenant => tenant.Slug).ToHashSet();
