@@ -1,11 +1,10 @@
-import { Link, useMatches } from 'react-router-dom';
-import { AppRouteHandle } from '@/app/router/route-types';
-import { NotificationsMenu } from '@/domains/shell/notifications-menu';
-import { PortalCommandDialog } from '@/domains/shell/portal-command-dialog';
-import { TenantSwitcher } from '@/domains/shell/tenant-switcher';
-import { UserMenu } from '@/domains/shell/user-menu';
-import { portalNavigation } from '@/shared/constants/navigation';
-import { Container } from '@/shared/layout/container';
+import { Link, useMatches } from "react-router-dom";
+import { AppRouteHandle } from "@/app/router/route-types";
+import { NotificationsMenu } from "@/domains/shell/notifications-menu";
+import { PortalCommandDialog } from "@/domains/shell/portal-command-dialog";
+import { UserMenu } from "@/domains/shell/user-menu";
+import { portalNavigation } from "@/shared/constants/navigation";
+import { Container } from "@/shared/layout/container";
 
 type RoutedHandle = AppRouteHandle;
 
@@ -53,7 +52,7 @@ function ToolbarBreadcrumbs() {
 function ToolbarHeading() {
   const handles = useRouteHandles();
   const current = handles.at(-1);
-  const title = current?.title ?? 'BaseFAQ Portal';
+  const title = current?.title ?? "BaseFAQ Portal";
 
   return (
     <div className="flex flex-col flex-wrap gap-1 md:flex-row md:items-center lg:gap-5">
@@ -66,7 +65,6 @@ function ToolbarHeading() {
 function ToolbarActions() {
   return (
     <div className="flex items-center gap-1.5 lg:gap-3.5">
-      <TenantSwitcher />
       <PortalCommandDialog />
       <NotificationsMenu />
       <UserMenu />
