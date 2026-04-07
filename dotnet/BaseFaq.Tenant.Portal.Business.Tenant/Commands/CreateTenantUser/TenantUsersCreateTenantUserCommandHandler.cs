@@ -1,7 +1,6 @@
 using System.Net;
 using BaseFaq.Common.EntityFramework.Tenant;
 using BaseFaq.Common.EntityFramework.Tenant.Entities;
-using BaseFaq.Common.EntityFramework.Tenant.Helpers;
 using BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception;
 using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Common.Infrastructure.Core.Helpers;
@@ -21,7 +20,14 @@ public class TenantUsersCreateTenantUserCommandHandler(
     public async Task<Guid> Handle(TenantUsersCreateTenantUserCommand request, CancellationToken cancellationToken)
     {
         var tenantId = request.TenantId;
-        await tenantPortalAccessService.EnsureAccessAsync(tenantId, cancellationToken);
+        await tenantPortalAccessService.EnsureOwnerAccessAsync(tenantId, cancellationToken);
+
+        if (request.Role != TenantUserRoleType.Member)
+        {
+            throw new ApiErrorException(
+                "Portal users can only add members to the workspace.",
+                errorCode: (int)HttpStatusCode.BadRequest);
+        }
 
         var user = await ResolveUserByEmailAsync(request.Email, cancellationToken);
 
@@ -37,19 +43,10 @@ public class TenantUsersCreateTenantUserCommandHandler(
                 errorCode: (int)HttpStatusCode.Conflict);
         }
 
-        var previousOwnerUserId = await dbContext.TenantUsers
-            .AsNoTracking()
-            .Where(entity => entity.TenantId == tenantId)
-            .Select(entity => entity.Role == TenantUserRoleType.Owner ? (Guid?)entity.UserId : null)
-            .FirstOrDefaultAsync(entity => entity.HasValue, cancellationToken);
-
         var tenantUser = await CreateTenantUserAsync(tenantId, request.Role, user.Id, cancellationToken);
 
         await dbContext.SaveChangesAsync(cancellationToken);
-        await AllowedTenantCacheHelper.RemoveUserEntries(
-            allowedTenantStore,
-            [user.Id, previousOwnerUserId ?? Guid.Empty],
-            cancellationToken);
+        await AllowedTenantCacheHelper.RemoveUserEntries(allowedTenantStore, [user.Id], cancellationToken);
 
         return tenantUser.Id;
     }
@@ -60,47 +57,16 @@ public class TenantUsersCreateTenantUserCommandHandler(
         Guid userId,
         CancellationToken cancellationToken)
     {
-        if (role != TenantUserRoleType.Owner)
-        {
-            var tenantUser = new TenantUser
-            {
-                Id = Guid.NewGuid(),
-                TenantId = tenantId,
-                UserId = userId,
-                Role = role
-            };
-
-            await dbContext.TenantUsers.AddAsync(tenantUser, cancellationToken);
-            return tenantUser;
-        }
-
-        var tenantUsers = await dbContext.TenantUsers
-            .Where(entity => entity.TenantId == tenantId)
-            .ToListAsync(cancellationToken);
-
-        foreach (var tenantUser in tenantUsers)
-        {
-            tenantUser.Role = tenantUser.UserId == userId
-                ? TenantUserRoleType.Owner
-                : TenantUserRoleType.Member;
-        }
-
-        var ownerTenantUser = tenantUsers.FirstOrDefault(entity => entity.UserId == userId);
-        if (ownerTenantUser is not null)
-        {
-            return ownerTenantUser;
-        }
-
-        ownerTenantUser = new TenantUser
+        var tenantUser = new TenantUser
         {
             Id = Guid.NewGuid(),
             TenantId = tenantId,
             UserId = userId,
-            Role = TenantUserRoleType.Owner
+            Role = role
         };
 
-        await dbContext.TenantUsers.AddAsync(ownerTenantUser, cancellationToken);
-        return ownerTenantUser;
+        await dbContext.TenantUsers.AddAsync(tenantUser, cancellationToken);
+        return tenantUser;
     }
 
     private async Task<User> ResolveUserByEmailAsync(string email, CancellationToken cancellationToken)

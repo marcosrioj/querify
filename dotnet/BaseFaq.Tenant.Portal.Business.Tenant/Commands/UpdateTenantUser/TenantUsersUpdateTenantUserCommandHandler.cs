@@ -1,6 +1,5 @@
 using System.Net;
 using BaseFaq.Common.EntityFramework.Tenant;
-using BaseFaq.Common.EntityFramework.Tenant.Helpers;
 using BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception;
 using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Common.Infrastructure.Core.Helpers;
@@ -18,9 +17,16 @@ public class TenantUsersUpdateTenantUserCommandHandler(
 {
     public async Task Handle(TenantUsersUpdateTenantUserCommand request, CancellationToken cancellationToken)
     {
-        var tenant = await tenantPortalAccessService.GetAccessibleTenantWithUsersAsync(
+        var tenant = await tenantPortalAccessService.GetOwnedTenantWithUsersAsync(
             request.TenantId,
             cancellationToken);
+
+        if (request.Role != TenantUserRoleType.Member)
+        {
+            throw new ApiErrorException(
+                "Portal users can only update workspace members with the member role.",
+                errorCode: (int)HttpStatusCode.BadRequest);
+        }
 
         var tenantUser = tenant.TenantUsers.FirstOrDefault(entity => entity.Id == request.Id);
         if (tenantUser is null)
@@ -37,21 +43,9 @@ public class TenantUsersUpdateTenantUserCommandHandler(
                 errorCode: (int)HttpStatusCode.BadRequest);
         }
 
-        var previousOwnerUserId = TenantUserHelper.GetOwnerUserId(tenant.TenantUsers);
-
-        if (request.Role == TenantUserRoleType.Owner)
-        {
-            TenantUserHelper.SetOwner(tenant.TenantUsers, tenant.Id, tenantUser.UserId);
-        }
-        else
-        {
-            tenantUser.Role = request.Role;
-        }
+        tenantUser.Role = request.Role;
 
         await dbContext.SaveChangesAsync(cancellationToken);
-        await AllowedTenantCacheHelper.RemoveUserEntries(
-            allowedTenantStore,
-            [tenantUser.UserId, previousOwnerUserId ?? Guid.Empty],
-            cancellationToken);
+        await AllowedTenantCacheHelper.RemoveUserEntries(allowedTenantStore, [tenantUser.UserId], cancellationToken);
     }
 }

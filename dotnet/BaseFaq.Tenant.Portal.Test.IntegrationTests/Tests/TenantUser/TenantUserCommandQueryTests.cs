@@ -1,4 +1,5 @@
 using BaseFaq.Models.Tenant.Enums;
+using BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception;
 using BaseFaq.Tenant.Portal.Business.Tenant.Commands.CreateTenantUser;
 using BaseFaq.Tenant.Portal.Business.Tenant.Commands.DeleteTenantUser;
 using BaseFaq.Tenant.Portal.Business.Tenant.Commands.UpdateTenantUser;
@@ -85,7 +86,77 @@ public class TenantUserCommandQueryTests
     }
 
     [Fact]
-    public async Task UpdateTenantUser_PromotesMemberToOwner()
+    public async Task CreateTenantUser_ThrowsWhenCurrentUserIsNotOwner()
+    {
+        var tenantId = Guid.NewGuid();
+        var ownerUserId = Guid.NewGuid();
+        var currentUserId = Guid.NewGuid();
+        using var context = TestContext.Create(tenantId: tenantId, userId: currentUserId);
+
+        await TestDataFactory.SeedTenantAsync(
+            context.DbContext,
+            id: tenantId,
+            userId: ownerUserId);
+        await TestDataFactory.SeedTenantUserAsync(
+            context.DbContext,
+            tenantId,
+            userId: currentUserId,
+            role: TenantUserRoleType.Member);
+        await TestDataFactory.SeedUserAsync(
+            context.DbContext,
+            email: "invitee@example.test");
+
+        var handler = new TenantUsersCreateTenantUserCommandHandler(
+            context.DbContext,
+            new TestAllowedTenantStore(),
+            new TenantPortalAccessService(context.DbContext, context.SessionService));
+
+        var exception = await Assert.ThrowsAsync<ApiErrorException>(() => handler.Handle(
+            new TenantUsersCreateTenantUserCommand
+            {
+                TenantId = tenantId,
+                Email = "invitee@example.test",
+                Role = TenantUserRoleType.Member
+            },
+            CancellationToken.None));
+
+        Assert.Equal(403, exception.ErrorCode);
+    }
+
+    [Fact]
+    public async Task CreateTenantUser_ThrowsWhenRequestRoleIsOwner()
+    {
+        var tenantId = Guid.NewGuid();
+        var currentUserId = Guid.NewGuid();
+        using var context = TestContext.Create(tenantId: tenantId, userId: currentUserId);
+
+        await TestDataFactory.SeedTenantAsync(
+            context.DbContext,
+            id: tenantId,
+            userId: currentUserId);
+        await TestDataFactory.SeedUserAsync(
+            context.DbContext,
+            email: "invitee@example.test");
+
+        var handler = new TenantUsersCreateTenantUserCommandHandler(
+            context.DbContext,
+            new TestAllowedTenantStore(),
+            new TenantPortalAccessService(context.DbContext, context.SessionService));
+
+        var exception = await Assert.ThrowsAsync<ApiErrorException>(() => handler.Handle(
+            new TenantUsersCreateTenantUserCommand
+            {
+                TenantId = tenantId,
+                Email = "invitee@example.test",
+                Role = TenantUserRoleType.Owner
+            },
+            CancellationToken.None));
+
+        Assert.Equal(400, exception.ErrorCode);
+    }
+
+    [Fact]
+    public async Task UpdateTenantUser_KeepsMemberRole_WhenCurrentUserIsOwner()
     {
         var tenantId = Guid.NewGuid();
         var currentUserId = Guid.NewGuid();
@@ -114,7 +185,7 @@ public class TenantUserCommandQueryTests
             {
                 TenantId = tenantId,
                 Id = memberLink.Id,
-                Role = TenantUserRoleType.Owner
+                Role = TenantUserRoleType.Member
             },
             CancellationToken.None);
 
@@ -123,10 +194,90 @@ public class TenantUserCommandQueryTests
             .OrderBy(entity => entity.UserId)
             .ToListAsync();
 
-        Assert.Contains(tenantUsers, entity => entity.UserId == member.Id && entity.Role == TenantUserRoleType.Owner);
+        Assert.Contains(tenantUsers, entity => entity.UserId == member.Id && entity.Role == TenantUserRoleType.Member);
         Assert.Contains(
             tenantUsers,
-            entity => entity.UserId == currentUserId && entity.Role == TenantUserRoleType.Member);
+            entity => entity.UserId == currentUserId && entity.Role == TenantUserRoleType.Owner);
+    }
+
+    [Fact]
+    public async Task UpdateTenantUser_ThrowsWhenCurrentUserIsNotOwner()
+    {
+        var tenantId = Guid.NewGuid();
+        var ownerUserId = Guid.NewGuid();
+        var currentUserId = Guid.NewGuid();
+        using var context = TestContext.Create(tenantId: tenantId, userId: currentUserId);
+
+        await TestDataFactory.SeedTenantAsync(
+            context.DbContext,
+            id: tenantId,
+            userId: ownerUserId);
+        await TestDataFactory.SeedTenantUserAsync(
+            context.DbContext,
+            tenantId,
+            userId: currentUserId,
+            role: TenantUserRoleType.Member);
+        var member = await TestDataFactory.SeedUserAsync(
+            context.DbContext,
+            email: "member@example.test");
+        var memberLink = await TestDataFactory.SeedTenantUserAsync(
+            context.DbContext,
+            tenantId,
+            userId: member.Id,
+            role: TenantUserRoleType.Member);
+
+        var handler = new TenantUsersUpdateTenantUserCommandHandler(
+            context.DbContext,
+            new TestAllowedTenantStore(),
+            new TenantPortalAccessService(context.DbContext, context.SessionService));
+
+        var exception = await Assert.ThrowsAsync<ApiErrorException>(() => handler.Handle(
+            new TenantUsersUpdateTenantUserCommand
+            {
+                TenantId = tenantId,
+                Id = memberLink.Id,
+                Role = TenantUserRoleType.Member
+            },
+            CancellationToken.None));
+
+        Assert.Equal(403, exception.ErrorCode);
+    }
+
+    [Fact]
+    public async Task UpdateTenantUser_ThrowsWhenRequestRoleIsOwner()
+    {
+        var tenantId = Guid.NewGuid();
+        var currentUserId = Guid.NewGuid();
+        using var context = TestContext.Create(tenantId: tenantId, userId: currentUserId);
+
+        await TestDataFactory.SeedTenantAsync(
+            context.DbContext,
+            id: tenantId,
+            userId: currentUserId);
+        var member = await TestDataFactory.SeedUserAsync(
+            context.DbContext,
+            email: "member@example.test");
+        var memberLink = await TestDataFactory.SeedTenantUserAsync(
+            context.DbContext,
+            tenantId,
+            userId: member.Id,
+            role: TenantUserRoleType.Member);
+
+        var handler = new TenantUsersUpdateTenantUserCommandHandler(
+            context.DbContext,
+            new TestAllowedTenantStore(),
+            new TenantPortalAccessService(context.DbContext, context.SessionService));
+
+        var exception = await Assert.ThrowsAsync<ApiErrorException>(() => handler.Handle(
+            new TenantUsersUpdateTenantUserCommand
+            {
+                TenantId = tenantId,
+                Id = memberLink.Id,
+                Role = TenantUserRoleType.Owner
+            },
+            CancellationToken.None));
+
+        Assert.Equal(400, exception.ErrorCode);
     }
 
     [Fact]
@@ -169,5 +320,43 @@ public class TenantUserCommandQueryTests
             .FirstOrDefaultAsync(entity => entity.Id == memberLink.Id);
         Assert.NotNull(deletedTenantUser);
         Assert.True(deletedTenantUser!.IsDeleted);
+    }
+
+    [Fact]
+    public async Task DeleteTenantUser_ThrowsWhenCurrentUserIsNotOwner()
+    {
+        var tenantId = Guid.NewGuid();
+        var ownerUserId = Guid.NewGuid();
+        var currentUserId = Guid.NewGuid();
+        using var context = TestContext.Create(tenantId: tenantId, userId: currentUserId);
+
+        await TestDataFactory.SeedTenantAsync(
+            context.DbContext,
+            id: tenantId,
+            userId: ownerUserId);
+        await TestDataFactory.SeedTenantUserAsync(
+            context.DbContext,
+            tenantId,
+            userId: currentUserId,
+            role: TenantUserRoleType.Member);
+        var member = await TestDataFactory.SeedUserAsync(
+            context.DbContext,
+            email: "member@example.test");
+        var memberLink = await TestDataFactory.SeedTenantUserAsync(
+            context.DbContext,
+            tenantId,
+            userId: member.Id,
+            role: TenantUserRoleType.Member);
+
+        var handler = new TenantUsersDeleteTenantUserCommandHandler(
+            context.DbContext,
+            new TestAllowedTenantStore(),
+            new TenantPortalAccessService(context.DbContext, context.SessionService));
+
+        var exception = await Assert.ThrowsAsync<ApiErrorException>(() => handler.Handle(
+            new TenantUsersDeleteTenantUserCommand { TenantId = tenantId, Id = memberLink.Id },
+            CancellationToken.None));
+
+        Assert.Equal(403, exception.ErrorCode);
     }
 }

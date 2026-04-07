@@ -2,6 +2,7 @@ using System.Net;
 using BaseFaq.Common.EntityFramework.Tenant;
 using BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception;
 using BaseFaq.Common.Infrastructure.Core.Abstractions;
+using BaseFaq.Models.Tenant.Enums;
 using BaseFaq.Tenant.Portal.Business.Tenant.Abstractions;
 using Microsoft.EntityFrameworkCore;
 using EntityTenant = BaseFaq.Common.EntityFramework.Tenant.Entities.Tenant;
@@ -18,6 +19,11 @@ public class TenantPortalAccessService(
         _ = await GetAccessibleTenantAsync(tenantId, cancellationToken);
     }
 
+    public async Task EnsureOwnerAccessAsync(Guid tenantId, CancellationToken cancellationToken)
+    {
+        _ = await GetOwnedTenantWithUsersAsync(tenantId, cancellationToken);
+    }
+
     public Task<EntityTenant> GetAccessibleTenantAsync(Guid tenantId, CancellationToken cancellationToken)
     {
         return GetAccessibleTenantInternalAsync(tenantId, cancellationToken);
@@ -26,6 +32,11 @@ public class TenantPortalAccessService(
     public Task<EntityTenant> GetAccessibleTenantWithUsersAsync(Guid tenantId, CancellationToken cancellationToken)
     {
         return GetAccessibleTenantWithUsersInternalAsync(tenantId, cancellationToken);
+    }
+
+    public Task<EntityTenant> GetOwnedTenantWithUsersAsync(Guid tenantId, CancellationToken cancellationToken)
+    {
+        return GetOwnedTenantWithUsersInternalAsync(tenantId, cancellationToken);
     }
 
     private async Task<EntityTenant> GetAccessibleTenantInternalAsync(
@@ -42,16 +53,17 @@ public class TenantPortalAccessService(
         CancellationToken cancellationToken)
     {
         var tenant = await GetTenantOrThrowAsync(tenantId, includeTenantUsers: true, cancellationToken);
-        var currentUserId = sessionService.GetUserId();
+        EnsureUserHasAccessToLoadedTenant(tenant, requiresOwner: false);
+        return tenant;
+    }
 
-        if (tenant.TenantUsers.Any(entity => entity.UserId == currentUserId))
-        {
-            return tenant;
-        }
-
-        throw new ApiErrorException(
-            "The selected workspace is not available for the current user.",
-            errorCode: (int)HttpStatusCode.Forbidden);
+    private async Task<EntityTenant> GetOwnedTenantWithUsersInternalAsync(
+        Guid tenantId,
+        CancellationToken cancellationToken)
+    {
+        var tenant = await GetTenantOrThrowAsync(tenantId, includeTenantUsers: true, cancellationToken);
+        EnsureUserHasAccessToLoadedTenant(tenant, requiresOwner: true);
+        return tenant;
     }
 
     private async Task<EntityTenant> GetTenantOrThrowAsync(
@@ -98,6 +110,28 @@ public class TenantPortalAccessService(
 
         throw new ApiErrorException(
             "The selected workspace is not available for the current user.",
+            errorCode: (int)HttpStatusCode.Forbidden);
+    }
+
+    private void EnsureUserHasAccessToLoadedTenant(EntityTenant tenant, bool requiresOwner)
+    {
+        var currentUserId = sessionService.GetUserId();
+        var tenantUser = tenant.TenantUsers.FirstOrDefault(entity => entity.UserId == currentUserId);
+
+        if (tenantUser is null)
+        {
+            throw new ApiErrorException(
+                "The selected workspace is not available for the current user.",
+                errorCode: (int)HttpStatusCode.Forbidden);
+        }
+
+        if (!requiresOwner || tenantUser.Role == TenantUserRoleType.Owner)
+        {
+            return;
+        }
+
+        throw new ApiErrorException(
+            "Only the workspace owner can manage members.",
             errorCode: (int)HttpStatusCode.Forbidden);
     }
 }
