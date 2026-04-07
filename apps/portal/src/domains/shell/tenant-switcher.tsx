@@ -223,7 +223,7 @@ export function TenantSwitcher() {
                       void handleTenantChange(tenant.id);
                     }}
                     className={cn(
-                      "mb-1.5 items-start gap-3 rounded-xl border px-3 py-2.5 transition-colors last:mb-0",
+                      "group mb-1.5 cursor-pointer items-start gap-3 rounded-xl border px-3 py-2.5 transition-all last:mb-0 hover:-translate-y-px hover:border-border/70 hover:bg-muted/45 hover:shadow-xs",
                       isSelected
                         ? "border-primary/20 bg-primary/[0.05]"
                         : "border-transparent bg-transparent",
@@ -232,7 +232,7 @@ export function TenantSwitcher() {
                   >
                     <span
                       className={cn(
-                        "mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-sm border",
+                        "mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-sm border transition-colors group-hover:border-primary/40",
                         isSelected
                           ? "border-primary bg-primary text-primary-foreground"
                           : "border-input text-transparent",
