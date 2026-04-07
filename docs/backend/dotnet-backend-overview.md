@@ -52,6 +52,8 @@ Each service area is split into feature projects. Examples:
   - `BaseFaq.AI.Business.Common`
   - `BaseFaq.AI.Business.Generation`
   - `BaseFaq.AI.Business.Matching`
+  - `BaseFaq.AI.Common.Contracts`
+  - `BaseFaq.AI.Common.VectorStore` (currently a scaffold project)
 
 ### Shared infrastructure and persistence
 
@@ -65,6 +67,8 @@ Each service area is split into feature projects. Examples:
 - `BaseFaq.Tools.Migration`: tenant-aware migration runner for FAQ databases
 - `BaseFaq.Tools.Seed`: console seed application for essential and sample data
 - `*.Test.IntegrationTests` and `BaseFaq.AI.Test.IntegrationTest`: integration coverage by service area
+- `BaseFaq.Common.Architecture.Test.IntegrationTest`: repository rule-compliance tests for `PROJECT_RULES.md`
+- `BaseFaq.Sample.Ai.Generation`: standalone sample console app used for prompt and provider experimentation
 
 ## Standard request flow
 

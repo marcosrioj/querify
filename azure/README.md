@@ -2,6 +2,8 @@
 
 This folder provides a stage-based Azure setup for BaseFaq.
 
+For the shorter architecture-level summary, start with [`../docs/devops/azure-delivery.md`](../docs/devops/azure-delivery.md).
+
 You choose the stage when running scripts:
 
 - `dev`
@@ -103,6 +105,8 @@ Modes:
 ./azure/run-migrations.sh --stage dev
 ./azure/deploy.sh --stage dev
 ```
+
+`setup.sh` does not call `run-migrations.sh`; use that script explicitly when you want schema migration as a separate stage.
 
 You can override env file path in any script:
 

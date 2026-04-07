@@ -2,20 +2,34 @@
 
 ## Purpose
 
-This document explains the engineering-side multi-agent runtime that lives under `agents/`. It is not the product AI runtime. It is the repository automation layer used to plan, implement, document, and review engineering work.
+This document explains the intended role of the `agents/` area in the repository and clarifies its current state.
 
 ## Why it is separate from `dotnet/BaseFaq.AI.*`
 
 The repository contains two different AI concerns:
 
 - `dotnet/BaseFaq.AI.*`: product-facing generation and matching workers used by BaseFAQ itself
-- `agents/`: engineering execution helpers used to work on the repository
+- `agents/`: a reserved space for engineering-side automation and related documentation
 
 Keeping them separate avoids mixing product runtime requirements with developer automation concerns.
 
+## Current state
+
+The `agents/` folder is documentation-only today. It does not contain a runnable multi-agent implementation yet.
+
+What exists now:
+
+- [`agents/README.md`](../../agents/README.md)
+
+What does not exist yet:
+
+- a checked-in agent runtime
+- specialist agent source files
+- repository-local orchestration code under `agents/`
+
 ## Scope in this repository
 
-The multi-agent system is designed around the same repository boundaries as the rest of BaseFAQ:
+If the engineering-side automation model is implemented in the future, it should align with the same repository boundaries as the rest of BaseFAQ:
 
 - `apps/` for frontend work
 - `dotnet/` for APIs, business modules, and persistence
@@ -26,7 +40,7 @@ The multi-agent system is designed around the same repository boundaries as the 
 
 ### Lead agent
 
-The lead agent is expected to:
+If implemented, the lead agent should:
 
 - read the request
 - decompose the work
@@ -35,7 +49,7 @@ The lead agent is expected to:
 
 ### Specialist roles
 
-The specialist split mirrors the repository:
+If implemented, the specialist split should mirror the repository:
 
 - frontend and design-system work
 - backend and API work
@@ -45,7 +59,7 @@ The specialist split mirrors the repository:
 
 ## Guardrails
 
-The multi-agent runtime is intentionally governed.
+Any future multi-agent runtime should be intentionally governed.
 
 ### Human review is still required for high-risk changes
 

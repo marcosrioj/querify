@@ -18,11 +18,13 @@ Practical consequences:
 Default building blocks in `apps/portal`:
 
 - layout primitives from `src/shared/layout/page-layouts.tsx`
-- `Card` and `InsetCard`
+- `Card`
 - `FormSectionHeading` and shared field components from `form-fields.tsx`
 - `ProgressChecklistCard`
 - `ConfirmAction`
 - `ContextHint`
+- `EmptyState` and `ErrorState` from `src/shared/ui/placeholder-state.tsx`
+- shared skeletons from `src/shared/ui/loading-states.tsx`
 
 If a shared primitive already matches the use case, do not replace it with ad hoc utility-heavy markup.
 

@@ -16,7 +16,7 @@ This folder is the canonical knowledge base for the repository. The root `README
 
 - [`architecture/solution-architecture.md`](architecture/solution-architecture.md): overall solution shape, service boundaries, data ownership, and architectural patterns.
 - [`architecture/basefaq-ai-generation-matching-architecture.md`](architecture/basefaq-ai-generation-matching-architecture.md): current AI runtime, message flow, and implementation status.
-- [`architecture/basefaq-multi-agent-system.md`](architecture/basefaq-multi-agent-system.md): engineering-side multi-agent runtime kept under `agents/`.
+- [`architecture/basefaq-multi-agent-system.md`](architecture/basefaq-multi-agent-system.md): current status and intended role of the `agents/` area, which is documentation-only today.
 
 ### Frontend
 
@@ -46,6 +46,14 @@ This folder is the canonical knowledge base for the repository. The root `README
 ### Release
 
 - [`release/README.md`](release/README.md): where to keep release plans, rollout checklists, and versioned release evidence.
+
+### Project-local docs
+
+- [`../PROJECT_RULES.md`](../PROJECT_RULES.md): repository-wide coding and architecture guardrails enforced by the architecture compliance tests.
+- [`../agents/README.md`](../agents/README.md): current status of the `agents/` folder and its intended future role.
+- [`../apps/portal/README.md`](../apps/portal/README.md): project-local Portal app readme beside the frontend source.
+- [`../azure/README.md`](../azure/README.md): script-local Azure deployment reference.
+- [`../local/env/simulatedev/README.md`](../local/env/simulatedev/README.md): local subdomain helper readme beside the helper scripts.
 
 ## Documentation rules
 

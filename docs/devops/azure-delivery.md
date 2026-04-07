@@ -52,6 +52,8 @@ Repeat with `qa` or `prod` as needed.
 ./azure/setup.sh --stage prod
 ```
 
+`setup.sh` runs `provision.sh`, `bootstrap-data.sh`, and `deploy.sh`. It does not call `run-migrations.sh` directly.
+
 ### Explicit phase-by-phase flow
 
 ```bash

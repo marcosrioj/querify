@@ -56,6 +56,10 @@ Choose `3` if you want a clean environment with sample content.
 
 Choose `2` if you only need AI provider metadata and the AI Agent user.
 
+### Sample-only setup
+
+Choose `1` only when essential data already exists. On a clean environment, option `1` will stop and ask you to run the essential seed first.
+
 ### Resetting local state
 
 Choose `4` when you want to clear the databases without immediately recreating data.
@@ -78,8 +82,8 @@ If the user id changes and the AI host is still pointing to the old value, AI-re
 ## Recommended order of operations
 
 1. start infrastructure
-2. run the migration tool
-3. run the seed tool
+2. on a clean environment, run the seed tool or manually migrate `TenantDbContext`
+3. use the migration tool later when you need to apply FAQ schema updates across tenant FAQ databases
 4. run the APIs and frontend
 
 ## Related documents
