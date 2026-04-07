@@ -9,6 +9,7 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddTenantBusiness(this IServiceCollection services)
     {
+        services.AddScoped<ITenantPortalAccessService, TenantPortalAccessService>();
         services.AddScoped<ITenantService, TenantService>();
         services.AddScoped<ITenantAiProviderService, TenantAiProviderService>();
         services.AddScoped<ITenantUserService, TenantUserService>();

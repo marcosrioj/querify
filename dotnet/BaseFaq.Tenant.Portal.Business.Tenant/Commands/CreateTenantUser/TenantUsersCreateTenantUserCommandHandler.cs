@@ -5,9 +5,8 @@ using BaseFaq.Common.EntityFramework.Tenant.Helpers;
 using BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception;
 using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Common.Infrastructure.Core.Helpers;
-using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.Tenant.Enums;
-using BaseFaq.Tenant.Portal.Business.Tenant.Helpers;
+using BaseFaq.Tenant.Portal.Business.Tenant.Abstractions;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -15,26 +14,16 @@ namespace BaseFaq.Tenant.Portal.Business.Tenant.Commands.CreateTenantUser;
 
 public class TenantUsersCreateTenantUserCommandHandler(
     TenantDbContext dbContext,
-    ISessionService sessionService,
-    IAllowedTenantStore allowedTenantStore)
+    IAllowedTenantStore allowedTenantStore,
+    ITenantPortalAccessService tenantPortalAccessService)
     : IRequestHandler<TenantUsersCreateTenantUserCommand, Guid>
 {
     public async Task<Guid> Handle(TenantUsersCreateTenantUserCommand request, CancellationToken cancellationToken)
     {
-        var currentUserId = sessionService.GetUserId();
         var tenantId = request.TenantId;
-        await TenantAccessHelper.EnsureAccessAsync(dbContext, tenantId, currentUserId, AppEnum.Faq, cancellationToken);
+        await tenantPortalAccessService.EnsureAccessAsync(tenantId, cancellationToken);
 
         var user = await ResolveUserByEmailAsync(request.Email, cancellationToken);
-        var tenantExists = await dbContext.Tenants
-            .AnyAsync(entity => entity.Id == tenantId && entity.IsActive, cancellationToken);
-
-        if (!tenantExists)
-        {
-            throw new ApiErrorException(
-                $"Tenant '{tenantId}' was not found.",
-                errorCode: (int)HttpStatusCode.NotFound);
-        }
 
         var tenantUserExists = await dbContext.TenantUsers
             .AnyAsync(

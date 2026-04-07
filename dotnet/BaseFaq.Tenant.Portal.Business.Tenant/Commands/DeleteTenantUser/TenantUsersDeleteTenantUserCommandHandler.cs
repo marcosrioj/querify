@@ -3,9 +3,8 @@ using BaseFaq.Common.EntityFramework.Tenant;
 using BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception;
 using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Common.Infrastructure.Core.Helpers;
-using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.Tenant.Enums;
-using BaseFaq.Tenant.Portal.Business.Tenant.Helpers;
+using BaseFaq.Tenant.Portal.Business.Tenant.Abstractions;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,18 +12,16 @@ namespace BaseFaq.Tenant.Portal.Business.Tenant.Commands.DeleteTenantUser;
 
 public class TenantUsersDeleteTenantUserCommandHandler(
     TenantDbContext dbContext,
-    ISessionService sessionService,
-    IAllowedTenantStore allowedTenantStore)
+    IAllowedTenantStore allowedTenantStore,
+    ITenantPortalAccessService tenantPortalAccessService)
     : IRequestHandler<TenantUsersDeleteTenantUserCommand>
 {
     public async Task Handle(TenantUsersDeleteTenantUserCommand request, CancellationToken cancellationToken)
     {
-        var currentUserId = sessionService.GetUserId();
-        var tenantId = request.TenantId;
-        await TenantAccessHelper.EnsureAccessAsync(dbContext, tenantId, currentUserId, AppEnum.Faq, cancellationToken);
+        await tenantPortalAccessService.EnsureAccessAsync(request.TenantId, cancellationToken);
 
         var tenantUser = await dbContext.TenantUsers
-            .FirstOrDefaultAsync(entity => entity.Id == request.Id && entity.TenantId == tenantId, cancellationToken);
+            .FirstOrDefaultAsync(entity => entity.Id == request.Id && entity.TenantId == request.TenantId, cancellationToken);
 
         if (tenantUser is null)
         {

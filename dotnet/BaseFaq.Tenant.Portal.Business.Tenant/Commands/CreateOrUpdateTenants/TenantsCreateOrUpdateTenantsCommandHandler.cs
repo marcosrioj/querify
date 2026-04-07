@@ -1,21 +1,20 @@
 using BaseFaq.Common.EntityFramework.Tenant;
 using BaseFaq.Common.EntityFramework.Tenant.Helpers;
-using BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception;
 using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Common.Infrastructure.Core.Helpers;
 using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.Tenant.Enums;
-using BaseFaq.Tenant.Portal.Business.Tenant.Helpers;
+using BaseFaq.Tenant.Portal.Business.Tenant.Abstractions;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using System.Net;
 
 namespace BaseFaq.Tenant.Portal.Business.Tenant.Commands.CreateOrUpdateTenants;
 
 public class TenantsCreateOrUpdateTenantsCommandHandler(
     TenantDbContext dbContext,
     ISessionService sessionService,
-    IAllowedTenantStore allowedTenantStore)
+    IAllowedTenantStore allowedTenantStore,
+    ITenantPortalAccessService tenantPortalAccessService)
     : IRequestHandler<TenantsCreateOrUpdateTenantsCommand, bool>
 {
     public async Task<bool> Handle(TenantsCreateOrUpdateTenantsCommand request,
@@ -30,7 +29,6 @@ public class TenantsCreateOrUpdateTenantsCommandHandler(
             await UpdateSelectedTenantAsync(
                 request,
                 selectedTenantId.Value,
-                userId,
                 currentConnections,
                 cancellationToken);
         }
@@ -117,20 +115,10 @@ public class TenantsCreateOrUpdateTenantsCommandHandler(
     private async Task UpdateSelectedTenantAsync(
         TenantsCreateOrUpdateTenantsCommand request,
         Guid tenantId,
-        Guid userId,
         IReadOnlyDictionary<AppEnum, string> currentConnections,
         CancellationToken cancellationToken)
     {
-        var tenant = await dbContext.Tenants
-            .FirstOrDefaultAsync(entity => entity.Id == tenantId && entity.IsActive, cancellationToken);
-        if (tenant is null)
-        {
-            throw new ApiErrorException(
-                $"Tenant '{tenantId}' was not found.",
-                errorCode: (int)HttpStatusCode.NotFound);
-        }
-
-        await TenantAccessHelper.EnsureAccessAsync(dbContext, tenantId, userId, tenant.App, cancellationToken);
+        var tenant = await tenantPortalAccessService.GetAccessibleTenantAsync(tenantId, cancellationToken);
 
         tenant.Slug = await GenerateUniqueSlugAsync(request.Name, tenant.App, tenant.Id, cancellationToken);
         tenant.Name = request.Name;

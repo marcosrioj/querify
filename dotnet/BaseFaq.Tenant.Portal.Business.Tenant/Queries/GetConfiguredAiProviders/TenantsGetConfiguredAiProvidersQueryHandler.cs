@@ -1,8 +1,6 @@
 using BaseFaq.Common.EntityFramework.Tenant;
-using BaseFaq.Common.Infrastructure.Core.Abstractions;
-using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.Tenant.Dtos.TenantAiProvider;
-using BaseFaq.Tenant.Portal.Business.Tenant.Helpers;
+using BaseFaq.Tenant.Portal.Business.Tenant.Abstractions;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,20 +8,18 @@ namespace BaseFaq.Tenant.Portal.Business.Tenant.Queries.GetConfiguredAiProviders
 
 public class TenantsGetConfiguredAiProvidersQueryHandler(
     TenantDbContext dbContext,
-    ISessionService sessionService)
+    ITenantPortalAccessService tenantPortalAccessService)
     : IRequestHandler<TenantsGetConfiguredAiProvidersQuery, List<TenantAiProviderDto>>
 {
     public async Task<List<TenantAiProviderDto>> Handle(TenantsGetConfiguredAiProvidersQuery request,
         CancellationToken cancellationToken)
     {
-        var userId = sessionService.GetUserId();
-        var tenantId = request.TenantId;
-        await TenantAccessHelper.EnsureAccessAsync(dbContext, tenantId, userId, AppEnum.Faq, cancellationToken);
+        await tenantPortalAccessService.EnsureAccessAsync(request.TenantId, cancellationToken);
 
         return await dbContext.TenantAiProviders
             .AsNoTracking()
             .Include(x => x.AiProvider)
-            .Where(x => x.TenantId == tenantId)
+            .Where(x => x.TenantId == request.TenantId)
             .OrderBy(x => x.AiProvider.Command)
             .ThenBy(x => x.AiProvider.Provider)
             .ThenBy(x => x.AiProvider.Model)

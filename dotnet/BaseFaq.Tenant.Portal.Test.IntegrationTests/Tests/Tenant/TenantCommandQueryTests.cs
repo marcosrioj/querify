@@ -4,6 +4,7 @@ using BaseFaq.Tenant.Portal.Business.Tenant.Commands.CreateOrUpdateTenants;
 using BaseFaq.Tenant.Portal.Business.Tenant.Commands.GenerateNewClientKey;
 using BaseFaq.Tenant.Portal.Business.Tenant.Queries.GetAllTenants;
 using BaseFaq.Tenant.Portal.Business.Tenant.Queries.GetClientKey;
+using BaseFaq.Tenant.Portal.Business.Tenant.Service;
 using BaseFaq.Tenant.Portal.Test.IntegrationTests.Helpers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -59,7 +60,8 @@ public class TenantCommandQueryTests
         var handler = new TenantsCreateOrUpdateTenantsCommandHandler(
             context.DbContext,
             context.SessionService,
-            new TestAllowedTenantStore());
+            new TestAllowedTenantStore(),
+            new TenantPortalAccessService(context.DbContext, context.SessionService));
         var request = new TenantsCreateOrUpdateTenantsCommand
         {
             Name = "Portal Tenant",
@@ -114,7 +116,8 @@ public class TenantCommandQueryTests
         var handler = new TenantsCreateOrUpdateTenantsCommandHandler(
             context.DbContext,
             context.SessionService,
-            new TestAllowedTenantStore());
+            new TestAllowedTenantStore(),
+            new TenantPortalAccessService(context.DbContext, context.SessionService));
         var request = new TenantsCreateOrUpdateTenantsCommand
         {
             TenantId = selectedTenantId,
@@ -151,7 +154,8 @@ public class TenantCommandQueryTests
         var handler = new TenantsCreateOrUpdateTenantsCommandHandler(
             context.DbContext,
             context.SessionService,
-            new TestAllowedTenantStore());
+            new TestAllowedTenantStore(),
+            new TenantPortalAccessService(context.DbContext, context.SessionService));
         var request = new TenantsCreateOrUpdateTenantsCommand
         {
             Name = "Should Skip",
@@ -214,7 +218,8 @@ public class TenantCommandQueryTests
         var handler = new TenantsCreateOrUpdateTenantsCommandHandler(
             context.DbContext,
             context.SessionService,
-            new TestAllowedTenantStore());
+            new TestAllowedTenantStore(),
+            new TenantPortalAccessService(context.DbContext, context.SessionService));
 
         var result = await handler.Handle(
             new TenantsCreateOrUpdateTenantsCommand
@@ -251,7 +256,8 @@ public class TenantCommandQueryTests
             userId: currentUserId,
             clientKey: "my-client-key");
 
-        var handler = new TenantsGetClientKeyQueryHandler(context.DbContext, context.SessionService);
+        var handler = new TenantsGetClientKeyQueryHandler(
+            new TenantPortalAccessService(context.DbContext, context.SessionService));
         var result = await handler.Handle(new TenantsGetClientKeyQuery { TenantId = tenantId }, CancellationToken.None);
 
         Assert.Equal("my-client-key", result);
@@ -273,7 +279,7 @@ public class TenantCommandQueryTests
 
         var handler = new TenantsGenerateNewClientKeyCommandHandler(
             context.DbContext,
-            context.SessionService);
+            new TenantPortalAccessService(context.DbContext, context.SessionService));
         var generatedKey = await handler.Handle(
             new TenantsGenerateNewClientKeyCommand { TenantId = tenantId },
             CancellationToken.None);

@@ -3,6 +3,7 @@ using BaseFaq.Tenant.Portal.Business.Tenant.Commands.CreateTenantUser;
 using BaseFaq.Tenant.Portal.Business.Tenant.Commands.DeleteTenantUser;
 using BaseFaq.Tenant.Portal.Business.Tenant.Commands.UpdateTenantUser;
 using BaseFaq.Tenant.Portal.Business.Tenant.Queries.GetTenantUserList;
+using BaseFaq.Tenant.Portal.Business.Tenant.Service;
 using BaseFaq.Tenant.Portal.Test.IntegrationTests.Helpers;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
@@ -32,7 +33,10 @@ public class TenantUserCommandQueryTests
             userId: member.Id,
             role: TenantUserRoleType.Member);
 
-        var handler = new TenantUsersGetTenantUserListQueryHandler(context.DbContext, context.SessionService);
+        var handler = new TenantUsersGetTenantUserListQueryHandler(
+            context.DbContext,
+            context.SessionService,
+            new TenantPortalAccessService(context.DbContext, context.SessionService));
         var result = await handler.Handle(
             new TenantUsersGetTenantUserListQuery { TenantId = tenantId },
             CancellationToken.None);
@@ -61,8 +65,8 @@ public class TenantUserCommandQueryTests
 
         var handler = new TenantUsersCreateTenantUserCommandHandler(
             context.DbContext,
-            context.SessionService,
-            new TestAllowedTenantStore());
+            new TestAllowedTenantStore(),
+            new TenantPortalAccessService(context.DbContext, context.SessionService));
 
         var id = await handler.Handle(
             new TenantUsersCreateTenantUserCommand
@@ -102,8 +106,8 @@ public class TenantUserCommandQueryTests
 
         var handler = new TenantUsersUpdateTenantUserCommandHandler(
             context.DbContext,
-            context.SessionService,
-            new TestAllowedTenantStore());
+            new TestAllowedTenantStore(),
+            new TenantPortalAccessService(context.DbContext, context.SessionService));
 
         await handler.Handle(
             new TenantUsersUpdateTenantUserCommand
@@ -147,8 +151,8 @@ public class TenantUserCommandQueryTests
 
         var handler = new TenantUsersDeleteTenantUserCommandHandler(
             context.DbContext,
-            context.SessionService,
-            new TestAllowedTenantStore());
+            new TestAllowedTenantStore(),
+            new TenantPortalAccessService(context.DbContext, context.SessionService));
 
         await handler.Handle(
             new TenantUsersDeleteTenantUserCommand { TenantId = tenantId, Id = memberLink.Id },

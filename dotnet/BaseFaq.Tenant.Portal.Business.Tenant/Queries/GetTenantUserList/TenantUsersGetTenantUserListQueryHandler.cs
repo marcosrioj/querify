@@ -1,9 +1,8 @@
 using BaseFaq.Common.EntityFramework.Tenant;
 using BaseFaq.Common.Infrastructure.Core.Abstractions;
-using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.Tenant.Dtos.TenantUser;
 using BaseFaq.Models.Tenant.Enums;
-using BaseFaq.Tenant.Portal.Business.Tenant.Helpers;
+using BaseFaq.Tenant.Portal.Business.Tenant.Abstractions;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,19 +10,19 @@ namespace BaseFaq.Tenant.Portal.Business.Tenant.Queries.GetTenantUserList;
 
 public class TenantUsersGetTenantUserListQueryHandler(
     TenantDbContext dbContext,
-    ISessionService sessionService)
+    ISessionService sessionService,
+    ITenantPortalAccessService tenantPortalAccessService)
     : IRequestHandler<TenantUsersGetTenantUserListQuery, List<TenantUserDto>>
 {
     public async Task<List<TenantUserDto>> Handle(TenantUsersGetTenantUserListQuery request,
         CancellationToken cancellationToken)
     {
         var currentUserId = sessionService.GetUserId();
-        var tenantId = request.TenantId;
-        await TenantAccessHelper.EnsureAccessAsync(dbContext, tenantId, currentUserId, AppEnum.Faq, cancellationToken);
+        await tenantPortalAccessService.EnsureAccessAsync(request.TenantId, cancellationToken);
 
         return await dbContext.TenantUsers
             .AsNoTracking()
-            .Where(tenantUser => tenantUser.TenantId == tenantId)
+            .Where(tenantUser => tenantUser.TenantId == request.TenantId)
             .OrderBy(tenantUser => tenantUser.Role == TenantUserRoleType.Owner ? 0 : 1)
             .ThenBy(tenantUser => tenantUser.User.Email)
             .Select(tenantUser => new TenantUserDto
