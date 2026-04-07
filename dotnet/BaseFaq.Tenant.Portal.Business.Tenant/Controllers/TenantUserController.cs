@@ -19,11 +19,11 @@ public class TenantUserController(ITenantUserService tenantUserService) : Contro
         return Ok(result);
     }
 
-    [HttpPost]
+    [HttpPost("add-tenant-member")]
     [ProducesResponseType(typeof(Guid), StatusCodes.Status200OK)]
-    public async Task<IActionResult> Upsert([FromBody] TenantUserCreateRequestDto dto, CancellationToken token)
+    public async Task<IActionResult> AddTenantMember([FromBody] TenantUserCreateRequestDto dto, CancellationToken token)
     {
-        var result = await tenantUserService.Upsert(dto, token);
+        var result = await tenantUserService.AddTenantMember(dto, token);
         return Ok(result);
     }
 

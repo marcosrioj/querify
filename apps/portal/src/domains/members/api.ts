@@ -4,8 +4,8 @@ import {
   requireTenantId,
 } from '@/platform/api/http-client';
 import type {
+  AddTenantMemberRequestDto,
   TenantUserDto,
-  TenantUserUpsertRequestDto,
 } from '@/domains/members/types';
 
 export function getTenantUsers(accessToken?: string, tenantId?: string) {
@@ -16,14 +16,14 @@ export function getTenantUsers(accessToken?: string, tenantId?: string) {
   });
 }
 
-export function upsertTenantUser(
+export function addTenantMember(
   accessToken: string | undefined,
   tenantId: string | undefined,
-  body: TenantUserUpsertRequestDto,
+  body: AddTenantMemberRequestDto,
 ) {
   return portalRequest<string>({
     service: 'tenant',
-    path: '/api/tenant/tenant-users',
+    path: '/api/tenant/tenant-users/add-tenant-member',
     method: 'POST',
     accessToken: requireAccessToken(accessToken),
     body: {

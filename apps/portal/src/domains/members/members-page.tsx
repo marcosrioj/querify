@@ -7,9 +7,9 @@ import { ListLayout, PageHeader, SectionGrid } from '@/shared/layout/page-layout
 import { useTenant } from '@/platform/tenant/tenant-context';
 import { usePermission } from '@/platform/permissions/permissions';
 import {
+  useAddTenantMember,
   useDeleteTenantMember,
   useTenantMembers,
-  useUpsertTenantMember,
 } from '@/domains/members/hooks';
 import type { TenantUserDto } from '@/domains/members/types';
 import { TenantUserRoleType } from '@/shared/constants/backend-enums';
@@ -52,7 +52,7 @@ export function MembersPage() {
   const canManageMembers = usePermission('members.manage');
   const [open, setOpen] = useState(false);
   const membersQuery = useTenantMembers();
-  const upsertMember = useUpsertTenantMember();
+  const addMember = useAddTenantMember();
   const deleteMember = useDeleteTenantMember();
   const members = membersQuery.data ?? [];
 
@@ -244,7 +244,7 @@ export function MembersPage() {
 
                 form.clearErrors('email');
 
-                await upsertMember.mutateAsync({
+                await addMember.mutateAsync({
                   name: values.name,
                   email: values.email,
                   role: TenantUserRoleType.Member,
@@ -265,7 +265,7 @@ export function MembersPage() {
                 label="Email"
                 description="Use an email that is not already assigned to a member in this workspace."
               />
-              <Button type="submit" disabled={upsertMember.isPending}>
+              <Button type="submit" disabled={addMember.isPending}>
                 Add member
               </Button>
             </form>

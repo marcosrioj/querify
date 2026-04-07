@@ -9,16 +9,16 @@ using BaseFaq.Tenant.Portal.Business.Tenant.Abstractions;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
-namespace BaseFaq.Tenant.Portal.Business.Tenant.Commands.UpsertTenantUser;
+namespace BaseFaq.Tenant.Portal.Business.Tenant.Commands.AddTenantMember;
 
-public class TenantUsersUpsertTenantUserCommandHandler(
+public class TenantUsersAddTenantMemberCommandHandler(
     TenantDbContext dbContext,
     IAllowedTenantStore allowedTenantStore,
     ITenantPortalAccessService tenantPortalAccessService,
     ISessionService sessionService)
-    : IRequestHandler<TenantUsersUpsertTenantUserCommand, Guid>
+    : IRequestHandler<TenantUsersAddTenantMemberCommand, Guid>
 {
-    public async Task<Guid> Handle(TenantUsersUpsertTenantUserCommand request, CancellationToken cancellationToken)
+    public async Task<Guid> Handle(TenantUsersAddTenantMemberCommand request, CancellationToken cancellationToken)
     {
         var tenantId = request.TenantId;
         var currentUserId = sessionService.GetUserId();

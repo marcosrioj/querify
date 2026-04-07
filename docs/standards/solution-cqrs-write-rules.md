@@ -94,6 +94,7 @@ When a command starts asynchronous work:
 - `POST create` -> `201` with the created `Guid`
 - `PUT update` -> `200` with the updated `Guid` or a meaningful `bool`
 - async request command -> `202` with a correlation `Guid`
+- When a write endpoint uses an explicit action segment, the route segment should be lowercase kebab-case, for example `add-tenant-member` instead of `AddTenantMember`
 
 ## Review checklist
 

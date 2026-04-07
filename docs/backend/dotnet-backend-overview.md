@@ -84,6 +84,7 @@ Implications:
 - controllers should remain thin
 - write flows should return simple values
 - query DTOs belong to read handlers, not command handlers
+- HTTP route segments should use lowercase kebab-case for action-style paths such as `add-tenant-member` or `refresh-allowed-tenant-cache`
 
 The write-side rules are formalized in [`../standards/solution-cqrs-write-rules.md`](../standards/solution-cqrs-write-rules.md).
 
@@ -157,5 +158,6 @@ For the full local operations model, see [`../devops/local-development.md`](../d
 - Add new features to the correct bounded-context project rather than enlarging an unrelated one.
 - Preserve the API-host composition pattern through `AddFeatures(...)`.
 - Keep controllers and services thin; push actual use-case behavior into handlers and domain-specific services.
+- Prefer lowercase kebab-case in route path segments when a controller exposes named actions beyond plain resource ids.
 - Treat tenant data and FAQ data as separate ownership boundaries.
 - Update the corresponding docs when request headers, ports, startup requirements, or operational assumptions change.

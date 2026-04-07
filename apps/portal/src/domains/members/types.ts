@@ -11,7 +11,7 @@ export type TenantUserDto = {
   isCurrentUser: boolean;
 };
 
-export type TenantUserUpsertRequestDto = {
+export type AddTenantMemberRequestDto = {
   name: string;
   email: string;
   role: TenantUserRoleType;

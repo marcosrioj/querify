@@ -1,7 +1,7 @@
 using BaseFaq.Models.Tenant.Dtos.TenantUser;
 using BaseFaq.Tenant.Portal.Business.Tenant.Abstractions;
+using BaseFaq.Tenant.Portal.Business.Tenant.Commands.AddTenantMember;
 using BaseFaq.Tenant.Portal.Business.Tenant.Commands.DeleteTenantUser;
-using BaseFaq.Tenant.Portal.Business.Tenant.Commands.UpsertTenantUser;
 using BaseFaq.Tenant.Portal.Business.Tenant.Queries.GetTenantUserList;
 using MediatR;
 
@@ -14,11 +14,11 @@ public class TenantUserService(IMediator mediator) : ITenantUserService
         return mediator.Send(new TenantUsersGetTenantUserListQuery { TenantId = tenantId }, token);
     }
 
-    public Task<Guid> Upsert(TenantUserCreateRequestDto requestDto, CancellationToken token)
+    public Task<Guid> AddTenantMember(TenantUserCreateRequestDto requestDto, CancellationToken token)
     {
         ArgumentNullException.ThrowIfNull(requestDto);
 
-        return mediator.Send(new TenantUsersUpsertTenantUserCommand
+        return mediator.Send(new TenantUsersAddTenantMemberCommand
         {
             TenantId = requestDto.TenantId,
             Name = requestDto.Name,

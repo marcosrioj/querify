@@ -1,9 +1,9 @@
 using BaseFaq.Models.Tenant.Enums;
 using BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception;
+using BaseFaq.Tenant.Portal.Business.Tenant.Commands.AddTenantMember;
 using BaseFaq.Tenant.Portal.Business.Tenant.Commands.DeleteTenantUser;
 using BaseFaq.Tenant.Portal.Business.Tenant.Queries.GetTenantUserList;
 using BaseFaq.Tenant.Portal.Business.Tenant.Service;
-using BaseFaq.Tenant.Portal.Business.Tenant.Commands.UpsertTenantUser;
 using BaseFaq.Tenant.Portal.Test.IntegrationTests.Helpers;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
@@ -49,7 +49,7 @@ public class TenantUserCommandQueryTests
     }
 
     [Fact]
-    public async Task UpsertTenantUser_AddsExistingUserByEmail()
+    public async Task AddTenantMember_AddsExistingUserByEmail()
     {
         var tenantId = Guid.NewGuid();
         var currentUserId = Guid.NewGuid();
@@ -64,14 +64,14 @@ public class TenantUserCommandQueryTests
             givenName: "Existing",
             email: "invitee@example.test");
 
-        var handler = new TenantUsersUpsertTenantUserCommandHandler(
+        var handler = new TenantUsersAddTenantMemberCommandHandler(
             context.DbContext,
             new TestAllowedTenantStore(),
             new TenantPortalAccessService(context.DbContext, context.SessionService),
             context.SessionService);
 
         var id = await handler.Handle(
-            new TenantUsersUpsertTenantUserCommand
+            new TenantUsersAddTenantMemberCommand
             {
                 TenantId = tenantId,
                 Name = "Invitee",
@@ -92,7 +92,7 @@ public class TenantUserCommandQueryTests
     }
 
     [Fact]
-    public async Task UpsertTenantUser_CreatesMissingUserUsingEnsureUser()
+    public async Task AddTenantMember_CreatesMissingUserUsingEnsureUser()
     {
         var tenantId = Guid.NewGuid();
         var currentUserId = Guid.NewGuid();
@@ -103,14 +103,14 @@ public class TenantUserCommandQueryTests
             id: tenantId,
             userId: currentUserId);
 
-        var handler = new TenantUsersUpsertTenantUserCommandHandler(
+        var handler = new TenantUsersAddTenantMemberCommandHandler(
             context.DbContext,
             new TestAllowedTenantStore(),
             new TenantPortalAccessService(context.DbContext, context.SessionService),
             context.SessionService);
 
         var id = await handler.Handle(
-            new TenantUsersUpsertTenantUserCommand
+            new TenantUsersAddTenantMemberCommand
             {
                 TenantId = tenantId,
                 Name = "Invitee",
@@ -130,7 +130,7 @@ public class TenantUserCommandQueryTests
     }
 
     [Fact]
-    public async Task UpsertTenantUser_ThrowsWhenEmailAlreadyExistsInTenantForDifferentUser()
+    public async Task AddTenantMember_ThrowsWhenEmailAlreadyExistsInTenantForDifferentUser()
     {
         var tenantId = Guid.NewGuid();
         var currentUserId = Guid.NewGuid();
@@ -157,14 +157,14 @@ public class TenantUserCommandQueryTests
             userId: existingUser.Id,
             role: TenantUserRoleType.Member);
 
-        var handler = new TenantUsersUpsertTenantUserCommandHandler(
+        var handler = new TenantUsersAddTenantMemberCommandHandler(
             context.DbContext,
             new TestAllowedTenantStore(),
             new TenantPortalAccessService(context.DbContext, context.SessionService),
             context.SessionService);
 
         var exception = await Assert.ThrowsAsync<ApiErrorException>(() => handler.Handle(
-            new TenantUsersUpsertTenantUserCommand
+            new TenantUsersAddTenantMemberCommand
             {
                 TenantId = tenantId,
                 Name = "After",
@@ -188,7 +188,7 @@ public class TenantUserCommandQueryTests
     }
 
     [Fact]
-    public async Task UpsertTenantUser_AllowsCurrentUserToChangeOwnNameWhenEmailAlreadyExistsInTenant()
+    public async Task AddTenantMember_AllowsCurrentUserToChangeOwnNameWhenEmailAlreadyExistsInTenant()
     {
         var tenantId = Guid.NewGuid();
         var currentUserId = Guid.NewGuid();
@@ -202,14 +202,14 @@ public class TenantUserCommandQueryTests
         var ownerTenantUser = await context.DbContext.TenantUsers
             .SingleAsync(entity => entity.TenantId == tenantId && entity.UserId == currentUserId);
 
-        var handler = new TenantUsersUpsertTenantUserCommandHandler(
+        var handler = new TenantUsersAddTenantMemberCommandHandler(
             context.DbContext,
             new TestAllowedTenantStore(),
             new TenantPortalAccessService(context.DbContext, context.SessionService),
             context.SessionService);
 
         var id = await handler.Handle(
-            new TenantUsersUpsertTenantUserCommand
+            new TenantUsersAddTenantMemberCommand
             {
                 TenantId = tenantId,
                 Name = "Updated Owner",
@@ -226,7 +226,7 @@ public class TenantUserCommandQueryTests
     }
 
     [Fact]
-    public async Task UpsertTenantUser_ThrowsWhenCurrentUserIsNotOwner()
+    public async Task AddTenantMember_ThrowsWhenCurrentUserIsNotOwner()
     {
         var tenantId = Guid.NewGuid();
         var ownerUserId = Guid.NewGuid();
@@ -246,14 +246,14 @@ public class TenantUserCommandQueryTests
             context.DbContext,
             email: "invitee@example.test");
 
-        var handler = new TenantUsersUpsertTenantUserCommandHandler(
+        var handler = new TenantUsersAddTenantMemberCommandHandler(
             context.DbContext,
             new TestAllowedTenantStore(),
             new TenantPortalAccessService(context.DbContext, context.SessionService),
             context.SessionService);
 
         var exception = await Assert.ThrowsAsync<ApiErrorException>(() => handler.Handle(
-            new TenantUsersUpsertTenantUserCommand
+            new TenantUsersAddTenantMemberCommand
             {
                 TenantId = tenantId,
                 Name = "Invitee",
@@ -266,7 +266,7 @@ public class TenantUserCommandQueryTests
     }
 
     [Fact]
-    public async Task UpsertTenantUser_ThrowsWhenRequestRoleIsOwner()
+    public async Task AddTenantMember_ThrowsWhenRequestRoleIsOwner()
     {
         var tenantId = Guid.NewGuid();
         var currentUserId = Guid.NewGuid();
@@ -280,14 +280,14 @@ public class TenantUserCommandQueryTests
             context.DbContext,
             email: "invitee@example.test");
 
-        var handler = new TenantUsersUpsertTenantUserCommandHandler(
+        var handler = new TenantUsersAddTenantMemberCommandHandler(
             context.DbContext,
             new TestAllowedTenantStore(),
             new TenantPortalAccessService(context.DbContext, context.SessionService),
             context.SessionService);
 
         var exception = await Assert.ThrowsAsync<ApiErrorException>(() => handler.Handle(
-            new TenantUsersUpsertTenantUserCommand
+            new TenantUsersAddTenantMemberCommand
             {
                 TenantId = tenantId,
                 Name = "Invitee",

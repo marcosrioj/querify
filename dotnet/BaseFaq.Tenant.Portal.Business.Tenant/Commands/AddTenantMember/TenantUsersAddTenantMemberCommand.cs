@@ -1,9 +1,9 @@
 using BaseFaq.Models.Tenant.Enums;
 using MediatR;
 
-namespace BaseFaq.Tenant.Portal.Business.Tenant.Commands.UpsertTenantUser;
+namespace BaseFaq.Tenant.Portal.Business.Tenant.Commands.AddTenantMember;
 
-public sealed class TenantUsersUpsertTenantUserCommand : IRequest<Guid>
+public sealed class TenantUsersAddTenantMemberCommand : IRequest<Guid>
 {
     public required Guid TenantId { get; set; }
     public required string Name { get; set; }
