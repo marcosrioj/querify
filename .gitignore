@@ -11,3 +11,4 @@ azure/.env
 azure/env/*.env
 apps/portal/.env
 apps/portal/dist/
+.codex
