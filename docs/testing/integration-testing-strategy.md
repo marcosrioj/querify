@@ -1,223 +1,161 @@
-# Integration Testing Strategy (BaseFaq)
+# Integration Testing Strategy
 
-## Document purpose
-Provide a business-aligned and technically rigorous integration testing strategy for BaseFAQ, including risk prioritization, execution tiers, and concrete implementation targets.
+## Purpose
 
-## Intended audience
-- Engineers implementing integration suites
-- Technical leads and architects approving quality gates
-- QA and release stakeholders validating production readiness
+This document explains what integration testing means in BaseFAQ, which areas are already covered, and how tests should be prioritized as the solution evolves.
 
-## Business outcomes
-- Prevent tenant data leaks and authorization regressions before release.
-- Reduce release risk through deterministic CI coverage and staged resilience testing.
-- Improve incident response quality through observability-oriented assertions.
+## Guiding principle
 
-## Technical outcomes
-- Use real PostgreSQL and EF migrations as baseline integration infrastructure.
-- Validate middleware/session/auth behavior across realistic boundaries.
-- Enforce repeatable CI/nightly/pre-release execution tiers.
+BaseFAQ integration tests should validate real behavior across component boundaries with production-like rules, not mocked approximations of the stack.
 
-## Reading order
-1. Scope and assumptions.
-2. Environment and data strategy.
-3. Advanced techniques and resilience patterns.
-4. Risk matrix and concrete test catalog.
-5. Tooling, gates, and immediate backlog.
+That means preferring:
 
-## Concise Summary
-- Integration tests in this solution should validate real behavior across module boundaries with real PostgreSQL, real EF migrations, and production-like middleware/session rules.
-- Current suites are strongest on command/query + DB persistence and tenant/soft-delete filters; biggest gaps are API auth flows, tenant-resolution middleware behavior, observability assertions, resilience/fault-injection, and third-party integration boundaries.
-- Recommended execution tiers:
-  - CI PR: deterministic, fast DB-backed integration pack.
-  - Nightly: stress/concurrency/resilience and migration-drift checks.
-  - Pre-release: full regression including auth and sandbox-provider checks.
-- This plan defines environment/data strategy, risk matrix, and 30 concrete test cases with assertions/logging expectations.
+- real PostgreSQL
+- real EF Core migrations
+- realistic tenant and session context
+- realistic middleware and handler execution
 
-## 1) Scope, Architecture Assumptions, and Boundaries
-### Assumptions (explicit)
-- Platform is multi-service but codebase currently exposes 4 APIs:
-  - `BaseFaq.Faq.Portal.Api`
-  - `BaseFaq.Faq.Public.Api`
-  - `BaseFaq.Tenant.BackOffice.Api`
-  - `BaseFaq.Tenant.Portal.Api`
-- Persistence is PostgreSQL via EF Core with tenant-aware filters and soft delete.
-- Redis is used for allowed-tenant caching (`RedisAllowedTenantStore`).
-- RabbitMQ/SMTP are available in docker base services, but queue/worker execution paths are currently limited or not yet covered by existing integration suites.
-- Existing integration tests are mostly handler + DbContext level with real DBs and migrations.
+## Current test landscape
 
-### What “integration test” means here
-- Integration test:
-  - Verifies interactions between at least two components (e.g., handler + EF + DB constraints, middleware + claims + cache, API endpoint + auth + DB).
-  - Uses real infrastructure components where practical (PostgreSQL always, Redis optionally, provider sandbox where needed).
-- Not unit test:
-  - Does not isolate with pure mocks of repositories/DbContexts.
-- Not contract-only test:
-  - Contract tests validate API/provider schema compatibility; they complement but do not replace DB/middleware behavior tests.
-- Not full E2E:
-  - E2E covers browser/client journeys across deployed services; integration tests stay at API/service boundary with controlled fixtures.
+The solution already contains integration test projects for:
 
-### Integration points to cover
-- REST APIs (controllers + middleware + auth).
-- DB integration (migrations, constraints, tenant filters, soft delete, sorting/pagination queries).
-- Cache (Redis allowed-tenant store).
-- Queues/event bus (when worker/event flows are implemented or enabled).
-- File storage (if added later; currently treat as planned scope).
-- Auth/identity (JWT validation, claims mapping, tenant authorization).
-- External providers:
-  - Auth0/OIDC metadata and token assumptions.
-  - SMTP/email/analytics/webhooks where applicable.
-- Background jobs/migrations runner flows.
+- `BaseFaq.Faq.Portal`
+- `BaseFaq.Faq.Public`
+- `BaseFaq.Tenant.BackOffice`
+- `BaseFaq.Tenant.Portal`
+- `BaseFaq.AI`
 
-### Execution tiers
-- CI (per PR, blocking):
-  - DB-backed deterministic integration tests.
-  - No long sleeps, no external network dependency.
-  - Includes migrations apply + core CRUD + tenant isolation + critical auth happy/negative paths.
-- Nightly:
-  - Concurrency/race tests, retry/idempotency, migration drift, resilience/fault injection.
-  - Optional Redis and queue containerized runs.
-- Pre-release:
-  - Full integration pack + provider sandbox checks + backward compatibility + observability assertions.
+The current strength of the test suite is business-rule validation around handlers, persistence, tenant filters, and command/query flows.
 
-## 2) Environment and Data Strategy
-### Ephemeral environments
-- Local and CI should run isolated ephemeral infrastructure:
-  - Preferred: docker compose project per pipeline run (`bf_baseservices_<runId>`).
-  - DB names per test run already follow random naming (`bf_faq_test_<guid>`), keep this pattern.
-  - For API-level integration tests, run each API in test profile with dedicated test namespace/config.
-- Add standardized env presets:
-  - `INTEGRATION_TEST=true`
-  - `ASPNETCORE_ENVIRONMENT=IntegrationTest`
-  - test-specific auth issuer/audience and Redis DB index.
+The weaker areas are still:
 
-### Deterministic data
-- Use builders/factories (`TestDataFactory`) only; avoid ad hoc inline entities unless test intent requires edge fields.
-- Seed baselines by scenario, not global mega-seed.
-- Reset strategy:
-  - Current per-test database creation/drop is good isolation.
-  - For API-level suites with shared DB, use transaction rollback or schema recreate per class.
-- Time control:
-  - Introduce injectable clock abstraction for time-sensitive sorting/retry tests.
-  - If not available, explicitly update timestamps in DB setup to remove race with system clock.
+- full API auth and authorization coverage
+- queue callback end-to-end coverage
+- observability assertions
+- resilience and fault-injection scenarios
 
-### PII and privacy-safe data
-- Use synthetic addresses/domains (`example.test`, RFC5737 IP ranges) only.
-- For any copied prod incidents, sanitize through deterministic tokenization.
-- Block real tokens/secrets from fixtures and snapshots.
+## What counts as an integration test here
 
-### Parallelization and isolation
-- Keep test-level random DB names; this supports parallel test workers safely.
-- Ensure Redis keys include suite prefix + test id when Redis integration tests are added.
-- Disable flaky order dependencies by never relying on prior test side effects.
+An integration test should verify at least two real components working together, for example:
 
-## 3) Advanced Integration Testing Techniques
-### Consumer-driven contracts (Pact-style)
-- Use contract tests for:
-  - API consumers of each service and external provider adapters.
-  - Versioned DTO fields and backward compatibility.
-- Workflow:
-  - Consumer generates pact from typed client tests.
-  - Provider verifies pact in CI before merge.
-  - Add broker/tag strategy per branch/release.
-- Do not replace DB integration tests with pact tests; they serve different risk classes.
+- handler plus EF Core plus PostgreSQL
+- middleware plus auth/session context plus persistence
+- controller plus tenant resolution plus database state
+- event publication plus consumer execution
 
-### DB integration patterns
-- Migration validation:
-  - Apply latest migrations from empty DB in CI.
-  - Validate migration rollback on nightly (where feasible).
-- Schema drift checks:
-  - Compare EF model snapshot vs generated SQL hash in nightly.
-- Transaction boundary tests:
-  - Verify partial failures do not persist half-written aggregates.
-- Idempotency checks:
-  - Repeated command execution under same key/user should not duplicate records (already partially covered in voting).
+What it is not:
 
-### Event-driven testing
-- When event publishing exists:
-  - Assert event emitted exactly once per successful transaction.
-  - Verify ordering constraints (if required) and idempotent consumers.
-  - Test at-least-once behavior by replaying duplicate messages.
-  - Add replay tests from dead-letter payloads.
+- a pure unit test with mocked repositories
+- a browser-level end-to-end test
+- a DTO-only contract test without runtime behavior
 
-### Resilience/fault injection
-- Inject:
-  - DB timeout / transient network fault.
-  - Redis unavailable.
-  - provider 429 and 5xx.
-- Assert:
-  - retries follow policy,
-  - no duplicate writes,
-  - circuit breaker open/half-open behavior,
-  - graceful error mapping via API error middleware.
+## Highest-risk areas
 
-### Security integration
-- Validate:
-  - JWT token validation (issuer/audience/signature/expiry).
-  - role/claim enforcement per endpoint.
-  - tenant claim vs requested tenant mismatch handling.
-  - skip-tenant-validation attribute only where explicitly allowed.
+| Area | Why it matters |
+|---|---|
+| tenant isolation | a regression here becomes a cross-tenant data leak |
+| auth and claim mapping | protected APIs can silently fail open or fail closed |
+| migrations | schema drift blocks releases and breaks runtime startup |
+| public client-key resolution | public FAQ traffic depends on correct tenant resolution |
+| event-driven AI flows | message loss or duplicate handling changes system behavior |
 
-### Observability validation
-- For critical flows assert:
-  - structured logs include request id and tenant id.
-  - traces propagate correlation id across middleware/handlers.
-  - key counters/histograms emitted (errors, latency, retries).
+## Execution tiers
 
-## 4) High-Risk Matrix (Impact x Probability)
-| Integration Point | Impact | Probability | Priority | Notes |
-|---|---|---:|---:|---|
-| Auth token + claims mapping | High | Medium | P0 | Breaks all protected APIs silently if misconfigured |
-| Tenant isolation filters | High | Medium | P0 | Data leak risk across tenants |
-| Vote idempotency/concurrency | Medium | Medium | P1 | Double counting possible under race |
-| Migrations/model drift | High | Medium | P0 | Release-blocking runtime failures |
-| Sorting/pagination correctness | Medium | High | P1 | User-visible correctness regressions |
-| Redis allowed-tenant cache | High | Low-Med | P1 | Wrong cache data can bypass/deny access |
-| External provider outages/rate limits | Medium | Medium | P1 | Degraded UX; retry storms if unmanaged |
-| Queue/event delivery semantics | High | Low (current) | P2 | Becomes P0 once workers are active |
-| Observability pipeline | Medium | Medium | P2 | Slows incident response and root cause |
+### PR / CI tier
 
-### Edge-case coverage matrix
-- Concurrency: repeated create/update/vote from same and different identities.
-- Eventual consistency: if async jobs/events introduced, poll-with-timeout assertions.
-- Timezone/clock skew: UTC storage and deterministic sort by timestamps.
-- Large payloads: max text lengths for FAQ answers and references.
-- Pagination boundaries: empty page, last page, large skip.
-- Filtering/sorting: unknown sort field fallback, multi-field sort.
-- Versioning/backward compatibility: old client DTOs against new provider.
+Use this tier for fast, deterministic checks that should block merges.
 
-## 5) Concrete Integration Test Cases (30)
+Focus:
 
-### A) Authentication / Authorization
-1. Protected endpoint without JWT returns 401.
-- Preconditions: API host with auth enabled.
-- Steps: call protected endpoint without `Authorization`.
-- Expected: 401.
-- Assert: no DB side effects.
-- Log/trace: auth failure reason and correlation id present.
+- real database-backed tests
+- command and query correctness
+- tenant isolation
+- critical auth and negative-path coverage
 
-2. JWT with invalid issuer returns 401.
-- Preconditions: signed token with wrong `iss`.
-- Steps: call protected endpoint.
-- Expected: 401.
-- Assert: no command handler invocation side effects.
-- Log/trace: token validation failure includes issuer mismatch.
+### Nightly tier
 
-3. JWT with missing role claim returns 403 for admin route.
-- Preconditions: valid token lacking required role.
-- Steps: call admin endpoint.
-- Expected: 403.
-- Assert: DB unchanged.
-- Log/trace: authorization policy failure recorded.
+Use this tier for heavier cases that are useful but too expensive for every PR.
 
-4. Tenant mismatch in header/context rejected.
-- Preconditions: token/user allowed tenant A only.
-- Steps: request tenant B context.
-- Expected: 403/validation error.
-- Assert: no tenant B data exposed.
-- Log/trace: denied tenant id logged.
+Focus:
 
-5. SkipTenantAccessValidation endpoint bypasses tenant gate only for annotated endpoint.
+- concurrency and race conditions
+- migration drift
+- retry and idempotency behavior
+- Redis, RabbitMQ, and other container-backed collaboration points
+
+### Pre-release tier
+
+Use this tier to validate production readiness.
+
+Focus:
+
+- the full integration pack
+- provider sandbox checks where applicable
+- backward compatibility and observability validation
+
+## Environment strategy
+
+- use isolated databases per run when possible
+- keep test data deterministic
+- avoid sharing mutable global state between tests
+- prefer builders and factory helpers over ad hoc entity setup
+- never depend on test execution order
+
+## Data strategy
+
+- use synthetic data only
+- keep time-sensitive tests deterministic by controlling timestamps explicitly
+- seed only the minimum scenario data needed for the test
+
+## Test commands
+
+Run the current integration suites individually:
+
+```bash
+dotnet test dotnet/BaseFaq.Faq.Portal.Test.IntegrationTests/BaseFaq.Faq.Portal.Test.IntegrationTests.csproj
+dotnet test dotnet/BaseFaq.Faq.Public.Test.IntegrationTests/BaseFaq.Faq.Public.Test.IntegrationTests.csproj
+dotnet test dotnet/BaseFaq.Tenant.BackOffice.Test.IntegrationTests/BaseFaq.Tenant.BackOffice.Test.IntegrationTests.csproj
+dotnet test dotnet/BaseFaq.Tenant.Portal.Test.IntegrationTests/BaseFaq.Tenant.Portal.Test.IntegrationTests.csproj
+dotnet test dotnet/BaseFaq.AI.Test.IntegrationTest/BaseFaq.AI.Test.IntegrationTest.csproj
+```
+
+Optional OpenAI-backed integration coverage:
+
+```bash
+export BASEFAQ_RUN_OPENAI_INTEGRATION_TESTS=true
+export OPENAI_API_KEY=<your-openai-api-key>
+
+dotnet test dotnet/BaseFaq.AI.Test.IntegrationTest/BaseFaq.AI.Test.IntegrationTest.csproj \
+  --filter FullyQualifiedName~OpenAiGenerationMatchingFlowTests
+```
+
+## Current priorities
+
+### Must stay strong
+
+- tenant-aware DB behavior
+- CRUD and business-rule flows in the FAQ and tenant domains
+- migration application from a clean database
+
+### Should be expanded next
+
+- API-level auth coverage across protected endpoints
+- queue-driven AI callback scenarios
+- Redis-backed tenant access behavior
+- failure-path testing for provider or infrastructure outages
+
+## Practical rules for new integration tests
+
+- use real infrastructure unless the dependency is intentionally outside the test boundary
+- keep assertions tied to business behavior, not only implementation details
+- cover both happy paths and security or tenancy negative paths
+- when a production dependency becomes mandatory, update the tests instead of weakening production code
+
+## Related documents
+
+- [`../backend/dotnet-backend-overview.md`](../backend/dotnet-backend-overview.md)
+- [`../architecture/basefaq-ai-generation-matching-architecture.md`](../architecture/basefaq-ai-generation-matching-architecture.md)
+- [`../standards/solution-cqrs-write-rules.md`](../standards/solution-cqrs-write-rules.md)
 - Preconditions: endpoint metadata with `SkipTenantAccessValidationAttribute`.
 - Steps: call annotated and non-annotated endpoints.
 - Expected: annotated passes, non-annotated fails.

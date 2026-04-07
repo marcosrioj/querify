@@ -1,16 +1,16 @@
-# Release Management Workspace
+# Release Documentation
 
-This folder is the delivery root for the Docs and Release Manager agent when release-specific artifacts need to live in `docs/`.
+Use this folder for versioned release artifacts that should live with the repository.
 
-## Store Here
+## Typical contents
 
 - release plans
 - rollout checklists
+- launch-readiness notes
 - release note drafts
-- launch readiness packets
-- evidence summaries that should remain versioned
+- evidence packages that support human merge or deployment decisions
 
-## Keep Separate
+## Keep out of this folder
 
-- temporary run-state artifacts stay in `agents/.state/`
-- release artifacts support human-controlled merge and deployment decisions
+- temporary agent runtime state
+- transient scratch notes that are not part of the repository knowledge base

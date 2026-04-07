@@ -1,110 +1,67 @@
-# BaseFaq Multi-Agent System
+# BaseFAQ Multi-Agent System
 
 ## Purpose
 
-This document applies the multi-agent operating model to the current BaseFaq repository. The goal is to give BaseFaq an internal AI team that can plan, implement, review, document, and release work with human approvals kept at the right gates.
+This document explains the engineering-side multi-agent runtime that lives under `agents/`. It is not the product AI runtime. It is the repository automation layer used to plan, implement, document, and review engineering work.
 
-## Why The System Lives In `agents/`
+## Why it is separate from `dotnet/BaseFaq.AI.*`
 
-The new multi-agent runtime is intentionally isolated in `agents/` so it can evolve independently from the existing `.NET 10` AI worker runtime in `dotnet/BaseFaq.AI.*`.
+The repository contains two different AI concerns:
 
-This separation keeps two concerns distinct:
+- `dotnet/BaseFaq.AI.*`: product-facing generation and matching workers used by BaseFAQ itself
+- `agents/`: engineering execution helpers used to work on the repository
 
-- `dotnet/BaseFaq.AI.*`: product-facing asynchronous AI generation and matching runtime
-- `agents/`: engineering execution runtime based on OpenAI Agents SDK, handoffs, tools, and direct-implementation governance
+Keeping them separate avoids mixing product runtime requirements with developer automation concerns.
 
-## Current BaseFaq Mapping
+## Scope in this repository
 
-### UI/UX
+The multi-agent system is designed around the same repository boundaries as the rest of BaseFAQ:
 
-- Delivery root: `uiux/`
-- Reference source: the Demo6 Next.js TypeScript layout in `apps/demos/.../demo6`
+- `apps/` for frontend work
+- `dotnet/` for APIs, business modules, and persistence
+- `docker/`, `local/`, `azure/`, and `.github/` for platform and delivery
+- `docs/` for architecture, operations, and release material
 
-### Frontend / Micro-frontends
+## Operating model
 
-- Delivery root: `apps/`
-- Baseline: `apps/demos/metronic-tailwind-react-demos/typescript/nextjs`
-- Direction: API-driven micro-frontends that can consume BaseFaq backends through explicit adapters
+### Lead agent
 
-### Backend / Microservices / APIs
+The lead agent is expected to:
 
-- Delivery root: `dotnet/`
-- Primary stack: `.NET 10`
-- Existing boundaries: API hosts plus business modules, with `BaseFaq.AI.Api` already separated from FAQ and tenant APIs
+- read the request
+- decompose the work
+- route tasks to specialists when appropriate
+- consolidate validation, blockers, and final changes
 
-### Multitenancy / Data
+### Specialist roles
 
-- Delivery roots: `dotnet/BaseFaq.Common.EntityFramework.Tenant`, `dotnet/BaseFaq.Faq.Common.Persistence.FaqDb`, migration and seed tooling
-- Core rule: maintain tenant isolation and explicit connection ownership
+The specialist split mirrors the repository:
 
-### Platform / DevOps / SRE
+- frontend and design-system work
+- backend and API work
+- multitenancy and data work
+- DevOps and release work
+- QA and documentation work
 
-- Delivery roots: `azure/`, `.github/`, `docker/`, `local/env/`
-- Core rule: local and Azure capacity are managed declaratively and remain human-gated for high-risk changes
+## Guardrails
 
-### Security / QA / Supply Chain
+The multi-agent runtime is intentionally governed.
 
-- Delivery roots: `docs/testing/`, test projects, CI quality gates
-- Core rule: no release without explicit validation and risk review
+### Human review is still required for high-risk changes
 
-### Docs / Release Manager
-
-- Delivery root: `docs/`
-- Core rule: publish architecture, rollout, release, and evidence artifacts in English
-
-## Runtime Shape
-
-### Agent Lead
-
-- Reads the request
-- Decomposes the work
-- Routes to specialists through handoffs
-- Consolidates changed paths, validation, blockers, and follow-up review guidance
-- Prepares the final direct-implementation response
-
-### Specialists
-
-- Design System / UI-UX
-- Frontend / Micro-frontends
-- Backend / Microservices / APIs
-- Multitenancy / Data
-- Platform / DevOps / SRE
-- Security / QA / Supply Chain
-- Docs / Release Manager
-
-## Tooling
-
-The runtime uses local repository tools with specialist write scopes:
-
-- file reads and repository search
-- bounded shell commands
-- file creation and replacement in owned scopes
-- delivery summary generation under `agents/.state/`
-
-High-risk shell actions require approval interruptions. Final code approval remains outside the runtime.
-
-## Review And Rollout Model
-
-### Where review happens
-
-- High-risk review: the team's normal human-controlled merge flow
-- Deployment approval: protected GitHub Environments and Azure promotion
-
-### High-risk changes that always require human review
+Examples:
 
 - breaking API or event contract changes
-- multitenant persistence or migration changes
-- Azure, CI/CD, container, or secret-management changes
-- security-sensitive authentication, authorization, or supply-chain changes
+- multitenant persistence and migration changes
+- Azure, CI/CD, Docker, or secret-management changes
+- security-sensitive auth or authorization changes
 
-## OpenAI Alignment
+### Repository rules still apply
 
-The implementation in `agents/` follows the current OpenAI direction for agentic work:
+- code changes must remain inside the repository boundaries
+- operational scripts and deployment flows remain explicit and reviewable
+- documentation must stay in English and be committed like any other code artifact
 
-- Responses API direction: <https://platform.openai.com/docs/guides/responses-vs-chat-completions>
-- Reasoning model guidance: <https://platform.openai.com/docs/guides/reasoning>
-- Agents SDK TypeScript/JavaScript reference: <https://openai.github.io/openai-agents-js/>
+## Relation to the rest of the documentation
 
-## Operational Rule
-
-The agents are allowed to behave like a team, but not like an ungoverned autonomous system. BaseFaq remains human-led at the merge and deployment boundaries.
+Use this document only when the `agents/` directory or the engineering automation model is part of the discussion. For product architecture, start with [`solution-architecture.md`](solution-architecture.md) instead.

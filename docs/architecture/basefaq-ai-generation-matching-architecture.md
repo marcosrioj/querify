@@ -1,263 +1,151 @@
-# BaseFAQ AI Architecture Proposal
+# BaseFAQ AI Generation and Matching Architecture
 
-## Document purpose
-Define the target architecture, integration model, delivery phases, and operational controls for `BaseFaq.AI.Generation` and `BaseFaq.AI.Matching`.
+## Purpose
 
-## Intended audience
-- Engineers implementing AI services and integration flows
-- Architects reviewing service boundaries and persistence ownership
-- Platform/operations teams running messaging, observability, and secret-management controls
+This document describes the AI runtime that currently exists in the repository, how generation and matching flow through RabbitMQ and MassTransit, and which parts are already implemented versus still incomplete.
 
-## Business outcomes
-- Deliver asynchronous AI generation and matching with reliable callback completion semantics.
-- Preserve existing BaseFAQ boundaries while expanding AI capability.
-- Minimize delivery risk through phased rollout and explicit operational safeguards.
+## Current implementation summary
 
-## Technical outcomes
-- Keep AI workers stateless for lifecycle tracking (no lifecycle persistence in DB or in-memory stores).
-- Maintain FAQ domain ownership in FAQ DB with explicit integration-write paths.
-- Ensure reliability through idempotency, retry, DLQ, tracing, and monitoring patterns.
+The repository already contains a real asynchronous AI split:
 
-## How to read this document
-1. Use the Executive Summary and Recommended Architecture for direction.
-2. Use Event Flow and Asynchronous Integration sections for implementation design.
-3. Use Idempotency/Retry/Tracing/Security sections for production hardening.
-4. Use Implementation Plan, Backlog, and Checklist sections for delivery governance.
+- `BaseFaq.Faq.Portal.Api` publishes generation requests.
+- `BaseFaq.Faq.Public.Api` publishes matching requests when a new FAQ item is created through the public flow.
+- `BaseFaq.AI.Api` hosts the consumers and provider-facing execution services.
+- Generation and matching both publish completion or failure callbacks after worker execution.
 
-## Executive Summary
-This document defines how `BaseFaq.AI.Generation` and `BaseFaq.AI.Matching` should be added to BaseFAQ with minimal incremental changes while respecting the new AI service boundaries.
+The important constraint is that the AI worker is intentionally stateless for lifecycle tracking. It resolves tenant-specific provider configuration from the tenant database, uses a tenant-specific FAQ database when needed, and publishes events instead of owning a long-lived job store.
 
-The proposal preserves the existing architecture model where possible:
-- Existing API hosts remain composition roots.
-- Existing `Business` modules continue using MediatR orchestration.
-- Existing infrastructure conventions (auth, Sentry, Redis, RabbitMQ baseline) remain in place.
+## Project map
 
-The proposal also applies the new constraints:
-- `BaseFaq.AI` does not persist AI lifecycle state.
-- `BaseFaq.AI` workers run stateless for lifecycle tracking.
-- `BaseFaq.AI` has no tenant model.
-- No FK relationship exists between AI services and FAQ DB.
-- `BaseFaq.Faq` APIs communicate with `BaseFaq.AI` asynchronously via RabbitMQ.
-- `BaseFaq.AI` processes requests, updates FAQ data through integration write flow, and publishes callback events so FAQ APIs know processing is done and ready.
+| Project area | Role |
+|---|---|
+| `BaseFaq.AI.Api` | worker host and health endpoint |
+| `BaseFaq.AI.Business.Common` | shared AI abstractions such as provider resolution and FAQ DbContext factory |
+| `BaseFaq.AI.Business.Generation` | content study, prompt building, generation provider integration, generation consumers |
+| `BaseFaq.AI.Business.Matching` | candidate loading, ranking provider integration, matching consumers |
+| `BaseFaq.Models.Ai` / `BaseFaq.AI.Common.Contracts` | event contracts for generation and matching |
+| `BaseFaq.AI.Test.IntegrationTest` | integration coverage for AI flows |
 
-The AI capability remains organized under:
-- `BaseFaq.AI/Generation`
-- `BaseFaq.AI/Matching`
-- `BaseFaq.AI/Common`
+## Event-driven design
 
-## 1) Recommended Architecture (Aligned to Existing BaseFAQ Model)
-### Architectural assumptions
-- No active production-grade queue consumers are currently implemented.
-- AI generation and matching are delivered as AI services integrated with FAQ APIs through RabbitMQ.
-- Existing folder conventions (`Api`, `Business`, `Test`) should be preserved.
-- `BaseFaq.AI` does not use tenant resolution or tenant partitioning.
+### Generation flow
 
-### Existing model to preserve
-- API startup and middleware pattern in API host projects.
-- Feature composition via extension methods in `Api/Extensions`.
-- Application orchestration in Business projects with MediatR handlers.
-- FAQ persistence ownership remains in `BaseFaq.Faq.Common.Persistence.FaqDb` (`FaqDbContext`) for FAQ domain data.
-- Shared infrastructure utilities from `BaseFaq.Common.Infrastructure.*`.
+1. `BaseFaq.Faq.Portal.Business.Faq` validates the FAQ and its content references.
+2. It checks whether the tenant has a provider configured for `AiCommandType.Generation`.
+3. It publishes `FaqGenerationRequestedV1` through `IPublishEndpoint`.
+4. `BaseFaq.AI.Business.Generation.Consumers.FaqGenerationRequestedConsumer` receives the message.
+5. `ProcessFaqGenerationRequestedCommandHandler` executes the generation service.
+6. The worker publishes either `FaqGenerationReadyV1` or `FaqGenerationFailedV1`.
+7. `BaseFaq.Faq.Portal.Api` currently consumes those callbacks and logs them.
 
-### Target high-level model
-- `Generation (ContentRef -> New FaqItems)`: asynchronous workflow driven by RabbitMQ events and worker consumers.
-- `Matching (New FaqItem -> Similar Existing FaqItems)`: separate workflow for duplicate/similarity checks.
-- `Common`: provider and vector abstractions shared by both modules.
-- `Persistence split`:
-  - No persistence for AI lifecycle state.
-  - FAQ product data in FAQ DB via `FaqDbContext`.
+### Matching flow
 
-## 2) Current Solution Style + Incremental Additions
-### Existing BaseFAQ components (unchanged)
-- `BaseFaq.Faq.Portal.Api` and `BaseFaq.Faq.Public.Api` startup conventions.
-- Existing middleware: auth, API error handling, Sentry.
-- Existing `BaseFaq.Faq.Portal.Business.*` and `BaseFaq.Faq.Public.Business.*` patterns.
-- Existing FAQ entity model and DB context ownership in `BaseFaq.Faq.Common.Persistence.FaqDb`.
+1. `BaseFaq.Faq.Public.Business.FaqItem` creates the FAQ item.
+2. It checks whether the tenant has a provider configured for `AiCommandType.Matching`.
+3. It publishes `FaqMatchingRequestedV1`.
+4. `BaseFaq.AI.Business.Matching.Consumers.FaqMatchingRequestedConsumer` receives the message.
+5. `ProcessFaqMatchingRequestedCommandHandler` loads the source question and candidate questions from the tenant FAQ database.
+6. The worker publishes either `FaqMatchingCompletedV1` or `FaqMatchingFailedV1`.
 
-### Existing components with additive changes only
-- `BaseFaq.Faq.Portal.Api`:
-  - Register AI generation feature in existing `AddFeatures(...)`.
-  - Add generation endpoints through new Business module controllers.
-- `BaseFaq.Faq.Public.Api`:
-  - Register AI matching feature in existing `AddFeatures(...)`.
-  - Add asynchronous matching endpoints through new Business module controllers.
-- `BaseFaq.Faq.Common.Persistence.FaqDb`:
-  - Keep FAQ domain ownership.
-  - Store only FAQ-side final data/state needed for product usage.
-  - Do not store AI lifecycle state.
+## What the worker actually does today
 
-### New components (added)
-- New AI projects under `BaseFaq.AI` only (no restructuring of existing modules).
-- New worker processes for asynchronous generation, asynchronous matching, and optional embedding refresh.
-- New contracts shared for AI events and provider abstractions.
-- No AI lifecycle persistence project or migration flow.
+### Generation
 
-## 3) BaseFaq.AI.Generation and BaseFaq.AI.Matching Project Divisions
-| Division | Responsibility | Recommended .NET technologies/libraries | Applicable patterns | Risks | Mitigations |
-|---|---|---|---|---|---|
-| API integration endpoints | Expose commands/queries in existing API model (`Portal` for generation, `Public` for matching) | ASP.NET Core controllers, existing auth middleware | Thin controller + application service | API bloat | Keep strict route namespace `api/faqs/ai/*` |
-| Application orchestration layer | Validate input, coordinate workflows, dispatch commands/queries | MediatR, FluentValidation (optional) | CQRS, orchestration service | Business logic leakage into controllers | Keep orchestration in handlers/services only |
-| AI processing worker/service | Consume generation jobs, call LLM provider, update FAQ data, emit ready/failure callbacks | Worker Service, RabbitMQ consumer, Polly, HttpClientFactory | Async consumer, retry/circuit-breaker | Duplicate side effects | Idempotent FAQ writes + correlation-aware callbacks |
-| Domain rules for FAQ generation lifecycle | Enforce status transitions and review gates | Domain services + enums + guard methods | State machine | Invalid transitions | Transition guard + integration tests |
-| Persistence and FAQ versioning | FAQ versions in FAQ DB only | EF Core, Npgsql, existing migration flow | Explicit integration write flow | Duplicate writes | Idempotent FAQ writes |
-| Messaging/events integration | Decouple request/processing/completion and status notifications | RabbitMQ (MassTransit optional abstraction) | Event-driven architecture, outbox/inbox | Duplicate delivery | Idempotency keys + processed-message store |
-| Security and secret management | Secure provider keys and prevent secret leakage | .NET config providers, User Secrets (dev), cloud secret manager | Secret abstraction + rotation | Secret exposure | Vault-only in non-dev + redaction filters |
-| Observability and operations | Visibility across APIs, workers, broker, DB, provider calls | Sentry (existing), OpenTelemetry, HealthChecks, structured logs | Correlation tracing + SLO monitoring | Blind failure modes | End-to-end tracing + alerting thresholds |
-| Prompt governance and answer quality controls | Prompt versioning, policy checks, publication gates | Prompt registry (JSON/YAML + DB ref), evaluation runner (optional) | Prompt-as-code + human-in-the-loop | Hallucinations/quality drift | Quality rubric + approval workflow + fallback |
+The generation worker currently:
 
-## 4) Event Flow (Step-by-Step)
-### Process A: Generation (ContentRef -> New FaqItems)
-1. Client calls `POST /api/faqs/ai/generation-jobs` (Portal API).
-2. FAQ API validates request/user context and stores FAQ-side request metadata as `Requested`.
-3. FAQ API publishes `FaqGenerationRequestedV1` with correlation and idempotency metadata to RabbitMQ.
-4. AI Generation worker consumes request event.
-5. Worker starts stateless processing.
-6. Worker loads prompt profile and source context.
-7. Worker calls provider (`OpenAI`/`Azure OpenAI`) with retries and timeout policy.
-8. Worker applies quality checks and business rules.
-9. Worker does not persist AI lifecycle artifacts/state.
-10. Worker updates FAQ data in FAQ DB through integration write flow (`FaqDbContext`) with final approved payload.
-11. Worker emits terminal outcome through callback event only (`Ready` or `Failed`).
-12. Worker publishes callback event (`FaqGenerationReadyV1` or `FaqGenerationFailedV1`) to RabbitMQ.
-13. FAQ API-side consumer receives callback and marks request as done/failed and ready to use.
-14. The cycle repeats for subsequent generation requests.
+- resolves the tenant's generation provider configuration
+- loads processable content references from the tenant FAQ database
+- builds prompt data
+- calls the configured provider
+- logs successful completion
+- publishes ready or failed callback events
 
-### Process B: Matching (New FaqItem -> Similar Existing FaqItems)
-1. Client/API sends matching request with `FaqItemId` for a newly created FAQ item.
-2. Matching API validates the request and tenant access to that `FaqItemId`.
-3. Matching service enqueues/starts matching workflow and returns `202 Accepted`.
-4. Matching worker/process compares the new FAQ item against existing FAQ items.
-5. Matching result is stored/published for downstream use (for example review or merge decisions).
+The generation worker does **not** currently persist generated FAQ items or generation lifecycle state back into the FAQ database.
 
-## 5) Asynchronous Integration
-### Use asynchronous when
-- Work is compute-heavy, long-running, expensive, or failure-prone.
-- Example: FAQ generation, matching, re-generation, bulk embedding refresh.
-- API should return `202 Accepted` with job identifier and polling/subscription mechanism.
+### Matching
 
-### Rule of thumb
-- `Generation (ContentRef -> New FaqItems)`: async by default.
-- `Matching (New FaqItem -> Similar Existing FaqItems)`: separate async job flow.
+The matching worker currently:
 
-## 6) RabbitMQ and MassTransit Evaluation
-### Scenario A: Use both together (recommended if already standardized)
-- Use RabbitMQ as transport broker.
-- Use MassTransit as .NET messaging abstraction/runtime.
+- resolves the tenant's matching provider configuration
+- loads the newly created FAQ item question
+- loads other active FAQ item questions for the same tenant
+- asks the provider to rank the candidates
+- publishes matching-completed or matching-failed callback events
 
-Pros:
-- Faster delivery for consumers/producers.
-- Built-in middleware for retry, delayed retry, error queues, topology.
-- Better developer ergonomics and observability hooks.
+There is no repository-side consumer yet that stores or applies the matching result after `FaqMatchingCompletedV1` is published.
 
-Cons:
-- Additional abstraction layer to operate and understand.
+## Architectural decisions already visible in code
 
-### Scenario B: Use only RabbitMQ client library
-Pros:
-- Lower abstraction overhead.
-- Full control of broker semantics.
+### Stateless AI worker host
 
-Cons:
-- More boilerplate for retries, correlation, poison handling, and instrumentation.
-- Higher maintenance and inconsistency risk across services.
+The AI host uses:
 
-### Scenario C: Use only MassTransit (without RabbitMQ)
-- Not aligned because RabbitMQ is the required communication backbone in this architecture.
-- Would require selecting another transport and operating model.
+- background messaging through MassTransit
+- provider resolution from tenant configuration
+- tenant-specific FAQ database access through `IFaqDbContextFactory`
+- callback events instead of an internal job database
 
-### Trade-offs
-| Option | Complexity | Resilience | Observability | Operational cost |
-|---|---|---|---|---|
-| RabbitMQ + MassTransit | Medium | High | High | Medium |
-| RabbitMQ only | Medium-High (app code) | Medium | Medium-Low | Medium |
-| Alternative transport with MassTransit only | Medium-High (migration) | Medium-High | Medium-High | Medium-High |
+This keeps the AI runtime small and avoids mixing FAQ domain ownership into the worker host.
 
-Recommended for BaseFAQ:
-- Keep RabbitMQ as broker and service communication channel.
-- Use MassTransit where it accelerates delivery and reliability in .NET services.
+### Tenant-aware provider resolution
 
-## 7) Idempotency, Retry, DLQ, Tracing, Monitoring
-### Idempotency strategy
-- Require `Idempotency-Key` on generation command API.
-- Persist unique key at job creation (`FaqId + IdempotencyKey` unique index, or `JobId` uniqueness).
-- Consumer dedupe:
-  - Store processed `MessageId` + handler name.
-  - Skip if already processed.
+Provider credentials are not read from `appsettings.json`. Instead, the worker resolves them per tenant and per command type from tenant data. That makes AI behavior part of tenant configuration, not global host configuration.
 
-### Retry policy
-- Transport/consumer-level retries for transient infrastructure issues.
-- Provider-level retries with exponential backoff + jitter (429/5xx/timeouts).
-- FAQ DB integration write retries with safe idempotent upsert semantics.
-- No retries for validation/domain errors.
+### Shared infrastructure alignment
 
-### Dead-letter queue strategy
-- Route poison messages to `_error` queues.
-- Add AI-specific quarantine queue for messages exceeding retry policy.
-- Operational runbook:
-  - Inspect cause.
-  - Patch/redeploy.
-  - Replay safe messages with dedupe check.
+The AI host follows the same shared conventions as the rest of the solution where relevant:
 
-### Distributed tracing
-- Propagate `traceparent`, `CorrelationId`, `CausationId` through API -> broker -> worker -> FAQ DB/provider.
-- Add spans for:
-  - API command handling.
-  - Event publish/consume.
-  - Provider API call.
-  - callback outcomes and FAQ DB writes.
-  - FAQ DB integration write.
-- Implementation convention:
-  - Shared baseline telemetry wiring in `BaseFaq.Common.Infrasctructure.Telemetry` via `AddTelemetry(...)`.
-  - Keep the shared telemetry project generic (no service-specific sources hardcoded).
-  - Pass service-specific `ActivitySource` names from each API/worker when registering telemetry.
+- DI composition in the API host
+- MediatR command handlers
+- shared telemetry package
+- shared contracts for inter-service messaging
 
-### Monitoring and alerting
-- Metrics:
-  - Job throughput and completion rate.
-  - Failure rate by error code.
-  - Queue depth and message age.
-  - p95 and p99 generation duration.
-  - Matching latency.
-  - FAQ update latency after AI completion.
-- Alerts:
-  - Queue lag threshold exceeded.
-  - Failure ratio above baseline.
-  - DLQ growth.
-  - Provider error spikes / rate limiting spikes.
-  - Repeated callback publish failures.
+## Operational requirements
 
-## 8) OpenAI API Key Security Strategy
-### Secret manager
-- Development and production: keep provider keys in a managed secret manager
-  (Azure Key Vault / AWS Secrets Manager / GCP Secret Manager) and apply them via tenant management flows.
-- Never store provider keys in repository `appsettings*.json`.
-- Implemented at tenant level via `TenantAiProviders` (`AiProviderId` + encrypted `AiProviderKey`).
+### Required infrastructure
 
-### Key rotation
-- Rotate by updating tenant provider credentials per command (`Generation` / `Matching`).
-- Rotate regularly (time-based) and on incident trigger.
-- Runbook: `docs/operations/secret-manager-key-rotation.md`.
+- RabbitMQ for message transport
+- PostgreSQL tenant database for provider and tenant metadata
+- PostgreSQL FAQ databases for tenant FAQ data access
+- an AI provider account and credentials configured through tenant management
 
-### Log masking and no leakage
-- Redact:
-  - `Authorization` headers.
-  - API keys and tokens.
-  - Prompt fragments containing sensitive content.
-- Disable verbose provider request/response logs in production.
-- Add logging guard middleware/sinks with explicit masking rules.
+### Required configuration
 
-## 9) Implementation Plan by Phase
-### Phase 1: MVP
-- Create AI project skeleton under `BaseFaq.AI`.
-- Implement generation command + async worker processing.
-- Implement generation status endpoint.
-- Keep AI lifecycle processing stateless.
-- Implement FAQ integration write flow (`BaseFaq.AI` -> FAQ DB write path) + callback event.
-- Implement matching endpoint with asynchronous response (job-based), no fallback behavior.
-- Add integration tests for happy-path generation and matching.
+- `Ai:UserId` in `dotnet/BaseFaq.AI.Api/appsettings.json`
+- RabbitMQ configuration for generation and matching exchanges/queues
+- tenant AI provider credentials stored through tenant flows
 
-### Phase 2: Production Hardening
-- Add idempotency enforcement and consumer dedupe store.
+The credential handling model is documented in [`../operations/secret-manager-key-rotation.md`](../operations/secret-manager-key-rotation.md).
+
+### Observability
+
+`BaseFaq.AI.Api` is the one place in the solution already wired to the shared telemetry package. Jaeger and the local observability stack can therefore be used to inspect the AI worker independently of the CRUD APIs.
+
+## Current gaps and implementation status
+
+### Implemented
+
+- asynchronous message publication for generation and matching
+- AI worker consumers for both flows
+- provider resolution per tenant and AI command type
+- generation callback events
+- matching callback events
+- AI health endpoint
+- AI integration test project
+
+### Not yet implemented end-to-end
+
+- persistence of generated FAQ items or draft artifacts from the generation worker
+- FAQ-side job or lifecycle state tracking
+- downstream consumer for matching-completed events
+- operator-facing monitoring document beyond the local observability stack
+
+## Practical guidance
+
+- Treat the AI system as an asynchronous integration boundary, not as a synchronous helper method inside FAQ controllers.
+- Do not move tenant provider secrets into host configuration files.
+- If generation starts writing FAQ data in the future, document that new ownership model explicitly because it changes the current "stateless + callback only" behavior.
+- When adding new AI event types, keep them versioned and explicit in the contracts projects.
 - Configure robust retry and DLQ policies.
 - Add full tracing and alerting.
 - Introduce prompt governance and quality gates.
