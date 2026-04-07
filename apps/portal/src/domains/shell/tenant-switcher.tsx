@@ -1,10 +1,21 @@
+import { useNavigate } from 'react-router-dom';
 import { Building2 } from 'lucide-react';
 import { useTenant } from '@/platform/tenant/tenant-context';
 import { tenantUserRoleTypeLabels } from '@/shared/constants/backend-enums';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui';
 
 export function TenantSwitcher() {
+  const navigate = useNavigate();
   const { tenants, currentTenantId, setCurrentTenantId, isLoading } = useTenant();
+
+  function handleTenantChange(tenantId: string) {
+    if (tenantId === currentTenantId) {
+      return;
+    }
+
+    setCurrentTenantId(tenantId);
+    navigate('/app/dashboard', { replace: true });
+  }
 
   if (!tenants.length) {
     return (
@@ -16,7 +27,7 @@ export function TenantSwitcher() {
   }
 
   return (
-    <Select value={currentTenantId} onValueChange={setCurrentTenantId}>
+    <Select value={currentTenantId} onValueChange={handleTenantChange}>
       <SelectTrigger className="w-full min-w-0 sm:w-[220px]">
         <SelectValue placeholder="Select workspace" />
       </SelectTrigger>

@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import {
   ArrowUpRight,
   BookOpen,
@@ -34,6 +35,7 @@ import { type FaqItemDto } from "@/domains/faq-items/types";
 import { useFaqList } from "@/domains/faq/hooks";
 import { type FaqDto } from "@/domains/faq/types";
 import { useAuth } from "@/platform/auth/auth-context";
+import { useTenant } from "@/platform/tenant/tenant-context";
 import {
   ChartContainer,
   ChartTooltip,
@@ -229,7 +231,9 @@ function SourceRow({ contentRef }: { contentRef: ContentRefDto }) {
 
 export function DashboardPage() {
   const { user } = useAuth();
+  const { currentTenantId } = useTenant();
   const currentWorkspace = useCurrentWorkspace();
+  const refreshedTenantIdRef = useRef<string | undefined>(undefined);
   const { aiProvidersQuery, clientKeyQuery } = useTenantWorkspace();
   const faqOverviewQuery = useFaqList({
     page: 1,
@@ -270,6 +274,44 @@ export function DashboardPage() {
     pageSize: 5,
     sorting: "UpdatedDate DESC",
   });
+
+  useEffect(() => {
+    if (!currentTenantId) {
+      refreshedTenantIdRef.current = undefined;
+      return;
+    }
+
+    if (refreshedTenantIdRef.current === currentTenantId) {
+      return;
+    }
+
+    refreshedTenantIdRef.current = currentTenantId;
+
+    const tenantScopedDashboardQueries = [
+      faqOverviewQuery,
+      faqPublishedQuery,
+      faqDraftQuery,
+      faqArchivedQuery,
+      faqItemTopQuery,
+      faqItemActiveQuery,
+      contentRefOverviewQuery,
+    ];
+
+    void Promise.all(
+      tenantScopedDashboardQueries
+        .filter((query) => query.fetchStatus === "idle")
+        .map((query) => query.refetch()),
+    );
+  }, [
+    contentRefOverviewQuery,
+    currentTenantId,
+    faqArchivedQuery,
+    faqDraftQuery,
+    faqItemActiveQuery,
+    faqItemTopQuery,
+    faqOverviewQuery,
+    faqPublishedQuery,
+  ]);
 
   const totalFaqs = faqOverviewQuery.data?.totalCount ?? 0;
   const publishedFaqs = faqPublishedQuery.data?.totalCount ?? 0;
