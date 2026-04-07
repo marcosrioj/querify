@@ -12,7 +12,7 @@ import type {
 export function getTenantClientKey(accessToken?: string, tenantId?: string) {
   return portalRequest<string | null>({
     service: 'tenant',
-    path: `/api/tenant/tenants/GetClientKey?tenantId=${requireTenantId(tenantId)}`,
+    path: `/api/tenant/tenants/get-client-key?tenantId=${requireTenantId(tenantId)}`,
     accessToken: requireAccessToken(accessToken),
   });
 }
@@ -20,7 +20,7 @@ export function getTenantClientKey(accessToken?: string, tenantId?: string) {
 export function generateTenantClientKey(accessToken?: string, tenantId?: string) {
   return portalRequest<string>({
     service: 'tenant',
-    path: `/api/tenant/tenants/GenerateNewClientKey?tenantId=${requireTenantId(tenantId)}`,
+    path: `/api/tenant/tenants/generate-new-client-key?tenantId=${requireTenantId(tenantId)}`,
     method: 'POST',
     accessToken: requireAccessToken(accessToken),
   });
@@ -29,7 +29,7 @@ export function generateTenantClientKey(accessToken?: string, tenantId?: string)
 export function getConfiguredAiProviders(accessToken?: string, tenantId?: string) {
   return portalRequest<TenantAiProviderDto[]>({
     service: 'tenant',
-    path: `/api/tenant/tenants/GetConfiguredAiProviders?tenantId=${requireTenantId(tenantId)}`,
+    path: `/api/tenant/tenants/get-configured-ai-providers?tenantId=${requireTenantId(tenantId)}`,
     accessToken: requireAccessToken(accessToken),
   });
 }
@@ -41,7 +41,7 @@ export function createOrUpdateTenant(
 ) {
   return portalRequest<boolean>({
     service: 'tenant',
-    path: '/api/tenant/tenants/CreateOrUpdate',
+    path: '/api/tenant/tenants/create-or-update',
     method: 'POST',
     accessToken: requireAccessToken(accessToken),
     body: {
@@ -57,7 +57,7 @@ export function refreshAllowedTenantCache(
 ) {
   return portalRequest<boolean>({
     service: 'tenant',
-    path: `/api/tenant/tenants/RefreshAllowedTenantCache?tenantId=${requireTenantId(tenantId)}`,
+    path: `/api/tenant/tenants/refresh-allowed-tenant-cache?tenantId=${requireTenantId(tenantId)}`,
     method: 'POST',
     accessToken: requireAccessToken(accessToken),
   });
@@ -70,7 +70,7 @@ export function setAiProviderCredentials(
 ) {
   return portalRequest<boolean>({
     service: 'tenant',
-    path: '/api/tenant/tenants/SetAiProviderCredentials',
+    path: '/api/tenant/tenants/set-ai-provider-credentials',
     method: 'POST',
     accessToken: requireAccessToken(accessToken),
     body: {

@@ -11,7 +11,7 @@ namespace BaseFaq.Tenant.Portal.Business.User.Controllers;
 [Route("api/user")]
 public class UserController(IUserProfileService userProfileService) : ControllerBase
 {
-    [HttpGet("UserProfile")]
+    [HttpGet("user-profile")]
     [ProducesResponseType(typeof(UserProfileDto), StatusCodes.Status200OK)]
     public async Task<IActionResult> UserProfile(CancellationToken token)
     {
@@ -19,7 +19,7 @@ public class UserController(IUserProfileService userProfileService) : Controller
         return Ok(result);
     }
 
-    [HttpPut("UserProfile")]
+    [HttpPut("user-profile")]
     [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
     public async Task<IActionResult> UserProfile([FromBody] UserProfileUpdateRequestDto dto, CancellationToken token)
     {

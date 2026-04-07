@@ -9,7 +9,7 @@ namespace BaseFaq.Tenant.BackOffice.Business.AiProvider.Controllers;
 
 [Authorize]
 [ApiController]
-[Route("api/tenant/aiproviders")]
+[Route("api/tenant/ai-providers")]
 public class AiProviderController(IAiProviderService aiProviderService) : ControllerBase
 {
     [HttpGet("{id:guid}")]

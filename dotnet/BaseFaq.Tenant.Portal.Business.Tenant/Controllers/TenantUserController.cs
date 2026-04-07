@@ -11,7 +11,7 @@ namespace BaseFaq.Tenant.Portal.Business.Tenant.Controllers;
 [Route("api/tenant/tenant-users")]
 public class TenantUserController(ITenantUserService tenantUserService) : ControllerBase
 {
-    [HttpGet("GetAll")]
+    [HttpGet("get-all")]
     [ProducesResponseType(typeof(List<TenantUserDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll([FromQuery] Guid tenantId, CancellationToken token)
     {

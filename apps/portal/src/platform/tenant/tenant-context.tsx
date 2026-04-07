@@ -28,7 +28,7 @@ const STORAGE_KEY = 'basefaq.portal.currentTenantId';
 async function fetchTenants(accessToken?: string) {
   return portalRequest<TenantSummaryDto[]>({
     service: 'tenant',
-    path: '/api/tenant/tenants/GetAll',
+    path: '/api/tenant/tenants/get-all',
     accessToken: requireAccessToken(accessToken),
   });
 }

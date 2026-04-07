@@ -8,10 +8,10 @@ namespace BaseFaq.Tenant.Portal.Business.AiProvider.Controllers;
 
 [Authorize]
 [ApiController]
-[Route("api/tenant/aiproviders")]
+[Route("api/tenant/ai-providers")]
 public class AiProviderController(IAiProviderService aiProviderService) : ControllerBase
 {
-    [HttpGet("GetAll")]
+    [HttpGet("get-all")]
     [ProducesResponseType(typeof(List<AiProviderDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll(CancellationToken token)
     {

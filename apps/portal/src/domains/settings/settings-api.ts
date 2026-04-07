@@ -16,7 +16,7 @@ export type UserProfileUpdateRequestDto = {
 export function getUserProfile(accessToken?: string) {
   return portalRequest<UserProfileDto>({
     service: 'tenant',
-    path: '/api/user/UserProfile',
+    path: '/api/user/user-profile',
     accessToken: requireAccessToken(accessToken),
   });
 }
@@ -27,7 +27,7 @@ export function updateUserProfile(
 ) {
   return portalRequest<boolean>({
     service: 'tenant',
-    path: '/api/user/UserProfile',
+    path: '/api/user/user-profile',
     method: 'PUT',
     accessToken: requireAccessToken(accessToken),
     body,

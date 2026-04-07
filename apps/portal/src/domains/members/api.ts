@@ -11,7 +11,7 @@ import type {
 export function getTenantUsers(accessToken?: string, tenantId?: string) {
   return portalRequest<TenantUserDto[]>({
     service: 'tenant',
-    path: `/api/tenant/tenant-users/GetAll?tenantId=${requireTenantId(tenantId)}`,
+    path: `/api/tenant/tenant-users/get-all?tenantId=${requireTenantId(tenantId)}`,
     accessToken: requireAccessToken(accessToken),
   });
 }

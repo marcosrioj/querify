@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace BaseFaq.Common.Infrastructure.Swagger.Controller;
 
 [ApiController]
-[Route("[controller]")]
+[Route("version")]
 public class VersionController : ControllerBase
 {
     [HttpGet]

@@ -12,7 +12,7 @@ namespace BaseFaq.Tenant.Portal.Business.Tenant.Controllers;
 [Route("api/tenant/tenants")]
 public class TenantAiProviderController(ITenantAiProviderService tenantAiProviderService) : ControllerBase
 {
-    [HttpGet("GetConfiguredAiProviders")]
+    [HttpGet("get-configured-ai-providers")]
     [ProducesResponseType(typeof(List<TenantAiProviderDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetConfiguredAiProviders([FromQuery] Guid tenantId, CancellationToken token)
     {
@@ -20,7 +20,7 @@ public class TenantAiProviderController(ITenantAiProviderService tenantAiProvide
         return Ok(result);
     }
 
-    [HttpGet("IsAiProviderKeyConfigured/{command:int}")]
+    [HttpGet("is-ai-provider-key-configured/{command:int}")]
     [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
     public async Task<IActionResult> IsAiProviderKeyConfigured(
         [FromQuery] Guid tenantId,

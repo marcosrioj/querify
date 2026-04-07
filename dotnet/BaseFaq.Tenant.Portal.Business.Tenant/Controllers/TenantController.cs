@@ -11,7 +11,7 @@ namespace BaseFaq.Tenant.Portal.Business.Tenant.Controllers;
 [Route("api/tenant/tenants")]
 public class TenantController(ITenantService tenantService) : ControllerBase
 {
-    [HttpGet("GetAll")]
+    [HttpGet("get-all")]
     [ProducesResponseType(typeof(List<TenantSummaryDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll(CancellationToken token)
     {
@@ -19,7 +19,7 @@ public class TenantController(ITenantService tenantService) : ControllerBase
         return Ok(result);
     }
 
-    [HttpPost("CreateOrUpdate")]
+    [HttpPost("create-or-update")]
     [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
     public async Task<IActionResult> CreateOrUpdate([FromBody] TenantCreateOrUpdateRequestDto dto,
         CancellationToken token)
@@ -28,7 +28,7 @@ public class TenantController(ITenantService tenantService) : ControllerBase
         return Ok(result);
     }
 
-    [HttpPost("RefreshAllowedTenantCache")]
+    [HttpPost("refresh-allowed-tenant-cache")]
     [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
     public async Task<IActionResult> RefreshAllowedTenantCache([FromQuery] Guid tenantId, CancellationToken token)
     {
@@ -36,7 +36,7 @@ public class TenantController(ITenantService tenantService) : ControllerBase
         return Ok(result);
     }
 
-    [HttpGet("GetClientKey")]
+    [HttpGet("get-client-key")]
     [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetClientKey([FromQuery] Guid tenantId, CancellationToken token)
     {
@@ -44,7 +44,7 @@ public class TenantController(ITenantService tenantService) : ControllerBase
         return Ok(result);
     }
 
-    [HttpPost("GenerateNewClientKey")]
+    [HttpPost("generate-new-client-key")]
     [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
     public async Task<IActionResult> GenerateNewClientKey([FromQuery] Guid tenantId, CancellationToken token)
     {
@@ -52,7 +52,7 @@ public class TenantController(ITenantService tenantService) : ControllerBase
         return Ok(result);
     }
 
-    [HttpPost("SetAiProviderCredentials")]
+    [HttpPost("set-ai-provider-credentials")]
     [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
     public async Task<IActionResult> SetAiProviderCredentials(
         [FromBody] TenantSetAiProviderCredentialsRequestDto dto,
