@@ -2,11 +2,6 @@
 /.git/
 **/node_modules/
 /apps/demos/
-/agents/node_modules/
-/agents/dist/
-/agents/.env
-/agents/.env.local
-/agents/.state/
 bin/
 obj/
 **/appsettings.Development.json
@@ -14,7 +9,5 @@ dotnet/BaseFaq.Sample.Ai.Generation/appsettings.json
 BaseFaq.sln.DotSettings.user
 azure/.env
 azure/env/*.env
-.codex
-agents/package-lock.json
 apps/portal/.env
 apps/portal/dist/

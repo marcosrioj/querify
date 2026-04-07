@@ -12,5 +12,5 @@ Use this folder for versioned release artifacts that should live with the reposi
 
 ## Keep out of this folder
 
-- temporary agent runtime state
+- temporary runtime state
 - transient scratch notes that are not part of the repository knowledge base
