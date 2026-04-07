@@ -11,6 +11,11 @@ export enum TenantEdition {
   Enterprise = 4,
 }
 
+export enum TenantUserRoleType {
+  Owner = 0,
+  Member = 1,
+}
+
 export enum AiCommandType {
   Generation = 10,
   Matching = 20,
@@ -52,6 +57,11 @@ export const tenantEditionLabels: Record<TenantEdition, string> = {
   [TenantEdition.Pro]: 'Pro',
   [TenantEdition.Business]: 'Business',
   [TenantEdition.Enterprise]: 'Enterprise',
+};
+
+export const tenantUserRoleTypeLabels: Record<TenantUserRoleType, string> = {
+  [TenantUserRoleType.Owner]: 'Owner',
+  [TenantUserRoleType.Member]: 'Member',
 };
 
 export const faqStatusLabels: Record<FaqStatus, string> = {

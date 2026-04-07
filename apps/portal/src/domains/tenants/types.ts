@@ -1,4 +1,9 @@
-import { AiCommandType, PortalApp, TenantEdition } from '@/shared/constants/backend-enums';
+import {
+  AiCommandType,
+  PortalApp,
+  TenantEdition,
+  TenantUserRoleType,
+} from '@/shared/constants/backend-enums';
 
 export type TenantSummaryDto = {
   id: string;
@@ -7,6 +12,7 @@ export type TenantSummaryDto = {
   edition: TenantEdition;
   app: PortalApp;
   isActive: boolean;
+  currentUserRole: TenantUserRoleType;
 };
 
 export type TenantAiProviderDto = {

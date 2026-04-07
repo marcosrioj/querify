@@ -19,7 +19,6 @@ public class Tenant : BaseEntity
     public required string ConnectionString { get; set; }
     public string? ClientKey { get; set; }
     public bool IsActive { get; set; } = true;
+    public ICollection<TenantUser> TenantUsers { get; set; } = [];
     public ICollection<TenantAiProvider> AiProviders { get; set; } = [];
-
-    public Guid UserId { get; set; }
 }

@@ -9,17 +9,18 @@ public sealed class AllowedTenantProvider(TenantDbContext tenantDbContext) : IAl
     public async Task<IReadOnlyDictionary<string, IReadOnlyCollection<Guid>>> GetAllowedTenantIds(Guid userId,
         CancellationToken cancellationToken = default)
     {
-        var tenants = await tenantDbContext.Tenants
+        var tenants = await tenantDbContext.TenantUsers
             .AsNoTracking()
-            .Where(entity => entity.IsActive && entity.UserId == userId)
-            .Select(entity => new { entity.App, entity.Id })
+            .Where(entity => entity.UserId == userId && entity.Tenant.IsActive)
+            .Select(entity => new { entity.Tenant.App, entity.TenantId })
+            .Distinct()
             .ToListAsync(cancellationToken);
 
         var lookup = tenants
             .GroupBy(entity => entity.App.ToString())
             .ToDictionary(
                 group => group.Key,
-                group => (IReadOnlyCollection<Guid>)group.Select(entity => entity.Id).ToList());
+                group => (IReadOnlyCollection<Guid>)group.Select(entity => entity.TenantId).ToList());
 
         foreach (var appEnum in Enum.GetValues<AppEnum>())
         {

@@ -20,8 +20,9 @@ public class TenantCommandQueryTests
     {
         using var context = TestContext.Create();
 
-        var handler = new TenantsCreateTenantCommandHandler(context.DbContext);
         var userId = Guid.NewGuid();
+        await TestDataFactory.SeedUserAsync(context.DbContext, id: userId);
+        var handler = new TenantsCreateTenantCommandHandler(context.DbContext, new TestAllowedTenantStore());
         var request = new TenantsCreateTenantCommand
         {
             Slug = "tenant-one",
@@ -35,7 +36,9 @@ public class TenantCommandQueryTests
 
         var id = await handler.Handle(request, CancellationToken.None);
 
-        var tenant = await context.DbContext.Tenants.FindAsync(id);
+        var tenant = await context.DbContext.Tenants
+            .Include(item => item.TenantUsers)
+            .FirstOrDefaultAsync(item => item.Id == id);
         Assert.NotNull(tenant);
         Assert.Equal("tenant-one", tenant!.Slug);
         Assert.Equal("Tenant One", tenant.Name);
@@ -43,7 +46,9 @@ public class TenantCommandQueryTests
         Assert.Equal(AppEnum.Faq, tenant.App);
         Assert.Equal(request.ConnectionString, tenant.ConnectionString);
         Assert.True(tenant.IsActive);
-        Assert.Equal(userId, tenant.UserId);
+        Assert.Contains(
+            tenant.TenantUsers,
+            tenantUser => tenantUser.UserId == userId && tenantUser.Role == TenantUserRoleType.Owner);
     }
 
     [Fact]
@@ -52,8 +57,9 @@ public class TenantCommandQueryTests
         using var context = TestContext.Create();
         var tenant = await TestDataFactory.SeedTenantAsync(context.DbContext, slug: "old", name: "Old");
 
-        var handler = new TenantsUpdateTenantCommandHandler(context.DbContext);
         var updatedUserId = Guid.NewGuid();
+        await TestDataFactory.SeedUserAsync(context.DbContext, id: updatedUserId);
+        var handler = new TenantsUpdateTenantCommandHandler(context.DbContext, new TestAllowedTenantStore());
         var request = new TenantsUpdateTenantCommand
         {
             Id = tenant.Id,
@@ -67,21 +73,27 @@ public class TenantCommandQueryTests
 
         await handler.Handle(request, CancellationToken.None);
 
-        var updated = await context.DbContext.Tenants.FindAsync(tenant.Id);
+        var updated = await context.DbContext.Tenants
+            .Include(item => item.TenantUsers)
+            .FirstOrDefaultAsync(item => item.Id == tenant.Id);
         Assert.NotNull(updated);
         Assert.Equal("new", updated!.Slug);
         Assert.Equal("New", updated.Name);
         Assert.Equal(TenantEdition.Enterprise, updated.Edition);
         Assert.Equal(request.ConnectionString, updated.ConnectionString);
         Assert.False(updated.IsActive);
-        Assert.Equal(updatedUserId, updated.UserId);
+        Assert.Contains(
+            updated.TenantUsers,
+            tenantUser => tenantUser.UserId == updatedUserId && tenantUser.Role == TenantUserRoleType.Owner);
     }
 
     [Fact]
     public async Task UpdateTenant_ThrowsWhenMissing()
     {
         using var context = TestContext.Create();
-        var handler = new TenantsUpdateTenantCommandHandler(context.DbContext);
+        var userId = Guid.NewGuid();
+        await TestDataFactory.SeedUserAsync(context.DbContext, id: userId);
+        var handler = new TenantsUpdateTenantCommandHandler(context.DbContext, new TestAllowedTenantStore());
         var request = new TenantsUpdateTenantCommand
         {
             Id = Guid.NewGuid(),
@@ -90,7 +102,7 @@ public class TenantCommandQueryTests
             Edition = TenantEdition.Free,
             ConnectionString = "Host=host.docker.internal;Database=missing;Username=tenant;Password=tenant;",
             IsActive = true,
-            UserId = Guid.NewGuid()
+            UserId = userId
         };
 
         var exception =
@@ -105,7 +117,7 @@ public class TenantCommandQueryTests
         using var context = TestContext.Create();
         var tenant = await TestDataFactory.SeedTenantAsync(context.DbContext, slug: "delete");
 
-        var handler = new TenantsDeleteTenantCommandHandler(context.DbContext);
+        var handler = new TenantsDeleteTenantCommandHandler(context.DbContext, new TestAllowedTenantStore());
         await handler.Handle(new TenantsDeleteTenantCommand { Id = tenant.Id }, CancellationToken.None);
 
         context.DbContext.SoftDeleteFiltersEnabled = false;
@@ -119,6 +131,7 @@ public class TenantCommandQueryTests
     {
         using var context = TestContext.Create();
         var tenant = await TestDataFactory.SeedTenantAsync(context.DbContext, slug: "get", name: "Get");
+        var ownerUserId = tenant.TenantUsers.Single(tenantUser => tenantUser.Role == TenantUserRoleType.Owner).UserId;
 
         var handler = new TenantsGetTenantQueryHandler(context.DbContext);
         var result = await handler.Handle(new TenantsGetTenantQuery { Id = tenant.Id }, CancellationToken.None);
@@ -131,7 +144,7 @@ public class TenantCommandQueryTests
         Assert.Equal(tenant.App, result.App);
         Assert.Equal(string.Empty, result.ConnectionString);
         Assert.Equal(tenant.IsActive, result.IsActive);
-        Assert.Equal(tenant.UserId, result.UserId);
+        Assert.Equal(ownerUserId, result.UserId);
     }
 
     [Fact]
@@ -219,31 +232,18 @@ public class TenantCommandQueryTests
     {
         using var context = TestContext.Create();
 
-        var tenantA = new BaseFaq.Common.EntityFramework.Tenant.Entities.Tenant
-        {
-            Id = Guid.Parse("00000000-0000-0000-0000-000000000010"),
-            Slug = "b-slug",
-            Name = "Same",
-            Edition = TenantEdition.Free,
-            App = AppEnum.Faq,
-            ConnectionString = "Host=host.docker.internal;Database=a;Username=tenant;Password=tenant;",
-            IsActive = true,
-            UserId = Guid.NewGuid()
-        };
-        var tenantB = new BaseFaq.Common.EntityFramework.Tenant.Entities.Tenant
-        {
-            Id = Guid.Parse("00000000-0000-0000-0000-000000000011"),
-            Slug = "a-slug",
-            Name = "Same",
-            Edition = TenantEdition.Free,
-            App = AppEnum.Faq,
-            ConnectionString = "Host=host.docker.internal;Database=b;Username=tenant;Password=tenant;",
-            IsActive = true,
-            UserId = Guid.NewGuid()
-        };
-
-        context.DbContext.Tenants.AddRange(tenantA, tenantB);
-        await context.DbContext.SaveChangesAsync();
+        var tenantA = await TestDataFactory.SeedTenantAsync(
+            context.DbContext,
+            id: Guid.Parse("00000000-0000-0000-0000-000000000010"),
+            slug: "b-slug",
+            name: "Same",
+            connectionString: "Host=host.docker.internal;Database=a;Username=tenant;Password=tenant;");
+        var tenantB = await TestDataFactory.SeedTenantAsync(
+            context.DbContext,
+            id: Guid.Parse("00000000-0000-0000-0000-000000000011"),
+            slug: "a-slug",
+            name: "Same",
+            connectionString: "Host=host.docker.internal;Database=b;Username=tenant;Password=tenant;");
 
         var handler = new TenantsGetTenantListQueryHandler(context.DbContext);
         var request = new TenantsGetTenantListQuery
@@ -268,7 +268,9 @@ public class TenantCommandQueryTests
         using var context = TestContext.Create();
         await TestDataFactory.SeedTenantAsync(context.DbContext, slug: "dup");
 
-        var handler = new TenantsCreateTenantCommandHandler(context.DbContext);
+        var userId = Guid.NewGuid();
+        await TestDataFactory.SeedUserAsync(context.DbContext, id: userId);
+        var handler = new TenantsCreateTenantCommandHandler(context.DbContext, new TestAllowedTenantStore());
         var request = new TenantsCreateTenantCommand
         {
             Slug = "dup",
@@ -277,7 +279,7 @@ public class TenantCommandQueryTests
             App = AppEnum.Faq,
             ConnectionString = "Host=host.docker.internal;Database=dup;Username=tenant;Password=tenant;",
             IsActive = true,
-            UserId = Guid.NewGuid()
+            UserId = userId
         };
 
         await Assert.ThrowsAsync<DbUpdateException>(() => handler.Handle(request, CancellationToken.None));

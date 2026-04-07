@@ -10,7 +10,7 @@ Confirmed backend integrations:
 
 Confirmed backend constraints reflected in the frontend:
 - Auth uses Auth0 JWTs
-- FAQ endpoints require `X-Tenant-Id`
+- FAQ and tenant-scoped Tenant Portal endpoints require `X-Tenant-Id`
 - Pagination contract is `SkipCount`, `MaxResultCount`, `Sorting`
 - API error contract is `{ errorCode, messageError, data }`
 
@@ -34,7 +34,7 @@ src/
 Notes:
 - `domains/faq`, `domains/faq-items`, and `domains/content-refs` use the real CRUD APIs
 - `domains/tenants` and `domains/settings/profile` use the real Tenant Portal APIs
-- `domains/members` uses an explicit temporary local adapter because the Portal members API does not exist yet
+- `domains/members` uses the isolated TenantUser API in Tenant Portal
 - `domains/billing` and parts of `domains/ai` remain placeholder shells where the backend surface is missing
 
 ## Local setup
@@ -81,7 +81,7 @@ npm run build
 
 ## Current gaps
 
-- No Portal members API exists yet
+- Member adds require an already-existing BaseFAQ user email; invitation acceptance is not exposed yet
 - No Portal billing/invoice API exists yet
 - No Portal AI jobs/progress listing API exists yet
 - FAQ, FAQ Item, and Content Ref text search/filtering are client-side on the loaded page because the backend list contracts do not expose search parameters yet

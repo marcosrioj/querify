@@ -1,3 +1,4 @@
+using BaseFaq.Common.Infrastructure.Core.Attributes;
 using BaseFaq.Models.Tenant.Dtos.AiProvider;
 using BaseFaq.Tenant.Portal.Business.AiProvider.Abstractions;
 using Microsoft.AspNetCore.Authorization;
@@ -7,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace BaseFaq.Tenant.Portal.Business.AiProvider.Controllers;
 
 [Authorize]
+[SkipTenantAccessValidation]
 [ApiController]
 [Route("api/tenant/aiproviders")]
 public class AiProviderController(IAiProviderService aiProviderService) : ControllerBase

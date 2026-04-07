@@ -1,5 +1,6 @@
 using BaseFaq.Common.EntityFramework.Tenant;
 using BaseFaq.Common.EntityFramework.Tenant.Entities;
+using BaseFaq.Common.EntityFramework.Tenant.Helpers;
 using BaseFaq.Tools.Seed.Abstractions;
 using BaseFaq.Tools.Seed.Configuration;
 using BaseFaq.Models.Common.Enums;
@@ -150,10 +151,28 @@ public sealed class TenantSeedService : ITenantSeedService
         IReadOnlyList<AiProvider> aiProviders)
     {
         var slug = existingSlugs.Contains("tenant-001") ? $"tenant-{Guid.NewGuid():N}" : "tenant-001";
-        var userId = users.Count > 0 ? users[0].Id : Guid.Empty;
+        var ownerUser = users.FirstOrDefault();
+        var memberUser = users.Skip(1).FirstOrDefault();
         var generationProvider = PickPreferredProvider(aiProviders, AiCommandType.Generation);
         var matchingProvider = PickPreferredProvider(aiProviders, AiCommandType.Matching);
         var tenantId = Guid.NewGuid();
+
+        var tenantUsers = new List<TenantUser>();
+        if (ownerUser is not null)
+        {
+            TenantUserHelper.SetOwner(tenantUsers, tenantId, ownerUser.Id);
+        }
+
+        if (memberUser is not null && memberUser.Id != ownerUser?.Id)
+        {
+            tenantUsers.Add(new TenantUser
+            {
+                Id = Guid.NewGuid(),
+                TenantId = tenantId,
+                UserId = memberUser.Id,
+                Role = TenantUserRoleType.Member
+            });
+        }
 
         return
         [
@@ -166,7 +185,7 @@ public sealed class TenantSeedService : ITenantSeedService
                 App = AppEnum.Faq,
                 ConnectionString = request.FaqConnectionString,
                 IsActive = true,
-                UserId = userId,
+                TenantUsers = tenantUsers,
                 AiProviders =
                 [
                     new TenantAiProvider

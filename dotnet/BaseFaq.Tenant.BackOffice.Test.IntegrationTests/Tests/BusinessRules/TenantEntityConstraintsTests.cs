@@ -13,65 +13,38 @@ public class TenantEntityConstraintsTests
     {
         using var context = TestContext.Create();
 
-        var tenantA = new BaseFaq.Common.EntityFramework.Tenant.Entities.Tenant
-        {
-            Slug = "unique-slug",
-            Name = "Tenant A",
-            Edition = TenantEdition.Free,
-            App = AppEnum.Faq,
-            ConnectionString = "Host=host.docker.internal;Database=a;Username=tenant;Password=tenant;",
-            IsActive = true,
-            UserId = Guid.NewGuid()
-        };
-        var tenantB = new BaseFaq.Common.EntityFramework.Tenant.Entities.Tenant
-        {
-            Slug = "unique-slug",
-            Name = "Tenant B",
-            Edition = TenantEdition.Free,
-            App = AppEnum.Faq,
-            ConnectionString = "Host=host.docker.internal;Database=b;Username=tenant;Password=tenant;",
-            IsActive = true,
-            UserId = Guid.NewGuid()
-        };
+        await TestDataFactory.SeedTenantAsync(
+            context.DbContext,
+            slug: "unique-slug",
+            name: "Tenant A",
+            connectionString: "Host=host.docker.internal;Database=a;Username=tenant;Password=tenant;");
 
-        context.DbContext.Tenants.Add(tenantA);
-        await context.DbContext.SaveChangesAsync();
-
-        context.DbContext.Tenants.Add(tenantB);
-        await Assert.ThrowsAsync<DbUpdateException>(() => context.DbContext.SaveChangesAsync());
+        await Assert.ThrowsAsync<DbUpdateException>(() =>
+            TestDataFactory.SeedTenantAsync(
+                context.DbContext,
+                slug: "unique-slug",
+                name: "Tenant B",
+                connectionString: "Host=host.docker.internal;Database=b;Username=tenant;Password=tenant;"));
     }
 
     [Fact]
-    public async Task Tenants_RequireUniqueUserId()
+    public async Task TenantUsers_RequireUniqueTenantAndUserMembership()
     {
         using var context = TestContext.Create();
         var userId = Guid.NewGuid();
+        await TestDataFactory.SeedUserAsync(context.DbContext, id: userId);
 
-        var tenantA = new BaseFaq.Common.EntityFramework.Tenant.Entities.Tenant
-        {
-            Slug = "tenant-a",
-            Name = "Tenant A",
-            Edition = TenantEdition.Free,
-            App = AppEnum.Faq,
-            ConnectionString = "Host=host.docker.internal;Database=a;Username=tenant;Password=tenant;",
-            IsActive = true,
-            UserId = userId
-        };
-        var tenantB = new BaseFaq.Common.EntityFramework.Tenant.Entities.Tenant
-        {
-            Slug = "tenant-b",
-            Name = "Tenant B",
-            Edition = TenantEdition.Free,
-            App = AppEnum.Faq,
-            ConnectionString = "Host=host.docker.internal;Database=b;Username=tenant;Password=tenant;",
-            IsActive = true,
-            UserId = userId
-        };
+        var tenant = await TestDataFactory.SeedTenantAsync(
+            context.DbContext,
+            slug: "tenant-a",
+            name: "Tenant A",
+            userId: userId);
 
-        context.DbContext.Tenants.Add(tenantA);
-        await context.DbContext.SaveChangesAsync();
-
-        context.DbContext.Tenants.Add(tenantB);
-        await Assert.ThrowsAsync<DbUpdateException>(() => context.DbContext.SaveChangesAsync());
+        await Assert.ThrowsAsync<DbUpdateException>(() =>
+            TestDataFactory.SeedTenantUserAsync(
+                context.DbContext,
+                tenant.Id,
+                userId: userId,
+                role: TenantUserRoleType.Member));
     }
 }

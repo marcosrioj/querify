@@ -1,19 +1,23 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { Building2, MailPlus, ShieldCheck, Trash2, Users } from 'lucide-react';
 import { ListLayout, PageHeader, SectionGrid } from '@/shared/layout/page-layouts';
 import { useTenant } from '@/platform/tenant/tenant-context';
-import { useAuth } from '@/platform/auth/auth-context';
 import { usePermission } from '@/platform/permissions/permissions';
 import {
-  inviteTemporaryMember,
-  listTemporaryMembers,
-  removeTemporaryMember,
-  type MemberRecord,
-} from '@/domains/members/temporary-members-adapter';
-import { RoleBadge } from '@/shared/ui/status-badges';
+  useCreateTenantMember,
+  useDeleteTenantMember,
+  useTenantMembers,
+  useUpdateTenantMember,
+} from '@/domains/members/hooks';
+import type { TenantUserDto } from '@/domains/members/types';
+import {
+  TenantUserRoleType,
+  tenantUserRoleTypeLabels,
+} from '@/shared/constants/backend-enums';
+import { TenantUserRoleBadge } from '@/shared/ui/status-badges';
 import {
   Badge,
   Button,
@@ -32,49 +36,49 @@ import { DataTable, type DataTableColumn } from '@/shared/ui/data-table';
 import { EmptyState } from '@/shared/ui/placeholder-state';
 
 const inviteSchema = z.object({
-  name: z.string().min(2, 'Name is required.'),
   email: z.string().email('Enter a valid email address.'),
-  role: z.enum(['Admin', 'Member']),
+  role: z
+    .coerce.number()
+    .refine((value) => Object.values(TenantUserRoleType).includes(value as TenantUserRoleType)),
 });
 
 type InviteFormValues = z.infer<typeof inviteSchema>;
 
+function getMemberName(member: TenantUserDto) {
+  const fullName = [member.givenName, member.surName].filter(Boolean).join(' ').trim();
+  return fullName || member.email;
+}
+
 export function MembersPage() {
   const { currentTenant } = useTenant();
-  const { user } = useAuth();
   const canManageMembers = usePermission('members.manage');
   const [open, setOpen] = useState(false);
-  const [revision, setRevision] = useState(0);
-
-  const members = useMemo(() => {
-    if (!currentTenant) {
-      return [] as MemberRecord[];
-    }
-
-    return listTemporaryMembers(currentTenant.id, user);
-  }, [currentTenant, revision, user]);
+  const membersQuery = useTenantMembers();
+  const createMember = useCreateTenantMember();
+  const updateMember = useUpdateTenantMember();
+  const deleteMember = useDeleteTenantMember();
+  const members = membersQuery.data ?? [];
 
   const form = useForm<InviteFormValues>({
     resolver: zodResolver(inviteSchema),
     defaultValues: {
-      name: '',
       email: '',
-      role: 'Member',
+      role: TenantUserRoleType.Member,
     },
   });
-  const activeCount = members.filter((member) => member.status === 'active').length;
-  const pendingCount = members.filter((member) => member.status === 'pending').length;
-  const adminCount = members.filter((member) => member.role === 'Admin').length;
+  const activeCount = members.length;
+  const pendingCount = 0;
+  const ownerCount = members.filter((member) => member.role === TenantUserRoleType.Owner).length;
   const currentUserCount = members.filter((member) => member.isCurrentUser).length;
 
-  const columns: DataTableColumn<MemberRecord>[] = [
+  const columns: DataTableColumn<TenantUserDto>[] = [
     {
       key: 'member',
       header: 'Member',
       cell: (member) => (
         <div className="space-y-1">
           <div className="font-medium text-mono">
-            {member.name}
+            {getMemberName(member)}
             {member.isCurrentUser ? (
               <span className="ml-2 text-xs text-muted-foreground">(You)</span>
             ) : null}
@@ -86,50 +90,60 @@ export function MembersPage() {
     {
       key: 'role',
       header: 'Role',
-      cell: (member) => <RoleBadge role={member.role} />,
-    },
-    {
-      key: 'status',
-      header: 'Status',
-      cell: (member) => (
-        <Badge variant={member.status === 'active' ? 'success' : 'warning'}>
-          {member.status}
-        </Badge>
-      ),
+      cell: (member) => <TenantUserRoleBadge role={member.role} />,
     },
     {
       key: 'actions',
-      header: 'Actions',
-      className: 'w-[120px]',
-      cell: (member) => (
-        <div
-          className="flex items-center justify-end"
-          onClick={(event) => event.stopPropagation()}
-        >
-          <ConfirmAction
-            title={`Remove ${member.email} from this workspace?`}
-            description="This removes their access to the current workspace but does not delete their account."
-            confirmLabel="Remove member"
-            onConfirm={() => {
-              if (!currentTenant) {
-                return;
-              }
+      header: 'Access',
+      className: 'w-[240px]',
+      cell: (member) => {
+        if (member.role === TenantUserRoleType.Owner) {
+          return (
+            <span className="text-sm text-muted-foreground">
+              {member.isCurrentUser ? 'Current owner' : 'Owner'}
+            </span>
+          );
+        }
 
-              removeTemporaryMember(currentTenant.id, member.id);
-              setRevision((value) => value + 1);
-            }}
-            trigger={
-              <Button
-                variant="ghost"
-                mode="icon"
-                disabled={!canManageMembers || member.isCurrentUser}
-              >
-                <Trash2 className="size-4 text-destructive" />
-              </Button>
-            }
-          />
-        </div>
-      ),
+        if (!canManageMembers) {
+          return <span className="text-sm text-muted-foreground">No actions</span>;
+        }
+
+        return (
+          <div
+            className="flex items-center justify-end gap-2"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <ConfirmAction
+              title={`Transfer workspace ownership to ${member.email}?`}
+              description="This member will become the owner and your access will switch to member."
+              confirmLabel="Transfer ownership"
+              onConfirm={() =>
+                updateMember.mutateAsync({
+                  id: member.id,
+                  body: { role: TenantUserRoleType.Owner },
+                })
+              }
+              trigger={
+                <Button variant="outline" size="sm" disabled={updateMember.isPending}>
+                  Make owner
+                </Button>
+              }
+            />
+            <ConfirmAction
+              title={`Remove ${member.email} from this workspace?`}
+              description="This removes their access to the current workspace but does not delete their account."
+              confirmLabel="Remove member"
+              onConfirm={() => deleteMember.mutateAsync(member.id)}
+              trigger={
+                <Button variant="ghost" mode="icon" disabled={deleteMember.isPending}>
+                  <Trash2 className="size-4 text-destructive" />
+                </Button>
+              }
+            />
+          </div>
+        );
+      },
     },
   ];
 
@@ -140,14 +154,14 @@ export function MembersPage() {
           <PageHeader
             eyebrow="Members"
             title="Members"
-            description="Invite people, set roles, and track pending invites."
+            description="Manage workspace access and transfer ownership when needed."
             actions={
               <Button
                 disabled={!canManageMembers || !currentTenant}
                 onClick={() => setOpen(true)}
               >
                 <MailPlus className="size-4" />
-                Invite member
+                Add member
               </Button>
             }
           />
@@ -171,12 +185,12 @@ export function MembersPage() {
               {
                 title: 'Pending invites',
                 value: pendingCount,
-                description: pendingCount ? 'Waiting for acceptance' : 'No invites outstanding',
+                description: 'Existing-user memberships are active immediately',
                 icon: MailPlus,
               },
               {
-                title: 'Admins',
-                value: adminCount,
+                title: 'Owners',
+                value: ownerCount,
                 description: currentUserCount ? 'Includes your current access' : 'No current user context',
                 icon: ShieldCheck,
               },
@@ -186,22 +200,23 @@ export function MembersPage() {
         {currentTenant ? (
           <DataTable
             title="Members"
-            description="See who has access and which invites are still pending."
+            description="See who has access to the current workspace and which role each person has."
             columns={columns}
             rows={members}
             getRowId={(row) => row.id}
+            loading={membersQuery.isLoading}
             toolbar={
               <>
                 <Badge variant="outline">{members.length} people</Badge>
-                <Badge variant={pendingCount ? 'warning' : 'outline'} appearance="outline">
-                  {pendingCount ? `${pendingCount} pending` : 'No pending invites'}
+                <Badge variant="outline" appearance="outline">
+                  Existing users only
                 </Badge>
               </>
             }
             emptyState={
               <EmptyState
                 title="No members yet"
-                description="Invite the first teammate to start collaborative FAQ operations."
+                description="Add the first teammate by email to share this workspace."
               />
             }
           />
@@ -220,37 +235,51 @@ export function MembersPage() {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Invite member</DialogTitle>
+            <DialogTitle>Add member</DialogTitle>
             <DialogDescription>
-              Add a teammate and assign their initial role.
+              Add an existing BaseFAQ user to this workspace and choose their role.
             </DialogDescription>
           </DialogHeader>
           <Form {...form}>
             <form
               className="space-y-4"
-              onSubmit={form.handleSubmit((values) => {
+              onSubmit={form.handleSubmit(async (values) => {
                 if (!currentTenant) {
                   return;
                 }
 
-                inviteTemporaryMember(currentTenant.id, values);
-                setRevision((value) => value + 1);
+                await createMember.mutateAsync({
+                  email: values.email,
+                  role: values.role as TenantUserRoleType,
+                });
                 setOpen(false);
                 form.reset();
               })}
             >
-              <TextField control={form.control} name="name" label="Name" />
-              <TextField control={form.control} name="email" label="Email" />
+              <TextField
+                control={form.control}
+                name="email"
+                label="Email"
+                description="The user must already exist in BaseFAQ."
+              />
               <SelectField
                 control={form.control}
                 name="role"
                 label="Role"
                 options={[
-                  { value: 'Member', label: 'Member' },
-                  { value: 'Admin', label: 'Admin' },
+                  {
+                    value: String(TenantUserRoleType.Member),
+                    label: tenantUserRoleTypeLabels[TenantUserRoleType.Member],
+                  },
+                  {
+                    value: String(TenantUserRoleType.Owner),
+                    label: tenantUserRoleTypeLabels[TenantUserRoleType.Owner],
+                  },
                 ]}
               />
-              <Button type="submit">Send invite</Button>
+              <Button type="submit" disabled={createMember.isPending}>
+                Add member
+              </Button>
             </form>
           </Form>
         </DialogContent>

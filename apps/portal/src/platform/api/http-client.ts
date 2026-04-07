@@ -67,7 +67,7 @@ export async function portalRequest<T>({
     headers.set('Authorization', `Bearer ${accessToken}`);
   }
 
-  if (tenantId && service === 'faq') {
+  if (tenantId) {
     headers.set('X-Tenant-Id', tenantId);
   }
 

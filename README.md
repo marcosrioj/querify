@@ -200,6 +200,7 @@ Notes:
   `dotnet/BaseFaq.AI.Api/appsettings.json`.
 - If the target database already has data, it will ask whether to append.
 - Dummy seed creates dozens of records per entity, including child entities (items, tags, votes, etc.).
+- Dummy seed creates tenant memberships through `TenantUsers`, with an owner and sample member access where users are available.
 
 ## Step 2.2) Hostname strategy that works on host + Docker
 If you want a single hostname that works both in Rider (host machine) and inside Docker,
@@ -469,8 +470,9 @@ exports.onExecutePostLogin = async (event, api) => {
 - Protected APIs require:
   - `Authorization: Bearer <access_token>`
   - APIs: FAQ Portal, Tenant Back Office, Tenant Portal
-- FAQ Portal requires tenant context header:
+- FAQ Portal and tenant-scoped Tenant Portal endpoints require tenant context header:
   - `X-Tenant-Id: <tenant-guid>`
+  - Tenant Portal bootstrap flow: call `GET /api/tenant/tenants/GetAll` first, choose a tenant, then send that tenant id in `X-Tenant-Id` for workspace-scoped calls
 - FAQ Public requires client context header:
   - `X-Client-Key: <client-key>`
 

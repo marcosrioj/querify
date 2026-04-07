@@ -1,5 +1,6 @@
 using BaseFaq.Common.EntityFramework.Tenant;
 using BaseFaq.Common.Infrastructure.Core.Abstractions;
+using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.Tenant.Dtos.TenantAiProvider;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -12,18 +13,15 @@ public class TenantsGetConfiguredAiProvidersQueryHandler(TenantDbContext dbConte
     public async Task<List<TenantAiProviderDto>> Handle(TenantsGetConfiguredAiProvidersQuery request,
         CancellationToken cancellationToken)
     {
-        var userId = sessionService.GetUserId();
-
-        var tenantIds = await dbContext.Tenants
-            .AsNoTracking()
-            .Where(x => x.UserId == userId && x.IsActive)
-            .Select(x => x.Id)
-            .ToListAsync(cancellationToken);
+        var tenantId = sessionService.GetTenantId(AppEnum.Faq);
 
         return await dbContext.TenantAiProviders
             .AsNoTracking()
             .Include(x => x.AiProvider)
-            .Where(x => tenantIds.Contains(x.TenantId))
+            .Where(x => x.TenantId == tenantId)
+            .OrderBy(x => x.AiProvider.Command)
+            .ThenBy(x => x.AiProvider.Provider)
+            .ThenBy(x => x.AiProvider.Model)
             .Select(x => new TenantAiProviderDto
             {
                 Id = x.Id,

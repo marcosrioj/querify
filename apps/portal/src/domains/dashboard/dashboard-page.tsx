@@ -56,6 +56,7 @@ import {
 import {
   AiCommandType,
   FaqStatus,
+  tenantUserRoleTypeLabels,
   tenantEditionLabels,
 } from "@/shared/constants/backend-enums";
 import { ContentRefKindBadge, FaqStatusBadge } from "@/shared/ui/status-badges";
@@ -460,7 +461,9 @@ export function DashboardPage() {
                 </span>
               ) : null}
               <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[0.6875rem] tracking-[0.2em] text-white">
-                {user?.role ?? "Member"} access
+                {currentWorkspace
+                  ? `${tenantUserRoleTypeLabels[currentWorkspace.currentUserRole]} access`
+                  : `${user?.role ?? "Member"} access`}
               </span>
             </div>
 
@@ -971,11 +974,11 @@ export function DashboardPage() {
               <CircleAlert className="mt-0.5 size-4 shrink-0 text-amber-500" />
               <div>
                 <p className="text-sm font-medium text-mono">
-                  Members API is still temporary
+                  Member adds require existing users
                 </p>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Portal member management remains backed by the temporary
-                  adapter.
+                  Workspace memberships are live, but adding someone still
+                  requires a user account that already exists in BaseFAQ.
                 </p>
               </div>
             </div>

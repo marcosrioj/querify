@@ -1,6 +1,8 @@
 using BaseFaq.Common.EntityFramework.Tenant;
 using BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception;
 using BaseFaq.Common.Infrastructure.Core.Abstractions;
+using BaseFaq.Models.Common.Enums;
+using BaseFaq.Tenant.Portal.Business.Tenant.Helpers;
 using System.Net;
 using System.Security.Cryptography;
 using MediatR;
@@ -14,14 +16,16 @@ public class TenantsGenerateNewClientKeyCommandHandler(TenantDbContext dbContext
     public async Task<string> Handle(TenantsGenerateNewClientKeyCommand request, CancellationToken cancellationToken)
     {
         var userId = sessionService.GetUserId();
+        var tenantId = sessionService.GetTenantId(AppEnum.Faq);
+        await TenantAccessHelper.EnsureOwnerAsync(dbContext, tenantId, userId, cancellationToken);
 
         var tenant = await dbContext.Tenants
-            .FirstOrDefaultAsync(entity => entity.UserId == userId && entity.IsActive, cancellationToken);
+            .FirstOrDefaultAsync(entity => entity.Id == tenantId && entity.IsActive, cancellationToken);
 
         if (tenant is null)
         {
             throw new ApiErrorException(
-                "Active tenant was not found for current user.",
+                $"Tenant '{tenantId}' was not found.",
                 errorCode: (int)HttpStatusCode.NotFound);
         }
 

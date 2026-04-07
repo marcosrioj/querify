@@ -18,4 +18,5 @@ public class User : BaseEntity
     public required string ExternalId { get; set; }
     public string PhoneNumber { get; set; } = string.Empty;
     public UserRoleType Role { get; set; }
+    public ICollection<TenantUser> TenantUsers { get; set; } = [];
 }

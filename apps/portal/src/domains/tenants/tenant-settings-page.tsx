@@ -5,7 +5,8 @@ import { useEffect } from 'react';
 import { Bot, Building2, KeyRound, Sparkles, WandSparkles } from 'lucide-react';
 import { useCurrentWorkspace, useGenerateClientKey, useSetAiProviderCredentials, useTenantWorkspace, useUpdateTenantWorkspace } from '@/domains/tenants/hooks';
 import { settingsNavItems } from '@/domains/settings/settings-nav';
-import { AiCommandType, TenantEdition, tenantEditionLabels } from '@/shared/constants/backend-enums';
+import { usePermission } from '@/platform/permissions/permissions';
+import { AiCommandType, TenantEdition, tenantUserRoleTypeLabels, tenantEditionLabels } from '@/shared/constants/backend-enums';
 import { KeyValueList, PageHeader, SectionGrid, SettingsLayout } from '@/shared/layout/page-layouts';
 import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardHeading, CardTitle, CardToolbar, Form } from '@/shared/ui';
 import { SelectField, TextField } from '@/shared/ui/form-fields';
@@ -33,6 +34,8 @@ export function TenantSettingsPage() {
   const updateWorkspace = useUpdateTenantWorkspace();
   const regenerateClientKey = useGenerateClientKey();
   const storeCredentials = useSetAiProviderCredentials();
+  const canManageTenant = usePermission('tenant.manage');
+  const canManageWorkspaceProfile = !currentWorkspace || canManageTenant;
 
   const workspaceForm = useForm<WorkspaceFormValues>({
     resolver: zodResolver(workspaceSchema),
@@ -139,6 +142,10 @@ export function TenantSettingsPage() {
                   label: 'Public client key',
                   value: clientKeyQuery.data || 'No client key generated yet',
                 },
+                {
+                  label: 'Your workspace role',
+                  value: tenantUserRoleTypeLabels[currentWorkspace.currentUserRole],
+                },
               ]}
             />
           </CardContent>
@@ -154,6 +161,15 @@ export function TenantSettingsPage() {
                 Rename the workspace and choose the active plan tier.
               </CardDescription>
             </CardHeading>
+            <CardToolbar>
+              <Badge variant={canManageTenant ? 'success' : 'outline'}>
+                {!currentWorkspace
+                  ? 'Workspace creation'
+                  : canManageTenant
+                    ? 'Owner access'
+                    : 'Member access'}
+              </Badge>
+            </CardToolbar>
           </CardHeader>
           <CardContent>
             <Form {...workspaceForm}>
@@ -168,11 +184,13 @@ export function TenantSettingsPage() {
                   name="name"
                   label="Workspace name"
                   placeholder="BaseFAQ Labs"
+                  disabled={!canManageWorkspaceProfile}
                 />
                 <SelectField
                   control={workspaceForm.control}
                   name="edition"
                   label="Edition"
+                  disabled={!canManageWorkspaceProfile}
                   options={Object.entries(tenantEditionLabels).map(([value, label]) => ({
                     value,
                     label,
@@ -180,7 +198,7 @@ export function TenantSettingsPage() {
                 />
                 <Button
                   type="submit"
-                  disabled={updateWorkspace.isPending}
+                  disabled={!canManageWorkspaceProfile || updateWorkspace.isPending}
                 >
                   Save workspace
                 </Button>
@@ -210,7 +228,7 @@ export function TenantSettingsPage() {
             </div>
             <Button
               variant="outline"
-              disabled={regenerateClientKey.isPending}
+              disabled={!canManageTenant || regenerateClientKey.isPending}
               onClick={() => {
                 void regenerateClientKey.mutateAsync();
               }}
@@ -285,6 +303,7 @@ export function TenantSettingsPage() {
                   control={credentialsForm.control}
                   name="aiProviderId"
                   label="Provider"
+                  disabled={!canManageTenant}
                   options={(aiProvidersQuery.data ?? []).map((provider) => ({
                     value: provider.aiProviderId,
                     label: `${provider.provider} · ${provider.model}`,
@@ -296,8 +315,9 @@ export function TenantSettingsPage() {
                   label="Provider secret"
                   placeholder="Paste provider API key"
                   description="Stored against the selected provider."
+                  disabled={!canManageTenant}
                 />
-                <Button type="submit" disabled={storeCredentials.isPending}>
+                <Button type="submit" disabled={!canManageTenant || storeCredentials.isPending}>
                   <Sparkles className="size-4" />
                   Save provider credentials
                 </Button>

@@ -1,3 +1,4 @@
+using BaseFaq.Common.Infrastructure.Core.Constants;
 using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.Tenant.Enums;
 using BaseFaq.Tenant.Portal.Business.Tenant.Commands.CreateOrUpdateTenants;
@@ -5,6 +6,7 @@ using BaseFaq.Tenant.Portal.Business.Tenant.Commands.GenerateNewClientKey;
 using BaseFaq.Tenant.Portal.Business.Tenant.Queries.GetAllTenants;
 using BaseFaq.Tenant.Portal.Business.Tenant.Queries.GetClientKey;
 using BaseFaq.Tenant.Portal.Test.IntegrationTests.Helpers;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
 
@@ -39,6 +41,7 @@ public class TenantCommandQueryTests
         Assert.Equal("Current User Tenant", result[0].Name);
         Assert.Equal(AppEnum.Faq, result[0].App);
         Assert.True(result[0].IsActive);
+        Assert.Equal(TenantUserRoleType.Owner, result[0].CurrentUserRole);
     }
 
     [Fact]
@@ -47,13 +50,18 @@ public class TenantCommandQueryTests
         var currentUserId = Guid.NewGuid();
         using var context = TestContext.Create(userId: currentUserId);
 
+        await TestDataFactory.SeedUserAsync(context.DbContext, id: currentUserId);
         await TestDataFactory.SeedTenantConnectionAsync(
             context.DbContext,
             app: AppEnum.Faq,
             connectionString: "Host=host.docker.internal;Database=faqdb;Username=tenant;Password=tenant;",
             isCurrent: true);
 
-        var handler = new TenantsCreateOrUpdateTenantsCommandHandler(context.DbContext, context.SessionService);
+        var handler = new TenantsCreateOrUpdateTenantsCommandHandler(
+            context.DbContext,
+            context.SessionService,
+            context.HttpContextAccessor,
+            new TestAllowedTenantStore());
         var request = new TenantsCreateOrUpdateTenantsCommand
         {
             Name = "Portal Tenant",
@@ -63,7 +71,12 @@ public class TenantCommandQueryTests
         var result = await handler.Handle(request, CancellationToken.None);
 
         Assert.True(result);
-        var tenant = await context.DbContext.Tenants.FirstOrDefaultAsync(item => item.UserId == currentUserId);
+        var tenant = await context.DbContext.Tenants
+            .Include(item => item.TenantUsers)
+            .FirstOrDefaultAsync(item =>
+                item.TenantUsers.Any(tenantUser =>
+                    tenantUser.UserId == currentUserId &&
+                    tenantUser.Role == TenantUserRoleType.Owner));
         Assert.NotNull(tenant);
         Assert.Equal("Portal Tenant", tenant!.Name);
         Assert.Equal(TenantEdition.Free, tenant.Edition);
@@ -78,7 +91,10 @@ public class TenantCommandQueryTests
     public async Task CreateOrUpdateTenants_UpdatesExistingActiveTenant()
     {
         var currentUserId = Guid.NewGuid();
-        using var context = TestContext.Create(userId: currentUserId);
+        var selectedTenantId = Guid.NewGuid();
+        using var context = TestContext.Create(
+            userId: currentUserId,
+            httpContext: CreateHttpContextWithTenantId(selectedTenantId));
 
         await TestDataFactory.SeedTenantConnectionAsync(
             context.DbContext,
@@ -88,6 +104,7 @@ public class TenantCommandQueryTests
 
         var existing = await TestDataFactory.SeedTenantAsync(
             context.DbContext,
+            id: selectedTenantId,
             slug: "old-slug",
             name: "Old Name",
             edition: TenantEdition.Free,
@@ -96,7 +113,11 @@ public class TenantCommandQueryTests
             isActive: true,
             userId: currentUserId);
 
-        var handler = new TenantsCreateOrUpdateTenantsCommandHandler(context.DbContext, context.SessionService);
+        var handler = new TenantsCreateOrUpdateTenantsCommandHandler(
+            context.DbContext,
+            context.SessionService,
+            context.HttpContextAccessor,
+            new TestAllowedTenantStore());
         var request = new TenantsCreateOrUpdateTenantsCommand
         {
             Name = "New Name",
@@ -129,7 +150,11 @@ public class TenantCommandQueryTests
             connectionString: "Host=host.docker.internal;Database=old;Username=tenant;Password=tenant;",
             isCurrent: false);
 
-        var handler = new TenantsCreateOrUpdateTenantsCommandHandler(context.DbContext, context.SessionService);
+        var handler = new TenantsCreateOrUpdateTenantsCommandHandler(
+            context.DbContext,
+            context.SessionService,
+            context.HttpContextAccessor,
+            new TestAllowedTenantStore());
         var request = new TenantsCreateOrUpdateTenantsCommand
         {
             Name = "Should Skip",
@@ -139,7 +164,7 @@ public class TenantCommandQueryTests
         var result = await handler.Handle(request, CancellationToken.None);
 
         Assert.True(result);
-        var tenantCount = await context.DbContext.Tenants.CountAsync(item => item.UserId == currentUserId);
+        var tenantCount = await context.DbContext.TenantUsers.CountAsync(item => item.UserId == currentUserId);
         Assert.Equal(0, tenantCount);
     }
 
@@ -170,7 +195,7 @@ public class TenantCommandQueryTests
     }
 
     [Fact]
-    public async Task CreateOrUpdateTenants_ThrowsWhenInactiveTenantAlreadyExistsForCurrentUser()
+    public async Task CreateOrUpdateTenants_CreatesNewTenantWhenInactiveTenantAlreadyExistsForCurrentUser()
     {
         var currentUserId = Guid.NewGuid();
         using var context = TestContext.Create(userId: currentUserId);
@@ -183,29 +208,48 @@ public class TenantCommandQueryTests
 
         await TestDataFactory.SeedTenantAsync(
             context.DbContext,
-            name: "Inactive Existing",
+            slug: "willconflictfaq",
+            name: "Will Conflict",
             app: AppEnum.Faq,
             isActive: false,
             userId: currentUserId);
 
-        var handler = new TenantsCreateOrUpdateTenantsCommandHandler(context.DbContext, context.SessionService);
+        var handler = new TenantsCreateOrUpdateTenantsCommandHandler(
+            context.DbContext,
+            context.SessionService,
+            context.HttpContextAccessor,
+            new TestAllowedTenantStore());
 
-        await Assert.ThrowsAsync<DbUpdateException>(() =>
-            handler.Handle(new TenantsCreateOrUpdateTenantsCommand
+        var result = await handler.Handle(
+            new TenantsCreateOrUpdateTenantsCommand
             {
                 Name = "Will Conflict",
                 Edition = TenantEdition.Free
-            }, CancellationToken.None));
+            },
+            CancellationToken.None);
+
+        Assert.True(result);
+        var tenants = await context.DbContext.Tenants
+            .Include(item => item.TenantUsers)
+            .Where(item => item.TenantUsers.Any(tenantUser => tenantUser.UserId == currentUserId))
+            .OrderBy(item => item.IsActive ? 0 : 1)
+            .ThenBy(item => item.Name)
+            .ToListAsync();
+        Assert.Equal(2, tenants.Count);
+        Assert.Contains(tenants, item => !item.IsActive && item.Slug == "willconflictfaq");
+        Assert.Contains(tenants, item => item.IsActive && item.Slug == "willconflictfaq2");
     }
 
     [Fact]
     public async Task GetClientKey_ReturnsStoredClientKey()
     {
         var currentUserId = Guid.NewGuid();
-        using var context = TestContext.Create(userId: currentUserId);
+        var tenantId = Guid.NewGuid();
+        using var context = TestContext.Create(userId: currentUserId, tenantId: tenantId);
 
         await TestDataFactory.SeedTenantAsync(
             context.DbContext,
+            id: tenantId,
             app: AppEnum.Faq,
             isActive: true,
             userId: currentUserId,
@@ -221,10 +265,12 @@ public class TenantCommandQueryTests
     public async Task GenerateNewClientKey_UpdatesTenantWithNewValue()
     {
         var currentUserId = Guid.NewGuid();
-        using var context = TestContext.Create(userId: currentUserId);
+        var tenantId = Guid.NewGuid();
+        using var context = TestContext.Create(userId: currentUserId, tenantId: tenantId);
 
         var tenant = await TestDataFactory.SeedTenantAsync(
             context.DbContext,
+            id: tenantId,
             app: AppEnum.Faq,
             isActive: true,
             userId: currentUserId);
@@ -238,5 +284,12 @@ public class TenantCommandQueryTests
         var updatedTenant = await context.DbContext.Tenants.FindAsync(tenant.Id);
         Assert.NotNull(updatedTenant);
         Assert.Equal(generatedKey, updatedTenant!.ClientKey);
+    }
+
+    private static HttpContext CreateHttpContextWithTenantId(Guid tenantId)
+    {
+        var httpContext = new DefaultHttpContext();
+        httpContext.Items[TenantContextKeys.TenantIdItemKey] = tenantId;
+        return httpContext;
     }
 }

@@ -4,16 +4,26 @@ import {
   FaqSortStrategy,
   FaqStatus,
   TenantEdition,
+  TenantUserRoleType,
   contentRefKindLabels,
   faqSortStrategyLabels,
   faqStatusLabels,
   tenantEditionLabels,
+  tenantUserRoleTypeLabels,
 } from '@/shared/constants/backend-enums';
 import { Badge } from '@/shared/ui';
 
 export function RoleBadge({ role }: { role: PortalRole }) {
   return (
     <Badge variant={role === 'Admin' ? 'primary' : 'secondary'}>{role}</Badge>
+  );
+}
+
+export function TenantUserRoleBadge({ role }: { role: TenantUserRoleType }) {
+  return (
+    <Badge variant={role === TenantUserRoleType.Owner ? 'primary' : 'secondary'}>
+      {tenantUserRoleTypeLabels[role]}
+    </Badge>
   );
 }
 

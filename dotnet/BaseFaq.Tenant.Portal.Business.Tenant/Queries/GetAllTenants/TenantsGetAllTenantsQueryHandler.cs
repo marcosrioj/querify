@@ -14,18 +14,20 @@ public class TenantsGetAllTenantsQueryHandler(TenantDbContext dbContext, ISessio
     {
         var userId = sessionService.GetUserId();
 
-        return await dbContext.Tenants
+        return await dbContext.TenantUsers
             .AsNoTracking()
-            .Where(entity => entity.UserId == userId && entity.IsActive)
-            .OrderBy(entity => entity.App)
-            .Select(tenant => new TenantSummaryDto
+            .Where(entity => entity.UserId == userId && entity.Tenant.IsActive)
+            .OrderBy(entity => entity.Tenant.App)
+            .ThenBy(entity => entity.Tenant.Name)
+            .Select(entity => new TenantSummaryDto
             {
-                Id = tenant.Id,
-                Slug = tenant.Slug,
-                Name = tenant.Name,
-                Edition = tenant.Edition,
-                App = tenant.App,
-                IsActive = tenant.IsActive
+                Id = entity.TenantId,
+                Slug = entity.Tenant.Slug,
+                Name = entity.Tenant.Name,
+                Edition = entity.Tenant.Edition,
+                App = entity.Tenant.App,
+                IsActive = entity.Tenant.IsActive,
+                CurrentUserRole = entity.Role
             })
             .ToListAsync(cancellationToken);
     }

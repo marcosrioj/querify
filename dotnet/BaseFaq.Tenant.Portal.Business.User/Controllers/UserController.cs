@@ -1,3 +1,4 @@
+using BaseFaq.Common.Infrastructure.Core.Attributes;
 using BaseFaq.Models.User.Dtos.User;
 using BaseFaq.Tenant.Portal.Business.User.Abstractions;
 using Microsoft.AspNetCore.Authorization;
@@ -7,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace BaseFaq.Tenant.Portal.Business.User.Controllers;
 
 [Authorize]
+[SkipTenantAccessValidation]
 [ApiController]
 [Route("api/user")]
 public class UserController(IUserProfileService userProfileService) : ControllerBase

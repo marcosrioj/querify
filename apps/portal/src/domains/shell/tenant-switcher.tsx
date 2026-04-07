@@ -1,5 +1,6 @@
 import { Building2 } from 'lucide-react';
 import { useTenant } from '@/platform/tenant/tenant-context';
+import { tenantUserRoleTypeLabels } from '@/shared/constants/backend-enums';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui';
 
 export function TenantSwitcher() {
@@ -22,7 +23,7 @@ export function TenantSwitcher() {
       <SelectContent>
         {tenants.map((tenant) => (
           <SelectItem key={tenant.id} value={tenant.id}>
-            {tenant.name}
+            {tenant.name} · {tenantUserRoleTypeLabels[tenant.currentUserRole]}
           </SelectItem>
         ))}
       </SelectContent>

@@ -1,5 +1,6 @@
 using BaseFaq.Common.EntityFramework.Tenant;
 using BaseFaq.Common.Infrastructure.Core.Abstractions;
+using BaseFaq.Models.Common.Enums;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,17 +11,12 @@ public class TenantsIsAiProviderKeyConfiguredQueryHandler(TenantDbContext dbCont
 {
     public async Task<bool> Handle(TenantsIsAiProviderKeyConfiguredQuery request, CancellationToken cancellationToken)
     {
-        var userId = sessionService.GetUserId();
+        var tenantId = sessionService.GetTenantId(AppEnum.Faq);
 
         return await dbContext.TenantAiProviders
             .AsNoTracking()
             .Include(x => x.AiProvider)
-            .Where(x => x.AiProvider.Command == request.Command)
-            .Join(
-                dbContext.Tenants.AsNoTracking().Where(t => t.UserId == userId && t.IsActive),
-                tap => tap.TenantId,
-                t => t.Id,
-                (tap, _) => tap)
+            .Where(x => x.TenantId == tenantId && x.AiProvider.Command == request.Command)
             .AnyAsync(x => !string.IsNullOrWhiteSpace(x.AiProviderKey), cancellationToken);
     }
 }

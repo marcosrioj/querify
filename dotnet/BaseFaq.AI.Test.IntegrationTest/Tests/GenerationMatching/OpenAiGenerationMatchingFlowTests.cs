@@ -109,7 +109,12 @@ public sealed class OpenAiGenerationMatchingFlowTests
             configuration);
 
         await tenantDbContext.Database.MigrateAsync();
-        await SeedTenantProviderScenarioAsync(tenantDbContext, tenantId, faqConnectionString, settings);
+        await SeedTenantProviderScenarioAsync(
+            tenantDbContext,
+            tenantId,
+            requestedByUserId,
+            faqConnectionString,
+            settings);
         return tenantDbContext;
     }
 
@@ -342,9 +347,20 @@ public sealed class OpenAiGenerationMatchingFlowTests
     private static async Task SeedTenantProviderScenarioAsync(
         TenantDbContext tenantDbContext,
         Guid tenantId,
+        Guid requestedByUserId,
         string faqConnectionString,
         OpenAiLiveTestSettings settings)
     {
+        var requestedByUser = new User
+        {
+            Id = requestedByUserId,
+            GivenName = "AI",
+            SurName = "Requester",
+            Email = $"ai-requester-{requestedByUserId:N}@example.test",
+            ExternalId = $"ai-requester-{requestedByUserId:N}",
+            Role = BaseFaq.Models.User.Enums.UserRoleType.Member
+        };
+
         var tenant = new Tenant
         {
             Id = tenantId,
@@ -353,9 +369,14 @@ public sealed class OpenAiGenerationMatchingFlowTests
             Edition = TenantEdition.Free,
             App = AppEnum.Faq,
             ConnectionString = faqConnectionString,
-            IsActive = true,
-            UserId = Guid.NewGuid()
+            IsActive = true
         };
+        tenant.TenantUsers.Add(new TenantUser
+        {
+            TenantId = tenantId,
+            UserId = requestedByUserId,
+            Role = TenantUserRoleType.Owner
+        });
 
         var generationProvider = new AiProvider
         {
@@ -374,6 +395,7 @@ public sealed class OpenAiGenerationMatchingFlowTests
             Command = AiCommandType.Matching
         };
 
+        tenantDbContext.Users.Add(requestedByUser);
         tenantDbContext.Tenants.Add(tenant);
         tenantDbContext.AiProviders.AddRange(generationProvider, matchingProvider);
         await tenantDbContext.SaveChangesAsync();

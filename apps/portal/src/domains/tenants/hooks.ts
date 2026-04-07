@@ -15,23 +15,26 @@ import { useAuth } from '@/platform/auth/auth-context';
 import { useTenant } from '@/platform/tenant/tenant-context';
 
 const tenantKeys = {
-  workspace: ['portal', 'tenant-domain', 'workspace'] as const,
-  aiProviders: ['portal', 'tenant-domain', 'ai-providers'] as const,
+  workspace: (tenantId?: string) =>
+    ['portal', 'tenant-domain', 'workspace', tenantId ?? 'none'] as const,
+  aiProviders: (tenantId?: string) =>
+    ['portal', 'tenant-domain', 'ai-providers', tenantId ?? 'none'] as const,
 };
 
 export function useTenantWorkspace() {
   const { session, status } = useAuth();
+  const { currentTenantId } = useTenant();
 
   const clientKeyQuery = useQuery({
-    queryKey: tenantKeys.workspace,
-    queryFn: () => getTenantClientKey(session?.accessToken),
-    enabled: status === 'ready',
+    queryKey: tenantKeys.workspace(currentTenantId),
+    queryFn: () => getTenantClientKey(session?.accessToken, currentTenantId),
+    enabled: status === 'ready' && Boolean(session?.accessToken) && Boolean(currentTenantId),
   });
 
   const aiProvidersQuery = useQuery({
-    queryKey: tenantKeys.aiProviders,
-    queryFn: () => getConfiguredAiProviders(session?.accessToken),
-    enabled: status === 'ready',
+    queryKey: tenantKeys.aiProviders(currentTenantId),
+    queryFn: () => getConfiguredAiProviders(session?.accessToken, currentTenantId),
+    enabled: status === 'ready' && Boolean(session?.accessToken) && Boolean(currentTenantId),
   });
 
   return {
@@ -42,46 +45,58 @@ export function useTenantWorkspace() {
 
 export function useUpdateTenantWorkspace() {
   const { session } = useAuth();
+  const { currentTenantId } = useTenant();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationKey: ['portal', 'tenant-domain', 'update-workspace'],
     mutationFn: (body: TenantCreateOrUpdateRequestDto) =>
-      createOrUpdateTenant(session?.accessToken, body),
+      createOrUpdateTenant(session?.accessToken, currentTenantId, body),
     onSuccess: async () => {
       toast.success('Workspace settings saved.');
-      await queryClient.invalidateQueries({
-        queryKey: ['portal', 'tenant-context', 'tenants'],
-      });
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: ['portal', 'tenant-context', 'tenants'],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: ['portal', 'tenant-domain'],
+        }),
+      ]);
     },
   });
 }
 
 export function useGenerateClientKey() {
   const { session } = useAuth();
+  const { currentTenantId } = useTenant();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationKey: ['portal', 'tenant-domain', 'generate-client-key'],
-    mutationFn: () => generateTenantClientKey(session?.accessToken),
+    mutationFn: () => generateTenantClientKey(session?.accessToken, currentTenantId),
     onSuccess: async () => {
       toast.success('A new public client key was generated.');
-      await queryClient.invalidateQueries({ queryKey: tenantKeys.workspace });
+      await queryClient.invalidateQueries({
+        queryKey: tenantKeys.workspace(currentTenantId),
+      });
     },
   });
 }
 
 export function useSetAiProviderCredentials() {
   const { session } = useAuth();
+  const { currentTenantId } = useTenant();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationKey: ['portal', 'tenant-domain', 'set-ai-provider-credentials'],
     mutationFn: (body: TenantSetAiProviderCredentialsRequestDto) =>
-      setAiProviderCredentials(session?.accessToken, body),
+      setAiProviderCredentials(session?.accessToken, currentTenantId, body),
     onSuccess: async () => {
       toast.success('AI provider credentials stored for the current workspace.');
-      await queryClient.invalidateQueries({ queryKey: tenantKeys.aiProviders });
+      await queryClient.invalidateQueries({
+        queryKey: tenantKeys.aiProviders(currentTenantId),
+      });
     },
   });
 }

@@ -31,6 +31,7 @@ public class TenantDbContext(
     public DbSet<AiProvider> AiProviders { get; set; } = null!;
     public DbSet<TenantAiProvider> TenantAiProviders { get; set; } = null!;
     public DbSet<TenantConnection> TenantConnections { get; set; } = null!;
+    public DbSet<TenantUser> TenantUsers { get; set; } = null!;
     public DbSet<User> Users { get; set; } = null!;
 
     protected override IEnumerable<string> ConfigurationNamespaces =>

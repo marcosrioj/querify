@@ -1,5 +1,6 @@
 using BaseFaq.Common.EntityFramework.Tenant;
 using BaseFaq.Models.Tenant.Dtos.Tenant;
+using BaseFaq.Models.Tenant.Enums;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,6 +13,7 @@ public class TenantsGetTenantQueryHandler(TenantDbContext dbContext)
     {
         var tenant = await dbContext.Tenants
             .AsNoTracking()
+            .Include(entity => entity.TenantUsers)
             .FirstOrDefaultAsync(entity => entity.Id == request.Id, cancellationToken);
 
         if (tenant is null)
@@ -28,7 +30,10 @@ public class TenantsGetTenantQueryHandler(TenantDbContext dbContext)
             App = tenant.App,
             ConnectionString = string.Empty,
             IsActive = tenant.IsActive,
-            UserId = tenant.UserId
+            UserId = tenant.TenantUsers
+                .Where(tenantUser => tenantUser.Role == TenantUserRoleType.Owner)
+                .Select(tenantUser => tenantUser.UserId)
+                .FirstOrDefault()
         };
     }
 }

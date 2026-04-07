@@ -33,7 +33,7 @@ export const portalNavigation: NavigationItem[] = [
   {
     key: 'members',
     label: 'Members',
-    description: 'People, roles, and invites',
+    description: 'People and workspace roles',
     path: '/app/members',
     icon: Users,
   },

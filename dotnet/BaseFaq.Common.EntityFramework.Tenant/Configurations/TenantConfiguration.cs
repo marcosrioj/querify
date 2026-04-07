@@ -33,16 +33,9 @@ public class TenantConfiguration : BaseConfiguration<Entities.Tenant>
         builder.Property(p => p.IsActive)
             .IsRequired();
 
-        builder.Property(p => p.UserId)
-            .IsRequired();
-
         builder.HasIndex(p => p.Slug)
             .IsUnique()
             .HasDatabaseName("IX_Tenant_Slug");
-
-        builder.HasIndex(p => p.UserId)
-            .IsUnique()
-            .HasDatabaseName("IX_Tenant_UserId");
 
         builder.HasIndex(p => p.ClientKey)
             .IsUnique()

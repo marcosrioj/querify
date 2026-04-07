@@ -135,9 +135,6 @@ namespace BaseFaq.Common.EntityFramework.Tenant.Migrations
                     b.Property<DateTime?>("UpdatedDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
-
                     b.HasKey("Id");
 
                     b.HasIndex("ClientKey")
@@ -150,10 +147,6 @@ namespace BaseFaq.Common.EntityFramework.Tenant.Migrations
                     b.HasIndex("Slug")
                         .IsUnique()
                         .HasDatabaseName("IX_Tenant_Slug");
-
-                    b.HasIndex("UserId")
-                        .IsUnique()
-                        .HasDatabaseName("IX_Tenant_UserId");
 
                     b.ToTable("Tenants", (string)null);
                 });
@@ -259,6 +252,61 @@ namespace BaseFaq.Common.EntityFramework.Tenant.Migrations
                     b.ToTable("TenantConnections", (string)null);
                 });
 
+            modelBuilder.Entity("BaseFaq.Common.EntityFramework.Tenant.Entities.TenantUser", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("CreatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("DeletedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("Role")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("UpdatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IsDeleted")
+                        .HasDatabaseName("IX_TenantUser_IsDeleted");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("IX_TenantUser_UserId");
+
+                    b.HasIndex("TenantId", "Role")
+                        .HasDatabaseName("IX_TenantUser_TenantId_Role");
+
+                    b.HasIndex("TenantId", "UserId")
+                        .IsUnique()
+                        .HasDatabaseName("IX_TenantUser_TenantId_UserId")
+                        .HasFilter("\"IsDeleted\" = false");
+
+                    b.ToTable("TenantUsers", (string)null);
+                });
+
             modelBuilder.Entity("BaseFaq.Common.EntityFramework.Tenant.Entities.User", b =>
                 {
                     b.Property<Guid>("Id")
@@ -347,9 +395,35 @@ namespace BaseFaq.Common.EntityFramework.Tenant.Migrations
                     b.Navigation("Tenant");
                 });
 
+            modelBuilder.Entity("BaseFaq.Common.EntityFramework.Tenant.Entities.TenantUser", b =>
+                {
+                    b.HasOne("BaseFaq.Common.EntityFramework.Tenant.Entities.Tenant", "Tenant")
+                        .WithMany("TenantUsers")
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("BaseFaq.Common.EntityFramework.Tenant.Entities.User", "User")
+                        .WithMany("TenantUsers")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Tenant");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("BaseFaq.Common.EntityFramework.Tenant.Entities.Tenant", b =>
                 {
                     b.Navigation("AiProviders");
+
+                    b.Navigation("TenantUsers");
+                });
+
+            modelBuilder.Entity("BaseFaq.Common.EntityFramework.Tenant.Entities.User", b =>
+                {
+                    b.Navigation("TenantUsers");
                 });
 #pragma warning restore 612, 618
         }

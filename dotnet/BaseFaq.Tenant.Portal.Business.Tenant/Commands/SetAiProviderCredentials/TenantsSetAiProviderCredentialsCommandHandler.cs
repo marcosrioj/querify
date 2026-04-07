@@ -2,6 +2,8 @@ using System.Net;
 using BaseFaq.Common.EntityFramework.Tenant;
 using BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception;
 using BaseFaq.Common.Infrastructure.Core.Abstractions;
+using BaseFaq.Models.Common.Enums;
+using BaseFaq.Tenant.Portal.Business.Tenant.Helpers;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -20,6 +22,8 @@ public class TenantsSetAiProviderCredentialsCommandHandler(TenantDbContext dbCon
         }
 
         var userId = sessionService.GetUserId();
+        var tenantId = sessionService.GetTenantId(AppEnum.Faq);
+        await TenantAccessHelper.EnsureOwnerAsync(dbContext, tenantId, userId, cancellationToken);
 
         var provider = await dbContext.AiProviders
             .AsNoTracking()
@@ -31,40 +35,36 @@ public class TenantsSetAiProviderCredentialsCommandHandler(TenantDbContext dbCon
                 errorCode: (int)HttpStatusCode.NotFound);
         }
 
-        var tenants = await dbContext.Tenants
-            .Where(x => x.UserId == userId && x.IsActive)
-            .ToListAsync(cancellationToken);
+        var tenant = await dbContext.Tenants
+            .FirstOrDefaultAsync(x => x.Id == tenantId && x.IsActive, cancellationToken);
 
-        if (tenants.Count == 0)
+        if (tenant is null)
         {
             throw new ApiErrorException(
-                "Active tenant was not found for current user.",
+                $"Tenant '{tenantId}' was not found.",
                 errorCode: (int)HttpStatusCode.NotFound);
         }
 
-        foreach (var tenant in tenants)
-        {
-            var existingForCommand = await dbContext.TenantAiProviders
-                .Include(x => x.AiProvider)
-                .FirstOrDefaultAsync(
-                    x => x.TenantId == tenant.Id && x.AiProvider.Command == provider.Command,
-                    cancellationToken);
+        var existingForCommand = await dbContext.TenantAiProviders
+            .Include(x => x.AiProvider)
+            .FirstOrDefaultAsync(
+                x => x.TenantId == tenant.Id && x.AiProvider.Command == provider.Command,
+                cancellationToken);
 
-            if (existingForCommand is null)
+        if (existingForCommand is null)
+        {
+            dbContext.TenantAiProviders.Add(new BaseFaq.Common.EntityFramework.Tenant.Entities.TenantAiProvider
             {
-                dbContext.TenantAiProviders.Add(new BaseFaq.Common.EntityFramework.Tenant.Entities.TenantAiProvider
-                {
-                    TenantId = tenant.Id,
-                    AiProviderId = provider.Id,
-                    AiProviderKey = request.AiProviderKey
-                });
-            }
-            else
-            {
-                existingForCommand.AiProviderId = provider.Id;
-                existingForCommand.AiProviderKey = request.AiProviderKey;
-                dbContext.TenantAiProviders.Update(existingForCommand);
-            }
+                TenantId = tenant.Id,
+                AiProviderId = provider.Id,
+                AiProviderKey = request.AiProviderKey
+            });
+        }
+        else
+        {
+            existingForCommand.AiProviderId = provider.Id;
+            existingForCommand.AiProviderKey = request.AiProviderKey;
+            dbContext.TenantAiProviders.Update(existingForCommand);
         }
 
         await dbContext.SaveChangesAsync(cancellationToken);
