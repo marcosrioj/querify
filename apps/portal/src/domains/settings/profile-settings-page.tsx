@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { PageHeader, SettingsLayout } from '@/shared/layout/page-layouts';
+import { ProfileSettingsSkeleton } from '@/domains/settings/profile-settings-skeleton';
 import { settingsNavItems } from '@/domains/settings/settings-nav';
 import { useUpdateUserProfile, useUserProfile } from '@/domains/settings/settings-hooks';
 import { Button, Card, CardContent, CardDescription, CardHeader, CardHeading, CardTitle, Form } from '@/shared/ui';
@@ -19,6 +20,8 @@ type ProfileFormValues = z.infer<typeof profileSchema>;
 export function ProfileSettingsPage() {
   const profileQuery = useUserProfile();
   const updateProfile = useUpdateUserProfile();
+  const showLoadingState =
+    profileQuery.isLoading && profileQuery.data === undefined;
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
@@ -40,6 +43,10 @@ export function ProfileSettingsPage() {
       phoneNumber: profileQuery.data.phoneNumber ?? '',
     });
   }, [form, profileQuery.data]);
+
+  if (showLoadingState) {
+    return <ProfileSettingsSkeleton />;
+  }
 
   return (
     <SettingsLayout

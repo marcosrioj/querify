@@ -3,9 +3,11 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { useEffect } from 'react';
 import { Bot, Building2, KeyRound, Sparkles, WandSparkles } from 'lucide-react';
+import { TenantSettingsSkeleton } from '@/domains/tenants/tenant-settings-skeleton';
 import { useCurrentWorkspace, useGenerateClientKey, useSetAiProviderCredentials, useTenantWorkspace, useUpdateTenantWorkspace } from '@/domains/tenants/hooks';
 import { settingsNavItems } from '@/domains/settings/settings-nav';
 import { usePermission } from '@/platform/permissions/permissions';
+import { useTenant } from '@/platform/tenant/tenant-context';
 import { AiCommandType, TenantEdition, tenantUserRoleTypeLabels, tenantEditionLabels } from '@/shared/constants/backend-enums';
 import { KeyValueList, PageHeader, SectionGrid, SettingsLayout } from '@/shared/layout/page-layouts';
 import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardHeading, CardTitle, CardToolbar, Form } from '@/shared/ui';
@@ -29,6 +31,7 @@ type WorkspaceFormValues = z.infer<typeof workspaceSchema>;
 type CredentialFormValues = z.infer<typeof credentialsSchema>;
 
 export function TenantSettingsPage() {
+  const { isLoading: isTenantLoading } = useTenant();
   const currentWorkspace = useCurrentWorkspace();
   const { clientKeyQuery, aiProvidersQuery } = useTenantWorkspace();
   const updateWorkspace = useUpdateTenantWorkspace();
@@ -67,6 +70,15 @@ export function TenantSettingsPage() {
   const generationProviderCount = configuredProviders.filter(
     (provider) => provider.command === AiCommandType.Generation,
   ).length;
+  const showLoadingState =
+    isTenantLoading ||
+    (Boolean(currentWorkspace) &&
+      ((clientKeyQuery.isLoading && clientKeyQuery.data === undefined) ||
+        (aiProvidersQuery.isLoading && aiProvidersQuery.data === undefined)));
+
+  if (showLoadingState) {
+    return <TenantSettingsSkeleton />;
+  }
 
   return (
     <SettingsLayout

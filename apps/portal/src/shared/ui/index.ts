@@ -109,7 +109,11 @@ export { FormSectionHeading } from "@/shared/ui/form-section-heading";
 export {
   DetailPageSkeleton,
   FormCardSkeleton,
+  KeyValueListSkeleton,
+  SectionGridSkeleton,
   SidebarSummarySkeleton,
+  TableCardSkeleton,
+  TileGridSkeleton,
 } from "@/shared/ui/loading-states";
 export {
   ProgressChecklistCard,

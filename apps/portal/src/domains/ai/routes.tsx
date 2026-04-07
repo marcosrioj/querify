@@ -1,6 +1,7 @@
 import { BookOpen, Bot, ShieldCheck, WandSparkles } from 'lucide-react';
 import { RouteObject } from 'react-router-dom';
 import { Link } from 'react-router-dom';
+import { AiWorkspaceSkeleton } from '@/domains/ai/ai-workspace-skeleton';
 import { useFaqList, useRequestFaqGeneration } from '@/domains/faq/hooks';
 import { useTenantWorkspace } from '@/domains/tenants/hooks';
 import { AiCommandType } from '@/shared/constants/backend-enums';
@@ -19,6 +20,13 @@ function AiWorkspacePage() {
   const readyProviders = providers.filter(
     (provider) => provider.isAiProviderKeyConfigured,
   ).length;
+  const showLoadingState =
+    (aiProvidersQuery.isLoading && aiProvidersQuery.data === undefined) ||
+    (faqQuery.isLoading && faqQuery.data === undefined);
+
+  if (showLoadingState) {
+    return <AiWorkspaceSkeleton />;
+  }
 
   return (
     <PageSurface className="space-y-5 lg:space-y-7.5">

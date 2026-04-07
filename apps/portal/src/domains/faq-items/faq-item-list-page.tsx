@@ -28,6 +28,7 @@ import {
   Button,
   ConfirmAction,
   Input,
+  SectionGridSkeleton,
   Select,
   SelectContent,
   SelectItem,
@@ -135,6 +136,8 @@ export function FaqItemListPage() {
         : "Inactive only";
   const selectedFaqLabel =
     faqFilter === "all" ? "All FAQs" : (faqLookup[faqFilter] ?? "Selected FAQ");
+  const showMetricsLoadingState =
+    faqItemQuery.isLoading && faqItemQuery.data === undefined;
 
   const columns: DataTableColumn<FaqItemDto>[] = [
     {
@@ -273,38 +276,42 @@ export function FaqItemListPage() {
         </div>
       }
     >
-      <SectionGrid
-        items={[
-          {
-            title: "Total",
-            value: faqItemQuery.data?.totalCount ?? 0,
-            description: debouncedSearch
-              ? `Search: ${debouncedSearch}`
-              : selectedFaqLabel,
-            icon: MessageSquare,
-          },
-          {
-            title: "Active",
-            value: activeCount,
-            description: activeFilterLabel,
-            icon: ShieldCheck,
-          },
-          {
-            title: "Sourced",
-            value: sourcedCount,
-            titleHint: sourcedCount
-              ? "Already linked to a source."
-              : "No sources linked in this slice.",
-            icon: Link2,
-          },
-          {
-            title: "Unsourced",
-            value: unsourcedCount,
-            titleHint: "Candidates for enrichment.",
-            icon: CircleAlert,
-          },
-        ]}
-      />
+      {showMetricsLoadingState ? (
+        <SectionGridSkeleton />
+      ) : (
+        <SectionGrid
+          items={[
+            {
+              title: "Total",
+              value: faqItemQuery.data?.totalCount ?? 0,
+              description: debouncedSearch
+                ? `Search: ${debouncedSearch}`
+                : selectedFaqLabel,
+              icon: MessageSquare,
+            },
+            {
+              title: "Active",
+              value: activeCount,
+              description: activeFilterLabel,
+              icon: ShieldCheck,
+            },
+            {
+              title: "Sourced",
+              value: sourcedCount,
+              titleHint: sourcedCount
+                ? "Already linked to a source."
+                : "No sources linked in this slice.",
+              icon: Link2,
+            },
+            {
+              title: "Unsourced",
+              value: unsourcedCount,
+              titleHint: "Candidates for enrichment.",
+              icon: CircleAlert,
+            },
+          ]}
+        />
+      )}
       <DataTable
         title="Q&A items"
         description="Open a Q&A item to review the question, answer, score, and CTA."

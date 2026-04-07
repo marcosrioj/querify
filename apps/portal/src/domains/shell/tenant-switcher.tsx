@@ -5,7 +5,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useRefreshAllowedTenantCache } from '@/domains/tenants/hooks';
 import { useTenant } from '@/platform/tenant/tenant-context';
 import { tenantUserRoleTypeLabels } from '@/shared/constants/backend-enums';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Skeleton } from '@/shared/ui';
 
 const GUID_PATH_SEGMENT_PATTERN =
   /(?:^|\/)[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}(?=\/|$)/i;
@@ -64,10 +64,14 @@ export function TenantSwitcher() {
   }
 
   if (!tenants.length) {
+    if (isLoading) {
+      return <Skeleton className="hidden h-10 w-full rounded-xl md:flex sm:w-[220px]" />;
+    }
+
     return (
       <div className="hidden items-center gap-2 rounded-xl border border-dashed border-border px-3 py-2 text-sm text-muted-foreground md:flex">
         <Building2 className="size-4" />
-        {isLoading ? 'Loading workspaces' : 'No workspaces'}
+        No workspaces
       </div>
     );
   }

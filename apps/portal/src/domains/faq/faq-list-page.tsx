@@ -33,6 +33,7 @@ import {
   Button,
   ConfirmAction,
   Input,
+  SectionGridSkeleton,
   Select,
   SelectContent,
   SelectItem,
@@ -110,6 +111,8 @@ export function FaqListPage() {
     statusFilter === "all"
       ? "All statuses"
       : faqStatusLabels[Number(statusFilter) as FaqStatus];
+  const showMetricsLoadingState =
+    faqQuery.isLoading && faqQuery.data === undefined;
 
   const columns: DataTableColumn<FaqDto>[] = [
     {
@@ -239,40 +242,44 @@ export function FaqListPage() {
         </div>
       }
     >
-      <SectionGrid
-        items={[
-          {
-            title: "Total",
-            value: faqQuery.data?.totalCount ?? 0,
-            description: debouncedSearch
-              ? `Search: ${debouncedSearch}`
-              : activeStatusLabel,
-            icon: BookOpen,
-          },
-          {
-            title: "Published",
-            value: publishedCount,
-            description: publishedCount
-              ? "Ready for customer traffic"
-              : "Nothing published in this slice",
-            icon: Sparkles,
-          },
-          {
-            title: "Drafts",
-            value: draftCount,
-            description: draftCount
-              ? "Still being curated"
-              : "No draft work in view",
-            icon: FileText,
-          },
-          {
-            title: "CTA",
-            value: ctaEnabledCount,
-            description: `${sortingLabel} order`,
-            icon: ArrowUpRight,
-          },
-        ]}
-      />
+      {showMetricsLoadingState ? (
+        <SectionGridSkeleton />
+      ) : (
+        <SectionGrid
+          items={[
+            {
+              title: "Total",
+              value: faqQuery.data?.totalCount ?? 0,
+              description: debouncedSearch
+                ? `Search: ${debouncedSearch}`
+                : activeStatusLabel,
+              icon: BookOpen,
+            },
+            {
+              title: "Published",
+              value: publishedCount,
+              description: publishedCount
+                ? "Ready for customer traffic"
+                : "Nothing published in this slice",
+              icon: Sparkles,
+            },
+            {
+              title: "Drafts",
+              value: draftCount,
+              description: draftCount
+                ? "Still being curated"
+                : "No draft work in view",
+              icon: FileText,
+            },
+            {
+              title: "CTA",
+              value: ctaEnabledCount,
+              description: `${sortingLabel} order`,
+              icon: ArrowUpRight,
+            },
+          ]}
+        />
+      )}
       <DataTable
         title="FAQs"
         description="Open a FAQ to review Q&A items, sources, and publish status."

@@ -26,6 +26,7 @@ import {
   Button,
   ConfirmAction,
   Input,
+  SectionGridSkeleton,
   Select,
   SelectContent,
   SelectItem,
@@ -101,6 +102,8 @@ export function ContentRefListPage() {
   const sortingLabel =
     sortingOptions.find((option) => option.value === sorting)?.label ??
     "Custom";
+  const showMetricsLoadingState =
+    contentRefQuery.isLoading && contentRefQuery.data === undefined;
 
   const columns: DataTableColumn<ContentRefDto>[] = [
     {
@@ -216,40 +219,44 @@ export function ContentRefListPage() {
         </div>
       }
     >
-      <SectionGrid
-        items={[
-          {
-            title: "Total",
-            value: contentRefQuery.data?.totalCount ?? 0,
-            description: debouncedSearch
-              ? `Search: ${debouncedSearch}`
-              : selectedKindLabel,
-            icon: Files,
-          },
-          {
-            title: "Scoped",
-            value: scopedCount,
-            titleHint: scopedCount
-              ? "Grouped for cleaner reuse."
-              : "No scope labels in this slice.",
-            icon: FolderOpen,
-          },
-          {
-            title: "Untitled",
-            value: unlabeledCount,
-            titleHint: unlabeledCount
-              ? "Good candidates for cleanup."
-              : "Labels are in good shape.",
-            icon: Files,
-          },
-          {
-            title: "Sort",
-            value: sortingLabel,
-            titleHint: "Current catalog sort.",
-            icon: ArrowUpDown,
-          },
-        ]}
-      />
+      {showMetricsLoadingState ? (
+        <SectionGridSkeleton />
+      ) : (
+        <SectionGrid
+          items={[
+            {
+              title: "Total",
+              value: contentRefQuery.data?.totalCount ?? 0,
+              description: debouncedSearch
+                ? `Search: ${debouncedSearch}`
+                : selectedKindLabel,
+              icon: Files,
+            },
+            {
+              title: "Scoped",
+              value: scopedCount,
+              titleHint: scopedCount
+                ? "Grouped for cleaner reuse."
+                : "No scope labels in this slice.",
+              icon: FolderOpen,
+            },
+            {
+              title: "Untitled",
+              value: unlabeledCount,
+              titleHint: unlabeledCount
+                ? "Good candidates for cleanup."
+                : "Labels are in good shape.",
+              icon: Files,
+            },
+            {
+              title: "Sort",
+              value: sortingLabel,
+              titleHint: "Current catalog sort.",
+              icon: ArrowUpDown,
+            },
+          ]}
+        />
+      )}
       <DataTable
         title="Sources"
         description="Open a source to see which FAQs and Q&A items use it."

@@ -11,6 +11,7 @@ import {
   useDeleteTenantMember,
   useTenantMembers,
 } from '@/domains/members/hooks';
+import { MembersPageSkeleton } from '@/domains/members/members-page-skeleton';
 import type { TenantUserDto } from '@/domains/members/types';
 import { TenantUserRoleType } from '@/shared/constants/backend-enums';
 import { TenantUserRoleBadge } from '@/shared/ui/status-badges';
@@ -48,7 +49,7 @@ function getMemberName(member: TenantUserDto) {
 }
 
 export function MembersPage() {
-  const { currentTenant } = useTenant();
+  const { currentTenant, isLoading: isTenantLoading } = useTenant();
   const canManageMembers = usePermission('members.manage');
   const [open, setOpen] = useState(false);
   const membersQuery = useTenantMembers();
@@ -67,6 +68,15 @@ export function MembersPage() {
   const pendingCount = 0;
   const ownerCount = members.filter((member) => member.role === TenantUserRoleType.Owner).length;
   const currentUserCount = members.filter((member) => member.isCurrentUser).length;
+  const showLoadingState =
+    isTenantLoading ||
+    (Boolean(currentTenant) &&
+      membersQuery.isLoading &&
+      membersQuery.data === undefined);
+
+  if (showLoadingState) {
+    return <MembersPageSkeleton />;
+  }
 
   const columns: DataTableColumn<TenantUserDto>[] = [
     {
