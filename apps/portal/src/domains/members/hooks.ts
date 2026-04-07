@@ -1,15 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import {
-  createTenantUser,
   deleteTenantUser,
   getTenantUsers,
-  updateTenantUser,
+  upsertTenantUser,
 } from '@/domains/members/api';
-import type {
-  TenantUserCreateRequestDto,
-  TenantUserUpdateRequestDto,
-} from '@/domains/members/types';
+import type { TenantUserUpsertRequestDto } from '@/domains/members/types';
 import { useAuth } from '@/platform/auth/auth-context';
 import { useTenant } from '@/platform/tenant/tenant-context';
 
@@ -40,38 +36,17 @@ export function useTenantMembers() {
   });
 }
 
-export function useCreateTenantMember() {
+export function useUpsertTenantMember() {
   const { session } = useAuth();
   const { currentTenantId } = useTenant();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationKey: ['portal', 'tenant-members', 'create'],
-    mutationFn: (body: TenantUserCreateRequestDto) =>
-      createTenantUser(session?.accessToken, currentTenantId, body),
+    mutationKey: ['portal', 'tenant-members', 'upsert'],
+    mutationFn: (body: TenantUserUpsertRequestDto) =>
+      upsertTenantUser(session?.accessToken, currentTenantId, body),
     onSuccess: async () => {
-      toast.success('Member added to the workspace.');
-      await Promise.all([
-        queryClient.invalidateQueries({
-          queryKey: membersKeys.list(currentTenantId),
-        }),
-        invalidateWorkspaceAccess(queryClient),
-      ]);
-    },
-  });
-}
-
-export function useUpdateTenantMember() {
-  const { session } = useAuth();
-  const { currentTenantId } = useTenant();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationKey: ['portal', 'tenant-members', 'update'],
-    mutationFn: ({ id, body }: { id: string; body: TenantUserUpdateRequestDto }) =>
-      updateTenantUser(session?.accessToken, currentTenantId, id, body),
-    onSuccess: async () => {
-      toast.success('Workspace role updated.');
+      toast.success('Member saved in the workspace.');
       await Promise.all([
         queryClient.invalidateQueries({
           queryKey: membersKeys.list(currentTenantId),

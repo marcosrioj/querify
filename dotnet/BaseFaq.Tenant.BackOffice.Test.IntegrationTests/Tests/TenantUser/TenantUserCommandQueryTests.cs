@@ -59,6 +59,7 @@ public class TenantUserCommandQueryTests
             new TenantUsersCreateTenantUserCommand
             {
                 TenantId = tenant.Id,
+                Name = "Member",
                 Email = "member@example.test",
                 Role = TenantUserRoleType.Member
             },
@@ -68,6 +69,37 @@ public class TenantUserCommandQueryTests
         Assert.NotNull(tenantUser);
         Assert.Equal(member.Id, tenantUser!.UserId);
         Assert.Equal(TenantUserRoleType.Member, tenantUser.Role);
+    }
+
+    [Fact]
+    public async Task CreateTenantUser_CreatesMissingUserUsingEnsureUser()
+    {
+        using var context = TestContext.Create();
+
+        var tenant = await TestDataFactory.SeedTenantAsync(context.DbContext);
+
+        var handler = new TenantUsersCreateTenantUserCommandHandler(
+            context.DbContext,
+            new TestAllowedTenantStore());
+
+        var id = await handler.Handle(
+            new TenantUsersCreateTenantUserCommand
+            {
+                TenantId = tenant.Id,
+                Name = "Member",
+                Email = "member@example.test",
+                Role = TenantUserRoleType.Member
+            },
+            CancellationToken.None);
+
+        var tenantUser = await context.DbContext.TenantUsers.FindAsync(id);
+        Assert.NotNull(tenantUser);
+
+        var createdUser = await context.DbContext.Users.FindAsync(tenantUser!.UserId);
+        Assert.NotNull(createdUser);
+        Assert.Equal("Member", createdUser!.GivenName);
+        Assert.Equal("member@example.test", createdUser.Email);
+        Assert.Equal("member@example.test", createdUser.ExternalId);
     }
 
     [Fact]

@@ -22,6 +22,7 @@ public class TenantUserService(IMediator mediator) : ITenantUserService
         return mediator.Send(new TenantUsersCreateTenantUserCommand
         {
             TenantId = tenantId,
+            Name = requestDto.Name,
             Email = requestDto.Email,
             Role = requestDto.Role
         }, token);

@@ -18,7 +18,7 @@ public class TenantUsersCreateTenantUserCommandHandler(
 {
     public async Task<Guid> Handle(TenantUsersCreateTenantUserCommand request, CancellationToken cancellationToken)
     {
-        var user = await ResolveUserByEmailAsync(request.Email, cancellationToken);
+        var userId = await ResolveOrEnsureUserIdByEmailAsync(request, cancellationToken);
         var tenantExists = await dbContext.Tenants
             .AnyAsync(entity => entity.Id == request.TenantId, cancellationToken);
 
@@ -31,13 +31,13 @@ public class TenantUsersCreateTenantUserCommandHandler(
 
         var tenantUserExists = await dbContext.TenantUsers
             .AnyAsync(
-                entity => entity.TenantId == request.TenantId && entity.UserId == user.Id,
+                entity => entity.TenantId == request.TenantId && entity.UserId == userId,
                 cancellationToken);
 
         if (tenantUserExists)
         {
             throw new ApiErrorException(
-                $"User '{user.Email}' already belongs to tenant '{request.TenantId}'.",
+                $"User '{request.Email}' already belongs to tenant '{request.TenantId}'.",
                 errorCode: (int)HttpStatusCode.Conflict);
         }
 
@@ -47,12 +47,12 @@ public class TenantUsersCreateTenantUserCommandHandler(
             .Select(entity => entity.Role == TenantUserRoleType.Owner ? (Guid?)entity.UserId : null)
             .FirstOrDefaultAsync(entity => entity.HasValue, cancellationToken);
 
-        var tenantUser = await CreateTenantUserAsync(request, user.Id, cancellationToken);
+        var tenantUser = await CreateTenantUserAsync(request, userId, cancellationToken);
 
         await dbContext.SaveChangesAsync(cancellationToken);
         await AllowedTenantCacheHelper.RemoveUserEntries(
             allowedTenantStore,
-            [user.Id, previousOwnerUserId ?? Guid.Empty],
+            [userId, previousOwnerUserId ?? Guid.Empty],
             cancellationToken);
 
         return tenantUser.Id;
@@ -106,19 +106,24 @@ public class TenantUsersCreateTenantUserCommandHandler(
         return ownerTenantUser;
     }
 
-    private async Task<Common.EntityFramework.Tenant.Entities.User> ResolveUserByEmailAsync(string email, CancellationToken cancellationToken)
+    private async Task<Guid> ResolveOrEnsureUserIdByEmailAsync(
+        TenantUsersCreateTenantUserCommand request,
+        CancellationToken cancellationToken)
     {
-        var normalizedEmail = email.Trim().ToLowerInvariant();
+        var normalizedEmail = request.Email.Trim().ToLowerInvariant();
         var user = await dbContext.Users
+            .AsNoTracking()
             .FirstOrDefaultAsync(entity => entity.Email.ToLower() == normalizedEmail, cancellationToken);
 
         if (user is not null)
         {
-            return user;
+            return user.Id;
         }
 
-        throw new ApiErrorException(
-            $"User with email '{email}' was not found.",
-            errorCode: (int)HttpStatusCode.NotFound);
+        return await dbContext.EnsureUser(
+            normalizedEmail,
+            request.Name.Trim(),
+            normalizedEmail,
+            cancellationToken);
     }
 }

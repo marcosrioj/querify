@@ -20,18 +20,10 @@ public class TenantUserController(ITenantUserService tenantUserService) : Contro
     }
 
     [HttpPost]
-    [ProducesResponseType(typeof(Guid), StatusCodes.Status201Created)]
-    public async Task<IActionResult> Create([FromBody] TenantUserCreateRequestDto dto, CancellationToken token)
-    {
-        var result = await tenantUserService.Create(dto, token);
-        return StatusCode(StatusCodes.Status201Created, result);
-    }
-
-    [HttpPut("{id:guid}")]
     [ProducesResponseType(typeof(Guid), StatusCodes.Status200OK)]
-    public async Task<IActionResult> Update(Guid id, [FromBody] TenantUserUpdateRequestDto dto, CancellationToken token)
+    public async Task<IActionResult> Upsert([FromBody] TenantUserCreateRequestDto dto, CancellationToken token)
     {
-        var result = await tenantUserService.Update(id, dto, token);
+        var result = await tenantUserService.Upsert(dto, token);
         return Ok(result);
     }
 

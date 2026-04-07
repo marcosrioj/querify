@@ -1,8 +1,7 @@
 using BaseFaq.Models.Tenant.Dtos.TenantUser;
 using BaseFaq.Tenant.Portal.Business.Tenant.Abstractions;
-using BaseFaq.Tenant.Portal.Business.Tenant.Commands.CreateTenantUser;
 using BaseFaq.Tenant.Portal.Business.Tenant.Commands.DeleteTenantUser;
-using BaseFaq.Tenant.Portal.Business.Tenant.Commands.UpdateTenantUser;
+using BaseFaq.Tenant.Portal.Business.Tenant.Commands.UpsertTenantUser;
 using BaseFaq.Tenant.Portal.Business.Tenant.Queries.GetTenantUserList;
 using MediatR;
 
@@ -15,30 +14,17 @@ public class TenantUserService(IMediator mediator) : ITenantUserService
         return mediator.Send(new TenantUsersGetTenantUserListQuery { TenantId = tenantId }, token);
     }
 
-    public Task<Guid> Create(TenantUserCreateRequestDto requestDto, CancellationToken token)
+    public Task<Guid> Upsert(TenantUserCreateRequestDto requestDto, CancellationToken token)
     {
         ArgumentNullException.ThrowIfNull(requestDto);
 
-        return mediator.Send(new TenantUsersCreateTenantUserCommand
+        return mediator.Send(new TenantUsersUpsertTenantUserCommand
         {
             TenantId = requestDto.TenantId,
+            Name = requestDto.Name,
             Email = requestDto.Email,
             Role = requestDto.Role
         }, token);
-    }
-
-    public async Task<Guid> Update(Guid id, TenantUserUpdateRequestDto requestDto, CancellationToken token)
-    {
-        ArgumentNullException.ThrowIfNull(requestDto);
-
-        await mediator.Send(new TenantUsersUpdateTenantUserCommand
-        {
-            TenantId = requestDto.TenantId,
-            Id = id,
-            Role = requestDto.Role
-        }, token);
-
-        return id;
     }
 
     public Task Delete(Guid tenantId, Guid id, CancellationToken token)

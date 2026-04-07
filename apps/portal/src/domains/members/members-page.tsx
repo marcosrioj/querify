@@ -7,16 +7,12 @@ import { ListLayout, PageHeader, SectionGrid } from '@/shared/layout/page-layout
 import { useTenant } from '@/platform/tenant/tenant-context';
 import { usePermission } from '@/platform/permissions/permissions';
 import {
-  useCreateTenantMember,
   useDeleteTenantMember,
   useTenantMembers,
-  useUpdateTenantMember,
+  useUpsertTenantMember,
 } from '@/domains/members/hooks';
 import type { TenantUserDto } from '@/domains/members/types';
-import {
-  TenantUserRoleType,
-  tenantUserRoleTypeLabels,
-} from '@/shared/constants/backend-enums';
+import { TenantUserRoleType } from '@/shared/constants/backend-enums';
 import { TenantUserRoleBadge } from '@/shared/ui/status-badges';
 import {
   Badge,
@@ -31,15 +27,17 @@ import {
   DialogTitle,
   Form,
 } from '@/shared/ui';
-import { SelectField, TextField } from '@/shared/ui/form-fields';
+import { TextField } from '@/shared/ui/form-fields';
 import { DataTable, type DataTableColumn } from '@/shared/ui/data-table';
 import { EmptyState } from '@/shared/ui/placeholder-state';
 
 const inviteSchema = z.object({
+  name: z
+    .string()
+    .trim()
+    .min(1, 'Enter a name.')
+    .max(100, 'Name must be 100 characters or fewer.'),
   email: z.string().email('Enter a valid email address.'),
-  role: z
-    .coerce.number()
-    .refine((value) => Object.values(TenantUserRoleType).includes(value as TenantUserRoleType)),
 });
 
 type InviteFormValues = z.infer<typeof inviteSchema>;
@@ -54,16 +52,15 @@ export function MembersPage() {
   const canManageMembers = usePermission('members.manage');
   const [open, setOpen] = useState(false);
   const membersQuery = useTenantMembers();
-  const createMember = useCreateTenantMember();
-  const updateMember = useUpdateTenantMember();
+  const upsertMember = useUpsertTenantMember();
   const deleteMember = useDeleteTenantMember();
   const members = membersQuery.data ?? [];
 
   const form = useForm<InviteFormValues>({
     resolver: zodResolver(inviteSchema),
     defaultValues: {
+      name: '',
       email: '',
-      role: TenantUserRoleType.Member,
     },
   });
   const activeCount = members.length;
@@ -115,22 +112,6 @@ export function MembersPage() {
             onClick={(event) => event.stopPropagation()}
           >
             <ConfirmAction
-              title={`Transfer workspace ownership to ${member.email}?`}
-              description="This member will become the owner and your access will switch to member."
-              confirmLabel="Transfer ownership"
-              onConfirm={() =>
-                updateMember.mutateAsync({
-                  id: member.id,
-                  body: { role: TenantUserRoleType.Owner },
-                })
-              }
-              trigger={
-                <Button variant="outline" size="sm" disabled={updateMember.isPending}>
-                  Make owner
-                </Button>
-              }
-            />
-            <ConfirmAction
               title={`Remove ${member.email} from this workspace?`}
               description="This removes their access to the current workspace but does not delete their account."
               confirmLabel="Remove member"
@@ -154,7 +135,7 @@ export function MembersPage() {
           <PageHeader
             eyebrow="Members"
             title="Members"
-            description="Manage workspace access and transfer ownership when needed."
+            description="Manage workspace access for the current tenant."
             actions={
               <Button
                 disabled={!canManageMembers || !currentTenant}
@@ -185,7 +166,7 @@ export function MembersPage() {
               {
                 title: 'Pending invites',
                 value: pendingCount,
-                description: 'Existing-user memberships are active immediately',
+                description: 'Member access is saved immediately',
                 icon: MailPlus,
               },
               {
@@ -209,14 +190,14 @@ export function MembersPage() {
               <>
                 <Badge variant="outline">{members.length} people</Badge>
                 <Badge variant="outline" appearance="outline">
-                  Existing users only
+                  Members only
                 </Badge>
               </>
             }
             emptyState={
               <EmptyState
                 title="No members yet"
-                description="Add the first teammate by email to share this workspace."
+                description="Add the first teammate by name and email to share this workspace."
               />
             }
           />
@@ -237,7 +218,7 @@ export function MembersPage() {
           <DialogHeader>
             <DialogTitle>Add member</DialogTitle>
             <DialogDescription>
-              Add an existing BaseFAQ user to this workspace and choose their role.
+              Add a workspace member by name and email. The email must not already belong to a member in this workspace.
             </DialogDescription>
           </DialogHeader>
           <Form {...form}>
@@ -248,9 +229,25 @@ export function MembersPage() {
                   return;
                 }
 
-                await createMember.mutateAsync({
+                const normalizedEmail = values.email.trim().toLowerCase();
+                const existingMember = members.find(
+                  (member) => member.email.trim().toLowerCase() === normalizedEmail,
+                );
+
+                if (existingMember) {
+                  form.setError('email', {
+                    type: 'validate',
+                    message: 'This email is already a member of the workspace.',
+                  });
+                  return;
+                }
+
+                form.clearErrors('email');
+
+                await upsertMember.mutateAsync({
+                  name: values.name,
                   email: values.email,
-                  role: values.role as TenantUserRoleType,
+                  role: TenantUserRoleType.Member,
                 });
                 setOpen(false);
                 form.reset();
@@ -258,26 +255,17 @@ export function MembersPage() {
             >
               <TextField
                 control={form.control}
+                name="name"
+                label="Name"
+                description="Used as the display name for the member account."
+              />
+              <TextField
+                control={form.control}
                 name="email"
                 label="Email"
-                description="The user must already exist in BaseFAQ."
+                description="Use an email that is not already assigned to a member in this workspace."
               />
-              <SelectField
-                control={form.control}
-                name="role"
-                label="Role"
-                options={[
-                  {
-                    value: String(TenantUserRoleType.Member),
-                    label: tenantUserRoleTypeLabels[TenantUserRoleType.Member],
-                  },
-                  {
-                    value: String(TenantUserRoleType.Owner),
-                    label: tenantUserRoleTypeLabels[TenantUserRoleType.Owner],
-                  },
-                ]}
-              />
-              <Button type="submit" disabled={createMember.isPending}>
+              <Button type="submit" disabled={upsertMember.isPending}>
                 Add member
               </Button>
             </form>
