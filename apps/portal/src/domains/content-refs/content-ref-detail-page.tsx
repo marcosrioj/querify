@@ -255,7 +255,7 @@ export function ContentRefDetailPage() {
       {contentRefQuery.isError ? (
         <ErrorState
           title="Unable to load source"
-          description="The source request failed."
+          error={contentRefQuery.error}
           retry={() => void contentRefQuery.refetch()}
         />
       ) : showLoadingState ? (

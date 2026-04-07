@@ -1,6 +1,7 @@
 import {
   portalRequest,
   requireAccessToken,
+  requireTenantId,
 } from '@/platform/api/http-client';
 import type {
   TenantAiProviderDto,
@@ -11,7 +12,7 @@ import type {
 export function getTenantClientKey(accessToken?: string, tenantId?: string) {
   return portalRequest<string | null>({
     service: 'tenant',
-    path: `/api/tenant/tenants/GetClientKey?tenantId=${requireTenantIdParam(tenantId)}`,
+    path: `/api/tenant/tenants/GetClientKey?tenantId=${requireTenantId(tenantId)}`,
     accessToken: requireAccessToken(accessToken),
   });
 }
@@ -19,7 +20,7 @@ export function getTenantClientKey(accessToken?: string, tenantId?: string) {
 export function generateTenantClientKey(accessToken?: string, tenantId?: string) {
   return portalRequest<string>({
     service: 'tenant',
-    path: `/api/tenant/tenants/GenerateNewClientKey?tenantId=${requireTenantIdParam(tenantId)}`,
+    path: `/api/tenant/tenants/GenerateNewClientKey?tenantId=${requireTenantId(tenantId)}`,
     method: 'POST',
     accessToken: requireAccessToken(accessToken),
   });
@@ -28,7 +29,7 @@ export function generateTenantClientKey(accessToken?: string, tenantId?: string)
 export function getConfiguredAiProviders(accessToken?: string, tenantId?: string) {
   return portalRequest<TenantAiProviderDto[]>({
     service: 'tenant',
-    path: `/api/tenant/tenants/GetConfiguredAiProviders?tenantId=${requireTenantIdParam(tenantId)}`,
+    path: `/api/tenant/tenants/GetConfiguredAiProviders?tenantId=${requireTenantId(tenantId)}`,
     accessToken: requireAccessToken(accessToken),
   });
 }
@@ -62,15 +63,7 @@ export function setAiProviderCredentials(
     accessToken: requireAccessToken(accessToken),
     body: {
       ...body,
-      tenantId: requireTenantIdParam(tenantId),
+      tenantId: requireTenantId(tenantId),
     },
   });
-}
-
-function requireTenantIdParam(tenantId: string | undefined) {
-  if (!tenantId) {
-    throw new Error('A workspace must be selected before calling this endpoint.');
-  }
-
-  return tenantId;
 }

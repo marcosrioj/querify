@@ -328,7 +328,7 @@ export function FaqItemFormPage({ mode }: { mode: "create" | "edit" }) {
       {itemQuery.isError ? (
         <ErrorState
           title="Unable to load Q&A item"
-          description="The Q&A item request failed."
+          error={itemQuery.error}
           retry={() => void itemQuery.refetch()}
         />
       ) : mode === "edit" && itemQuery.isLoading ? (

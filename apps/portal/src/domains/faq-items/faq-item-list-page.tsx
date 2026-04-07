@@ -343,7 +343,7 @@ export function FaqItemListPage() {
           faqItemQuery.isError ? (
             <ErrorState
               title="Unable to load Q&A items"
-              description="Refresh the Q&A list and try again."
+              error={faqItemQuery.error}
               retry={() => void faqItemQuery.refetch()}
             />
           ) : undefined

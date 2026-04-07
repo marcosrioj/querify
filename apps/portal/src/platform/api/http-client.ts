@@ -1,4 +1,4 @@
-import { ApiError, toApiError } from '@/platform/api/api-error';
+import { ApiError, isAbortError, toApiError } from '@/platform/api/api-error';
 import { RuntimeEnv } from '@/platform/runtime/env';
 
 export type PortalService = 'tenant' | 'faq';
@@ -18,6 +18,41 @@ const serviceBaseUrl: Record<PortalService, string> = {
   tenant: RuntimeEnv.tenantPortalApiUrl,
   faq: RuntimeEnv.faqPortalApiUrl,
 };
+
+function getServiceLabel(service: PortalService) {
+  return service === 'tenant' ? 'Tenant API' : 'FAQ API';
+}
+
+function buildHttpErrorFallback(service: PortalService, status: number) {
+  switch (status) {
+    case 400:
+      return 'The request is invalid.';
+    case 401:
+      return 'Your session expired. Sign in again.';
+    case 403:
+      return 'You do not have access to this workspace.';
+    case 404:
+      return 'The requested record was not found.';
+    case 409:
+      return 'This change conflicts with the current data.';
+    case 422:
+      return 'The submitted data is invalid.';
+    case 429:
+      return `${getServiceLabel(service)} is throttling requests right now.`;
+    default:
+      return status >= 500
+        ? `${getServiceLabel(service)} is unavailable right now.`
+        : `${getServiceLabel(service)} request failed.`;
+  }
+}
+
+function buildNetworkErrorMessage(service: PortalService) {
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+    return 'You are offline.';
+  }
+
+  return `Cannot reach the ${getServiceLabel(service)}.`;
+}
 
 function buildQueryString(query?: Record<string, unknown>) {
   if (!query) {
@@ -75,15 +110,35 @@ export async function portalRequest<T>({
     headers.set('Content-Type', 'application/json');
   }
 
-  const response = await fetch(url, {
-    method,
-    headers,
-    body: body !== undefined ? JSON.stringify(body) : undefined,
-    signal,
-  });
+  let response: Response;
+
+  try {
+    response = await fetch(url, {
+      method,
+      headers,
+      body: body !== undefined ? JSON.stringify(body) : undefined,
+      signal,
+    });
+  } catch (error) {
+    if (isAbortError(error)) {
+      throw error;
+    }
+
+    throw new ApiError(
+      buildNetworkErrorMessage(service),
+      0,
+      undefined,
+      undefined,
+      { service, path, method, url },
+    );
+  }
 
   if (!response.ok) {
-    throw await toApiError(response, 'BaseFAQ request failed.');
+    throw await toApiError(
+      response,
+      buildHttpErrorFallback(service, response.status),
+      { service, path, method, url },
+    );
   }
 
   if (response.status === 204) {
@@ -105,7 +160,7 @@ export async function portalRequest<T>({
 
 export function requireAccessToken(token?: string) {
   if (!token) {
-    throw new ApiError('Authentication is required to call this endpoint.', 401);
+    throw new ApiError('Sign in again to continue.', 401);
   }
 
   return token;
@@ -113,10 +168,7 @@ export function requireAccessToken(token?: string) {
 
 export function requireTenantId(tenantId?: string) {
   if (!tenantId) {
-    throw new ApiError(
-      'Select a tenant workspace before using tenant-scoped features.',
-      400,
-    );
+    throw new ApiError('Select a workspace to continue.', 400);
   }
 
   return tenantId;

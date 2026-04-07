@@ -288,7 +288,7 @@ export function ContentRefListPage() {
           contentRefQuery.isError ? (
             <ErrorState
               title="Unable to load sources"
-              description="Refresh the source catalog and try again."
+              error={contentRefQuery.error}
               retry={() => void contentRefQuery.refetch()}
             />
           ) : undefined

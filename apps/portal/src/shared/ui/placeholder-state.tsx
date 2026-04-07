@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { AlertTriangle, ArrowRight, Inbox } from 'lucide-react';
+import { toErrorMessage } from '@/platform/api/api-error';
 import { Button, Card, CardContent } from '@/shared/ui';
 
 export function EmptyState({
@@ -39,12 +40,18 @@ export function EmptyState({
 export function ErrorState({
   title,
   description,
+  error,
   retry,
 }: {
   title: string;
-  description: string;
+  description?: string;
+  error?: unknown;
   retry?: () => void;
 }) {
+  const resolvedDescription =
+    description ??
+    toErrorMessage(error, 'The latest request failed. Try again.');
+
   return (
     <Card className="border-destructive/30 bg-destructive/5">
       <CardContent className="flex flex-col items-center gap-4 py-10 text-center">
@@ -54,7 +61,7 @@ export function ErrorState({
         <div className="space-y-2">
           <h3 className="text-base font-semibold text-mono">{title}</h3>
           <p className="max-w-lg text-sm leading-6 text-muted-foreground">
-            {description}
+            {resolvedDescription}
           </p>
         </div>
         {retry ? <Button onClick={retry}>Try again</Button> : null}

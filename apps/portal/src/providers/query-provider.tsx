@@ -6,20 +6,8 @@ import {
   QueryClientProvider,
 } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { ApiError } from '@/platform/api/api-error';
+import { isAbortError, toErrorMessage } from '@/platform/api/api-error';
 import { logger } from '@/platform/telemetry/logger';
-
-function toErrorMessage(error: unknown) {
-  if (error instanceof ApiError) {
-    return error.message;
-  }
-
-  if (error instanceof Error) {
-    return error.message;
-  }
-
-  return 'Something went wrong while communicating with BaseFAQ.';
-}
 
 export function QueryProvider({ children }: PropsWithChildren) {
   const [queryClient] = useState(
@@ -37,6 +25,10 @@ export function QueryProvider({ children }: PropsWithChildren) {
         },
         queryCache: new QueryCache({
           onError: (error, query) => {
+            if (isAbortError(error)) {
+              return;
+            }
+
             logger.error('Query failed', {
               queryKey: query.queryKey,
               error,
@@ -46,6 +38,10 @@ export function QueryProvider({ children }: PropsWithChildren) {
         }),
         mutationCache: new MutationCache({
           onError: (error, _variables, _context, mutation) => {
+            if (isAbortError(error)) {
+              return;
+            }
+
             logger.error('Mutation failed', {
               mutationKey: mutation.options.mutationKey,
               error,

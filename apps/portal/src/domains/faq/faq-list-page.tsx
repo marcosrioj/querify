@@ -306,7 +306,7 @@ export function FaqListPage() {
           faqQuery.isError ? (
             <ErrorState
               title="Unable to load FAQs"
-              description="Refresh the catalog and try again."
+              error={faqQuery.error}
               retry={() => void faqQuery.refetch()}
             />
           ) : undefined

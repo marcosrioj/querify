@@ -255,7 +255,7 @@ export function FaqItemDetailPage() {
       {itemQuery.isError ? (
         <ErrorState
           title="Unable to load Q&A item"
-          description="The Q&A item request failed."
+          error={itemQuery.error}
           retry={() => void itemQuery.refetch()}
         />
       ) : showLoadingState ? (

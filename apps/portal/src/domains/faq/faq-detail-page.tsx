@@ -318,7 +318,7 @@ export function FaqDetailPage() {
       {faqQuery.isError ? (
         <ErrorState
           title="Unable to load FAQ"
-          description="The FAQ detail request failed."
+          error={faqQuery.error}
           retry={() => void faqQuery.refetch()}
         />
       ) : showLoadingState ? (
