@@ -33,7 +33,9 @@ public class TenantUserCommandQueryTests
             role: TenantUserRoleType.Member);
 
         var handler = new TenantUsersGetTenantUserListQueryHandler(context.DbContext, context.SessionService);
-        var result = await handler.Handle(new TenantUsersGetTenantUserListQuery(), CancellationToken.None);
+        var result = await handler.Handle(
+            new TenantUsersGetTenantUserListQuery { TenantId = tenantId },
+            CancellationToken.None);
 
         Assert.Equal(2, result.Count);
         Assert.Equal(TenantUserRoleType.Owner, result[0].Role);
@@ -65,6 +67,7 @@ public class TenantUserCommandQueryTests
         var id = await handler.Handle(
             new TenantUsersCreateTenantUserCommand
             {
+                TenantId = tenantId,
                 Email = "invitee@example.test",
                 Role = TenantUserRoleType.Member
             },
@@ -105,6 +108,7 @@ public class TenantUserCommandQueryTests
         await handler.Handle(
             new TenantUsersUpdateTenantUserCommand
             {
+                TenantId = tenantId,
                 Id = memberLink.Id,
                 Role = TenantUserRoleType.Owner
             },
@@ -147,7 +151,7 @@ public class TenantUserCommandQueryTests
             new TestAllowedTenantStore());
 
         await handler.Handle(
-            new TenantUsersDeleteTenantUserCommand { Id = memberLink.Id },
+            new TenantUsersDeleteTenantUserCommand { TenantId = tenantId, Id = memberLink.Id },
             CancellationToken.None);
 
         var visibleTenantUser = await context.DbContext.TenantUsers

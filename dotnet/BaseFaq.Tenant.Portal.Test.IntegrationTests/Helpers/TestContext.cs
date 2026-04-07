@@ -57,7 +57,8 @@ public sealed class TestContext : IDisposable
         var resolvedTenantId = tenantId ?? Guid.NewGuid();
         var resolvedUserId = userId ?? Guid.NewGuid();
         var sessionService = new TestSessionService(resolvedTenantId, resolvedUserId);
-        var httpContextAccessor = new HttpContextAccessor { HttpContext = httpContext };
+        var resolvedHttpContext = httpContext ?? CreateHttpContext();
+        var httpContextAccessor = new HttpContextAccessor { HttpContext = resolvedHttpContext };
 
         var options = new DbContextOptionsBuilder<TenantDbContext>()
             .UseNpgsql(connectionString)
@@ -84,6 +85,11 @@ public sealed class TestContext : IDisposable
             ownsDatabase,
             databaseName,
             adminConnectionString);
+    }
+
+    private static HttpContext CreateHttpContext()
+    {
+        return new DefaultHttpContext();
     }
 
     public void Dispose()

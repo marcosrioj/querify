@@ -2,18 +2,23 @@ using BaseFaq.Common.EntityFramework.Tenant;
 using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.Tenant.Dtos.TenantAiProvider;
+using BaseFaq.Tenant.Portal.Business.Tenant.Helpers;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 namespace BaseFaq.Tenant.Portal.Business.Tenant.Queries.GetConfiguredAiProviders;
 
-public class TenantsGetConfiguredAiProvidersQueryHandler(TenantDbContext dbContext, ISessionService sessionService)
+public class TenantsGetConfiguredAiProvidersQueryHandler(
+    TenantDbContext dbContext,
+    ISessionService sessionService)
     : IRequestHandler<TenantsGetConfiguredAiProvidersQuery, List<TenantAiProviderDto>>
 {
     public async Task<List<TenantAiProviderDto>> Handle(TenantsGetConfiguredAiProvidersQuery request,
         CancellationToken cancellationToken)
     {
-        var tenantId = sessionService.GetTenantId(AppEnum.Faq);
+        var userId = sessionService.GetUserId();
+        var tenantId = request.TenantId;
+        await TenantAccessHelper.EnsureAccessAsync(dbContext, tenantId, userId, AppEnum.Faq, cancellationToken);
 
         return await dbContext.TenantAiProviders
             .AsNoTracking()

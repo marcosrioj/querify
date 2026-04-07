@@ -1,4 +1,3 @@
-using BaseFaq.Common.Infrastructure.Core.Attributes;
 using BaseFaq.Models.Tenant.Dtos.Tenant;
 using BaseFaq.Tenant.Portal.Business.Tenant.Abstractions;
 using Microsoft.AspNetCore.Authorization;
@@ -13,7 +12,6 @@ namespace BaseFaq.Tenant.Portal.Business.Tenant.Controllers;
 public class TenantController(ITenantService tenantService) : ControllerBase
 {
     [HttpGet("GetAll")]
-    [SkipTenantAccessValidation]
     [ProducesResponseType(typeof(List<TenantSummaryDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll(CancellationToken token)
     {
@@ -22,7 +20,6 @@ public class TenantController(ITenantService tenantService) : ControllerBase
     }
 
     [HttpPost("CreateOrUpdate")]
-    [SkipTenantAccessValidation]
     [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
     public async Task<IActionResult> CreateOrUpdate([FromBody] TenantCreateOrUpdateRequestDto dto,
         CancellationToken token)
@@ -33,17 +30,17 @@ public class TenantController(ITenantService tenantService) : ControllerBase
 
     [HttpGet("GetClientKey")]
     [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetClientKey(CancellationToken token)
+    public async Task<IActionResult> GetClientKey([FromQuery] Guid tenantId, CancellationToken token)
     {
-        var result = await tenantService.GetClientKey(token);
+        var result = await tenantService.GetClientKey(tenantId, token);
         return Ok(result);
     }
 
     [HttpPost("GenerateNewClientKey")]
     [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GenerateNewClientKey(CancellationToken token)
+    public async Task<IActionResult> GenerateNewClientKey([FromQuery] Guid tenantId, CancellationToken token)
     {
-        var result = await tenantService.GenerateNewClientKey(token);
+        var result = await tenantService.GenerateNewClientKey(tenantId, token);
         return Ok(result);
     }
 

@@ -20,9 +20,9 @@ public class TenantUsersUpdateTenantUserCommandHandler(
 {
     public async Task Handle(TenantUsersUpdateTenantUserCommand request, CancellationToken cancellationToken)
     {
-        var tenantId = sessionService.GetTenantId(AppEnum.Faq);
         var currentUserId = sessionService.GetUserId();
-        await TenantAccessHelper.EnsureOwnerAsync(dbContext, tenantId, currentUserId, cancellationToken);
+        var tenantId = request.TenantId;
+        await TenantAccessHelper.EnsureAccessAsync(dbContext, tenantId, currentUserId, AppEnum.Faq, cancellationToken);
 
         var tenant = await dbContext.Tenants
             .Include(entity => entity.TenantUsers)

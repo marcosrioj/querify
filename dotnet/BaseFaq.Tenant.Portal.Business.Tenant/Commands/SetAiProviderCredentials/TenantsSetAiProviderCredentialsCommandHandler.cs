@@ -9,7 +9,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BaseFaq.Tenant.Portal.Business.Tenant.Commands.SetAiProviderCredentials;
 
-public class TenantsSetAiProviderCredentialsCommandHandler(TenantDbContext dbContext, ISessionService sessionService)
+public class TenantsSetAiProviderCredentialsCommandHandler(
+    TenantDbContext dbContext,
+    ISessionService sessionService)
     : IRequestHandler<TenantsSetAiProviderCredentialsCommand, bool>
 {
     public async Task<bool> Handle(
@@ -22,8 +24,8 @@ public class TenantsSetAiProviderCredentialsCommandHandler(TenantDbContext dbCon
         }
 
         var userId = sessionService.GetUserId();
-        var tenantId = sessionService.GetTenantId(AppEnum.Faq);
-        await TenantAccessHelper.EnsureOwnerAsync(dbContext, tenantId, userId, cancellationToken);
+        var tenantId = request.TenantId;
+        await TenantAccessHelper.EnsureAccessAsync(dbContext, tenantId, userId, AppEnum.Faq, cancellationToken);
 
         var provider = await dbContext.AiProviders
             .AsNoTracking()

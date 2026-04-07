@@ -19,9 +19,9 @@ public class TenantUsersDeleteTenantUserCommandHandler(
 {
     public async Task Handle(TenantUsersDeleteTenantUserCommand request, CancellationToken cancellationToken)
     {
-        var tenantId = sessionService.GetTenantId(AppEnum.Faq);
         var currentUserId = sessionService.GetUserId();
-        await TenantAccessHelper.EnsureOwnerAsync(dbContext, tenantId, currentUserId, cancellationToken);
+        var tenantId = request.TenantId;
+        await TenantAccessHelper.EnsureAccessAsync(dbContext, tenantId, currentUserId, AppEnum.Faq, cancellationToken);
 
         var tenantUser = await dbContext.TenantUsers
             .FirstOrDefaultAsync(entity => entity.Id == request.Id && entity.TenantId == tenantId, cancellationToken);

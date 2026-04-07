@@ -13,9 +13,9 @@ public class TenantUserController(ITenantUserService tenantUserService) : Contro
 {
     [HttpGet("GetAll")]
     [ProducesResponseType(typeof(List<TenantUserDto>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetAll(CancellationToken token)
+    public async Task<IActionResult> GetAll([FromQuery] Guid tenantId, CancellationToken token)
     {
-        var result = await tenantUserService.GetAll(token);
+        var result = await tenantUserService.GetAll(tenantId, token);
         return Ok(result);
     }
 
@@ -37,9 +37,9 @@ public class TenantUserController(ITenantUserService tenantUserService) : Contro
 
     [HttpDelete("{id:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    public async Task<IActionResult> Delete(Guid id, CancellationToken token)
+    public async Task<IActionResult> Delete(Guid id, [FromQuery] Guid tenantId, CancellationToken token)
     {
-        await tenantUserService.Delete(id, token);
+        await tenantUserService.Delete(tenantId, id, token);
         return NoContent();
     }
 }

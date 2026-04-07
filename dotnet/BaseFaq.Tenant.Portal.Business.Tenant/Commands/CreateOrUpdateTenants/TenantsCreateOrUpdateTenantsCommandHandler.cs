@@ -2,13 +2,11 @@ using BaseFaq.Common.EntityFramework.Tenant;
 using BaseFaq.Common.EntityFramework.Tenant.Helpers;
 using BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception;
 using BaseFaq.Common.Infrastructure.Core.Abstractions;
-using BaseFaq.Common.Infrastructure.Core.Constants;
 using BaseFaq.Common.Infrastructure.Core.Helpers;
 using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.Tenant.Enums;
 using BaseFaq.Tenant.Portal.Business.Tenant.Helpers;
 using MediatR;
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using System.Net;
 
@@ -17,7 +15,6 @@ namespace BaseFaq.Tenant.Portal.Business.Tenant.Commands.CreateOrUpdateTenants;
 public class TenantsCreateOrUpdateTenantsCommandHandler(
     TenantDbContext dbContext,
     ISessionService sessionService,
-    IHttpContextAccessor httpContextAccessor,
     IAllowedTenantStore allowedTenantStore)
     : IRequestHandler<TenantsCreateOrUpdateTenantsCommand, bool>
 {
@@ -25,7 +22,7 @@ public class TenantsCreateOrUpdateTenantsCommandHandler(
         CancellationToken cancellationToken)
     {
         var userId = sessionService.GetUserId();
-        var selectedTenantId = TryGetSelectedTenantId(httpContextAccessor);
+        var selectedTenantId = request.TenantId;
 
         var currentConnections = await GetCurrentConnectionsAsync(cancellationToken);
         if (selectedTenantId.HasValue)
@@ -133,7 +130,7 @@ public class TenantsCreateOrUpdateTenantsCommandHandler(
                 errorCode: (int)HttpStatusCode.NotFound);
         }
 
-        await TenantAccessHelper.EnsureOwnerAsync(dbContext, tenantId, userId, cancellationToken);
+        await TenantAccessHelper.EnsureAccessAsync(dbContext, tenantId, userId, tenant.App, cancellationToken);
 
         tenant.Slug = await GenerateUniqueSlugAsync(request.Name, tenant.App, tenant.Id, cancellationToken);
         tenant.Name = request.Name;
@@ -172,15 +169,5 @@ public class TenantsCreateOrUpdateTenantsCommandHandler(
         }
 
         return candidate;
-    }
-
-    private static Guid? TryGetSelectedTenantId(IHttpContextAccessor httpContextAccessor)
-    {
-        if (httpContextAccessor.HttpContext?.Items.TryGetValue(TenantContextKeys.TenantIdItemKey, out var value) != true)
-        {
-            return null;
-        }
-
-        return value as Guid? ?? (value is Guid tenantId ? tenantId : null);
     }
 }

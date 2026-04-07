@@ -3,4 +3,7 @@ using MediatR;
 
 namespace BaseFaq.Tenant.Portal.Business.Tenant.Queries.GetTenantUserList;
 
-public sealed class TenantUsersGetTenantUserListQuery : IRequest<List<TenantUserDto>>;
+public sealed class TenantUsersGetTenantUserListQuery : IRequest<List<TenantUserDto>>
+{
+    public required Guid TenantId { get; set; }
+}

@@ -1,7 +1,6 @@
 import {
   portalRequest,
   requireAccessToken,
-  requireTenantId,
 } from '@/platform/api/http-client';
 import type {
   TenantAiProviderDto,
@@ -12,28 +11,25 @@ import type {
 export function getTenantClientKey(accessToken?: string, tenantId?: string) {
   return portalRequest<string | null>({
     service: 'tenant',
-    path: '/api/tenant/tenants/GetClientKey',
+    path: `/api/tenant/tenants/GetClientKey?tenantId=${requireTenantIdParam(tenantId)}`,
     accessToken: requireAccessToken(accessToken),
-    tenantId: requireTenantId(tenantId),
   });
 }
 
 export function generateTenantClientKey(accessToken?: string, tenantId?: string) {
   return portalRequest<string>({
     service: 'tenant',
-    path: '/api/tenant/tenants/GenerateNewClientKey',
+    path: `/api/tenant/tenants/GenerateNewClientKey?tenantId=${requireTenantIdParam(tenantId)}`,
     method: 'POST',
     accessToken: requireAccessToken(accessToken),
-    tenantId: requireTenantId(tenantId),
   });
 }
 
 export function getConfiguredAiProviders(accessToken?: string, tenantId?: string) {
   return portalRequest<TenantAiProviderDto[]>({
     service: 'tenant',
-    path: '/api/tenant/tenants/GetConfiguredAiProviders',
+    path: `/api/tenant/tenants/GetConfiguredAiProviders?tenantId=${requireTenantIdParam(tenantId)}`,
     accessToken: requireAccessToken(accessToken),
-    tenantId: requireTenantId(tenantId),
   });
 }
 
@@ -47,8 +43,10 @@ export function createOrUpdateTenant(
     path: '/api/tenant/tenants/CreateOrUpdate',
     method: 'POST',
     accessToken: requireAccessToken(accessToken),
-    tenantId,
-    body,
+    body: {
+      ...body,
+      tenantId,
+    },
   });
 }
 
@@ -62,7 +60,17 @@ export function setAiProviderCredentials(
     path: '/api/tenant/tenants/SetAiProviderCredentials',
     method: 'POST',
     accessToken: requireAccessToken(accessToken),
-    tenantId: requireTenantId(tenantId),
-    body,
+    body: {
+      ...body,
+      tenantId: requireTenantIdParam(tenantId),
+    },
   });
+}
+
+function requireTenantIdParam(tenantId: string | undefined) {
+  if (!tenantId) {
+    throw new Error('A workspace must be selected before calling this endpoint.');
+  }
+
+  return tenantId;
 }

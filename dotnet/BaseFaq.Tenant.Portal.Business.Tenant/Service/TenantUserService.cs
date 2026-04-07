@@ -10,9 +10,9 @@ namespace BaseFaq.Tenant.Portal.Business.Tenant.Service;
 
 public class TenantUserService(IMediator mediator) : ITenantUserService
 {
-    public Task<List<TenantUserDto>> GetAll(CancellationToken token)
+    public Task<List<TenantUserDto>> GetAll(Guid tenantId, CancellationToken token)
     {
-        return mediator.Send(new TenantUsersGetTenantUserListQuery(), token);
+        return mediator.Send(new TenantUsersGetTenantUserListQuery { TenantId = tenantId }, token);
     }
 
     public Task<Guid> Create(TenantUserCreateRequestDto requestDto, CancellationToken token)
@@ -21,6 +21,7 @@ public class TenantUserService(IMediator mediator) : ITenantUserService
 
         return mediator.Send(new TenantUsersCreateTenantUserCommand
         {
+            TenantId = requestDto.TenantId,
             Email = requestDto.Email,
             Role = requestDto.Role
         }, token);
@@ -32,6 +33,7 @@ public class TenantUserService(IMediator mediator) : ITenantUserService
 
         await mediator.Send(new TenantUsersUpdateTenantUserCommand
         {
+            TenantId = requestDto.TenantId,
             Id = id,
             Role = requestDto.Role
         }, token);
@@ -39,8 +41,8 @@ public class TenantUserService(IMediator mediator) : ITenantUserService
         return id;
     }
 
-    public Task Delete(Guid id, CancellationToken token)
+    public Task Delete(Guid tenantId, Guid id, CancellationToken token)
     {
-        return mediator.Send(new TenantUsersDeleteTenantUserCommand { Id = id }, token);
+        return mediator.Send(new TenantUsersDeleteTenantUserCommand { TenantId = tenantId, Id = id }, token);
     }
 }

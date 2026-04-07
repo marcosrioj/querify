@@ -1,7 +1,6 @@
 import {
   portalRequest,
   requireAccessToken,
-  requireTenantId,
 } from '@/platform/api/http-client';
 import type {
   TenantUserCreateRequestDto,
@@ -12,9 +11,8 @@ import type {
 export function getTenantUsers(accessToken?: string, tenantId?: string) {
   return portalRequest<TenantUserDto[]>({
     service: 'tenant',
-    path: '/api/tenant/tenant-users/GetAll',
+    path: `/api/tenant/tenant-users/GetAll?tenantId=${requireTenantIdParam(tenantId)}`,
     accessToken: requireAccessToken(accessToken),
-    tenantId: requireTenantId(tenantId),
   });
 }
 
@@ -28,8 +26,10 @@ export function createTenantUser(
     path: '/api/tenant/tenant-users',
     method: 'POST',
     accessToken: requireAccessToken(accessToken),
-    tenantId: requireTenantId(tenantId),
-    body,
+    body: {
+      ...body,
+      tenantId: requireTenantIdParam(tenantId),
+    },
   });
 }
 
@@ -44,8 +44,10 @@ export function updateTenantUser(
     path: `/api/tenant/tenant-users/${id}`,
     method: 'PUT',
     accessToken: requireAccessToken(accessToken),
-    tenantId: requireTenantId(tenantId),
-    body,
+    body: {
+      ...body,
+      tenantId: requireTenantIdParam(tenantId),
+    },
   });
 }
 
@@ -56,9 +58,16 @@ export function deleteTenantUser(
 ) {
   return portalRequest<void>({
     service: 'tenant',
-    path: `/api/tenant/tenant-users/${id}`,
+    path: `/api/tenant/tenant-users/${id}?tenantId=${requireTenantIdParam(tenantId)}`,
     method: 'DELETE',
     accessToken: requireAccessToken(accessToken),
-    tenantId: requireTenantId(tenantId),
   });
+}
+
+function requireTenantIdParam(tenantId: string | undefined) {
+  if (!tenantId) {
+    throw new Error('A workspace must be selected before calling this endpoint.');
+  }
+
+  return tenantId;
 }

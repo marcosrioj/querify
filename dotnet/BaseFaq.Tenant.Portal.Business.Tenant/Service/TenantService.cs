@@ -23,6 +23,7 @@ public class TenantService(IMediator mediator) : ITenantService
 
         var command = new TenantsCreateOrUpdateTenantsCommand
         {
+            TenantId = requestDto.TenantId,
             Name = requestDto.Name,
             Edition = requestDto.Edition
         };
@@ -30,14 +31,14 @@ public class TenantService(IMediator mediator) : ITenantService
         return mediator.Send(command, token);
     }
 
-    public Task<string?> GetClientKey(CancellationToken token)
+    public Task<string?> GetClientKey(Guid tenantId, CancellationToken token)
     {
-        return mediator.Send(new TenantsGetClientKeyQuery(), token);
+        return mediator.Send(new TenantsGetClientKeyQuery { TenantId = tenantId }, token);
     }
 
-    public Task<string> GenerateNewClientKey(CancellationToken token)
+    public Task<string> GenerateNewClientKey(Guid tenantId, CancellationToken token)
     {
-        return mediator.Send(new TenantsGenerateNewClientKeyCommand(), token);
+        return mediator.Send(new TenantsGenerateNewClientKeyCommand { TenantId = tenantId }, token);
     }
 
     public Task<bool> SetAiProviderCredentials(TenantSetAiProviderCredentialsRequestDto requestDto,
@@ -47,6 +48,7 @@ public class TenantService(IMediator mediator) : ITenantService
 
         return mediator.Send(new TenantsSetAiProviderCredentialsCommand
         {
+            TenantId = requestDto.TenantId,
             AiProviderId = requestDto.AiProviderId,
             AiProviderKey = requestDto.AiProviderKey
         }, token);

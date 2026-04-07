@@ -10,14 +10,16 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BaseFaq.Tenant.Portal.Business.Tenant.Commands.GenerateNewClientKey;
 
-public class TenantsGenerateNewClientKeyCommandHandler(TenantDbContext dbContext, ISessionService sessionService)
+public class TenantsGenerateNewClientKeyCommandHandler(
+    TenantDbContext dbContext,
+    ISessionService sessionService)
     : IRequestHandler<TenantsGenerateNewClientKeyCommand, string>
 {
     public async Task<string> Handle(TenantsGenerateNewClientKeyCommand request, CancellationToken cancellationToken)
     {
         var userId = sessionService.GetUserId();
-        var tenantId = sessionService.GetTenantId(AppEnum.Faq);
-        await TenantAccessHelper.EnsureOwnerAsync(dbContext, tenantId, userId, cancellationToken);
+        var tenantId = request.TenantId;
+        await TenantAccessHelper.EnsureAccessAsync(dbContext, tenantId, userId, AppEnum.Faq, cancellationToken);
 
         var tenant = await dbContext.Tenants
             .FirstOrDefaultAsync(entity => entity.Id == tenantId && entity.IsActive, cancellationToken);

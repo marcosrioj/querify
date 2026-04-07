@@ -1,6 +1,7 @@
 using System.Net;
 using BaseFaq.Common.EntityFramework.Tenant;
 using BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception;
+using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.Tenant.Enums;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,10 +9,11 @@ namespace BaseFaq.Tenant.Portal.Business.Tenant.Helpers;
 
 internal static class TenantAccessHelper
 {
-    public static Task<bool> IsOwnerAsync(
+    public static Task<bool> HasAccessAsync(
         TenantDbContext dbContext,
         Guid tenantId,
         Guid userId,
+        AppEnum app,
         CancellationToken cancellationToken)
     {
         return dbContext.TenantUsers
@@ -20,24 +22,25 @@ internal static class TenantAccessHelper
                 tenantUser =>
                     tenantUser.TenantId == tenantId &&
                     tenantUser.UserId == userId &&
-                    tenantUser.Role == TenantUserRoleType.Owner &&
-                    tenantUser.Tenant.IsActive,
+                    tenantUser.Tenant.IsActive &&
+                    tenantUser.Tenant.App == app,
                 cancellationToken);
     }
 
-    public static async Task EnsureOwnerAsync(
+    public static async Task EnsureAccessAsync(
         TenantDbContext dbContext,
         Guid tenantId,
         Guid userId,
+        AppEnum app,
         CancellationToken cancellationToken)
     {
-        if (await IsOwnerAsync(dbContext, tenantId, userId, cancellationToken))
+        if (await HasAccessAsync(dbContext, tenantId, userId, app, cancellationToken))
         {
             return;
         }
 
         throw new ApiErrorException(
-            "Only workspace owners can manage this workspace.",
+            "The selected workspace is not available for the current user.",
             errorCode: (int)HttpStatusCode.Forbidden);
     }
 }

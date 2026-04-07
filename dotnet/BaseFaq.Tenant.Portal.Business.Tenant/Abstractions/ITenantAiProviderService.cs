@@ -5,6 +5,6 @@ namespace BaseFaq.Tenant.Portal.Business.Tenant.Abstractions;
 
 public interface ITenantAiProviderService
 {
-    Task<List<TenantAiProviderDto>> GetConfiguredAiProviders(CancellationToken token);
-    Task<bool> IsAiProviderKeyConfigured(AiCommandType command, CancellationToken token);
+    Task<List<TenantAiProviderDto>> GetConfiguredAiProviders(Guid tenantId, CancellationToken token);
+    Task<bool> IsAiProviderKeyConfigured(Guid tenantId, AiCommandType command, CancellationToken token);
 }

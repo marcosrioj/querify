@@ -14,17 +14,20 @@ public class TenantAiProviderController(ITenantAiProviderService tenantAiProvide
 {
     [HttpGet("GetConfiguredAiProviders")]
     [ProducesResponseType(typeof(List<TenantAiProviderDto>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetConfiguredAiProviders(CancellationToken token)
+    public async Task<IActionResult> GetConfiguredAiProviders([FromQuery] Guid tenantId, CancellationToken token)
     {
-        var result = await tenantAiProviderService.GetConfiguredAiProviders(token);
+        var result = await tenantAiProviderService.GetConfiguredAiProviders(tenantId, token);
         return Ok(result);
     }
 
     [HttpGet("IsAiProviderKeyConfigured/{command:int}")]
     [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
-    public async Task<IActionResult> IsAiProviderKeyConfigured(AiCommandType command, CancellationToken token)
+    public async Task<IActionResult> IsAiProviderKeyConfigured(
+        [FromQuery] Guid tenantId,
+        AiCommandType command,
+        CancellationToken token)
     {
-        var result = await tenantAiProviderService.IsAiProviderKeyConfigured(command, token);
+        var result = await tenantAiProviderService.IsAiProviderKeyConfigured(tenantId, command, token);
         return Ok(result);
     }
 }

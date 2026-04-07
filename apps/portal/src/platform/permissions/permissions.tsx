@@ -56,7 +56,7 @@ export function hasPermission(
   }
 
   const workspacePermissions =
-    tenantRole === TenantUserRoleType.Owner
+    tenantRole === TenantUserRoleType.Owner || tenantRole === TenantUserRoleType.Member
       ? ownerWorkspacePermissions
       : baseWorkspacePermissions;
 

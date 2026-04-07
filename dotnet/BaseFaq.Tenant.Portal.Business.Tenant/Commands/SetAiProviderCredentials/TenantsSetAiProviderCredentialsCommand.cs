@@ -4,6 +4,7 @@ namespace BaseFaq.Tenant.Portal.Business.Tenant.Commands.SetAiProviderCredential
 
 public sealed class TenantsSetAiProviderCredentialsCommand : IRequest<bool>
 {
+    public required Guid TenantId { get; set; }
     public required Guid AiProviderId { get; set; }
     public required string AiProviderKey { get; set; }
 }

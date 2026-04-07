@@ -1,4 +1,3 @@
-using BaseFaq.Common.Infrastructure.Core.Constants;
 using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.Tenant.Enums;
 using BaseFaq.Tenant.Portal.Business.Tenant.Commands.CreateOrUpdateTenants;
@@ -60,7 +59,6 @@ public class TenantCommandQueryTests
         var handler = new TenantsCreateOrUpdateTenantsCommandHandler(
             context.DbContext,
             context.SessionService,
-            context.HttpContextAccessor,
             new TestAllowedTenantStore());
         var request = new TenantsCreateOrUpdateTenantsCommand
         {
@@ -116,10 +114,10 @@ public class TenantCommandQueryTests
         var handler = new TenantsCreateOrUpdateTenantsCommandHandler(
             context.DbContext,
             context.SessionService,
-            context.HttpContextAccessor,
             new TestAllowedTenantStore());
         var request = new TenantsCreateOrUpdateTenantsCommand
         {
+            TenantId = selectedTenantId,
             Name = "New Name",
             Edition = TenantEdition.Enterprise
         };
@@ -153,7 +151,6 @@ public class TenantCommandQueryTests
         var handler = new TenantsCreateOrUpdateTenantsCommandHandler(
             context.DbContext,
             context.SessionService,
-            context.HttpContextAccessor,
             new TestAllowedTenantStore());
         var request = new TenantsCreateOrUpdateTenantsCommand
         {
@@ -217,7 +214,6 @@ public class TenantCommandQueryTests
         var handler = new TenantsCreateOrUpdateTenantsCommandHandler(
             context.DbContext,
             context.SessionService,
-            context.HttpContextAccessor,
             new TestAllowedTenantStore());
 
         var result = await handler.Handle(
@@ -256,7 +252,7 @@ public class TenantCommandQueryTests
             clientKey: "my-client-key");
 
         var handler = new TenantsGetClientKeyQueryHandler(context.DbContext, context.SessionService);
-        var result = await handler.Handle(new TenantsGetClientKeyQuery(), CancellationToken.None);
+        var result = await handler.Handle(new TenantsGetClientKeyQuery { TenantId = tenantId }, CancellationToken.None);
 
         Assert.Equal("my-client-key", result);
     }
@@ -275,8 +271,12 @@ public class TenantCommandQueryTests
             isActive: true,
             userId: currentUserId);
 
-        var handler = new TenantsGenerateNewClientKeyCommandHandler(context.DbContext, context.SessionService);
-        var generatedKey = await handler.Handle(new TenantsGenerateNewClientKeyCommand(), CancellationToken.None);
+        var handler = new TenantsGenerateNewClientKeyCommandHandler(
+            context.DbContext,
+            context.SessionService);
+        var generatedKey = await handler.Handle(
+            new TenantsGenerateNewClientKeyCommand { TenantId = tenantId },
+            CancellationToken.None);
 
         Assert.False(string.IsNullOrWhiteSpace(generatedKey));
         Assert.True(generatedKey.Length >= 40);
@@ -288,8 +288,6 @@ public class TenantCommandQueryTests
 
     private static HttpContext CreateHttpContextWithTenantId(Guid tenantId)
     {
-        var httpContext = new DefaultHttpContext();
-        httpContext.Items[TenantContextKeys.TenantIdItemKey] = tenantId;
-        return httpContext;
+        return new DefaultHttpContext();
     }
 }

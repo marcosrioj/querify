@@ -21,9 +21,9 @@ public class TenantUsersCreateTenantUserCommandHandler(
 {
     public async Task<Guid> Handle(TenantUsersCreateTenantUserCommand request, CancellationToken cancellationToken)
     {
-        var tenantId = sessionService.GetTenantId(AppEnum.Faq);
         var currentUserId = sessionService.GetUserId();
-        await TenantAccessHelper.EnsureOwnerAsync(dbContext, tenantId, currentUserId, cancellationToken);
+        var tenantId = request.TenantId;
+        await TenantAccessHelper.EnsureAccessAsync(dbContext, tenantId, currentUserId, AppEnum.Faq, cancellationToken);
 
         var user = await ResolveUserByEmailAsync(request.Email, cancellationToken);
         var tenantExists = await dbContext.Tenants
