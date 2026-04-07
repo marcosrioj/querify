@@ -160,11 +160,7 @@ export function TenantSwitcher() {
       >
         <Command className="[&_[cmdk-input-wrapper]]:mx-3 [&_[cmdk-input-wrapper]]:mb-3 [&_[cmdk-input-wrapper]]:mt-3 [&_[cmdk-input-wrapper]]:rounded-xl [&_[cmdk-input-wrapper]]:border [&_[cmdk-input-wrapper]]:border-border/70 [&_[cmdk-input-wrapper]]:bg-muted/30 [&_[cmdk-input-wrapper]]:px-3 [&_[cmdk-input-wrapper]_svg]:size-4 [&_[cmdk-input-wrapper]_svg]:text-muted-foreground [&_[cmdk-input]]:h-10 [&_[cmdk-input]]:py-0">
           <div className="border-b border-border/70 bg-muted/20 px-4 py-3.5">
-            <div className="flex items-start gap-3">
-              <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary ring-1 ring-inset ring-primary/15">
-                <Building2 className="size-4" />
-              </div>
-
+            <div className="min-w-0">
               <div className="min-w-0 flex-1">
                 <div className="flex items-center justify-between gap-3">
                   <p className="text-sm font-semibold text-mono">
@@ -173,25 +169,6 @@ export function TenantSwitcher() {
                   <span className="inline-flex items-center rounded-full border border-border/70 bg-background px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
                     {tenants.length} available
                   </span>
-                </div>
-
-                <div className="mt-2 min-w-0">
-                  {currentTenant ? (
-                    <>
-                      <p className="truncate text-sm font-medium text-foreground">
-                        {currentTenant.name}
-                      </p>
-                      <div className="mt-1 flex flex-wrap items-center gap-1.5">
-                        <span className="truncate text-xs text-muted-foreground">
-                          @{currentTenant.slug}
-                        </span>
-                        <TenantEditionBadge edition={currentTenant.edition} />
-                        <TenantUserRoleBadge
-                          role={currentTenant.currentUserRole}
-                        />
-                      </div>
-                    </>
-                  ) : null}
                 </div>
               </div>
             </div>
