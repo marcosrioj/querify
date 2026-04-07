@@ -6,6 +6,7 @@ public interface ITenantService
 {
     Task<List<TenantSummaryDto>> GetAll(CancellationToken token);
     Task<bool> CreateOrUpdate(TenantCreateOrUpdateRequestDto requestDto, CancellationToken token);
+    Task<bool> RefreshAllowedTenantCache(Guid tenantId, CancellationToken token);
     Task<string?> GetClientKey(Guid tenantId, CancellationToken token);
     Task<string> GenerateNewClientKey(Guid tenantId, CancellationToken token);
     Task<bool> SetAiProviderCredentials(TenantSetAiProviderCredentialsRequestDto requestDto, CancellationToken token);

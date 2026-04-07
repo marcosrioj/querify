@@ -28,6 +28,14 @@ public class TenantController(ITenantService tenantService) : ControllerBase
         return Ok(result);
     }
 
+    [HttpPost("RefreshAllowedTenantCache")]
+    [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
+    public async Task<IActionResult> RefreshAllowedTenantCache([FromQuery] Guid tenantId, CancellationToken token)
+    {
+        var result = await tenantService.RefreshAllowedTenantCache(tenantId, token);
+        return Ok(result);
+    }
+
     [HttpGet("GetClientKey")]
     [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetClientKey([FromQuery] Guid tenantId, CancellationToken token)

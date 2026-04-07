@@ -51,6 +51,18 @@ export function createOrUpdateTenant(
   });
 }
 
+export function refreshAllowedTenantCache(
+  accessToken: string | undefined,
+  tenantId: string | undefined,
+) {
+  return portalRequest<boolean>({
+    service: 'tenant',
+    path: `/api/tenant/tenants/RefreshAllowedTenantCache?tenantId=${requireTenantId(tenantId)}`,
+    method: 'POST',
+    accessToken: requireAccessToken(accessToken),
+  });
+}
+
 export function setAiProviderCredentials(
   accessToken: string | undefined,
   tenantId: string | undefined,

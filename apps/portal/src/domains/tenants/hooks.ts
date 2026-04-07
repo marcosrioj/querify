@@ -5,6 +5,7 @@ import {
   generateTenantClientKey,
   getConfiguredAiProviders,
   getTenantClientKey,
+  refreshAllowedTenantCache,
   setAiProviderCredentials,
 } from '@/domains/tenants/api';
 import type {
@@ -80,6 +81,16 @@ export function useGenerateClientKey() {
         queryKey: tenantKeys.workspace(currentTenantId),
       });
     },
+  });
+}
+
+export function useRefreshAllowedTenantCache() {
+  const { session } = useAuth();
+
+  return useMutation({
+    mutationKey: ['portal', 'tenant-domain', 'refresh-allowed-tenant-cache'],
+    mutationFn: (tenantId: string) =>
+      refreshAllowedTenantCache(session?.accessToken, tenantId),
   });
 }
 

@@ -1,7 +1,9 @@
+using BaseFaq.Common.EntityFramework.Tenant.Providers;
 using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.Tenant.Enums;
 using BaseFaq.Tenant.Portal.Business.Tenant.Commands.CreateOrUpdateTenants;
 using BaseFaq.Tenant.Portal.Business.Tenant.Commands.GenerateNewClientKey;
+using BaseFaq.Tenant.Portal.Business.Tenant.Commands.RefreshAllowedTenantCache;
 using BaseFaq.Tenant.Portal.Business.Tenant.Queries.GetAllTenants;
 using BaseFaq.Tenant.Portal.Business.Tenant.Queries.GetClientKey;
 using BaseFaq.Tenant.Portal.Business.Tenant.Service;
@@ -290,6 +292,74 @@ public class TenantCommandQueryTests
         var updatedTenant = await context.DbContext.Tenants.FindAsync(tenant.Id);
         Assert.NotNull(updatedTenant);
         Assert.Equal(generatedKey, updatedTenant!.ClientKey);
+    }
+
+    [Fact]
+    public async Task RefreshAllowedTenantCache_RebuildsCurrentUserAllowedTenants()
+    {
+        var currentUserId = Guid.NewGuid();
+        var selectedTenantId = Guid.NewGuid();
+        using var context = TestContext.Create(userId: currentUserId, tenantId: selectedTenantId);
+
+        await TestDataFactory.SeedTenantAsync(
+            context.DbContext,
+            id: selectedTenantId,
+            name: "Selected FAQ Tenant",
+            app: AppEnum.Faq,
+            isActive: true,
+            userId: currentUserId);
+        var secondFaqTenant = await TestDataFactory.SeedTenantAsync(
+            context.DbContext,
+            name: "Second FAQ Tenant",
+            app: AppEnum.Faq,
+            isActive: true,
+            userId: currentUserId);
+        var tenantAppTenant = await TestDataFactory.SeedTenantAsync(
+            context.DbContext,
+            name: "Tenant App Workspace",
+            app: AppEnum.Tenant,
+            isActive: true,
+            userId: currentUserId);
+        await TestDataFactory.SeedTenantAsync(
+            context.DbContext,
+            name: "Other User FAQ Tenant",
+            app: AppEnum.Faq,
+            isActive: true,
+            userId: Guid.NewGuid());
+
+        var allowedTenantStore = new TestAllowedTenantStore();
+        await allowedTenantStore.SetAllowedTenantIds(
+            currentUserId,
+            new Dictionary<string, IReadOnlyCollection<Guid>>
+            {
+                [AppEnum.Faq.ToString()] = Array.Empty<Guid>(),
+                [AppEnum.Tenant.ToString()] = Array.Empty<Guid>()
+            },
+            cancellationToken: CancellationToken.None);
+
+        var handler = new TenantsRefreshAllowedTenantCacheCommandHandler(
+            context.SessionService,
+            allowedTenantStore,
+            new AllowedTenantProvider(context.DbContext),
+            new TenantPortalAccessService(context.DbContext, context.SessionService));
+
+        var result = await handler.Handle(
+            new TenantsRefreshAllowedTenantCacheCommand { TenantId = selectedTenantId },
+            CancellationToken.None);
+
+        Assert.True(result);
+
+        var cachedAllowedTenants = await allowedTenantStore.GetAllowedTenantIds(currentUserId, CancellationToken.None);
+        Assert.NotNull(cachedAllowedTenants);
+
+        var faqTenantIds = cachedAllowedTenants![AppEnum.Faq.ToString()];
+        Assert.Equal(2, faqTenantIds.Count);
+        Assert.Contains(selectedTenantId, faqTenantIds);
+        Assert.Contains(secondFaqTenant.Id, faqTenantIds);
+
+        var tenantAppTenantIds = cachedAllowedTenants[AppEnum.Tenant.ToString()];
+        Assert.Single(tenantAppTenantIds);
+        Assert.Contains(tenantAppTenant.Id, tenantAppTenantIds);
     }
 
     private static HttpContext CreateHttpContextWithTenantId(Guid tenantId)

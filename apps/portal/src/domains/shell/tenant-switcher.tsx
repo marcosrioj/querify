@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { Building2 } from 'lucide-react';
+import { useRefreshAllowedTenantCache } from '@/domains/tenants/hooks';
 import { useTenant } from '@/platform/tenant/tenant-context';
 import { tenantUserRoleTypeLabels } from '@/shared/constants/backend-enums';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui';
@@ -7,14 +8,24 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 export function TenantSwitcher() {
   const navigate = useNavigate();
   const { tenants, currentTenantId, setCurrentTenantId, isLoading } = useTenant();
+  const refreshAllowedTenantCache = useRefreshAllowedTenantCache();
 
-  function handleTenantChange(tenantId: string) {
-    if (tenantId === currentTenantId) {
+  async function handleTenantChange(tenantId: string) {
+    if (tenantId === currentTenantId || refreshAllowedTenantCache.isPending) {
       return;
     }
 
-    setCurrentTenantId(tenantId);
-    navigate('/app/dashboard', { replace: true });
+    try {
+      const cacheUpdated = await refreshAllowedTenantCache.mutateAsync(tenantId);
+      if (!cacheUpdated) {
+        return;
+      }
+
+      setCurrentTenantId(tenantId);
+      navigate('/app/dashboard', { replace: true });
+    } catch {
+      // Mutation errors are surfaced by the shared query provider.
+    }
   }
 
   if (!tenants.length) {
@@ -27,7 +38,11 @@ export function TenantSwitcher() {
   }
 
   return (
-    <Select value={currentTenantId} onValueChange={handleTenantChange}>
+    <Select
+      value={currentTenantId}
+      onValueChange={(tenantId) => void handleTenantChange(tenantId)}
+      disabled={isLoading || refreshAllowedTenantCache.isPending}
+    >
       <SelectTrigger className="w-full min-w-0 sm:w-[220px]">
         <SelectValue placeholder="Select workspace" />
       </SelectTrigger>
