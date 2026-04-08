@@ -1,4 +1,4 @@
-import { BookOpen, ExternalLink, FileText, FolderOpen, MessageSquare, Pencil, Plus, Trash2 } from "lucide-react";
+import { BookOpen, ExternalLink, FileText, FolderOpen, Link2, MessageSquare, Pencil, Plus, Trash2 } from "lucide-react";
 import { useMemo } from "react";
 import {
   Link,
@@ -169,30 +169,37 @@ export function ContentRefDetailPage() {
     <DetailLayout
       header={
         <PageHeader
-          eyebrow="Sources"
           title={contentRefQuery.data?.label || "Source"}
           description="See where this source is used and keep the reference up to date."
           descriptionMode="hint"
           backTo={backTo}
-          actions={
-            <>
-              <Button asChild>
+        />
+      }
+      sidebar={
+        <>
+          <Card>
+            <CardContent className="flex flex-col gap-1.5 p-3">
+              <Button asChild className="w-full justify-start">
                 <Link to={createFaqItemPath}>
                   <Plus className="size-4" />
                   New Q&A item
                 </Link>
               </Button>
-              {attachOriginItemPath ? (
-                <Button asChild variant="outline">
-                  <Link to={attachOriginItemPath}>Link to Q&A item</Link>
-                </Button>
-              ) : null}
-              <Button asChild variant="outline">
+              <Button asChild variant="outline" className="w-full justify-start">
                 <Link to={editPath}>
                   <Pencil className="size-4" />
                   Edit
                 </Link>
               </Button>
+              {attachOriginItemPath ? (
+                <Button asChild variant="outline" className="w-full justify-start">
+                  <Link to={attachOriginItemPath}>
+                    <Link2 className="size-4" />
+                    Link to Q&A item
+                  </Link>
+                </Button>
+              ) : null}
+              <div className="my-0.5 h-px bg-border/60" />
               <ConfirmAction
                 title={`Delete source "${contentRefQuery.data?.label || contentRefQuery.data?.locator || "this source"}"?`}
                 description="This removes the source record from the portal. Keep it only if you no longer want it reused."
@@ -204,52 +211,51 @@ export function ContentRefDetailPage() {
                     .then(() => navigate(backTo))
                 }
                 trigger={
-                  <Button variant="destructive">
+                  <Button variant="destructive" className="w-full justify-start">
                     <Trash2 className="size-4" />
                     Delete
                   </Button>
                 }
               />
-            </>
-          }
-        />
-      }
-      sidebar={
-        showLoadingState ? (
-          <SidebarSummarySkeleton />
-        ) : contentRefQuery.data ? (
-          <Card>
-            <CardHeader>
-              <CardHeading>
-                <CardTitle className="flex flex-wrap items-center gap-2">
-                  <span>Overview</span>
-                  <ContextHint
-                    content="Source type, scope, and downstream usage."
-                    label="Overview details"
-                  />
-                </CardTitle>
-              </CardHeading>
-            </CardHeader>
-            <CardContent>
-              <KeyValueList
-                items={[
-                  {
-                    label: "Kind",
-                    value: (
-                      <ContentRefKindBadge kind={contentRefQuery.data.kind} />
-                    ),
-                  },
-                  {
-                    label: "Scope",
-                    value: contentRefQuery.data.scope || "No scope",
-                  },
-                  { label: "FAQs", value: String(relatedFaqs.length) },
-                  { label: "Q&A items", value: String(relatedItems.length) },
-                ]}
-              />
             </CardContent>
           </Card>
-        ) : null
+
+          {showLoadingState ? (
+            <SidebarSummarySkeleton />
+          ) : contentRefQuery.data ? (
+            <Card>
+              <CardHeader>
+                <CardHeading>
+                  <CardTitle className="flex flex-wrap items-center gap-2">
+                    <span>Overview</span>
+                    <ContextHint
+                      content="Source type, scope, and downstream usage."
+                      label="Overview details"
+                    />
+                  </CardTitle>
+                </CardHeading>
+              </CardHeader>
+              <CardContent>
+                <KeyValueList
+                  items={[
+                    {
+                      label: "Kind",
+                      value: (
+                        <ContentRefKindBadge kind={contentRefQuery.data.kind} />
+                      ),
+                    },
+                    {
+                      label: "Scope",
+                      value: contentRefQuery.data.scope || "No scope",
+                    },
+                    { label: "FAQs", value: String(relatedFaqs.length) },
+                    { label: "Q&A items", value: String(relatedItems.length) },
+                  ]}
+                />
+              </CardContent>
+            </Card>
+          ) : null}
+        </>
       }
     >
       {contentRefQuery.isError ? (

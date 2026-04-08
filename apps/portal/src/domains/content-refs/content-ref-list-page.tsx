@@ -165,7 +165,6 @@ export function ContentRefListPage() {
     <ListLayout
       header={
         <PageHeader
-          eyebrow="Sources"
           title="Sources"
           description="Keep the pages, docs, and files behind your Q&A items."
           descriptionMode="hint"

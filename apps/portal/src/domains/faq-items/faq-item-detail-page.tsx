@@ -141,32 +141,39 @@ export function FaqItemDetailPage() {
     <DetailLayout
       header={
         <PageHeader
-          eyebrow="Q&A items"
           title={itemQuery.data?.question ?? "Q&A item"}
           description="Review the question, answer, CTA, and source for this item."
           descriptionMode="hint"
           backTo={backTo}
-          actions={
-            <>
+        />
+      }
+      sidebar={
+        <>
+          <Card>
+            <CardContent className="flex flex-col gap-1.5 p-3">
               {resolvedFaqId ? (
-                <Button asChild>
+                <Button asChild className="w-full justify-start">
                   <Link to={`/app/faq/${resolvedFaqId}`}>
                     <Link2 className="size-4" />
                     Open FAQ
                   </Link>
                 </Button>
               ) : null}
-              {contentRefPath ? (
-                <Button asChild variant="outline">
-                  <Link to={contentRefPath}>Source</Link>
-                </Button>
-              ) : null}
-              <Button asChild variant="outline">
+              <Button asChild variant="outline" className="w-full justify-start">
                 <Link to={editPath}>
                   <Pencil className="size-4" />
                   Edit
                 </Link>
               </Button>
+              {contentRefPath ? (
+                <Button asChild variant="outline" className="w-full justify-start">
+                  <Link to={contentRefPath}>
+                    <Files className="size-4" />
+                    Open source
+                  </Link>
+                </Button>
+              ) : null}
+              <div className="my-0.5 h-px bg-border/60" />
               <ConfirmAction
                 title={`Delete Q&A item "${itemQuery.data?.question ?? "this item"}"?`}
                 description="This removes the answer record from the FAQ workflow. Keep it only if you no longer need it."
@@ -178,70 +185,69 @@ export function FaqItemDetailPage() {
                     .then(() => navigate(backTo))
                 }
                 trigger={
-                  <Button variant="destructive">
+                  <Button variant="destructive" className="w-full justify-start">
                     <Trash2 className="size-4" />
                     Delete
                   </Button>
                 }
               />
-            </>
-          }
-        />
-      }
-      sidebar={
-        showLoadingState ? (
-          <SidebarSummarySkeleton />
-        ) : itemQuery.data ? (
-          <Card>
-            <CardHeader>
-              <CardHeading>
-                <CardTitle className="flex flex-wrap items-center gap-2">
-                  <span>Overview</span>
-                  <ContextHint
-                    content="Ranking, visibility, and relationship details."
-                    label="Overview details"
-                  />
-                </CardTitle>
-              </CardHeading>
-            </CardHeader>
-            <CardContent>
-              <KeyValueList
-                items={[
-                  {
-                    label: "Status",
-                    value: (
-                      <Badge
-                        variant={itemQuery.data.isActive ? "success" : "mono"}
-                      >
-                        {itemQuery.data.isActive ? "Active" : "Inactive"}
-                      </Badge>
-                    ),
-                  },
-                  {
-                    label: "FAQ",
-                    value: parentFaq?.name ?? itemQuery.data.faqId,
-                  },
-                  {
-                    label: "Source",
-                    value:
-                      linkedContentRef?.label ||
-                      linkedContentRef?.locator ||
-                      "None linked",
-                  },
-                  { label: "Sort", value: String(itemQuery.data.sort) },
-                  {
-                    label: "Vote score",
-                    value: String(itemQuery.data.voteScore),
-                  },
-                  {
-                    label: "AI confidence",
-                    value: String(itemQuery.data.aiConfidenceScore),
-                  },
-                ]}
-              />
             </CardContent>
           </Card>
-        ) : null
+
+          {showLoadingState ? (
+            <SidebarSummarySkeleton />
+          ) : itemQuery.data ? (
+            <Card>
+              <CardHeader>
+                <CardHeading>
+                  <CardTitle className="flex flex-wrap items-center gap-2">
+                    <span>Overview</span>
+                    <ContextHint
+                      content="Ranking, visibility, and relationship details."
+                      label="Overview details"
+                    />
+                  </CardTitle>
+                </CardHeading>
+              </CardHeader>
+              <CardContent>
+                <KeyValueList
+                  items={[
+                    {
+                      label: "Status",
+                      value: (
+                        <Badge
+                          variant={itemQuery.data.isActive ? "success" : "mono"}
+                        >
+                          {itemQuery.data.isActive ? "Active" : "Inactive"}
+                        </Badge>
+                      ),
+                    },
+                    {
+                      label: "FAQ",
+                      value: parentFaq?.name ?? itemQuery.data.faqId,
+                    },
+                    {
+                      label: "Source",
+                      value:
+                        linkedContentRef?.label ||
+                        linkedContentRef?.locator ||
+                        "None linked",
+                    },
+                    { label: "Sort", value: String(itemQuery.data.sort) },
+                    {
+                      label: "Vote score",
+                      value: String(itemQuery.data.voteScore),
+                    },
+                    {
+                      label: "AI confidence",
+                      value: String(itemQuery.data.aiConfidenceScore),
+                    },
+                  ]}
+                />
+              </CardContent>
+            </Card>
+          ) : null}
+        </>
       }
     >
       {itemQuery.isError ? (

@@ -161,23 +161,32 @@ export function FaqDetailPage() {
     <DetailLayout
       header={
         <PageHeader
-          eyebrow="FAQ"
           title={faqQuery.data?.name ?? "FAQ"}
           description="See this FAQ, its Q&A items, sources, and publish status."
           descriptionMode="hint"
           backTo="/app/faq"
-          actions={
-            <>
-              <Button asChild>
+        />
+      }
+      sidebar={
+        <>
+          <Card>
+            <CardContent className="flex flex-col gap-1.5 p-3">
+              <Button asChild className="w-full justify-start">
                 <Link to={createFaqItemPath}>
                   <Plus className="size-4" />
                   New Q&A item
                 </Link>
               </Button>
-              <Button asChild variant="outline">
+              <Button asChild variant="outline" className="w-full justify-start">
                 <Link to={createContentRefPath}>
                   <Plus className="size-4" />
                   New source
+                </Link>
+              </Button>
+              <Button asChild variant="outline" className="w-full justify-start">
+                <Link to={faqEditPath}>
+                  <Pencil className="size-4" />
+                  Edit
                 </Link>
               </Button>
               <ConfirmAction
@@ -188,18 +197,13 @@ export function FaqDetailPage() {
                 isPending={requestGeneration.isPending}
                 onConfirm={() => requestGeneration.mutateAsync(id)}
                 trigger={
-                  <Button variant="outline">
+                  <Button variant="outline" className="w-full justify-start">
                     <WandSparkles className="size-4" />
                     Request generation
                   </Button>
                 }
               />
-              <Button asChild variant="outline">
-                <Link to={faqEditPath}>
-                  <Pencil className="size-4" />
-                  Edit
-                </Link>
-              </Button>
+              <div className="my-0.5 h-px bg-border/60" />
               <ConfirmAction
                 title={`Delete FAQ "${faqQuery.data?.name ?? "this FAQ"}"?`}
                 description="This action removes the FAQ record from the portal. Review any linked content before continuing."
@@ -209,96 +213,95 @@ export function FaqDetailPage() {
                   deleteFaq.mutateAsync(id).then(() => navigate("/app/faq"))
                 }
                 trigger={
-                  <Button variant="destructive">
+                  <Button variant="destructive" className="w-full justify-start">
                     <Trash2 className="size-4" />
                     Delete
                   </Button>
                 }
               />
-            </>
-          }
-        />
-      }
-      sidebar={
-        showLoadingState ? (
-          <SidebarSummarySkeleton />
-        ) : faqQuery.data ? (
-          <>
-            <Card>
-              <CardHeader>
-                <CardHeading>
-                  <CardTitle className="flex flex-wrap items-center gap-2">
-                    <span>Overview</span>
-                    <ContextHint
-                      content="Key publishing and orchestration settings."
-                      label="Overview details"
-                    />
-                  </CardTitle>
-                </CardHeading>
-              </CardHeader>
-              <CardContent>
-                <KeyValueList
-                  items={[
-                    { label: "Language", value: faqQuery.data.language },
-                    {
-                      label: "Q&A items",
-                      value: String(relatedItems.length),
-                    },
-                    {
-                      label: "Sources",
-                      value: String(relatedContentRefs.length),
-                    },
-                  ]}
-                />
-              </CardContent>
-            </Card>
+            </CardContent>
+          </Card>
 
-            <Card>
-              <CardHeader>
-                <CardHeading>
-                  <CardTitle className="flex flex-wrap items-center gap-2">
-                    <span>Status</span>
-                    <ContextHint
-                      content="Monitor readiness before you publish or request generation."
-                      label="Status details"
-                    />
-                  </CardTitle>
-                </CardHeading>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex flex-wrap gap-2">
-                  <FaqStatusBadge status={faqQuery.data.status} />
-                  <Badge variant={generationReady ? "success" : "warning"}>
-                    {generationReady
-                      ? "Ready for generation request"
-                      : "Needs content and Q&A coverage"}
-                  </Badge>
-                </div>
-                <KeyValueList
-                  items={[
-                    {
-                      label: "Visibility",
-                      value:
-                        faqQuery.data.status === FaqStatus.Published
-                          ? "Customer-facing"
-                          : "Internal or draft",
-                    },
-                    {
-                      label: "Generation",
-                      value: generationReady
-                        ? "Ready to request"
-                        : "Waiting on setup",
-                    },
-                    {
-                      label: "Request tracking",
-                      value: "Correlation id only",
-                    },
-                  ]}
-                />
-              </CardContent>
-            </Card>
-          </>
-        ) : null
+          {showLoadingState ? (
+            <SidebarSummarySkeleton />
+          ) : faqQuery.data ? (
+            <>
+              <Card>
+                <CardHeader>
+                  <CardHeading>
+                    <CardTitle className="flex flex-wrap items-center gap-2">
+                      <span>Overview</span>
+                      <ContextHint
+                        content="Key publishing and orchestration settings."
+                        label="Overview details"
+                      />
+                    </CardTitle>
+                  </CardHeading>
+                </CardHeader>
+                <CardContent>
+                  <KeyValueList
+                    items={[
+                      { label: "Language", value: faqQuery.data.language },
+                      {
+                        label: "Q&A items",
+                        value: String(relatedItems.length),
+                      },
+                      {
+                        label: "Sources",
+                        value: String(relatedContentRefs.length),
+                      },
+                    ]}
+                  />
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardHeading>
+                    <CardTitle className="flex flex-wrap items-center gap-2">
+                      <span>Status</span>
+                      <ContextHint
+                        content="Monitor readiness before you publish or request generation."
+                        label="Status details"
+                      />
+                    </CardTitle>
+                  </CardHeading>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex flex-wrap gap-2">
+                    <FaqStatusBadge status={faqQuery.data.status} />
+                    <Badge variant={generationReady ? "success" : "warning"}>
+                      {generationReady
+                        ? "Ready for generation request"
+                        : "Needs content and Q&A coverage"}
+                    </Badge>
+                  </div>
+                  <KeyValueList
+                    items={[
+                      {
+                        label: "Visibility",
+                        value:
+                          faqQuery.data.status === FaqStatus.Published
+                            ? "Customer-facing"
+                            : "Internal or draft",
+                      },
+                      {
+                        label: "Generation",
+                        value: generationReady
+                          ? "Ready to request"
+                          : "Waiting on setup",
+                      },
+                      {
+                        label: "Request tracking",
+                        value: "Correlation id only",
+                      },
+                    ]}
+                  />
+                </CardContent>
+              </Card>
+            </>
+          ) : null}
+        </>
       }
     >
       {faqQuery.isError ? (

@@ -5,7 +5,6 @@ export function ContentRefPlaceholderPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow="Sources"
         title="Sources"
         description="This page is still being connected."
       />

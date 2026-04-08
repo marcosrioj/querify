@@ -129,7 +129,6 @@ export function ContentRefFormPage({ mode }: { mode: "create" | "edit" }) {
     <DetailLayout
       header={
         <PageHeader
-          eyebrow="Sources"
           title={mode === "create" ? "New source" : "Edit source"}
           description="Add a page, file, or doc your Q&A items can use."
           descriptionMode="hint"

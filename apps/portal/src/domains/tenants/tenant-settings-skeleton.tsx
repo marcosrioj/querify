@@ -23,7 +23,6 @@ export function TenantSettingsSkeleton() {
       items={settingsNavItems}
       header={
         <PageHeader
-          eyebrow="Settings"
           title="Workspace"
           description="Update workspace info, client key, and AI providers."
         />

@@ -17,7 +17,6 @@ export function ProfileSettingsSkeleton() {
       items={settingsNavItems}
       header={
         <PageHeader
-          eyebrow="Settings"
           title="Profile"
           description="Update your name and contact info."
         />

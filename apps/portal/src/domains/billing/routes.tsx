@@ -18,7 +18,6 @@ function BillingPage() {
   return (
     <PageSurface className="space-y-5 lg:space-y-7.5">
       <PageHeader
-        eyebrow="Billing"
         title="Billing"
         description="See plan details and billing placeholders for this workspace."
       />

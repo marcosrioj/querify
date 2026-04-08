@@ -459,7 +459,6 @@ export function DashboardPage() {
   return (
     <PageSurface className="space-y-5 lg:space-y-7.5">
       <PageHeader
-        eyebrow="Dashboard"
         title="Dashboard"
         description="Quick view of FAQs, Q&A items, sources, and AI setup."
         descriptionMode="hint"

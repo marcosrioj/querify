@@ -13,7 +13,6 @@ export function GeneralSettingsPage() {
       items={settingsNavItems}
       header={
         <PageHeader
-          eyebrow="Settings"
           title="Appearance"
           description="Choose how the portal looks on this device."
         />

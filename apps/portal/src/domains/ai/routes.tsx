@@ -31,7 +31,6 @@ function AiWorkspacePage() {
   return (
     <PageSurface className="space-y-5 lg:space-y-7.5">
       <PageHeader
-        eyebrow="AI"
         title="AI"
         description="Check providers and run FAQ generation."
       />

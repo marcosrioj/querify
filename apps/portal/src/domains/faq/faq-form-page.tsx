@@ -119,7 +119,6 @@ export function FaqFormPage({ mode }: { mode: "create" | "edit" }) {
     <DetailLayout
       header={
         <PageHeader
-          eyebrow="FAQ"
           title={mode === "create" ? "New FAQ" : "Edit FAQ"}
           description="Set the name, language, and status for this FAQ."
           descriptionMode="hint"

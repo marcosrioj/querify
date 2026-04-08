@@ -7,7 +7,6 @@ export function MembersPageSkeleton() {
     <ListLayout
       header={
         <PageHeader
-          eyebrow="Members"
           title="Members"
           description="Manage workspace access for the current tenant."
           actions={<Skeleton className="h-10 w-32" />}

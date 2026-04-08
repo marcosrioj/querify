@@ -5,7 +5,6 @@ export function FaqPlaceholderPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow="FAQs"
         title="FAQs"
         description="This page is still being connected."
       />

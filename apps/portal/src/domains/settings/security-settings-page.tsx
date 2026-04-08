@@ -14,7 +14,6 @@ export function SecuritySettingsPage() {
       items={settingsNavItems}
       header={
         <PageHeader
-          eyebrow="Settings"
           title="Security"
           description="See how this session is signed in."
         />

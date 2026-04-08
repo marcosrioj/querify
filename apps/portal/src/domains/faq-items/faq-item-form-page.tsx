@@ -232,7 +232,6 @@ export function FaqItemFormPage({ mode }: { mode: "create" | "edit" }) {
     <DetailLayout
       header={
         <PageHeader
-          eyebrow="Q&A items"
           title={mode === "create" ? "New Q&A item" : "Edit Q&A item"}
           description="Write the question and answer, set score, and link a source."
           descriptionMode="hint"

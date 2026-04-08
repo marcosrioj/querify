@@ -30,14 +30,12 @@ function shouldRenderPageTitle(
 }
 
 export function PageHeader({
-  eyebrow,
   title,
   description,
   descriptionMode = "inline",
   actions,
   backTo,
 }: {
-  eyebrow?: string;
   title: ReactNode;
   description?: ReactNode;
   descriptionMode?: "inline" | "hint";
@@ -58,15 +56,6 @@ export function PageHeader({
   return (
     <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
       <div className="min-w-0 space-y-3">
-        {eyebrow ? (
-          <div className="flex flex-wrap items-center gap-2">
-            <p className="inline-flex w-fit rounded-full border border-primary/15 bg-primary/8 px-3 py-1 text-[0.6875rem] font-medium uppercase tracking-[0.2em] text-primary">
-              {eyebrow}
-            </p>
-            {!renderTitle ? descriptionHint : null}
-          </div>
-        ) : null}
-
         {renderTitle ? (
           <div className="flex flex-wrap items-start gap-3">
             {backTo ? (
@@ -89,7 +78,7 @@ export function PageHeader({
           <p className="max-w-2xl text-sm leading-6 text-muted-foreground">
             {description}
           </p>
-        ) : !eyebrow && !renderTitle ? (
+        ) : !renderTitle ? (
           descriptionHint
         ) : null}
       </div>

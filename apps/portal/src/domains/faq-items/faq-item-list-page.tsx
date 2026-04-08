@@ -209,7 +209,6 @@ export function FaqItemListPage() {
     <ListLayout
       header={
         <PageHeader
-          eyebrow="Q&A items"
           title="Q&A items"
           description="Manage each question, answer, score, and source link."
           descriptionMode="hint"

@@ -143,7 +143,6 @@ export function MembersPage() {
       <ListLayout
         header={
           <PageHeader
-            eyebrow="Members"
             title="Members"
             description="Manage workspace access for the current tenant."
             actions={
