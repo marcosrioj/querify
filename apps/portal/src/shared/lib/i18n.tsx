@@ -1,4 +1,5 @@
 import {
+  Fragment,
   PropsWithChildren,
   ReactNode,
   createContext,
@@ -81,7 +82,7 @@ export function PortalI18nProvider({ children }: PropsWithChildren) {
 
   return (
     <PortalI18nContext.Provider value={contextValue}>
-      {children}
+      <Fragment key={language}>{children}</Fragment>
     </PortalI18nContext.Provider>
   );
 }
