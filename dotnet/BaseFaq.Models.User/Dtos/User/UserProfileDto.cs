@@ -6,4 +6,5 @@ public class UserProfileDto
     public string? SurName { get; set; }
     public required string Email { get; set; }
     public required string PhoneNumber { get; set; }
+    public string? TimeZone { get; set; }
 }

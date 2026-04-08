@@ -5,12 +5,14 @@ export type UserProfileDto = {
   surName?: string | null;
   email: string;
   phoneNumber: string;
+  timeZone?: string | null;
 };
 
 export type UserProfileUpdateRequestDto = {
   givenName: string;
   surName?: string | null;
   phoneNumber?: string | null;
+  timeZone?: string | null;
 };
 
 export function getUserProfile(accessToken?: string) {

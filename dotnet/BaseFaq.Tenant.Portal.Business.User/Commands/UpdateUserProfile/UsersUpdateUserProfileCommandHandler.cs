@@ -25,6 +25,9 @@ public class UsersUpdateUserProfileCommandHandler(TenantDbContext dbContext, ISe
         user.GivenName = request.GivenName;
         user.SurName = request.SurName;
         user.PhoneNumber = request.PhoneNumber ?? string.Empty;
+        user.TimeZone = string.IsNullOrWhiteSpace(request.TimeZone)
+            ? null
+            : request.TimeZone.Trim();
 
         dbContext.Users.Update(user);
         await dbContext.SaveChangesAsync(cancellationToken);

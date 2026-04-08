@@ -76,7 +76,7 @@ export function DataTable<T>({
   return (
     <Card>
       {title || description || toolbar ? (
-        <CardHeader className="gap-4 md:flex-row md:items-start md:justify-between">
+        <CardHeader className="gap-4 md:flex-row md:items-center md:justify-between">
           <CardHeading>
             {title ? (
               <CardTitle className="flex flex-wrap items-start gap-2">

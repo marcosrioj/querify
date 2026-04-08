@@ -8,4 +8,5 @@ public class FaqDto
     public required string Name { get; set; }
     public required string Language { get; set; }
     public required FaqStatus Status { get; set; }
+    public required DateTime? UpdatedDate { get; set; }
 }

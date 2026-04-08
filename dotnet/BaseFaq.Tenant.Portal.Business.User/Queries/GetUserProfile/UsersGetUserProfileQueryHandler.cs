@@ -21,7 +21,8 @@ public class UsersGetUserProfileQueryHandler(TenantDbContext dbContext, ISession
                 GivenName = user.GivenName,
                 SurName = user.SurName,
                 Email = user.Email,
-                PhoneNumber = user.PhoneNumber
+                PhoneNumber = user.PhoneNumber,
+                TimeZone = user.TimeZone
             })
             .FirstOrDefaultAsync(cancellationToken);
     }

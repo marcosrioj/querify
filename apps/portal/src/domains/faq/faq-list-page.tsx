@@ -10,6 +10,7 @@ import {
   WandSparkles,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
+import { useUserProfile } from "@/domains/settings/settings-hooks";
 import {
   useDeleteFaq,
   useFaqList,
@@ -23,13 +24,16 @@ import {
   SectionGrid,
 } from "@/shared/layout/page-layouts";
 import { clampPage } from "@/shared/lib/pagination";
+import {
+  formatNumericDateTimeInTimeZone,
+  getBrowserTimeZone,
+} from "@/shared/lib/time-zone";
 import { useListQueryState } from "@/shared/lib/use-list-query-state";
 import { DataTable, type DataTableColumn } from "@/shared/ui/data-table";
 import { PaginationControls } from "@/shared/ui/pagination-controls";
 import { EmptyState, ErrorState } from "@/shared/ui/placeholder-state";
 import { FaqStatusBadge } from "@/shared/ui/status-badges";
 import {
-  Badge,
   Button,
   ConfirmAction,
   Input,
@@ -54,6 +58,7 @@ const FAQ_FILTER_DEFAULTS = {
 
 export function FaqListPage() {
   const navigate = useNavigate();
+  const profileQuery = useUserProfile();
   const {
     debouncedSearch,
     filters,
@@ -72,6 +77,8 @@ export function FaqListPage() {
   });
   const statusFilter = filters.status;
   const apiStatus = statusFilter === "all" ? undefined : Number(statusFilter);
+  const effectiveTimeZone =
+    profileQuery.data?.timeZone?.trim() || getBrowserTimeZone();
 
   const faqQuery = useFaqList({
     page,
@@ -127,7 +134,22 @@ export function FaqListPage() {
     {
       key: "status",
       header: "Status",
-      cell: (faq) => <FaqStatusBadge status={faq.status} />,
+      className: "lg:w-[140px]",
+      cell: (faq) => (
+        <div className="flex justify-start">
+          <FaqStatusBadge status={faq.status} />
+        </div>
+      ),
+    },
+    {
+      key: "updatedDate",
+      header: "Last updated",
+      className: "lg:w-[190px]",
+      cell: (faq) => (
+        <span className="block whitespace-nowrap text-left text-sm text-muted-foreground">
+          {formatNumericDateTimeInTimeZone(faq.updatedDate, effectiveTimeZone)}
+        </span>
+      ),
     },
     {
       key: "actions",
@@ -190,45 +212,6 @@ export function FaqListPage() {
           }
         />
       }
-      filters={
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_220px_220px]">
-          <div className="sm:col-span-2 xl:col-span-1">
-            <Input
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder="Search FAQs"
-            />
-          </div>
-          <Select
-            value={statusFilter}
-            onValueChange={(value) => setFilter("status", value)}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Filter by status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All statuses</SelectItem>
-              {Object.entries(faqStatusLabels).map(([value, label]) => (
-                <SelectItem key={value} value={value}>
-                  {label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select value={sorting} onValueChange={setSorting}>
-            <SelectTrigger>
-              <SelectValue placeholder="Sort FAQs" />
-            </SelectTrigger>
-            <SelectContent>
-              {sortingOptions.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      }
     >
       {showMetricsLoadingState ? (
         <SectionGridSkeleton />
@@ -278,17 +261,44 @@ export function FaqListPage() {
         loading={faqQuery.isLoading}
         onRowClick={(faq) => navigate(`/app/faq/${faq.id}`)}
         toolbar={
-          <>
-            <Badge variant="outline">
-              {faqQuery.data?.totalCount ?? 0} total
-            </Badge>
-            <Badge
-              variant={statusFilter === "all" ? "outline" : "info"}
-              appearance="outline"
+          <div className="grid w-full gap-2 sm:grid-cols-2 xl:grid-cols-[minmax(280px,1fr)_200px_200px]">
+            <div className="sm:col-span-2 xl:col-span-1">
+              <Input
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Search FAQs"
+                className="w-full xl:min-w-[280px]"
+              />
+            </div>
+            <Select
+              value={statusFilter}
+              onValueChange={(value) => setFilter("status", value)}
             >
-              {activeStatusLabel}
-            </Badge>
-          </>
+              <SelectTrigger className="w-full xl:min-w-[200px]">
+                <SelectValue placeholder="Filter by status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All statuses</SelectItem>
+                {Object.entries(faqStatusLabels).map(([value, label]) => (
+                  <SelectItem key={value} value={value}>
+                    {label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={sorting} onValueChange={setSorting}>
+              <SelectTrigger className="w-full xl:min-w-[200px]">
+                <SelectValue placeholder="Sort FAQs" />
+              </SelectTrigger>
+              <SelectContent>
+                {sortingOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         }
         emptyState={
           <EmptyState

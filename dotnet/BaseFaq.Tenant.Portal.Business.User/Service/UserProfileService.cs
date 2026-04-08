@@ -29,7 +29,8 @@ public class UserProfileService(IMediator mediator) : IUserProfileService
         {
             GivenName = requestDto.GivenName,
             SurName = requestDto.SurName,
-            PhoneNumber = requestDto.PhoneNumber
+            PhoneNumber = requestDto.PhoneNumber,
+            TimeZone = requestDto.TimeZone
         };
 
         await mediator.Send(command, token);

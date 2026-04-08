@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { PageHeader, SettingsLayout } from '@/shared/layout/page-layouts';
@@ -7,12 +7,14 @@ import { ProfileSettingsSkeleton } from '@/domains/settings/profile-settings-ske
 import { settingsNavItems } from '@/domains/settings/settings-nav';
 import { useUpdateUserProfile, useUserProfile } from '@/domains/settings/settings-hooks';
 import { Button, Card, CardContent, CardDescription, CardHeader, CardHeading, CardTitle, Form } from '@/shared/ui';
-import { TextField } from '@/shared/ui/form-fields';
+import { getBrowserTimeZone, getTimeZoneOptions } from '@/shared/lib/time-zone';
+import { SearchSelectField, TextField } from '@/shared/ui/form-fields';
 
 const profileSchema = z.object({
   givenName: z.string().min(1, 'First name is required.'),
   surName: z.string().optional(),
   phoneNumber: z.string().min(1, 'Phone number is required.'),
+  timeZone: z.string().optional(),
 });
 
 type ProfileFormValues = z.infer<typeof profileSchema>;
@@ -20,6 +22,8 @@ type ProfileFormValues = z.infer<typeof profileSchema>;
 export function ProfileSettingsPage() {
   const profileQuery = useUserProfile();
   const updateProfile = useUpdateUserProfile();
+  const browserTimeZone = getBrowserTimeZone();
+  const timeZoneOptions = useMemo(() => getTimeZoneOptions(), []);
   const showLoadingState =
     profileQuery.isLoading && profileQuery.data === undefined;
 
@@ -29,8 +33,12 @@ export function ProfileSettingsPage() {
       givenName: '',
       surName: '',
       phoneNumber: '',
+      timeZone: '',
     },
   });
+  const selectedTimeZoneValue = form.watch('timeZone');
+  const selectedTimeZoneOption =
+    timeZoneOptions.find((option) => option.value === selectedTimeZoneValue) ?? null;
 
   useEffect(() => {
     if (!profileQuery.data) {
@@ -41,6 +49,7 @@ export function ProfileSettingsPage() {
       givenName: profileQuery.data.givenName,
       surName: profileQuery.data.surName ?? '',
       phoneNumber: profileQuery.data.phoneNumber ?? '',
+      timeZone: profileQuery.data.timeZone ?? '',
     });
   }, [form, profileQuery.data]);
 
@@ -73,7 +82,10 @@ export function ProfileSettingsPage() {
             <form
               className="space-y-4"
               onSubmit={form.handleSubmit(async (values) => {
-                await updateProfile.mutateAsync(values);
+                await updateProfile.mutateAsync({
+                  ...values,
+                  timeZone: values.timeZone?.trim() ? values.timeZone : null,
+                });
               })}
             >
               <div className="grid gap-4 md:grid-cols-2">
@@ -81,6 +93,21 @@ export function ProfileSettingsPage() {
                 <TextField control={form.control} name="surName" label="Surname" />
               </div>
               <TextField control={form.control} name="phoneNumber" label="Phone number" />
+              <SearchSelectField
+                control={form.control}
+                name="timeZone"
+                label="Time zone"
+                description="Choose a preferred time zone for dates across the portal."
+                hint={`If left empty, the portal uses your browser time zone: ${browserTimeZone}.`}
+                options={timeZoneOptions}
+                selectedOption={selectedTimeZoneOption}
+                placeholder="Use browser time zone"
+                searchPlaceholder="Search time zones"
+                emptyMessage="No time zones found."
+                allowClear
+                clearLabel="Use browser time zone"
+                resultCountHint={`${timeZoneOptions.length} time zones available`}
+              />
               <Button type="submit" disabled={updateProfile.isPending}>
                 Save profile
               </Button>

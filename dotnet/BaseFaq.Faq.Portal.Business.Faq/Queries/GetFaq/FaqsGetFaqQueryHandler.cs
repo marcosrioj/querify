@@ -17,7 +17,8 @@ public class FaqsGetFaqQueryHandler(FaqDbContext dbContext) : IRequestHandler<Fa
                 Id = faq.Id,
                 Name = faq.Name,
                 Language = faq.Language,
-                Status = faq.Status
+                Status = faq.Status,
+                UpdatedDate = faq.UpdatedDate
             })
             .FirstOrDefaultAsync(cancellationToken);
     }

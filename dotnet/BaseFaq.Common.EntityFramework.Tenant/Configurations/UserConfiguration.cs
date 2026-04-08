@@ -31,6 +31,9 @@ public class UserConfiguration : BaseConfiguration<User>
         builder.Property(p => p.PhoneNumber)
             .HasMaxLength(User.MaxPhoneNumberLength);
 
+        builder.Property(p => p.TimeZone)
+            .HasMaxLength(User.MaxTimeZoneLength);
+
         builder.Property(p => p.Role)
             .IsRequired();
 

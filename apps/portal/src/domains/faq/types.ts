@@ -5,6 +5,7 @@ export type FaqDto = {
   name: string;
   language: string;
   status: FaqStatus;
+  updatedDate: string | null;
 };
 
 export type FaqCreateRequestDto = {

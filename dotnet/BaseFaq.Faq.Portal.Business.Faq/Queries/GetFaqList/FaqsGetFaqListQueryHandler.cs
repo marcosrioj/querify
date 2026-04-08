@@ -28,7 +28,8 @@ public class FaqsGetFaqListQueryHandler(FaqDbContext dbContext)
                 Id = faq.Id,
                 Name = faq.Name,
                 Language = faq.Language,
-                Status = faq.Status
+                Status = faq.Status,
+                UpdatedDate = faq.UpdatedDate
             })
             .ToListAsync(cancellationToken);
 
