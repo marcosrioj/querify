@@ -1,0 +1,148 @@
+<!--
+  BaseFAQ — Copy-Paste Snippet
+  =============================
+  Minimal self-contained embed for any HTML page.
+  Replace YOUR_CLIENT_KEY and YOUR_FAQ_ID below.
+
+  Requires:
+    X-Client-Key  → your public tenant key (never a secret)
+    FAQ ID        → the UUID of the FAQ to render
+
+  Features:
+    - Zero external dependencies
+    - Works on any page (no framework required)
+    - Scoped CSS (bf- prefix, no global pollution)
+    - FAQPage JSON-LD for SEO
+    - Voting support
+    - Accessible details/summary accordion
+
+  Size budget:
+    HTML/CSS/JS inline: ~5 KB (within the 6 KB optional-JS target)
+-->
+
+<!-- 1. Paste this container element where you want the FAQ to appear -->
+<div
+  id="basefaq-container"
+  data-client-key="g8R3mtHFyORJPnnvLIJ_vPfFnRYPno5dmuBdP92ifNE"
+  data-faq-id="0d33cc7b-1fde-4af8-a472-a2c18a970e08"
+  aria-label="Frequently asked questions"
+></div>
+
+<!-- 2. Paste this script block anywhere after the container -->
+<script>
+(function() {
+  'use strict';
+  var BASE = 'https://dev.faq.public.basefaq.com';
+  var el   = document.getElementById('basefaq-container');
+  if (!el) return;
+  var KEY  = el.dataset.clientKey;
+  var ID   = el.dataset.faqId;
+  if (!KEY || !ID) { el.textContent = 'BaseFAQ: set data-client-key and data-faq-id.'; return; }
+
+  // Inject scoped styles
+  var style = document.createElement('style');
+  style.textContent = [
+    '.bfq{--bq:system-ui,sans-serif;--bc:#4f46e5;--bb:#e5e7eb;--bt:#111827;--bs:#4b5563;--bm:#9ca3af;--bh:#f9fafb;--bi:#f3f4f6;font-family:var(--bq);width:100%}',
+    '.bfq *,.bfq *:before,.bfq *:after{box-sizing:border-box}',
+    '.bfq__h{margin:0 0 1rem}',
+    '.bfq__title{font-size:1.25rem;font-weight:700;color:var(--bt);margin:0}',
+    '.bfq__list{display:flex;flex-direction:column;gap:0.5rem}',
+    '.bfq__item{border:1px solid var(--bb);border-radius:0.5rem;overflow:hidden;background:#fff;transition:background 150ms}',
+    '.bfq__item:hover{background:var(--bh)}',
+    '.bfq__item[open]{background:var(--bh)}',
+    '.bfq__q{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:1rem 1.25rem;font-size:1rem;font-weight:600;color:var(--bt);cursor:pointer;user-select:none;list-style:none;transition:color 150ms}',
+    '.bfq__q::-webkit-details-marker{display:none}',
+    '.bfq__q::marker{display:none}',
+    '.bfq__q:hover,.bfq__item[open] .bfq__q{color:var(--bc)}',
+    '.bfq__q:focus-visible{outline:3px solid var(--bc);outline-offset:2px}',
+    '.bfq__chevron{width:1.25rem;height:1.25rem;flex-shrink:0;color:var(--bm);transition:transform 250ms}',
+    '.bfq__item[open] .bfq__chevron{transform:rotate(180deg);color:var(--bc)}',
+    '.bfq__a{padding:0 1.25rem 1rem;border-top:1px solid var(--bb)}',
+    '.bfq__abody{font-size:1rem;color:var(--bs);line-height:1.625;padding-top:1rem}',
+    '.bfq__abody p{margin:0 0 0.75rem}.bfq__abody p:last-child{margin:0}',
+    '.bfq__vote{display:flex;align-items:center;gap:0.75rem;margin-top:1rem;padding-top:0.75rem;border-top:1px solid var(--bb);flex-wrap:wrap}',
+    '.bfq__vl{font-size:0.875rem;color:var(--bm)}',
+    '.bfq__vb{display:inline-flex;align-items:center;gap:0.25rem;padding:0.25rem 0.75rem;font-size:0.875rem;font-weight:500;border:1px solid var(--bb);border-radius:9999px;background:transparent;cursor:pointer;color:var(--bs);transition:color 150ms,border-color 150ms,background 150ms}',
+    '.bfq__vb.up.voted,.bfq__vb.up:hover{color:#16a34a;border-color:#16a34a;background:#f0fdf4}',
+    '.bfq__vb.dn.voted,.bfq__vb.dn:hover{color:#dc2626;border-color:#dc2626;background:#fef2f2}',
+    '.bfq__score{font-size:0.875rem;color:var(--bm)}',
+    '.bfq__loading{padding:2rem;text-align:center;color:var(--bm)}',
+    '@media(prefers-reduced-motion:reduce){.bfq__chevron,.bfq__item{transition:none}}',
+  ].join('');
+  document.head.appendChild(style);
+
+  // Loading state
+  el.innerHTML = '<div class="bfq"><div class="bfq__loading">Loading…</div></div>';
+
+  // Fetch FAQ
+  fetch(BASE + '/api/faqs/faq/' + ID + '?includeFaqItems=true&includeContentRefs=true&includeTags=true', {
+    headers: { 'X-Client-Key': KEY, 'Accept': 'application/json' }
+  })
+  .then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+  .then(function(faq) {
+    var items = (faq.items || []).filter(function(i) { return i.isActive; })
+                                 .sort(function(a,b) { return a.sort - b.sort; });
+    if (!items.length) { el.innerHTML = '<div class="bfq"><p style="color:#6b7280">No FAQ items found.</p></div>'; return; }
+
+    var html = '<div class="bfq"><header class="bfq__h"><h2 class="bfq__title">' + esc(faq.name) + '</h2></header>'
+             + '<div class="bfq__list" role="list">';
+
+    items.forEach(function(item) {
+      var answer = item.answer || '<p>' + esc(item.shortAnswer) + '</p>';
+      html += '<details class="bfq__item" data-id="' + esc(item.id) + '" role="listitem">'
+            + '<summary class="bfq__q"><span>' + esc(item.question) + '</span>'
+            + '<svg class="bfq__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg></summary>'
+            + '<div class="bfq__a"><div class="bfq__abody">' + answer + '</div>'
+            + '<div class="bfq__vote">'
+            + '<span class="bfq__vl">Was this helpful?</span>'
+            + '<button class="bfq__vb up" type="button" data-up aria-pressed="false">👍 Yes</button>'
+            + '<button class="bfq__vb dn" type="button" data-dn aria-pressed="false">👎 No</button>'
+            + '<span class="bfq__score">' + (item.voteScore > 0 ? '+' : '') + item.voteScore + '</span>'
+            + '</div></div></details>';
+    });
+
+    html += '</div></div>';
+    el.innerHTML = html;
+
+    // JSON-LD
+    var script = document.createElement('script');
+    script.type = 'application/ld+json';
+    script.textContent = JSON.stringify({
+      '@context': 'https://schema.org', '@type': 'FAQPage',
+      mainEntity: items.map(function(i) {
+        return { '@type': 'Question', name: i.question,
+                 acceptedAnswer: { '@type': 'Answer', text: strip(i.answer || i.shortAnswer) } };
+      })
+    });
+    document.head.appendChild(script);
+  })
+  .catch(function(e) {
+    el.innerHTML = '<div class="bfq"><p style="color:#dc2626">Error loading FAQ: ' + esc(e.message) + '</p></div>';
+  });
+
+  // Vote handler
+  el.addEventListener('click', function(e) {
+    var btn = e.target.closest('[data-up],[data-dn]');
+    if (!btn) return;
+    var item = btn.closest('[data-id]');
+    var id   = item && item.dataset.id;
+    if (!id) return;
+    var like = btn.hasAttribute('data-up');
+    fetch(BASE + '/api/faqs/vote', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Client-Key': KEY },
+      body: JSON.stringify({ faqItemId: id, like: like })
+    }).then(function() {
+      btn.classList.add('voted');
+      btn.setAttribute('aria-pressed', 'true');
+    }).catch(function() {});
+  });
+
+  function esc(s) {
+    return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+  function strip(h) {
+    var d = document.createElement('div'); d.innerHTML = h; return d.textContent || '';
+  }
+})();
+</script>

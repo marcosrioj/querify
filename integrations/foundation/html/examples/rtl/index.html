@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BaseFAQ — RTL Example (Arabic)</title>
+
+  <!--
+    BaseFAQ Foundation — RTL Example
+    ==================================
+    Demonstrates right-to-left layout for Arabic (ar) and other RTL locales.
+    The dir="rtl" attribute on the root element flips layout automatically
+    using CSS logical properties (inline-start, inline-end, etc.).
+
+    Pass ?key=YOUR_CLIENT_KEY&faqId=YOUR_FAQ_ID in the URL.
+  -->
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, "Arabic Typesetting", Arial, sans-serif;
+      background: #f9fafb;
+      color: #111827;
+      direction: rtl;
+    }
+    .page-header {
+      background: #1e1b4b;
+      color: #ffffff;
+      padding: 1rem 2rem;
+      direction: rtl;
+    }
+    .page-header h1 { margin: 0; font-size: 1.25rem; }
+    .page-content { max-width: 48rem; margin: 0 auto; padding: 2rem; }
+
+    :root {
+      --bf-color-surface: #ffffff;
+      --bf-color-surface-raised: #f9fafb;
+      --bf-color-surface-overlay: #f3f4f6;
+      --bf-color-text-primary: #111827;
+      --bf-color-text-secondary: #4b5563;
+      --bf-color-text-muted: #9ca3af;
+      --bf-color-text-invert: #ffffff;
+      --bf-color-text-brand: #4f46e5;
+      --bf-color-border: #e5e7eb;
+      --bf-color-border-strong: #d1d5db;
+      --bf-color-border-brand: #6366f1;
+      --bf-color-interactive: #4f46e5;
+      --bf-color-interactive-hover: #4338ca;
+      --bf-color-interactive-bg: #eef2ff;
+      --bf-color-info-bg: #eef2ff;
+      --bf-color-brand-400: #818cf8;
+      --bf-color-vote-up: #16a34a;
+      --bf-color-vote-up-bg: #f0fdf4;
+      --bf-color-vote-down: #dc2626;
+      --bf-color-vote-down-bg: #fef2f2;
+      --bf-color-focus-ring: #6366f1;
+      --bf-space-1: 0.25rem; --bf-space-2: 0.5rem; --bf-space-3: 0.75rem;
+      --bf-space-4: 1rem;    --bf-space-5: 1.25rem; --bf-space-6: 1.5rem;
+      --bf-font-size-xs: 0.75rem; --bf-font-size-sm: 0.875rem;
+      --bf-font-size-md: 1rem;    --bf-font-size-lg: 1.125rem;
+      --bf-font-size-xl: 1.25rem; --bf-font-size-2xl: 1.5rem;
+      --bf-font-weight-medium: 500; --bf-font-weight-semibold: 600;
+      --bf-font-weight-bold: 700;
+      --bf-line-height-normal: 1.5; --bf-line-height-relaxed: 1.625;
+      --bf-line-height-tight: 1.25;
+      --bf-radius-sm: 0.25rem; --bf-radius-md: 0.5rem;
+      --bf-radius-lg: 0.75rem; --bf-radius-full: 9999px;
+      --bf-border-width-thin: 1px; --bf-border-width-medium: 2px;
+      --bf-border-width-thick: 4px;
+      --bf-duration-fast: 150ms; --bf-duration-normal: 250ms;
+      --bf-easing-default: cubic-bezier(0.4,0,0.2,1);
+      --bf-easing-out: cubic-bezier(0,0,0.2,1);
+      --bf-easing-in: cubic-bezier(0.4,0,1,1);
+      --bf-faq-bg: var(--bf-color-surface);
+      --bf-item-bg: var(--bf-color-surface);
+      --bf-item-bg-hover: var(--bf-color-surface-raised);
+      --bf-item-bg-open: var(--bf-color-surface-raised);
+      --bf-item-border-color: var(--bf-color-border);
+      --bf-item-border-radius: var(--bf-radius-md);
+      --bf-faq-title-size: var(--bf-font-size-2xl);
+      --bf-faq-title-weight: var(--bf-font-weight-bold);
+      --bf-faq-title-color: var(--bf-color-text-primary);
+      --bf-question-size: var(--bf-font-size-md);
+      --bf-question-weight: var(--bf-font-weight-semibold);
+      --bf-question-color: var(--bf-color-text-primary);
+      --bf-question-padding: var(--bf-space-4) var(--bf-space-5);
+      --bf-answer-color: var(--bf-color-text-secondary);
+      --bf-answer-line-height: var(--bf-line-height-relaxed);
+      --bf-icon-color: var(--bf-color-text-muted);
+      --bf-icon-color-open: var(--bf-color-interactive);
+      --bf-cta-bg: var(--bf-color-interactive);
+      --bf-cta-bg-hover: var(--bf-color-interactive-hover);
+      --bf-cta-color: var(--bf-color-text-invert);
+      --bf-cta-radius: var(--bf-radius-md);
+      --bf-cta-padding: var(--bf-space-2) var(--bf-space-4);
+      --bf-tag-bg: var(--bf-color-surface-overlay);
+      --bf-tag-color: var(--bf-color-text-secondary);
+      --bf-tag-radius: var(--bf-radius-full);
+      --bf-tag-padding: var(--bf-space-1) var(--bf-space-3);
+      --bf-source-color: var(--bf-color-text-brand);
+      --bf-focus-ring-width: 3px;
+      --bf-focus-ring-offset: 2px;
+      --bf-focus-ring-color: var(--bf-color-focus-ring);
+    }
+    @media (prefers-reduced-motion: reduce) {
+      :root { --bf-duration-fast: 0ms; --bf-duration-normal: 0ms; }
+    }
+
+    /* BaseFAQ component styles */
+    .bf-faq *, .bf-faq *::before, .bf-faq *::after { box-sizing: border-box; }
+    .bf-faq { font-family: "Segoe UI",Tahoma,"Arabic Typesetting",Arial,sans-serif; font-size: var(--bf-font-size-md); line-height: var(--bf-line-height-normal); color: var(--bf-color-text-primary); background: var(--bf-faq-bg); width: 100%; }
+    .bf-faq ul, .bf-faq ol { list-style: none; margin: 0; padding: 0; }
+    .bf-faq__header { margin-bottom: var(--bf-space-6); }
+    .bf-faq__title { font-size: var(--bf-faq-title-size); font-weight: var(--bf-faq-title-weight); color: var(--bf-faq-title-color); margin: 0 0 var(--bf-space-2) 0; line-height: var(--bf-line-height-tight); }
+    .bf-faq__tags { display: flex; flex-wrap: wrap; gap: var(--bf-space-2); margin-top: var(--bf-space-3); }
+    .bf-faq__items { display: flex; flex-direction: column; gap: var(--bf-space-2); }
+    .bf-faq__item { border: var(--bf-border-width-thin) solid var(--bf-item-border-color); border-radius: var(--bf-item-border-radius); background: var(--bf-item-bg); overflow: hidden; transition: background var(--bf-duration-fast) var(--bf-easing-default); }
+    .bf-faq__item:hover { background: var(--bf-item-bg-hover); }
+    .bf-faq__item[open] { background: var(--bf-item-bg-open); }
+    .bf-faq__question { display: flex; align-items: center; justify-content: space-between; gap: var(--bf-space-4); padding: var(--bf-question-padding); font-size: var(--bf-question-size); font-weight: var(--bf-question-weight); color: var(--bf-question-color); cursor: pointer; user-select: none; list-style: none; transition: color var(--bf-duration-fast) var(--bf-easing-default); }
+    .bf-faq__question::-webkit-details-marker { display: none; }
+    .bf-faq__question::marker { display: none; }
+    .bf-faq__question:hover { color: var(--bf-color-interactive); }
+    .bf-faq__item[open] .bf-faq__question { color: var(--bf-color-interactive); }
+    .bf-faq__question:focus-visible { outline: var(--bf-focus-ring-width) solid var(--bf-focus-ring-color); outline-offset: var(--bf-focus-ring-offset); }
+    .bf-faq__question-text { flex: 1; min-width: 0; }
+    .bf-faq__icon { flex-shrink: 0; width: 1.25rem; height: 1.25rem; color: var(--bf-icon-color); transition: transform var(--bf-duration-normal) var(--bf-easing-default), color var(--bf-duration-fast) var(--bf-easing-default); }
+    .bf-faq__item[open] .bf-faq__icon { transform: rotate(180deg); color: var(--bf-icon-color-open); }
+    .bf-faq__answer { padding: 0 var(--bf-space-5) var(--bf-space-4); border-top: var(--bf-border-width-thin) solid var(--bf-color-border); }
+    .bf-faq__answer-body { font-size: var(--bf-font-size-md); color: var(--bf-answer-color); line-height: var(--bf-answer-line-height); padding-top: var(--bf-space-4); }
+    .bf-faq__answer-body p { margin: 0 0 var(--bf-space-3) 0; } .bf-faq__answer-body p:last-child { margin-bottom: 0; }
+    /* RTL-aware additional info border */
+    .bf-faq__additional-info { margin-top: var(--bf-space-3); padding: var(--bf-space-3) var(--bf-space-4); background: var(--bf-color-info-bg); border-inline-start: var(--bf-border-width-thick) solid var(--bf-color-brand-400); border-radius: 0 var(--bf-radius-sm) var(--bf-radius-sm) 0; font-size: var(--bf-font-size-sm); color: var(--bf-color-text-secondary); }
+    .bf-faq__cta { display: inline-flex; align-items: center; gap: var(--bf-space-2); margin-top: var(--bf-space-4); padding: var(--bf-cta-padding); background: var(--bf-cta-bg); color: var(--bf-cta-color); text-decoration: none; font-size: var(--bf-font-size-sm); font-weight: var(--bf-font-weight-semibold); border-radius: var(--bf-cta-radius); border: none; cursor: pointer; transition: background var(--bf-duration-fast); }
+    .bf-faq__cta:hover { background: var(--bf-cta-bg-hover); }
+    .bf-faq__vote { display: flex; align-items: center; gap: var(--bf-space-3); margin-top: var(--bf-space-4); padding-top: var(--bf-space-3); border-top: var(--bf-border-width-thin) solid var(--bf-color-border); flex-wrap: wrap; }
+    .bf-faq__vote-label { font-size: var(--bf-font-size-sm); color: var(--bf-color-text-muted); }
+    .bf-faq__vote-actions { display: flex; gap: var(--bf-space-2); }
+    .bf-faq__vote-btn { display: inline-flex; align-items: center; gap: var(--bf-space-1); padding: var(--bf-space-1) var(--bf-space-3); font-size: var(--bf-font-size-sm); font-weight: var(--bf-font-weight-medium); border: var(--bf-border-width-thin) solid var(--bf-color-border); border-radius: var(--bf-radius-full); background: transparent; cursor: pointer; color: var(--bf-color-text-secondary); transition: color var(--bf-duration-fast), border-color var(--bf-duration-fast), background var(--bf-duration-fast); line-height: 1; }
+    .bf-faq__vote-btn--up.is-voted { color: var(--bf-color-vote-up); border-color: var(--bf-color-vote-up); background: var(--bf-color-vote-up-bg); }
+    .bf-faq__vote-btn--down.is-voted { color: var(--bf-color-vote-down); border-color: var(--bf-color-vote-down); background: var(--bf-color-vote-down-bg); }
+    .bf-tag { display: inline-flex; align-items: center; padding: var(--bf-tag-padding); background: var(--bf-tag-bg); color: var(--bf-tag-color); border-radius: var(--bf-tag-radius); font-size: var(--bf-font-size-xs); font-weight: var(--bf-font-weight-medium); border: var(--bf-border-width-thin) solid var(--bf-color-border); }
+    .bf-faq__loading { display: flex; align-items: center; gap: var(--bf-space-3); padding: var(--bf-space-6); color: var(--bf-color-text-muted); font-size: var(--bf-font-size-sm); }
+    .bf-faq__loading-spinner { width: 1.25rem; height: 1.25rem; border: 2px solid var(--bf-color-border); border-top-color: var(--bf-color-interactive); border-radius: 50%; animation: bf-spin 400ms linear infinite; flex-shrink: 0; }
+    @keyframes bf-spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+
+<body>
+  <header class="page-header">
+    <h1>مركز المساعدة — الأسئلة الشائعة</h1>
+  </header>
+
+  <main class="page-content">
+    <section
+      id="bf-rtl-root"
+      class="bf-faq"
+      data-basefaq-root
+      data-basefaq-schema-mode="canonical"
+      data-basefaq-render-mode="public-page"
+      lang="ar"
+      dir="rtl"
+      aria-label="الأسئلة الشائعة"
+    >
+      <div class="bf-faq__loading" aria-live="polite">
+        <div class="bf-faq__loading-spinner" aria-hidden="true"></div>
+        جارٍ التحميل…
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const BASE_URL = 'https://dev.faq.public.basefaq.com';
+    const p = new URLSearchParams(window.location.search);
+    const CLIENT_KEY = p.get('key') || p.get('clientKey');
+    const FAQ_ID     = p.get('faqId') || p.get('id');
+    const root       = document.getElementById('bf-rtl-root');
+
+    if (!CLIENT_KEY) {
+      root.innerHTML = '<p style="color:#6b7280;padding:1rem;text-align:center">أضف <code>?key=CLIENT_KEY&amp;faqId=FAQ_ID</code> في عنوان URL لتحميل الأسئلة الشائعة.</p>';
+    } else {
+      loadRtlFaq();
+    }
+
+    async function loadRtlFaq() {
+      try {
+        const qs = `includeFaqItems=true&includeContentRefs=true&includeTags=true`;
+        const url = FAQ_ID
+          ? `${BASE_URL}/api/faqs/faq/${FAQ_ID}?${qs}`
+          : `${BASE_URL}/api/faqs/faq?status=1&${qs}&maxResultCount=20`;
+
+        const res = await fetch(url, {
+          headers: { 'X-Client-Key': CLIENT_KEY, 'Accept': 'application/json' },
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        const faq  = FAQ_ID ? data : (data.items || [])[0];
+        if (!faq) { root.innerHTML = '<p style="padding:1rem;color:#6b7280">لم يتم العثور على أسئلة شائعة.</p>'; return; }
+
+        root.setAttribute('data-basefaq-faq-id', faq.id);
+        // Detect language direction
+        const dir = isRtl(faq.language) ? 'rtl' : 'ltr';
+        root.setAttribute('dir', dir);
+        root.setAttribute('lang', faq.language || 'ar');
+
+        root.innerHTML = renderFaq(faq, dir);
+        injectJsonLd(faq);
+      } catch (e) {
+        root.innerHTML = `<p style="color:#dc2626;padding:1rem">خطأ: ${e.message}</p>`;
+      }
+    }
+
+    function renderFaq(faq, dir) {
+      const items = (faq.items || []).filter(i => i.isActive).sort((a, b) => a.sort - b.sort);
+      const tags  = (faq.tags  || []).map(t => `<span class="bf-tag">${esc(t.value)}</span>`).join('');
+      return `
+        <header class="bf-faq__header">
+          <h2 class="bf-faq__title">${esc(faq.name)}</h2>
+          ${tags ? `<div class="bf-faq__tags">${tags}</div>` : ''}
+        </header>
+        <div class="bf-faq__items" role="list">
+          ${items.map(item => renderItem(item, faq)).join('') || '<p style="color:#6b7280;padding:0.5rem">لا توجد عناصر.</p>'}
+        </div>`;
+    }
+
+    function renderItem(item, faq) {
+      const answer = item.answer || `<p>${esc(item.shortAnswer)}</p>`;
+      const addl   = item.additionalInfo
+        ? `<div class="bf-faq__additional-info">${esc(item.additionalInfo)}</div>` : '';
+      const cta    = faq.ctaEnabled && item.ctaUrl
+        ? `<a href="${esc(item.ctaUrl)}" class="bf-faq__cta">${esc(item.ctaTitle || 'اعرف المزيد')}</a>` : '';
+      const vote   = `
+        <div class="bf-faq__vote" data-vote-container data-item-id="${esc(item.id)}">
+          <span class="bf-faq__vote-label">هل كان هذا مفيداً؟</span>
+          <div class="bf-faq__vote-actions">
+            <button class="bf-faq__vote-btn bf-faq__vote-btn--up" type="button" data-vote-up aria-pressed="false">👍 نعم</button>
+            <button class="bf-faq__vote-btn bf-faq__vote-btn--down" type="button" data-vote-down aria-pressed="false">👎 لا</button>
+          </div>
+          <span class="bf-faq__vote-score">${item.voteScore > 0 ? '+' : ''}${item.voteScore}</span>
+        </div>`;
+      return `
+        <details class="bf-faq__item" data-basefaq-item-id="${esc(item.id)}" role="listitem">
+          <summary class="bf-faq__question">
+            <span class="bf-faq__question-text">${esc(item.question)}</span>
+            <svg class="bf-faq__icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </summary>
+          <div class="bf-faq__answer">
+            <div class="bf-faq__answer-body">${answer}</div>
+            ${addl}${cta}${vote}
+          </div>
+        </details>`;
+    }
+
+    function injectJsonLd(faq) {
+      const items = (faq.items || []).filter(i => i.isActive);
+      if (!items.length) return;
+      const script = document.createElement('script');
+      script.type = 'application/ld+json';
+      script.textContent = JSON.stringify({
+        '@context': 'https://schema.org', '@type': 'FAQPage',
+        mainEntity: items.map(i => ({
+          '@type': 'Question', name: i.question,
+          acceptedAnswer: { '@type': 'Answer', text: strip(i.answer || i.shortAnswer) },
+        })),
+      });
+      document.head.appendChild(script);
+    }
+
+    document.addEventListener('click', async (e) => {
+      const btn = e.target.closest('[data-vote-up],[data-vote-down]');
+      if (!btn || !CLIENT_KEY) return;
+      const c  = btn.closest('[data-vote-container]');
+      const id = c?.dataset.itemId;
+      if (!id) return;
+      const like = btn.hasAttribute('data-vote-up');
+      try {
+        await fetch(`${BASE_URL}/api/faqs/vote`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-Client-Key': CLIENT_KEY },
+          body: JSON.stringify({ faqItemId: id, like }),
+        });
+        btn.classList.add('is-voted');
+      } catch {}
+    });
+
+    function isRtl(lang) {
+      const rtl = ['ar','he','fa','ur','yi','ps','dv','ug'];
+      return rtl.includes((lang||'').split(/[-_]/)[0].toLowerCase());
+    }
+    function esc(s) {
+      return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+    function strip(h) {
+      const d = document.createElement('div'); d.innerHTML = h; return d.textContent || '';
+    }
+  </script>
+</body>
+</html>

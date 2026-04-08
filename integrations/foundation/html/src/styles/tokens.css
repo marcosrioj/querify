@@ -1,0 +1,256 @@
+/**
+ * BaseFAQ Foundation — Design Tokens
+ *
+ * All tokens are CSS custom properties scoped to :root.
+ * Consumer integrations may override any token at any ancestor scope.
+ * Framework integrations should import this file first and then override
+ * tokens for their own theming layer.
+ *
+ * Namespace: --bf-*
+ */
+
+:root {
+  /* ─── Color ──────────────────────────────────────────────────────────── */
+
+  /* Brand */
+  --bf-color-brand-50:  #eef2ff;
+  --bf-color-brand-100: #e0e7ff;
+  --bf-color-brand-200: #c7d2fe;
+  --bf-color-brand-300: #a5b4fc;
+  --bf-color-brand-400: #818cf8;
+  --bf-color-brand-500: #6366f1;
+  --bf-color-brand-600: #4f46e5;
+  --bf-color-brand-700: #4338ca;
+  --bf-color-brand-800: #3730a3;
+  --bf-color-brand-900: #312e81;
+  --bf-color-brand-950: #1e1b4b;
+
+  /* Neutral */
+  --bf-color-neutral-0:   #ffffff;
+  --bf-color-neutral-50:  #f9fafb;
+  --bf-color-neutral-100: #f3f4f6;
+  --bf-color-neutral-200: #e5e7eb;
+  --bf-color-neutral-300: #d1d5db;
+  --bf-color-neutral-400: #9ca3af;
+  --bf-color-neutral-500: #6b7280;
+  --bf-color-neutral-600: #4b5563;
+  --bf-color-neutral-700: #374151;
+  --bf-color-neutral-800: #1f2937;
+  --bf-color-neutral-900: #111827;
+  --bf-color-neutral-950: #030712;
+
+  /* Semantic surface */
+  --bf-color-surface:           var(--bf-color-neutral-0);
+  --bf-color-surface-raised:    var(--bf-color-neutral-50);
+  --bf-color-surface-overlay:   var(--bf-color-neutral-100);
+  --bf-color-surface-invert:    var(--bf-color-neutral-900);
+
+  /* Semantic text */
+  --bf-color-text-primary:      var(--bf-color-neutral-900);
+  --bf-color-text-secondary:    var(--bf-color-neutral-600);
+  --bf-color-text-muted:        var(--bf-color-neutral-400);
+  --bf-color-text-invert:       var(--bf-color-neutral-0);
+  --bf-color-text-brand:        var(--bf-color-brand-600);
+
+  /* Semantic border */
+  --bf-color-border:            var(--bf-color-neutral-200);
+  --bf-color-border-strong:     var(--bf-color-neutral-300);
+  --bf-color-border-brand:      var(--bf-color-brand-500);
+
+  /* Semantic interactive */
+  --bf-color-interactive:       var(--bf-color-brand-600);
+  --bf-color-interactive-hover: var(--bf-color-brand-700);
+  --bf-color-interactive-bg:    var(--bf-color-brand-50);
+
+  /* Status */
+  --bf-color-success:     #16a34a;
+  --bf-color-success-bg:  #f0fdf4;
+  --bf-color-warning:     #ca8a04;
+  --bf-color-warning-bg:  #fefce8;
+  --bf-color-error:       #dc2626;
+  --bf-color-error-bg:    #fef2f2;
+  --bf-color-info:        var(--bf-color-brand-600);
+  --bf-color-info-bg:     var(--bf-color-brand-50);
+
+  /* Vote */
+  --bf-color-vote-up:     #16a34a;
+  --bf-color-vote-up-bg:  #f0fdf4;
+  --bf-color-vote-down:   #dc2626;
+  --bf-color-vote-down-bg:#fef2f2;
+
+  /* Focus */
+  --bf-color-focus-ring:  var(--bf-color-brand-500);
+
+  /* ─── Typography ─────────────────────────────────────────────────────── */
+
+  --bf-font-family-base:  system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --bf-font-family-mono:  ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+
+  /* Scale */
+  --bf-font-size-xs:   0.75rem;   /* 12px */
+  --bf-font-size-sm:   0.875rem;  /* 14px */
+  --bf-font-size-md:   1rem;      /* 16px */
+  --bf-font-size-lg:   1.125rem;  /* 18px */
+  --bf-font-size-xl:   1.25rem;   /* 20px */
+  --bf-font-size-2xl:  1.5rem;    /* 24px */
+  --bf-font-size-3xl:  1.875rem;  /* 30px */
+  --bf-font-size-4xl:  2.25rem;   /* 36px */
+
+  /* Weight */
+  --bf-font-weight-normal:   400;
+  --bf-font-weight-medium:   500;
+  --bf-font-weight-semibold: 600;
+  --bf-font-weight-bold:     700;
+
+  /* Line height */
+  --bf-line-height-tight:   1.25;
+  --bf-line-height-snug:    1.375;
+  --bf-line-height-normal:  1.5;
+  --bf-line-height-relaxed: 1.625;
+
+  /* ─── Spacing ─────────────────────────────────────────────────────────── */
+
+  --bf-space-0:   0;
+  --bf-space-1:   0.25rem;   /* 4px */
+  --bf-space-2:   0.5rem;    /* 8px */
+  --bf-space-3:   0.75rem;   /* 12px */
+  --bf-space-4:   1rem;      /* 16px */
+  --bf-space-5:   1.25rem;   /* 20px */
+  --bf-space-6:   1.5rem;    /* 24px */
+  --bf-space-8:   2rem;      /* 32px */
+  --bf-space-10:  2.5rem;    /* 40px */
+  --bf-space-12:  3rem;      /* 48px */
+  --bf-space-16:  4rem;      /* 64px */
+
+  /* ─── Border radius ──────────────────────────────────────────────────── */
+
+  --bf-radius-none: 0;
+  --bf-radius-sm:   0.25rem;  /* 4px */
+  --bf-radius-md:   0.5rem;   /* 8px */
+  --bf-radius-lg:   0.75rem;  /* 12px */
+  --bf-radius-xl:   1rem;     /* 16px */
+  --bf-radius-full: 9999px;
+
+  /* ─── Border width ───────────────────────────────────────────────────── */
+
+  --bf-border-width-thin:   1px;
+  --bf-border-width-medium: 2px;
+  --bf-border-width-thick:  4px;
+
+  /* ─── Shadow ─────────────────────────────────────────────────────────── */
+
+  --bf-shadow-sm:  0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --bf-shadow-md:  0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --bf-shadow-lg:  0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --bf-shadow-xl:  0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+
+  /* ─── Motion ─────────────────────────────────────────────────────────── */
+
+  --bf-duration-fast:    150ms;
+  --bf-duration-normal:  250ms;
+  --bf-duration-slow:    400ms;
+
+  --bf-easing-default:   cubic-bezier(0.4, 0, 0.2, 1);
+  --bf-easing-out:       cubic-bezier(0, 0, 0.2, 1);
+  --bf-easing-in:        cubic-bezier(0.4, 0, 1, 1);
+  --bf-easing-spring:    cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* Composed transitions for common use */
+  --bf-transition-colors:    color var(--bf-duration-fast) var(--bf-easing-default),
+                             background-color var(--bf-duration-fast) var(--bf-easing-default),
+                             border-color var(--bf-duration-fast) var(--bf-easing-default);
+  --bf-transition-transform: transform var(--bf-duration-normal) var(--bf-easing-default);
+  --bf-transition-opacity:   opacity var(--bf-duration-normal) var(--bf-easing-default);
+
+  /* ─── Layout ─────────────────────────────────────────────────────────── */
+
+  --bf-container-max-width: 72rem;  /* 1152px */
+  --bf-faq-max-width:       56rem;  /* 896px */
+
+  /* ─── Z-index ────────────────────────────────────────────────────────── */
+
+  --bf-z-base:    0;
+  --bf-z-raised:  10;
+  --bf-z-overlay: 100;
+  --bf-z-modal:   1000;
+  --bf-z-toast:   2000;
+
+  /* ─── Component-level tokens ─────────────────────────────────────────── */
+
+  /* FAQ root */
+  --bf-faq-bg:              var(--bf-color-surface);
+  --bf-faq-border-color:    var(--bf-color-border);
+  --bf-faq-border-radius:   var(--bf-radius-lg);
+  --bf-faq-padding:         var(--bf-space-6);
+
+  /* FAQ title */
+  --bf-faq-title-size:      var(--bf-font-size-2xl);
+  --bf-faq-title-weight:    var(--bf-font-weight-bold);
+  --bf-faq-title-color:     var(--bf-color-text-primary);
+
+  /* FAQ description */
+  --bf-faq-desc-size:       var(--bf-font-size-md);
+  --bf-faq-desc-color:      var(--bf-color-text-secondary);
+
+  /* FAQ item */
+  --bf-item-bg:             var(--bf-color-surface);
+  --bf-item-bg-hover:       var(--bf-color-surface-raised);
+  --bf-item-bg-open:        var(--bf-color-surface-raised);
+  --bf-item-border-color:   var(--bf-color-border);
+  --bf-item-border-radius:  var(--bf-radius-md);
+
+  /* FAQ question */
+  --bf-question-size:       var(--bf-font-size-md);
+  --bf-question-weight:     var(--bf-font-weight-semibold);
+  --bf-question-color:      var(--bf-color-text-primary);
+  --bf-question-padding:    var(--bf-space-4) var(--bf-space-5);
+
+  /* FAQ answer */
+  --bf-answer-size:         var(--bf-font-size-md);
+  --bf-answer-color:        var(--bf-color-text-secondary);
+  --bf-answer-padding:      var(--bf-space-4) var(--bf-space-5);
+  --bf-answer-line-height:  var(--bf-line-height-relaxed);
+
+  /* Icon chevron */
+  --bf-icon-size:           1.25rem;
+  --bf-icon-color:          var(--bf-color-text-muted);
+  --bf-icon-color-open:     var(--bf-color-interactive);
+
+  /* CTA button */
+  --bf-cta-bg:              var(--bf-color-interactive);
+  --bf-cta-bg-hover:        var(--bf-color-interactive-hover);
+  --bf-cta-color:           var(--bf-color-text-invert);
+  --bf-cta-radius:          var(--bf-radius-md);
+  --bf-cta-padding:         var(--bf-space-2) var(--bf-space-4);
+
+  /* Tag */
+  --bf-tag-bg:              var(--bf-color-surface-overlay);
+  --bf-tag-color:           var(--bf-color-text-secondary);
+  --bf-tag-radius:          var(--bf-radius-full);
+  --bf-tag-padding:         var(--bf-space-1) var(--bf-space-3);
+  --bf-tag-size:            var(--bf-font-size-xs);
+
+  /* Vote */
+  --bf-vote-btn-size:       var(--bf-font-size-sm);
+  --bf-vote-btn-radius:     var(--bf-radius-full);
+  --bf-vote-btn-padding:    var(--bf-space-1) var(--bf-space-3);
+
+  /* Source link */
+  --bf-source-size:         var(--bf-font-size-sm);
+  --bf-source-color:        var(--bf-color-text-brand);
+
+  /* Focus ring */
+  --bf-focus-ring-width:    3px;
+  --bf-focus-ring-offset:   2px;
+  --bf-focus-ring-color:    var(--bf-color-focus-ring);
+}
+
+/* ─── Reduced motion ─────────────────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --bf-duration-fast:   0ms;
+    --bf-duration-normal: 0ms;
+    --bf-duration-slow:   0ms;
+  }
+}

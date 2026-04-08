@@ -1,0 +1,9 @@
+{
+  "version": "0.1.0",
+  "apiCompatibility": {
+    "basefaqPublicApi": "^1.0",
+    "minApiVersion": "1.0"
+  },
+  "releaseDate": "2026-04-07",
+  "status": "preview"
+}

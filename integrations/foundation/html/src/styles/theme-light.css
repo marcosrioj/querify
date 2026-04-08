@@ -1,0 +1,48 @@
+/**
+ * BaseFAQ Foundation — Light Theme
+ *
+ * Clean white-background theme. This is the default visual layer.
+ * Apply via: <section class="bf-faq bf-theme-light"> or on any ancestor.
+ * Or set as :root default by importing this file last.
+ */
+
+.bf-theme-light,
+[data-bf-theme="light"] {
+  --bf-faq-bg:           #ffffff;
+  --bf-item-bg:          #ffffff;
+  --bf-item-bg-hover:    #f9fafb;
+  --bf-item-bg-open:     #f9fafb;
+
+  --bf-color-surface:           #ffffff;
+  --bf-color-surface-raised:    #f9fafb;
+  --bf-color-surface-overlay:   #f3f4f6;
+  --bf-color-surface-invert:    #111827;
+
+  --bf-color-text-primary:      #111827;
+  --bf-color-text-secondary:    #4b5563;
+  --bf-color-text-muted:        #9ca3af;
+  --bf-color-text-invert:       #ffffff;
+  --bf-color-text-brand:        #4f46e5;
+
+  --bf-color-border:            #e5e7eb;
+  --bf-color-border-strong:     #d1d5db;
+  --bf-color-border-brand:      #6366f1;
+
+  --bf-color-interactive:       #4f46e5;
+  --bf-color-interactive-hover: #4338ca;
+  --bf-color-interactive-bg:    #eef2ff;
+
+  --bf-cta-bg:              #4f46e5;
+  --bf-cta-bg-hover:        #4338ca;
+  --bf-cta-color:           #ffffff;
+}
+
+/* Automatic when OS is light and no explicit theme set */
+@media (prefers-color-scheme: light) {
+  :root:not([data-bf-theme="dark"]):not([data-bf-theme="neutral"]) {
+    --bf-faq-bg:           #ffffff;
+    --bf-item-bg:          #ffffff;
+    --bf-item-bg-hover:    #f9fafb;
+    --bf-item-bg-open:     #f9fafb;
+  }
+}
