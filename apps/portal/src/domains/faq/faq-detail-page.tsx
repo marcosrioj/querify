@@ -1,4 +1,5 @@
 import {
+  ArrowUpRight,
   Files,
   MessageSquare,
   Pencil,
@@ -408,11 +409,13 @@ export function FaqDetailPage() {
                         <div className="flex flex-wrap gap-2">
                           <Button asChild variant="ghost" size="sm">
                             <Link to={`/app/faq/${id}/items/${item.id}/edit`}>
+                              <Pencil className="size-4" />
                               Edit
                             </Link>
                           </Button>
                           <Button asChild variant="outline" size="sm">
                             <Link to={`/app/faq/${id}/items/${item.id}`}>
+                              <ArrowUpRight className="size-4" />
                               Open
                             </Link>
                           </Button>
@@ -485,6 +488,7 @@ export function FaqDetailPage() {
                           <Link
                             to={`/app/faq/${id}/content-refs/${contentRef.id}`}
                           >
+                            <ArrowUpRight className="size-4" />
                             Open
                           </Link>
                         </Button>

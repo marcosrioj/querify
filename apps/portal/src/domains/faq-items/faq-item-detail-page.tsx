@@ -386,7 +386,10 @@ export function FaqItemDetailPage() {
                 </p>
                 {parentFaq ? (
                   <Button asChild variant="outline" size="sm" className="mt-4">
-                    <Link to={backTo}>Open FAQ</Link>
+                    <Link to={backTo}>
+                      <ArrowUpRight className="size-4" />
+                      Open FAQ
+                    </Link>
                   </Button>
                 ) : null}
               </div>
@@ -412,7 +415,10 @@ export function FaqItemDetailPage() {
                       size="sm"
                       className="mt-4"
                     >
-                      <Link to={contentRefPath}>Open source</Link>
+                      <Link to={contentRefPath}>
+                        <ArrowUpRight className="size-4" />
+                        Open source
+                      </Link>
                     </Button>
                   </>
                 ) : (
@@ -429,7 +435,10 @@ export function FaqItemDetailPage() {
                       size="sm"
                       className="mt-4"
                     >
-                      <Link to={createContentRefPath}>New source</Link>
+                      <Link to={createContentRefPath}>
+                        <Plus className="size-4" />
+                        New source
+                      </Link>
                     </Button>
                   </>
                 )}

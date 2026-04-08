@@ -2,6 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
+import { X } from "lucide-react";
 import { Link } from "react-router-dom";
 import { faqFormSchema, type FaqFormValues } from "@/domains/faq/schemas";
 import { useCreateFaq, useFaq, useUpdateFaq } from "@/domains/faq/hooks";
@@ -248,6 +249,7 @@ export function FaqFormPage({ mode }: { mode: "create" | "edit" }) {
                           mode === "edit" && id ? `/app/faq/${id}` : "/app/faq"
                         }
                       >
+                        <X className="size-4" />
                         Cancel
                       </Link>
                     </Button>

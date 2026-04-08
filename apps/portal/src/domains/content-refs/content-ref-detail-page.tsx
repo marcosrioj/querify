@@ -1,4 +1,4 @@
-import { BookOpen, ExternalLink, FileText, FolderOpen, Link2, MessageSquare, Pencil, Plus, Trash2 } from "lucide-react";
+import { ArrowUpRight, BookOpen, ExternalLink, FileText, FolderOpen, Link2, MessageSquare, Pencil, Plus, Trash2 } from "lucide-react";
 import { useMemo } from "react";
 import {
   Link,
@@ -363,7 +363,10 @@ export function ContentRefDetailPage() {
                           </p>
                         </div>
                         <Button asChild variant="outline" size="sm">
-                          <Link to={`/app/faq/${faq.id}`}>Open FAQ</Link>
+                          <Link to={`/app/faq/${faq.id}`}>
+                            <ArrowUpRight className="size-4" />
+                            Open FAQ
+                          </Link>
                         </Button>
                       </div>
                     </div>
@@ -436,6 +439,7 @@ export function ContentRefDetailPage() {
                         </div>
                         <Button asChild variant="outline" size="sm">
                           <Link to={`/app/faq/${item.faqId}/items/${item.id}`}>
+                            <ArrowUpRight className="size-4" />
                             Open
                           </Link>
                         </Button>

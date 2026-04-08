@@ -1,6 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { startTransition, useDeferredValue, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import { X } from "lucide-react";
 import {
   Link,
   useNavigate,
@@ -485,7 +486,10 @@ export function FaqItemFormPage({ mode }: { mode: "create" | "edit" }) {
                       {mode === "create" ? "Create Q&A item" : "Save changes"}
                     </Button>
                     <Button asChild variant="outline">
-                      <Link to={backTo}>Cancel</Link>
+                      <Link to={backTo}>
+                        <X className="size-4" />
+                        Cancel
+                      </Link>
                     </Button>
                   </div>
                 </form>

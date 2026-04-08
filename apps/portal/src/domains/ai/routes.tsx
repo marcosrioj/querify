@@ -1,4 +1,4 @@
-import { BookOpen, Bot, ShieldCheck, WandSparkles } from 'lucide-react';
+import { ArrowUpRight, BookOpen, Bot, ShieldCheck, WandSparkles } from 'lucide-react';
 import { RouteObject } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import { AiWorkspaceSkeleton } from '@/domains/ai/ai-workspace-skeleton';
@@ -133,7 +133,10 @@ function AiWorkspacePage() {
                   }
                 />
                 <Button asChild variant="ghost">
-                  <Link to={`/app/faq/${faq.id}`}>Open FAQ</Link>
+                  <Link to={`/app/faq/${faq.id}`}>
+                    <ArrowUpRight className="size-4" />
+                    Open FAQ
+                  </Link>
                 </Button>
               </div>
             </div>

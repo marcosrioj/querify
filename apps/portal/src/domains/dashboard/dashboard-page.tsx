@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import {
+  ArrowRight,
   ArrowUpRight,
   BookOpen,
   Bot,
@@ -8,7 +9,9 @@ import {
   Files,
   Gauge,
   MessageSquare,
+  Plus,
   ShieldCheck,
+  SlidersHorizontal,
   Sparkles,
   WandSparkles,
   type LucideIcon,
@@ -466,12 +469,15 @@ export function DashboardPage() {
           <>
             <Button asChild>
               <Link to="/app/faq/new">
-                <WandSparkles className="size-4" />
+                <Plus className="size-4" />
                 New FAQ
               </Link>
             </Button>
             <Button asChild variant="outline">
-              <Link to="/app/settings/tenant">Settings</Link>
+              <Link to="/app/settings/tenant">
+                <SlidersHorizontal className="size-4" />
+                Settings
+              </Link>
             </Button>
           </>
         }
@@ -540,7 +546,10 @@ export function DashboardPage() {
                 variant="outline"
                 className="border-white/20 bg-white/10 text-white hover:bg-white/15"
               >
-                <Link to={heroSecondaryAction.to}>{heroSecondaryAction.label}</Link>
+                <Link to={heroSecondaryAction.to}>
+                  <SlidersHorizontal className="size-4" />
+                  {heroSecondaryAction.label}
+                </Link>
               </Button>
             </div>
 
@@ -868,7 +877,10 @@ export function DashboardPage() {
             </CardHeading>
             <CardToolbar>
               <Button asChild variant="ghost" mode="link">
-                <Link to="/app/faq">Open FAQs</Link>
+                <Link to="/app/faq">
+                  <ArrowRight className="size-4" />
+                  Open FAQs
+                </Link>
               </Button>
             </CardToolbar>
           </CardHeader>
@@ -899,7 +911,10 @@ export function DashboardPage() {
             </CardHeading>
             <CardToolbar>
               <Button asChild variant="ghost" mode="link">
-                <Link to="/app/faq">View all</Link>
+                <Link to="/app/faq">
+                  <ArrowRight className="size-4" />
+                  View all
+                </Link>
               </Button>
             </CardToolbar>
           </CardHeader>
