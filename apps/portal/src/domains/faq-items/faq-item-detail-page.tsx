@@ -1,4 +1,4 @@
-import { ArrowUpRight, BookOpen, FileText, Files, Link2, Pencil, Trash2 } from "lucide-react";
+import { ArrowUpRight, BookOpen, FileText, Files, Link2, Pencil, Plus, Trash2 } from "lucide-react";
 import { useMemo } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useFaqList } from "@/domains/faq/hooks";

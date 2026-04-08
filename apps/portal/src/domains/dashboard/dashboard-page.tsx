@@ -198,7 +198,7 @@ function FaqRow({ faq }: { faq: FaqDto }) {
       <div className="min-w-0 space-y-1.5">
         <Link
           to={`/app/faq/${faq.id}`}
-          className="truncate text-sm font-medium text-mono hover:text-primary"
+          className="block truncate text-sm font-medium text-mono hover:text-primary"
         >
           {faq.name}
         </Link>
@@ -206,7 +206,9 @@ function FaqRow({ faq }: { faq: FaqDto }) {
           {faq.language}
         </p>
       </div>
-      <FaqStatusBadge status={faq.status} />
+      <div className="shrink-0">
+        <FaqStatusBadge status={faq.status} />
+      </div>
     </div>
   );
 }
