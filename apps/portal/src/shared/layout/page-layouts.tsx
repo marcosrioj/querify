@@ -257,7 +257,7 @@ export function SectionGrid({
             {item.icon ? (
               <div
                 className={cn(
-                  "pointer-events-none absolute right-5 top-5 flex size-11 items-center justify-center rounded-2xl",
+                  "pointer-events-none absolute right-5 top-5 flex size-5 items-center justify-center rounded-2xl",
                   item.iconToneClassName ?? toneClassNames[index % toneClassNames.length],
                 )}
               >

@@ -123,7 +123,7 @@ export function SectionGridSkeleton({
               <Skeleton className="h-8 w-28" />
               <Skeleton className="h-4 w-40" />
             </div>
-            <Skeleton className="absolute right-5 top-5 size-11 rounded-2xl" />
+            <Skeleton className="absolute right-5 top-5 size-5 rounded-2xl" />
           </CardContent>
         </Card>
       ))}

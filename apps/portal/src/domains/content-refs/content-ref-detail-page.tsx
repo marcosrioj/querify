@@ -178,28 +178,28 @@ export function ContentRefDetailPage() {
       sidebar={
         <>
           <Card>
-            <CardContent className="flex flex-col gap-1.5 p-3">
-              <Button asChild className="w-full justify-start">
+            <CardContent className="grid grid-cols-2 gap-2 p-3">
+              <Button asChild size="sm" className="w-full justify-start">
                 <Link to={createFaqItemPath}>
                   <Plus className="size-4" />
                   New Q&A item
                 </Link>
               </Button>
-              <Button asChild variant="outline" className="w-full justify-start">
+              <Button asChild variant="outline" size="sm" className="w-full justify-start">
                 <Link to={editPath}>
                   <Pencil className="size-4" />
                   Edit
                 </Link>
               </Button>
               {attachOriginItemPath ? (
-                <Button asChild variant="outline" className="w-full justify-start">
+                <Button asChild variant="outline" size="sm" className="w-full justify-start">
                   <Link to={attachOriginItemPath}>
                     <Link2 className="size-4" />
                     Link to Q&A item
                   </Link>
                 </Button>
               ) : null}
-              <div className="my-0.5 h-px bg-border/60" />
+              <div className="col-span-2 h-px bg-border/50" />
               <ConfirmAction
                 title={`Delete source "${contentRefQuery.data?.label || contentRefQuery.data?.locator || "this source"}"?`}
                 description="This removes the source record from the portal. Keep it only if you no longer want it reused."
@@ -211,7 +211,7 @@ export function ContentRefDetailPage() {
                     .then(() => navigate(backTo))
                 }
                 trigger={
-                  <Button variant="destructive" className="w-full justify-start">
+                  <Button variant="destructive" size="sm" className="col-span-2 w-full justify-start">
                     <Trash2 className="size-4" />
                     Delete
                   </Button>

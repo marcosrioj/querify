@@ -103,7 +103,7 @@ function MetricCard({
           <p className="text-sm text-muted-foreground">{description}</p>
         </div>
         <div
-          className={`pointer-events-none absolute right-5 top-5 flex size-11 items-center justify-center rounded-2xl ${toneClassName}`}
+          className={`pointer-events-none absolute right-5 top-5 flex size-5 items-center justify-center rounded-2xl ${toneClassName}`}
         >
           <Icon className="size-5" />
         </div>
@@ -461,7 +461,7 @@ export function DashboardPage() {
       <PageHeader
         title="Dashboard"
         description="Quick view of FAQs, Q&A items, sources, and AI setup."
-        descriptionMode="hint"
+        descriptionMode="inline"
         actions={
           <>
             <Button asChild>
