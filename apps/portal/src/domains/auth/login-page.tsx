@@ -2,12 +2,14 @@ import { LockKeyhole, MoveRight } from 'lucide-react';
 import { Link, Navigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/platform/auth/auth-context';
 import { RuntimeEnv } from '@/platform/runtime/env';
+import { usePortalI18n } from '@/shared/lib/i18n';
 import { Alert, AlertDescription, Badge, Button } from '@/shared/ui';
 
 const SWAGGER_UI_CLIENT_ID = 'fDJib60pSRhbtNRPhqYfZR9J8JqBCpz5';
 
 export function LoginPage() {
   const { isConfigured, status, error, login } = useAuth();
+  const { t } = usePortalI18n();
   const [searchParams] = useSearchParams();
   const nextPath = searchParams.get('next') ?? '/app/dashboard';
   const callbackUrl =
@@ -22,16 +24,17 @@ export function LoginPage() {
     <div className="space-y-5">
       <div className="space-y-4">
         <Badge variant="outline" className="w-fit">
-          BaseFAQ Portal
+          {t('BaseFAQ Portal')}
         </Badge>
 
         <div className="space-y-2">
           <h2 className="text-3xl font-semibold text-mono">
-            Sign in to your tenant workspace
+            {t('Sign in to your tenant workspace')}
           </h2>
           <p className="text-sm leading-6 text-muted-foreground">
-            The Portal app authenticates against Auth0 and then calls only the
-            Portal-side Tenant and FAQ APIs already present in this repository.
+            {t(
+              'The Portal app authenticates against Auth0 and then calls only the Portal-side Tenant and FAQ APIs already present in this repository.',
+            )}
           </p>
         </div>
       </div>
@@ -55,10 +58,10 @@ export function LoginPage() {
       {isUsingSwaggerClient ? (
         <Alert variant="destructive">
           <AlertDescription>
-            The configured `VITE_AUTH0_CLIENT_ID` matches the Swagger UI Auth0
-            client from the .NET APIs. That application is documented with
-            Swagger callback URLs only, so Portal login will fail unless Auth0
-            also allows <span className="font-medium">{callbackUrl}</span>.
+            {t(
+              'The configured `VITE_AUTH0_CLIENT_ID` matches the Swagger UI Auth0 client from the .NET APIs. That application is documented with Swagger callback URLs only, so Portal login will fail unless Auth0 also allows {callbackUrl}.',
+              { callbackUrl },
+            )}
           </AlertDescription>
         </Alert>
       ) : null}
@@ -66,19 +69,19 @@ export function LoginPage() {
       <div className="rounded-xl border border-border bg-muted/50 p-4 text-sm text-muted-foreground">
         <div className="flex items-center gap-2 font-medium text-mono">
           <LockKeyhole className="size-4" />
-          Auth runtime
+          {t('Auth runtime')}
         </div>
         <dl className="mt-3 space-y-2">
           <div className="flex items-center justify-between gap-3">
-            <dt>Authority</dt>
+            <dt>{t('Authority')}</dt>
             <dd className="truncate text-right">{RuntimeEnv.auth0Domain}</dd>
           </div>
           <div className="flex items-center justify-between gap-3">
-            <dt>Audience</dt>
+            <dt>{t('Audience')}</dt>
             <dd className="truncate text-right">{RuntimeEnv.auth0Audience}</dd>
           </div>
           <div className="flex items-center justify-between gap-3">
-            <dt>Callback</dt>
+            <dt>{t('Callback')}</dt>
             <dd className="truncate text-right">{callbackUrl}</dd>
           </div>
         </dl>
@@ -89,15 +92,15 @@ export function LoginPage() {
         disabled={!isConfigured || status === 'booting'}
         onClick={() => void login(nextPath)}
       >
-        Continue with Auth0
+        {t('Continue with Auth0')}
         <MoveRight className="size-4" />
       </Button>
 
       <div className="flex items-center justify-between text-sm text-muted-foreground">
         <Link className="hover:text-foreground" to="/forgot-password">
-          Forgot password
+          {t('Forgot password')}
         </Link>
-        <span>{status === 'booting' ? 'Initializing session' : 'Portal login'}</span>
+        <span>{status === 'booting' ? t('Initializing session') : t('Portal login')}</span>
       </div>
     </div>
   );

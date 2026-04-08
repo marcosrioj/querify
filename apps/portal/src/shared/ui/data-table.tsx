@@ -16,6 +16,7 @@ import {
   TableRow,
 } from "@/shared/ui";
 import { ContextHint } from "@/shared/ui/context-hint";
+import { translateMaybeString, usePortalI18n } from "@/shared/lib/i18n";
 
 export type DataTableColumn<T> = {
   key: string;
@@ -52,13 +53,15 @@ export function DataTable<T>({
   footer?: ReactNode;
   onRowClick?: (row: T) => void;
 }) {
+  const { t } = usePortalI18n();
+
   const mobileHeaderLabel = (column: DataTableColumn<T>) => {
     if (column.mobileLabel) {
-      return column.mobileLabel;
+      return translateMaybeString(column.mobileLabel, t);
     }
 
     if (typeof column.header === "string") {
-      return column.header;
+      return t(column.header);
     }
 
     return column.key;
@@ -67,8 +70,8 @@ export function DataTable<T>({
   const titleHint =
     description && descriptionMode === "hint" ? (
       <ContextHint
-        content={description}
-        label="Table details"
+        content={translateMaybeString(description, t)}
+        label={t("Table details")}
         className="mt-0.5"
       />
     ) : null;
@@ -80,12 +83,14 @@ export function DataTable<T>({
           <CardHeading>
             {title ? (
               <CardTitle className="flex flex-wrap items-start gap-2">
-                <span>{title}</span>
+                <span>{translateMaybeString(title, t)}</span>
                 {titleHint}
               </CardTitle>
             ) : null}
             {description && descriptionMode === "inline" ? (
-              <CardDescription>{description}</CardDescription>
+              <CardDescription>
+                {translateMaybeString(description, t)}
+              </CardDescription>
             ) : null}
           </CardHeading>
           {toolbar ? (
@@ -161,7 +166,7 @@ export function DataTable<T>({
                   <TableRow>
                     {columns.map((column) => (
                       <TableHead key={column.key} className={column.className}>
-                        {column.header}
+                        {translateMaybeString(column.header, t)}
                       </TableHead>
                     ))}
                   </TableRow>

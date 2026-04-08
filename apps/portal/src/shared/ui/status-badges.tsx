@@ -9,27 +9,35 @@ import {
   tenantEditionLabels,
   tenantUserRoleTypeLabels,
 } from '@/shared/constants/backend-enums';
+import { usePortalI18n } from '@/shared/lib/i18n';
 import { Badge } from '@/shared/ui';
 
 export function RoleBadge({ role }: { role: PortalRole }) {
+  const { t } = usePortalI18n();
+
   return (
-    <Badge variant={role === 'Admin' ? 'primary' : 'secondary'}>{role}</Badge>
+    <Badge variant={role === 'Admin' ? 'primary' : 'secondary'}>{t(role)}</Badge>
   );
 }
 
 export function TenantUserRoleBadge({ role }: { role: TenantUserRoleType }) {
+  const { t } = usePortalI18n();
+
   return (
     <Badge variant={role === TenantUserRoleType.Owner ? 'primary' : 'secondary'}>
-      {tenantUserRoleTypeLabels[role]}
+      {t(tenantUserRoleTypeLabels[role])}
     </Badge>
   );
 }
 
 export function TenantEditionBadge({ edition }: { edition: TenantEdition }) {
-  return <Badge variant="outline">{tenantEditionLabels[edition]}</Badge>;
+  const { t } = usePortalI18n();
+
+  return <Badge variant="outline">{t(tenantEditionLabels[edition])}</Badge>;
 }
 
 export function FaqStatusBadge({ status }: { status: FaqStatus }) {
+  const { t } = usePortalI18n();
   const variant =
     status === FaqStatus.Published
       ? 'success'
@@ -37,7 +45,7 @@ export function FaqStatusBadge({ status }: { status: FaqStatus }) {
         ? 'mono'
         : 'warning';
 
-  return <Badge variant={variant}>{faqStatusLabels[status]}</Badge>;
+  return <Badge variant={variant}>{t(faqStatusLabels[status])}</Badge>;
 }
 
 export function ContentRefKindBadge({
@@ -45,5 +53,7 @@ export function ContentRefKindBadge({
 }: {
   kind: ContentRefKind;
 }) {
-  return <Badge variant="secondary">{contentRefKindLabels[kind]}</Badge>;
+  const { t } = usePortalI18n();
+
+  return <Badge variant="secondary">{t(contentRefKindLabels[kind])}</Badge>;
 }

@@ -1,8 +1,10 @@
 import { Link, useMatches } from "react-router-dom";
 import { AppRouteHandle } from "@/app/router/route-types";
+import { LanguageSelector } from "@/domains/shell/language-selector";
 import { NotificationsMenu } from "@/domains/shell/notifications-menu";
 import { PortalCommandDialog } from "@/domains/shell/portal-command-dialog";
 import { UserMenu } from "@/domains/shell/user-menu";
+import { usePortalI18n } from "@/shared/lib/i18n";
 import { portalNavigation } from "@/shared/constants/navigation";
 import { Container } from "@/shared/layout/container";
 
@@ -21,6 +23,7 @@ function useRouteHandles() {
 }
 
 function ToolbarBreadcrumbs() {
+  const { t } = usePortalI18n();
   const handles = useRouteHandles();
   const current = handles.at(-1);
 
@@ -29,9 +32,9 @@ function ToolbarBreadcrumbs() {
   }
 
   const navItem = portalNavigation.find((item) => item.key === current.navKey);
-  const currentLabel = current.breadcrumb ?? current.title;
+  const currentLabel = t(current.breadcrumb ?? current.title);
 
-  if (!navItem || navItem.label === currentLabel) {
+  if (!navItem || t(navItem.label) === currentLabel) {
     return null;
   }
 
@@ -41,7 +44,7 @@ function ToolbarBreadcrumbs() {
         to={navItem.path}
         className="text-sm text-muted-foreground hover:text-foreground transition-colors"
       >
-        {navItem.label}
+        {t(navItem.label)}
       </Link>
       <span className="text-muted-foreground/60">/</span>
       <span className="text-sm text-mono">{currentLabel}</span>
@@ -50,9 +53,10 @@ function ToolbarBreadcrumbs() {
 }
 
 function ToolbarHeading() {
+  const { t } = usePortalI18n();
   const handles = useRouteHandles();
   const current = handles.at(-1);
-  const title = current?.title ?? "BaseFAQ Portal";
+  const title = t(current?.title ?? "BaseFAQ Portal");
 
   return (
     <div className="flex flex-col flex-wrap gap-1 md:flex-row md:items-center lg:gap-5">
@@ -68,6 +72,7 @@ function ToolbarActions() {
   return (
     <div className="flex items-center gap-1.5 lg:gap-3.5">
       <PortalCommandDialog />
+      <LanguageSelector />
       <NotificationsMenu />
       <UserMenu />
     </div>

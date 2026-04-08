@@ -1,6 +1,7 @@
 import { Command, Search } from 'lucide-react';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { usePortalI18n } from '@/shared/lib/i18n';
 import {
   Button,
   Dialog,
@@ -23,6 +24,7 @@ export function PortalCommandDialog({
   variant?: 'toolbar' | 'icon' | 'sidebar';
 }) {
   const [open, setOpen] = useState(false);
+  const { t } = usePortalI18n();
 
   return (
     <>
@@ -33,7 +35,7 @@ export function PortalCommandDialog({
           onClick={() => setOpen(true)}
         >
           <Search className="size-4" />
-          Search portal
+          {t('Search portal')}
         </Button>
       ) : null}
 
@@ -55,7 +57,7 @@ export function PortalCommandDialog({
           onClick={() => setOpen(true)}
         >
           <Search className="size-4" />
-          Search portal
+          {t('Search portal')}
           <span className="ms-auto text-xs text-muted-foreground">cmd + /</span>
         </Button>
       ) : null}
@@ -63,16 +65,17 @@ export function PortalCommandDialog({
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-xl">
           <DialogHeader>
-            <DialogTitle>Portal command search</DialogTitle>
+            <DialogTitle>{t('Portal command search')}</DialogTitle>
             <DialogDescription>
-              The command surface is intentionally lean for now. Use it as a
-              quick launcher while full global search stays a placeholder.
+              {t(
+                'The command surface is intentionally lean for now. Use it as a quick launcher while full global search stays a placeholder.',
+              )}
             </DialogDescription>
           </DialogHeader>
           <div className="rounded-2xl border border-border p-2">
             <div className="flex items-center gap-2 rounded-xl bg-muted/60 px-3 py-2 text-sm text-muted-foreground">
               <Search className="size-4" />
-              Search is route-launch only in this foundation build.
+              {t('Search is route-launch only in this foundation build.')}
             </div>
             <div className="mt-3 grid gap-2">
               {shortcuts.map((shortcut) => (
@@ -85,7 +88,7 @@ export function PortalCommandDialog({
                 >
                   <Link to={shortcut.to}>
                     <Command className="size-4" />
-                    {shortcut.label}
+                    {t(shortcut.label)}
                   </Link>
                 </Button>
               ))}

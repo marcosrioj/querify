@@ -1,6 +1,7 @@
 import { ReactNode } from "react";
 import { KeenIcon } from "@/components/keenicons";
 import { cn } from "@/lib/utils";
+import { translateMaybeString, usePortalI18n } from "@/shared/lib/i18n";
 import {
   Tooltip,
   TooltipContent,
@@ -18,12 +19,14 @@ export function ContextHint({
   className?: string;
   contentClassName?: string;
 }) {
+  const { t } = usePortalI18n();
+
   return (
     <Tooltip>
       <TooltipTrigger asChild>
         <button
           type="button"
-          aria-label={label}
+          aria-label={t(label)}
           className={cn(
             "inline-flex size-5 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
             className,
@@ -44,7 +47,7 @@ export function ContextHint({
           contentClassName,
         )}
       >
-        {content}
+        {translateMaybeString(content, t)}
       </TooltipContent>
     </Tooltip>
   );

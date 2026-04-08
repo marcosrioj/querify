@@ -7,6 +7,7 @@ import {
   AccordionMenuItem,
   AccordionMenuLabel,
 } from '@/components/ui/accordion-menu';
+import { usePortalI18n } from '@/shared/lib/i18n';
 import { portalNavigation } from '@/shared/constants/navigation';
 
 export function SidebarMenuPrimary({
@@ -14,6 +15,7 @@ export function SidebarMenuPrimary({
 }: {
   onNavigate?: () => void;
 }) {
+  const { t } = usePortalI18n();
   const { pathname } = useLocation();
   const navigate = useNavigate();
 
@@ -43,7 +45,7 @@ export function SidebarMenuPrimary({
         onNavigate?.();
       }}
     >
-      <AccordionMenuLabel>Portal</AccordionMenuLabel>
+      <AccordionMenuLabel>{t('Portal')}</AccordionMenuLabel>
       <AccordionMenuGroup>
         {portalNavigation.map((item) => {
           const Icon = item.icon;
@@ -55,7 +57,7 @@ export function SidebarMenuPrimary({
               className="text-sm font-medium"
             >
               <Icon data-slot="accordion-menu-icon" />
-              <span data-slot="accordion-menu-title">{item.label}</span>
+              <span data-slot="accordion-menu-title">{t(item.label)}</span>
             </AccordionMenuItem>
           );
         })}

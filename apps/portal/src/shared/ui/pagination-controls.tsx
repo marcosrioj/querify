@@ -26,6 +26,7 @@ import {
   PaginationEllipsis,
   PaginationItem,
 } from '@/components/ui/pagination';
+import { usePortalI18n } from '@/shared/lib/i18n';
 
 const DEFAULT_PAGE_SIZE_OPTIONS = [10, 20, 50, 100];
 
@@ -46,6 +47,7 @@ export function PaginationControls({
   onPageSizeChange?: (pageSize: number) => void;
   pageSizeOptions?: number[];
 }) {
+  const { t } = usePortalI18n();
   const pageCount = toPageCount(totalCount, pageSize);
   const safePage = clampPage(page, totalCount, pageSize);
   const start = totalCount === 0 ? 0 : (safePage - 1) * pageSize + 1;
@@ -57,8 +59,16 @@ export function PaginationControls({
   const visiblePages = getVisiblePaginationPages(safePage, pageCount);
   const canGoBackward = safePage > 1;
   const canGoForward = safePage < pageCount;
-  const summaryLabel = totalCount === 1 ? 'item' : 'items';
-  const summary = totalCount === 0 ? '0 of 0 items' : `${start}-${end} of ${totalCount} ${summaryLabel}`;
+  const summaryLabel = totalCount === 1 ? t('item') : t('items');
+  const summary =
+    totalCount === 0
+      ? t('0 of 0 items')
+      : t('{start}-{end} of {totalCount} {summaryLabel}', {
+          start,
+          end,
+          totalCount,
+          summaryLabel,
+        });
 
   const pageSequence = visiblePages.flatMap((visiblePage, index) => {
     const previousPage = visiblePages[index - 1];
@@ -89,7 +99,10 @@ export function PaginationControls({
               value={String(pageSize)}
               onValueChange={(value) => onPageSizeChange(Number(value))}
             >
-              <SelectTrigger className="h-7 w-[74px] shrink-0 px-2.5 text-xs" aria-label="Rows per page">
+              <SelectTrigger
+                className="h-7 w-[74px] shrink-0 px-2.5 text-xs"
+                aria-label={t('Rows per page')}
+              >
                 <SelectValue placeholder={String(pageSize)} />
               </SelectTrigger>
               <SelectContent>
@@ -114,8 +127,8 @@ export function PaginationControls({
             mode="icon"
             disabled={!canGoBackward}
             onClick={() => onPageChange(1)}
-            aria-label="First page"
-            title="First page"
+            aria-label={t('First page')}
+            title={t('First page')}
           >
             <ChevronsLeft className="size-4" />
           </Button>
@@ -126,8 +139,8 @@ export function PaginationControls({
             mode="icon"
             disabled={!canGoBackward}
             onClick={() => onPageChange(safePage - 1)}
-            aria-label="Previous page"
-            title="Previous page"
+            aria-label={t('Previous page')}
+            title={t('Previous page')}
           >
             <ChevronLeft className="size-4" />
           </Button>
@@ -142,7 +155,7 @@ export function PaginationControls({
                       size="sm"
                       variant={safePage === item ? 'secondary' : 'outline'}
                       aria-current={safePage === item ? 'page' : undefined}
-                      aria-label={`Page ${item}`}
+                      aria-label={t('Page {page}', { page: item })}
                       className={cn(
                         'min-w-8 justify-center px-0 text-xs',
                         safePage === item && 'shadow-xs shadow-black/5',
@@ -166,8 +179,8 @@ export function PaginationControls({
             mode="icon"
             disabled={!canGoForward}
             onClick={() => onPageChange(safePage + 1)}
-            aria-label="Next page"
-            title="Next page"
+            aria-label={t('Next page')}
+            title={t('Next page')}
           >
             <ChevronRight className="size-4" />
           </Button>
@@ -178,8 +191,8 @@ export function PaginationControls({
             mode="icon"
             disabled={!canGoForward}
             onClick={() => onPageChange(pageCount)}
-            aria-label="Last page"
-            title="Last page"
+            aria-label={t('Last page')}
+            title={t('Last page')}
           >
             <ChevronsRight className="size-4" />
           </Button>

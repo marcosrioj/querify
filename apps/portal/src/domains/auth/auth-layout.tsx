@@ -2,13 +2,16 @@ import { Link, Outlet } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { toAbsoluteUrl } from '@/lib/helpers';
 import { RuntimeEnv } from '@/platform/runtime/env';
+import { usePortalI18n } from '@/shared/lib/i18n';
 import { Card, CardContent } from '@/shared/ui';
 
 export function AuthLayout() {
+  const { t } = usePortalI18n();
+
   return (
     <>
       <Helmet>
-        <title>Sign in | {RuntimeEnv.appName}</title>
+        <title>{t('Sign in')} | {RuntimeEnv.appName}</title>
       </Helmet>
 
       <style>
@@ -46,11 +49,12 @@ export function AuthLayout() {
             <div className="max-w-xl space-y-5">
               <div className="space-y-3">
                 <h1 className="text-2xl font-semibold text-mono">
-                  Manage your BaseFAQ workspace
+                  {t('Manage your BaseFAQ workspace')}
                 </h1>
                 <p className="text-base font-medium text-secondary-foreground">
-                  Sign in to manage FAQs, Q&A items, sources, billing, and AI
-                  settings.
+                  {t(
+                    'Sign in to manage FAQs, Q&A items, sources, billing, and AI settings.',
+                  )}
                 </p>
               </div>
 

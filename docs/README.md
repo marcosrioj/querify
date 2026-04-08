@@ -21,6 +21,7 @@ This folder is the canonical knowledge base for the repository. The root `README
 ### Frontend
 
 - [`frontend/portal-app.md`](frontend/portal-app.md): portal application scope, setup, environment variables, API dependencies, and local validation.
+- [`frontend/portal-localization.md`](frontend/portal-localization.md): language resolution, RTL/LTR behavior, frontend-owned translations, and Portal localization entry points.
 - [`frontend/portal-app-ui-prompt-guidance.md`](frontend/portal-app-ui-prompt-guidance.md): shared UI and UX implementation rules for Portal work.
 
 ### Backend

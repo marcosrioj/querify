@@ -2,6 +2,7 @@ import { ChevronDown, LogOut, Moon } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/platform/auth/auth-context';
+import { usePortalI18n } from '@/shared/lib/i18n';
 import {
   Avatar,
   AvatarFallback,
@@ -24,6 +25,7 @@ export function UserMenu({
 }) {
   const { user, logout } = useAuth();
   const { resolvedTheme, setTheme } = useTheme();
+  const { t } = usePortalI18n();
   const initials = getInitials(user?.name ?? user?.email, 2);
 
   const handleThemeToggle = (checked: boolean) => {
@@ -49,10 +51,10 @@ export function UserMenu({
             </Avatar>
             <div className="hidden min-w-0 text-left md:block">
               <p className="truncate text-sm font-medium text-mono">
-                {user?.name ?? 'Portal user'}
+                {user?.name ?? t('Portal user')}
               </p>
               <p className="truncate text-xs text-muted-foreground">
-                {user?.email ?? 'No email in token'}
+                {user?.email ?? t('No email in token')}
               </p>
             </div>
             <ChevronDown className="size-4 text-muted-foreground" />
@@ -62,19 +64,19 @@ export function UserMenu({
       <DropdownMenuContent align="end" className="w-72">
         <DropdownMenuLabel className="space-y-2">
           <div className="text-sm font-semibold text-mono">
-            {user?.name ?? 'Portal user'}
+            {user?.name ?? t('Portal user')}
           </div>
           <div className="text-xs font-normal text-muted-foreground">
-            {user?.email ?? 'Email claim unavailable'}
+            {user?.email ?? t('Email claim unavailable')}
           </div>
           {user ? <RoleBadge role={user.role} /> : null}
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
-          <Link to="/app/settings/profile">Profile settings</Link>
+          <Link to="/app/settings/profile">{t('Profile settings')}</Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
-          <Link to="/app/settings/security">Security</Link>
+          <Link to="/app/settings/security">{t('Security')}</Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem
@@ -83,11 +85,11 @@ export function UserMenu({
         >
           <Moon className="size-4" />
           <div className="flex grow items-center justify-between gap-2">
-            <span>Dark mode</span>
+            <span>{t('Dark mode')}</span>
             <Switch
               size="sm"
               checked={resolvedTheme === 'dark'}
-              aria-label="Toggle dark mode"
+              aria-label={t('Toggle dark mode')}
               onCheckedChange={handleThemeToggle}
             />
           </div>
@@ -100,7 +102,7 @@ export function UserMenu({
           }}
         >
           <LogOut className="size-4" />
-          Sign out
+          {t('Sign out')}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

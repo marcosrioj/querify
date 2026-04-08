@@ -1,6 +1,7 @@
 import { ReactNode, useState } from "react";
 import { Sparkles, TriangleAlert } from "lucide-react";
 import { Control, FieldValues, Path } from "react-hook-form";
+import { translateMaybeString, usePortalI18n } from "@/shared/lib/i18n";
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -118,13 +119,17 @@ function FieldLabel({
   description?: ReactNode;
   hint?: ReactNode;
 }) {
+  const { t } = usePortalI18n();
   const helpContent = buildFieldHelpContent({ description, hint });
 
   return (
     <div className="flex items-center gap-1.5">
-      <FormLabel>{label}</FormLabel>
+      <FormLabel>{translateMaybeString(label, t)}</FormLabel>
       {helpContent ? (
-        <ContextHint content={helpContent} label="Field details" />
+        <ContextHint
+          content={translateMaybeString(helpContent, t)}
+          label={t("Field details")}
+        />
       ) : null}
     </div>
   );
@@ -159,6 +164,7 @@ function ConfirmingSwitchControl({
   onCheckedChange: (checked: boolean) => void;
   confirmation?: SwitchFieldConfirmation;
 }) {
+  const { t } = usePortalI18n();
   const [pendingChecked, setPendingChecked] = useState<boolean | null>(null);
   const nextChecked = pendingChecked ?? checked;
   const isOpen = pendingChecked !== null;
@@ -219,12 +225,14 @@ function ConfirmingSwitchControl({
                 <Sparkles className="size-5" />
               )}
             </div>
-            <AlertDialogTitle>{title}</AlertDialogTitle>
-            <AlertDialogDescription>{description}</AlertDialogDescription>
+            <AlertDialogTitle>{translateMaybeString(title, t)}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {translateMaybeString(description, t)}
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>
-              {confirmation?.cancelLabel ?? "Cancel"}
+              {t(confirmation?.cancelLabel ?? "Cancel")}
             </AlertDialogCancel>
             <Button
               variant={variant}
@@ -237,7 +245,7 @@ function ConfirmingSwitchControl({
                 setPendingChecked(null);
               }}
             >
-              {confirmLabel}
+              {t(confirmLabel)}
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -260,6 +268,8 @@ export function TextField<TFieldValues extends FieldValues>({
   placeholder?: string;
   disabled?: boolean;
 }) {
+  const { t } = usePortalI18n();
+
   return (
     <FormField
       control={control}
@@ -271,12 +281,14 @@ export function TextField<TFieldValues extends FieldValues>({
             <Input
               {...field}
               type={type}
-              placeholder={placeholder}
+              placeholder={placeholder ? t(placeholder) : undefined}
               disabled={disabled}
             />
           </FormControl>
           {description ? (
-            <FormDescription className="sr-only">{description}</FormDescription>
+            <FormDescription className="sr-only">
+              {translateMaybeString(description, t)}
+            </FormDescription>
           ) : null}
           <FormMessage />
         </FormItem>
@@ -299,6 +311,8 @@ export function TextareaField<TFieldValues extends FieldValues>({
   rows?: number;
   disabled?: boolean;
 }) {
+  const { t } = usePortalI18n();
+
   return (
     <FormField
       control={control}
@@ -309,13 +323,15 @@ export function TextareaField<TFieldValues extends FieldValues>({
           <FormControl>
             <Textarea
               {...field}
-              placeholder={placeholder}
+              placeholder={placeholder ? t(placeholder) : undefined}
               rows={rows}
               disabled={disabled}
             />
           </FormControl>
           {description ? (
-            <FormDescription className="sr-only">{description}</FormDescription>
+            <FormDescription className="sr-only">
+              {translateMaybeString(description, t)}
+            </FormDescription>
           ) : null}
           <FormMessage />
         </FormItem>
@@ -336,6 +352,7 @@ export function SwitchField<TFieldValues extends FieldValues>({
   disabled?: boolean;
   confirmation?: SwitchFieldConfirmation | false;
 }) {
+  const { t } = usePortalI18n();
   const normalizedFieldName = String(name).replace(/\./g, "").toLowerCase();
   const resolvedConfirmation =
     confirmation === false
@@ -357,7 +374,7 @@ export function SwitchField<TFieldValues extends FieldValues>({
               <FieldLabel label={label} description={description} hint={hint} />
               {description ? (
                 <FormDescription className="sr-only">
-                  {description}
+                  {translateMaybeString(description, t)}
                 </FormDescription>
               ) : null}
             </div>
@@ -387,6 +404,8 @@ export function CheckboxField<TFieldValues extends FieldValues>({
 }: BaseFieldProps<TFieldValues> & {
   disabled?: boolean;
 }) {
+  const { t } = usePortalI18n();
+
   return (
     <FormField
       control={control}
@@ -404,7 +423,7 @@ export function CheckboxField<TFieldValues extends FieldValues>({
             <FieldLabel label={label} description={description} hint={hint} />
             {description ? (
               <FormDescription className="sr-only">
-                {description}
+                {translateMaybeString(description, t)}
               </FormDescription>
             ) : null}
             <FormMessage />
@@ -431,6 +450,7 @@ export function SelectField<TFieldValues extends FieldValues>({
   disabled?: boolean;
   confirmation?: SelectFieldConfirmation;
 }) {
+  const { t } = usePortalI18n();
   const [pendingValue, setPendingValue] = useState<string | null>(null);
   const [isUserInitiatedChange, setIsUserInitiatedChange] = useState(false);
   const hasEmptyOption = options.some((option) => option.value === "");
@@ -518,7 +538,7 @@ export function SelectField<TFieldValues extends FieldValues>({
               disabled={disabled}
             >
               <FormControl>
-                <SelectTrigger
+                  <SelectTrigger
                   onPointerDown={() => {
                     if (!disabled) {
                       setIsUserInitiatedChange(true);
@@ -530,7 +550,9 @@ export function SelectField<TFieldValues extends FieldValues>({
                     }
                   }}
                 >
-                  <SelectValue placeholder={placeholder} />
+                  <SelectValue
+                    placeholder={placeholder ? t(placeholder) : undefined}
+                  />
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
@@ -540,7 +562,7 @@ export function SelectField<TFieldValues extends FieldValues>({
 
                   return (
                     <SelectItem key={optionValue} value={optionValue}>
-                      {option.label}
+                      {t(option.label)}
                     </SelectItem>
                   );
                 })}
@@ -563,14 +585,16 @@ export function SelectField<TFieldValues extends FieldValues>({
                       <Sparkles className="size-5" />
                     )}
                   </div>
-                  <AlertDialogTitle>{confirmTitle}</AlertDialogTitle>
+                  <AlertDialogTitle>
+                    {translateMaybeString(confirmTitle, t)}
+                  </AlertDialogTitle>
                   <AlertDialogDescription>
-                    {confirmDescription}
+                    {translateMaybeString(confirmDescription, t)}
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel>
-                    {confirmation?.cancelLabel ?? "Cancel"}
+                    {t(confirmation?.cancelLabel ?? "Cancel")}
                   </AlertDialogCancel>
                   <Button
                     variant={confirmVariant}
@@ -583,14 +607,14 @@ export function SelectField<TFieldValues extends FieldValues>({
                       setPendingValue(null);
                     }}
                   >
-                    {confirmLabel}
+                    {t(confirmLabel)}
                   </Button>
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
             {description ? (
               <FormDescription className="sr-only">
-                {description}
+                {translateMaybeString(description, t)}
               </FormDescription>
             ) : null}
             <FormMessage />
@@ -633,6 +657,8 @@ export function SearchSelectField<TFieldValues extends FieldValues>({
   searchValue?: string;
   onSearchChange?: (value: string) => void;
 }) {
+  const { t } = usePortalI18n();
+
   return (
     <FormField
       control={control}
@@ -650,20 +676,24 @@ export function SearchSelectField<TFieldValues extends FieldValues>({
               onValueChange={field.onChange}
               options={options}
               selectedOption={selectedOption}
-              placeholder={placeholder}
-              searchPlaceholder={searchPlaceholder}
-              emptyMessage={emptyMessage}
+              placeholder={placeholder ? t(placeholder) : undefined}
+              searchPlaceholder={
+                searchPlaceholder ? t(searchPlaceholder) : undefined
+              }
+              emptyMessage={emptyMessage ? t(emptyMessage) : undefined}
               loading={loading}
               disabled={disabled}
               allowClear={allowClear}
-              clearLabel={clearLabel}
-              resultCountHint={resultCountHint}
+              clearLabel={clearLabel ? t(clearLabel) : undefined}
+              resultCountHint={resultCountHint ? t(resultCountHint) : undefined}
               searchValue={searchValue}
               onSearchChange={onSearchChange}
             />
           </FormControl>
           {description ? (
-            <FormDescription className="sr-only">{description}</FormDescription>
+            <FormDescription className="sr-only">
+              {translateMaybeString(description, t)}
+            </FormDescription>
           ) : null}
           <FormMessage />
         </FormItem>

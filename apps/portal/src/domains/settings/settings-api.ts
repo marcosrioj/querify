@@ -5,6 +5,7 @@ export type UserProfileDto = {
   surName?: string | null;
   email: string;
   phoneNumber: string;
+  language?: string | null;
   timeZone?: string | null;
 };
 
@@ -12,6 +13,7 @@ export type UserProfileUpdateRequestDto = {
   givenName: string;
   surName?: string | null;
   phoneNumber?: string | null;
+  language?: string | null;
   timeZone?: string | null;
 };
 

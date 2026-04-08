@@ -13,6 +13,7 @@ import type {
 } from '@/domains/content-refs/types';
 import { useAuth } from '@/platform/auth/auth-context';
 import { useTenant } from '@/platform/tenant/tenant-context';
+import { translateText } from '@/shared/lib/i18n-core';
 
 export const contentRefKeys = {
   all: ['portal', 'content-refs'] as const,
@@ -79,7 +80,7 @@ export function useCreateContentRef() {
     mutationFn: (body: ContentRefCreateRequestDto) =>
       createContentRef(session?.accessToken, currentTenantId, body),
     onSuccess: async () => {
-      toast.success('Source created.');
+      toast.success(translateText('Source created.'));
       await queryClient.invalidateQueries({ queryKey: contentRefKeys.all });
     },
   });
@@ -95,7 +96,7 @@ export function useUpdateContentRef(id: string) {
     mutationFn: (body: ContentRefUpdateRequestDto) =>
       updateContentRef(session?.accessToken, currentTenantId, id, body),
     onSuccess: async () => {
-      toast.success('Source updated.');
+      toast.success(translateText('Source updated.'));
       await queryClient.invalidateQueries({ queryKey: contentRefKeys.all });
     },
   });
@@ -111,7 +112,7 @@ export function useDeleteContentRef() {
     mutationFn: (id: string) =>
       deleteContentRef(session?.accessToken, currentTenantId, id),
     onSuccess: async () => {
-      toast.success('Source deleted.');
+      toast.success(translateText('Source deleted.'));
       await queryClient.invalidateQueries({ queryKey: contentRefKeys.all });
     },
   });

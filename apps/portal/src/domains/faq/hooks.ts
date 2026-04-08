@@ -11,6 +11,7 @@ import {
 import type { FaqCreateRequestDto, FaqUpdateRequestDto } from '@/domains/faq/types';
 import { useAuth } from '@/platform/auth/auth-context';
 import { useTenant } from '@/platform/tenant/tenant-context';
+import { translateText } from '@/shared/lib/i18n-core';
 
 export const faqKeys = {
   all: ['portal', 'faq'] as const,
@@ -74,7 +75,7 @@ export function useCreateFaq() {
     mutationFn: (body: FaqCreateRequestDto) =>
       createFaq(session?.accessToken, currentTenantId, body),
     onSuccess: async () => {
-      toast.success('FAQ created.');
+      toast.success(translateText('FAQ created.'));
       await queryClient.invalidateQueries({ queryKey: faqKeys.all });
     },
   });
@@ -90,7 +91,7 @@ export function useUpdateFaq(id: string) {
     mutationFn: (body: FaqUpdateRequestDto) =>
       updateFaq(session?.accessToken, currentTenantId, id, body),
     onSuccess: async () => {
-      toast.success('FAQ updated.');
+      toast.success(translateText('FAQ updated.'));
       await queryClient.invalidateQueries({ queryKey: faqKeys.all });
     },
   });
@@ -105,7 +106,7 @@ export function useDeleteFaq() {
     mutationKey: [...faqKeys.all, 'delete'],
     mutationFn: (id: string) => deleteFaq(session?.accessToken, currentTenantId, id),
     onSuccess: async () => {
-      toast.success('FAQ deleted.');
+      toast.success(translateText('FAQ deleted.'));
       await queryClient.invalidateQueries({ queryKey: faqKeys.all });
     },
   });
@@ -120,7 +121,11 @@ export function useRequestFaqGeneration() {
     mutationFn: (id: string) =>
       requestFaqGeneration(session?.accessToken, currentTenantId, id),
     onSuccess: (correlationId) => {
-      toast.success(`Generation requested. Correlation ID: ${correlationId}`);
+      toast.success(
+        translateText('Generation requested. Correlation ID: {correlationId}', {
+          correlationId,
+        }),
+      );
     },
   });
 }

@@ -14,6 +14,7 @@ import {
 import { useRefreshAllowedTenantCache } from "@/domains/tenants/hooks";
 import { useTenant } from "@/platform/tenant/tenant-context";
 import { cn } from "@/lib/utils";
+import { usePortalI18n } from "@/shared/lib/i18n";
 import { tenantUserRoleTypeLabels } from "@/shared/constants/backend-enums";
 import {
   Button,
@@ -36,6 +37,7 @@ function hasGuidPathSegment(pathname: string) {
 }
 
 export function TenantSwitcher() {
+  const { t } = usePortalI18n();
   const [open, setOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
@@ -93,13 +95,13 @@ export function TenantSwitcher() {
           </div>
           <div className="min-w-0">
             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground/80">
-              Workspace
+              {t("Workspace")}
             </p>
             <p className="mt-1 text-sm font-medium text-mono">
-              No workspaces available
+              {t("No workspaces available")}
             </p>
             <p className="mt-1 text-xs text-muted-foreground">
-              Add or request access to a workspace to enable Portal features.
+              {t("Add or request access to a workspace to enable Portal features.")}
             </p>
           </div>
         </div>
@@ -115,7 +117,7 @@ export function TenantSwitcher() {
           size="lg"
           autoHeight
           className="h-auto w-full justify-start rounded-xl border-border/80 bg-background px-3 py-2.5 text-left shadow-xs shadow-black/5 hover:border-primary/20 hover:bg-primary/[0.03]"
-          aria-label="Switch workspace"
+          aria-label={t("Switch workspace")}
           disabled={refreshAllowedTenantCache.isPending}
         >
           <div className="flex w-full items-center gap-3">
@@ -125,15 +127,15 @@ export function TenantSwitcher() {
 
             <div className="min-w-0 flex-1">
               <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground/75">
-                Workspace
+                {t("Workspace")}
               </p>
               <p className="mt-0.5 truncate text-sm font-semibold text-mono">
-                {currentTenant?.name ?? "Select workspace"}
+                {currentTenant?.name ?? t("Select workspace")}
               </p>
               <p className="truncate text-xs text-muted-foreground">
                 {currentTenant?.slug
                   ? `@${currentTenant.slug}`
-                  : "Select a workspace to activate Portal features."}
+                  : t("Select a workspace to activate Portal features.")}
               </p>
             </div>
 
@@ -159,30 +161,31 @@ export function TenantSwitcher() {
               <div className="min-w-0 flex-1">
                 <div className="flex items-center justify-between gap-3">
                   <p className="text-sm font-semibold text-mono">
-                    Switch workspace
+                    {t("Switch workspace")}
                   </p>
                   <span className="inline-flex items-center rounded-full border border-border/70 bg-background px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
-                    {tenants.length} available
+                    {t("{count} available", { count: tenants.length })}
                   </span>
                 </div>
               </div>
             </div>
           </div>
 
-          <CommandInput placeholder="Search workspaces..." autoFocus />
+          <CommandInput placeholder={t("Search workspaces...")} autoFocus />
 
           <CommandList className="max-h-[360px] px-3 pb-3">
             <CommandEmpty className="py-8 text-sm text-muted-foreground">
-              No workspaces found.
+              {t("No workspaces found.")}
             </CommandEmpty>
             <CommandGroup
-              heading="Available workspaces"
+              heading={t("Available workspaces")}
               className="p-0 [&_[cmdk-group-heading]]:px-1 [&_[cmdk-group-heading]]:pb-2 [&_[cmdk-group-heading]]:pt-0"
             >
               {tenants.map((tenant) => {
                 const isSelected = tenant.id === selectedTenantId;
-                const roleLabel =
-                  tenantUserRoleTypeLabels[tenant.currentUserRole];
+                const roleLabel = t(
+                  tenantUserRoleTypeLabels[tenant.currentUserRole],
+                );
 
                 return (
                   <CommandItem

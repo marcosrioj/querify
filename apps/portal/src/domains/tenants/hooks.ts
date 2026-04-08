@@ -14,6 +14,7 @@ import type {
 } from '@/domains/tenants/types';
 import { useAuth } from '@/platform/auth/auth-context';
 import { useTenant } from '@/platform/tenant/tenant-context';
+import { translateText } from '@/shared/lib/i18n-core';
 
 const tenantKeys = {
   workspace: (tenantId?: string) =>
@@ -54,7 +55,7 @@ export function useUpdateTenantWorkspace() {
     mutationFn: (body: TenantCreateOrUpdateRequestDto) =>
       createOrUpdateTenant(session?.accessToken, currentTenantId, body),
     onSuccess: async () => {
-      toast.success('Workspace settings saved.');
+      toast.success(translateText('Workspace settings saved.'));
       await Promise.all([
         queryClient.invalidateQueries({
           queryKey: ['portal', 'tenant-context', 'tenants'],
@@ -76,7 +77,7 @@ export function useGenerateClientKey() {
     mutationKey: ['portal', 'tenant-domain', 'generate-client-key'],
     mutationFn: () => generateTenantClientKey(session?.accessToken, currentTenantId),
     onSuccess: async () => {
-      toast.success('A new public client key was generated.');
+      toast.success(translateText('A new public client key was generated.'));
       await queryClient.invalidateQueries({
         queryKey: tenantKeys.workspace(currentTenantId),
       });
@@ -104,7 +105,11 @@ export function useSetAiProviderCredentials() {
     mutationFn: (body: TenantSetAiProviderCredentialsRequestDto) =>
       setAiProviderCredentials(session?.accessToken, currentTenantId, body),
     onSuccess: async () => {
-      toast.success('AI provider credentials stored for the current workspace.');
+      toast.success(
+        translateText(
+          'AI provider credentials stored for the current workspace.',
+        ),
+      );
       await queryClient.invalidateQueries({
         queryKey: tenantKeys.aiProviders(currentTenantId),
       });

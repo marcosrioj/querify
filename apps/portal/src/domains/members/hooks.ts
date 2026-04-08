@@ -8,6 +8,7 @@ import {
 import type { AddTenantMemberRequestDto } from '@/domains/members/types';
 import { useAuth } from '@/platform/auth/auth-context';
 import { useTenant } from '@/platform/tenant/tenant-context';
+import { translateText } from '@/shared/lib/i18n-core';
 
 const membersKeys = {
   list: (tenantId?: string) =>
@@ -46,7 +47,7 @@ export function useAddTenantMember() {
     mutationFn: (body: AddTenantMemberRequestDto) =>
       addTenantMember(session?.accessToken, currentTenantId, body),
     onSuccess: async () => {
-      toast.success('Member added to the workspace.');
+      toast.success(translateText('Member added to the workspace.'));
       await Promise.all([
         queryClient.invalidateQueries({
           queryKey: membersKeys.list(currentTenantId),
@@ -67,7 +68,7 @@ export function useDeleteTenantMember() {
     mutationFn: (id: string) =>
       deleteTenantUser(session?.accessToken, currentTenantId, id),
     onSuccess: async () => {
-      toast.success('Member removed from the workspace.');
+      toast.success(translateText('Member removed from the workspace.'));
       await Promise.all([
         queryClient.invalidateQueries({
           queryKey: membersKeys.list(currentTenantId),

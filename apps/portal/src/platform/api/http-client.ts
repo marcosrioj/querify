@@ -1,5 +1,6 @@
 import { ApiError, isAbortError, toApiError } from '@/platform/api/api-error';
 import { RuntimeEnv } from '@/platform/runtime/env';
+import { translateText } from '@/shared/lib/i18n-core';
 
 export type PortalService = 'tenant' | 'faq';
 
@@ -20,38 +21,46 @@ const serviceBaseUrl: Record<PortalService, string> = {
 };
 
 function getServiceLabel(service: PortalService) {
-  return service === 'tenant' ? 'Tenant API' : 'FAQ API';
+  return translateText(service === 'tenant' ? 'Tenant API' : 'FAQ API');
 }
 
 function buildHttpErrorFallback(service: PortalService, status: number) {
   switch (status) {
     case 400:
-      return 'The request is invalid.';
+      return translateText('The request is invalid.');
     case 401:
-      return 'Your session expired. Sign in again.';
+      return translateText('Your session expired. Sign in again.');
     case 403:
-      return 'You do not have access to this workspace.';
+      return translateText('You do not have access to this workspace.');
     case 404:
-      return 'The requested record was not found.';
+      return translateText('The requested record was not found.');
     case 409:
-      return 'This change conflicts with the current data.';
+      return translateText('This change conflicts with the current data.');
     case 422:
-      return 'The submitted data is invalid.';
+      return translateText('The submitted data is invalid.');
     case 429:
-      return `${getServiceLabel(service)} is throttling requests right now.`;
+      return translateText('{serviceLabel} is throttling requests right now.', {
+        serviceLabel: getServiceLabel(service),
+      });
     default:
       return status >= 500
-        ? `${getServiceLabel(service)} is unavailable right now.`
-        : `${getServiceLabel(service)} request failed.`;
+        ? translateText('{serviceLabel} is unavailable right now.', {
+            serviceLabel: getServiceLabel(service),
+          })
+        : translateText('{serviceLabel} request failed.', {
+            serviceLabel: getServiceLabel(service),
+          });
   }
 }
 
 function buildNetworkErrorMessage(service: PortalService) {
   if (typeof navigator !== 'undefined' && navigator.onLine === false) {
-    return 'You are offline.';
+    return translateText('You are offline.');
   }
 
-  return `Cannot reach the ${getServiceLabel(service)}.`;
+  return translateText('Cannot reach the {serviceLabel}.', {
+    serviceLabel: getServiceLabel(service),
+  });
 }
 
 function buildQueryString(query?: Record<string, unknown>) {
@@ -160,7 +169,7 @@ export async function portalRequest<T>({
 
 export function requireAccessToken(token?: string) {
   if (!token) {
-    throw new ApiError('Sign in again to continue.', 401);
+    throw new ApiError(translateText('Sign in again to continue.'), 401);
   }
 
   return token;
@@ -168,7 +177,7 @@ export function requireAccessToken(token?: string) {
 
 export function requireTenantId(tenantId?: string) {
   if (!tenantId) {
-    throw new ApiError('Select a workspace to continue.', 400);
+    throw new ApiError(translateText('Select a workspace to continue.'), 400);
   }
 
   return tenantId;

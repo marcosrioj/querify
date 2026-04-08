@@ -13,6 +13,7 @@ import type {
 } from '@/domains/faq-items/types';
 import { useAuth } from '@/platform/auth/auth-context';
 import { useTenant } from '@/platform/tenant/tenant-context';
+import { translateText } from '@/shared/lib/i18n-core';
 
 export const faqItemKeys = {
   all: ['portal', 'faq-items'] as const,
@@ -79,7 +80,7 @@ export function useCreateFaqItem() {
     mutationFn: (body: FaqItemCreateRequestDto) =>
       createFaqItem(session?.accessToken, currentTenantId, body),
     onSuccess: async () => {
-      toast.success('Q&A item created.');
+      toast.success(translateText('Q&A item created.'));
       await queryClient.invalidateQueries({ queryKey: faqItemKeys.all });
     },
   });
@@ -95,7 +96,7 @@ export function useUpdateFaqItem(id: string) {
     mutationFn: (body: FaqItemUpdateRequestDto) =>
       updateFaqItem(session?.accessToken, currentTenantId, id, body),
     onSuccess: async () => {
-      toast.success('Q&A item updated.');
+      toast.success(translateText('Q&A item updated.'));
       await queryClient.invalidateQueries({ queryKey: faqItemKeys.all });
     },
   });
@@ -111,7 +112,7 @@ export function useDeleteFaqItem() {
     mutationFn: (id: string) =>
       deleteFaqItem(session?.accessToken, currentTenantId, id),
     onSuccess: async () => {
-      toast.success('Q&A item deleted.');
+      toast.success(translateText('Q&A item deleted.'));
       await queryClient.invalidateQueries({ queryKey: faqItemKeys.all });
     },
   });

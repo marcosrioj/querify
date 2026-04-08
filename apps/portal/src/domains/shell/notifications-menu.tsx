@@ -1,4 +1,5 @@
 import { Bell } from 'lucide-react';
+import { usePortalI18n } from '@/shared/lib/i18n';
 import {
   Button,
   DropdownMenu,
@@ -14,18 +15,20 @@ export function NotificationsMenu({
 }: {
   triggerVariant?: 'outline' | 'ghost';
 }) {
+  const { t } = usePortalI18n();
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button mode="icon" variant={triggerVariant}>
+        <Button mode="icon" variant={triggerVariant} aria-label={t('Notifications')}>
           <Bell className="size-4" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-80">
-        <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+        <DropdownMenuLabel>{t('Notifications')}</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem className="items-start">
-          Live notification feeds are not in the current Portal API surface.
+          {t('Live notification feeds are not in the current Portal API surface.')}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

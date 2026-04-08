@@ -2,6 +2,7 @@ import { type ReactNode } from "react";
 import { ArrowRight, CheckCircle2, CircleDashed } from "lucide-react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { translateMaybeString, usePortalI18n } from "@/shared/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -32,6 +33,7 @@ export function ProgressChecklistCard({
   className?: string;
   hideWhenComplete?: boolean;
 }) {
+  const { t } = usePortalI18n();
   const completeCount = steps.filter((step) => step.complete).length;
   const allStepsComplete = steps.length > 0 && completeCount === steps.length;
   const progressValue =
@@ -53,14 +55,14 @@ export function ProgressChecklistCard({
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="min-w-0 space-y-2">
             <p className="text-xs font-medium uppercase tracking-[0.22em] text-emerald-700 dark:text-emerald-400">
-              {eyebrow}
+              {t(eyebrow)}
             </p>
             <div className="space-y-1">
               <h3 className="text-xl font-semibold tracking-tight text-mono">
-                {title}
+                {translateMaybeString(title, t)}
               </h3>
               <p className="max-w-2xl text-sm leading-6 text-muted-foreground">
-                {description}
+                {translateMaybeString(description, t)}
               </p>
             </div>
           </div>
@@ -70,7 +72,7 @@ export function ProgressChecklistCard({
               {completeCount}/{steps.length}
             </p>
             <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
-              steps complete
+              {t("steps complete")}
             </p>
           </div>
         </div>
@@ -78,7 +80,9 @@ export function ProgressChecklistCard({
         <div className="space-y-2">
           <div className="flex items-center justify-between gap-3 text-sm">
             <span className="font-medium text-foreground">
-              {nextStep ? `Next: ${nextStep.label}` : "Everything is in place"}
+              {nextStep
+                ? t("Next: {label}", { label: t(nextStep.label) })
+                : t("Everything is in place")}
             </span>
             <span className="font-semibold text-emerald-700 dark:text-emerald-400">
               {progressValue}%
@@ -118,9 +122,9 @@ export function ProgressChecklistCard({
                   )}
                 </div>
                 <div className="min-w-0 space-y-1">
-                  <p className="font-medium text-foreground">{step.label}</p>
+                  <p className="font-medium text-foreground">{t(step.label)}</p>
                   <p className="text-sm leading-6 text-muted-foreground">
-                    {step.description}
+                    {t(step.description)}
                   </p>
                 </div>
               </div>
@@ -133,14 +137,14 @@ export function ProgressChecklistCard({
             {action ? (
               <Button asChild variant="mono">
                 <Link to={action.to}>
-                  {action.label}
+                  {t(action.label)}
                   <ArrowRight className="size-4" />
                 </Link>
               </Button>
             ) : null}
             {secondaryAction ? (
               <Button asChild variant="outline">
-                <Link to={secondaryAction.to}>{secondaryAction.label}</Link>
+                <Link to={secondaryAction.to}>{t(secondaryAction.label)}</Link>
               </Button>
             ) : null}
           </div>

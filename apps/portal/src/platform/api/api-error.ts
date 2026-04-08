@@ -164,7 +164,7 @@ export function isAbortError(error: unknown) {
 
 export function toErrorMessage(
   error: unknown,
-  fallbackMessage = 'Request failed.',
+  fallbackMessage = translateText('Request failed.'),
 ) {
   if (error instanceof ApiError) {
     const message = normalizeText(error.message);
@@ -202,3 +202,4 @@ export async function toApiError(
     context,
   );
 }
+import { translateText } from '@/shared/lib/i18n-core';

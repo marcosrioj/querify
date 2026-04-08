@@ -30,6 +30,7 @@ public class UserProfileService(IMediator mediator) : IUserProfileService
             GivenName = requestDto.GivenName,
             SurName = requestDto.SurName,
             PhoneNumber = requestDto.PhoneNumber,
+            Language = requestDto.Language,
             TimeZone = requestDto.TimeZone
         };
 

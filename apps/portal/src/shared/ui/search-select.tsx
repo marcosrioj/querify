@@ -17,6 +17,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import { usePortalI18n } from "@/shared/lib/i18n";
 
 export type SearchSelectOption = {
   value: string;
@@ -68,6 +69,7 @@ export const SearchSelect = React.forwardRef<
   },
   ref,
 ) {
+  const { t } = usePortalI18n();
   const [open, setOpen] = React.useState(false);
   const [internalSearchValue, setInternalSearchValue] = React.useState("");
   const listId = React.useId();
@@ -137,18 +139,18 @@ export const SearchSelect = React.forwardRef<
                   !currentOption ? "font-normal" : "font-medium",
                 )}
               >
-                {currentOption?.label ?? placeholder}
+                {currentOption?.label ?? t(placeholder)}
               </span>
               {currentOption?.description ? (
                 <span className="w-full truncate text-xs text-muted-foreground">
-                  {currentOption.description}
+                  {t(currentOption.description)}
                 </span>
               ) : null}
             </span>
             <span className="ml-3 flex items-center gap-2">
               {currentOption ? (
                 <Badge variant="secondary" className="hidden sm:inline-flex">
-                  Selected
+                  {t("Selected")}
                 </Badge>
               ) : null}
               <ChevronsUpDown className="size-4 opacity-50" />
@@ -164,13 +166,13 @@ export const SearchSelect = React.forwardRef<
           <CommandInput
             value={resolvedSearchValue}
             onValueChange={setSearchValue}
-            placeholder={searchPlaceholder}
+            placeholder={t(searchPlaceholder)}
             autoFocus
           />
           <CommandList id={listId}>
             {showCurrentSelection && currentOption ? (
               <>
-                <CommandGroup heading="Current selection">
+                <CommandGroup heading={t("Current selection")}>
                   <SearchSelectItem
                     option={currentOption}
                     isSelected
@@ -187,14 +189,16 @@ export const SearchSelect = React.forwardRef<
             {loading && options.length === 0 ? (
               <div className="flex items-center gap-2 px-3 py-6 text-sm text-muted-foreground">
                 <LoaderCircle className="size-4 animate-spin" />
-                Searching results...
+                {t("Searching results...")}
               </div>
             ) : (
-              <CommandEmpty>{emptyMessage}</CommandEmpty>
+              <CommandEmpty>{t(emptyMessage)}</CommandEmpty>
             )}
 
             <CommandGroup
-              heading={resolvedSearchValue.trim() ? "Matches" : "Options"}
+              heading={t(
+                resolvedSearchValue.trim() ? "Matches" : "Options",
+              )}
             >
               {options.map((option) => (
                 <SearchSelectItem
@@ -213,7 +217,7 @@ export const SearchSelect = React.forwardRef<
             {canClear ? (
               <>
                 <CommandSeparator />
-                <CommandGroup heading="Actions">
+                <CommandGroup heading={t("Actions")}>
                   <CommandItem
                     onSelect={() => {
                       onValueChange("");
@@ -222,7 +226,7 @@ export const SearchSelect = React.forwardRef<
                     }}
                   >
                     <X className="size-4 text-muted-foreground" />
-                    <span>{clearLabel}</span>
+                    <span>{t(clearLabel)}</span>
                   </CommandItem>
                 </CommandGroup>
               </>
@@ -232,7 +236,7 @@ export const SearchSelect = React.forwardRef<
 
         {resultCountHint ? (
           <div className="border-t border-border px-3 py-2 text-xs text-muted-foreground">
-            {resultCountHint}
+            {t(resultCountHint)}
           </div>
         ) : null}
       </PopoverContent>

@@ -3,6 +3,7 @@ import { ArrowLeft, type LucideIcon } from "lucide-react";
 import { Link, useMatches } from "react-router-dom";
 import { AppRouteHandle } from "@/app/router/route-types";
 import { Container } from "@/shared/layout/container";
+import { translateMaybeString, usePortalI18n } from "@/shared/lib/i18n";
 import { Button, Card, CardContent, ContextHint } from "@/shared/ui";
 import { cn } from "@/lib/utils";
 
@@ -42,13 +43,14 @@ export function PageHeader({
   actions?: ReactNode;
   backTo?: string;
 }) {
+  const { t } = usePortalI18n();
   const currentHandle = useCurrentRouteHandle();
   const renderTitle = shouldRenderPageTitle(title, currentHandle, backTo);
   const descriptionHint =
     description && descriptionMode === "hint" ? (
       <ContextHint
-        content={description}
-        label="Page details"
+        content={translateMaybeString(description, t)}
+        label={t("Page details")}
         className="mt-0.5"
       />
     ) : null;
@@ -67,7 +69,7 @@ export function PageHeader({
             ) : null}
             <div className="flex min-w-0 flex-wrap items-start gap-2">
               <h2 className="text-2xl font-semibold tracking-tight text-mono lg:text-3xl">
-                {title}
+                {translateMaybeString(title, t)}
               </h2>
               {descriptionHint}
             </div>
@@ -76,7 +78,7 @@ export function PageHeader({
 
         {description && descriptionMode === "inline" ? (
           <p className="max-w-2xl text-sm leading-6 text-muted-foreground">
-            {description}
+            {translateMaybeString(description, t)}
           </p>
         ) : !renderTitle ? (
           descriptionHint
@@ -107,6 +109,8 @@ export function ListLayout({
   header: ReactNode;
   filters?: ReactNode;
 }>) {
+  const { t } = usePortalI18n();
+
   return (
     <PageSurface className="space-y-5 lg:space-y-7.5">
       {header}
@@ -114,7 +118,7 @@ export function ListLayout({
         <Card className="border-dashed bg-muted/20">
           <CardContent className="space-y-3 p-4 lg:p-5">
             <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
-              Refine view
+              {t("Refine view")}
             </p>
             {filters}
           </CardContent>
@@ -153,6 +157,8 @@ export function SettingsNav({
   items: Array<{ key: string; label: string; href: string }>;
   currentKey: string;
 }) {
+  const { t } = usePortalI18n();
+
   return (
     <Card>
       <CardContent className="p-2">
@@ -164,7 +170,7 @@ export function SettingsNav({
               variant={item.key === currentKey ? "secondary" : "ghost"}
               className="w-full justify-start"
             >
-              <Link to={item.href}>{item.label}</Link>
+              <Link to={item.href}>{t(item.label)}</Link>
             </Button>
           ))}
         </div>
@@ -209,6 +215,7 @@ export function SectionGrid({
   }>;
   valueClassName?: string;
 }) {
+  const { t } = usePortalI18n();
   const toneClassNames = [
     "bg-blue-500/10 text-blue-600 dark:bg-blue-500/15 dark:text-blue-300",
     "bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-300",
@@ -231,11 +238,11 @@ export function SectionGrid({
           <CardContent className="relative min-w-0 p-5">
             <div className="min-w-0 space-y-2.5">
               <p className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
-                <span>{item.title}</span>
+                <span>{translateMaybeString(item.title, t)}</span>
                 {item.titleHint ? (
                   <ContextHint
-                    content={item.titleHint}
-                    label="Metric details"
+                    content={translateMaybeString(item.titleHint, t)}
+                    label={t("Metric details")}
                     className="size-4 text-[inherit]"
                   />
                 ) : null}
@@ -250,7 +257,7 @@ export function SectionGrid({
               </div>
               {item.description ? (
                 <p className="text-sm leading-6 text-muted-foreground">
-                  {item.description}
+                  {translateMaybeString(item.description, t)}
                 </p>
               ) : null}
             </div>

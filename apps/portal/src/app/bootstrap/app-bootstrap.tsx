@@ -2,6 +2,7 @@ import { HelmetProvider } from 'react-helmet-async';
 import { RouterProvider } from 'react-router-dom';
 import { AppRouter } from '@/app/router/router';
 import { AuthProvider } from '@/providers/auth-provider';
+import { I18nProvider } from '@/providers/i18n-provider';
 import { QueryProvider } from '@/providers/query-provider';
 import { TenantProvider } from '@/providers/tenant-provider';
 import { ThemeProvider } from '@/providers/theme-provider';
@@ -15,10 +16,12 @@ export function AppBootstrap() {
         <ThemeProvider>
           <QueryProvider>
             <AuthProvider>
-              <TenantProvider>
-                <ToastProvider />
-                <RouterProvider router={AppRouter} />
-              </TenantProvider>
+              <I18nProvider>
+                <TenantProvider>
+                  <ToastProvider />
+                  <RouterProvider router={AppRouter} />
+                </TenantProvider>
+              </I18nProvider>
             </AuthProvider>
           </QueryProvider>
         </ThemeProvider>

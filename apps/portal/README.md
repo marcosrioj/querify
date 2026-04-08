@@ -19,6 +19,7 @@ Confirmed backend constraints reflected in the frontend:
 Portal-only boundary:
 - No BackOffice endpoints are consumed
 - No BackOffice route concerns are exposed in the UI
+- Portal translations remain frontend-owned
 
 ## Structure
 
@@ -38,6 +39,8 @@ Notes:
 - `domains/tenants` and `domains/settings/profile` use the real Tenant Portal APIs
 - `domains/members` uses the isolated TenantUser API in Tenant Portal
 - `domains/billing` and parts of `domains/ai` remain placeholder shells where the backend surface is missing
+- `shared/lib/language.ts` defines the built-in Portal language options and text direction metadata
+- `shared/lib/i18n-core.ts` and `shared/lib/i18n.tsx` own frontend translations and `lang` / `dir` application
 
 ## Local setup
 
@@ -88,6 +91,18 @@ npm run build
 - No Portal billing/invoice API exists yet
 - No Portal AI jobs/progress listing API exists yet
 - FAQ, FAQ Item, and Content Ref text search/filtering are client-side on the loaded page because the backend list contracts do not expose search parameters yet
+
+## Localization
+
+Portal localization now resolves in this order:
+
+1. `User.Language` from the profile endpoint
+2. browser language
+3. English (`en-US`)
+
+The top toolbar includes a language selector beside notifications, and profile settings also expose the same preference.
+
+Portal UI translation is frontend-owned. Keep UI copy in the frontend and route it through the shared i18n helpers instead of expecting backend-translated DTO labels.
 
 ## Useful validation commands
 

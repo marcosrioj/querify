@@ -1,10 +1,12 @@
 import { ArrowUpRight, KeyRound } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { RuntimeEnv } from '@/platform/runtime/env';
+import { usePortalI18n } from '@/shared/lib/i18n';
 import { Alert, AlertDescription, Button } from '@/shared/ui';
 
 export function ForgotPasswordPage() {
   const hasResetUrl = Boolean(RuntimeEnv.auth0PasswordResetUrl);
+  const { t } = usePortalI18n();
 
   return (
     <div className="space-y-5">
@@ -14,10 +16,11 @@ export function ForgotPasswordPage() {
         </div>
 
         <div className="space-y-2">
-          <h2 className="text-3xl font-semibold text-mono">Password reset</h2>
+          <h2 className="text-3xl font-semibold text-mono">{t('Password reset')}</h2>
           <p className="text-sm leading-6 text-muted-foreground">
-            There is no Portal-owned password reset endpoint in the repo. This
-            flow should stay with the external identity provider.
+            {t(
+              'There is no Portal-owned password reset endpoint in the repo. This flow should stay with the external identity provider.',
+            )}
           </p>
         </div>
       </div>
@@ -29,7 +32,7 @@ export function ForgotPasswordPage() {
             target="_blank"
             rel="noreferrer"
           >
-            Open Auth0 reset flow
+            {t('Open Auth0 reset flow')}
             <ArrowUpRight className="size-4" />
           </a>
         </Button>
@@ -44,7 +47,7 @@ export function ForgotPasswordPage() {
 
       <div className="text-sm text-muted-foreground">
         <Link className="hover:text-foreground" to="/login">
-          Back to sign in
+          {t('Back to sign in')}
         </Link>
       </div>
     </div>

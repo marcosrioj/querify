@@ -9,6 +9,7 @@ import { PortalToolbar } from '@/domains/shell/portal-toolbar';
 import { useBodyClass } from '@/hooks/use-body-class';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
+import { usePortalI18n } from '@/shared/lib/i18n';
 
 function useRouteTitle() {
   return (
@@ -20,7 +21,8 @@ function useRouteTitle() {
 }
 
 export function PortalLayout() {
-  const title = useRouteTitle();
+  const { t } = usePortalI18n();
+  const title = t(useRouteTitle());
   const isMobile = useIsMobile();
 
   useBodyClass(`
@@ -33,7 +35,7 @@ export function PortalLayout() {
   return (
     <>
       <Helmet>
-        <title>{title} | BaseFAQ Portal</title>
+        <title>{title} | {t('BaseFAQ Portal')}</title>
       </Helmet>
 
       <div className="flex grow">

@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { getUserProfile, updateUserProfile, type UserProfileUpdateRequestDto } from '@/domains/settings/settings-api';
+import { translateText } from '@/shared/lib/i18n-core';
 import { DEFAULT_PORTAL_TIME_ZONE } from '@/shared/lib/time-zone';
 import { useAuth } from '@/platform/auth/auth-context';
 
@@ -27,7 +28,7 @@ export function useUpdateUserProfile() {
     mutationFn: (body: UserProfileUpdateRequestDto) =>
       updateUserProfile(session?.accessToken, body),
     onSuccess: async () => {
-      toast.success('Profile settings saved.');
+      toast.success(translateText('Profile settings saved.'));
       await queryClient.invalidateQueries({ queryKey: settingsKeys.profile });
     },
   });

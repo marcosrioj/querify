@@ -23,6 +23,7 @@ It is not the BackOffice UI and it does not own BackOffice API concerns.
 - Tailwind-based UI baseline
 - TanStack Query and Table
 - Auth0 SPA authentication
+- frontend-owned localization and RTL/LTR handling
 
 ## Repository structure
 
@@ -53,6 +54,7 @@ Operational constraints reflected in the frontend:
 - tenant-scoped backend calls require `X-Tenant-Id`
 - pagination contracts use `SkipCount`, `MaxResultCount`, and `Sorting`
 - backend error payloads follow `{ errorCode, messageError, data }`
+- portal UI translation is frontend-owned; backend DTOs do not provide translated labels
 
 ## Environment variables
 
@@ -123,6 +125,28 @@ If you use the local subdomain helper, also allow:
 - web origin: `http://dev.portal.basefaq.com`
 
 Do not assume the Swagger UI client id used by backend APIs is also valid for the Portal app. The Portal needs its own SPA client configuration unless the same Auth0 application was explicitly set up for both use cases.
+
+## Localization and direction
+
+Portal language and direction now resolve in this order:
+
+1. `User.Language` from the authenticated profile
+2. browser language
+3. English (`en-US`)
+
+Direction (`ltr` or `rtl`) is applied at the document level by the frontend.
+
+Implementation references:
+
+- [`portal-localization.md`](portal-localization.md)
+- `apps/portal/src/shared/lib/language.ts`
+- `apps/portal/src/shared/lib/i18n-core.ts`
+- `apps/portal/src/shared/lib/i18n.tsx`
+
+User-facing language controls are available in:
+
+- profile settings
+- the top toolbar beside notifications
 
 ## Local subdomain option
 

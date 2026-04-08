@@ -6,6 +6,8 @@ import { PageHeader, SettingsLayout } from '@/shared/layout/page-layouts';
 import { ProfileSettingsSkeleton } from '@/domains/settings/profile-settings-skeleton';
 import { settingsNavItems } from '@/domains/settings/settings-nav';
 import { useUpdateUserProfile, useUserProfile } from '@/domains/settings/settings-hooks';
+import { usePortalI18n } from '@/shared/lib/i18n';
+import { portalLanguageOptions } from '@/shared/lib/language';
 import { Button, Card, CardContent, CardDescription, CardHeader, CardHeading, CardTitle, Form } from '@/shared/ui';
 import { DEFAULT_PORTAL_TIME_ZONE, getTimeZoneOptions } from '@/shared/lib/time-zone';
 import { SearchSelectField, TextField } from '@/shared/ui/form-fields';
@@ -14,14 +16,17 @@ const profileSchema = z.object({
   givenName: z.string().min(1, 'First name is required.'),
   surName: z.string().optional(),
   phoneNumber: z.string().min(1, 'Phone number is required.'),
+  language: z.string().optional(),
   timeZone: z.string().optional(),
 });
 
 type ProfileFormValues = z.infer<typeof profileSchema>;
 
 export function ProfileSettingsPage() {
+  const { t } = usePortalI18n();
   const profileQuery = useUserProfile();
   const updateProfile = useUpdateUserProfile();
+  const languageOptions = useMemo(() => portalLanguageOptions, []);
   const timeZoneOptions = useMemo(() => getTimeZoneOptions(), []);
   const showLoadingState =
     profileQuery.isLoading && profileQuery.data === undefined;
@@ -32,9 +37,24 @@ export function ProfileSettingsPage() {
       givenName: '',
       surName: '',
       phoneNumber: '',
+      language: '',
       timeZone: '',
     },
   });
+  const selectedLanguageValue = form.watch('language');
+  const selectedLanguageOption =
+    languageOptions.find((option) => option.code === selectedLanguageValue)
+      ? {
+          value: selectedLanguageValue,
+          label:
+            languageOptions.find((option) => option.code === selectedLanguageValue)
+              ?.label ?? selectedLanguageValue,
+          description: `${selectedLanguageValue} • ${
+            languageOptions.find((option) => option.code === selectedLanguageValue)
+              ?.direction.toUpperCase() ?? 'LTR'
+          }`,
+        }
+      : null;
   const selectedTimeZoneValue = form.watch('timeZone');
   const selectedTimeZoneOption =
     timeZoneOptions.find((option) => option.value === selectedTimeZoneValue) ?? null;
@@ -48,6 +68,7 @@ export function ProfileSettingsPage() {
       givenName: profileQuery.data.givenName,
       surName: profileQuery.data.surName ?? '',
       phoneNumber: profileQuery.data.phoneNumber ?? '',
+      language: profileQuery.data.language ?? '',
       timeZone: profileQuery.data.timeZone ?? '',
     });
   }, [form, profileQuery.data]);
@@ -63,16 +84,16 @@ export function ProfileSettingsPage() {
       header={
         <PageHeader
           title="Profile"
-          description="Update your name and contact info."
+          description={t('Update your name and contact info.')}
         />
       }
     >
       <Card>
         <CardHeader>
           <CardHeading>
-            <CardTitle>User profile</CardTitle>
+            <CardTitle>{t('User profile')}</CardTitle>
             <CardDescription>
-              Update the details your team sees across the portal.
+              {t('Update the details your team sees across the portal.')}
             </CardDescription>
           </CardHeading>
         </CardHeader>
@@ -84,6 +105,9 @@ export function ProfileSettingsPage() {
                 const currentValues = form.getValues();
                 await updateProfile.mutateAsync({
                   ...values,
+                  language: currentValues.language?.trim()
+                    ? currentValues.language
+                    : null,
                   timeZone: currentValues.timeZone?.trim()
                     ? currentValues.timeZone
                     : null,
@@ -95,6 +119,26 @@ export function ProfileSettingsPage() {
                 <TextField control={form.control} name="surName" label="Surname" />
               </div>
               <TextField control={form.control} name="phoneNumber" label="Phone number" />
+              <SearchSelectField
+                control={form.control}
+                name="language"
+                label="Language"
+                description="Choose the portal language saved in your profile."
+                hint="The portal loads your profile language first, then the browser language, then English."
+                options={languageOptions.map((option) => ({
+                  value: option.code,
+                  label: option.label,
+                  description: `${option.code} • ${option.direction.toUpperCase()}`,
+                  keywords: [option.code, option.direction, option.label],
+                }))}
+                selectedOption={selectedLanguageOption}
+                placeholder="Use browser language"
+                searchPlaceholder="Search languages"
+                emptyMessage="No languages found."
+                allowClear
+                clearLabel="Use browser language"
+                resultCountHint={`${languageOptions.length} languages available`}
+              />
               <SearchSelectField
                 control={form.control}
                 name="timeZone"
@@ -111,7 +155,7 @@ export function ProfileSettingsPage() {
                 resultCountHint={`${timeZoneOptions.length} time zones available`}
               />
               <Button type="submit" disabled={updateProfile.isPending}>
-                Save profile
+                {t('Save profile')}
               </Button>
             </form>
           </Form>

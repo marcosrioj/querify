@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { AlertTriangle, ArrowRight, Inbox } from 'lucide-react';
 import { toErrorMessage } from '@/platform/api/api-error';
+import { usePortalI18n } from '@/shared/lib/i18n';
 import { Button, Card, CardContent } from '@/shared/ui';
 
 export function EmptyState({
@@ -12,6 +13,8 @@ export function EmptyState({
   description: string;
   action?: { label: string; to: string };
 }) {
+  const { t } = usePortalI18n();
+
   return (
     <Card className="border-dashed bg-muted/10">
       <CardContent className="flex flex-col items-center gap-4 py-12 text-center">
@@ -19,15 +22,15 @@ export function EmptyState({
           <Inbox className="size-5" />
         </div>
         <div className="space-y-2">
-          <h3 className="text-base font-semibold text-mono">{title}</h3>
+          <h3 className="text-base font-semibold text-mono">{t(title)}</h3>
           <p className="max-w-lg text-sm leading-6 text-muted-foreground">
-            {description}
+            {t(description)}
           </p>
         </div>
         {action ? (
           <Button asChild>
             <Link to={action.to}>
-              {action.label}
+              {t(action.label)}
               <ArrowRight className="size-4" />
             </Link>
           </Button>
@@ -48,9 +51,10 @@ export function ErrorState({
   error?: unknown;
   retry?: () => void;
 }) {
+  const { t } = usePortalI18n();
   const resolvedDescription =
     description ??
-    toErrorMessage(error, 'The latest request failed. Try again.');
+    toErrorMessage(error, t('The latest request failed. Try again.'));
 
   return (
     <Card className="border-destructive/30 bg-destructive/5">
@@ -59,32 +63,38 @@ export function ErrorState({
           <AlertTriangle className="size-5" />
         </div>
         <div className="space-y-2">
-          <h3 className="text-base font-semibold text-mono">{title}</h3>
+          <h3 className="text-base font-semibold text-mono">{t(title)}</h3>
           <p className="max-w-lg text-sm leading-6 text-muted-foreground">
             {resolvedDescription}
           </p>
         </div>
-        {retry ? <Button onClick={retry}>Try again</Button> : null}
+        {retry ? <Button onClick={retry}>{t('Try again')}</Button> : null}
       </CardContent>
     </Card>
   );
 }
 
 export function NotFoundPage() {
+  const { t } = usePortalI18n();
+
   return (
     <Card className="w-full max-w-xl">
       <CardContent className="space-y-5 p-8 text-center">
         <p className="text-xs font-medium uppercase tracking-[0.24em] text-primary">
-          BaseFAQ Portal
+          {t('BaseFAQ Portal')}
         </p>
         <div className="space-y-2">
-          <h1 className="text-3xl font-semibold text-mono">Route not found</h1>
+          <h1 className="text-3xl font-semibold text-mono">
+            {t('Route not found')}
+          </h1>
           <p className="text-sm leading-6 text-muted-foreground">
-            This route is outside the Portal surface or has not been mapped yet.
+            {t(
+              'This route is outside the Portal surface or has not been mapped yet.',
+            )}
           </p>
         </div>
         <Button asChild>
-          <Link to="/app/dashboard">Go to dashboard</Link>
+          <Link to="/app/dashboard">{t('Go to dashboard')}</Link>
         </Button>
       </CardContent>
     </Card>
