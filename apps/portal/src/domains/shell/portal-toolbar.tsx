@@ -36,15 +36,15 @@ function ToolbarBreadcrumbs() {
   }
 
   return (
-    <div className="flex items-center gap-1 text-sm">
+    <div className="flex items-center gap-2 text-sm">
       <Link
         to={navItem.path}
-        className="flex items-center gap-1 text-secondary-foreground hover:text-primary"
+        className="text-sm text-muted-foreground hover:text-foreground transition-colors"
       >
         {navItem.label}
       </Link>
-      <span className="text-muted-foreground">/</span>
-      <span className="text-mono">{currentLabel}</span>
+      <span className="text-muted-foreground/60">/</span>
+      <span className="text-sm text-mono">{currentLabel}</span>
     </div>
   );
 }
@@ -56,7 +56,9 @@ function ToolbarHeading() {
 
   return (
     <div className="flex flex-col flex-wrap gap-1 md:flex-row md:items-center lg:gap-5">
-      <h1 className="text-lg font-medium text-mono">{title}</h1>
+      <h1 className="inline-flex w-fit rounded-full border border-primary/15 bg-primary/8 px-3 py-1 text-sm font-medium uppercase tracking-[0.2em] text-primary">
+        {title}
+      </h1>
       <ToolbarBreadcrumbs />
     </div>
   );

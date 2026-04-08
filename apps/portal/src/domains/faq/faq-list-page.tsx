@@ -177,10 +177,9 @@ export function FaqListPage() {
     <ListLayout
       header={
         <PageHeader
-          eyebrow="FAQs"
           title="FAQs"
           description="Create clean FAQ spaces, then fill them with Q&A items and source material."
-          descriptionMode="hint"
+          descriptionMode="inline"
           actions={
             <Button asChild>
               <Link to="/app/faq/new">
