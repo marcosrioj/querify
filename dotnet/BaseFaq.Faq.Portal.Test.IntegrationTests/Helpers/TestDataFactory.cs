@@ -11,17 +11,13 @@ public static class TestDataFactory
         Guid tenantId,
         string? name = null,
         string? language = null,
-        FaqStatus status = FaqStatus.Draft,
-        FaqSortStrategy sortStrategy = FaqSortStrategy.Sort)
+        FaqStatus status = FaqStatus.Draft)
     {
         var faq = new Common.Persistence.FaqDb.Entities.Faq
         {
             Name = name ?? "General FAQ",
             Language = language ?? "en-US",
             Status = status,
-            SortStrategy = sortStrategy,
-            CtaEnabled = false,
-            CtaTarget = CtaTarget.Self,
             TenantId = tenantId
         };
 

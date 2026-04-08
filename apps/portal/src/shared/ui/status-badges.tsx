@@ -1,12 +1,10 @@
 import { PortalRole } from '@/platform/auth/types';
 import {
   ContentRefKind,
-  FaqSortStrategy,
   FaqStatus,
   TenantEdition,
   TenantUserRoleType,
   contentRefKindLabels,
-  faqSortStrategyLabels,
   faqStatusLabels,
   tenantEditionLabels,
   tenantUserRoleTypeLabels,
@@ -40,14 +38,6 @@ export function FaqStatusBadge({ status }: { status: FaqStatus }) {
         : 'warning';
 
   return <Badge variant={variant}>{faqStatusLabels[status]}</Badge>;
-}
-
-export function SortStrategyBadge({
-  value,
-}: {
-  value: FaqSortStrategy;
-}) {
-  return <Badge variant="outline">{faqSortStrategyLabels[value]}</Badge>;
 }
 
 export function ContentRefKindBadge({

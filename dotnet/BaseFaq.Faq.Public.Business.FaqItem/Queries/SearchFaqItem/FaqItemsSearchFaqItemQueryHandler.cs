@@ -3,7 +3,6 @@ using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Common.Infrastructure.Core.Constants;
 using BaseFaq.Models.Common.Dtos;
 using BaseFaq.Models.Faq.Dtos.FaqItem;
-using BaseFaq.Models.Faq.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -28,7 +27,7 @@ public class FaqItemsSearchFaqItemQueryHandler(
         var query = BuildSearchQuery(request, tenantId);
         var totalCount = await query.CountAsync(cancellationToken);
         var groupByFaq = request.Request.FaqIds is { Count: > 1 };
-        query = ApplySortByFaqStrategy(query, groupByFaq);
+        query = ApplyDefaultSort(query, groupByFaq);
         var items = await LoadItemsAsync(query, request, cancellationToken);
 
         return new PagedResultDto<FaqItemDto>(totalCount, items);
@@ -95,7 +94,7 @@ public class FaqItemsSearchFaqItemQueryHandler(
             .ToListAsync(cancellationToken);
     }
 
-    private static IQueryable<Common.Persistence.FaqDb.Entities.FaqItem> ApplySortByFaqStrategy(
+    private static IQueryable<Common.Persistence.FaqDb.Entities.FaqItem> ApplyDefaultSort(
         IQueryable<Common.Persistence.FaqDb.Entities.FaqItem> query,
         bool groupByFaq)
     {
@@ -103,26 +102,16 @@ public class FaqItemsSearchFaqItemQueryHandler(
         {
             return query
                 .OrderBy(item => item.FaqId)
-                .ThenBy(item => item.Faq.SortStrategy == FaqSortStrategy.Sort ? item.Sort : int.MaxValue)
-                .ThenByDescending(item => item.Faq.SortStrategy == FaqSortStrategy.Vote ? item.VoteScore : int.MinValue)
-                .ThenByDescending(item => item.Faq.SortStrategy == FaqSortStrategy.Newest
-                    ? item.CreatedDate ?? DateTime.MinValue
-                    : DateTime.MinValue)
-                .ThenByDescending(item => item.Faq.SortStrategy == FaqSortStrategy.AiConfidence
-                    ? item.AiConfidenceScore
-                    : int.MinValue)
+                .ThenBy(item => item.Sort)
+                .ThenByDescending(item => item.VoteScore)
+                .ThenByDescending(item => item.AiConfidenceScore)
                 .ThenByDescending(item => item.UpdatedDate ?? DateTime.MinValue);
         }
 
         return query
-            .OrderBy(item => item.Faq.SortStrategy == FaqSortStrategy.Sort ? item.Sort : int.MaxValue)
-            .ThenByDescending(item => item.Faq.SortStrategy == FaqSortStrategy.Vote ? item.VoteScore : int.MinValue)
-            .ThenByDescending(item => item.Faq.SortStrategy == FaqSortStrategy.Newest
-                ? item.CreatedDate ?? DateTime.MinValue
-                : DateTime.MinValue)
-            .ThenByDescending(item => item.Faq.SortStrategy == FaqSortStrategy.AiConfidence
-                ? item.AiConfidenceScore
-                : int.MinValue)
+            .OrderBy(item => item.Sort)
+            .ThenByDescending(item => item.VoteScore)
+            .ThenByDescending(item => item.AiConfidenceScore)
             .ThenByDescending(item => item.UpdatedDate ?? DateTime.MinValue);
     }
 }

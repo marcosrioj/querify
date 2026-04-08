@@ -26,9 +26,6 @@ import {
   PageHeader,
 } from "@/shared/layout/page-layouts";
 import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
   Button,
   Card,
   CardContent,
@@ -60,15 +57,8 @@ function buildFaqOption(faq: FaqDto) {
   return {
     value: faq.id,
     label: faq.name,
-    description: `${faq.language} • ${statusLabel} • CTA ${
-      faq.ctaEnabled ? "enabled" : "disabled"
-    }`,
-    keywords: [
-      faq.name,
-      faq.language,
-      statusLabel,
-      faq.ctaEnabled ? "cta enabled" : "cta disabled",
-    ],
+    description: `${faq.language} • ${statusLabel}`,
+    keywords: [faq.name, faq.language, statusLabel],
   };
 }
 
@@ -190,7 +180,6 @@ export function FaqItemFormPage({ mode }: { mode: "create" | "edit" }) {
     : null;
   const questionValue = form.watch("question");
   const shortAnswerValue = form.watch("shortAnswer");
-  const faqAllowsCta = Boolean(selectedFaq?.ctaEnabled);
   const backTo =
     mode === "edit" && currentFaqId && resolvedItemId
       ? `/app/faq/${currentFaqId}/items/${resolvedItemId}`
@@ -200,7 +189,6 @@ export function FaqItemFormPage({ mode }: { mode: "create" | "edit" }) {
   const faqSettingsPath = currentFaqId
     ? `/app/faq/${currentFaqId}/edit`
     : "/app/faq";
-  const isEditingCurrentFaq = currentFaqId === itemQuery.data?.faqId;
   const faqResultHint = faqOptionsQuery.data
     ? faqOptionsQuery.data.totalCount > faqOptions.length
       ? `Showing ${faqOptions.length} of ${faqOptionsQuery.data.totalCount} FAQs. Keep typing to narrow the list.`
@@ -237,25 +225,12 @@ export function FaqItemFormPage({ mode }: { mode: "create" | "edit" }) {
       label: "Attach the right FAQ",
       description: selectedFaq
         ? `Currently attached to ${selectedFaq.name}.`
-        : "Pick the FAQ that controls visibility and CTA behavior.",
+        : "Pick the FAQ that controls visibility for this item.",
       complete: Boolean(currentFaqId),
     },
   ];
 
   const isSubmitting = createFaqItem.isPending || updateFaqItem.isPending;
-
-  useEffect(() => {
-    if (faqAllowsCta) {
-      return;
-    }
-
-    form.clearErrors(["ctaTitle", "ctaUrl"]);
-
-    if (mode === "create" || !isEditingCurrentFaq) {
-      form.setValue("ctaTitle", "");
-      form.setValue("ctaUrl", "");
-    }
-  }, [faqAllowsCta, form, isEditingCurrentFaq, mode]);
 
   return (
     <DetailLayout
@@ -294,14 +269,6 @@ export function FaqItemFormPage({ mode }: { mode: "create" | "edit" }) {
                   {
                     label: "Scoring",
                     value: "Sort, vote, and AI confidence affect ranking",
-                  },
-                  {
-                    label: "CTA policy",
-                    value: selectedFaq
-                      ? selectedFaq.ctaEnabled
-                        ? "Inherited from FAQ and currently enabled"
-                        : "Disabled by the selected FAQ"
-                      : "Select an FAQ to see CTA policy",
                   },
                   {
                     label: "Selected FAQ",
@@ -356,16 +323,8 @@ export function FaqItemFormPage({ mode }: { mode: "create" | "edit" }) {
                       ...values,
                       answer: values.answer || undefined,
                       additionalInfo: values.additionalInfo || undefined,
-                      ctaTitle: faqAllowsCta
-                        ? values.ctaTitle || undefined
-                        : mode === "edit" && isEditingCurrentFaq
-                          ? itemQuery.data?.ctaTitle || undefined
-                          : undefined,
-                      ctaUrl: faqAllowsCta
-                        ? values.ctaUrl || undefined
-                        : mode === "edit" && isEditingCurrentFaq
-                          ? itemQuery.data?.ctaUrl || undefined
-                          : undefined,
+                      ctaTitle: values.ctaTitle || undefined,
+                      ctaUrl: values.ctaUrl || undefined,
                       contentRefId: values.contentRefId || undefined,
                     };
 
@@ -403,7 +362,7 @@ export function FaqItemFormPage({ mode }: { mode: "create" | "edit" }) {
                   />
                   <FormSectionHeading
                     title="Connect it"
-                    description="Pick the FAQ first. It controls visibility rules and whether this item can use a CTA."
+                    description="Pick the FAQ that controls visibility for this item."
                     className="pt-2"
                   />
                   <div className="grid gap-4 md:grid-cols-2">
@@ -411,7 +370,7 @@ export function FaqItemFormPage({ mode }: { mode: "create" | "edit" }) {
                       control={form.control}
                       name="faqId"
                       label="FAQ"
-                      description="Required. The parent FAQ controls publish state and CTA behavior."
+                      description="Required. The parent FAQ controls publish state."
                       placeholder="Search and choose the parent FAQ"
                       searchPlaceholder="Search by FAQ name, language, or status"
                       emptyMessage={
@@ -499,74 +458,25 @@ export function FaqItemFormPage({ mode }: { mode: "create" | "edit" }) {
                     rows={4}
                     description="Optional notes, caveats, or internal context."
                   />
-                  <div className="space-y-3 pt-2">
-                    <FormSectionHeading
-                      title="CTA behavior"
-                      description="Item-level CTA fields inherit from the selected FAQ. If the FAQ disables CTA, these fields are locked."
-                    />
-                    {!currentFaqId ? (
-                      <Alert variant="info" appearance="light">
-                        <div className="space-y-1">
-                          <AlertTitle>Select an FAQ first</AlertTitle>
-                          <AlertDescription>
-                            CTA fields stay unavailable until you choose the FAQ
-                            that controls this answer.
-                          </AlertDescription>
-                        </div>
-                      </Alert>
-                    ) : !faqAllowsCta ? (
-                      <div className="space-y-3">
-                        <Alert variant="warning" appearance="light">
-                          <div className="space-y-1">
-                            <AlertTitle>CTA disabled by FAQ</AlertTitle>
-                            <AlertDescription>
-                              Enable CTA on the parent FAQ before you can add or
-                              edit CTA values for this Q&A item.
-                            </AlertDescription>
-                          </div>
-                        </Alert>
-                        <Button asChild variant="outline" size="sm">
-                          <Link to={faqSettingsPath}>
-                            Open FAQ CTA settings
-                          </Link>
-                        </Button>
-                      </div>
-                    ) : (
-                      <Alert variant="success" appearance="light">
-                        <div className="space-y-1">
-                          <AlertTitle>CTA available</AlertTitle>
-                          <AlertDescription>
-                            This FAQ allows item-level CTA values, so you can
-                            define the next step below.
-                          </AlertDescription>
-                        </div>
-                      </Alert>
-                    )}
-                  </div>
+                  <FormSectionHeading
+                    title="CTA behavior"
+                    description="Optional call-to-action for this Q&A item. Leave blank if no next step is needed."
+                    className="pt-2"
+                  />
                   <div className="grid gap-4 md:grid-cols-2">
                     <TextField
                       control={form.control}
                       name="ctaTitle"
                       label="CTA title"
-                      description={
-                        faqAllowsCta
-                          ? "Label the next step users should take."
-                          : "Enable CTA on the FAQ to edit this field."
-                      }
+                      description="Label the next step users should take."
                       placeholder="Start setup"
-                      disabled={!faqAllowsCta}
                     />
                     <TextField
                       control={form.control}
                       name="ctaUrl"
                       label="CTA URL"
-                      description={
-                        faqAllowsCta
-                          ? "Must start with http:// or https://"
-                          : "Enable CTA on the FAQ to edit this field."
-                      }
+                      description="Must start with http:// or https://"
                       placeholder="https://example.com/setup"
-                      disabled={!faqAllowsCta}
                     />
                   </div>
                   <SwitchField

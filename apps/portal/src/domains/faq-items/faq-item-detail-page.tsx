@@ -11,9 +11,6 @@ import {
   SectionGrid,
 } from "@/shared/layout/page-layouts";
 import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
   Badge,
   Button,
   Card,
@@ -53,7 +50,6 @@ export function FaqItemDetailPage() {
   );
   const resolvedFaqId = faqId ?? parentFaq?.id ?? itemQuery.data?.faqId;
   const linkedContentRef = linkedContentRefQuery.data;
-  const faqAllowsCta = parentFaq?.ctaEnabled ?? false;
   const backTo = resolvedFaqId ? `/app/faq/${resolvedFaqId}` : "/app/faq";
   const editPath =
     resolvedFaqId && resolvedItemId
@@ -232,10 +228,6 @@ export function FaqItemDetailPage() {
                       linkedContentRef?.locator ||
                       "None linked",
                   },
-                  {
-                    label: "FAQ CTA",
-                    value: faqAllowsCta ? "Enabled" : "Disabled",
-                  },
                   { label: "Sort", value: String(itemQuery.data.sort) },
                   {
                     label: "Vote score",
@@ -273,16 +265,10 @@ export function FaqItemDetailPage() {
               },
               {
                 title: "CTA",
-                value: !faqAllowsCta
-                  ? "Locked"
-                  : itemQuery.data.ctaUrl
-                    ? "Configured"
-                    : "Missing",
-                description: !faqAllowsCta
-                  ? "Enable CTA on the parent FAQ before this answer can expose one."
-                  : itemQuery.data.ctaTitle || itemQuery.data.ctaUrl
-                    ? "This answer can drive the next step"
-                    : "No CTA configured for this answer",
+                value: itemQuery.data.ctaUrl ? "Configured" : "Missing",
+                description: itemQuery.data.ctaTitle || itemQuery.data.ctaUrl
+                  ? "This answer can drive the next step"
+                  : "No CTA configured for this answer",
                 icon: ArrowUpRight,
               },
               {
@@ -351,36 +337,7 @@ export function FaqItemDetailPage() {
                   </p>
                 </div>
               ) : null}
-              {!faqAllowsCta ? (
-                <div className="space-y-3">
-                  <Alert variant="warning" appearance="light">
-                    <div className="space-y-1">
-                      <AlertTitle>CTA disabled by FAQ</AlertTitle>
-                      <AlertDescription>
-                        This Q&A item inherits CTA availability from its parent FAQ. Enable CTA on the FAQ before users can see or use a CTA here.
-                      </AlertDescription>
-                    </div>
-                  </Alert>
-                  {(itemQuery.data.ctaTitle || itemQuery.data.ctaUrl) ? (
-                    <div className="rounded-2xl border border-border bg-muted/15 p-4">
-                      <p className="font-medium text-mono">
-                        {itemQuery.data.ctaTitle || "Saved CTA"}
-                      </p>
-                      <p className="mt-1 text-sm text-muted-foreground">
-                        {itemQuery.data.ctaUrl || "No URL configured"}
-                      </p>
-                      <p className="mt-3 text-xs text-muted-foreground">
-                        These values are saved on the item but currently inactive because the FAQ disables CTA.
-                      </p>
-                    </div>
-                  ) : null}
-                  {resolvedFaqId ? (
-                    <Button asChild variant="outline" size="sm">
-                      <Link to={faqSettingsPath}>Open FAQ CTA settings</Link>
-                    </Button>
-                  ) : null}
-                </div>
-              ) : itemQuery.data.ctaTitle || itemQuery.data.ctaUrl ? (
+              {itemQuery.data.ctaTitle || itemQuery.data.ctaUrl ? (
                 <div className="rounded-2xl border border-border bg-muted/15 p-4">
                   <p className="font-medium text-mono">
                     {itemQuery.data.ctaTitle || "CTA"}

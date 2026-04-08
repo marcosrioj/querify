@@ -11,9 +11,6 @@ public class FaqDetailDto
     public required string Name { get; set; }
     public required string Language { get; set; }
     public required FaqStatus Status { get; set; }
-    public required FaqSortStrategy SortStrategy { get; set; }
-    public required bool CtaEnabled { get; set; }
-    public required CtaTarget CtaTarget { get; set; }
 
     public List<FaqItemDto>? Items { get; set; }
     public List<ContentRefDto>? ContentRefs { get; set; }

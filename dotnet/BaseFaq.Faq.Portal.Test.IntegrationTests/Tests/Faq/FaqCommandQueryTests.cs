@@ -9,6 +9,7 @@ using BaseFaq.Models.Faq.Dtos.Faq;
 using BaseFaq.Models.Faq.Enums;
 using Xunit;
 
+
 namespace BaseFaq.Faq.Portal.Test.IntegrationTests.Tests.Faq;
 
 public class FaqCommandQueryTests
@@ -23,10 +24,7 @@ public class FaqCommandQueryTests
         {
             Name = "Returns",
             Language = "en-US",
-            Status = FaqStatus.Draft,
-            SortStrategy = FaqSortStrategy.Sort,
-            CtaEnabled = true,
-            CtaTarget = CtaTarget.Blank
+            Status = FaqStatus.Draft
         };
 
         var id = await handler.Handle(request, CancellationToken.None);
@@ -36,9 +34,6 @@ public class FaqCommandQueryTests
         Assert.Equal("Returns", faq!.Name);
         Assert.Equal("en-US", faq.Language);
         Assert.Equal(FaqStatus.Draft, faq.Status);
-        Assert.Equal(FaqSortStrategy.Sort, faq.SortStrategy);
-        Assert.True(faq.CtaEnabled);
-        Assert.Equal(CtaTarget.Blank, faq.CtaTarget);
         Assert.Equal(context.SessionService.TenantId, faq.TenantId);
     }
 
@@ -54,10 +49,7 @@ public class FaqCommandQueryTests
             Id = faq.Id,
             Name = "Updated",
             Language = "en-GB",
-            Status = FaqStatus.Published,
-            SortStrategy = FaqSortStrategy.Vote,
-            CtaEnabled = true,
-            CtaTarget = CtaTarget.Blank
+            Status = FaqStatus.Published
         };
 
         await handler.Handle(request, CancellationToken.None);
@@ -67,9 +59,6 @@ public class FaqCommandQueryTests
         Assert.Equal("Updated", updated!.Name);
         Assert.Equal("en-GB", updated.Language);
         Assert.Equal(FaqStatus.Published, updated.Status);
-        Assert.Equal(FaqSortStrategy.Vote, updated.SortStrategy);
-        Assert.True(updated.CtaEnabled);
-        Assert.Equal(CtaTarget.Blank, updated.CtaTarget);
     }
 
     [Fact]
@@ -82,10 +71,7 @@ public class FaqCommandQueryTests
             Id = Guid.NewGuid(),
             Name = "Missing",
             Language = "en-US",
-            Status = FaqStatus.Draft,
-            SortStrategy = FaqSortStrategy.Sort,
-            CtaEnabled = false,
-            CtaTarget = CtaTarget.Self
+            Status = FaqStatus.Draft
         };
 
         var exception =
@@ -123,9 +109,6 @@ public class FaqCommandQueryTests
         Assert.Equal(faq.Name, result.Name);
         Assert.Equal(faq.Language, result.Language);
         Assert.Equal(faq.Status, result.Status);
-        Assert.Equal(faq.SortStrategy, result.SortStrategy);
-        Assert.Equal(faq.CtaEnabled, result.CtaEnabled);
-        Assert.Equal(faq.CtaTarget, result.CtaTarget);
     }
 
     [Fact]
@@ -134,7 +117,7 @@ public class FaqCommandQueryTests
         using var context = TestContext.Create();
         var first = await TestDataFactory.SeedFaqAsync(context.DbContext, context.SessionService.TenantId, "Zulu");
         await TestDataFactory.SeedFaqAsync(context.DbContext, context.SessionService.TenantId, "Alpha");
-        first.CtaEnabled = !first.CtaEnabled;
+        first.Status = first.Status == FaqStatus.Draft ? FaqStatus.Published : FaqStatus.Draft;
         await context.DbContext.SaveChangesAsync();
 
         var handler = new FaqsGetFaqListQueryHandler(context.DbContext);
@@ -182,7 +165,7 @@ public class FaqCommandQueryTests
         using var context = TestContext.Create();
         var first = await TestDataFactory.SeedFaqAsync(context.DbContext, context.SessionService.TenantId, "First");
         await TestDataFactory.SeedFaqAsync(context.DbContext, context.SessionService.TenantId, "Second");
-        first.CtaEnabled = !first.CtaEnabled;
+        first.Status = first.Status == FaqStatus.Draft ? FaqStatus.Published : FaqStatus.Draft;
         await context.DbContext.SaveChangesAsync();
 
         var handler = new FaqsGetFaqListQueryHandler(context.DbContext);

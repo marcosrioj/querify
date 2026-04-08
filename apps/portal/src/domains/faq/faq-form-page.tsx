@@ -6,11 +6,7 @@ import { Link } from "react-router-dom";
 import { faqFormSchema, type FaqFormValues } from "@/domains/faq/schemas";
 import { useCreateFaq, useFaq, useUpdateFaq } from "@/domains/faq/hooks";
 import {
-  ctaTargetLabels,
-  faqSortStrategyLabels,
   faqStatusLabels,
-  CtaTarget,
-  FaqSortStrategy,
   FaqStatus,
 } from "@/shared/constants/backend-enums";
 import {
@@ -34,41 +30,10 @@ import {
 } from "@/shared/ui";
 import {
   SelectField,
-  SwitchField,
   TextField,
   type SelectFieldConfirmation,
 } from "@/shared/ui/form-fields";
 import { ErrorState } from "@/shared/ui/placeholder-state";
-
-function normalizeCtaTargetValue(
-  value: CtaTarget | string | null | undefined,
-): CtaTarget {
-  if (typeof value === "number") {
-    return value;
-  }
-
-  if (typeof value === "string") {
-    const numericValue = Number(value);
-
-    if (!Number.isNaN(numericValue)) {
-      return numericValue as CtaTarget;
-    }
-
-    const enumValue = CtaTarget[value as keyof typeof CtaTarget];
-
-    if (typeof enumValue === "number") {
-      return enumValue;
-    }
-  }
-
-  return CtaTarget.Blank;
-}
-
-function toCtaTargetFieldValue(
-  value: CtaTarget | string | null | undefined,
-): string {
-  return String(normalizeCtaTargetValue(value));
-}
 
 const faqStatusConfirmation: SelectFieldConfirmation = {
   title: ({ nextOption }) =>
@@ -76,12 +41,12 @@ const faqStatusConfirmation: SelectFieldConfirmation = {
   description: ({ nextValue }) => {
     switch (Number(nextValue)) {
       case FaqStatus.Published:
-        return "Published FAQs are treated as ready for customer-facing use. Confirm this only when the answers, sources, and CTA behavior are ready.";
+        return "Published FAQs are treated as ready for customer-facing use. Confirm this only when the answers and sources are ready.";
       case FaqStatus.Archived:
         return "Archived FAQs stay saved for history, but should stop being used as active content. Confirm this when the FAQ is obsolete or intentionally retired.";
       case FaqStatus.Draft:
       default:
-        return "Draft keeps the FAQ in a working state while the team is still reviewing answers, sources, or CTA rules.";
+        return "Draft keeps the FAQ in a working state while the team is still reviewing answers and sources.";
     }
   },
   confirmLabel: ({ nextOption }) =>
@@ -103,9 +68,6 @@ export function FaqFormPage({ mode }: { mode: "create" | "edit" }) {
       name: "",
       language: "en-US",
       status: FaqStatus.Draft,
-      sortStrategy: FaqSortStrategy.Sort,
-      ctaEnabled: false,
-      ctaTarget: toCtaTargetFieldValue(CtaTarget.Blank) as unknown as CtaTarget,
     },
   });
 
@@ -118,11 +80,6 @@ export function FaqFormPage({ mode }: { mode: "create" | "edit" }) {
       name: faqQuery.data.name,
       language: faqQuery.data.language,
       status: faqQuery.data.status,
-      sortStrategy: faqQuery.data.sortStrategy,
-      ctaEnabled: faqQuery.data.ctaEnabled,
-      ctaTarget: toCtaTargetFieldValue(
-        faqQuery.data.ctaTarget,
-      ) as unknown as CtaTarget,
     });
   }, [faqQuery.data, form]);
 
@@ -130,11 +87,6 @@ export function FaqFormPage({ mode }: { mode: "create" | "edit" }) {
   const nameValue = form.watch("name");
   const languageValue = form.watch("language");
   const statusValue = form.watch("status");
-  const ctaEnabled = form.watch("ctaEnabled");
-  const ctaTargetValue = form.watch("ctaTarget");
-  const ctaTargetFieldKey = `cta-target-${String(ctaEnabled)}-${String(
-    ctaTargetValue,
-  )}`;
   const formSteps = [
     {
       id: "name",
@@ -161,18 +113,6 @@ export function FaqFormPage({ mode }: { mode: "create" | "edit" }) {
           : "Keep it in draft until the first answers and sources are in place.",
       complete: statusValue !== undefined && statusValue !== null,
     },
-    {
-      id: "cta",
-      label: "Decide CTA behavior",
-      description: ctaEnabled
-        ? "CTA is enabled, so choose where linked actions should open."
-        : "Leave CTA off until this FAQ needs a next-step action.",
-      complete:
-        !ctaEnabled ||
-        (ctaTargetValue !== undefined &&
-          ctaTargetValue !== null &&
-          String(ctaTargetValue) !== ""),
-    },
   ];
 
   return (
@@ -181,7 +121,7 @@ export function FaqFormPage({ mode }: { mode: "create" | "edit" }) {
         <PageHeader
           eyebrow="FAQ"
           title={mode === "create" ? "New FAQ" : "Edit FAQ"}
-          description="Set the name, status, and CTA rules for this FAQ."
+          description="Set the name, language, and status for this FAQ."
           descriptionMode="hint"
           backTo={mode === "edit" && id ? `/app/faq/${id}` : "/app/faq"}
         />
@@ -210,7 +150,6 @@ export function FaqFormPage({ mode }: { mode: "create" | "edit" }) {
                     value: "Use the locale customers will search in",
                   },
                   { label: "Status", value: "Draft, published, or archived" },
-                  { label: "CTA", value: "Optional next step for Q&A items" },
                 ]}
               />
             </CardContent>
@@ -225,7 +164,7 @@ export function FaqFormPage({ mode }: { mode: "create" | "edit" }) {
           retry={() => void faqQuery.refetch()}
         />
       ) : mode === "edit" && faqQuery.isLoading ? (
-        <FormCardSkeleton fields={6} />
+        <FormCardSkeleton fields={3} />
       ) : (
         <>
           <Card>
@@ -248,10 +187,6 @@ export function FaqFormPage({ mode }: { mode: "create" | "edit" }) {
                     const body = {
                       ...values,
                       status: Number(values.status) as FaqStatus,
-                      sortStrategy: Number(
-                        values.sortStrategy,
-                      ) as FaqSortStrategy,
-                      ctaTarget: normalizeCtaTargetValue(values.ctaTarget),
                     };
 
                     if (mode === "create") {
@@ -285,8 +220,8 @@ export function FaqFormPage({ mode }: { mode: "create" | "edit" }) {
                     />
                   </div>
                   <FormSectionHeading
-                    title="Visibility and ranking"
-                    description="Decide when this FAQ should be visible and how its answers should be ordered."
+                    title="Visibility"
+                    description="Decide when this FAQ should be visible."
                     className="pt-2"
                   />
                   <div className="grid gap-4 md:grid-cols-2">
@@ -303,48 +238,7 @@ export function FaqFormPage({ mode }: { mode: "create" | "edit" }) {
                         }),
                       )}
                     />
-                    <SelectField
-                      control={form.control}
-                      name="sortStrategy"
-                      label="Sort strategy"
-                      description="Choose whether answers follow manual order or other ranking logic."
-                      options={Object.entries(faqSortStrategyLabels).map(
-                        ([value, label]) => ({
-                          value,
-                          label,
-                        }),
-                      )}
-                    />
                   </div>
-                  <FormSectionHeading
-                    title="CTA behavior"
-                    description="Add a next step only if answers in this FAQ should route users somewhere else."
-                    className="pt-2"
-                  />
-                  <SwitchField
-                    control={form.control}
-                    name="ctaEnabled"
-                    label="Enable CTA"
-                    description="Controls whether Q&A items can show CTA links."
-                  />
-                  <SelectField
-                    key={ctaTargetFieldKey}
-                    control={form.control}
-                    name="ctaTarget"
-                    label="CTA target"
-                    description={
-                      ctaEnabled
-                        ? "Choose where the CTA should open when a Q&A item includes a link."
-                        : "Enable CTA first to choose the target behavior."
-                    }
-                    disabled={!ctaEnabled}
-                    options={Object.entries(ctaTargetLabels).map(
-                      ([value, label]) => ({
-                        value,
-                        label,
-                      }),
-                    )}
-                  />
                   <div className="flex flex-wrap items-center gap-3">
                     <Button type="submit" disabled={isSubmitting}>
                       {mode === "create" ? "Create FAQ" : "Save changes"}
@@ -365,7 +259,7 @@ export function FaqFormPage({ mode }: { mode: "create" | "edit" }) {
           </Card>
           <ProgressChecklistCard
             title="Set up this FAQ without guesswork"
-            description="Complete the basics first, then decide visibility and CTA behavior. The form stays lightweight until those decisions matter."
+            description="Complete the basics first, then decide visibility. The form stays lightweight until those decisions matter."
             steps={formSteps}
           />
         </>

@@ -104,9 +104,6 @@ public class FaqsGetFaqListQueryHandler(
                 Name = faq.Name,
                 Language = faq.Language,
                 Status = faq.Status,
-                SortStrategy = faq.SortStrategy,
-                CtaEnabled = faq.CtaEnabled,
-                CtaTarget = faq.CtaTarget,
                 Items = includeItems
                     ? faq.Items.Select(item => new FaqItemDto
                     {
@@ -200,25 +197,6 @@ public class FaqsGetFaqListQueryHandler(
                     ? ((IOrderedQueryable<Common.Persistence.FaqDb.Entities.Faq>)query).ThenByDescending(faq =>
                         faq.Status)
                     : ((IOrderedQueryable<Common.Persistence.FaqDb.Entities.Faq>)query).ThenBy(faq => faq.Status)),
-            "sortstrategy" => isFirst
-                ? (desc ? query.OrderByDescending(faq => faq.SortStrategy) : query.OrderBy(faq => faq.SortStrategy))
-                : (desc
-                    ? ((IOrderedQueryable<Common.Persistence.FaqDb.Entities.Faq>)query).ThenByDescending(faq =>
-                        faq.SortStrategy)
-                    : ((IOrderedQueryable<Common.Persistence.FaqDb.Entities.Faq>)query).ThenBy(faq =>
-                        faq.SortStrategy)),
-            "ctaenabled" => isFirst
-                ? (desc ? query.OrderByDescending(faq => faq.CtaEnabled) : query.OrderBy(faq => faq.CtaEnabled))
-                : (desc
-                    ? ((IOrderedQueryable<Common.Persistence.FaqDb.Entities.Faq>)query)
-                    .ThenByDescending(faq => faq.CtaEnabled)
-                    : ((IOrderedQueryable<Common.Persistence.FaqDb.Entities.Faq>)query).ThenBy(faq => faq.CtaEnabled)),
-            "ctatarget" => isFirst
-                ? (desc ? query.OrderByDescending(faq => faq.CtaTarget) : query.OrderBy(faq => faq.CtaTarget))
-                : (desc
-                    ? ((IOrderedQueryable<Common.Persistence.FaqDb.Entities.Faq>)query)
-                    .ThenByDescending(faq => faq.CtaTarget)
-                    : ((IOrderedQueryable<Common.Persistence.FaqDb.Entities.Faq>)query).ThenBy(faq => faq.CtaTarget)),
             "createddate" => isFirst
                 ? (desc ? query.OrderByDescending(faq => faq.CreatedDate) : query.OrderBy(faq => faq.CreatedDate))
                 : (desc

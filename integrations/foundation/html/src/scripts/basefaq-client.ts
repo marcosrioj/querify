@@ -17,12 +17,6 @@ export const FaqStatus = {
 } as const;
 export type FaqStatus = (typeof FaqStatus)[keyof typeof FaqStatus];
 
-export const CtaTarget = {
-  Self:  0,
-  Blank: 1,
-} as const;
-export type CtaTarget = (typeof CtaTarget)[keyof typeof CtaTarget];
-
 export const ContentRefKind = {
   Manual:     1,
   Web:        2,
@@ -76,16 +70,13 @@ export interface FaqItemDto {
 }
 
 export interface FaqDetailDto {
-  id:           string;
-  name:         string;
-  language:     string;
-  status:       FaqStatus;
-  sortStrategy: number;
-  ctaEnabled:   boolean;
-  ctaTarget:    CtaTarget;
-  items:        FaqItemDto[]    | null;
-  contentRefs:  ContentRefDto[] | null;
-  tags:         TagDto[]        | null;
+  id:          string;
+  name:        string;
+  language:    string;
+  status:      FaqStatus;
+  items:       FaqItemDto[]    | null;
+  contentRefs: ContentRefDto[] | null;
+  tags:        TagDto[]        | null;
 }
 
 export interface PagedResultDto<T> {

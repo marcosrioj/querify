@@ -3,7 +3,6 @@ using BaseFaq.Faq.Public.Business.FaqItem.Queries.SearchFaqItem;
 using BaseFaq.Faq.Public.Test.IntegrationTests.Helpers;
 using BaseFaq.Models.Ai.Contracts.Matching;
 using BaseFaq.Models.Faq.Dtos.FaqItem;
-using BaseFaq.Models.Faq.Enums;
 using MassTransit;
 using Moq;
 using Xunit;
@@ -136,37 +135,34 @@ public class FaqItemCommandQueryTests
     }
 
     [Fact]
-    public async Task SearchFaqItems_OrdersByFaqSortStrategy()
+    public async Task SearchFaqItems_OrdersByDefaultSort()
     {
         using var context = TestContext.Create();
-        var faq = await TestDataFactory.SeedFaqAsync(
-            context.DbContext,
-            context.TenantId,
-            sortStrategy: FaqSortStrategy.Vote);
+        var faq = await TestDataFactory.SeedFaqAsync(context.DbContext, context.TenantId);
 
-        var lowVote = new Common.Persistence.FaqDb.Entities.FaqItem
+        var first = new Common.Persistence.FaqDb.Entities.FaqItem
         {
-            Question = "Low vote",
-            ShortAnswer = "Low",
-            Answer = "Low",
-            AdditionalInfo = "Low",
-            CtaTitle = "Low",
-            CtaUrl = "https://example.test/low",
+            Question = "First sort",
+            ShortAnswer = "First",
+            Answer = "First",
+            AdditionalInfo = "First",
+            CtaTitle = "First",
+            CtaUrl = "https://example.test/first",
             Sort = 1,
-            VoteScore = 1,
+            VoteScore = 5,
             AiConfidenceScore = 10,
             IsActive = true,
             FaqId = faq.Id,
             TenantId = context.TenantId
         };
-        var highVote = new Common.Persistence.FaqDb.Entities.FaqItem
+        var second = new Common.Persistence.FaqDb.Entities.FaqItem
         {
-            Question = "High vote",
-            ShortAnswer = "High",
-            Answer = "High",
-            AdditionalInfo = "High",
-            CtaTitle = "High",
-            CtaUrl = "https://example.test/high",
+            Question = "Second sort",
+            ShortAnswer = "Second",
+            Answer = "Second",
+            AdditionalInfo = "Second",
+            CtaTitle = "Second",
+            CtaUrl = "https://example.test/second",
             Sort = 2,
             VoteScore = 20,
             AiConfidenceScore = 50,
@@ -175,7 +171,7 @@ public class FaqItemCommandQueryTests
             TenantId = context.TenantId
         };
 
-        context.DbContext.FaqItems.AddRange(lowVote, highVote);
+        context.DbContext.FaqItems.AddRange(first, second);
         await context.DbContext.SaveChangesAsync();
 
         var clientKeyContextService = new TestClientKeyContextService(context.ClientKey);
@@ -199,8 +195,8 @@ public class FaqItemCommandQueryTests
         var result = await handler.Handle(request, CancellationToken.None);
 
         Assert.Equal(2, result.TotalCount);
-        Assert.Equal(highVote.Id, result.Items[0].Id);
-        Assert.Equal(lowVote.Id, result.Items[1].Id);
+        Assert.Equal(first.Id, result.Items[0].Id);
+        Assert.Equal(second.Id, result.Items[1].Id);
     }
 
     [Fact]
@@ -305,10 +301,7 @@ public class FaqItemCommandQueryTests
     public async Task SearchFaqItems_AppliesPaginationAfterSort()
     {
         using var context = TestContext.Create();
-        var faq = await TestDataFactory.SeedFaqAsync(
-            context.DbContext,
-            context.TenantId,
-            sortStrategy: FaqSortStrategy.Sort);
+        var faq = await TestDataFactory.SeedFaqAsync(context.DbContext, context.TenantId);
 
         context.DbContext.FaqItems.AddRange(
             new Common.Persistence.FaqDb.Entities.FaqItem

@@ -8,7 +8,4 @@ public class FaqDto
     public required string Name { get; set; }
     public required string Language { get; set; }
     public required FaqStatus Status { get; set; }
-    public required FaqSortStrategy SortStrategy { get; set; }
-    public required bool CtaEnabled { get; set; }
-    public required CtaTarget CtaTarget { get; set; }
 }

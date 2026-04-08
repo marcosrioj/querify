@@ -52,10 +52,7 @@ public sealed class FaqSeedService : IFaqSeedService
                 TenantId = tenantId,
                 Name = definition.Name,
                 Language = SeedLanguage,
-                Status = FaqStatus.Published,
-                SortStrategy = FaqSortStrategy.Sort,
-                CtaEnabled = true,
-                CtaTarget = CtaTarget.Blank
+                Status = FaqStatus.Published
             })
             .ToList();
 

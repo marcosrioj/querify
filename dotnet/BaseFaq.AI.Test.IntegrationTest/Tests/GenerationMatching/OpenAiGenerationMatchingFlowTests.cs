@@ -426,9 +426,6 @@ public sealed class OpenAiGenerationMatchingFlowTests
             Name = "Help Center",
             Language = "en-US",
             Status = FaqStatus.Draft,
-            SortStrategy = FaqSortStrategy.Sort,
-            CtaEnabled = false,
-            CtaTarget = CtaTarget.Self,
             TenantId = tenantId
         };
 

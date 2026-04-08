@@ -23,10 +23,7 @@ public class FaqService(IMediator mediator) : IFaqService
         {
             Name = requestDto.Name,
             Language = requestDto.Language,
-            Status = requestDto.Status,
-            SortStrategy = requestDto.SortStrategy,
-            CtaEnabled = requestDto.CtaEnabled,
-            CtaTarget = requestDto.CtaTarget
+            Status = requestDto.Status
         };
 
         return await mediator.Send(command, token);
@@ -71,10 +68,7 @@ public class FaqService(IMediator mediator) : IFaqService
             Id = id,
             Name = requestDto.Name,
             Language = requestDto.Language,
-            Status = requestDto.Status,
-            SortStrategy = requestDto.SortStrategy,
-            CtaEnabled = requestDto.CtaEnabled,
-            CtaTarget = requestDto.CtaTarget
+            Status = requestDto.Status
         };
 
         await mediator.Send(command, token);

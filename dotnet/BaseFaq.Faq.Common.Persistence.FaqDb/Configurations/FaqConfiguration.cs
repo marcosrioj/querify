@@ -23,15 +23,6 @@ public class FaqConfiguration : BaseConfiguration<Entities.Faq>
         builder.Property(p => p.Status)
             .IsRequired();
 
-        builder.Property(p => p.SortStrategy)
-            .IsRequired();
-
-        builder.Property(p => p.CtaEnabled)
-            .IsRequired();
-
-        builder.Property(p => p.CtaTarget)
-            .IsRequired();
-
         builder.Property(p => p.TenantId)
             .IsRequired();
 

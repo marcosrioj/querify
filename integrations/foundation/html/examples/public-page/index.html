@@ -777,19 +777,14 @@
       : '';
 
     // CTA
-    const ctaHtml = faq.ctaEnabled && item.ctaUrl
-      ? (() => {
-          const target = faq.ctaTarget === 1 ? '_blank' : '_self';
-          const rel    = faq.ctaTarget === 1 ? 'noopener noreferrer' : '';
-          const ext    = faq.ctaTarget === 1 ? ' <span aria-label="opens in new tab">↗</span>' : '';
-          return `<a
+    const ctaHtml = item.ctaUrl
+      ? `<a
             href="${escAttr(item.ctaUrl)}"
             class="bf-faq__cta"
-            target="${target}"
-            ${rel ? `rel="${rel}"` : ''}
-            aria-label="${escAttr(item.ctaTitle || 'Learn more')}${faq.ctaTarget === 1 ? ' (opens in new tab)' : ''}"
-          >${escHtml(item.ctaTitle || 'Learn more')}${ext}</a>`;
-        })()
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="${escAttr(item.ctaTitle || 'Learn more')} (opens in new tab)"
+          >${escHtml(item.ctaTitle || 'Learn more')} <span aria-label="opens in new tab">↗</span></a>`
       : '';
 
     // Sources

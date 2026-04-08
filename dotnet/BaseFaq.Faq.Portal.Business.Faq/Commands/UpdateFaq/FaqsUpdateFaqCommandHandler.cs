@@ -23,9 +23,6 @@ public class FaqsUpdateFaqCommandHandler(FaqDbContext dbContext)
         faq.Name = request.Name;
         faq.Language = request.Language;
         faq.Status = request.Status;
-        faq.SortStrategy = request.SortStrategy;
-        faq.CtaEnabled = request.CtaEnabled;
-        faq.CtaTarget = request.CtaTarget;
 
         dbContext.Faqs.Update(faq);
         await dbContext.SaveChangesAsync(cancellationToken);

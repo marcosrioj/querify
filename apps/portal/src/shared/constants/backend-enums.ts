@@ -27,18 +27,6 @@ export enum FaqStatus {
   Archived = 2,
 }
 
-export enum FaqSortStrategy {
-  Sort = 1,
-  Vote = 2,
-  Newest = 3,
-  AiConfidence = 4,
-}
-
-export enum CtaTarget {
-  Self = 0,
-  Blank = 1,
-}
-
 export enum ContentRefKind {
   Manual = 1,
   Web = 2,
@@ -68,18 +56,6 @@ export const faqStatusLabels: Record<FaqStatus, string> = {
   [FaqStatus.Draft]: 'Draft',
   [FaqStatus.Published]: 'Published',
   [FaqStatus.Archived]: 'Archived',
-};
-
-export const faqSortStrategyLabels: Record<FaqSortStrategy, string> = {
-  [FaqSortStrategy.Sort]: 'Manual sort',
-  [FaqSortStrategy.Vote]: 'Vote score',
-  [FaqSortStrategy.Newest]: 'Newest',
-  [FaqSortStrategy.AiConfidence]: 'AI confidence',
-};
-
-export const ctaTargetLabels: Record<CtaTarget, string> = {
-  [CtaTarget.Self]: 'Same tab',
-  [CtaTarget.Blank]: 'New tab',
 };
 
 export const contentRefKindLabels: Record<ContentRefKind, string> = {

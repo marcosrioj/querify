@@ -19,9 +19,6 @@ public class FaqsCreateFaqCommandHandler(FaqDbContext dbContext, ISessionService
             Name = request.Name,
             Language = request.Language,
             Status = request.Status,
-            SortStrategy = request.SortStrategy,
-            CtaEnabled = request.CtaEnabled,
-            CtaTarget = request.CtaTarget,
             TenantId = tenantId
         };
 

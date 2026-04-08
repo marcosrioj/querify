@@ -306,9 +306,6 @@ public class FaqContentRefCommandQueryTests
             Name = "FAQ A",
             Language = "en-US",
             Status = BaseFaq.Models.Faq.Enums.FaqStatus.Draft,
-            SortStrategy = BaseFaq.Models.Faq.Enums.FaqSortStrategy.Sort,
-            CtaEnabled = false,
-            CtaTarget = BaseFaq.Models.Faq.Enums.CtaTarget.Self,
             TenantId = tenantId
         };
         var faqB = new Common.Persistence.FaqDb.Entities.Faq
@@ -317,9 +314,6 @@ public class FaqContentRefCommandQueryTests
             Name = "FAQ B",
             Language = "en-US",
             Status = BaseFaq.Models.Faq.Enums.FaqStatus.Draft,
-            SortStrategy = BaseFaq.Models.Faq.Enums.FaqSortStrategy.Sort,
-            CtaEnabled = false,
-            CtaTarget = BaseFaq.Models.Faq.Enums.CtaTarget.Self,
             TenantId = tenantId
         };
         var contentRefA = new Common.Persistence.FaqDb.Entities.ContentRef

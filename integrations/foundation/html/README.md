@@ -75,7 +75,7 @@ For each FAQ item (`FaqItemDto`), the HTML foundation renders:
 | `shortAnswer` | Fallback answer when `answer` is null |
 | `answer` | Full HTML answer body (pre-sanitized by API) |
 | `additionalInfo` | Highlighted info block below the answer |
-| `ctaTitle` + `ctaUrl` | Call-to-action button (when `ctaEnabled`) |
+| `ctaTitle` + `ctaUrl` | Call-to-action button (when present on the item) |
 | `contentRefs` | Source links with kind icons |
 | `voteScore` | Live vote score with up/down buttons |
 | `tags` | Tag badges on the FAQ header |

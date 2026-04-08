@@ -129,7 +129,7 @@ public class FaqBusinessRulesTests
         using var context = TestContext.Create();
         var first = await TestDataFactory.SeedFaqAsync(context.DbContext, context.SessionService.TenantId, "Zulu");
         await TestDataFactory.SeedFaqAsync(context.DbContext, context.SessionService.TenantId, "Alpha");
-        first.CtaEnabled = !first.CtaEnabled;
+        first.Status = first.Status == FaqStatus.Draft ? FaqStatus.Published : FaqStatus.Draft;
         await context.DbContext.SaveChangesAsync();
 
         var handler = new FaqsGetFaqListQueryHandler(context.DbContext);

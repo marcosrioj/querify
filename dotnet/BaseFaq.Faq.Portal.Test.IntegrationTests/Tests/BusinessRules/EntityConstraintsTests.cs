@@ -18,9 +18,6 @@ public class EntityConstraintsTests
             Name = new string('a', Common.Persistence.FaqDb.Entities.Faq.MaxNameLength + 1),
             Language = "en-US",
             Status = FaqStatus.Draft,
-            SortStrategy = FaqSortStrategy.Sort,
-            CtaEnabled = false,
-            CtaTarget = CtaTarget.Self,
             TenantId = context.SessionService.TenantId
         };
 
@@ -39,9 +36,6 @@ public class EntityConstraintsTests
             Name = "FAQ",
             Language = new string('b', Common.Persistence.FaqDb.Entities.Faq.MaxLanguageLength + 1),
             Status = FaqStatus.Draft,
-            SortStrategy = FaqSortStrategy.Sort,
-            CtaEnabled = false,
-            CtaTarget = CtaTarget.Self,
             TenantId = context.SessionService.TenantId
         };
 

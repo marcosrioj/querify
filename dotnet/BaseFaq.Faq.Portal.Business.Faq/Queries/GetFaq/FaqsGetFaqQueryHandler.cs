@@ -17,10 +17,7 @@ public class FaqsGetFaqQueryHandler(FaqDbContext dbContext) : IRequestHandler<Fa
                 Id = faq.Id,
                 Name = faq.Name,
                 Language = faq.Language,
-                Status = faq.Status,
-                SortStrategy = faq.SortStrategy,
-                CtaEnabled = faq.CtaEnabled,
-                CtaTarget = faq.CtaTarget
+                Status = faq.Status
             })
             .FirstOrDefaultAsync(cancellationToken);
     }

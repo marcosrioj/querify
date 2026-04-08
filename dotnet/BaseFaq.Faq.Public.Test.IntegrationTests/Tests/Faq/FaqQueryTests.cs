@@ -2,6 +2,7 @@ using BaseFaq.Faq.Public.Business.Faq.Queries.GetFaq;
 using BaseFaq.Faq.Public.Business.Faq.Queries.GetFaqList;
 using BaseFaq.Faq.Public.Test.IntegrationTests.Helpers;
 using BaseFaq.Models.Faq.Dtos.Faq;
+using BaseFaq.Models.Faq.Enums;
 using Xunit;
 
 namespace BaseFaq.Faq.Public.Test.IntegrationTests.Tests.Faq;
@@ -142,7 +143,7 @@ public class FaqQueryTests
         using var context = TestContext.Create();
         var first = await TestDataFactory.SeedFaqAsync(context.DbContext, context.TenantId, "First");
         await TestDataFactory.SeedFaqAsync(context.DbContext, context.TenantId, "Second");
-        first.CtaEnabled = !first.CtaEnabled;
+        first.Status = first.Status == FaqStatus.Draft ? FaqStatus.Published : FaqStatus.Draft;
         await context.DbContext.SaveChangesAsync();
 
         var clientKeyContextService = new TestClientKeyContextService(context.ClientKey);

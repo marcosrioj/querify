@@ -43,7 +43,6 @@ import { ErrorState, EmptyState } from "@/shared/ui/placeholder-state";
 import {
   ContentRefKindBadge,
   FaqStatusBadge,
-  SortStrategyBadge,
 } from "@/shared/ui/status-badges";
 
 const DETAIL_PAGE_SIZE_OPTIONS = [5, 10, 20];
@@ -240,17 +239,7 @@ export function FaqDetailPage() {
               <CardContent>
                 <KeyValueList
                   items={[
-                    {
-                      label: "Sort",
-                      value: (
-                        <SortStrategyBadge value={faqQuery.data.sortStrategy} />
-                      ),
-                    },
                     { label: "Language", value: faqQuery.data.language },
-                    {
-                      label: "CTA",
-                      value: faqQuery.data.ctaEnabled ? "Enabled" : "Disabled",
-                    },
                     {
                       label: "Q&A items",
                       value: String(relatedItems.length),
@@ -283,9 +272,6 @@ export function FaqDetailPage() {
                     {generationReady
                       ? "Ready for generation request"
                       : "Needs content and Q&A coverage"}
-                  </Badge>
-                  <Badge variant="outline">
-                    {faqQuery.data.ctaEnabled ? "CTA enabled" : "CTA disabled"}
                   </Badge>
                 </div>
                 <KeyValueList

@@ -27,7 +27,7 @@ import { useListQueryState } from "@/shared/lib/use-list-query-state";
 import { DataTable, type DataTableColumn } from "@/shared/ui/data-table";
 import { PaginationControls } from "@/shared/ui/pagination-controls";
 import { EmptyState, ErrorState } from "@/shared/ui/placeholder-state";
-import { FaqStatusBadge, SortStrategyBadge } from "@/shared/ui/status-badges";
+import { FaqStatusBadge } from "@/shared/ui/status-badges";
 import {
   Badge,
   Button,
@@ -103,7 +103,6 @@ export function FaqListPage() {
   const draftCount = faqRows.filter(
     (faq) => faq.status === FaqStatus.Draft,
   ).length;
-  const ctaEnabledCount = faqRows.filter((faq) => faq.ctaEnabled).length;
   const sortingLabel =
     sortingOptions.find((option) => option.value === sorting)?.label ??
     "Custom";
@@ -129,16 +128,6 @@ export function FaqListPage() {
       key: "status",
       header: "Status",
       cell: (faq) => <FaqStatusBadge status={faq.status} />,
-    },
-    {
-      key: "sort",
-      header: "Sort",
-      cell: (faq) => <SortStrategyBadge value={faq.sortStrategy} />,
-    },
-    {
-      key: "cta",
-      header: "CTA",
-      cell: (faq) => (faq.ctaEnabled ? "Enabled" : "Disabled"),
     },
     {
       key: "actions",
@@ -272,9 +261,9 @@ export function FaqListPage() {
               icon: FileText,
             },
             {
-              title: "CTA",
-              value: ctaEnabledCount,
-              description: `${sortingLabel} order`,
+              title: "Order",
+              value: sortingLabel,
+              description: "Current sort applied",
               icon: ArrowUpRight,
             },
           ]}

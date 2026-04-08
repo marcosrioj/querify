@@ -268,8 +268,8 @@
     function renderItem(item, faq) {
       const answer = item.answer || `<p>${esc(item.shortAnswer)}</p>`;
       const addl   = item.additionalInfo ? `<div class="bf-faq__additional-info">${esc(item.additionalInfo)}</div>` : '';
-      const cta    = faq.ctaEnabled && item.ctaUrl
-        ? `<a href="${esc(item.ctaUrl)}" class="bf-faq__cta" target="${faq.ctaTarget===1?'_blank':'_self'}" ${faq.ctaTarget===1?'rel="noopener noreferrer"':''}>${esc(item.ctaTitle||'Learn more')}</a>`
+      const cta    = item.ctaUrl
+        ? `<a href="${esc(item.ctaUrl)}" class="bf-faq__cta" target="_blank" rel="noopener noreferrer">${esc(item.ctaTitle||'Learn more')}</a>`
         : '';
       const vote   = `
         <div class="bf-faq__vote" data-vote-container data-item-id="${esc(item.id)}">

@@ -86,9 +86,6 @@ public class FaqsGetFaqQueryHandler(
                 Name = faq.Name,
                 Language = faq.Language,
                 Status = faq.Status,
-                SortStrategy = faq.SortStrategy,
-                CtaEnabled = faq.CtaEnabled,
-                CtaTarget = faq.CtaTarget,
                 Items = includeItems
                     ? faq.Items.Select(item => new FaqItemDto
                     {
