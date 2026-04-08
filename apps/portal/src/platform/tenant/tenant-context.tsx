@@ -58,6 +58,10 @@ export function PortalTenantProvider({ children }: PropsWithChildren) {
   }, []);
 
   useEffect(() => {
+    if (tenantsQuery.isLoading || tenantsQuery.data === undefined) {
+      return;
+    }
+
     if (!tenantOptions.length) {
       setCurrentTenantIdState(undefined);
       return;
@@ -73,7 +77,7 @@ export function PortalTenantProvider({ children }: PropsWithChildren) {
     const nextTenant = tenantOptions[0];
     setCurrentTenantIdState(nextTenant.id);
     window.localStorage.setItem(STORAGE_KEY, nextTenant.id);
-  }, [currentTenantId, tenantOptions]);
+  }, [currentTenantId, tenantOptions, tenantsQuery.isLoading, tenantsQuery.data]);
 
   const value = useMemo<TenantContextValue>(
     () => ({

@@ -63,15 +63,6 @@ export function TenantSwitcher() {
         setCurrentTenantId(tenantId);
       });
 
-      if (hasGuidPathSegment(location.pathname)) {
-        navigate("/app/dashboard", { replace: true });
-        return;
-      }
-
-      if (location.pathname.startsWith("/app/dashboard")) {
-        return;
-      }
-
       await queryClient.invalidateQueries({
         predicate: (query) =>
           Array.isArray(query.queryKey) &&
@@ -80,6 +71,10 @@ export function TenantSwitcher() {
           tenantScopedQueryRoots.has(query.queryKey[1]),
         refetchType: "active",
       });
+
+      if (hasGuidPathSegment(location.pathname)) {
+        navigate("/app/dashboard", { replace: true, state: null });
+      }
     } catch {
       // Mutation errors are surfaced by the shared query provider.
     }
