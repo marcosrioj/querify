@@ -56,7 +56,7 @@ function ToolbarHeading() {
 
   return (
     <div className="flex flex-col flex-wrap gap-1 md:flex-row md:items-center lg:gap-5">
-      <h1 className="inline-flex w-fit rounded-full border border-primary/15 bg-primary/8 px-3 py-1 text-sm font-medium uppercase tracking-[0.2em] text-primary">
+      <h1 className="inline-flex w-fit border border-primary/15 bg-primary/8 px-3 py-1 text-sm font-medium uppercase tracking-[0.2em] text-primary">
         {title}
       </h1>
       <ToolbarBreadcrumbs />
