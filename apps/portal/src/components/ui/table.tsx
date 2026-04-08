@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import { cn } from '@/lib/utils';
+import { translateRenderableNode } from '@/shared/lib/translate-renderable-node';
 
 function Table({ className, ...props }: React.HTMLAttributes<HTMLTableElement>) {
   return (
@@ -42,7 +43,7 @@ function TableRow({ className, ...props }: React.HTMLAttributes<HTMLTableRowElem
   );
 }
 
-function TableHead({ className, ...props }: React.ThHTMLAttributes<HTMLTableCellElement>) {
+function TableHead({ className, children, ...props }: React.ThHTMLAttributes<HTMLTableCellElement>) {
   return (
     <th
       data-slot="table-head"
@@ -51,19 +52,25 @@ function TableHead({ className, ...props }: React.ThHTMLAttributes<HTMLTableCell
         className,
       )}
       {...props}
-    />
+    >
+      {translateRenderableNode(children)}
+    </th>
   );
 }
 
-function TableCell({ className, ...props }: React.TdHTMLAttributes<HTMLTableCellElement>) {
+function TableCell({ className, children, ...props }: React.TdHTMLAttributes<HTMLTableCellElement>) {
   return (
-    <td data-slot="table-cell" className={cn('p-4 align-middle [&:has([role=checkbox])]:pe-0', className)} {...props} />
+    <td data-slot="table-cell" className={cn('p-4 align-middle [&:has([role=checkbox])]:pe-0', className)} {...props}>
+      {translateRenderableNode(children)}
+    </td>
   );
 }
 
-function TableCaption({ className, ...props }: React.HTMLAttributes<HTMLTableCaptionElement>) {
+function TableCaption({ className, children, ...props }: React.HTMLAttributes<HTMLTableCaptionElement>) {
   return (
-    <caption data-slot="table-caption" className={cn('mt-4 text-sm text-muted-foreground', className)} {...props} />
+    <caption data-slot="table-caption" className={cn('mt-4 text-sm text-muted-foreground', className)} {...props}>
+      {translateRenderableNode(children)}
+    </caption>
   );
 }
 

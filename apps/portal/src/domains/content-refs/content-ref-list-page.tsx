@@ -21,6 +21,7 @@ import { DataTable, type DataTableColumn } from "@/shared/ui/data-table";
 import { PaginationControls } from "@/shared/ui/pagination-controls";
 import { EmptyState, ErrorState } from "@/shared/ui/placeholder-state";
 import { ContentRefKindBadge } from "@/shared/ui/status-badges";
+import { translateText } from "@/shared/lib/i18n-core";
 import {
   Badge,
   Button,
@@ -227,7 +228,7 @@ export function ContentRefListPage() {
               title: "Total",
               value: contentRefQuery.data?.totalCount ?? 0,
               description: debouncedSearch
-                ? `Search: ${debouncedSearch}`
+                ? translateText("Search: {value}", { value: debouncedSearch })
                 : selectedKindLabel,
               icon: Files,
             },

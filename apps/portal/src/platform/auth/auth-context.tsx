@@ -16,6 +16,7 @@ import {
   type PortalUser,
 } from '@/platform/auth/types';
 import { logger } from '@/platform/telemetry/logger';
+import { translateText } from '@/shared/lib/i18n-core';
 
 type AuthContextValue = {
   isConfigured: boolean;
@@ -130,7 +131,9 @@ export function PortalAuthProvider({ children }: PropsWithChildren) {
     if (!AuthRuntime.isConfigured) {
       setStatus('unauthenticated');
       setError(
-        'Auth0 is not fully configured. Set VITE_AUTH0_CLIENT_ID to enable login.',
+        translateText(
+          'Auth0 is not fully configured. Set VITE_AUTH0_CLIENT_ID to enable login.',
+        ),
       );
       return;
     }
@@ -180,7 +183,7 @@ export function PortalAuthProvider({ children }: PropsWithChildren) {
         setError(
           bootError instanceof Error
             ? bootError.message
-            : 'Unable to initialize Auth0.',
+            : translateText('Unable to initialize Auth0.'),
         );
       }
     };
@@ -202,7 +205,7 @@ export function PortalAuthProvider({ children }: PropsWithChildren) {
       async login(nextPath) {
         const client = clientRef.current;
         if (!client) {
-          throw new Error('Auth0 client is not ready.');
+          throw new Error(translateText('Auth0 client is not ready.'));
         }
 
         await client.loginWithRedirect({

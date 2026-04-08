@@ -36,6 +36,7 @@ import {
 import { PaginationControls } from "@/shared/ui/pagination-controls";
 import { ContentRefKindBadge } from "@/shared/ui/status-badges";
 import { EmptyState, ErrorState } from "@/shared/ui/placeholder-state";
+import { translateText } from "@/shared/lib/i18n-core";
 
 const DETAIL_PAGE_SIZE_OPTIONS = [5, 10, 20];
 
@@ -125,7 +126,9 @@ export function ContentRefDetailPage() {
       id: "label",
       label: "Label it for reuse",
       description: contentRefQuery.data?.label
-        ? `Current label: ${contentRefQuery.data.label}`
+        ? translateText("Current label: {value}", {
+            value: contentRefQuery.data.label,
+          })
         : "A clear label makes this source easier to find later.",
       complete: Boolean(contentRefQuery.data?.label),
     },
@@ -133,7 +136,11 @@ export function ContentRefDetailPage() {
       id: "items",
       label: "Link a Q&A item",
       description: relatedItems.length
-        ? `${relatedItems.length} Q&A item${relatedItems.length === 1 ? "" : "s"} already use this source.`
+        ? relatedItems.length === 1
+          ? translateText("1 Q&A item already uses this source.")
+          : translateText("{count} Q&A items already use this source.", {
+              count: relatedItems.length,
+            })
         : "Attach the source to at least one answer so it starts doing real work.",
       complete: relatedItems.length > 0,
     },
@@ -141,7 +148,11 @@ export function ContentRefDetailPage() {
       id: "faqs",
       label: "Reuse it in a FAQ",
       description: relatedFaqs.length
-        ? `${relatedFaqs.length} FAQ${relatedFaqs.length === 1 ? "" : "s"} already depend on it.`
+        ? relatedFaqs.length === 1
+          ? translateText("1 FAQ already depends on it.")
+          : translateText("{count} FAQs already depend on it.", {
+              count: relatedFaqs.length,
+            })
         : "Once a linked answer exists, this source becomes part of FAQ coverage.",
       complete: relatedFaqs.length > 0,
     },

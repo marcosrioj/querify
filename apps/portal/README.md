@@ -107,6 +107,8 @@ Portal UI translation is frontend-owned. Keep UI copy in the frontend and route 
 
 Localization catalogs now live in `src/shared/lib/i18n/locales/`, one JSON file per supported locale. Keep keys aligned across the 20 supported Portal languages and let `en-US` remain the fallback base.
 
+Dynamic UI strings should prefer placeholder keys such as `Delete FAQ "{name}"?` or `Search: {value}` so `shared/lib/i18n-core.ts` can resolve runtime values without hardcoding every rendered variation.
+
 ## Useful validation commands
 
 ```bash

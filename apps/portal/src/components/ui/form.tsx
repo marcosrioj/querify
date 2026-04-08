@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Slot } from '@radix-ui/react-slot';
 import { Label as LabelPrimitive } from 'radix-ui';
 import { Controller, ControllerProps, FieldPath, FieldValues, FormProvider, useFormContext } from 'react-hook-form';
+import { usePortalI18n } from '@/shared/lib/i18n';
 
 const Form = FormProvider;
 
@@ -116,6 +117,7 @@ function FormDescription({ className, ...props }: React.HTMLAttributes<HTMLParag
 }
 
 function FormMessage({ className, children, ...props }: React.HTMLAttributes<HTMLParagraphElement>) {
+  const { t } = usePortalI18n();
   const { error, formMessageId } = useFormField();
   const body = error ? String(error?.message) : children;
 
@@ -130,7 +132,7 @@ function FormMessage({ className, children, ...props }: React.HTMLAttributes<HTM
       className={cn('-mt-0.5 text-xs font-normal text-destructive', className)}
       {...props}
     >
-      {body}
+      {typeof body === 'string' ? t(body) : body}
     </div>
   );
 }

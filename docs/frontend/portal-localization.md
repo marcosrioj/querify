@@ -64,6 +64,8 @@ Portal translations are frontend-owned:
 - React access lives in `apps/portal/src/shared/lib/i18n.tsx`
 - API fallback messages and toast copy use the same frontend translation layer
 
+`i18n-core.ts` also matches placeholder-based keys at runtime. Prefer keys like `Delete source "{name}"?` or `Search: {value}` instead of concatenating translated fragments in components.
+
 When adding new Portal UI copy:
 
 1. add the key to `en-US.json`

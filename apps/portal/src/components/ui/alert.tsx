@@ -3,6 +3,7 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { X } from 'lucide-react';
+import { translateRenderableNode } from '@/shared/lib/translate-renderable-node';
 
 const alertVariants = cva('flex items-stretch w-full gap-2 group-[.toaster]:w-(--width)', {
   variants: {
@@ -219,8 +220,12 @@ function Alert({ className, variant, size, icon, appearance, close = false, onCl
   );
 }
 
-function AlertTitle({ className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) {
-  return <div data-slot="alert-title" className={cn('grow tracking-tight', className)} {...props} />;
+function AlertTitle({ className, children, ...props }: React.HTMLAttributes<HTMLHeadingElement>) {
+  return (
+    <div data-slot="alert-title" className={cn('grow tracking-tight', className)} {...props}>
+      {translateRenderableNode(children)}
+    </div>
+  );
 }
 
 function AlertIcon({ children, className, ...props }: AlertIconProps) {
@@ -239,13 +244,15 @@ function AlertToolbar({ children, className, ...props }: AlertIconProps) {
   );
 }
 
-function AlertDescription({ className, ...props }: React.HTMLAttributes<HTMLParagraphElement>) {
+function AlertDescription({ className, children, ...props }: React.HTMLAttributes<HTMLParagraphElement>) {
   return (
     <div
       data-slot="alert-description"
       className={cn('text-sm [&_p]:leading-relaxed [&_p]:mb-2', className)}
       {...props}
-    />
+    >
+      {translateRenderableNode(children)}
+    </div>
   );
 }
 

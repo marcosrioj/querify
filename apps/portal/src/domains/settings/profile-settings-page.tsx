@@ -7,6 +7,7 @@ import { ProfileSettingsSkeleton } from '@/domains/settings/profile-settings-ske
 import { settingsNavItems } from '@/domains/settings/settings-nav';
 import { useUpdateUserProfile, useUserProfile } from '@/domains/settings/settings-hooks';
 import { usePortalI18n } from '@/shared/lib/i18n';
+import { translateText } from '@/shared/lib/i18n-core';
 import { portalLanguageOptions } from '@/shared/lib/language';
 import { Button, Card, CardContent, CardDescription, CardHeader, CardHeading, CardTitle, Form } from '@/shared/ui';
 import { DEFAULT_PORTAL_TIME_ZONE, getTimeZoneOptions } from '@/shared/lib/time-zone';
@@ -49,10 +50,12 @@ export function ProfileSettingsPage() {
           label:
             languageOptions.find((option) => option.code === selectedLanguageValue)
               ?.label ?? selectedLanguageValue,
-          description: `${selectedLanguageValue} • ${
-            languageOptions.find((option) => option.code === selectedLanguageValue)
-              ?.direction.toUpperCase() ?? 'LTR'
-          }`,
+          description: translateText('{code} • {direction}', {
+            code: selectedLanguageValue,
+            direction:
+              languageOptions.find((option) => option.code === selectedLanguageValue)
+                ?.direction.toUpperCase() ?? 'LTR',
+          }),
         }
       : null;
   const selectedTimeZoneValue = form.watch('timeZone');
@@ -128,7 +131,10 @@ export function ProfileSettingsPage() {
                 options={languageOptions.map((option) => ({
                   value: option.code,
                   label: option.label,
-                  description: `${option.code} • ${option.direction.toUpperCase()}`,
+                  description: translateText('{code} • {direction}', {
+                    code: option.code,
+                    direction: option.direction.toUpperCase(),
+                  }),
                   keywords: [option.code, option.direction, option.label],
                 }))}
                 selectedOption={selectedLanguageOption}
@@ -137,22 +143,33 @@ export function ProfileSettingsPage() {
                 emptyMessage="No languages found."
                 allowClear
                 clearLabel="Use browser language"
-                resultCountHint={`${languageOptions.length} languages available`}
+                resultCountHint={translateText('{count} languages available', {
+                  count: languageOptions.length,
+                })}
               />
               <SearchSelectField
                 control={form.control}
                 name="timeZone"
                 label="Time zone"
                 description="Choose a preferred time zone for dates across the portal."
-                hint={`If left empty, the portal keeps using ${DEFAULT_PORTAL_TIME_ZONE}. All timestamps stored in the database should be UTC.`}
+                hint={translateText(
+                  'If left empty, the portal keeps using {timeZone}. All timestamps stored in the database should be UTC.',
+                  { timeZone: DEFAULT_PORTAL_TIME_ZONE },
+                )}
                 options={timeZoneOptions}
                 selectedOption={selectedTimeZoneOption}
-                placeholder={`Use ${DEFAULT_PORTAL_TIME_ZONE}`}
+                placeholder={translateText('Use {timeZone}', {
+                  timeZone: DEFAULT_PORTAL_TIME_ZONE,
+                })}
                 searchPlaceholder="Search time zones"
                 emptyMessage="No time zones found."
                 allowClear
-                clearLabel={`Use ${DEFAULT_PORTAL_TIME_ZONE}`}
-                resultCountHint={`${timeZoneOptions.length} time zones available`}
+                clearLabel={translateText('Use {timeZone}', {
+                  timeZone: DEFAULT_PORTAL_TIME_ZONE,
+                })}
+                resultCountHint={translateText('{count} time zones available', {
+                  count: timeZoneOptions.length,
+                })}
               />
               <Button type="submit" disabled={updateProfile.isPending}>
                 {t('Save profile')}

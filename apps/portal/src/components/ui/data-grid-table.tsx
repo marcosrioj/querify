@@ -5,6 +5,7 @@ import { useDataGrid } from '@/components/ui/data-grid';
 import { Cell, Column, flexRender, Header, HeaderGroup, Row } from '@tanstack/react-table';
 import { cva } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
+import { translateText } from '@/shared/lib/i18n-core';
 
 const headerCellSpacingVariants = cva('', {
   variants: {
@@ -348,7 +349,7 @@ function DataGridTableEmpty() {
   return (
     <tr>
       <td colSpan={totalColumns} className="text-center text-muted-foreground py-6">
-        {props.emptyMessage || 'No data available'}
+        {translateText(props.emptyMessage || 'No data available')}
       </td>
     </tr>
   );
@@ -373,7 +374,7 @@ function DataGridTableLoader() {
             d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
           ></path>
         </svg>
-        {props.loadingMessage || 'Loading...'}
+        {translateText(props.loadingMessage || 'Loading...')}
       </div>
     </div>
   );
@@ -388,7 +389,7 @@ function DataGridTableRowSelect<TData>({ row, size }: { row: Row<TData>; size?: 
       <Checkbox
         checked={row.getIsSelected()}
         onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
+        aria-label={translateText('Select row')}
         size={size ?? 'sm'}
         className="align-[inherit]"
       />
@@ -404,7 +405,7 @@ function DataGridTableRowSelectAll({ size }: { size?: 'sm' | 'md' | 'lg' }) {
       checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
       disabled={isLoading || recordCount === 0}
       onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-      aria-label="Select all"
+      aria-label={translateText('Select all')}
       size={size}
       className="align-[inherit]"
     />

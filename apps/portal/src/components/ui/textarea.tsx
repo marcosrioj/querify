@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils';
 import { cva, type VariantProps } from 'class-variance-authority';
+import { translateText } from '@/shared/lib/i18n-core';
 
 // Define input size variants
 const textareaVariants = cva(
@@ -29,9 +30,17 @@ const textareaVariants = cva(
 function Textarea({
   className,
   variant,
+  placeholder,
   ...props
 }: React.ComponentProps<'textarea'> & VariantProps<typeof textareaVariants>) {
-  return <textarea data-slot="textarea" className={cn(textareaVariants({ variant }), className)} {...props} />;
+  return (
+    <textarea
+      data-slot="textarea"
+      placeholder={typeof placeholder === 'string' ? translateText(placeholder) : placeholder}
+      className={cn(textareaVariants({ variant }), className)}
+      {...props}
+    />
+  );
 }
 
 export { Textarea, textareaVariants };

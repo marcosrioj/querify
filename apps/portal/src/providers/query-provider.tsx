@@ -8,6 +8,7 @@ import {
 import { toast } from 'sonner';
 import { isAbortError, toErrorMessage } from '@/platform/api/api-error';
 import { logger } from '@/platform/telemetry/logger';
+import { translateText } from '@/shared/lib/i18n-core';
 
 export function QueryProvider({ children }: PropsWithChildren) {
   const [queryClient] = useState(
@@ -33,7 +34,7 @@ export function QueryProvider({ children }: PropsWithChildren) {
               queryKey: query.queryKey,
               error,
             });
-            toast.error(toErrorMessage(error));
+            toast.error(toErrorMessage(error, translateText('Request failed.')));
           },
         }),
         mutationCache: new MutationCache({
@@ -46,7 +47,7 @@ export function QueryProvider({ children }: PropsWithChildren) {
               mutationKey: mutation.options.mutationKey,
               error,
             });
-            toast.error(toErrorMessage(error));
+            toast.error(toErrorMessage(error, translateText('Request failed.')));
           },
         }),
       }),

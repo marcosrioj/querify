@@ -14,6 +14,7 @@ import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardHead
 import { SelectField, TextField } from '@/shared/ui/form-fields';
 import { EmptyState } from '@/shared/ui/placeholder-state';
 import { TenantEditionBadge } from '@/shared/ui/status-badges';
+import { translateText } from '@/shared/lib/i18n-core';
 
 const workspaceSchema = z.object({
   name: z.string().min(2, 'Workspace name is required.'),
@@ -109,7 +110,9 @@ export function TenantSettingsPage() {
             title: 'AI providers',
             value: configuredProviders.length,
             description: configuredProviders.length
-              ? `${credentialedProviderCount} with credentials stored`
+              ? translateText('{count} with credentials stored', {
+                  count: credentialedProviderCount,
+                })
               : 'No providers configured yet',
             icon: Bot,
           },

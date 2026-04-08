@@ -23,6 +23,7 @@ import { useListQueryState } from "@/shared/lib/use-list-query-state";
 import { DataTable, type DataTableColumn } from "@/shared/ui/data-table";
 import { PaginationControls } from "@/shared/ui/pagination-controls";
 import { EmptyState, ErrorState } from "@/shared/ui/placeholder-state";
+import { translateText } from "@/shared/lib/i18n-core";
 import {
   Badge,
   Button,
@@ -284,7 +285,7 @@ export function FaqItemListPage() {
               title: "Total",
               value: faqItemQuery.data?.totalCount ?? 0,
               description: debouncedSearch
-                ? `Search: ${debouncedSearch}`
+                ? translateText("Search: {value}", { value: debouncedSearch })
                 : selectedFaqLabel,
               icon: MessageSquare,
             },

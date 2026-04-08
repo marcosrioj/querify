@@ -149,7 +149,7 @@ export function DataTable<T>({
                               {mobileHeaderLabel(column)}
                             </p>
                             <div className="mt-1.5 min-w-0 break-words text-sm text-foreground">
-                              {column.cell(row)}
+                              {translateMaybeString(column.cell(row), t)}
                             </div>
                           </div>
                         ))}
@@ -193,7 +193,7 @@ export function DataTable<T>({
                               key={column.key}
                               className={column.className}
                             >
-                              {column.cell(row)}
+                              {translateMaybeString(column.cell(row), t)}
                             </TableCell>
                           ))}
                         </TableRow>

@@ -20,6 +20,7 @@ import {
   isRtlLanguage,
   normalizePortalLanguage,
 } from "@/shared/lib/language";
+import { translateRenderableNode } from "@/shared/lib/translate-renderable-node";
 
 type PortalI18nContextValue = {
   language: string;
@@ -95,12 +96,16 @@ export function usePortalI18n() {
 }
 
 export function translateNode(node: ReactNode) {
-  return typeof node === "string" ? translateText(node) : node;
+  return translateRenderableNode(node);
 }
 
 export function translateMaybeString(
   value: ReactNode,
   t: typeof translateText = translateText,
 ) {
-  return typeof value === "string" ? t(value) : value;
+  if (typeof value === "string") {
+    return t(value);
+  }
+
+  return translateRenderableNode(value);
 }

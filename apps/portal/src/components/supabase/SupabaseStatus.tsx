@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { usePortalI18n } from '@/shared/lib/i18n';
 
 /**
  * A simple component that displays the status of the Supabase connection.
@@ -7,6 +8,7 @@ import React, { useEffect, useState } from 'react';
 export const SupabaseStatus: React.FC<{
   checkConnection?: () => Promise<boolean>;
 }> = ({ checkConnection }) => {
+  const { t } = usePortalI18n();
   const [status, setStatus] = useState<'checking' | 'connected' | 'error'>(
     'checking',
   );
@@ -16,7 +18,7 @@ export const SupabaseStatus: React.FC<{
     const runConnectionCheck = async () => {
       if (!checkConnection) {
         setStatus('error');
-        setError('No Supabase adapter has been configured for this app.');
+        setError(t('No Supabase adapter has been configured for this app.'));
         return;
       }
 
@@ -26,11 +28,11 @@ export const SupabaseStatus: React.FC<{
           setStatus('connected');
         } else {
           setStatus('error');
-          setError('Supabase connection failed. Check console for details.');
+          setError(t('Supabase connection failed. Check console for details.'));
         }
       } catch (e) {
         setStatus('error');
-        setError(e instanceof Error ? e.message : 'Unknown error');
+        setError(e instanceof Error ? t(e.message) : t('Unknown error'));
       }
     };
 
@@ -39,7 +41,7 @@ export const SupabaseStatus: React.FC<{
 
   return (
     <div className="p-4 rounded-md border">
-      <h3 className="text-lg font-medium mb-2">Supabase Status</h3>
+      <h3 className="text-lg font-medium mb-2">{t('Supabase Status')}</h3>
       <div className="flex items-center gap-2">
         <div
           className={`w-3 h-3 rounded-full ${
@@ -52,10 +54,10 @@ export const SupabaseStatus: React.FC<{
         />
         <span>
           {status === 'checking'
-            ? 'Checking connection...'
+            ? t('Checking connection...')
             : status === 'connected'
-              ? 'Connected to Supabase'
-              : 'Connection error'}
+              ? t('Connected to Supabase')
+              : t('Connection error')}
         </span>
       </div>
       {error && <p className="text-red-500 text-sm mt-2">{error}</p>}

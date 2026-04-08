@@ -65,6 +65,7 @@ import {
   tenantEditionLabels,
 } from "@/shared/constants/backend-enums";
 import { ContentRefKindBadge, FaqStatusBadge } from "@/shared/ui/status-badges";
+import { getCurrentPortalLanguage, translateText } from "@/shared/lib/i18n-core";
 
 function toPercent(value: number, total: number) {
   if (total <= 0) {
@@ -75,11 +76,13 @@ function toPercent(value: number, total: number) {
 }
 
 function formatNumber(value: number) {
-  return new Intl.NumberFormat("en-US").format(value);
+  return new Intl.NumberFormat(getCurrentPortalLanguage()).format(value);
 }
 
 function commandLabel(value: AiCommandType) {
-  return value === AiCommandType.Generation ? "Generation" : "Matching";
+  return value === AiCommandType.Generation
+    ? translateText("Generation")
+    : translateText("Matching");
 }
 
 function MetricCard({
@@ -99,11 +102,13 @@ function MetricCard({
     <Card>
       <CardContent className="relative p-5">
         <div className="min-w-0 space-y-2">
-          <p className="text-sm text-muted-foreground">{title}</p>
+          <p className="text-sm text-muted-foreground">{translateText(title)}</p>
           <p className="break-words text-3xl font-semibold tracking-tight text-mono">
             {value}
           </p>
-          <p className="text-sm text-muted-foreground">{description}</p>
+          <p className="text-sm text-muted-foreground">
+            {translateText(description)}
+          </p>
         </div>
         <div
           className={`pointer-events-none absolute right-5 top-5 flex size-5 items-center justify-center rounded-2xl ${toneClassName}`}
@@ -129,7 +134,9 @@ function ReadinessRow({
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between gap-3">
-        <span className="text-sm font-medium text-foreground">{label}</span>
+        <span className="text-sm font-medium text-foreground">
+          {translateText(label)}
+        </span>
         <span className="text-sm font-semibold text-mono">{value}%</span>
       </div>
       <Progress
@@ -137,7 +144,9 @@ function ReadinessRow({
         className="h-2"
         indicatorClassName={indicatorClassName}
       />
-      <p className="text-xs leading-5 text-muted-foreground">{helper}</p>
+      <p className="text-xs leading-5 text-muted-foreground">
+        {translateText(helper)}
+      </p>
     </div>
   );
 }
@@ -151,8 +160,10 @@ function EmptyMiniState({
 }) {
   return (
     <div className="rounded-2xl border border-dashed border-border px-4 py-5">
-      <p className="font-medium text-mono">{title}</p>
-      <p className="mt-1 text-sm text-muted-foreground">{description}</p>
+      <p className="font-medium text-mono">{translateText(title)}</p>
+      <p className="mt-1 text-sm text-muted-foreground">
+        {translateText(description)}
+      </p>
     </div>
   );
 }
@@ -183,9 +194,11 @@ function AnswerRow({ item }: { item: FaqItemDto }) {
         </div>
       </div>
       <div className="space-y-1 text-left text-xs text-muted-foreground sm:text-right">
-        <div className="font-semibold text-mono">Vote {item.voteScore}</div>
         <div className="font-semibold text-mono">
-          AI {item.aiConfidenceScore}
+          {translateText("Vote {value}", { value: item.voteScore })}
+        </div>
+        <div className="font-semibold text-mono">
+          {translateText("AI {value}", { value: item.aiConfidenceScore })}
         </div>
       </div>
     </div>
@@ -219,7 +232,7 @@ function SourceRow({ contentRef }: { contentRef: ContentRefDto }) {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0 space-y-1.5">
           <p className="truncate text-sm font-medium text-mono">
-            {contentRef.label || "Untitled source"}
+            {contentRef.label || translateText("Untitled source")}
           </p>
           <p className="break-all text-sm text-muted-foreground sm:break-words lg:truncate">
             {contentRef.locator}
@@ -228,7 +241,7 @@ function SourceRow({ contentRef }: { contentRef: ContentRefDto }) {
         <ContentRefKindBadge kind={contentRef.kind} />
       </div>
       <p className="mt-2 text-xs text-muted-foreground">
-        {contentRef.scope || "No scope assigned"}
+        {contentRef.scope || translateText("No scope assigned")}
       </p>
     </div>
   );
@@ -348,34 +361,34 @@ export function DashboardPage() {
 
   const assetMixData = [
     {
-      name: "FAQs",
+      name: translateText("FAQs"),
       total: totalFaqs,
       fill: "var(--chart-1)",
     },
     {
-      name: "Q&A items",
+      name: translateText("Q&A items"),
       total: totalFaqItems,
       fill: "var(--chart-2)",
     },
     {
-      name: "Sources",
+      name: translateText("Sources"),
       total: totalContentRefs,
       fill: "var(--chart-3)",
     },
   ];
   const faqLifecycleData = [
     {
-      name: "Published",
+      name: translateText("Published"),
       total: publishedFaqs,
       fill: "var(--chart-2)",
     },
     {
-      name: "Draft",
+      name: translateText("Draft"),
       total: draftFaqs,
       fill: "var(--chart-3)",
     },
     {
-      name: "Archived",
+      name: translateText("Archived"),
       total: archivedFaqs,
       fill: "var(--chart-4)",
     },
@@ -384,7 +397,10 @@ export function DashboardPage() {
     {
       label: "Published",
       value: `${publishedFaqPercent}%`,
-      description: `${publishedFaqs} of ${totalFaqs} FAQs are live`,
+      description: translateText("{published} of {total} FAQs are live", {
+        published: publishedFaqs,
+        total: totalFaqs,
+      }),
     },
     {
       label: "Inactive",
@@ -394,7 +410,10 @@ export function DashboardPage() {
     {
       label: "AI keys",
       value: `${providerCoveragePercent}%`,
-      description: `${configuredAiProviders} of ${aiProviders.length} providers ready`,
+      description: translateText("{configured} of {total} providers ready", {
+        configured: configuredAiProviders,
+        total: aiProviders.length,
+      }),
     },
   ];
   const onboardingSteps = [
@@ -402,7 +421,9 @@ export function DashboardPage() {
       id: "faq",
       label: "Create your first FAQ",
       description: totalFaqs
-        ? `${formatNumber(totalFaqs)} FAQ records already exist in this workspace.`
+        ? translateText("{count} FAQ records already exist in this workspace.", {
+            count: formatNumber(totalFaqs),
+          })
         : "Define the first FAQ so the workspace has a customer-facing destination.",
       complete: totalFaqs > 0,
     },
@@ -410,7 +431,10 @@ export function DashboardPage() {
       id: "item",
       label: "Add a Q&A item",
       description: totalFaqItems
-        ? `${formatNumber(totalFaqItems)} Q&A items are already filling out the knowledge base.`
+        ? translateText(
+            "{count} Q&A items are already filling out the knowledge base.",
+            { count: formatNumber(totalFaqItems) },
+          )
         : "Write the first answer so visitors can actually resolve a question.",
       complete: totalFaqItems > 0,
     },
@@ -418,7 +442,9 @@ export function DashboardPage() {
       id: "source",
       label: "Connect a source",
       description: totalContentRefs
-        ? `${formatNumber(totalContentRefs)} reusable sources are already linked.`
+        ? translateText("{count} reusable sources are already linked.", {
+            count: formatNumber(totalContentRefs),
+          })
         : "Attach source material so answers stay traceable and reusable.",
       complete: totalContentRefs > 0,
     },
@@ -426,7 +452,9 @@ export function DashboardPage() {
       id: "publish",
       label: "Publish a FAQ",
       description: publishedFaqs
-        ? `${formatNumber(publishedFaqs)} FAQs are already live for customers.`
+        ? translateText("{count} FAQs are already live for customers.", {
+            count: formatNumber(publishedFaqs),
+          })
         : "Move one FAQ out of draft so the workflow reaches a visible outcome.",
       complete: publishedFaqs > 0,
     },
@@ -500,26 +528,31 @@ export function DashboardPage() {
           <CardContent className="relative space-y-8 p-6 lg:p-7.5">
             <div className="flex flex-wrap items-center gap-2 text-xs font-medium uppercase tracking-[0.24em] text-white/70">
               <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[0.6875rem] tracking-[0.2em] text-white">
-                {currentWorkspace?.slug ?? "workspace-pending"}
+                {currentWorkspace?.slug ?? translateText("workspace-pending")}
               </span>
               {currentWorkspace ? (
                 <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[0.6875rem] tracking-[0.2em] text-white">
                   {currentWorkspace.isActive
-                    ? "Active workspace"
-                    : "Inactive workspace"}
+                    ? translateText("Active workspace")
+                    : translateText("Inactive workspace")}
                 </span>
               ) : null}
               <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[0.6875rem] tracking-[0.2em] text-white">
-                {currentWorkspace
-                  ? `${tenantUserRoleTypeLabels[currentWorkspace.currentUserRole]} access`
-                  : `${user?.role ?? "Member"} access`}
+                {translateText("{role} access", {
+                  role: translateText(
+                    currentWorkspace
+                      ? tenantUserRoleTypeLabels[currentWorkspace.currentUserRole]
+                      : user?.role ?? "Member",
+                  ),
+                })}
               </span>
             </div>
 
             <div className="max-w-3xl space-y-3">
               <div className="flex flex-wrap items-center gap-3">
                 <h2 className="text-2xl font-semibold tracking-tight lg:text-3xl">
-                  {currentWorkspace?.name ?? "Set up your tenant workspace"}
+                  {currentWorkspace?.name ??
+                    translateText("Set up your tenant workspace")}
                 </h2>
                 {currentWorkspace ? (
                   <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-medium text-white">
@@ -528,8 +561,9 @@ export function DashboardPage() {
                 ) : null}
               </div>
               <p className="max-w-2xl text-sm leading-6 text-white/78">
-                Track FAQ coverage, Q&A item health, source links, and AI
-                readiness for the current workspace.
+                {translateText(
+                  "Track FAQ coverage, Q&A item health, source links, and AI readiness for the current workspace.",
+                )}
               </p>
             </div>
 
@@ -557,13 +591,15 @@ export function DashboardPage() {
 
             <div className="rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur-xs">
               <p className="text-xs font-medium uppercase tracking-[0.22em] text-white/70">
-                Next recommended step
+                {translateText("Next recommended step")}
               </p>
               <p className="mt-2 text-lg font-semibold tracking-tight text-white">
-                {nextOnboardingAction.label}
+                {translateText(nextOnboardingAction.label)}
               </p>
               <p className="mt-1 text-sm text-white/72">
-                Keep the workspace moving toward a published FAQ with traceable answers.
+                {translateText(
+                  "Keep the workspace moving toward a published FAQ with traceable answers.",
+                )}
               </p>
             </div>
 
@@ -574,13 +610,13 @@ export function DashboardPage() {
                   className="rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur-xs"
                 >
                   <p className="text-xs uppercase tracking-[0.22em] text-white/65">
-                    {highlight.label}
+                    {translateText(highlight.label)}
                   </p>
                   <p className="mt-2 text-2xl font-semibold tracking-tight">
                     {highlight.value}
                   </p>
                   <p className="mt-1 text-sm text-white/70">
-                    {highlight.description}
+                    {translateText(highlight.description)}
                   </p>
                 </div>
               ))}
@@ -615,7 +651,7 @@ export function DashboardPage() {
                     {readinessScore}%
                   </div>
                   <div className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-                    Ready
+                    {translateText("Ready")}
                   </div>
                 </div>
               </ProgressRadial>
@@ -623,11 +659,12 @@ export function DashboardPage() {
               <div className="space-y-3">
                 <div className="flex items-center gap-2 text-sm font-medium text-foreground">
                   <Gauge className="size-4 text-primary" />
-                  Workspace health at a glance.
+                  {translateText("Workspace health at a glance.")}
                 </div>
                 <p className="text-sm leading-6 text-muted-foreground">
-                  This score uses live Portal data instead of placeholder growth
-                  metrics.
+                  {translateText(
+                    "This score uses live Portal data instead of placeholder growth metrics.",
+                  )}
                 </p>
                 <div className="flex flex-wrap gap-2">
                   <Badge
@@ -650,19 +687,31 @@ export function DashboardPage() {
               <ReadinessRow
                 label="Published"
                 value={publishedFaqPercent}
-                helper={`${publishedFaqs} published, ${draftFaqs} draft, ${archivedFaqs} archived`}
+                helper={translateText(
+                  "{published} published, {draft} draft, {archived} archived",
+                  {
+                    published: publishedFaqs,
+                    draft: draftFaqs,
+                    archived: archivedFaqs,
+                  },
+                )}
                 indicatorClassName="bg-emerald-500"
               />
               <ReadinessRow
                 label="Active Q&A items"
                 value={activeAnswerPercent}
-                helper={`${activeFaqItems} active, ${inactiveFaqItems} inactive`}
+                helper={translateText("{active} active, {inactive} inactive", {
+                  active: activeFaqItems,
+                  inactive: inactiveFaqItems,
+                })}
                 indicatorClassName="bg-blue-500"
               />
               <ReadinessRow
                 label="AI keys"
                 value={providerCoveragePercent}
-                helper={`${configuredAiProviders} providers secured for tenant use`}
+                helper={translateText("{count} providers secured for tenant use", {
+                  count: configuredAiProviders,
+                })}
                 indicatorClassName="bg-cyan-500"
               />
               <ReadinessRow
@@ -693,28 +742,36 @@ export function DashboardPage() {
           icon={BookOpen}
           title="FAQs"
           value={formatNumber(totalFaqs)}
-          description={`${formatNumber(publishedFaqs)} currently published`}
+          description={translateText("{count} currently published", {
+            count: formatNumber(publishedFaqs),
+          })}
           toneClassName="bg-blue-500/10 text-blue-600 dark:bg-blue-500/15 dark:text-blue-300"
         />
         <MetricCard
           icon={Sparkles}
           title="Published"
           value={formatNumber(publishedFaqs)}
-          description={`${formatNumber(draftFaqs)} still waiting in draft`}
+          description={translateText("{count} still waiting in draft", {
+            count: formatNumber(draftFaqs),
+          })}
           toneClassName="bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-300"
         />
         <MetricCard
           icon={MessageSquare}
           title="Q&A items"
           value={formatNumber(activeFaqItems)}
-          description={`${formatNumber(inactiveFaqItems)} inactive items need attention`}
+          description={translateText("{count} inactive items need attention", {
+            count: formatNumber(inactiveFaqItems),
+          })}
           toneClassName="bg-cyan-500/10 text-cyan-600 dark:bg-cyan-500/15 dark:text-cyan-300"
         />
         <MetricCard
           icon={Files}
           title="Sources"
           value={formatNumber(totalContentRefs)}
-          description={`${contentRefOverviewQuery.data?.items.length ?? 0} recent sources loaded on this page`}
+          description={translateText("{count} recent sources loaded on this page", {
+            count: contentRefOverviewQuery.data?.items.length ?? 0,
+          })}
           toneClassName="bg-amber-500/10 text-amber-600 dark:bg-amber-500/15 dark:text-amber-300"
         />
       </div>
@@ -736,7 +793,7 @@ export function DashboardPage() {
             <ChartContainer
               config={{
                 total: {
-                  label: "Records",
+                  label: translateText("Records"),
                   color: "var(--chart-1)",
                 },
               }}
@@ -778,10 +835,10 @@ export function DashboardPage() {
                 >
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <span
-                      className="size-2 rounded-full"
-                      style={{ backgroundColor: asset.fill }}
-                    />
-                    {asset.name}
+                    className="size-2 rounded-full"
+                    style={{ backgroundColor: asset.fill }}
+                  />
+                    {translateText(asset.name)}
                   </div>
                   <p className="mt-2 text-2xl font-semibold tracking-tight text-mono">
                     {formatNumber(asset.total)}
@@ -808,7 +865,7 @@ export function DashboardPage() {
             <ChartContainer
               config={{
                 total: {
-                  label: "FAQs",
+                  label: translateText("FAQs"),
                   color: "var(--chart-2)",
                 },
               }}
@@ -852,7 +909,7 @@ export function DashboardPage() {
                       style={{ backgroundColor: entry.fill }}
                     />
                     <span className="text-sm font-medium text-foreground">
-                      {entry.name}
+                      {translateText(entry.name)}
                     </span>
                   </div>
                   <span className="text-sm font-semibold text-mono">
@@ -1030,50 +1087,54 @@ export function DashboardPage() {
           <CardContent className="space-y-3">
             <div className="flex gap-3 rounded-2xl border border-border/70 px-4 py-3">
               <CircleAlert className="mt-0.5 size-4 shrink-0 text-amber-500" />
-              <div>
-                <p className="text-sm font-medium text-mono">
-                  Member adds require existing users
-                </p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Workspace memberships are live, but adding someone still
-                  requires a user account that already exists in BaseFAQ.
+                <div>
+                  <p className="text-sm font-medium text-mono">
+                    {translateText("Member adds require existing users")}
+                  </p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {translateText(
+                      "Workspace memberships are live, but adding someone still requires a user account that already exists in BaseFAQ.",
+                    )}
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-3 rounded-2xl border border-border/70 px-4 py-3">
+                <ShieldCheck className="mt-0.5 size-4 shrink-0 text-blue-500" />
+                <div>
+                  <p className="text-sm font-medium text-mono">
+                    {translateText("Billing is not exposed yet")}
+                  </p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {translateText(
+                      "Edition visibility exists, but billing and invoicing endpoints do not.",
+                    )}
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-3 rounded-2xl border border-border/70 px-4 py-3">
+                <BrainCircuit className="mt-0.5 size-4 shrink-0 text-cyan-500" />
+                <div>
+                  <p className="text-sm font-medium text-mono">
+                    {translateText("AI jobs have no history endpoint")}
+                  </p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {translateText(
+                      "Generation requests can be triggered, but job listings and status dashboards are not exposed.",
+                    )}
+                  </p>
+                </div>
+              </div>
+              <div className="rounded-2xl border border-dashed border-border px-4 py-3">
+                <div className="flex items-center gap-2 text-sm font-medium text-mono">
+                  <Bot className="size-4 text-primary" />
+                  {translateText("Next steps")}
+                </div>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  {translateText(
+                    "Publish key FAQs, activate answers, attach source refs, then secure tenant AI providers.",
+                  )}
                 </p>
               </div>
-            </div>
-            <div className="flex gap-3 rounded-2xl border border-border/70 px-4 py-3">
-              <ShieldCheck className="mt-0.5 size-4 shrink-0 text-blue-500" />
-              <div>
-                <p className="text-sm font-medium text-mono">
-                  Billing is not exposed yet
-                </p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Edition visibility exists, but billing and invoicing endpoints
-                  do not.
-                </p>
-              </div>
-            </div>
-            <div className="flex gap-3 rounded-2xl border border-border/70 px-4 py-3">
-              <BrainCircuit className="mt-0.5 size-4 shrink-0 text-cyan-500" />
-              <div>
-                <p className="text-sm font-medium text-mono">
-                  AI jobs have no history endpoint
-                </p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Generation requests can be triggered, but job listings and
-                  status dashboards are not exposed.
-                </p>
-              </div>
-            </div>
-            <div className="rounded-2xl border border-dashed border-border px-4 py-3">
-              <div className="flex items-center gap-2 text-sm font-medium text-mono">
-                <Bot className="size-4 text-primary" />
-                Next steps
-              </div>
-              <p className="mt-2 text-sm text-muted-foreground">
-                Publish key FAQs, activate answers, attach source refs, then
-                secure tenant AI providers.
-              </p>
-            </div>
           </CardContent>
         </Card>
       </div>

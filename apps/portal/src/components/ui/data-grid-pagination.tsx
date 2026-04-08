@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { useDataGrid } from '@/components/ui/data-grid';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
+import { translateText } from '@/shared/lib/i18n-core';
 import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -24,8 +25,8 @@ function DataGridPagination(props: DataGridPaginationProps) {
 
   const defaultProps: Partial<DataGridPaginationProps> = {
     sizes: [5, 10, 25, 50, 100],
-    sizesLabel: 'Show',
-    sizesDescription: 'per page',
+    sizesLabel: 'Rows per page',
+    sizesDescription: 'Rows per page',
     sizesSkeleton: <Skeleton className="h-8 w-44" />,
     moreLimit: 5,
     more: false,
@@ -44,12 +45,14 @@ function DataGridPagination(props: DataGridPaginationProps) {
   const pageCount = table.getPageCount();
 
   // Replace placeholders in paginationInfo
-  const paginationInfo = mergedProps?.info
-    ? mergedProps.info
-        .replace('{from}', from.toString())
-        .replace('{to}', to.toString())
-        .replace('{count}', recordCount.toString())
-    : `${from} - ${to} of ${recordCount}`;
+  const paginationInfo = translateText(
+    mergedProps?.info ?? '{from} - {to} of {count}',
+    {
+      from,
+      to,
+      count: recordCount,
+    },
+  );
 
   // Pagination limit logic
   const paginationMoreLimit = mergedProps?.moreLimit || 5;
@@ -133,7 +136,9 @@ function DataGridPagination(props: DataGridPaginationProps) {
           mergedProps?.sizesSkeleton
         ) : (
           <>
-            <div className="text-sm text-muted-foreground">Rows per page</div>
+            <div className="text-sm text-muted-foreground">
+              {translateText(mergedProps.sizesDescription ?? 'Rows per page')}
+            </div>
             <Select
               value={`${pageSize}`}
               indicatorPosition="right"
@@ -172,7 +177,7 @@ function DataGridPagination(props: DataGridPaginationProps) {
                   onClick={() => table.previousPage()}
                   disabled={!table.getCanPreviousPage()}
                 >
-                  <span className="sr-only">Go to previous page</span>
+                  <span className="sr-only">{translateText('Go to previous page')}</span>
                   <ChevronLeftIcon className="size-4" />
                 </Button>
 
@@ -190,7 +195,7 @@ function DataGridPagination(props: DataGridPaginationProps) {
                   onClick={() => table.nextPage()}
                   disabled={!table.getCanNextPage()}
                 >
-                  <span className="sr-only">Go to next page</span>
+                  <span className="sr-only">{translateText('Go to next page')}</span>
                   <ChevronRightIcon className="size-4" />
                 </Button>
               </div>

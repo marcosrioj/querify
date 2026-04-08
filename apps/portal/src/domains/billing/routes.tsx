@@ -3,16 +3,25 @@ import { RouteObject } from 'react-router-dom';
 import { useCurrentWorkspace } from '@/domains/tenants/hooks';
 import { usePermission } from '@/platform/permissions/permissions';
 import { PageHeader, PageSurface, SectionGrid } from '@/shared/layout/page-layouts';
+import { usePortalI18n } from '@/shared/lib/i18n';
+import { translateText } from '@/shared/lib/i18n-core';
 import { EmptyState } from '@/shared/ui/placeholder-state';
 import { Button, Card, CardContent, CardDescription, CardHeader, CardHeading, CardTitle, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui';
 import { tenantEditionLabels } from '@/shared/constants/backend-enums';
 
+function formatInvoiceDate(date: string, language: string) {
+  return new Intl.DateTimeFormat(language, { dateStyle: 'long' }).format(
+    new Date(`${date}T00:00:00`),
+  );
+}
+
 function BillingPage() {
+  const { language } = usePortalI18n();
   const currentWorkspace = useCurrentWorkspace();
   const canManageBilling = usePermission('billing.manage');
   const placeholderInvoices = [
-    { id: 'INV-2026-001', amount: '$0.00', status: 'Draft', date: 'April 1, 2026' },
-    { id: 'INV-2026-000', amount: '$0.00', status: 'Preview', date: 'March 1, 2026' },
+    { id: 'INV-2026-001', amount: '$0.00', status: 'Draft', date: '2026-04-01' },
+    { id: 'INV-2026-000', amount: '$0.00', status: 'Preview', date: '2026-03-01' },
   ];
 
   return (
@@ -66,7 +75,11 @@ function BillingPage() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="rounded-2xl border border-border bg-muted/30 p-4 text-sm text-muted-foreground">
-            Billing contact: {currentWorkspace?.slug ? `${currentWorkspace.slug}@billing.basefaq.com` : 'Not configured'}
+            {translateText('Billing contact: {value}', {
+              value: currentWorkspace?.slug
+                ? `${currentWorkspace.slug}@billing.basefaq.com`
+                : translateText('Not configured'),
+            })}
           </div>
           <Button disabled={!canManageBilling}>Manage subscription</Button>
         </CardContent>
@@ -88,25 +101,29 @@ function BillingPage() {
                 <div className="space-y-3">
                   <div>
                     <p className="text-[0.6875rem] font-medium uppercase tracking-[0.16em] text-muted-foreground">
-                      Invoice
+                      {translateText('Invoice')}
                     </p>
                     <p className="mt-1.5 font-medium text-mono">{invoice.id}</p>
                   </div>
                   <div>
                     <p className="text-[0.6875rem] font-medium uppercase tracking-[0.16em] text-muted-foreground">
-                      Date
+                      {translateText('Date')}
                     </p>
-                    <p className="mt-1.5 text-sm">{invoice.date}</p>
+                    <p className="mt-1.5 text-sm">
+                      {formatInvoiceDate(invoice.date, language)}
+                    </p>
                   </div>
                   <div>
                     <p className="text-[0.6875rem] font-medium uppercase tracking-[0.16em] text-muted-foreground">
-                      Status
+                      {translateText('Status')}
                     </p>
-                    <p className="mt-1.5 text-sm">{invoice.status}</p>
+                    <p className="mt-1.5 text-sm">
+                      {translateText(invoice.status)}
+                    </p>
                   </div>
                   <div>
                     <p className="text-[0.6875rem] font-medium uppercase tracking-[0.16em] text-muted-foreground">
-                      Amount
+                      {translateText('Amount')}
                     </p>
                     <p className="mt-1.5 text-sm font-medium">{invoice.amount}</p>
                   </div>
@@ -129,7 +146,7 @@ function BillingPage() {
                 {placeholderInvoices.map((invoice) => (
                   <TableRow key={invoice.id}>
                     <TableCell className="font-medium text-mono">{invoice.id}</TableCell>
-                    <TableCell>{invoice.date}</TableCell>
+                    <TableCell>{formatInvoiceDate(invoice.date, language)}</TableCell>
                     <TableCell>{invoice.status}</TableCell>
                     <TableCell className="text-right">{invoice.amount}</TableCell>
                   </TableRow>

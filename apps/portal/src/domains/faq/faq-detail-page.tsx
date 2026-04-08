@@ -337,8 +337,10 @@ export function FaqDetailPage() {
                 value: relatedItems.length,
                 description:
                   relatedItems.length === 1
-                    ? "1 item linked"
-                    : `${relatedItems.length} items linked`,
+                    ? translateText("1 item linked")
+                    : translateText("{count} items linked", {
+                        count: relatedItems.length,
+                      }),
                 icon: MessageSquare,
               },
               {

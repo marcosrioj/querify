@@ -6,6 +6,8 @@ import { cn } from '@/lib/utils';
 import { cva, VariantProps } from 'class-variance-authority';
 import { Check, ChevronDown, ChevronUp } from 'lucide-react';
 import { Select as SelectPrimitive } from 'radix-ui';
+import { translateText } from '@/shared/lib/i18n-core';
+import { translateRenderableNode } from '@/shared/lib/translate-renderable-node';
 
 // Create a Context for `indicatorPosition` and `indicator` control
 const SelectContext = React.createContext<{
@@ -36,8 +38,20 @@ function SelectGroup({ ...props }: React.ComponentProps<typeof SelectPrimitive.G
   return <SelectPrimitive.Group data-slot="select-group" {...props} />;
 }
 
-function SelectValue({ ...props }: React.ComponentProps<typeof SelectPrimitive.Value>) {
-  return <SelectPrimitive.Value data-slot="select-value" {...props} />;
+function SelectValue({
+  placeholder,
+  children,
+  ...props
+}: React.ComponentProps<typeof SelectPrimitive.Value>) {
+  return (
+    <SelectPrimitive.Value
+      data-slot="select-value"
+      placeholder={typeof placeholder === 'string' ? translateText(placeholder) : placeholder}
+      {...props}
+    >
+      {translateRenderableNode(children)}
+    </SelectPrimitive.Value>
+  );
 }
 
 // Define size variants for SelectTrigger
@@ -144,13 +158,15 @@ function SelectContent({
   );
 }
 
-function SelectLabel({ className, ...props }: React.ComponentProps<typeof SelectPrimitive.Label>) {
+function SelectLabel({ className, children, ...props }: React.ComponentProps<typeof SelectPrimitive.Label>) {
   return (
     <SelectPrimitive.Label
       data-slot="select-label"
       className={cn('py-1.5 ps-8 pe-2 text-xs text-muted-foreground font-medium', className)}
       {...props}
-    />
+    >
+      {translateRenderableNode(children)}
+    </SelectPrimitive.Label>
   );
 }
 
@@ -182,7 +198,7 @@ function SelectItem({ className, children, ...props }: React.ComponentProps<type
             </SelectPrimitive.ItemIndicator>
           </span>
         ))}
-      <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
+      <SelectPrimitive.ItemText>{translateRenderableNode(children)}</SelectPrimitive.ItemText>
     </SelectPrimitive.Item>
   );
 }

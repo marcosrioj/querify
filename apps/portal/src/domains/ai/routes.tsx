@@ -6,6 +6,7 @@ import { useFaqList, useRequestFaqGeneration } from '@/domains/faq/hooks';
 import { useTenantWorkspace } from '@/domains/tenants/hooks';
 import { AiCommandType } from '@/shared/constants/backend-enums';
 import { PageHeader, PageSurface, SectionGrid } from '@/shared/layout/page-layouts';
+import { translateText } from '@/shared/lib/i18n-core';
 import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardHeading, CardTitle, ConfirmAction } from '@/shared/ui';
 import { EmptyState } from '@/shared/ui/placeholder-state';
 
@@ -40,7 +41,9 @@ function AiWorkspacePage() {
           {
             title: 'Providers',
             value: providers.length,
-            description: providers.length ? `${readyProviders} ready to use` : 'No providers configured',
+            description: providers.length
+              ? translateText('{count} ready to use', { count: readyProviders })
+              : 'No providers configured',
             icon: Bot,
           },
           {

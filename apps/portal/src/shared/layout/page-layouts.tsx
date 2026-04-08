@@ -253,7 +253,7 @@ export function SectionGrid({
                   valueClassName,
                 )}
               >
-                {item.value}
+                {translateMaybeString(item.value, t)}
               </div>
               {item.description ? (
                 <p className="text-sm leading-6 text-muted-foreground">
@@ -292,7 +292,7 @@ export function KeyValueList({
           <div className="flex flex-col gap-1.5 border-b border-border/70 px-4 py-3 last:border-b-0 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
             <dt className="text-sm text-muted-foreground">{t(item.label)}</dt>
             <dd className="break-words text-left text-sm font-medium text-foreground sm:text-right">
-              {item.value}
+              {translateMaybeString(item.value, t)}
             </dd>
           </div>
         </Fragment>

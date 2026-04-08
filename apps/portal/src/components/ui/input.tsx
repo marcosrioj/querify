@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils';
 import { cva, type VariantProps } from 'class-variance-authority';
+import { translateText } from '@/shared/lib/i18n-core';
 
 // Define input size variants
 const inputVariants = cva(
@@ -120,9 +121,18 @@ function Input({
   className,
   type,
   variant,
+  placeholder,
   ...props
 }: React.ComponentProps<'input'> & VariantProps<typeof inputVariants>) {
-  return <input data-slot="input" type={type} className={cn(inputVariants({ variant }), className)} {...props} />;
+  return (
+    <input
+      data-slot="input"
+      type={type}
+      placeholder={typeof placeholder === 'string' ? translateText(placeholder) : placeholder}
+      className={cn(inputVariants({ variant }), className)}
+      {...props}
+    />
+  );
 }
 
 function InputAddon({

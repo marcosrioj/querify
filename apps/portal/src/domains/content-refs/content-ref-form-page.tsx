@@ -45,6 +45,7 @@ import {
 } from "@/shared/ui";
 import { ErrorState } from "@/shared/ui/placeholder-state";
 import { SelectField, TextField } from "@/shared/ui/form-fields";
+import { translateText } from "@/shared/lib/i18n-core";
 
 export function ContentRefFormPage({ mode }: { mode: "create" | "edit" }) {
   const navigate = useNavigate();
@@ -102,7 +103,9 @@ export function ContentRefFormPage({ mode }: { mode: "create" | "edit" }) {
       id: "kind",
       label: "Choose the source type",
       description: contentRefKindLabels[kindValue]
-        ? `Current type: ${contentRefKindLabels[kindValue]}.`
+        ? translateText("Current type: {value}.", {
+            value: contentRefKindLabels[kindValue],
+          })
         : "Classify the source so teammates know what kind of reference they are opening.",
       complete: Number.isFinite(kindValue),
     },
@@ -118,7 +121,7 @@ export function ContentRefFormPage({ mode }: { mode: "create" | "edit" }) {
       id: "label",
       label: "Give it a reusable label",
       description: labelValue
-        ? `Current label: ${labelValue}`
+        ? translateText("Current label: {value}", { value: labelValue })
         : "A good label helps people find this source again without opening it first.",
       complete: Boolean(labelValue?.trim()),
     },

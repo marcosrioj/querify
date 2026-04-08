@@ -31,6 +31,7 @@ import {
 import { TextField } from '@/shared/ui/form-fields';
 import { DataTable, type DataTableColumn } from '@/shared/ui/data-table';
 import { EmptyState } from '@/shared/ui/placeholder-state';
+import { translateText } from '@/shared/lib/i18n-core';
 
 const inviteSchema = z.object({
   name: z
@@ -122,7 +123,9 @@ export function MembersPage() {
             onClick={(event) => event.stopPropagation()}
           >
             <ConfirmAction
-              title={`Remove ${member.email} from this workspace?`}
+              title={translateText('Remove {email} from this workspace?', {
+                email: member.email,
+              })}
               description="This removes their access to the current workspace but does not delete their account."
               confirmLabel="Remove member"
               onConfirm={() => deleteMember.mutateAsync(member.id)}
