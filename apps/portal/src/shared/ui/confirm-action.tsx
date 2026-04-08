@@ -11,6 +11,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { translateMaybeString, usePortalI18n } from "@/shared/lib/i18n";
 
 export function ConfirmAction({
   trigger,
@@ -31,6 +32,7 @@ export function ConfirmAction({
   isPending?: boolean;
   onConfirm: () => Promise<unknown> | unknown;
 }) {
+  const { t } = usePortalI18n();
   const [open, setOpen] = useState(false);
 
   const handleConfirm = async () => {
@@ -60,14 +62,16 @@ export function ConfirmAction({
               <Sparkles className="size-5" />
             )}
           </div>
-          <AlertDialogTitle>{title}</AlertDialogTitle>
-          <AlertDialogDescription>{description}</AlertDialogDescription>
+          <AlertDialogTitle>{translateMaybeString(title, t)}</AlertDialogTitle>
+          <AlertDialogDescription>
+            {translateMaybeString(description, t)}
+          </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={isPending}>{cancelLabel}</AlertDialogCancel>
+          <AlertDialogCancel disabled={isPending}>{t(cancelLabel)}</AlertDialogCancel>
           <Button variant={variant} disabled={isPending} onClick={() => void handleConfirm()}>
             {isPending ? <LoaderCircle className="size-4 animate-spin" /> : null}
-            {confirmLabel}
+            {t(confirmLabel)}
           </Button>
         </AlertDialogFooter>
       </AlertDialogContent>

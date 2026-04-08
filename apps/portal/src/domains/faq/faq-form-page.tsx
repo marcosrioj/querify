@@ -35,23 +35,34 @@ import {
   type SelectFieldConfirmation,
 } from "@/shared/ui/form-fields";
 import { ErrorState } from "@/shared/ui/placeholder-state";
+import { translateText } from "@/shared/lib/i18n-core";
 
 const faqStatusConfirmation: SelectFieldConfirmation = {
   title: ({ nextOption }) =>
-    `Change FAQ status to ${nextOption?.label ?? "this option"}?`,
+    translateText("Change FAQ status to {status}?", {
+      status: nextOption?.label ?? translateText("this option"),
+    }),
   description: ({ nextValue }) => {
     switch (Number(nextValue)) {
       case FaqStatus.Published:
-        return "Published FAQs are treated as ready for customer-facing use. Confirm this only when the answers and sources are ready.";
+        return translateText(
+          "Published FAQs are treated as ready for customer-facing use. Confirm this only when the answers and sources are ready.",
+        );
       case FaqStatus.Archived:
-        return "Archived FAQs stay saved for history, but should stop being used as active content. Confirm this when the FAQ is obsolete or intentionally retired.";
+        return translateText(
+          "Archived FAQs stay saved for history, but should stop being used as active content. Confirm this when the FAQ is obsolete or intentionally retired.",
+        );
       case FaqStatus.Draft:
       default:
-        return "Draft keeps the FAQ in a working state while the team is still reviewing answers and sources.";
+        return translateText(
+          "Draft keeps the FAQ in a working state while the team is still reviewing answers and sources.",
+        );
     }
   },
   confirmLabel: ({ nextOption }) =>
-    `Set as ${nextOption?.label ?? "selected status"}`,
+    translateText("Set as {status}", {
+      status: nextOption?.label ?? translateText("selected status"),
+    }),
   variant: ({ nextValue }) =>
     Number(nextValue) === FaqStatus.Archived ? "destructive" : "primary",
 };
@@ -93,7 +104,7 @@ export function FaqFormPage({ mode }: { mode: "create" | "edit" }) {
       id: "name",
       label: "Name the FAQ",
       description: nameValue
-        ? `Current title: ${nameValue}`
+        ? translateText("Current title: {value}", { value: nameValue })
         : "Use a specific title so teammates and customers know what this FAQ covers.",
       complete: Boolean(nameValue?.trim()),
     },
@@ -101,7 +112,7 @@ export function FaqFormPage({ mode }: { mode: "create" | "edit" }) {
       id: "language",
       label: "Confirm the language",
       description: languageValue
-        ? `Current locale: ${languageValue}`
+        ? translateText("Current locale: {value}", { value: languageValue })
         : "Pick the locale customers will actually search in.",
       complete: Boolean(languageValue?.trim()),
     },

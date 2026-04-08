@@ -140,6 +140,8 @@ Implementation references:
 
 - [`portal-localization.md`](portal-localization.md)
 - `apps/portal/src/shared/lib/language.ts`
+- `apps/portal/src/shared/lib/i18n/locales/*.json`
+- `apps/portal/src/shared/lib/i18n/messages.ts`
 - `apps/portal/src/shared/lib/i18n-core.ts`
 - `apps/portal/src/shared/lib/i18n.tsx`
 

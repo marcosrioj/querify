@@ -139,7 +139,7 @@ export const SearchSelect = React.forwardRef<
                   !currentOption ? "font-normal" : "font-medium",
                 )}
               >
-                {currentOption?.label ?? t(placeholder)}
+                {currentOption?.label ? t(currentOption.label) : t(placeholder)}
               </span>
               {currentOption?.description ? (
                 <span className="w-full truncate text-xs text-muted-foreground">
@@ -253,9 +253,11 @@ function SearchSelectItem({
   isSelected: boolean;
   onSelect: () => void;
 }) {
+  const { t } = usePortalI18n();
+
   return (
     <CommandItem
-      value={option.label}
+      value={t(option.label)}
       keywords={option.keywords}
       onSelect={onSelect}
       className="items-start"
@@ -271,10 +273,10 @@ function SearchSelectItem({
         <Check className="size-3" />
       </span>
       <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <span className="truncate font-medium">{option.label}</span>
+        <span className="truncate font-medium">{t(option.label)}</span>
         {option.description ? (
           <span className="truncate text-xs text-muted-foreground">
-            {option.description}
+            {t(option.description)}
           </span>
         ) : null}
       </span>

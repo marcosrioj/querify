@@ -3,8 +3,10 @@ import { useTheme } from 'next-themes';
 import { PageHeader, SectionGrid, SettingsLayout } from '@/shared/layout/page-layouts';
 import { Button, Card, CardContent, CardDescription, CardHeader, CardHeading, CardTitle } from '@/shared/ui';
 import { settingsNavItems } from '@/domains/settings/settings-nav';
+import { usePortalI18n } from '@/shared/lib/i18n';
 
 export function GeneralSettingsPage() {
+  const { t } = usePortalI18n();
   const { resolvedTheme, setTheme, theme } = useTheme();
 
   return (
@@ -22,17 +24,17 @@ export function GeneralSettingsPage() {
         items={[
           {
             title: 'Current theme',
-            value: resolvedTheme === 'dark' ? 'Dark' : 'Light',
+            value: resolvedTheme === 'dark' ? t('Dark') : t('Light'),
             description: 'Applied theme right now',
           },
           {
             title: 'Preference',
             value:
               theme === 'system' || !theme
-                ? 'System'
+                ? t('System')
                 : theme === 'dark'
-                  ? 'Dark'
-                  : 'Light',
+                  ? t('Dark')
+                  : t('Light'),
             description: 'Saved user choice',
           },
           {
@@ -54,14 +56,14 @@ export function GeneralSettingsPage() {
         <CardContent className="grid gap-3 md:grid-cols-3">
           <Button variant="outline" onClick={() => setTheme('light')}>
             <Sparkles className="size-4" />
-            Use light theme
+            {t('Use light theme')}
           </Button>
           <Button variant="outline" onClick={() => setTheme('dark')}>
             <MoonStar className="size-4" />
-            Use dark theme
+            {t('Use dark theme')}
           </Button>
           <Button variant="outline" onClick={() => setTheme('system')}>
-            Follow system
+            {t('Follow system')}
           </Button>
         </CardContent>
       </Card>

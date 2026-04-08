@@ -51,6 +51,7 @@ import {
   contentRefKindLabels,
   faqStatusLabels,
 } from "@/shared/constants/backend-enums";
+import { translateText } from "@/shared/lib/i18n-core";
 
 function buildFaqOption(faq: FaqDto) {
   const statusLabel = faqStatusLabels[faq.status];
@@ -188,24 +189,40 @@ export function FaqItemFormPage({ mode }: { mode: "create" | "edit" }) {
     : "/app/faq";
   const faqResultHint = faqOptionsQuery.data
     ? faqOptionsQuery.data.totalCount > faqOptions.length
-      ? `Showing ${faqOptions.length} of ${faqOptionsQuery.data.totalCount} FAQs. Keep typing to narrow the list.`
-      : `${faqOptionsQuery.data.totalCount} FAQ${
-          faqOptionsQuery.data.totalCount === 1 ? "" : "s"
-        } ready to pick.`
+      ? translateText(
+          "Showing {shown} of {total} FAQs. Keep typing to narrow the list.",
+          {
+            shown: faqOptions.length,
+            total: faqOptionsQuery.data.totalCount,
+          },
+        )
+      : faqOptionsQuery.data.totalCount === 1
+        ? translateText("1 FAQ ready to pick.")
+        : translateText("{count} FAQs ready to pick.", {
+            count: faqOptionsQuery.data.totalCount,
+          })
     : undefined;
   const contentRefResultHint = contentRefQuery.data
     ? contentRefQuery.data.totalCount > contentRefOptions.length
-      ? `Showing ${contentRefOptions.length} of ${contentRefQuery.data.totalCount} sources. Keep typing to narrow the list.`
-      : `${contentRefQuery.data.totalCount} source${
-          contentRefQuery.data.totalCount === 1 ? "" : "s"
-        } ready to pick.`
+      ? translateText(
+          "Showing {shown} of {total} sources. Keep typing to narrow the list.",
+          {
+            shown: contentRefOptions.length,
+            total: contentRefQuery.data.totalCount,
+          },
+        )
+      : contentRefQuery.data.totalCount === 1
+        ? translateText("1 source ready to pick.")
+        : translateText("{count} sources ready to pick.", {
+            count: contentRefQuery.data.totalCount,
+          })
     : undefined;
   const formSteps = [
     {
       id: "question",
       label: "Write the question",
       description: questionValue
-        ? `Current question: ${questionValue}`
+        ? translateText("Current question: {value}", { value: questionValue })
         : "Use the exact wording a customer would search or ask.",
       complete: Boolean(questionValue?.trim()),
     },
@@ -221,7 +238,9 @@ export function FaqItemFormPage({ mode }: { mode: "create" | "edit" }) {
       id: "faq",
       label: "Attach the right FAQ",
       description: selectedFaq
-        ? `Currently attached to ${selectedFaq.name}.`
+        ? translateText("Currently attached to {name}.", {
+            name: selectedFaq.name,
+          })
         : "Pick the FAQ that controls visibility for this item.",
       complete: Boolean(currentFaqId),
     },

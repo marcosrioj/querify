@@ -40,7 +40,8 @@ Notes:
 - `domains/members` uses the isolated TenantUser API in Tenant Portal
 - `domains/billing` and parts of `domains/ai` remain placeholder shells where the backend surface is missing
 - `shared/lib/language.ts` defines the built-in Portal language options and text direction metadata
-- `shared/lib/i18n-core.ts` and `shared/lib/i18n.tsx` own frontend translations and `lang` / `dir` application
+- `shared/lib/i18n/locales/*.json` stores the frontend-owned locale catalogs
+- `shared/lib/i18n/messages.ts`, `shared/lib/i18n-core.ts`, and `shared/lib/i18n.tsx` load translations and apply `lang` / `dir`
 
 ## Local setup
 
@@ -103,6 +104,8 @@ Portal localization now resolves in this order:
 The top toolbar includes a language selector beside notifications, and profile settings also expose the same preference.
 
 Portal UI translation is frontend-owned. Keep UI copy in the frontend and route it through the shared i18n helpers instead of expecting backend-translated DTO labels.
+
+Localization catalogs now live in `src/shared/lib/i18n/locales/`, one JSON file per supported locale. Keep keys aligned across the 20 supported Portal languages and let `en-US` remain the fallback base.
 
 ## Useful validation commands
 

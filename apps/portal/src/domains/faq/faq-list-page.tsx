@@ -26,6 +26,7 @@ import {
 import { clampPage } from "@/shared/lib/pagination";
 import { formatNumericDateTimeInTimeZone } from "@/shared/lib/time-zone";
 import { useListQueryState } from "@/shared/lib/use-list-query-state";
+import { translateText } from "@/shared/lib/i18n-core";
 import { DataTable, type DataTableColumn } from "@/shared/ui/data-table";
 import { PaginationControls } from "@/shared/ui/pagination-controls";
 import { EmptyState, ErrorState } from "@/shared/ui/placeholder-state";
@@ -161,7 +162,9 @@ export function FaqListPage() {
             </Link>
           </Button>
           <ConfirmAction
-            title={`Run AI generation for "${faq.name}"?`}
+            title={translateText('Run AI generation for "{name}"?', {
+              name: faq.name,
+            })}
             description="This queues generation for the FAQ and uses the configured AI provider setup for the current workspace."
             confirmLabel="Run generation"
             variant="primary"
@@ -174,7 +177,9 @@ export function FaqListPage() {
             }
           />
           <ConfirmAction
-            title={`Delete FAQ "${faq.name}"?`}
+            title={translateText('Delete FAQ "{name}"?', {
+              name: faq.name,
+            })}
             description="This removes the FAQ from the workspace. You will need to recreate it if you change your mind later."
             confirmLabel="Delete FAQ"
             isPending={deleteFaq.isPending}
@@ -217,7 +222,7 @@ export function FaqListPage() {
               title: "Total",
               value: faqQuery.data?.totalCount ?? 0,
               description: debouncedSearch
-                ? `Search: ${debouncedSearch}`
+                ? translateText("Search: {value}", { value: debouncedSearch })
                 : activeStatusLabel,
               icon: BookOpen,
             },

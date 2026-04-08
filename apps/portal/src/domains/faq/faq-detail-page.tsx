@@ -45,6 +45,7 @@ import {
   ContentRefKindBadge,
   FaqStatusBadge,
 } from "@/shared/ui/status-badges";
+import { translateText } from "@/shared/lib/i18n-core";
 
 const DETAIL_PAGE_SIZE_OPTIONS = [5, 10, 20];
 
@@ -107,7 +108,9 @@ export function FaqDetailPage() {
       id: "details",
       label: "Create the FAQ shell",
       description: faqQuery.data
-        ? `The FAQ exists as ${faqQuery.data.language} content.`
+        ? translateText("The FAQ exists as {language} content.", {
+            language: faqQuery.data.language,
+          })
         : "Create the FAQ record so the rest of the workflow has a home.",
       complete: Boolean(faqQuery.data),
     },
@@ -115,7 +118,11 @@ export function FaqDetailPage() {
       id: "items",
       label: "Add a Q&A item",
       description: relatedItems.length
-        ? `${relatedItems.length} Q&A item${relatedItems.length === 1 ? "" : "s"} already linked.`
+        ? relatedItems.length === 1
+          ? translateText("1 Q&A item already linked.")
+          : translateText("{count} Q&A items already linked.", {
+              count: relatedItems.length,
+            })
         : "Add the first question and answer so this FAQ has usable content.",
       complete: relatedItems.length > 0,
     },
@@ -123,7 +130,11 @@ export function FaqDetailPage() {
       id: "sources",
       label: "Link a source",
       description: relatedContentRefs.length
-        ? `${relatedContentRefs.length} source${relatedContentRefs.length === 1 ? "" : "s"} already connected.`
+        ? relatedContentRefs.length === 1
+          ? translateText("1 source already connected.")
+          : translateText("{count} sources already connected.", {
+              count: relatedContentRefs.length,
+            })
         : "Attach source material so answers are traceable and reusable.",
       complete: relatedContentRefs.length > 0,
     },
@@ -191,7 +202,9 @@ export function FaqDetailPage() {
                 </Link>
               </Button>
               <ConfirmAction
-                title={`Run AI generation for "${faqQuery.data?.name ?? "this FAQ"}"?`}
+                title={translateText('Run AI generation for "{name}"?', {
+                  name: faqQuery.data?.name ?? translateText("this FAQ"),
+                })}
                 description="This queues generation for the FAQ and uses the configured AI provider setup for the current workspace."
                 confirmLabel="Run generation"
                 variant="primary"
@@ -200,13 +213,15 @@ export function FaqDetailPage() {
                 trigger={
                   <Button variant="outline" size="sm" className="w-full justify-start">
                     <WandSparkles className="size-4" />
-                    AI generation
+                    {translateText("AI generation")}
                   </Button>
                 }
               />
               <div className="col-span-2 h-px bg-border/50" />
               <ConfirmAction
-                title={`Delete FAQ "${faqQuery.data?.name ?? "this FAQ"}"?`}
+                title={translateText('Delete FAQ "{name}"?', {
+                  name: faqQuery.data?.name ?? translateText("this FAQ"),
+                })}
                 description="This action removes the FAQ record from the portal. Review any linked content before continuing."
                 confirmLabel="Delete FAQ"
                 isPending={deleteFaq.isPending}
@@ -216,7 +231,7 @@ export function FaqDetailPage() {
                 trigger={
                   <Button variant="destructive" size="sm" className="col-span-2 w-full justify-start">
                     <Trash2 className="size-4" />
-                    Delete
+                    {translateText("Delete")}
                   </Button>
                 }
               />

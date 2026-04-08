@@ -283,12 +283,14 @@ export function KeyValueList({
 }: {
   items: Array<{ label: string; value: ReactNode }>;
 }) {
+  const { t } = usePortalI18n();
+
   return (
     <dl className="overflow-hidden rounded-xl border border-border/70">
       {items.map((item) => (
         <Fragment key={item.label}>
           <div className="flex flex-col gap-1.5 border-b border-border/70 px-4 py-3 last:border-b-0 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
-            <dt className="text-sm text-muted-foreground">{item.label}</dt>
+            <dt className="text-sm text-muted-foreground">{t(item.label)}</dt>
             <dd className="break-words text-left text-sm font-medium text-foreground sm:text-right">
               {item.value}
             </dd>

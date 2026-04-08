@@ -4,8 +4,10 @@ import { settingsNavItems } from '@/domains/settings/settings-nav';
 import { useAuth } from '@/platform/auth/auth-context';
 import { RuntimeEnv } from '@/platform/runtime/env';
 import { Button, Card, CardContent, CardDescription, CardHeader, CardHeading, CardTitle } from '@/shared/ui';
+import { usePortalI18n } from '@/shared/lib/i18n';
 
 export function SecuritySettingsPage() {
+  const { t } = usePortalI18n();
   const { user, logout } = useAuth();
 
   return (
@@ -37,7 +39,7 @@ export function SecuritySettingsPage() {
             <div className="mt-3">
               <KeyValueList
                 items={[
-                  { label: 'User', value: user?.email ?? 'Email claim unavailable' },
+                  { label: 'User', value: user?.email ?? t('Email claim unavailable') },
                   { label: 'Authority', value: RuntimeEnv.auth0Domain },
                   { label: 'Audience', value: RuntimeEnv.auth0Audience },
                 ]}

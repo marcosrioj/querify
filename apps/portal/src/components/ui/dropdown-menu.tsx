@@ -4,6 +4,7 @@ import * as React from 'react';
 import { cn } from '@/lib/utils';
 import { Check, ChevronRight, Circle } from 'lucide-react';
 import { DropdownMenu as DropdownMenuPrimitive } from 'radix-ui';
+import { translateRenderableNode } from '@/shared/lib/translate-renderable-node';
 
 function DropdownMenu({ ...props }: React.ComponentProps<typeof DropdownMenuPrimitive.Root>) {
   return <DropdownMenuPrimitive.Root data-slot="dropdown-menu" {...props} />;
@@ -39,7 +40,7 @@ function DropdownMenuSubTrigger({
       )}
       {...props}
     >
-      {children}
+      {translateRenderableNode(children)}
       <ChevronRight data-slot="dropdown-menu-sub-trigger-indicator" className="ms-auto size-3.5! rtl:rotate-180" />
     </DropdownMenuPrimitive.SubTrigger>
   );
@@ -107,7 +108,9 @@ function DropdownMenuItem({
         className,
       )}
       {...props}
-    />
+    >
+      {translateRenderableNode(props.children)}
+    </DropdownMenuPrimitive.Item>
   );
 }
 
@@ -173,7 +176,9 @@ function DropdownMenuLabel({
       data-slot="dropdown-menu-label"
       className={cn('px-2 py-1.5 text-xs text-muted-foreground font-medium', inset && 'ps-8', className)}
       {...props}
-    />
+    >
+      {translateRenderableNode(props.children)}
+    </DropdownMenuPrimitive.Label>
   );
 }
 

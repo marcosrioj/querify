@@ -58,15 +58,18 @@ Both entry points persist through the same user profile update endpoint.
 
 Portal translations are frontend-owned:
 
+- locale catalogs live in `apps/portal/src/shared/lib/i18n/locales/*.json`
+- locale loading lives in `apps/portal/src/shared/lib/i18n/messages.ts`
 - shared translation helpers live in `apps/portal/src/shared/lib/i18n-core.ts`
 - React access lives in `apps/portal/src/shared/lib/i18n.tsx`
 - API fallback messages and toast copy use the same frontend translation layer
 
 When adding new Portal UI copy:
 
-1. keep the source string in the frontend
-2. route it through the Portal translation helpers
-3. avoid moving translated presentation strings into backend DTOs
+1. add the key to `en-US.json`
+2. keep the other 19 locale JSON files aligned with the same key set
+3. route the UI copy through the Portal translation helpers
+4. avoid moving translated presentation strings into backend DTOs
 
 ## Implementation note
 

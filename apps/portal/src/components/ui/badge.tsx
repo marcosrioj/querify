@@ -2,6 +2,7 @@ import * as React from 'react';
 import { cn } from '@/lib/utils';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { Slot as SlotPrimitive } from 'radix-ui';
+import { translateRenderableNode } from '@/shared/lib/translate-renderable-node';
 
 export interface BadgeProps extends React.HTMLAttributes<HTMLDivElement>, VariantProps<typeof badgeVariants> {
   asChild?: boolean;
@@ -190,13 +191,16 @@ function Badge({
   ...props
 }: React.ComponentProps<'span'> & VariantProps<typeof badgeVariants> & { asChild?: boolean }) {
   const Comp = asChild ? SlotPrimitive.Slot : 'span';
+  const translatedChildren = translateRenderableNode(props.children);
 
   return (
     <Comp
       data-slot="badge"
       className={cn(badgeVariants({ variant, size, appearance, shape, disabled }), className)}
       {...props}
-    />
+    >
+      {translatedChildren}
+    </Comp>
   );
 }
 

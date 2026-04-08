@@ -3,6 +3,7 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { ChevronDown, LucideIcon } from 'lucide-react';
 import { Slot as SlotPrimitive } from 'radix-ui';
 import { cn } from '@/lib/utils';
+import { translateRenderableNode } from '@/shared/lib/translate-renderable-node';
 
 const buttonVariants = cva(
   'cursor-pointer group whitespace-nowrap focus-visible:outline-hidden inline-flex items-center justify-center has-data-[arrow=true]:justify-between whitespace-nowrap text-sm font-medium ring-offset-background transition-[color,box-shadow] disabled:pointer-events-none disabled:opacity-60 [&_svg]:shrink-0',
@@ -397,7 +398,9 @@ function Button({
       )}
       {...(selected && { 'data-state': 'open' })}
       {...props}
-    />
+    >
+      {translateRenderableNode(props.children)}
+    </Comp>
   );
 }
 

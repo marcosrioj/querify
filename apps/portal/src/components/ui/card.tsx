@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils';
 import { cva, type VariantProps } from 'class-variance-authority';
+import { translateRenderableNode } from '@/shared/lib/translate-renderable-node';
 
 // Define CardContext
 type CardContextType = {
@@ -135,12 +136,18 @@ function CardTitle({ className, ...props }: React.HTMLAttributes<HTMLHeadingElem
       data-slot="card-title"
       className={cn('text-base font-semibold leading-5 tracking-tight text-mono', className)}
       {...props}
-    />
+    >
+      {translateRenderableNode(props.children)}
+    </h3>
   );
 }
 
 function CardDescription({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div data-slot="card-description" className={cn('text-sm leading-5 text-muted-foreground', className)} {...props} />;
+  return (
+    <div data-slot="card-description" className={cn('text-sm leading-5 text-muted-foreground', className)} {...props}>
+      {translateRenderableNode(props.children)}
+    </div>
+  );
 }
 
 // Exports

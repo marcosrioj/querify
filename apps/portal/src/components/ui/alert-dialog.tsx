@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils';
 import { buttonVariants } from '@/components/ui/button';
 import { VariantProps } from 'class-variance-authority';
 import { AlertDialog as AlertDialogPrimitive } from 'radix-ui';
+import { translateRenderableNode } from '@/shared/lib/translate-renderable-node';
 
 function AlertDialog({ ...props }: React.ComponentProps<typeof AlertDialogPrimitive.Root>) {
   return <AlertDialogPrimitive.Root data-slot="alert-dialog" {...props} />;
@@ -69,7 +70,9 @@ function AlertDialogTitle({ className, ...props }: React.ComponentProps<typeof A
       data-slot="alert-dialog-title"
       className={cn('text-lg font-semibold', className)}
       {...props}
-    />
+    >
+      {translateRenderableNode(props.children)}
+    </AlertDialogPrimitive.Title>
   );
 }
 
@@ -82,7 +85,9 @@ function AlertDialogDescription({
       data-slot="alert-dialog-description"
       className={cn('text-sm text-muted-foreground', className)}
       {...props}
-    />
+    >
+      {translateRenderableNode(props.children)}
+    </AlertDialogPrimitive.Description>
   );
 }
 
@@ -96,7 +101,9 @@ function AlertDialogAction({
       data-slot="alert-dialog-action"
       className={cn(buttonVariants({ variant }), className)}
       {...props}
-    />
+    >
+      {translateRenderableNode(props.children)}
+    </AlertDialogPrimitive.Action>
   );
 }
 
@@ -106,7 +113,9 @@ function AlertDialogCancel({ className, ...props }: React.ComponentProps<typeof 
       data-slot="alert-dialog-cancel"
       className={cn(buttonVariants({ variant: 'outline' }), 'mt-2 sm:mt-0', className)}
       {...props}
-    />
+    >
+      {translateRenderableNode(props.children)}
+    </AlertDialogPrimitive.Cancel>
   );
 }
 
