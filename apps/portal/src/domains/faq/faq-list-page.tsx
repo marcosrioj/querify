@@ -139,7 +139,7 @@ export function FaqListPage() {
     {
       key: "updatedDate",
       header: "Last updated",
-      className: "lg:w-[190px]",
+      className: "lg:w-[150px]",
       cell: (faq) => (
         <span className="block whitespace-nowrap text-left text-sm text-muted-foreground">
           {formatNumericDateTimeInTimeZone(faq.updatedDate, portalTimeZone)}
@@ -149,7 +149,7 @@ export function FaqListPage() {
     {
       key: "actions",
       header: "Actions",
-      className: "w-[180px]",
+      className: "lg:w-[112px]",
       cell: (faq) => (
         <div
           className="flex items-center justify-end gap-1"
