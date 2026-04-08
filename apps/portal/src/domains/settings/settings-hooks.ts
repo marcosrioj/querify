@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { getUserProfile, updateUserProfile, type UserProfileUpdateRequestDto } from '@/domains/settings/settings-api';
+import { DEFAULT_PORTAL_TIME_ZONE } from '@/shared/lib/time-zone';
 import { useAuth } from '@/platform/auth/auth-context';
 
 const settingsKeys = {
@@ -30,4 +31,10 @@ export function useUpdateUserProfile() {
       await queryClient.invalidateQueries({ queryKey: settingsKeys.profile });
     },
   });
+}
+
+export function usePortalTimeZone() {
+  const profileQuery = useUserProfile();
+
+  return profileQuery.data?.timeZone?.trim() || DEFAULT_PORTAL_TIME_ZONE;
 }

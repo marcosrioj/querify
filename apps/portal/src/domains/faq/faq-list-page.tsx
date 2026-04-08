@@ -10,7 +10,7 @@ import {
   WandSparkles,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-import { useUserProfile } from "@/domains/settings/settings-hooks";
+import { usePortalTimeZone } from "@/domains/settings/settings-hooks";
 import {
   useDeleteFaq,
   useFaqList,
@@ -24,10 +24,7 @@ import {
   SectionGrid,
 } from "@/shared/layout/page-layouts";
 import { clampPage } from "@/shared/lib/pagination";
-import {
-  formatNumericDateTimeInTimeZone,
-  getBrowserTimeZone,
-} from "@/shared/lib/time-zone";
+import { formatNumericDateTimeInTimeZone } from "@/shared/lib/time-zone";
 import { useListQueryState } from "@/shared/lib/use-list-query-state";
 import { DataTable, type DataTableColumn } from "@/shared/ui/data-table";
 import { PaginationControls } from "@/shared/ui/pagination-controls";
@@ -58,7 +55,7 @@ const FAQ_FILTER_DEFAULTS = {
 
 export function FaqListPage() {
   const navigate = useNavigate();
-  const profileQuery = useUserProfile();
+  const portalTimeZone = usePortalTimeZone();
   const {
     debouncedSearch,
     filters,
@@ -77,8 +74,6 @@ export function FaqListPage() {
   });
   const statusFilter = filters.status;
   const apiStatus = statusFilter === "all" ? undefined : Number(statusFilter);
-  const effectiveTimeZone =
-    profileQuery.data?.timeZone?.trim() || getBrowserTimeZone();
 
   const faqQuery = useFaqList({
     page,
@@ -147,7 +142,7 @@ export function FaqListPage() {
       className: "lg:w-[190px]",
       cell: (faq) => (
         <span className="block whitespace-nowrap text-left text-sm text-muted-foreground">
-          {formatNumericDateTimeInTimeZone(faq.updatedDate, effectiveTimeZone)}
+          {formatNumericDateTimeInTimeZone(faq.updatedDate, portalTimeZone)}
         </span>
       ),
     },

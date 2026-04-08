@@ -1,11 +1,10 @@
-export function getBrowserTimeZone() {
-  return Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
-}
+export const DEFAULT_PORTAL_TIME_ZONE = "UTC";
 
 export function formatNumericDateTimeInTimeZone(
   input: Date | string | number,
   timeZone: string,
 ) {
+  // Portal date rendering assumes every timestamp persisted in the database is UTC.
   return new Intl.DateTimeFormat("en-CA", {
     year: "numeric",
     month: "2-digit",
