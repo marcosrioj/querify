@@ -67,9 +67,11 @@ function BillingPage() {
       <Card>
         <CardHeader>
           <CardHeading>
-            <CardTitle>Subscription management</CardTitle>
+            <CardTitle>{translateText('Subscription management')}</CardTitle>
             <CardDescription>
-              Review the workspace billing contact and self-serve controls.
+              {translateText(
+                'Review the workspace billing contact and self-serve controls.',
+              )}
             </CardDescription>
           </CardHeading>
         </CardHeader>
@@ -81,16 +83,18 @@ function BillingPage() {
                 : translateText('Not configured'),
             })}
           </div>
-          <Button disabled={!canManageBilling}>Manage subscription</Button>
+          <Button disabled={!canManageBilling}>
+            {translateText('Manage subscription')}
+          </Button>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
           <CardHeading>
-            <CardTitle>Invoice history</CardTitle>
+            <CardTitle>{translateText('Invoice history')}</CardTitle>
             <CardDescription>
-              Recent invoice placeholders for the current workspace.
+              {translateText('Recent invoice placeholders for the current workspace.')}
             </CardDescription>
           </CardHeading>
         </CardHeader>
@@ -147,7 +151,7 @@ function BillingPage() {
                   <TableRow key={invoice.id}>
                     <TableCell className="font-medium text-mono">{invoice.id}</TableCell>
                     <TableCell>{formatInvoiceDate(invoice.date, language)}</TableCell>
-                    <TableCell>{invoice.status}</TableCell>
+                    <TableCell>{translateText(invoice.status)}</TableCell>
                     <TableCell className="text-right">{invoice.amount}</TableCell>
                   </TableRow>
                 ))}

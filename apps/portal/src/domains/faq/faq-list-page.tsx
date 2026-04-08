@@ -206,7 +206,7 @@ export function FaqListPage() {
             <Button asChild>
               <Link to="/app/faq/new">
                 <Plus className="size-4" />
-                {faqQuery.data?.totalCount ? "New FAQ" : "Start here"}
+                {translateText(faqQuery.data?.totalCount ? "New FAQ" : "Start here")}
               </Link>
             </Button>
           }

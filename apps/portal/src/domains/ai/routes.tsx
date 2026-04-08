@@ -70,9 +70,9 @@ function AiWorkspacePage() {
       <Card>
         <CardHeader>
           <CardHeading>
-            <CardTitle>Configured providers</CardTitle>
+            <CardTitle>{translateText('Configured providers')}</CardTitle>
             <CardDescription>
-              Review what is ready for matching and generation.
+              {translateText('Review what is ready for matching and generation.')}
             </CardDescription>
           </CardHeading>
         </CardHeader>
@@ -85,13 +85,19 @@ function AiWorkspacePage() {
                   <p className="text-sm text-muted-foreground">{provider.model}</p>
                 </div>
                 <Badge variant="outline">
-                  {provider.command === AiCommandType.Generation ? 'Generation' : 'Matching'}
+                  {translateText(
+                    provider.command === AiCommandType.Generation
+                      ? 'Generation'
+                      : 'Matching',
+                  )}
                 </Badge>
               </div>
               <p className="mt-3 text-sm text-muted-foreground">
-                {provider.isAiProviderKeyConfigured
-                  ? 'Credential present'
-                  : 'Credential missing'}
+                {translateText(
+                  provider.isAiProviderKeyConfigured
+                    ? 'Credential present'
+                    : 'Credential missing',
+                )}
               </p>
             </div>
           ))}
@@ -108,9 +114,9 @@ function AiWorkspacePage() {
       <Card>
         <CardHeader>
           <CardHeading>
-            <CardTitle>Generation launchpad</CardTitle>
+            <CardTitle>{translateText('Generation launchpad')}</CardTitle>
             <CardDescription>
-              Trigger generation directly from the latest FAQs.
+              {translateText('Trigger generation directly from the latest FAQs.')}
             </CardDescription>
           </CardHeading>
         </CardHeader>
@@ -123,7 +129,9 @@ function AiWorkspacePage() {
               </div>
               <div className="flex items-center gap-2">
                 <ConfirmAction
-                  title={`Run AI generation for "${faq.name}"?`}
+                  title={translateText('Run AI generation for "{name}"?', {
+                    name: faq.name,
+                  })}
                   description="This queues generation for the FAQ and uses the configured AI provider setup for the current workspace."
                   confirmLabel="Run generation"
                   variant="primary"
@@ -131,14 +139,14 @@ function AiWorkspacePage() {
                   onConfirm={() => requestGeneration.mutateAsync(faq.id)}
                   trigger={
                     <Button variant="outline">
-                      Request generation
+                      {translateText('Request generation')}
                     </Button>
                   }
                 />
                 <Button asChild variant="ghost">
                   <Link to={`/app/faq/${faq.id}`}>
                     <ArrowUpRight className="size-4" />
-                    Open FAQ
+                    {translateText('Open FAQ')}
                   </Link>
                 </Button>
               </div>

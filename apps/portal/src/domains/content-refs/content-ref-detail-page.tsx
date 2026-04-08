@@ -193,26 +193,31 @@ export function ContentRefDetailPage() {
               <Button asChild size="sm" className="w-full justify-start">
                 <Link to={createFaqItemPath}>
                   <Plus className="size-4" />
-                  New Q&A item
+                  {translateText("New Q&A item")}
                 </Link>
               </Button>
               <Button asChild variant="outline" size="sm" className="w-full justify-start">
                 <Link to={editPath}>
                   <Pencil className="size-4" />
-                  Edit
+                  {translateText("Edit")}
                 </Link>
               </Button>
               {attachOriginItemPath ? (
                 <Button asChild variant="outline" size="sm" className="w-full justify-start">
                   <Link to={attachOriginItemPath}>
                     <Link2 className="size-4" />
-                    Link to Q&A item
+                    {translateText("Link to Q&A item")}
                   </Link>
                 </Button>
               ) : null}
               <div className="col-span-2 h-px bg-border/50" />
               <ConfirmAction
-                title={`Delete source "${contentRefQuery.data?.label || contentRefQuery.data?.locator || "this source"}"?`}
+                title={translateText('Delete source "{name}"?', {
+                  name:
+                    contentRefQuery.data?.label ||
+                    contentRefQuery.data?.locator ||
+                    translateText('this source'),
+                })}
                 description="This removes the source record from the portal. Keep it only if you no longer want it reused."
                 confirmLabel="Delete source"
                 isPending={deleteContentRef.isPending}
@@ -224,7 +229,7 @@ export function ContentRefDetailPage() {
                 trigger={
                   <Button variant="destructive" size="sm" className="col-span-2 w-full justify-start">
                     <Trash2 className="size-4" />
-                    Delete
+                    {translateText("Delete")}
                   </Button>
                 }
               />
@@ -238,7 +243,7 @@ export function ContentRefDetailPage() {
               <CardHeader>
                 <CardHeading>
                   <CardTitle className="flex flex-wrap items-center gap-2">
-                    <span>Overview</span>
+                    <span>{translateText("Overview")}</span>
                     <ContextHint
                       content="Source type, scope, and downstream usage."
                       label="Overview details"
@@ -316,7 +321,7 @@ export function ContentRefDetailPage() {
             <CardHeader>
               <CardHeading>
                 <CardTitle className="flex flex-wrap items-center gap-2">
-                  <span>Reference</span>
+                  <span>{translateText("Reference")}</span>
                   <ContextHint
                     content="The link or path saved for this source."
                     label="Reference details"
@@ -336,7 +341,7 @@ export function ContentRefDetailPage() {
                     rel="noreferrer"
                   >
                     <ExternalLink className="size-4" />
-                    Open reference
+                    {translateText("Open reference")}
                   </a>
                 </Button>
               ) : null}
@@ -347,7 +352,7 @@ export function ContentRefDetailPage() {
             <CardHeader>
               <CardHeading>
                 <CardTitle className="flex flex-wrap items-center gap-2">
-                  <span>FAQs</span>
+                  <span>{translateText("FAQs")}</span>
                   <ContextHint
                     content="Knowledge spaces already drawing from this source."
                     label="FAQ usage details"
@@ -367,16 +372,18 @@ export function ContentRefDetailPage() {
                         <div>
                           <p className="font-medium text-mono">{faq.name}</p>
                           <p className="mt-1 text-sm text-muted-foreground">
-                            Used by {faq.usageCount} linked{" "}
-                            {faq.usageCount === 1
-                              ? "Q&A item"
-                              : "Q&A items"}
+                            {translateText(
+                              faq.usageCount === 1
+                                ? "Used by {count} linked Q&A item"
+                                : "Used by {count} linked Q&A items",
+                              { count: faq.usageCount },
+                            )}
                           </p>
                         </div>
                         <Button asChild variant="outline" size="sm">
                           <Link to={`/app/faq/${faq.id}`}>
                             <ArrowUpRight className="size-4" />
-                            Open FAQ
+                            {translateText("Open FAQ")}
                           </Link>
                         </Button>
                       </div>
@@ -408,7 +415,7 @@ export function ContentRefDetailPage() {
             <CardHeader>
               <CardHeading>
                 <CardTitle className="flex flex-wrap items-center gap-2">
-                  <span>Q&A items</span>
+                  <span>{translateText("Q&A items")}</span>
                   <ContextHint
                     content="Q&A items currently linked to this source."
                     label="Q&A item usage details"
@@ -431,14 +438,14 @@ export function ContentRefDetailPage() {
                               {item.question}
                             </p>
                             <Badge variant={item.isActive ? "success" : "mono"}>
-                              {item.isActive ? "Active" : "Inactive"}
+                              {translateText(item.isActive ? "Active" : "Inactive")}
                             </Badge>
                           </div>
                           <p className="mt-1 text-sm text-muted-foreground">
                             {item.shortAnswer}
                           </p>
                           <p className="mt-3 text-xs text-muted-foreground">
-                            FAQ:{" "}
+                            {translateText("FAQ")}:{" "}
                             <Link
                               className="font-medium text-primary hover:underline"
                               to={`/app/faq/${item.faqId}`}
@@ -451,7 +458,7 @@ export function ContentRefDetailPage() {
                         <Button asChild variant="outline" size="sm">
                           <Link to={`/app/faq/${item.faqId}/items/${item.id}`}>
                             <ArrowUpRight className="size-4" />
-                            Open
+                            {translateText("Open")}
                           </Link>
                         </Button>
                       </div>

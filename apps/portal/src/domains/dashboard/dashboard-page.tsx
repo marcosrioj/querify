@@ -183,13 +183,13 @@ function AnswerRow({ item }: { item: FaqItemDto }) {
             variant={item.isActive ? "success" : "warning"}
             appearance="light"
           >
-            {item.isActive ? "Active" : "Inactive"}
+            {translateText(item.isActive ? "Active" : "Inactive")}
           </Badge>
           <Badge
             variant={item.contentRefId ? "primary" : "outline"}
             appearance="light"
           >
-            {item.contentRefId ? "Source linked" : "No source"}
+            {translateText(item.contentRefId ? "Source linked" : "No source")}
           </Badge>
         </div>
       </div>
@@ -500,13 +500,13 @@ export function DashboardPage() {
             <Button asChild>
               <Link to="/app/faq/new">
                 <Plus className="size-4" />
-                New FAQ
+                {translateText("New FAQ")}
               </Link>
             </Button>
             <Button asChild variant="outline">
               <Link to="/app/settings/tenant">
                 <SlidersHorizontal className="size-4" />
-                Settings
+                {translateText("Settings")}
               </Link>
             </Button>
           </>
@@ -556,7 +556,7 @@ export function DashboardPage() {
                 </h2>
                 {currentWorkspace ? (
                   <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-medium text-white">
-                    {tenantEditionLabels[currentWorkspace.edition]}
+                    {translateText(tenantEditionLabels[currentWorkspace.edition])}
                   </span>
                 ) : null}
               </div>
@@ -573,7 +573,7 @@ export function DashboardPage() {
                 className="border-white/20 bg-white text-slate-950 shadow-none hover:bg-white/90"
               >
                 <Link to={heroPrimaryAction.to}>
-                  {heroPrimaryAction.label}
+                  {translateText(heroPrimaryAction.label)}
                   <ArrowUpRight className="size-4" />
                 </Link>
               </Button>
@@ -584,7 +584,7 @@ export function DashboardPage() {
               >
                 <Link to={heroSecondaryAction.to}>
                   <SlidersHorizontal className="size-4" />
-                  {heroSecondaryAction.label}
+                  {translateText(heroSecondaryAction.label)}
                 </Link>
               </Button>
             </div>
@@ -628,7 +628,7 @@ export function DashboardPage() {
           <CardHeader>
             <CardHeading>
               <CardTitle className="flex flex-wrap items-center gap-2">
-                <span>Readiness</span>
+                <span>{translateText("Readiness")}</span>
                 <ContextHint
                   content="Readiness is weighted across published FAQs, active Q&A items, AI provider keys, and public client key availability."
                   label="Readiness details"
@@ -668,16 +668,20 @@ export function DashboardPage() {
                 </p>
                 <div className="flex flex-wrap gap-2">
                   <Badge
-                    variant={clientKeyReady ? "success" : "warning"}
-                    appearance="light"
-                  >
-                    {clientKeyReady ? "Client key live" : "Client key missing"}
+                  variant={clientKeyReady ? "success" : "warning"}
+                  appearance="light"
+                >
+                    {translateText(
+                      clientKeyReady ? "Client key live" : "Client key missing",
+                    )}
                   </Badge>
                   <Badge
                     variant={configuredAiProviders > 0 ? "primary" : "outline"}
                     appearance="light"
                   >
-                    {configuredAiProviders} secured providers
+                    {translateText("{count} secured providers", {
+                      count: configuredAiProviders,
+                    })}
                   </Badge>
                 </div>
               </div>
@@ -781,7 +785,7 @@ export function DashboardPage() {
           <CardHeader>
             <CardHeading>
               <CardTitle className="flex flex-wrap items-center gap-2">
-                <span>Assets</span>
+                <span>{translateText("Assets")}</span>
                 <ContextHint
                   content="The current tenant footprint across FAQs, Q&A items, and reusable sources."
                   label="Asset details"
@@ -853,7 +857,7 @@ export function DashboardPage() {
           <CardHeader>
             <CardHeading>
               <CardTitle className="flex flex-wrap items-center gap-2">
-                <span>FAQ status</span>
+                <span>{translateText("FAQ status")}</span>
                 <ContextHint
                   content="A compact view of what is ready for users versus what is still in editorial flow."
                   label="FAQ status details"
@@ -927,7 +931,7 @@ export function DashboardPage() {
           <CardHeader className="gap-3 sm:flex-row sm:items-start sm:justify-between">
             <CardHeading>
               <CardTitle className="flex flex-wrap items-center gap-2">
-                <span>Top Q&A items</span>
+                <span>{translateText("Top Q&A items")}</span>
                 <ContextHint
                   content="Highest vote scores in the current Q&A list."
                   label="Top Q&A item details"
@@ -938,7 +942,7 @@ export function DashboardPage() {
               <Button asChild variant="ghost" mode="link">
                 <Link to="/app/faq">
                   <ArrowRight className="size-4" />
-                  Open FAQs
+                  {translateText("Open FAQs")}
                 </Link>
               </Button>
             </CardToolbar>
@@ -961,7 +965,7 @@ export function DashboardPage() {
           <CardHeader className="gap-3 sm:flex-row sm:items-start sm:justify-between">
             <CardHeading>
               <CardTitle className="flex flex-wrap items-center gap-2">
-                <span>Recent FAQs</span>
+                <span>{translateText("Recent FAQs")}</span>
                 <ContextHint
                   content="The latest FAQs loaded from the Portal API."
                   label="Recent FAQ details"
@@ -972,7 +976,7 @@ export function DashboardPage() {
               <Button asChild variant="ghost" mode="link">
                 <Link to="/app/faq">
                   <ArrowRight className="size-4" />
-                  View all
+                  {translateText("View all")}
                 </Link>
               </Button>
             </CardToolbar>
@@ -995,7 +999,7 @@ export function DashboardPage() {
           <CardHeader>
             <CardHeading>
               <CardTitle className="flex flex-wrap items-center gap-2">
-                <span>Recent sources</span>
+                <span>{translateText("Recent sources")}</span>
                 <ContextHint
                   content="Recent sources available to support generation quality."
                   label="Recent source details"
@@ -1023,7 +1027,7 @@ export function DashboardPage() {
           <CardHeader>
             <CardHeading>
               <CardTitle className="flex flex-wrap items-center gap-2">
-                <span>AI providers</span>
+                <span>{translateText("AI providers")}</span>
                 <ContextHint
                   content="Provider credentials currently configured for this workspace."
                   label="AI provider details"
@@ -1058,8 +1062,8 @@ export function DashboardPage() {
                     appearance="light"
                   >
                     {provider.isAiProviderKeyConfigured
-                      ? "Secured"
-                      : "Needs key"}
+                      ? translateText("Secured")
+                      : translateText("Needs key")}
                   </Badge>
                 </div>
               ))
@@ -1076,7 +1080,7 @@ export function DashboardPage() {
           <CardHeader>
             <CardHeading>
               <CardTitle className="flex flex-wrap items-center gap-2">
-                <span>Gaps</span>
+                <span>{translateText("Gaps")}</span>
                 <ContextHint
                   content="Current Portal limits still visible in the backend surface."
                   label="Gap details"

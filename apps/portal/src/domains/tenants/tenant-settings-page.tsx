@@ -140,7 +140,9 @@ export function TenantSettingsPage() {
             <CardHeading>
               <CardTitle>{currentWorkspace.name}</CardTitle>
               <CardDescription>
-                Current workspace slug: {currentWorkspace.slug}
+                {translateText('Current workspace slug: {slug}', {
+                  slug: currentWorkspace.slug,
+                })}
               </CardDescription>
             </CardHeading>
             <CardToolbar>
@@ -170,18 +172,20 @@ export function TenantSettingsPage() {
         <Card>
           <CardHeader>
             <CardHeading>
-              <CardTitle>Workspace profile</CardTitle>
+              <CardTitle>{translateText('Workspace profile')}</CardTitle>
               <CardDescription>
-                Rename the workspace and choose the active plan tier.
+                {translateText(
+                  'Rename the workspace and choose the active plan tier.',
+                )}
               </CardDescription>
             </CardHeading>
             <CardToolbar>
               <Badge variant={canManageTenant ? 'success' : 'outline'}>
                 {!currentWorkspace
-                  ? 'Workspace creation'
+                  ? translateText('Workspace creation')
                   : canManageTenant
-                    ? 'Owner access'
-                    : 'Member access'}
+                    ? translateText('Owner access')
+                    : translateText('Member access')}
               </Badge>
             </CardToolbar>
           </CardHeader>
@@ -214,7 +218,7 @@ export function TenantSettingsPage() {
                   type="submit"
                   disabled={!canManageWorkspaceProfile || updateWorkspace.isPending}
                 >
-                  Save workspace
+                  {translateText('Save workspace')}
                 </Button>
               </form>
             </Form>
@@ -224,9 +228,11 @@ export function TenantSettingsPage() {
         <Card>
           <CardHeader>
             <CardHeading>
-              <CardTitle>Public preview key</CardTitle>
+              <CardTitle>{translateText('Public preview key')}</CardTitle>
               <CardDescription>
-                Use this key for public previews and embedded experiences.
+                {translateText(
+                  'Use this key for public previews and embedded experiences.',
+                )}
               </CardDescription>
             </CardHeading>
           </CardHeader>
@@ -234,10 +240,10 @@ export function TenantSettingsPage() {
             <div className="rounded-2xl border border-border bg-muted/30 p-4">
               <div className="flex items-center gap-2 text-sm font-medium text-mono">
                 <KeyRound className="size-4" />
-                Current client key
+                {translateText('Current client key')}
               </div>
               <p className="mt-3 break-all text-sm text-muted-foreground">
-                {clientKeyQuery.data || 'No client key has been generated yet.'}
+                {clientKeyQuery.data || translateText('No client key has been generated yet.')}
               </p>
             </div>
             <Button
@@ -247,7 +253,7 @@ export function TenantSettingsPage() {
                 void regenerateClientKey.mutateAsync();
               }}
             >
-              Generate new client key
+              {translateText('Generate new client key')}
             </Button>
           </CardContent>
         </Card>
@@ -257,9 +263,11 @@ export function TenantSettingsPage() {
         <Card>
           <CardHeader>
             <CardHeading>
-              <CardTitle>Configured AI providers</CardTitle>
+              <CardTitle>{translateText('Configured AI providers')}</CardTitle>
               <CardDescription>
-                Review which providers are ready for matching and generation.
+                {translateText(
+                  'Review which providers are ready for matching and generation.',
+                )}
               </CardDescription>
             </CardHeading>
           </CardHeader>
@@ -272,13 +280,19 @@ export function TenantSettingsPage() {
                     <p className="text-sm text-muted-foreground">{provider.model}</p>
                   </div>
                   <Badge variant={provider.isAiProviderKeyConfigured ? 'success' : 'warning'}>
-                    {provider.command === AiCommandType.Generation ? 'Generation' : 'Matching'}
+                    {translateText(
+                      provider.command === AiCommandType.Generation
+                        ? 'Generation'
+                        : 'Matching',
+                    )}
                   </Badge>
                 </div>
                 <p className="mt-3 text-sm text-muted-foreground">
-                  {provider.isAiProviderKeyConfigured
-                    ? 'Credential stored for this workspace.'
-                    : 'Provider available, but credentials are still missing.'}
+                  {translateText(
+                    provider.isAiProviderKeyConfigured
+                      ? 'Credential stored for this workspace.'
+                      : 'Provider available, but credentials are still missing.',
+                  )}
                 </p>
               </div>
             ))}
@@ -295,9 +309,11 @@ export function TenantSettingsPage() {
         <Card>
           <CardHeader>
             <CardHeading>
-              <CardTitle>Store provider credentials</CardTitle>
+              <CardTitle>{translateText('Store provider credentials')}</CardTitle>
               <CardDescription>
-                Attach or rotate provider secrets for this workspace.
+                {translateText(
+                  'Attach or rotate provider secrets for this workspace.',
+                )}
               </CardDescription>
             </CardHeading>
           </CardHeader>
@@ -333,7 +349,7 @@ export function TenantSettingsPage() {
                 />
                 <Button type="submit" disabled={!canManageTenant || storeCredentials.isPending}>
                   <Sparkles className="size-4" />
-                  Save provider credentials
+                  {translateText('Save provider credentials')}
                 </Button>
               </form>
             </Form>

@@ -88,7 +88,9 @@ export function MembersPage() {
           <div className="font-medium text-mono">
             {getMemberName(member)}
             {member.isCurrentUser ? (
-              <span className="ml-2 text-xs text-muted-foreground">(You)</span>
+              <span className="ml-2 text-xs text-muted-foreground">
+                {translateText('(You)')}
+              </span>
             ) : null}
           </div>
           <div className="text-sm text-muted-foreground">{member.email}</div>
@@ -108,13 +110,17 @@ export function MembersPage() {
         if (member.role === TenantUserRoleType.Owner) {
           return (
             <span className="text-sm text-muted-foreground">
-              {member.isCurrentUser ? 'Current owner' : 'Owner'}
+              {translateText(member.isCurrentUser ? 'Current owner' : 'Owner')}
             </span>
           );
         }
 
         if (!canManageMembers) {
-          return <span className="text-sm text-muted-foreground">No actions</span>;
+          return (
+            <span className="text-sm text-muted-foreground">
+              {translateText('No actions')}
+            </span>
+          );
         }
 
         return (
@@ -154,7 +160,7 @@ export function MembersPage() {
                 onClick={() => setOpen(true)}
               >
                 <MailPlus className="size-4" />
-                Add member
+                {translateText('Add member')}
               </Button>
             }
           />
@@ -200,9 +206,11 @@ export function MembersPage() {
             loading={membersQuery.isLoading}
             toolbar={
               <>
-                <Badge variant="outline">{members.length} people</Badge>
+                <Badge variant="outline">
+                  {translateText('{count} people', { count: members.length })}
+                </Badge>
                 <Badge variant="outline" appearance="outline">
-                  Members only
+                  {translateText('Members only')}
                 </Badge>
               </>
             }
@@ -228,9 +236,11 @@ export function MembersPage() {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Add member</DialogTitle>
+            <DialogTitle>{translateText('Add member')}</DialogTitle>
             <DialogDescription>
-              Add a workspace member by name and email. The email must not already belong to a member in this workspace.
+              {translateText(
+                'Add a workspace member by name and email. The email must not already belong to a member in this workspace.',
+              )}
             </DialogDescription>
           </DialogHeader>
           <Form {...form}>
@@ -249,7 +259,9 @@ export function MembersPage() {
                 if (existingMember) {
                   form.setError('email', {
                     type: 'validate',
-                    message: 'This email is already a member of the workspace.',
+                    message: translateText(
+                      'This email is already a member of the workspace.',
+                    ),
                   });
                   return;
                 }
@@ -278,7 +290,7 @@ export function MembersPage() {
                 description="Use an email that is not already assigned to a member in this workspace."
               />
               <Button type="submit" disabled={addMember.isPending}>
-                Add member
+                {translateText('Add member')}
               </Button>
             </form>
           </Form>

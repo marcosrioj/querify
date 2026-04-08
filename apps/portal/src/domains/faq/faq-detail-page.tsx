@@ -186,19 +186,19 @@ export function FaqDetailPage() {
               <Button asChild size="sm" className="w-full justify-start">
                 <Link to={createFaqItemPath}>
                   <Plus className="size-4" />
-                  New Q&A item
+                  {translateText("New Q&A item")}
                 </Link>
               </Button>
               <Button asChild variant="outline" size="sm" className="w-full justify-start">
                 <Link to={createContentRefPath}>
                   <Plus className="size-4" />
-                  New source
+                  {translateText("New source")}
                 </Link>
               </Button>
               <Button asChild variant="outline" size="sm" className="w-full justify-start">
                 <Link to={faqEditPath}>
                   <Pencil className="size-4" />
-                  Edit
+                  {translateText("Edit")}
                 </Link>
               </Button>
               <ConfirmAction
@@ -246,7 +246,7 @@ export function FaqDetailPage() {
                 <CardHeader>
                   <CardHeading>
                     <CardTitle className="flex flex-wrap items-center gap-2">
-                      <span>Overview</span>
+                      <span>{translateText("Overview")}</span>
                       <ContextHint
                         content="Key publishing and orchestration settings."
                         label="Overview details"
@@ -275,7 +275,7 @@ export function FaqDetailPage() {
                 <CardHeader>
                   <CardHeading>
                     <CardTitle className="flex flex-wrap items-center gap-2">
-                      <span>Status</span>
+                      <span>{translateText("Status")}</span>
                       <ContextHint
                         content="Monitor readiness before you publish or request generation."
                         label="Status details"
@@ -287,9 +287,11 @@ export function FaqDetailPage() {
                   <div className="flex flex-wrap gap-2">
                     <FaqStatusBadge status={faqQuery.data.status} />
                     <Badge variant={generationReady ? "success" : "warning"}>
-                      {generationReady
-                        ? "Ready for generation request"
-                        : "Needs content and Q&A coverage"}
+                      {translateText(
+                        generationReady
+                          ? "Ready for generation request"
+                          : "Needs content and Q&A coverage",
+                      )}
                     </Badge>
                   </div>
                   <KeyValueList
@@ -375,7 +377,7 @@ export function FaqDetailPage() {
             <CardHeader>
               <CardHeading>
                 <CardTitle className="flex flex-wrap items-center gap-2">
-                  <span>Q&A items</span>
+                  <span>{translateText("Q&A items")}</span>
                   <ContextHint
                     content="Q&A items currently attached to this FAQ."
                     label="Q&A item details"
@@ -398,28 +400,28 @@ export function FaqDetailPage() {
                               {item.question}
                             </p>
                             <Badge variant={item.isActive ? "success" : "mono"}>
-                              {item.isActive ? "Active" : "Inactive"}
+                              {translateText(item.isActive ? "Active" : "Inactive")}
                             </Badge>
                           </div>
                           <p className="mt-1 text-sm text-muted-foreground">
                             {item.shortAnswer}
                           </p>
                           <div className="mt-3 flex flex-wrap gap-2 text-xs text-muted-foreground">
-                            <span>Sort {item.sort}</span>
-                            <span>Vote {item.voteScore}</span>
-                            <span>AI {item.aiConfidenceScore}</span>
+                            <span>{translateText("Sort {value}", { value: item.sort })}</span>
+                            <span>{translateText("Vote {value}", { value: item.voteScore })}</span>
+                            <span>{translateText("AI {value}", { value: item.aiConfidenceScore })}</span>
                             {item.contentRefId ? (
                               <span>
-                                Linked to{" "}
+                                {translateText("Linked to")}{" "}
                                 <Link
                                   className="font-medium text-primary hover:underline"
                                   to={`/app/faq/${id}/content-refs/${item.contentRefId}`}
                                 >
-                                  source
+                                  {translateText("Source")}
                                 </Link>
                               </span>
                             ) : (
-                              <span>No source linked yet</span>
+                              <span>{translateText("No source linked yet")}</span>
                             )}
                           </div>
                         </div>
@@ -427,13 +429,13 @@ export function FaqDetailPage() {
                           <Button asChild variant="ghost" size="sm">
                             <Link to={`/app/faq/${id}/items/${item.id}/edit`}>
                               <Pencil className="size-4" />
-                              Edit
+                              {translateText("Edit")}
                             </Link>
                           </Button>
                           <Button asChild variant="outline" size="sm">
                             <Link to={`/app/faq/${id}/items/${item.id}`}>
                               <ArrowUpRight className="size-4" />
-                              Open
+                              {translateText("Open")}
                             </Link>
                           </Button>
                         </div>
@@ -466,7 +468,7 @@ export function FaqDetailPage() {
             <CardHeader>
               <CardHeading>
                 <CardTitle className="flex flex-wrap items-center gap-2">
-                  <span>Sources</span>
+                  <span>{translateText("Sources")}</span>
                   <ContextHint
                     content="Source material already supporting this FAQ."
                     label="Source details"
@@ -494,11 +496,12 @@ export function FaqDetailPage() {
                             {contentRef.locator}
                           </p>
                           <p className="mt-3 text-xs text-muted-foreground">
-                            Used by {contentRef.usageCount}{" "}
-                            {contentRef.usageCount === 1
-                              ? "Q&A item"
-                              : "Q&A items"}{" "}
-                            in this FAQ
+                            {translateText(
+                              contentRef.usageCount === 1
+                                ? "Used by {count} linked Q&A item in this FAQ."
+                                : "Used by {count} linked Q&A items in this FAQ.",
+                              { count: contentRef.usageCount },
+                            )}
                           </p>
                         </div>
                         <Button asChild variant="outline" size="sm">
@@ -506,7 +509,7 @@ export function FaqDetailPage() {
                             to={`/app/faq/${id}/content-refs/${contentRef.id}`}
                           >
                             <ArrowUpRight className="size-4" />
-                            Open
+                            {translateText("Open")}
                           </Link>
                         </Button>
                       </div>
