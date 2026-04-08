@@ -7,7 +7,7 @@ import { ProfileSettingsSkeleton } from '@/domains/settings/profile-settings-ske
 import { settingsNavItems } from '@/domains/settings/settings-nav';
 import { useUpdateUserProfile, useUserProfile } from '@/domains/settings/settings-hooks';
 import { Button, Card, CardContent, CardDescription, CardHeader, CardHeading, CardTitle, Form } from '@/shared/ui';
-import { getBrowserTimeZone, getTimeZoneOptions } from '@/shared/lib/time-zone';
+import { DEFAULT_PORTAL_TIME_ZONE, getTimeZoneOptions } from '@/shared/lib/time-zone';
 import { SearchSelectField, TextField } from '@/shared/ui/form-fields';
 
 const profileSchema = z.object({
@@ -22,7 +22,6 @@ type ProfileFormValues = z.infer<typeof profileSchema>;
 export function ProfileSettingsPage() {
   const profileQuery = useUserProfile();
   const updateProfile = useUpdateUserProfile();
-  const browserTimeZone = getBrowserTimeZone();
   const timeZoneOptions = useMemo(() => getTimeZoneOptions(), []);
   const showLoadingState =
     profileQuery.isLoading && profileQuery.data === undefined;
@@ -82,9 +81,12 @@ export function ProfileSettingsPage() {
             <form
               className="space-y-4"
               onSubmit={form.handleSubmit(async (values) => {
+                const currentValues = form.getValues();
                 await updateProfile.mutateAsync({
                   ...values,
-                  timeZone: values.timeZone?.trim() ? values.timeZone : null,
+                  timeZone: currentValues.timeZone?.trim()
+                    ? currentValues.timeZone
+                    : null,
                 });
               })}
             >
@@ -98,14 +100,14 @@ export function ProfileSettingsPage() {
                 name="timeZone"
                 label="Time zone"
                 description="Choose a preferred time zone for dates across the portal."
-                hint={`If left empty, the portal uses your browser time zone: ${browserTimeZone}.`}
+                hint={`If left empty, the portal keeps using ${DEFAULT_PORTAL_TIME_ZONE}. All timestamps stored in the database should be UTC.`}
                 options={timeZoneOptions}
                 selectedOption={selectedTimeZoneOption}
-                placeholder="Use browser time zone"
+                placeholder={`Use ${DEFAULT_PORTAL_TIME_ZONE}`}
                 searchPlaceholder="Search time zones"
                 emptyMessage="No time zones found."
                 allowClear
-                clearLabel="Use browser time zone"
+                clearLabel={`Use ${DEFAULT_PORTAL_TIME_ZONE}`}
                 resultCountHint={`${timeZoneOptions.length} time zones available`}
               />
               <Button type="submit" disabled={updateProfile.isPending}>

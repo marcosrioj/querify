@@ -52,6 +52,7 @@ public abstract class BaseDbContext<TContext> : DbContext where TContext : DbCon
     {
         ApplySoftDeleteRules();
         ApplyAuditRules();
+        NormalizeTrackedDateTimesToUtc();
         return base.SaveChanges(acceptAllChangesOnSuccess);
     }
 
@@ -61,6 +62,7 @@ public abstract class BaseDbContext<TContext> : DbContext where TContext : DbCon
     {
         ApplySoftDeleteRules();
         ApplyAuditRules();
+        NormalizeTrackedDateTimesToUtc();
         return base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
     }
 
@@ -68,6 +70,7 @@ public abstract class BaseDbContext<TContext> : DbContext where TContext : DbCon
     {
         ApplySoftDeleteRules();
         ApplyAuditRules();
+        NormalizeTrackedDateTimesToUtc();
         return base.SaveChangesAsync(cancellationToken);
     }
 
@@ -345,6 +348,37 @@ public abstract class BaseDbContext<TContext> : DbContext where TContext : DbCon
                 entry.Entity.UpdatedBy = userId;
             }
         }
+    }
+
+    private void NormalizeTrackedDateTimesToUtc()
+    {
+        foreach (var entry in ChangeTracker.Entries()
+                     .Where(entry => entry.State is EntityState.Added or EntityState.Modified))
+        {
+            foreach (var property in entry.Properties)
+            {
+                if (property.Metadata.ClrType != typeof(DateTime) &&
+                    property.Metadata.ClrType != typeof(DateTime?))
+                {
+                    continue;
+                }
+
+                if (property.CurrentValue is DateTime currentValue)
+                {
+                    property.CurrentValue = NormalizeDateTimeToUtc(currentValue);
+                }
+            }
+        }
+    }
+
+    private static DateTime NormalizeDateTimeToUtc(DateTime value)
+    {
+        return value.Kind switch
+        {
+            DateTimeKind.Utc => value,
+            DateTimeKind.Local => value.ToUniversalTime(),
+            _ => DateTime.SpecifyKind(value, DateTimeKind.Utc)
+        };
     }
 
     private string? ResolveUserId()
