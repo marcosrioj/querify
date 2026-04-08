@@ -22,8 +22,6 @@ public class FaqItemService(IMediator mediator) : IFaqItemService
             CtaTitle = requestDto.CtaTitle,
             CtaUrl = requestDto.CtaUrl,
             Sort = requestDto.Sort,
-            VoteScore = requestDto.VoteScore,
-            AiConfidenceScore = requestDto.AiConfidenceScore,
             IsActive = requestDto.IsActive,
             FaqId = requestDto.FaqId,
             ContentRefId = requestDto.ContentRefId

@@ -28,8 +28,6 @@ public class RelationshipMappingTests
             Question = "Question",
             ShortAnswer = "Short",
             Sort = 1,
-            VoteScore = 0,
-            AiConfidenceScore = 0,
             IsActive = true,
             FaqId = faq.Id,
             ContentRefId = contentRef.Id

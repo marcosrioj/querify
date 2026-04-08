@@ -38,8 +38,6 @@ public class FaqItemCommandQueryTests
             CtaTitle = "Sign in",
             CtaUrl = "https://example.test/login",
             Sort = 2,
-            VoteScore = 5,
-            AiConfidenceScore = 70,
             IsActive = true,
             FaqId = faq.Id,
             ContentRefId = null
@@ -81,8 +79,6 @@ public class FaqItemCommandQueryTests
             CtaTitle = "Reset",
             CtaUrl = "https://example.test/reset",
             Sort = 1,
-            VoteScore = 0,
-            AiConfidenceScore = 0,
             IsActive = true,
             FaqId = faq.Id
         }, CancellationToken.None);
@@ -121,8 +117,6 @@ public class FaqItemCommandQueryTests
             CtaTitle = "Profile",
             CtaUrl = "https://example.test/profile",
             Sort = 1,
-            VoteScore = 0,
-            AiConfidenceScore = 0,
             IsActive = true,
             FaqId = faq.Id
         }, CancellationToken.None);
