@@ -22,8 +22,6 @@ export type FaqItemCreateRequestDto = {
   ctaTitle?: string | null;
   ctaUrl?: string | null;
   sort: number;
-  voteScore: number;
-  aiConfidenceScore: number;
   isActive: boolean;
   faqId: string;
   contentRefId?: string | null;

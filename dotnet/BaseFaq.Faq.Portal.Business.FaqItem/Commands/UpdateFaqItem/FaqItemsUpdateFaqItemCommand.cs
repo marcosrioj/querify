@@ -12,8 +12,6 @@ public sealed class FaqItemsUpdateFaqItemCommand : IRequest
     public string? CtaTitle { get; set; }
     public string? CtaUrl { get; set; }
     public required int Sort { get; set; }
-    public required int VoteScore { get; set; }
-    public required int AiConfidenceScore { get; set; }
     public required bool IsActive { get; set; }
     public required Guid FaqId { get; set; }
     public Guid? ContentRefId { get; set; }

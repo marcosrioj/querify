@@ -107,8 +107,6 @@ export function FaqItemFormPage({ mode }: { mode: "create" | "edit" }) {
       ctaTitle: "",
       ctaUrl: "",
       sort: 10,
-      voteScore: 0,
-      aiConfidenceScore: 0,
       isActive: true,
       faqId: preselectedFaqId,
       contentRefId: preselectedContentRefId,
@@ -154,8 +152,6 @@ export function FaqItemFormPage({ mode }: { mode: "create" | "edit" }) {
       ctaTitle: itemQuery.data.ctaTitle ?? "",
       ctaUrl: itemQuery.data.ctaUrl ?? "",
       sort: itemQuery.data.sort,
-      voteScore: itemQuery.data.voteScore,
-      aiConfidenceScore: itemQuery.data.aiConfidenceScore,
       isActive: itemQuery.data.isActive,
       faqId: itemQuery.data.faqId,
       contentRefId:
@@ -361,6 +357,25 @@ export function FaqItemFormPage({ mode }: { mode: "create" | "edit" }) {
                     placeholder="Connect your content source, then publish the FAQ."
                   />
                   <FormSectionHeading
+                    title="Expand the answer"
+                    description="Use the short answer for speed, then add fuller guidance or supporting notes if needed."
+                    className="pt-2"
+                  />
+                  <TextareaField
+                    control={form.control}
+                    name="answer"
+                    label="Full answer"
+                    rows={7}
+                    description="Optional deeper answer for users who need more than the summary."
+                  />
+                  <TextareaField
+                    control={form.control}
+                    name="additionalInfo"
+                    label="Additional info"
+                    rows={4}
+                    description="Optional notes, caveats, or internal context."
+                  />
+                  <FormSectionHeading
                     title="Connect it"
                     description="Pick the FAQ that controls visibility for this item."
                     className="pt-2"
@@ -424,40 +439,21 @@ export function FaqItemFormPage({ mode }: { mode: "create" | "edit" }) {
                       type="number"
                       description="Lower values usually surface earlier."
                     />
-                    <TextField
-                      control={form.control}
-                      name="voteScore"
-                      label="Vote score"
-                      type="number"
-                      description="Use this to reflect answer quality or team preference."
-                    />
-                    <TextField
-                      control={form.control}
-                      name="aiConfidenceScore"
-                      label="AI confidence"
-                      type="number"
-                      description="Keeps AI ranking logic visible to the team."
-                    />
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium">Vote score</p>
+                      <p className="flex h-9 w-full items-center rounded-md border border-input bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
+                        {mode === "edit" ? (itemQuery.data?.voteScore ?? "—") : "—"}
+                      </p>
+                      <p className="text-xs text-muted-foreground">Set automatically by user votes.</p>
+                    </div>
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium">AI confidence</p>
+                      <p className="flex h-9 w-full items-center rounded-md border border-input bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
+                        {mode === "edit" ? (itemQuery.data?.aiConfidenceScore ?? "—") : "—"}
+                      </p>
+                      <p className="text-xs text-muted-foreground">Set automatically by the AI pipeline.</p>
+                    </div>
                   </div>
-                  <FormSectionHeading
-                    title="Expand the answer"
-                    description="Use the short answer for speed, then add fuller guidance or supporting notes if needed."
-                    className="pt-2"
-                  />
-                  <TextareaField
-                    control={form.control}
-                    name="answer"
-                    label="Full answer"
-                    rows={7}
-                    description="Optional deeper answer for users who need more than the summary."
-                  />
-                  <TextareaField
-                    control={form.control}
-                    name="additionalInfo"
-                    label="Additional info"
-                    rows={4}
-                    description="Optional notes, caveats, or internal context."
-                  />
                   <FormSectionHeading
                     title="CTA behavior"
                     description="Optional call-to-action for this Q&A item. Leave blank if no next step is needed."

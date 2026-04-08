@@ -13,8 +13,6 @@ export const faqItemFormSchema = z.object({
       message: 'CTA URL must start with http:// or https://',
     }),
   sort: z.coerce.number().int(),
-  voteScore: z.coerce.number().int(),
-  aiConfidenceScore: z.coerce.number().int(),
   isActive: z.boolean(),
   faqId: z.string().uuid('Select an FAQ.'),
   contentRefId: z.string().uuid().optional().or(z.literal('')),

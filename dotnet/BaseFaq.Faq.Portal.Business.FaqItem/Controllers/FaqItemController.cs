@@ -58,8 +58,6 @@ public class FaqItemController(IMediator mediator) : ControllerBase
             CtaTitle = dto.CtaTitle,
             CtaUrl = dto.CtaUrl,
             Sort = dto.Sort,
-            VoteScore = dto.VoteScore,
-            AiConfidenceScore = dto.AiConfidenceScore,
             IsActive = dto.IsActive,
             FaqId = dto.FaqId,
             ContentRefId = dto.ContentRefId
@@ -84,8 +82,6 @@ public class FaqItemController(IMediator mediator) : ControllerBase
             CtaTitle = dto.CtaTitle,
             CtaUrl = dto.CtaUrl,
             Sort = dto.Sort,
-            VoteScore = dto.VoteScore,
-            AiConfidenceScore = dto.AiConfidenceScore,
             IsActive = dto.IsActive,
             FaqId = dto.FaqId,
             ContentRefId = dto.ContentRefId

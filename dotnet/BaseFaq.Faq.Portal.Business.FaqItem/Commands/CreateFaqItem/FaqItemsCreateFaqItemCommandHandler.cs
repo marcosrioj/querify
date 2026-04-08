@@ -22,8 +22,6 @@ public class FaqItemsCreateFaqItemCommandHandler(FaqDbContext dbContext, ISessio
             CtaTitle = request.CtaTitle,
             CtaUrl = request.CtaUrl,
             Sort = request.Sort,
-            VoteScore = request.VoteScore,
-            AiConfidenceScore = request.AiConfidenceScore,
             IsActive = request.IsActive,
             FaqId = request.FaqId,
             ContentRefId = request.ContentRefId,

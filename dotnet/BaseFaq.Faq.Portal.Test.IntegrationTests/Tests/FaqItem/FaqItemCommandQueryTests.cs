@@ -31,8 +31,6 @@ public class FaqItemCommandQueryTests
             CtaTitle = "Sign in",
             CtaUrl = "https://example.test/login",
             Sort = 2,
-            VoteScore = 5,
-            AiConfidenceScore = 70,
             IsActive = true,
             FaqId = faq.Id,
             ContentRefId = contentRef.Id
@@ -72,8 +70,6 @@ public class FaqItemCommandQueryTests
             CtaTitle = "Updated CTA",
             CtaUrl = "https://example.test/updated",
             Sort = 5,
-            VoteScore = 12,
-            AiConfidenceScore = 90,
             IsActive = false,
             FaqId = otherFaq.Id,
             ContentRefId = null
@@ -100,8 +96,6 @@ public class FaqItemCommandQueryTests
             Question = "Missing",
             ShortAnswer = "Missing",
             Sort = 0,
-            VoteScore = 0,
-            AiConfidenceScore = 0,
             IsActive = false,
             FaqId = Guid.NewGuid()
         };
@@ -142,8 +136,6 @@ public class FaqItemCommandQueryTests
             Question = "Question",
             ShortAnswer = "Short",
             Sort = 1,
-            VoteScore = 0,
-            AiConfidenceScore = 0,
             IsActive = true,
             FaqId = Guid.NewGuid(),
             ContentRefId = null

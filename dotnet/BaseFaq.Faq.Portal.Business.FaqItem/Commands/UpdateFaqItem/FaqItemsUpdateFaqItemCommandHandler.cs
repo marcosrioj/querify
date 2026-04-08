@@ -28,8 +28,6 @@ public class FaqItemsUpdateFaqItemCommandHandler(FaqDbContext dbContext)
         faqItem.CtaTitle = request.CtaTitle;
         faqItem.CtaUrl = request.CtaUrl;
         faqItem.Sort = request.Sort;
-        faqItem.VoteScore = request.VoteScore;
-        faqItem.AiConfidenceScore = request.AiConfidenceScore;
         faqItem.IsActive = request.IsActive;
         faqItem.FaqId = request.FaqId;
         faqItem.ContentRefId = request.ContentRefId;
