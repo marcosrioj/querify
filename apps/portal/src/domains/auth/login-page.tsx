@@ -5,8 +5,6 @@ import { RuntimeEnv } from '@/platform/runtime/env';
 import { usePortalI18n } from '@/shared/lib/i18n';
 import { Alert, AlertDescription, Badge, Button } from '@/shared/ui';
 
-const SWAGGER_UI_CLIENT_ID = 'fDJib60pSRhbtNRPhqYfZR9J8JqBCpz5';
-
 export function LoginPage() {
   const { isConfigured, status, error, login } = useAuth();
   const { t } = usePortalI18n();
@@ -14,7 +12,6 @@ export function LoginPage() {
   const nextPath = searchParams.get('next') ?? '/app/dashboard';
   const callbackUrl =
     RuntimeEnv.auth0RedirectUri || `${window.location.origin}${RuntimeEnv.baseUrl}login`;
-  const isUsingSwaggerClient = RuntimeEnv.auth0ClientId === SWAGGER_UI_CLIENT_ID;
 
   if (status === 'ready') {
     return <Navigate to={nextPath} replace />;
@@ -52,17 +49,6 @@ export function LoginPage() {
       {error ? (
         <Alert variant="destructive">
           <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      ) : null}
-
-      {isUsingSwaggerClient ? (
-        <Alert variant="destructive">
-          <AlertDescription>
-            {t(
-              'The configured `VITE_AUTH0_CLIENT_ID` matches the Swagger UI Auth0 client from the .NET APIs. That application is documented with Swagger callback URLs only, so Portal login will fail unless Auth0 also allows {callbackUrl}.',
-              { callbackUrl },
-            )}
-          </AlertDescription>
         </Alert>
       ) : null}
 
