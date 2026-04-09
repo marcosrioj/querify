@@ -156,7 +156,7 @@ export function FaqListPage() {
           className="flex items-center justify-end gap-1"
           onClick={(event) => event.stopPropagation()}
         >
-          <Button asChild variant="ghost" mode="icon">
+          <Button variant="ghost" mode="icon">
             <Link to={`/app/faq/${faq.id}/edit`}>
               <Pencil className="size-4" />
             </Link>
