@@ -14,12 +14,15 @@ Essential seed creates or ensures:
 
 - AI provider records
 - the AI Agent user used by the AI runtime
+- the seed tenant users in `TenantDb`
+- the default FAQ tenant metadata in `TenantDb`
+- tenant-user membership, tenant AI-provider assignments, and the FAQ tenant connection
 
-This is the minimum required data for AI-related flows to work correctly.
+This is the minimum required tenant-side data for AI, tenant configuration, and FAQ database routing to work correctly.
 
 ### Sample data
 
-Sample seed creates realistic FAQ-style data in the FAQ database plus the tenant-side data needed to relate that FAQ content to a tenant.
+Sample seed creates realistic FAQ-style data in the FAQ database for the essential seed tenant.
 
 ## Configuration source
 
@@ -43,7 +46,8 @@ At startup the tool offers these actions:
 1. seed realistic sample FAQ data
 2. seed essential data
 3. clean databases and seed essential plus sample data
-4. clean databases only
+4. clean `TenantDb` only
+5. clean `FaqDb` only
 0. exit
 
 ## Recommended choices
@@ -54,7 +58,7 @@ Choose `3` if you want a clean environment with sample content.
 
 ### AI-only setup
 
-Choose `2` if you only need AI provider metadata and the AI Agent user.
+Choose `2` if you want all required `TenantDb` seed data without the FAQ sample content.
 
 ### Sample-only setup
 
@@ -62,7 +66,9 @@ Choose `1` only when essential data already exists. On a clean environment, opti
 
 ### Resetting local state
 
-Choose `4` when you want to clear the databases without immediately recreating data.
+Choose `4` when you want to clear only `TenantDb`.
+
+Choose `5` when you want to clear only `FaqDb`.
 
 ## Important output: AI Agent user id
 

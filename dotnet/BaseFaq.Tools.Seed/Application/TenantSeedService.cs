@@ -1,4 +1,5 @@
 using BaseFaq.Common.EntityFramework.Tenant;
+using BaseFaq.Common.EntityFramework.Core.Entities;
 using BaseFaq.Common.EntityFramework.Tenant.Entities;
 using BaseFaq.Common.EntityFramework.Tenant.Helpers;
 using BaseFaq.Tools.Seed.Abstractions;
@@ -15,14 +16,11 @@ public sealed class TenantSeedService : ITenantSeedService
     private const string IaAgentName = "AI Agent";
     private const string IaAgentEmail = "iaagent@basefaq.com";
     private const string IaAgentExternalId = "iaagent@basefaq.com";
+    private const string SeedTenantSlug = "tenant-001";
+    private const string SeedGenerationProviderKey = "seed-generation-key";
+    private const string SeedMatchingProviderKey = "seed-matching-key";
 
-    public bool HasData(TenantDbContext dbContext)
-    {
-        return dbContext.Tenants.Any() ||
-               dbContext.TenantConnections.Any();
-    }
-
-    public bool HasEssentialData(TenantDbContext dbContext)
+    public bool HasEssentialData(TenantDbContext dbContext, TenantSeedRequest request, SeedCounts counts)
     {
         var hasIaAgent = dbContext.Users.Any(item =>
             item.ExternalId == IaAgentExternalId || item.Email == IaAgentEmail);
@@ -39,50 +37,126 @@ public sealed class TenantSeedService : ITenantSeedService
             .GroupBy(x => BuildAiProviderKey(x.Command, x.Provider), StringComparer.OrdinalIgnoreCase)
             .ToDictionary(x => x.Key, x => x.ToList(), StringComparer.OrdinalIgnoreCase);
 
-        return requiredProviders.All(requiredProvider =>
+        var hasRequiredProviders = requiredProviders.All(requiredProvider =>
         {
             var key = BuildAiProviderKey(requiredProvider.Command, requiredProvider.Provider);
             return existingByKey.TryGetValue(key, out var providers) &&
                    providers.Any(x => x.Model.Equals(requiredProvider.Model, StringComparison.OrdinalIgnoreCase));
         });
+
+        if (!hasRequiredProviders)
+        {
+            return false;
+        }
+
+        var normalizedUserCount = NormalizeSeedUserCount(counts.UserCount);
+        var expectedSeedUserExternalIds = Enumerable
+            .Range(1, normalizedUserCount)
+            .Select(BuildSeedUserExternalId)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        var seedUsers = dbContext.Users
+            .AsNoTracking()
+            .Where(user => expectedSeedUserExternalIds.Contains(user.ExternalId))
+            .ToDictionary(user => user.ExternalId, StringComparer.OrdinalIgnoreCase);
+
+        if (seedUsers.Count != expectedSeedUserExternalIds.Count)
+        {
+            return false;
+        }
+
+        var seedTenant = dbContext.Tenants
+            .IgnoreQueryFilters()
+            .AsNoTracking()
+            .Include(tenant => tenant.TenantUsers)
+            .Include(tenant => tenant.AiProviders)
+            .ThenInclude(tenantAiProvider => tenantAiProvider.AiProvider)
+            .FirstOrDefault(tenant => tenant.Slug == SeedTenantSlug);
+
+        if (seedTenant is null ||
+            seedTenant.IsDeleted ||
+            !seedTenant.IsActive ||
+            seedTenant.App != AppEnum.Faq ||
+            !string.Equals(seedTenant.ConnectionString, request.FaqConnectionString, StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        var ownerUser = seedUsers[BuildSeedUserExternalId(1)];
+        var hasOwnerMembership = seedTenant.TenantUsers.Any(tenantUser =>
+            !tenantUser.IsDeleted &&
+            tenantUser.UserId == ownerUser.Id &&
+            tenantUser.Role == TenantUserRoleType.Owner);
+
+        if (!hasOwnerMembership)
+        {
+            return false;
+        }
+
+        if (normalizedUserCount > 1)
+        {
+            var memberUser = seedUsers[BuildSeedUserExternalId(2)];
+            var hasMemberMembership = seedTenant.TenantUsers.Any(tenantUser =>
+                !tenantUser.IsDeleted &&
+                tenantUser.UserId == memberUser.Id &&
+                tenantUser.Role == TenantUserRoleType.Member);
+
+            if (!hasMemberMembership)
+            {
+                return false;
+            }
+        }
+
+        var activeProviders = dbContext.AiProviders
+            .AsNoTracking()
+            .ToList();
+        var generationProvider = PickPreferredProvider(activeProviders, AiCommandType.Generation);
+        var matchingProvider = PickPreferredProvider(activeProviders, AiCommandType.Matching);
+        var hasTenantGenerationProvider = seedTenant.AiProviders.Any(tenantAiProvider =>
+            !tenantAiProvider.IsDeleted &&
+            tenantAiProvider.AiProviderId == generationProvider.Id &&
+            string.Equals(tenantAiProvider.AiProviderKey, SeedGenerationProviderKey, StringComparison.Ordinal));
+        var hasTenantMatchingProvider = seedTenant.AiProviders.Any(tenantAiProvider =>
+            !tenantAiProvider.IsDeleted &&
+            tenantAiProvider.AiProviderId == matchingProvider.Id &&
+            string.Equals(tenantAiProvider.AiProviderKey, SeedMatchingProviderKey, StringComparison.Ordinal));
+
+        if (!hasTenantGenerationProvider || !hasTenantMatchingProvider)
+        {
+            return false;
+        }
+
+        return dbContext.TenantConnections
+            .IgnoreQueryFilters()
+            .AsNoTracking()
+            .Any(connection =>
+                !connection.IsDeleted &&
+                connection.App == AppEnum.Faq &&
+                connection.IsCurrent &&
+                connection.ConnectionString == request.FaqConnectionString);
     }
 
-    public Guid SeedSampleData(TenantDbContext dbContext, TenantSeedRequest request, SeedCounts counts)
+    public EssentialSeedResult EnsureEssentialData(TenantDbContext dbContext, TenantSeedRequest request, SeedCounts counts)
     {
-        var existingExternalIds = dbContext.Users.AsNoTracking().Select(user => user.ExternalId).ToHashSet();
-        var existingSlugs = dbContext.Tenants.AsNoTracking().Select(tenant => tenant.Slug).ToHashSet();
+        var aiProviders = SeedAiProviders(dbContext);
+        var aiAgentUserId = EnsureIaAgentUser(dbContext);
+        var seedUsers = EnsureSeedUsers(dbContext, counts.UserCount);
+        var seedTenant = EnsureSeedTenant(dbContext, request, seedUsers, aiProviders);
+        EnsureCurrentFaqConnection(dbContext, request);
 
-        var users = BuildUsers(counts.UserCount, existingExternalIds);
-        dbContext.Users.AddRange(users);
         dbContext.SaveChanges();
 
-        var aiProviders = GetExistingAiProvidersForTenantProvisioning(dbContext);
-
-        var tenants = BuildSingleTenant(users, existingSlugs, request, aiProviders);
-        dbContext.Tenants.AddRange(tenants);
-        dbContext.SaveChanges();
-
-        var connections = BuildSingleFaqConnection(request);
-        dbContext.TenantConnections.AddRange(connections);
-        dbContext.SaveChanges();
-
-        var seedTenant = tenants.FirstOrDefault(t => t.App == AppEnum.Faq && t.IsActive)
-                         ?? tenants.FirstOrDefault(t => t.App == AppEnum.Faq)
-                         ?? tenants.First();
-
-        return seedTenant.Id;
-    }
-
-    public Guid EnsureEssentialData(TenantDbContext dbContext)
-    {
-        SeedAiProviders(dbContext);
-        return EnsureIaAgentUser(dbContext);
+        return new EssentialSeedResult(aiAgentUserId, seedTenant.Id);
     }
 
     private static Guid EnsureIaAgentUser(TenantDbContext dbContext)
     {
-        var user = dbContext.Users.FirstOrDefault(item => item.ExternalId == IaAgentExternalId)
-                   ?? dbContext.Users.FirstOrDefault(item => item.Email == IaAgentEmail);
+        var user = dbContext.Users
+                       .IgnoreQueryFilters()
+                       .FirstOrDefault(item => item.ExternalId == IaAgentExternalId)
+                   ?? dbContext.Users
+                       .IgnoreQueryFilters()
+                       .FirstOrDefault(item => item.Email == IaAgentEmail);
 
         if (user is null)
         {
@@ -101,6 +175,7 @@ public sealed class TenantSeedService : ITenantSeedService
         }
         else
         {
+            RestoreEntity(user);
             user.GivenName = IaAgentName;
             user.SurName = null;
             user.Email = IaAgentEmail;
@@ -113,98 +188,115 @@ public sealed class TenantSeedService : ITenantSeedService
         return user.Id;
     }
 
-    private static List<User> BuildUsers(int count, HashSet<string> existingExternalIds)
+    private static List<User> EnsureSeedUsers(TenantDbContext dbContext, int count)
     {
+        var normalizedCount = NormalizeSeedUserCount(count);
+        var expectedExternalIds = Enumerable
+            .Range(1, normalizedCount)
+            .Select(BuildSeedUserExternalId)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var existingUsers = dbContext.Users
+            .IgnoreQueryFilters()
+            .Where(user => expectedExternalIds.Contains(user.ExternalId))
+            .ToDictionary(user => user.ExternalId, StringComparer.OrdinalIgnoreCase);
         var users = new List<User>();
-        var index = 1;
 
-        while (users.Count < count)
+        for (var index = 1; index <= normalizedCount; index++)
         {
-            var externalId = $"seed-user-{index:000}";
-            if (existingExternalIds.Contains(externalId))
+            var externalId = BuildSeedUserExternalId(index);
+            if (!existingUsers.TryGetValue(externalId, out var user))
             {
-                index++;
-                continue;
+                user = new User
+                {
+                    Id = Guid.NewGuid(),
+                    GivenName = $"User {index:000}",
+                    Email = $"user{index:000}@seed.basefaq.local",
+                    ExternalId = externalId
+                };
+
+                dbContext.Users.Add(user);
             }
 
-            users.Add(new User
-            {
-                Id = Guid.NewGuid(),
-                GivenName = $"User {index:000}",
-                SurName = index % 3 == 0 ? null : $"Seed {index:000}",
-                Email = $"user{index:000}@seed.basefaq.local",
-                ExternalId = externalId,
-                PhoneNumber = index % 4 == 0 ? "" : $"+1-555-01{index:000}",
-                Role = index % 7 == 0 ? UserRoleType.Admin : UserRoleType.Member
-            });
-
-            index++;
+            RestoreEntity(user);
+            ApplySeedUserValues(user, index);
+            users.Add(user);
         }
 
         return users;
     }
 
-    private static List<Tenant> BuildSingleTenant(
-        IReadOnlyList<User> users,
-        HashSet<string> existingSlugs,
+    private static Tenant EnsureSeedTenant(
+        TenantDbContext dbContext,
         TenantSeedRequest request,
+        IReadOnlyList<User> users,
         IReadOnlyList<AiProvider> aiProviders)
     {
-        var slug = existingSlugs.Contains("tenant-001") ? $"tenant-{Guid.NewGuid():N}" : "tenant-001";
         var ownerUser = users.FirstOrDefault();
         var memberUser = users.Skip(1).FirstOrDefault();
         var generationProvider = PickPreferredProvider(aiProviders, AiCommandType.Generation);
         var matchingProvider = PickPreferredProvider(aiProviders, AiCommandType.Matching);
-        var tenantId = Guid.NewGuid();
 
-        var tenantUsers = new List<TenantUser>();
+        var tenant = dbContext.Tenants
+            .IgnoreQueryFilters()
+            .Include(entity => entity.TenantUsers)
+            .Include(entity => entity.AiProviders)
+            .ThenInclude(entity => entity.AiProvider)
+            .FirstOrDefault(entity => entity.Slug == SeedTenantSlug);
+
+        if (tenant is null)
+        {
+            tenant = new Tenant
+            {
+                Id = Guid.NewGuid(),
+                Slug = SeedTenantSlug,
+                Name = Tenant.DefaultTenantName,
+                Edition = TenantEdition.Free,
+                App = AppEnum.Faq,
+                ConnectionString = request.FaqConnectionString
+            };
+
+            dbContext.Tenants.Add(tenant);
+        }
+
+        RestoreEntity(tenant);
+        tenant.Slug = SeedTenantSlug;
+        tenant.Name = Tenant.DefaultTenantName;
+        tenant.Edition = TenantEdition.Free;
+        tenant.App = AppEnum.Faq;
+        tenant.ConnectionString = request.FaqConnectionString;
+        tenant.IsActive = true;
+
         if (ownerUser is not null)
         {
-            TenantUserHelper.SetOwner(tenantUsers, tenantId, ownerUser.Id);
+            TenantUserHelper.SetOwner(tenant.TenantUsers, tenant.Id, ownerUser.Id);
         }
 
         if (memberUser is not null && memberUser.Id != ownerUser?.Id)
         {
-            tenantUsers.Add(new TenantUser
+            var existingMember = tenant.TenantUsers
+                .FirstOrDefault(tenantUser => tenantUser.UserId == memberUser.Id);
+
+            if (existingMember is null)
             {
-                Id = Guid.NewGuid(),
-                TenantId = tenantId,
-                UserId = memberUser.Id,
-                Role = TenantUserRoleType.Member
-            });
+                tenant.TenantUsers.Add(new TenantUser
+                {
+                    Id = Guid.NewGuid(),
+                    TenantId = tenant.Id,
+                    UserId = memberUser.Id,
+                    Role = TenantUserRoleType.Member
+                });
+            }
+            else
+            {
+                RestoreEntity(existingMember);
+                existingMember.Role = TenantUserRoleType.Member;
+            }
         }
 
-        return
-        [
-            new Tenant
-            {
-                Id = tenantId,
-                Slug = slug,
-                Name = Tenant.DefaultTenantName,
-                Edition = TenantEdition.Free,
-                App = AppEnum.Faq,
-                ConnectionString = request.FaqConnectionString,
-                IsActive = true,
-                TenantUsers = tenantUsers,
-                AiProviders =
-                [
-                    new TenantAiProvider
-                    {
-                        Id = Guid.NewGuid(),
-                        TenantId = tenantId,
-                        AiProviderId = generationProvider.Id,
-                        AiProviderKey = "seed-generation-key"
-                    },
-                    new TenantAiProvider
-                    {
-                        Id = Guid.NewGuid(),
-                        TenantId = tenantId,
-                        AiProviderId = matchingProvider.Id,
-                        AiProviderKey = "seed-matching-key"
-                    }
-                ]
-            }
-        ];
+        EnsureTenantAiProvider(tenant, generationProvider, SeedGenerationProviderKey, AiCommandType.Generation);
+        EnsureTenantAiProvider(tenant, matchingProvider, SeedMatchingProviderKey, AiCommandType.Matching);
+
+        return tenant;
     }
 
     private static AiProvider PickPreferredProvider(IReadOnlyList<AiProvider> aiProviders, AiCommandType command)
@@ -214,37 +306,32 @@ public sealed class TenantSeedService : ITenantSeedService
                ?? aiProviders.First(x => x.Command == command);
     }
 
-    private static List<TenantConnection> BuildSingleFaqConnection(TenantSeedRequest request)
+    private static void EnsureCurrentFaqConnection(TenantDbContext dbContext, TenantSeedRequest request)
     {
-        return
-        [
-            new TenantConnection
+        var connection = dbContext.TenantConnections
+            .IgnoreQueryFilters()
+            .FirstOrDefault(item =>
+                item.App == AppEnum.Faq &&
+                (item.IsCurrent || item.ConnectionString == request.FaqConnectionString));
+
+        if (connection is null)
+        {
+            connection = new TenantConnection
             {
                 Id = Guid.NewGuid(),
-                ConnectionString = request.FaqConnectionString,
                 App = AppEnum.Faq,
+                ConnectionString = request.FaqConnectionString,
                 IsCurrent = true
-            }
-        ];
-    }
+            };
 
-    private static List<AiProvider> GetExistingAiProvidersForTenantProvisioning(TenantDbContext dbContext)
-    {
-        var aiProviders = dbContext.AiProviders
-            .AsNoTracking()
-            .OrderBy(x => x.Command)
-            .ThenBy(x => x.Provider)
-            .ThenBy(x => x.Model)
-            .ToList();
-
-        if (!aiProviders.Any(x => x.Command == AiCommandType.Generation) ||
-            !aiProviders.Any(x => x.Command == AiCommandType.Matching))
-        {
-            throw new InvalidOperationException(
-                "Essential AI providers are missing. Run essential seed before dummy seed.");
+            dbContext.TenantConnections.Add(connection);
+            return;
         }
 
-        return aiProviders;
+        RestoreEntity(connection);
+        connection.ConnectionString = request.FaqConnectionString;
+        connection.App = AppEnum.Faq;
+        connection.IsCurrent = true;
     }
 
     private static List<AiProvider> SeedAiProviders(TenantDbContext dbContext)
@@ -304,6 +391,62 @@ public sealed class TenantSeedService : ITenantSeedService
             .OrderBy(x => x.Command)
             .ThenBy(x => x.Provider)
             .ToList();
+    }
+
+    private static string BuildSeedUserExternalId(int index)
+    {
+        return $"seed-user-{index:000}";
+    }
+
+    private static int NormalizeSeedUserCount(int count)
+    {
+        return Math.Max(count, 1);
+    }
+
+    private static void ApplySeedUserValues(User user, int index)
+    {
+        user.GivenName = $"User {index:000}";
+        user.SurName = index % 3 == 0 ? null : $"Seed {index:000}";
+        user.Email = $"user{index:000}@seed.basefaq.local";
+        user.ExternalId = BuildSeedUserExternalId(index);
+        user.PhoneNumber = index % 4 == 0 ? string.Empty : $"+1-555-01{index:000}";
+        user.Role = index % 7 == 0 ? UserRoleType.Admin : UserRoleType.Member;
+    }
+
+    private static void EnsureTenantAiProvider(
+        Tenant tenant,
+        AiProvider provider,
+        string providerKey,
+        AiCommandType command)
+    {
+        var tenantAiProvider = tenant.AiProviders
+            .FirstOrDefault(item => item.AiProviderId == provider.Id)
+            ?? tenant.AiProviders.FirstOrDefault(item => item.AiProvider?.Command == command);
+
+        if (tenantAiProvider is null)
+        {
+            tenant.AiProviders.Add(new TenantAiProvider
+            {
+                Id = Guid.NewGuid(),
+                TenantId = tenant.Id,
+                AiProviderId = provider.Id,
+                AiProviderKey = providerKey
+            });
+
+            return;
+        }
+
+        RestoreEntity(tenantAiProvider);
+        tenantAiProvider.TenantId = tenant.Id;
+        tenantAiProvider.AiProviderId = provider.Id;
+        tenantAiProvider.AiProviderKey = providerKey;
+    }
+
+    private static void RestoreEntity(BaseEntity entity)
+    {
+        entity.IsDeleted = false;
+        entity.DeletedBy = null;
+        entity.DeletedDate = null;
     }
 
     private static string BuildAiProviderKey(AiCommandType command, string provider)

@@ -23,6 +23,7 @@ public sealed class SeedRunner(
         var settings = SeedSettings.From(configuration);
         var tenantBuilder = new NpgsqlConnectionStringBuilder(settings.TenantConnectionString);
         var faqBuilder = new NpgsqlConnectionStringBuilder(settings.FaqConnectionString);
+        var tenantSeedRequest = new TenantSeedRequest(tenantBuilder.ToString(), faqBuilder.ToString());
 
         console.WriteLine(
             $"Using TenantDb from appsettings.json: {FormatConnectionInfo(tenantBuilder)}");
@@ -50,45 +51,48 @@ public sealed class SeedRunner(
 
         tenantDb.Database.Migrate();
 
-        if (action is SeedAction.CleanOnly or SeedAction.CleanAndSeed)
+        if (action is SeedAction.CleanTenantOnly or SeedAction.CleanAndSeed)
         {
             cleanupService.CleanTenantDb(tenantDb);
         }
 
+        if (action == SeedAction.CleanTenantOnly)
+        {
+            return 0;
+        }
+
         if (action == SeedAction.SeedEssentialOnly)
         {
-            var iaAgentUserId = tenantSeeder.EnsureEssentialData(tenantDb);
+            var essentialSeed = tenantSeeder.EnsureEssentialData(tenantDb, tenantSeedRequest, counts);
             console.WriteLine("Essential seed complete.");
+            console.WriteLine("Tenant metadata ensured.");
             console.WriteLine("AI providers ensured.");
-            console.WriteLine($"AI Agent user id: {iaAgentUserId}");
+            console.WriteLine($"Seed tenant id: {essentialSeed.TenantId}");
+            console.WriteLine($"AI Agent user id: {essentialSeed.AiAgentUserId}");
             console.WriteLine("Set this value in AI API appsettings: Ai:UserId");
             return 0;
         }
 
         if (action is SeedAction.SeedSampleOnly or SeedAction.CleanAndSeed)
         {
+            EssentialSeedResult essentialSeed;
             if (action == SeedAction.CleanAndSeed)
             {
-                tenantSeeder.EnsureEssentialData(tenantDb);
+                essentialSeed = tenantSeeder.EnsureEssentialData(tenantDb, tenantSeedRequest, counts);
                 console.WriteLine("Essential seed complete.");
             }
-            else if (!tenantSeeder.HasEssentialData(tenantDb))
+            else if (!tenantSeeder.HasEssentialData(tenantDb, tenantSeedRequest, counts))
             {
                 console.WriteLine(
-                    "Essential data is missing. Run 'Seed essential data (AI providers + AI Agent user)' first.");
+                    "Essential data is missing. Run 'Seed essential data (AI providers + AI Agent user + tenant metadata)' first.");
                 return 1;
             }
-
-            if (tenantSeeder.HasData(tenantDb) &&
-                !Confirm(console, "Tenant database already has data. Append seed data?"))
+            else
             {
-                return 0;
+                essentialSeed = tenantSeeder.EnsureEssentialData(tenantDb, tenantSeedRequest, counts);
             }
 
-            var seedTenantId = tenantSeeder.SeedSampleData(
-                tenantDb,
-                new TenantSeedRequest(tenantBuilder.ToString(), faqBuilder.ToString()),
-                counts);
+            var seedTenantId = essentialSeed.TenantId;
 
             var faqSessionService = new SeedSessionService(seedUserId, seedTenantId);
             var faqTenantProvider = new StaticTenantConnectionStringProvider(faqBuilder.ToString());
@@ -154,9 +158,10 @@ public sealed class SeedRunner(
     {
         console.WriteLine("Select action:");
         console.WriteLine("1) Seed realistic sample FAQ data (default)");
-        console.WriteLine("2) Seed essential data (AI providers + AI Agent user)");
+        console.WriteLine("2) Seed essential data (AI providers + AI Agent user + tenant metadata)");
         console.WriteLine("3) Clean databases and seed essential + sample FAQ data");
-        console.WriteLine("4) Clean databases only");
+        console.WriteLine("4) Clean TenantDb only");
+        console.WriteLine("5) Clean FaqDb only");
         console.WriteLine("0) Exit");
         console.Write("Choice: ");
         var input = console.ReadLine();
@@ -164,7 +169,8 @@ public sealed class SeedRunner(
         {
             "2" => SeedAction.SeedEssentialOnly,
             "3" => SeedAction.CleanAndSeed,
-            "4" => SeedAction.CleanOnly,
+            "4" => SeedAction.CleanTenantOnly,
+            "5" => SeedAction.CleanFaqOnly,
             "0" => SeedAction.Exit,
             _ => SeedAction.SeedSampleOnly
         };
@@ -175,7 +181,8 @@ public sealed class SeedRunner(
         SeedSampleOnly,
         SeedEssentialOnly,
         CleanAndSeed,
-        CleanOnly,
+        CleanTenantOnly,
+        CleanFaqOnly,
         Exit
     }
 }

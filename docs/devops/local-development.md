@@ -65,7 +65,7 @@ dotnet run --project dotnet/BaseFaq.Tools.Seed
 
 Common choices:
 
-- `2`: seed essential AI provider data and the AI Agent user
+- `2`: seed essential tenant metadata, AI provider data, and the AI Agent user
 - `3`: clean databases and seed essential plus sample FAQ data
 
 On a clean machine, this is the fastest way to create the tenant schema and the seed-target FAQ schema because the seed application runs EF Core migrations before inserting data.

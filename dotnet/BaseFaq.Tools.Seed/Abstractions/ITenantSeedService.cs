@@ -5,8 +5,6 @@ namespace BaseFaq.Tools.Seed.Abstractions;
 
 public interface ITenantSeedService
 {
-    bool HasData(TenantDbContext dbContext);
-    bool HasEssentialData(TenantDbContext dbContext);
-    Guid SeedSampleData(TenantDbContext dbContext, TenantSeedRequest request, SeedCounts counts);
-    Guid EnsureEssentialData(TenantDbContext dbContext);
+    bool HasEssentialData(TenantDbContext dbContext, TenantSeedRequest request, SeedCounts counts);
+    EssentialSeedResult EnsureEssentialData(TenantDbContext dbContext, TenantSeedRequest request, SeedCounts counts);
 }
