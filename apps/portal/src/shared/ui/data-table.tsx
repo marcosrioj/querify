@@ -16,7 +16,8 @@ import {
   TableRow,
 } from "@/shared/ui";
 import { ContextHint } from "@/shared/ui/context-hint";
-import { translateMaybeString, usePortalI18n } from "@/shared/lib/i18n";
+import { translateMaybeString } from "@/shared/lib/i18n-render";
+import { usePortalI18n } from "@/shared/lib/use-portal-i18n";
 
 export type DataTableColumn<T> = {
   key: string;

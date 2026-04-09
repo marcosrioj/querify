@@ -1,36 +1,16 @@
-import {
-  PropsWithChildren,
-  createContext,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import type { PropsWithChildren } from 'react';
 import { createAuth0Client, type Auth0Client } from '@auth0/auth0-spa-js';
+import { AuthContext, type AuthContextValue } from '@/platform/auth/auth-context';
 import { AuthRuntime, RuntimeEnv } from '@/platform/runtime/env';
-import {
-  type AuthStatus,
-  type PortalRole,
-  type PortalSession,
-  type PortalUser,
+import type {
+  AuthStatus,
+  PortalRole,
+  PortalSession,
+  PortalUser,
 } from '@/platform/auth/types';
 import { logger } from '@/platform/telemetry/logger';
 import { translateText } from '@/shared/lib/i18n-core';
-
-type AuthContextValue = {
-  isConfigured: boolean;
-  status: AuthStatus;
-  session?: PortalSession;
-  user?: PortalUser;
-  error?: string;
-  login: (nextPath?: string) => Promise<void>;
-  logout: () => Promise<void>;
-  refreshSession: () => Promise<void>;
-  getAccessToken: () => Promise<string | undefined>;
-};
-
-const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 const resolveRedirectUri = () =>
   RuntimeEnv.auth0RedirectUri ||
@@ -119,7 +99,8 @@ export function PortalAuthProvider({ children }: PropsWithChildren) {
       },
     });
     const payload = parseJwtPayload(accessToken);
-    const auth0User = (await client.getUser()) as Record<string, unknown> | undefined;
+    const auth0User =
+      (await client.getUser()) as Record<string, unknown> | undefined;
 
     setSession({
       accessToken,
@@ -281,13 +262,4 @@ export function PortalAuthProvider({ children }: PropsWithChildren) {
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-}
-
-export function useAuth() {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within PortalAuthProvider.');
-  }
-
-  return context;
 }

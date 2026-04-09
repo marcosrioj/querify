@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { usePortalI18n } from '@/shared/lib/i18n';
+import { usePortalI18n } from '@/shared/lib/use-portal-i18n';
 
 /**
  * A simple component that displays the status of the Supabase connection.

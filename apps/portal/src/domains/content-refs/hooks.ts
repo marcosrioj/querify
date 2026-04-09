@@ -11,8 +11,8 @@ import type {
   ContentRefCreateRequestDto,
   ContentRefUpdateRequestDto,
 } from '@/domains/content-refs/types';
-import { useAuth } from '@/platform/auth/auth-context';
-import { useTenant } from '@/platform/tenant/tenant-context';
+import { useAuth } from '@/platform/auth/use-auth';
+import { useTenant } from '@/platform/tenant/use-tenant';
 import { translateText } from '@/shared/lib/i18n-core';
 
 export const contentRefKeys = {

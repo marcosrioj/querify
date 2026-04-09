@@ -1,1 +1,1 @@
-export { PortalTenantProvider as TenantProvider } from '@/platform/tenant/tenant-context';
+export { PortalTenantProvider as TenantProvider } from '@/platform/tenant/tenant-provider';

@@ -3,7 +3,8 @@ import { ArrowLeft, type LucideIcon } from "lucide-react";
 import { Link, useMatches } from "react-router-dom";
 import { AppRouteHandle } from "@/app/router/route-types";
 import { Container } from "@/shared/layout/container";
-import { translateMaybeString, usePortalI18n } from "@/shared/lib/i18n";
+import { translateMaybeString } from "@/shared/lib/i18n-render";
+import { usePortalI18n } from "@/shared/lib/use-portal-i18n";
 import { Button, Card, CardContent, ContextHint } from "@/shared/ui";
 import { cn } from "@/lib/utils";
 

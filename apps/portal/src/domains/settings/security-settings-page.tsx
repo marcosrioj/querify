@@ -2,10 +2,10 @@ import { ShieldCheck } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { KeyValueList, PageHeader, SettingsLayout } from '@/shared/layout/page-layouts';
 import { settingsNavItems } from '@/domains/settings/settings-nav';
-import { useAuth } from '@/platform/auth/auth-context';
+import { useAuth } from '@/platform/auth/use-auth';
 import { RuntimeEnv } from '@/platform/runtime/env';
 import { Button, Card, CardContent, CardDescription, CardHeader, CardHeading, CardTitle } from '@/shared/ui';
-import { usePortalI18n } from '@/shared/lib/i18n';
+import { usePortalI18n } from '@/shared/lib/use-portal-i18n';
 
 export function SecuritySettingsPage() {
   const { t } = usePortalI18n();

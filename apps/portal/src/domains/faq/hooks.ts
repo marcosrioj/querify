@@ -9,8 +9,8 @@ import {
   updateFaq,
 } from '@/domains/faq/api';
 import type { FaqCreateRequestDto, FaqUpdateRequestDto } from '@/domains/faq/types';
-import { useAuth } from '@/platform/auth/auth-context';
-import { useTenant } from '@/platform/tenant/tenant-context';
+import { useAuth } from '@/platform/auth/use-auth';
+import { useTenant } from '@/platform/tenant/use-tenant';
 import { translateText } from '@/shared/lib/i18n-core';
 
 export const faqKeys = {

@@ -1,5 +1,4 @@
 import { ArrowUpRight, BookOpen, Bot, ShieldCheck, WandSparkles } from 'lucide-react';
-import { RouteObject } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import { AiWorkspaceSkeleton } from '@/domains/ai/ai-workspace-skeleton';
 import { useFaqList, useRequestFaqGeneration } from '@/domains/faq/hooks';
@@ -7,10 +6,20 @@ import { useTenantWorkspace } from '@/domains/tenants/hooks';
 import { AiCommandType } from '@/shared/constants/backend-enums';
 import { PageHeader, PageSurface, SectionGrid } from '@/shared/layout/page-layouts';
 import { translateText } from '@/shared/lib/i18n-core';
-import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardHeading, CardTitle, ConfirmAction } from '@/shared/ui';
+import {
+  Badge,
+  Button,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardHeading,
+  CardTitle,
+  ConfirmAction,
+} from '@/shared/ui';
 import { EmptyState } from '@/shared/ui/placeholder-state';
 
-function AiWorkspacePage() {
+export function AiWorkspacePage() {
   const { aiProvidersQuery } = useTenantWorkspace();
   const faqQuery = useFaqList({ page: 1, pageSize: 6, sorting: 'UpdatedDate DESC' });
   const requestGeneration = useRequestFaqGeneration();
@@ -55,7 +64,9 @@ function AiWorkspacePage() {
           {
             title: 'Credential coverage',
             value: readyProviders,
-            description: providers.length ? 'Providers with stored secrets' : 'Waiting for provider setup',
+            description: providers.length
+              ? 'Providers with stored secrets'
+              : 'Waiting for provider setup',
             icon: ShieldCheck,
           },
           {
@@ -78,7 +89,10 @@ function AiWorkspacePage() {
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {providers.map((provider) => (
-            <div key={provider.id} className="rounded-2xl border border-border bg-muted/15 p-4">
+            <div
+              key={provider.id}
+              className="rounded-2xl border border-border bg-muted/15 p-4"
+            >
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <p className="font-medium text-mono">{provider.provider}</p>
@@ -122,7 +136,10 @@ function AiWorkspacePage() {
         </CardHeader>
         <CardContent className="space-y-3">
           {(faqQuery.data?.items ?? []).map((faq) => (
-            <div key={faq.id} className="flex flex-col gap-3 rounded-2xl border border-border p-4 md:flex-row md:items-center md:justify-between">
+            <div
+              key={faq.id}
+              className="flex flex-col gap-3 rounded-2xl border border-border p-4 md:flex-row md:items-center md:justify-between"
+            >
               <div>
                 <p className="font-medium text-mono">{faq.name}</p>
                 <p className="text-sm text-muted-foreground">{faq.language}</p>
@@ -165,15 +182,3 @@ function AiWorkspacePage() {
     </PageSurface>
   );
 }
-
-export const AiRoutes: RouteObject[] = [
-  {
-    path: 'ai',
-    element: <AiWorkspacePage />,
-    handle: {
-      title: 'AI',
-      breadcrumb: 'AI',
-      navKey: 'ai',
-    },
-  },
-];

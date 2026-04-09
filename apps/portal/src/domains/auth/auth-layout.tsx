@@ -2,7 +2,7 @@ import { Link, Outlet } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { toAbsoluteUrl } from '@/lib/helpers';
 import { RuntimeEnv } from '@/platform/runtime/env';
-import { usePortalI18n } from '@/shared/lib/i18n';
+import { usePortalI18n } from '@/shared/lib/use-portal-i18n';
 import { Card, CardContent } from '@/shared/ui';
 
 export function AuthLayout() {

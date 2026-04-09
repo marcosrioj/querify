@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Slot } from '@radix-ui/react-slot';
 import { Label as LabelPrimitive } from 'radix-ui';
 import { Controller, ControllerProps, FieldPath, FieldValues, FormProvider, useFormContext } from 'react-hook-form';
-import { usePortalI18n } from '@/shared/lib/i18n';
+import { usePortalI18n } from '@/shared/lib/use-portal-i18n';
 
 const Form = FormProvider;
 

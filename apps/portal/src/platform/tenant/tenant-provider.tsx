@@ -1,27 +1,11 @@
-import {
-  PropsWithChildren,
-  createContext,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import type { PropsWithChildren } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import type { TenantSummaryDto } from '@/domains/tenants/types';
 import { portalRequest, requireAccessToken } from '@/platform/api/http-client';
-import { useAuth } from '@/platform/auth/auth-context';
+import { useAuth } from '@/platform/auth/use-auth';
+import { TenantContext, type TenantContextValue } from '@/platform/tenant/tenant-context';
 import { PortalApp } from '@/shared/constants/backend-enums';
-
-type TenantContextValue = {
-  tenants: TenantSummaryDto[];
-  currentTenantId?: string;
-  currentTenant?: TenantSummaryDto;
-  isLoading: boolean;
-  setCurrentTenantId: (tenantId: string) => void;
-  refreshTenants: () => Promise<void>;
-};
-
-const TenantContext = createContext<TenantContextValue | undefined>(undefined);
 
 const STORAGE_KEY = 'basefaq.portal.currentTenantId';
 
@@ -44,7 +28,8 @@ export function PortalTenantProvider({ children }: PropsWithChildren) {
   });
 
   const tenantOptions = useMemo(
-    () => (tenantsQuery.data ?? []).filter((tenant) => tenant.app === PortalApp.Faq),
+    () =>
+      (tenantsQuery.data ?? []).filter((tenant) => tenant.app === PortalApp.Faq),
     [tenantsQuery.data],
   );
 
@@ -99,13 +84,4 @@ export function PortalTenantProvider({ children }: PropsWithChildren) {
   return (
     <TenantContext.Provider value={value}>{children}</TenantContext.Provider>
   );
-}
-
-export function useTenant() {
-  const context = useContext(TenantContext);
-  if (!context) {
-    throw new Error('useTenant must be used within PortalTenantProvider.');
-  }
-
-  return context;
 }

@@ -7,7 +7,7 @@ import {
   AccordionMenuItem,
   AccordionMenuLabel,
 } from '@/components/ui/accordion-menu';
-import { usePortalI18n } from '@/shared/lib/i18n';
+import { usePortalI18n } from '@/shared/lib/use-portal-i18n';
 import { portalNavigation } from '@/shared/constants/navigation';
 
 export function SidebarMenuPrimary({

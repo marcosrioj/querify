@@ -3,7 +3,7 @@ import { useTheme } from 'next-themes';
 import { PageHeader, SectionGrid, SettingsLayout } from '@/shared/layout/page-layouts';
 import { Button, Card, CardContent, CardDescription, CardHeader, CardHeading, CardTitle } from '@/shared/ui';
 import { settingsNavItems } from '@/domains/settings/settings-nav';
-import { usePortalI18n } from '@/shared/lib/i18n';
+import { usePortalI18n } from '@/shared/lib/use-portal-i18n';
 
 export function GeneralSettingsPage() {
   const { t } = usePortalI18n();

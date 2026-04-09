@@ -6,7 +6,7 @@ import { PageHeader, SettingsLayout } from '@/shared/layout/page-layouts';
 import { ProfileSettingsSkeleton } from '@/domains/settings/profile-settings-skeleton';
 import { settingsNavItems } from '@/domains/settings/settings-nav';
 import { useUpdateUserProfile, useUserProfile } from '@/domains/settings/settings-hooks';
-import { usePortalI18n } from '@/shared/lib/i18n';
+import { usePortalI18n } from '@/shared/lib/use-portal-i18n';
 import { translateText } from '@/shared/lib/i18n-core';
 import { portalLanguageOptions } from '@/shared/lib/language';
 import { Button, Card, CardContent, CardDescription, CardHeader, CardHeading, CardTitle, Form } from '@/shared/ui';

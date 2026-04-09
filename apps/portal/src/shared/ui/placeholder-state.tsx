@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { AlertTriangle, ArrowRight, Inbox } from 'lucide-react';
 import { toErrorMessage } from '@/platform/api/api-error';
-import { usePortalI18n } from '@/shared/lib/i18n';
+import { usePortalI18n } from '@/shared/lib/use-portal-i18n';
 import { Button, Card, CardContent } from '@/shared/ui';
 
 export function EmptyState({

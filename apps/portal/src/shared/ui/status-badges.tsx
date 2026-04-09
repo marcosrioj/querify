@@ -9,7 +9,7 @@ import {
   tenantEditionLabels,
   tenantUserRoleTypeLabels,
 } from '@/shared/constants/backend-enums';
-import { usePortalI18n } from '@/shared/lib/i18n';
+import { usePortalI18n } from '@/shared/lib/use-portal-i18n';
 import { Badge } from '@/shared/ui';
 
 export function RoleBadge({ role }: { role: PortalRole }) {

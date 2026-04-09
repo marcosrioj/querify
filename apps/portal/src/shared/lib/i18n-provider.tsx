@@ -1,38 +1,23 @@
-import {
-  Fragment,
-  PropsWithChildren,
-  ReactNode,
-  createContext,
-  useContext,
-  useEffect,
-  useMemo,
-} from "react";
-import { useQuery } from "@tanstack/react-query";
-import { getUserProfile } from "@/domains/settings/settings-api";
-import { useAuth } from "@/platform/auth/auth-context";
+import { Fragment, useEffect, useMemo } from 'react';
+import type { PropsWithChildren } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { getUserProfile } from '@/domains/settings/settings-api';
+import { useAuth } from '@/platform/auth/use-auth';
 import {
   getCurrentPortalLanguage,
   setCurrentPortalLanguage,
   translateText,
-} from "@/shared/lib/i18n-core";
+} from '@/shared/lib/i18n-core';
 import {
   getBrowserPortalLanguage,
   getLanguageDirection,
   isRtlLanguage,
   normalizePortalLanguage,
-} from "@/shared/lib/language";
-import { translateRenderableNode } from "@/shared/lib/translate-renderable-node";
-
-type PortalI18nContextValue = {
-  language: string;
-  direction: "ltr" | "rtl";
-  isRtl: boolean;
-  t: typeof translateText;
-};
-
-const PortalI18nContext = createContext<PortalI18nContextValue | undefined>(
-  undefined,
-);
+} from '@/shared/lib/language';
+import {
+  PortalI18nContext,
+  type PortalI18nContextValue,
+} from '@/shared/lib/portal-i18n-context';
 
 function resolvePortalLanguageFromProfile(
   profileLanguage?: string | null,
@@ -47,9 +32,9 @@ export function PortalI18nProvider({ children }: PropsWithChildren) {
   const { session, status } = useAuth();
   const browserLanguage = useMemo(() => getBrowserPortalLanguage(), []);
   const profileQuery = useQuery({
-    queryKey: ["portal", "settings", "profile"],
+    queryKey: ['portal', 'settings', 'profile'],
     queryFn: () => getUserProfile(session?.accessToken),
-    enabled: status === "ready",
+    enabled: status === 'ready',
     staleTime: 60_000,
   });
 
@@ -76,7 +61,7 @@ export function PortalI18nProvider({ children }: PropsWithChildren) {
     document.body.dir = direction;
   }, [direction, language]);
 
-  if (status === "ready" && profileQuery.isPending) {
+  if (status === 'ready' && profileQuery.isPending) {
     return <div className="min-h-screen bg-muted" aria-busy="true" />;
   }
 
@@ -85,28 +70,4 @@ export function PortalI18nProvider({ children }: PropsWithChildren) {
       <Fragment key={language}>{children}</Fragment>
     </PortalI18nContext.Provider>
   );
-}
-
-export function usePortalI18n() {
-  const context = useContext(PortalI18nContext);
-  if (!context) {
-    throw new Error("usePortalI18n must be used within PortalI18nProvider.");
-  }
-
-  return context;
-}
-
-export function translateNode(node: ReactNode) {
-  return translateRenderableNode(node);
-}
-
-export function translateMaybeString(
-  value: ReactNode,
-  t: typeof translateText = translateText,
-) {
-  if (typeof value === "string") {
-    return t(value);
-  }
-
-  return translateRenderableNode(value);
 }

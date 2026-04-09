@@ -1,7 +1,7 @@
 import { Command, Search } from 'lucide-react';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { usePortalI18n } from '@/shared/lib/i18n';
+import { usePortalI18n } from '@/shared/lib/use-portal-i18n';
 import {
   Button,
   Dialog,

@@ -1,1 +1,1 @@
-export { PortalAuthProvider as AuthProvider } from '@/platform/auth/auth-context';
+export { PortalAuthProvider as AuthProvider } from '@/platform/auth/auth-provider';

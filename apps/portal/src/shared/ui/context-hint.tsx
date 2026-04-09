@@ -1,7 +1,8 @@
 import { ReactNode } from "react";
 import { KeenIcon } from "@/components/keenicons";
 import { cn } from "@/lib/utils";
-import { translateMaybeString, usePortalI18n } from "@/shared/lib/i18n";
+import { translateMaybeString } from "@/shared/lib/i18n-render";
+import { usePortalI18n } from "@/shared/lib/use-portal-i18n";
 import {
   Tooltip,
   TooltipContent,

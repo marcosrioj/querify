@@ -3,7 +3,7 @@ import { toast } from 'sonner';
 import { getUserProfile, updateUserProfile, type UserProfileUpdateRequestDto } from '@/domains/settings/settings-api';
 import { translateText } from '@/shared/lib/i18n-core';
 import { DEFAULT_PORTAL_TIME_ZONE } from '@/shared/lib/time-zone';
-import { useAuth } from '@/platform/auth/auth-context';
+import { useAuth } from '@/platform/auth/use-auth';
 
 const settingsKeys = {
   profile: ['portal', 'settings', 'profile'] as const,

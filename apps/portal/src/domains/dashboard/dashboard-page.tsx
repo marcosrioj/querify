@@ -37,8 +37,8 @@ import { useFaqItemList } from "@/domains/faq-items/hooks";
 import { type FaqItemDto } from "@/domains/faq-items/types";
 import { useFaqList } from "@/domains/faq/hooks";
 import { type FaqDto } from "@/domains/faq/types";
-import { useAuth } from "@/platform/auth/auth-context";
-import { useTenant } from "@/platform/tenant/tenant-context";
+import { useAuth } from "@/platform/auth/use-auth";
+import { useTenant } from "@/platform/tenant/use-tenant";
 import {
   ChartContainer,
   ChartTooltip,

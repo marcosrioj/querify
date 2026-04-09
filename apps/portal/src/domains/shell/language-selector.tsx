@@ -6,7 +6,7 @@ import {
   SelectTrigger,
 } from "@/shared/ui";
 import { useUserProfile, useUpdateUserProfile } from "@/domains/settings/settings-hooks";
-import { usePortalI18n } from "@/shared/lib/i18n";
+import { usePortalI18n } from "@/shared/lib/use-portal-i18n";
 import { getLanguageOption, portalLanguageOptions } from "@/shared/lib/language";
 
 export function LanguageSelector() {

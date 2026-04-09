@@ -1,5 +1,5 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
-import { useAuth } from '@/platform/auth/auth-context';
+import { useAuth } from '@/platform/auth/use-auth';
 import { translateText } from '@/shared/lib/i18n-core';
 
 export function RequirePortalAuth() {

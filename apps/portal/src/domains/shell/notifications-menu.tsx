@@ -1,5 +1,5 @@
 import { Bell } from 'lucide-react';
-import { usePortalI18n } from '@/shared/lib/i18n';
+import { usePortalI18n } from '@/shared/lib/use-portal-i18n';
 import {
   Button,
   DropdownMenu,

@@ -1,7 +1,8 @@
 import { ReactNode, useState } from "react";
 import { Sparkles, TriangleAlert } from "lucide-react";
 import { Control, FieldValues, Path } from "react-hook-form";
-import { translateMaybeString, usePortalI18n } from "@/shared/lib/i18n";
+import { translateMaybeString } from "@/shared/lib/i18n-render";
+import { usePortalI18n } from "@/shared/lib/use-portal-i18n";
 import {
   AlertDialog,
   AlertDialogCancel,

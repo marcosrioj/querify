@@ -11,7 +11,8 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { translateMaybeString, usePortalI18n } from "@/shared/lib/i18n";
+import { translateMaybeString } from "@/shared/lib/i18n-render";
+import { usePortalI18n } from "@/shared/lib/use-portal-i18n";
 
 export function ConfirmAction({
   trigger,

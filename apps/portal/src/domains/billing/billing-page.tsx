@@ -1,13 +1,26 @@
 import { CreditCard, Mail, Receipt, ShieldCheck } from 'lucide-react';
-import { RouteObject } from 'react-router-dom';
 import { useCurrentWorkspace } from '@/domains/tenants/hooks';
-import { usePermission } from '@/platform/permissions/permissions';
+import { usePermission } from '@/platform/permissions/use-permission';
 import { PageHeader, PageSurface, SectionGrid } from '@/shared/layout/page-layouts';
-import { usePortalI18n } from '@/shared/lib/i18n';
+import { usePortalI18n } from '@/shared/lib/use-portal-i18n';
 import { translateText } from '@/shared/lib/i18n-core';
-import { EmptyState } from '@/shared/ui/placeholder-state';
-import { Button, Card, CardContent, CardDescription, CardHeader, CardHeading, CardTitle, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui';
+import {
+  Button,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardHeading,
+  CardTitle,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/shared/ui';
 import { tenantEditionLabels } from '@/shared/constants/backend-enums';
+import { EmptyState } from '@/shared/ui/placeholder-state';
 
 function formatInvoiceDate(date: string, language: string) {
   return new Intl.DateTimeFormat(language, { dateStyle: 'long' }).format(
@@ -15,7 +28,7 @@ function formatInvoiceDate(date: string, language: string) {
   );
 }
 
-function BillingPage() {
+export function BillingPage() {
   const { language } = usePortalI18n();
   const currentWorkspace = useCurrentWorkspace();
   const canManageBilling = usePermission('billing.manage');
@@ -44,7 +57,9 @@ function BillingPage() {
           {
             title: 'Billing access',
             value: canManageBilling ? 'Enabled' : 'Hidden',
-            description: canManageBilling ? 'Workspace owner controls visible' : 'Restricted by role',
+            description: canManageBilling
+              ? 'Workspace owner controls visible'
+              : 'Restricted by role',
             icon: ShieldCheck,
           },
           {
@@ -94,14 +109,19 @@ function BillingPage() {
           <CardHeading>
             <CardTitle>{translateText('Invoice history')}</CardTitle>
             <CardDescription>
-              {translateText('Recent invoice placeholders for the current workspace.')}
+              {translateText(
+                'Recent invoice placeholders for the current workspace.',
+              )}
             </CardDescription>
           </CardHeading>
         </CardHeader>
         <CardContent>
           <div className="space-y-3 lg:hidden">
             {placeholderInvoices.map((invoice) => (
-              <div key={invoice.id} className="rounded-xl border border-border/80 bg-card p-4">
+              <div
+                key={invoice.id}
+                className="rounded-xl border border-border/80 bg-card p-4"
+              >
                 <div className="space-y-3">
                   <div>
                     <p className="text-[0.6875rem] font-medium uppercase tracking-[0.16em] text-muted-foreground">
@@ -149,7 +169,9 @@ function BillingPage() {
               <TableBody>
                 {placeholderInvoices.map((invoice) => (
                   <TableRow key={invoice.id}>
-                    <TableCell className="font-medium text-mono">{invoice.id}</TableCell>
+                    <TableCell className="font-medium text-mono">
+                      {invoice.id}
+                    </TableCell>
                     <TableCell>{formatInvoiceDate(invoice.date, language)}</TableCell>
                     <TableCell>{translateText(invoice.status)}</TableCell>
                     <TableCell className="text-right">{invoice.amount}</TableCell>
@@ -170,15 +192,3 @@ function BillingPage() {
     </PageSurface>
   );
 }
-
-export const BillingRoutes: RouteObject[] = [
-  {
-    path: 'billing',
-    element: <BillingPage />,
-    handle: {
-      title: 'Billing',
-      breadcrumb: 'Billing',
-      navKey: 'billing',
-    },
-  },
-];

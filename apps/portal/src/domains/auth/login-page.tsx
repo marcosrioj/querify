@@ -1,8 +1,8 @@
 import { LockKeyhole, MoveRight } from 'lucide-react';
 import { Navigate, useSearchParams } from 'react-router-dom';
-import { useAuth } from '@/platform/auth/auth-context';
+import { useAuth } from '@/platform/auth/use-auth';
 import { RuntimeEnv } from '@/platform/runtime/env';
-import { usePortalI18n } from '@/shared/lib/i18n';
+import { usePortalI18n } from '@/shared/lib/use-portal-i18n';
 import { Alert, AlertDescription, Badge, Button } from '@/shared/ui';
 
 export function LoginPage() {

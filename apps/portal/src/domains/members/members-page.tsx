@@ -4,8 +4,8 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { Building2, MailPlus, ShieldCheck, Trash2, Users } from 'lucide-react';
 import { ListLayout, PageHeader, SectionGrid } from '@/shared/layout/page-layouts';
-import { useTenant } from '@/platform/tenant/tenant-context';
-import { usePermission } from '@/platform/permissions/permissions';
+import { useTenant } from '@/platform/tenant/use-tenant';
+import { usePermission } from '@/platform/permissions/use-permission';
 import {
   useAddTenantMember,
   useDeleteTenantMember,

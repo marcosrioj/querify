@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Container } from '@/shared/layout/container';
-import { usePortalI18n } from '@/shared/lib/i18n';
+import { usePortalI18n } from '@/shared/lib/use-portal-i18n';
 
 export function PortalFooter() {
   const currentYear = new Date().getFullYear();

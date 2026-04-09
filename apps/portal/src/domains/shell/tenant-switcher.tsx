@@ -12,9 +12,9 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { useRefreshAllowedTenantCache } from "@/domains/tenants/hooks";
-import { useTenant } from "@/platform/tenant/tenant-context";
+import { useTenant } from "@/platform/tenant/use-tenant";
 import { cn } from "@/lib/utils";
-import { usePortalI18n } from "@/shared/lib/i18n";
+import { usePortalI18n } from "@/shared/lib/use-portal-i18n";
 import { tenantUserRoleTypeLabels } from "@/shared/constants/backend-enums";
 import {
   Button,

@@ -9,7 +9,7 @@ import { PortalToolbar } from '@/domains/shell/portal-toolbar';
 import { useBodyClass } from '@/hooks/use-body-class';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
-import { usePortalI18n } from '@/shared/lib/i18n';
+import { usePortalI18n } from '@/shared/lib/use-portal-i18n';
 
 function useRouteTitle() {
   return (

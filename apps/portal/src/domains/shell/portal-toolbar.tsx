@@ -4,7 +4,7 @@ import { LanguageSelector } from "@/domains/shell/language-selector";
 import { NotificationsMenu } from "@/domains/shell/notifications-menu";
 import { PortalCommandDialog } from "@/domains/shell/portal-command-dialog";
 import { UserMenu } from "@/domains/shell/user-menu";
-import { usePortalI18n } from "@/shared/lib/i18n";
+import { usePortalI18n } from "@/shared/lib/use-portal-i18n";
 import { portalNavigation } from "@/shared/constants/navigation";
 import { Container } from "@/shared/layout/container";
 

@@ -1,7 +1,4 @@
-import { PropsWithChildren } from 'react';
-import { PortalRole } from '@/platform/auth/types';
-import { useAuth } from '@/platform/auth/auth-context';
-import { useTenant } from '@/platform/tenant/tenant-context';
+import type { PortalRole } from '@/platform/auth/types';
 import { TenantUserRoleType } from '@/shared/constants/backend-enums';
 
 export type PortalPermission =
@@ -56,24 +53,10 @@ export function hasPermission(
   }
 
   const workspacePermissions =
-    tenantRole === TenantUserRoleType.Owner || tenantRole === TenantUserRoleType.Member
+    tenantRole === TenantUserRoleType.Owner ||
+    tenantRole === TenantUserRoleType.Member
       ? ownerWorkspacePermissions
       : baseWorkspacePermissions;
 
   return workspacePermissions.includes(permission);
-}
-
-export function usePermission(permission: PortalPermission) {
-  const { user } = useAuth();
-  const { currentTenant } = useTenant();
-  return hasPermission(user?.role, currentTenant?.currentUserRole, permission);
-}
-
-export function Can({
-  permission,
-  children,
-  fallback = null,
-}: PropsWithChildren<{ permission: PortalPermission; fallback?: React.ReactNode }>) {
-  const allowed = usePermission(permission);
-  return allowed ? children : fallback;
 }

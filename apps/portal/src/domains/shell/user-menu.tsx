@@ -1,8 +1,8 @@
 import { ChevronDown, LogOut, Moon } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { Link } from 'react-router-dom';
-import { useAuth } from '@/platform/auth/auth-context';
-import { usePortalI18n } from '@/shared/lib/i18n';
+import { useAuth } from '@/platform/auth/use-auth';
+import { usePortalI18n } from '@/shared/lib/use-portal-i18n';
 import {
   Avatar,
   AvatarFallback,
