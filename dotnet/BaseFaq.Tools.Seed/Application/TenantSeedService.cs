@@ -129,6 +129,7 @@ public sealed class TenantSeedService : ITenantSeedService
         return dbContext.TenantConnections
             .IgnoreQueryFilters()
             .AsNoTracking()
+            .ToList()
             .Any(connection =>
                 !connection.IsDeleted &&
                 connection.App == AppEnum.Faq &&
@@ -310,6 +311,7 @@ public sealed class TenantSeedService : ITenantSeedService
     {
         var connection = dbContext.TenantConnections
             .IgnoreQueryFilters()
+            .ToList()
             .FirstOrDefault(item =>
                 item.App == AppEnum.Faq &&
                 (item.IsCurrent || item.ConnectionString == request.FaqConnectionString));
