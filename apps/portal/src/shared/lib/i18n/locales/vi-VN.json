@@ -812,5 +812,6 @@
   "Keep it in draft until the first answers and sources are in place.": "Giữ ở trạng thái bản nháp cho đến khi các câu trả lời và nguồn đầu tiên đã sẵn sàng.",
   "Set the name, language, and status for this FAQ.": "Đặt tên, ngôn ngữ và trạng thái cho FAQ này.",
   "Live notification feeds are not in the current Portal API surface.": "Luồng thông báo trực tiếp hiện chưa có trong API Portal hiện tại.",
-  "Dark mode": "Chế độ tối"
+  "Dark mode": "Chế độ tối",
+  "e.g. Product onboarding FAQ": "ví dụ: FAQ giới thiệu sản phẩm"
 }

@@ -812,5 +812,6 @@
   "Keep it in draft until the first answers and sources are in place.": "在首批答案和来源准备好之前，请保持为草稿。",
   "Set the name, language, and status for this FAQ.": "设置此 FAQ 的名称、语言和状态。",
   "Live notification feeds are not in the current Portal API surface.": "当前 Portal API 尚未提供实时通知流。",
-  "Dark mode": "深色模式"
+  "Dark mode": "深色模式",
+  "e.g. Product onboarding FAQ": "例如：产品入门 FAQ"
 }

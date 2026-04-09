@@ -812,5 +812,6 @@
   "Keep it in draft until the first answers and sources are in place.": "প্রথম উত্তর ও উৎস প্রস্তুত না হওয়া পর্যন্ত এটিকে খসড়ায় রাখুন।",
   "Set the name, language, and status for this FAQ.": "এই FAQ-এর নাম, ভাষা এবং স্ট্যাটাস নির্ধারণ করুন।",
   "Live notification feeds are not in the current Portal API surface.": "বর্তমান Portal API-তে লাইভ নোটিফিকেশন ফিড উপলব্ধ নয়।",
-  "Dark mode": "ডার্ক মোড"
+  "Dark mode": "ডার্ক মোড",
+  "e.g. Product onboarding FAQ": "যেমন: পণ্যের অনবোর্ডিং FAQ"
 }

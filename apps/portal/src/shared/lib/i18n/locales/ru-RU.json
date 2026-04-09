@@ -812,5 +812,6 @@
   "Keep it in draft until the first answers and sources are in place.": "Оставьте её в черновике, пока первые ответы и источники не будут готовы.",
   "Set the name, language, and status for this FAQ.": "Задайте название, язык и статус для этой FAQ.",
   "Live notification feeds are not in the current Portal API surface.": "Ленты уведомлений в реальном времени недоступны в текущем API портала.",
-  "Dark mode": "Тёмный режим"
+  "Dark mode": "Тёмный режим",
+  "e.g. Product onboarding FAQ": "например, FAQ по онбордингу продукта"
 }

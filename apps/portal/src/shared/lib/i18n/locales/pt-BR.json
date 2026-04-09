@@ -812,5 +812,6 @@
   "Keep it in draft until the first answers and sources are in place.": "Mantenha em rascunho até que as primeiras respostas e fontes estejam prontas.",
   "Set the name, language, and status for this FAQ.": "Defina o nome, o idioma e o status deste FAQ.",
   "Live notification feeds are not in the current Portal API surface.": "Feeds de notificação em tempo real não estão disponíveis na API atual do Portal.",
-  "Dark mode": "Modo escuro"
+  "Dark mode": "Modo escuro",
+  "e.g. Product onboarding FAQ": "ex.: FAQ de onboarding do produto"
 }

@@ -812,5 +812,6 @@
   "Keep it in draft until the first answers and sources are in place.": "첫 번째 답변과 소스가 준비될 때까지 초안으로 유지하세요.",
   "Set the name, language, and status for this FAQ.": "이 FAQ의 이름, 언어 및 상태를 설정하세요.",
   "Live notification feeds are not in the current Portal API surface.": "실시간 알림 피드는 현재 Portal API 범위에 포함되어 있지 않습니다.",
-  "Dark mode": "다크 모드"
+  "Dark mode": "다크 모드",
+  "e.g. Product onboarding FAQ": "예: 제품 온보딩 FAQ"
 }

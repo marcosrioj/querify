@@ -30,12 +30,18 @@ import {
   SidebarSummarySkeleton,
 } from "@/shared/ui";
 import {
+  SearchSelectField,
   SelectField,
   TextField,
   type SelectFieldConfirmation,
 } from "@/shared/ui/form-fields";
 import { ErrorState } from "@/shared/ui/placeholder-state";
 import { translateText } from "@/shared/lib/i18n-core";
+import {
+  DEFAULT_PORTAL_LANGUAGE,
+  getStoredPortalLanguage,
+  portalLanguageOptions,
+} from "@/shared/lib/language";
 
 const faqStatusConfirmation: SelectFieldConfirmation = {
   title: ({ nextOption }) =>
@@ -73,14 +79,23 @@ export function FaqFormPage({ mode }: { mode: "create" | "edit" }) {
   const faqQuery = useFaq(mode === "edit" ? id : undefined);
   const createFaq = useCreateFaq();
   const updateFaq = useUpdateFaq(id ?? "");
+  const createDefaultLanguage =
+    getStoredPortalLanguage() ?? DEFAULT_PORTAL_LANGUAGE;
 
   const form = useForm<FaqFormValues>({
     resolver: zodResolver(faqFormSchema),
-    defaultValues: {
-      name: "",
-      language: "en-US",
-      status: FaqStatus.Draft,
-    },
+    defaultValues:
+      mode === "create"
+        ? {
+            name: "",
+            language: createDefaultLanguage,
+            status: FaqStatus.Draft,
+          }
+        : {
+            name: "",
+            language: DEFAULT_PORTAL_LANGUAGE,
+            status: FaqStatus.Draft,
+          },
   });
 
   useEffect(() => {
@@ -95,10 +110,39 @@ export function FaqFormPage({ mode }: { mode: "create" | "edit" }) {
     });
   }, [faqQuery.data, form]);
 
+  useEffect(() => {
+    if (mode !== "create") {
+      return;
+    }
+
+    form.reset({
+      name: "",
+      language: createDefaultLanguage,
+      status: FaqStatus.Draft,
+    });
+  }, [createDefaultLanguage, form, mode]);
+
   const isSubmitting = createFaq.isPending || updateFaq.isPending;
   const nameValue = form.watch("name");
   const languageValue = form.watch("language");
   const statusValue = form.watch("status");
+  const languageOptions = portalLanguageOptions.map((option) => ({
+    value: option.code,
+    label: option.label,
+    description: translateText("{code} • {direction}", {
+      code: option.code,
+      direction: option.direction.toUpperCase(),
+    }),
+    keywords: [option.code, option.direction, option.label],
+  }));
+  const selectedLanguageOption =
+    languageOptions.find((option) => option.value === languageValue) ??
+    (languageValue?.trim()
+      ? {
+          value: languageValue,
+          label: languageValue,
+        }
+      : null);
   const formSteps = [
     {
       id: "name",
@@ -222,12 +266,21 @@ export function FaqFormPage({ mode }: { mode: "create" | "edit" }) {
                       placeholder="e.g. Product onboarding FAQ"
                       description="Keep the name specific enough that teammates can find it quickly."
                     />
-                    <TextField
+                    <SearchSelectField
                       control={form.control}
                       name="language"
                       label="Language"
                       description="Use the locale customers will search in, for example en-US."
-                      placeholder="en-US"
+                      options={languageOptions}
+                      selectedOption={selectedLanguageOption}
+                      searchPlaceholder="Search languages"
+                      emptyMessage="No languages found."
+                      resultCountHint={translateText(
+                        "{count} languages available",
+                        {
+                          count: portalLanguageOptions.length,
+                        },
+                      )}
                     />
                   </div>
                   <FormSectionHeading

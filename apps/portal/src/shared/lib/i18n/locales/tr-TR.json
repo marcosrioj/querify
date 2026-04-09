@@ -812,5 +812,6 @@
   "Keep it in draft until the first answers and sources are in place.": "İlk yanıtlar ve kaynaklar hazır olana kadar taslakta tutun.",
   "Set the name, language, and status for this FAQ.": "Bu SSS için adı, dili ve durumu ayarlayın.",
   "Live notification feeds are not in the current Portal API surface.": "Canlı bildirim akışları mevcut Portal API yüzeyinde yer almıyor.",
-  "Dark mode": "Karanlık mod"
+  "Dark mode": "Karanlık mod",
+  "e.g. Product onboarding FAQ": "örn. Ürün başlangıç SSS"
 }

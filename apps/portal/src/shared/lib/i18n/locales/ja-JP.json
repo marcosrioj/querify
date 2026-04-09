@@ -812,5 +812,6 @@
   "Keep it in draft until the first answers and sources are in place.": "最初の回答とソースが整うまでは下書きのままにしてください。",
   "Set the name, language, and status for this FAQ.": "この FAQ の名前、言語、ステータスを設定します。",
   "Live notification feeds are not in the current Portal API surface.": "ライブ通知フィードは現在の Portal API では利用できません。",
-  "Dark mode": "ダークモード"
+  "Dark mode": "ダークモード",
+  "e.g. Product onboarding FAQ": "例: 製品オンボーディングFAQ"
 }

@@ -812,5 +812,6 @@
   "Keep it in draft until the first answers and sources are in place.": "คงไว้เป็นฉบับร่างจนกว่าคำตอบและแหล่งข้อมูลแรกจะพร้อม",
   "Set the name, language, and status for this FAQ.": "กำหนดชื่อ ภาษา และสถานะสำหรับ FAQ นี้",
   "Live notification feeds are not in the current Portal API surface.": "ฟีดการแจ้งเตือนแบบเรียลไทม์ยังไม่พร้อมใช้งานใน API ของพอร์ทัลปัจจุบัน",
-  "Dark mode": "โหมดมืด"
+  "Dark mode": "โหมดมืด",
+  "e.g. Product onboarding FAQ": "เช่น FAQ การเริ่มต้นใช้งานผลิตภัณฑ์"
 }

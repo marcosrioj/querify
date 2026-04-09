@@ -812,5 +812,6 @@
   "Keep it in draft until the first answers and sources are in place.": "Tetap simpan sebagai draf sampai jawaban dan sumber pertama tersedia.",
   "Set the name, language, and status for this FAQ.": "Atur nama, bahasa, dan status untuk FAQ ini.",
   "Live notification feeds are not in the current Portal API surface.": "Umpan notifikasi langsung belum tersedia di permukaan API Portal saat ini.",
-  "Dark mode": "Mode gelap"
+  "Dark mode": "Mode gelap",
+  "e.g. Product onboarding FAQ": "mis. FAQ onboarding produk"
 }

@@ -812,5 +812,6 @@
   "Keep it in draft until the first answers and sources are in place.": "اتركه كمسودة حتى تصبح الإجابات والمصادر الأولى جاهزة.",
   "Set the name, language, and status for this FAQ.": "حدد الاسم واللغة والحالة لهذا الـ FAQ.",
   "Live notification feeds are not in the current Portal API surface.": "تغذيات الإشعارات المباشرة غير متاحة في واجهة برمجة تطبيقات البوابة الحالية.",
-  "Dark mode": "الوضع الداكن"
+  "Dark mode": "الوضع الداكن",
+  "e.g. Product onboarding FAQ": "مثال: FAQ تهيئة المنتج"
 }

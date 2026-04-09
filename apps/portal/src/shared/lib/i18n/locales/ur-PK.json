@@ -812,5 +812,6 @@
   "Keep it in draft until the first answers and sources are in place.": "جب تک پہلے جوابات اور ذرائع تیار نہ ہوں اسے مسودے میں رکھیں۔",
   "Set the name, language, and status for this FAQ.": "اس FAQ کے لیے نام، زبان اور اسٹیٹس طے کریں۔",
   "Live notification feeds are not in the current Portal API surface.": "لائیو نوٹیفکیشن فیڈز موجودہ Portal API سطح میں دستیاب نہیں ہیں۔",
-  "Dark mode": "ڈارک موڈ"
+  "Dark mode": "ڈارک موڈ",
+  "e.g. Product onboarding FAQ": "مثال: پروڈکٹ آن بورڈنگ FAQ"
 }

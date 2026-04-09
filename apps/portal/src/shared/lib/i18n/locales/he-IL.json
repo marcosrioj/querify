@@ -812,5 +812,6 @@
   "Keep it in draft until the first answers and sources are in place.": "השאר אותו כטיוטה עד שהתשובות והמקורות הראשונים יהיו מוכנים.",
   "Set the name, language, and status for this FAQ.": "הגדר את השם, השפה והסטטוס של ה-FAQ הזה.",
   "Live notification feeds are not in the current Portal API surface.": "פידים של התראות בזמן אמת אינם זמינים בממשק ה-API הנוכחי של הפורטל.",
-  "Dark mode": "מצב כהה"
+  "Dark mode": "מצב כהה",
+  "e.g. Product onboarding FAQ": "לדוגמה: FAQ להטמעת המוצר"
 }
