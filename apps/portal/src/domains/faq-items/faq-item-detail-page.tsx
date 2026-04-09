@@ -405,7 +405,7 @@ export function FaqItemDetailPage() {
                   <>
                     <div className="mt-2 flex flex-wrap items-center gap-2">
                       <p className="font-medium text-mono">
-                        {linkedContentRef.label || "Untitled source"}
+                        {linkedContentRef.label || translateText("Untitled source")}
                       </p>
                       <ContentRefKindBadge kind={linkedContentRef.kind} />
                     </div>

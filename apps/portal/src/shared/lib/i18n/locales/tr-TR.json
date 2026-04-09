@@ -813,5 +813,11 @@
   "Set the name, language, and status for this FAQ.": "Bu SSS için adı, dili ve durumu ayarlayın.",
   "Live notification feeds are not in the current Portal API surface.": "Canlı bildirim akışları mevcut Portal API yüzeyinde yer almıyor.",
   "Dark mode": "Karanlık mod",
-  "e.g. Product onboarding FAQ": "örn. Ürün başlangıç SSS"
+  "e.g. Product onboarding FAQ": "örn. Ürün başlangıç SSS",
+  "Create a Q&A item to start filling this FAQ.": "Bu SSS’yi doldurmaya başlamak için bir Soru-Cevap öğesi oluşturun.",
+  "Link sources to your Q&A items so generation has real content to use.": "Oluşturmanın kullanabileceği gerçek içerik olması için kaynakları Soru-Cevap öğelerinize bağlayın.",
+  "Move this FAQ to a real result": "Bu SSS’yi gerçek bir sonuca taşıyın",
+  "Follow the next recommended step instead of hunting through every action in the screen.": "Ekrandaki her eylemi aramak yerine önerilen bir sonraki adımı izleyin.",
+  "Attach source material so answers are traceable and reusable.": "Yanıtların izlenebilir ve yeniden kullanılabilir olması için kaynak materyal ekleyin.",
+  "Edit FAQ": "SSS’yi düzenle"
 }

@@ -698,7 +698,7 @@
   "Unknown FAQ": "Unknown FAQ",
   "Unpin {title} column": "Desafixar coluna {title}",
   "Untitled": "Untitled",
-  "Untitled source": "Untitled source",
+  "Untitled source": "Fonte sem título",
   "Update the details your team sees across the portal.": "Atualize os detalhes que sua equipe vê no portal.",
   "Update workspace info, client key, and AI providers.": "Atualize as informações do workspace, a chave do cliente e os provedores de IA.",
   "Update your name and contact info.": "Atualize seu nome e informações de contato.",
@@ -813,5 +813,11 @@
   "Set the name, language, and status for this FAQ.": "Defina o nome, o idioma e o status deste FAQ.",
   "Live notification feeds are not in the current Portal API surface.": "Feeds de notificação em tempo real não estão disponíveis na API atual do Portal.",
   "Dark mode": "Modo escuro",
-  "e.g. Product onboarding FAQ": "ex.: FAQ de onboarding do produto"
+  "e.g. Product onboarding FAQ": "ex.: FAQ de onboarding do produto",
+  "Create a Q&A item to start filling this FAQ.": "Crie um item de Q&A para começar a preencher este FAQ.",
+  "Link sources to your Q&A items so generation has real content to use.": "Vincule fontes aos seus itens de Q&A para que a geração tenha conteúdo real para usar.",
+  "Move this FAQ to a real result": "Leve este FAQ a um resultado real",
+  "Follow the next recommended step instead of hunting through every action in the screen.": "Siga o próximo passo recomendado em vez de procurar entre todas as ações da tela.",
+  "Attach source material so answers are traceable and reusable.": "Anexe material-fonte para que as respostas sejam rastreáveis e reutilizáveis.",
+  "Edit FAQ": "Editar FAQ"
 }

@@ -813,5 +813,11 @@
   "Set the name, language, and status for this FAQ.": "Đặt tên, ngôn ngữ và trạng thái cho FAQ này.",
   "Live notification feeds are not in the current Portal API surface.": "Luồng thông báo trực tiếp hiện chưa có trong API Portal hiện tại.",
   "Dark mode": "Chế độ tối",
-  "e.g. Product onboarding FAQ": "ví dụ: FAQ giới thiệu sản phẩm"
+  "e.g. Product onboarding FAQ": "ví dụ: FAQ giới thiệu sản phẩm",
+  "Create a Q&A item to start filling this FAQ.": "Tạo một mục Hỏi & Đáp để bắt đầu điền nội dung cho FAQ này.",
+  "Link sources to your Q&A items so generation has real content to use.": "Liên kết nguồn với các mục Hỏi & Đáp để việc tạo nội dung có dữ liệu thực để sử dụng.",
+  "Move this FAQ to a real result": "Đưa FAQ này tới một kết quả thực tế",
+  "Follow the next recommended step instead of hunting through every action in the screen.": "Hãy làm theo bước được đề xuất tiếp theo thay vì lục tìm mọi hành động trên màn hình.",
+  "Attach source material so answers are traceable and reusable.": "Đính kèm tài liệu nguồn để câu trả lời có thể truy vết và tái sử dụng.",
+  "Edit FAQ": "Chỉnh sửa FAQ"
 }

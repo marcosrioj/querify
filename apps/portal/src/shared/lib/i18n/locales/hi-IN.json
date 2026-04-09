@@ -813,5 +813,11 @@
   "Set the name, language, and status for this FAQ.": "इस FAQ के लिए नाम, भाषा और स्थिति निर्धारित करें।",
   "Live notification feeds are not in the current Portal API surface.": "लाइव नोटिफिकेशन फ़ीड वर्तमान Portal API में उपलब्ध नहीं हैं।",
   "Dark mode": "डार्क मोड",
-  "e.g. Product onboarding FAQ": "उदाहरण: प्रोडक्ट ऑनबोर्डिंग FAQ"
+  "e.g. Product onboarding FAQ": "उदाहरण: प्रोडक्ट ऑनबोर्डिंग FAQ",
+  "Create a Q&A item to start filling this FAQ.": "इस FAQ को भरना शुरू करने के लिए एक Q&A आइटम बनाएँ।",
+  "Link sources to your Q&A items so generation has real content to use.": "अपने Q&A आइटम्स से स्रोत लिंक करें ताकि जेनरेशन के पास उपयोग के लिए वास्तविक सामग्री हो।",
+  "Move this FAQ to a real result": "इस FAQ को वास्तविक परिणाम तक पहुँचाएँ",
+  "Follow the next recommended step instead of hunting through every action in the screen.": "स्क्रीन पर हर एक्शन ढूँढने के बजाय अगला सुझाया गया कदम अपनाएँ।",
+  "Attach source material so answers are traceable and reusable.": "स्रोत सामग्री संलग्न करें ताकि उत्तर ट्रेस किए जा सकें और दोबारा उपयोग किए जा सकें।",
+  "Edit FAQ": "FAQ संपादित करें"
 }

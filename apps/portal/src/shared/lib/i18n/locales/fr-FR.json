@@ -813,5 +813,11 @@
   "Set the name, language, and status for this FAQ.": "Définissez le nom, la langue et le statut de cette FAQ.",
   "Live notification feeds are not in the current Portal API surface.": "Les flux de notifications en direct ne sont pas disponibles dans l’API actuelle du portail.",
   "Dark mode": "Mode sombre",
-  "e.g. Product onboarding FAQ": "p. ex. FAQ d’onboarding produit"
+  "e.g. Product onboarding FAQ": "p. ex. FAQ d’onboarding produit",
+  "Create a Q&A item to start filling this FAQ.": "Créez un élément Q&R pour commencer à remplir cette FAQ.",
+  "Link sources to your Q&A items so generation has real content to use.": "Reliez des sources à vos éléments de Q&R afin que la génération ait un contenu réel à utiliser.",
+  "Move this FAQ to a real result": "Faites passer cette FAQ à un résultat concret",
+  "Follow the next recommended step instead of hunting through every action in the screen.": "Suivez l’étape recommandée suivante au lieu de chercher parmi toutes les actions de l’écran.",
+  "Attach source material so answers are traceable and reusable.": "Joignez des sources pour que les réponses soient traçables et réutilisables.",
+  "Edit FAQ": "Modifier la FAQ"
 }

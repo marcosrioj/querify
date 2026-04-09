@@ -813,5 +813,11 @@
   "Set the name, language, and status for this FAQ.": "Set the name, language, and status for this FAQ.",
   "Live notification feeds are not in the current Portal API surface.": "Live notification feeds are not in the current Portal API surface.",
   "Dark mode": "Dark mode",
-  "e.g. Product onboarding FAQ": "e.g. Product onboarding FAQ"
+  "e.g. Product onboarding FAQ": "e.g. Product onboarding FAQ",
+  "Create a Q&A item to start filling this FAQ.": "Create a Q&A item to start filling this FAQ.",
+  "Link sources to your Q&A items so generation has real content to use.": "Link sources to your Q&A items so generation has real content to use.",
+  "Move this FAQ to a real result": "Move this FAQ to a real result",
+  "Follow the next recommended step instead of hunting through every action in the screen.": "Follow the next recommended step instead of hunting through every action in the screen.",
+  "Attach source material so answers are traceable and reusable.": "Attach source material so answers are traceable and reusable.",
+  "Edit FAQ": "Edit FAQ"
 }

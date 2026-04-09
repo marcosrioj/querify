@@ -813,5 +813,11 @@
   "Set the name, language, and status for this FAQ.": "この FAQ の名前、言語、ステータスを設定します。",
   "Live notification feeds are not in the current Portal API surface.": "ライブ通知フィードは現在の Portal API では利用できません。",
   "Dark mode": "ダークモード",
-  "e.g. Product onboarding FAQ": "例: 製品オンボーディングFAQ"
+  "e.g. Product onboarding FAQ": "例: 製品オンボーディングFAQ",
+  "Create a Q&A item to start filling this FAQ.": "この FAQ の内容を埋め始めるために Q&A 項目を作成してください。",
+  "Link sources to your Q&A items so generation has real content to use.": "生成処理で実際のコンテンツを使えるように、Q&A 項目にソースを関連付けてください。",
+  "Move this FAQ to a real result": "この FAQ を実際の成果につなげる",
+  "Follow the next recommended step instead of hunting through every action in the screen.": "画面上のすべての操作を探し回るのではなく、次に推奨される手順に従ってください。",
+  "Attach source material so answers are traceable and reusable.": "回答が追跡可能で再利用できるように、ソース資料を添付してください。",
+  "Edit FAQ": "FAQ を編集"
 }

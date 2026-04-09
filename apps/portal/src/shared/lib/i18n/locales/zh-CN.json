@@ -813,5 +813,11 @@
   "Set the name, language, and status for this FAQ.": "设置此 FAQ 的名称、语言和状态。",
   "Live notification feeds are not in the current Portal API surface.": "当前 Portal API 尚未提供实时通知流。",
   "Dark mode": "深色模式",
-  "e.g. Product onboarding FAQ": "例如：产品入门 FAQ"
+  "e.g. Product onboarding FAQ": "例如：产品入门 FAQ",
+  "Create a Q&A item to start filling this FAQ.": "创建一个问答条目，开始填充此 FAQ。",
+  "Link sources to your Q&A items so generation has real content to use.": "将来源关联到你的问答条目，这样生成流程就有真实内容可用。",
+  "Move this FAQ to a real result": "让这个 FAQ 产生实际结果",
+  "Follow the next recommended step instead of hunting through every action in the screen.": "按照下一个推荐步骤操作，而不是在屏幕上的每个操作中来回查找。",
+  "Attach source material so answers are traceable and reusable.": "附加来源材料，使答案可追溯且可复用。",
+  "Edit FAQ": "编辑 FAQ"
 }

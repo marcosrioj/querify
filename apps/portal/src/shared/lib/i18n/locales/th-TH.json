@@ -813,5 +813,11 @@
   "Set the name, language, and status for this FAQ.": "กำหนดชื่อ ภาษา และสถานะสำหรับ FAQ นี้",
   "Live notification feeds are not in the current Portal API surface.": "ฟีดการแจ้งเตือนแบบเรียลไทม์ยังไม่พร้อมใช้งานใน API ของพอร์ทัลปัจจุบัน",
   "Dark mode": "โหมดมืด",
-  "e.g. Product onboarding FAQ": "เช่น FAQ การเริ่มต้นใช้งานผลิตภัณฑ์"
+  "e.g. Product onboarding FAQ": "เช่น FAQ การเริ่มต้นใช้งานผลิตภัณฑ์",
+  "Create a Q&A item to start filling this FAQ.": "สร้างรายการ Q&A เพื่อเริ่มเติม FAQ นี้",
+  "Link sources to your Q&A items so generation has real content to use.": "เชื่อมโยงแหล่งข้อมูลกับรายการ Q&A ของคุณ เพื่อให้การสร้างมีเนื้อหาจริงให้ใช้งาน",
+  "Move this FAQ to a real result": "พา FAQ นี้ไปสู่ผลลัพธ์จริง",
+  "Follow the next recommended step instead of hunting through every action in the screen.": "ทำตามขั้นตอนถัดไปที่แนะนำ แทนที่จะไล่หาทุกแอ็กชันบนหน้าจอ",
+  "Attach source material so answers are traceable and reusable.": "แนบข้อมูลต้นทางเพื่อให้คำตอบสามารถตรวจสอบย้อนหลังและนำกลับมาใช้ซ้ำได้",
+  "Edit FAQ": "แก้ไข FAQ"
 }

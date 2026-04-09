@@ -813,5 +813,11 @@
   "Set the name, language, and status for this FAQ.": "حدد الاسم واللغة والحالة لهذا الـ FAQ.",
   "Live notification feeds are not in the current Portal API surface.": "تغذيات الإشعارات المباشرة غير متاحة في واجهة برمجة تطبيقات البوابة الحالية.",
   "Dark mode": "الوضع الداكن",
-  "e.g. Product onboarding FAQ": "مثال: FAQ تهيئة المنتج"
+  "e.g. Product onboarding FAQ": "مثال: FAQ تهيئة المنتج",
+  "Create a Q&A item to start filling this FAQ.": "أنشئ عنصر أسئلة وأجوبة لبدء ملء هذا الـ FAQ.",
+  "Link sources to your Q&A items so generation has real content to use.": "اربط المصادر بعناصر الأسئلة والأجوبة حتى تمتلك عملية التوليد محتوى حقيقيًا لاستخدامه.",
+  "Move this FAQ to a real result": "حوّل هذا الـ FAQ إلى نتيجة فعلية",
+  "Follow the next recommended step instead of hunting through every action in the screen.": "اتبع الخطوة التالية الموصى بها بدلًا من البحث بين كل إجراء موجود على الشاشة.",
+  "Attach source material so answers are traceable and reusable.": "أرفق مواد المصدر حتى تكون الإجابات قابلة للتتبع وإعادة الاستخدام.",
+  "Edit FAQ": "تحرير FAQ"
 }

@@ -813,5 +813,11 @@
   "Set the name, language, and status for this FAQ.": "এই FAQ-এর নাম, ভাষা এবং স্ট্যাটাস নির্ধারণ করুন।",
   "Live notification feeds are not in the current Portal API surface.": "বর্তমান Portal API-তে লাইভ নোটিফিকেশন ফিড উপলব্ধ নয়।",
   "Dark mode": "ডার্ক মোড",
-  "e.g. Product onboarding FAQ": "যেমন: পণ্যের অনবোর্ডিং FAQ"
+  "e.g. Product onboarding FAQ": "যেমন: পণ্যের অনবোর্ডিং FAQ",
+  "Create a Q&A item to start filling this FAQ.": "এই FAQ পূরণ করা শুরু করতে একটি Q&A আইটেম তৈরি করুন।",
+  "Link sources to your Q&A items so generation has real content to use.": "আপনার Q&A আইটেমগুলোর সঙ্গে সোর্স লিংক করুন, যাতে জেনারেশন বাস্তব কনটেন্ট ব্যবহার করতে পারে।",
+  "Move this FAQ to a real result": "এই FAQ-কে বাস্তব ফলাফলে নিয়ে যান",
+  "Follow the next recommended step instead of hunting through every action in the screen.": "স্ক্রিনের প্রতিটি অ্যাকশনে খোঁজাখুঁজি না করে পরের প্রস্তাবিত ধাপটি অনুসরণ করুন।",
+  "Attach source material so answers are traceable and reusable.": "সোর্স ম্যাটেরিয়াল যুক্ত করুন যাতে উত্তরগুলো ট্রেসযোগ্য এবং পুনঃব্যবহারযোগ্য হয়।",
+  "Edit FAQ": "FAQ সম্পাদনা করুন"
 }

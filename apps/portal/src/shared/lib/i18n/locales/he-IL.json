@@ -813,5 +813,11 @@
   "Set the name, language, and status for this FAQ.": "הגדר את השם, השפה והסטטוס של ה-FAQ הזה.",
   "Live notification feeds are not in the current Portal API surface.": "פידים של התראות בזמן אמת אינם זמינים בממשק ה-API הנוכחי של הפורטל.",
   "Dark mode": "מצב כהה",
-  "e.g. Product onboarding FAQ": "לדוגמה: FAQ להטמעת המוצר"
+  "e.g. Product onboarding FAQ": "לדוגמה: FAQ להטמעת המוצר",
+  "Create a Q&A item to start filling this FAQ.": "צור פריט Q&A כדי להתחיל למלא את ה-FAQ הזה.",
+  "Link sources to your Q&A items so generation has real content to use.": "קשר מקורות לפריטי ה-Q&A שלך כדי שלתהליך היצירה יהיה תוכן אמיתי להשתמש בו.",
+  "Move this FAQ to a real result": "קדם את ה-FAQ הזה לתוצאה אמיתית",
+  "Follow the next recommended step instead of hunting through every action in the screen.": "בצע את הצעד המומלץ הבא במקום לחפש בין כל הפעולות שעל המסך.",
+  "Attach source material so answers are traceable and reusable.": "צרף חומרי מקור כדי שהתשובות יהיו ניתנות למעקב ולשימוש חוזר.",
+  "Edit FAQ": "ערוך FAQ"
 }

@@ -813,5 +813,11 @@
   "Set the name, language, and status for this FAQ.": "Atur nama, bahasa, dan status untuk FAQ ini.",
   "Live notification feeds are not in the current Portal API surface.": "Umpan notifikasi langsung belum tersedia di permukaan API Portal saat ini.",
   "Dark mode": "Mode gelap",
-  "e.g. Product onboarding FAQ": "mis. FAQ onboarding produk"
+  "e.g. Product onboarding FAQ": "mis. FAQ onboarding produk",
+  "Create a Q&A item to start filling this FAQ.": "Buat item T&J untuk mulai mengisi FAQ ini.",
+  "Link sources to your Q&A items so generation has real content to use.": "Tautkan sumber ke item T&J Anda agar proses generasi memiliki konten nyata untuk digunakan.",
+  "Move this FAQ to a real result": "Bawa FAQ ini ke hasil nyata",
+  "Follow the next recommended step instead of hunting through every action in the screen.": "Ikuti langkah berikutnya yang direkomendasikan alih-alih memburu setiap aksi di layar.",
+  "Attach source material so answers are traceable and reusable.": "Lampirkan materi sumber agar jawaban dapat dilacak dan digunakan kembali.",
+  "Edit FAQ": "Edit FAQ"
 }

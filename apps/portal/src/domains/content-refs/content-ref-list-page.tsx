@@ -118,7 +118,7 @@ export function ContentRefListPage() {
       cell: (contentRef) => (
         <div className="space-y-1">
           <div className="font-medium text-mono">
-            {contentRef.label || "Untitled source"}
+            {contentRef.label || translateText("Untitled source")}
           </div>
           <div className="break-all text-sm text-muted-foreground lg:max-w-[360px] lg:truncate lg:break-normal">
             {contentRef.locator}

@@ -813,5 +813,11 @@
   "Set the name, language, and status for this FAQ.": "Задайте название, язык и статус для этой FAQ.",
   "Live notification feeds are not in the current Portal API surface.": "Ленты уведомлений в реальном времени недоступны в текущем API портала.",
   "Dark mode": "Тёмный режим",
-  "e.g. Product onboarding FAQ": "например, FAQ по онбордингу продукта"
+  "e.g. Product onboarding FAQ": "например, FAQ по онбордингу продукта",
+  "Create a Q&A item to start filling this FAQ.": "Создайте элемент Q&A, чтобы начать наполнять эту FAQ.",
+  "Link sources to your Q&A items so generation has real content to use.": "Свяжите источники с вашими элементами Q&A, чтобы генерация могла использовать реальный контент.",
+  "Move this FAQ to a real result": "Превратите эту FAQ в реальный результат",
+  "Follow the next recommended step instead of hunting through every action in the screen.": "Следуйте следующему рекомендуемому шагу вместо того, чтобы искать среди всех действий на экране.",
+  "Attach source material so answers are traceable and reusable.": "Прикрепите исходные материалы, чтобы ответы можно было отслеживать и использовать повторно.",
+  "Edit FAQ": "Редактировать FAQ"
 }

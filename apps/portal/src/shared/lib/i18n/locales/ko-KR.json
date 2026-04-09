@@ -813,5 +813,11 @@
   "Set the name, language, and status for this FAQ.": "이 FAQ의 이름, 언어 및 상태를 설정하세요.",
   "Live notification feeds are not in the current Portal API surface.": "실시간 알림 피드는 현재 Portal API 범위에 포함되어 있지 않습니다.",
   "Dark mode": "다크 모드",
-  "e.g. Product onboarding FAQ": "예: 제품 온보딩 FAQ"
+  "e.g. Product onboarding FAQ": "예: 제품 온보딩 FAQ",
+  "Create a Q&A item to start filling this FAQ.": "이 FAQ를 채우기 시작하려면 Q&A 항목을 만드세요.",
+  "Link sources to your Q&A items so generation has real content to use.": "생성 기능이 실제 콘텐츠를 사용할 수 있도록 Q&A 항목에 소스를 연결하세요.",
+  "Move this FAQ to a real result": "이 FAQ를 실제 결과로 이어가세요",
+  "Follow the next recommended step instead of hunting through every action in the screen.": "화면의 모든 작업을 뒤지는 대신 다음 추천 단계를 따르세요.",
+  "Attach source material so answers are traceable and reusable.": "답변을 추적 가능하고 재사용 가능하게 하려면 소스 자료를 첨부하세요.",
+  "Edit FAQ": "FAQ 편집"
 }

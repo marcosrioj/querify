@@ -488,7 +488,7 @@ export function FaqDetailPage() {
                         <div>
                           <div className="flex flex-wrap items-center gap-2">
                             <p className="font-medium text-mono">
-                              {contentRef.label || "Untitled source"}
+                              {contentRef.label || translateText("Untitled source")}
                             </p>
                             <ContentRefKindBadge kind={contentRef.kind} />
                           </div>
