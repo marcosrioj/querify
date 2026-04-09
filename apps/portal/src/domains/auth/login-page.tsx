@@ -1,5 +1,5 @@
 import { LockKeyhole, MoveRight } from 'lucide-react';
-import { Link, Navigate, useSearchParams } from 'react-router-dom';
+import { Navigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/platform/auth/auth-context';
 import { RuntimeEnv } from '@/platform/runtime/env';
 import { usePortalI18n } from '@/shared/lib/i18n';
@@ -88,10 +88,7 @@ export function LoginPage() {
         <MoveRight className="size-4" />
       </Button>
 
-      <div className="flex items-center justify-between text-sm text-muted-foreground">
-        <Link className="hover:text-foreground" to="/forgot-password">
-          {t('Forgot password')}
-        </Link>
+      <div className="text-right text-sm text-muted-foreground">
         <span>{status === 'booting' ? t('Initializing session') : t('Portal login')}</span>
       </div>
     </div>

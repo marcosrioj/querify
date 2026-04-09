@@ -68,7 +68,6 @@ Copy `.env.example` to `.env` and adjust as needed.
 | `VITE_AUTH0_AUDIENCE` | Auth0 API audience |
 | `VITE_AUTH0_CLIENT_ID` | SPA client id used by the Portal frontend |
 | `VITE_AUTH0_LOGOUT_URI` | optional post-logout redirect URI |
-| `VITE_AUTH0_PASSWORD_RESET_URL` | optional password reset deep link |
 
 ## Local setup
 
