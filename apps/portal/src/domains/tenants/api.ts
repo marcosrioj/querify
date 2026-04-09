@@ -10,11 +10,11 @@ import type {
 } from '@/domains/tenants/types';
 
 export function getTenantClientKey(accessToken?: string, tenantId?: string) {
-  return portalRequest<string | null>({
+  return portalRequest<string | null | undefined>({
     service: 'tenant',
     path: `/api/tenant/tenants/get-client-key?tenantId=${requireTenantId(tenantId)}`,
     accessToken: requireAccessToken(accessToken),
-  });
+  }).then((clientKey) => clientKey ?? null);
 }
 
 export function generateTenantClientKey(accessToken?: string, tenantId?: string) {
