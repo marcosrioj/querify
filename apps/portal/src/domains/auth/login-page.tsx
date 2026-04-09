@@ -3,11 +3,12 @@ import { Navigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/platform/auth/use-auth';
 import { RuntimeEnv } from '@/platform/runtime/env';
 import { usePortalI18n } from '@/shared/lib/use-portal-i18n';
+import { LanguageSelectorControl } from '@/shared/ui/language-selector-control';
 import { Alert, AlertDescription, Badge, Button } from '@/shared/ui';
 
 export function LoginPage() {
   const { isConfigured, status, error, login } = useAuth();
-  const { t } = usePortalI18n();
+  const { language, setLanguage, t } = usePortalI18n();
   const [searchParams] = useSearchParams();
   const nextPath = searchParams.get('next') ?? '/app/dashboard';
   const callbackUrl =
@@ -22,18 +23,23 @@ export function LoginPage() {
   return (
     <div className="space-y-5">
       <div className="space-y-4">
-        <Badge variant="outline" className="w-fit">
-          {t('BaseFAQ Portal')}
-        </Badge>
+        <div className="flex items-center justify-between gap-3">
+          <Badge variant="outline" className="h-8 w-fit px-3 text-sm">
+            {t('BaseFAQ Portal')}
+          </Badge>
+          <LanguageSelectorControl
+            language={language}
+            onLanguageChange={setLanguage}
+            ariaLabel={`${t('Language')}: ${language}`}
+          />
+        </div>
 
         <div className="space-y-2">
           <h2 className="text-3xl font-semibold text-mono">
-            {t('Sign in to your tenant workspace')}
+            {t('Sign in')}
           </h2>
           <p className="text-sm leading-6 text-muted-foreground">
-            {t(
-              'The Portal app authenticates against Auth0 and then calls only the Portal-side Tenant and FAQ APIs already present in this repository.',
-            )}
+            {t('Manage your BaseFAQ workspace')}
           </p>
         </div>
       </div>
@@ -41,9 +47,7 @@ export function LoginPage() {
       {!isConfigured ? (
         <Alert variant="destructive">
           <AlertDescription>
-            `VITE_AUTH0_CLIENT_ID` is not set. Auth0 domain and audience were
-            derived from the backend config, but the Portal SPA client still
-            needs to be configured in the frontend environment.
+            {t('Auth0 is not fully configured. Set VITE_AUTH0_CLIENT_ID to enable login.')}
           </AlertDescription>
         </Alert>
       ) : null}
@@ -87,10 +91,6 @@ export function LoginPage() {
         {t('Continue with Auth0')}
         <MoveRight className="size-4" />
       </Button>
-
-      <div className="text-right text-sm text-muted-foreground">
-        <span>{status === 'booting' ? t('Initializing session') : t('Portal login')}</span>
-      </div>
     </div>
   );
 }

@@ -7,6 +7,7 @@ export type LanguageOption = {
 };
 
 export const DEFAULT_PORTAL_LANGUAGE = "en-US";
+export const PORTAL_LANGUAGE_STORAGE_KEY = "basefaq.portal.language";
 
 export const portalLanguageOptions: LanguageOption[] = [
   { code: "en-US", label: "English", direction: "ltr" },
@@ -75,4 +76,37 @@ export function getBrowserPortalLanguage() {
 
   const preferredLanguage = navigator.languages?.[0] || navigator.language;
   return normalizePortalLanguage(preferredLanguage);
+}
+
+export function getStoredPortalLanguage() {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  try {
+    const storedLanguage = window.localStorage.getItem(PORTAL_LANGUAGE_STORAGE_KEY);
+    return storedLanguage ? normalizePortalLanguage(storedLanguage) : null;
+  } catch {
+    return null;
+  }
+}
+
+export function setStoredPortalLanguage(language?: string | null) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  try {
+    if (!language?.trim()) {
+      window.localStorage.removeItem(PORTAL_LANGUAGE_STORAGE_KEY);
+      return;
+    }
+
+    window.localStorage.setItem(
+      PORTAL_LANGUAGE_STORAGE_KEY,
+      normalizePortalLanguage(language),
+    );
+  } catch {
+    // Ignore storage failures and keep the in-memory language instead.
+  }
 }

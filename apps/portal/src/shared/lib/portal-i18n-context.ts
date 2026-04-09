@@ -5,6 +5,7 @@ export type PortalI18nContextValue = {
   language: string;
   direction: 'ltr' | 'rtl';
   isRtl: boolean;
+  setLanguage: (language: string) => void;
   t: typeof translateText;
 };
 

@@ -37,12 +37,12 @@ export function AuthLayout() {
               <img
                 src={toAbsoluteUrl('/media/app/default-logo.svg')}
                 className="h-[28px] dark:hidden"
-                alt="BaseFAQ Portal"
+                alt={t('BaseFAQ Portal')}
               />
               <img
                 src={toAbsoluteUrl('/media/app/default-logo-dark.svg')}
                 className="hidden h-[28px] dark:block"
-                alt="BaseFAQ Portal"
+                alt={t('BaseFAQ Portal')}
               />
             </Link>
 
@@ -60,7 +60,7 @@ export function AuthLayout() {
 
               <img
                 src={toAbsoluteUrl('/media/app/auth-screen.png')}
-                alt="BaseFAQ Portal"
+                alt={t('BaseFAQ Portal')}
                 className="w-full rounded-xl border border-border shadow-xs"
               />
             </div>
