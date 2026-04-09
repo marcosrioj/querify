@@ -42,9 +42,6 @@ namespace BaseFaq.Faq.Common.Persistence.FaqDb.Migrations
                     Name = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
                     Language = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
                     Status = table.Column<int>(type: "integer", nullable: false),
-                    SortStrategy = table.Column<int>(type: "integer", nullable: false),
-                    CtaEnabled = table.Column<bool>(type: "boolean", nullable: false),
-                    CtaTarget = table.Column<int>(type: "integer", nullable: false),
                     TenantId = table.Column<Guid>(type: "uuid", nullable: false),
                     CreatedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     CreatedBy = table.Column<string>(type: "text", nullable: true),
@@ -124,7 +121,7 @@ namespace BaseFaq.Faq.Common.Persistence.FaqDb.Migrations
                     CtaTitle = table.Column<string>(type: "character varying(250)", maxLength: 250, nullable: true),
                     CtaUrl = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: true),
                     Sort = table.Column<int>(type: "integer", nullable: false),
-                    VoteScore = table.Column<int>(type: "integer", nullable: false),
+                    FeedbackScore = table.Column<int>(type: "integer", nullable: false),
                     AiConfidenceScore = table.Column<int>(type: "integer", nullable: false),
                     IsActive = table.Column<bool>(type: "boolean", nullable: false),
                     TenantId = table.Column<Guid>(type: "uuid", nullable: false),
@@ -188,7 +185,7 @@ namespace BaseFaq.Faq.Common.Persistence.FaqDb.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Votes",
+                name: "Feedbacks",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -209,9 +206,9 @@ namespace BaseFaq.Faq.Common.Persistence.FaqDb.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Votes", x => x.Id);
+                    table.PrimaryKey("PK_Feedbacks", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Votes_FaqItems_FaqItemId",
+                        name: "FK_Feedbacks_FaqItems_FaqItemId",
                         column: x => x.FaqItemId,
                         principalTable: "FaqItems",
                         principalColumn: "Id",
@@ -306,6 +303,21 @@ namespace BaseFaq.Faq.Common.Persistence.FaqDb.Migrations
                 column: "TagId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Feedback_FaqItemId",
+                table: "Feedbacks",
+                column: "FaqItemId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Feedback_IsDeleted",
+                table: "Feedbacks",
+                column: "IsDeleted");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Feedback_TenantId",
+                table: "Feedbacks",
+                column: "TenantId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Tag_IsDeleted",
                 table: "Tags",
                 column: "IsDeleted");
@@ -319,21 +331,6 @@ namespace BaseFaq.Faq.Common.Persistence.FaqDb.Migrations
                 name: "IX_Tag_Value",
                 table: "Tags",
                 column: "Value");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Vote_FaqItemId",
-                table: "Votes",
-                column: "FaqItemId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Vote_IsDeleted",
-                table: "Votes",
-                column: "IsDeleted");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Vote_TenantId",
-                table: "Votes",
-                column: "TenantId");
         }
 
         /// <inheritdoc />
@@ -346,7 +343,7 @@ namespace BaseFaq.Faq.Common.Persistence.FaqDb.Migrations
                 name: "FaqTags");
 
             migrationBuilder.DropTable(
-                name: "Votes");
+                name: "Feedbacks");
 
             migrationBuilder.DropTable(
                 name: "Tags");

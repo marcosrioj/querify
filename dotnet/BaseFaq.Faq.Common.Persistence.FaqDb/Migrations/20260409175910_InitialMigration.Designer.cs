@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BaseFaq.Faq.Common.Persistence.FaqDb.Migrations
 {
     [DbContext(typeof(FaqDbContext))]
-    [Migration("20260408045127_FaqCtaAndFaqSortTypeRemoved")]
-    partial class FaqCtaAndFaqSortTypeRemoved
+    [Migration("20260409175910_InitialMigration")]
+    partial class InitialMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -236,6 +236,9 @@ namespace BaseFaq.Faq.Common.Persistence.FaqDb.Migrations
                     b.Property<Guid>("FaqId")
                         .HasColumnType("uuid");
 
+                    b.Property<int>("FeedbackScore")
+                        .HasColumnType("integer");
+
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
 
@@ -263,9 +266,6 @@ namespace BaseFaq.Faq.Common.Persistence.FaqDb.Migrations
 
                     b.Property<DateTime?>("UpdatedDate")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("VoteScore")
-                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
@@ -336,56 +336,7 @@ namespace BaseFaq.Faq.Common.Persistence.FaqDb.Migrations
                     b.ToTable("FaqTags", (string)null);
                 });
 
-            modelBuilder.Entity("BaseFaq.Faq.Common.Persistence.FaqDb.Entities.Tag", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("text");
-
-                    b.Property<DateTime?>("CreatedDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("DeletedBy")
-                        .HasColumnType("text");
-
-                    b.Property<DateTime?>("DeletedDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
-
-                    b.Property<Guid>("TenantId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("UpdatedBy")
-                        .HasColumnType("text");
-
-                    b.Property<DateTime?>("UpdatedDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Value")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("IsDeleted")
-                        .HasDatabaseName("IX_Tag_IsDeleted");
-
-                    b.HasIndex("TenantId")
-                        .HasDatabaseName("IX_Tag_TenantId");
-
-                    b.HasIndex("Value")
-                        .HasDatabaseName("IX_Tag_Value");
-
-                    b.ToTable("Tags", (string)null);
-                });
-
-            modelBuilder.Entity("BaseFaq.Faq.Common.Persistence.FaqDb.Entities.Vote", b =>
+            modelBuilder.Entity("BaseFaq.Faq.Common.Persistence.FaqDb.Entities.Feedback", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -442,15 +393,64 @@ namespace BaseFaq.Faq.Common.Persistence.FaqDb.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("FaqItemId")
-                        .HasDatabaseName("IX_Vote_FaqItemId");
+                        .HasDatabaseName("IX_Feedback_FaqItemId");
 
                     b.HasIndex("IsDeleted")
-                        .HasDatabaseName("IX_Vote_IsDeleted");
+                        .HasDatabaseName("IX_Feedback_IsDeleted");
 
                     b.HasIndex("TenantId")
-                        .HasDatabaseName("IX_Vote_TenantId");
+                        .HasDatabaseName("IX_Feedback_TenantId");
 
-                    b.ToTable("Votes", (string)null);
+                    b.ToTable("Feedbacks", (string)null);
+                });
+
+            modelBuilder.Entity("BaseFaq.Faq.Common.Persistence.FaqDb.Entities.Tag", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("CreatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("DeletedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("UpdatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IsDeleted")
+                        .HasDatabaseName("IX_Tag_IsDeleted");
+
+                    b.HasIndex("TenantId")
+                        .HasDatabaseName("IX_Tag_TenantId");
+
+                    b.HasIndex("Value")
+                        .HasDatabaseName("IX_Tag_Value");
+
+                    b.ToTable("Tags", (string)null);
                 });
 
             modelBuilder.Entity("BaseFaq.Faq.Common.Persistence.FaqDb.Entities.FaqContentRef", b =>
@@ -508,10 +508,10 @@ namespace BaseFaq.Faq.Common.Persistence.FaqDb.Migrations
                     b.Navigation("Tag");
                 });
 
-            modelBuilder.Entity("BaseFaq.Faq.Common.Persistence.FaqDb.Entities.Vote", b =>
+            modelBuilder.Entity("BaseFaq.Faq.Common.Persistence.FaqDb.Entities.Feedback", b =>
                 {
                     b.HasOne("BaseFaq.Faq.Common.Persistence.FaqDb.Entities.FaqItem", "FaqItem")
-                        .WithMany("Votes")
+                        .WithMany("Feedbacks")
                         .HasForeignKey("FaqItemId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -535,7 +535,7 @@ namespace BaseFaq.Faq.Common.Persistence.FaqDb.Migrations
 
             modelBuilder.Entity("BaseFaq.Faq.Common.Persistence.FaqDb.Entities.FaqItem", b =>
                 {
-                    b.Navigation("Votes");
+                    b.Navigation("Feedbacks");
                 });
 
             modelBuilder.Entity("BaseFaq.Faq.Common.Persistence.FaqDb.Entities.Tag", b =>
