@@ -1,4 +1,5 @@
 import { ShieldCheck } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { KeyValueList, PageHeader, SettingsLayout } from '@/shared/layout/page-layouts';
 import { settingsNavItems } from '@/domains/settings/settings-nav';
 import { useAuth } from '@/platform/auth/auth-context';
@@ -8,7 +9,7 @@ import { usePortalI18n } from '@/shared/lib/i18n';
 
 export function SecuritySettingsPage() {
   const { t } = usePortalI18n();
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
 
   return (
     <SettingsLayout
@@ -46,13 +47,8 @@ export function SecuritySettingsPage() {
               />
             </div>
           </div>
-          <Button
-            variant="outline"
-            onClick={() => {
-              void logout();
-            }}
-          >
-            Sign out
+          <Button asChild variant="outline">
+            <Link to="/logout">Sign out</Link>
           </Button>
         </CardContent>
       </Card>

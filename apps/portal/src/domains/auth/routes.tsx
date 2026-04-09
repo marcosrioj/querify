@@ -2,6 +2,7 @@ import { RouteObject } from 'react-router-dom';
 import { AuthLayout } from '@/domains/auth/auth-layout';
 import { ForgotPasswordPage } from '@/domains/auth/forgot-password-page';
 import { LoginPage } from '@/domains/auth/login-page';
+import { LogoutPage } from '@/domains/auth/logout-page';
 import { ResetPasswordPlaceholderPage } from '@/domains/auth/reset-password-placeholder-page';
 
 export const AuthRoutes: RouteObject[] = [
@@ -20,6 +21,13 @@ export const AuthRoutes: RouteObject[] = [
         element: <ForgotPasswordPage />,
         handle: {
           title: 'Forgot password',
+        },
+      },
+      {
+        path: '/logout',
+        element: <LogoutPage />,
+        handle: {
+          title: 'Sign out',
         },
       },
       {

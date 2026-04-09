@@ -23,7 +23,7 @@ export function UserMenu({
 }: {
   variant?: 'full' | 'compact';
 }) {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const { resolvedTheme, setTheme } = useTheme();
   const { t } = usePortalI18n();
   const initials = getInitials(user?.name ?? user?.email, 2);
@@ -95,14 +95,11 @@ export function UserMenu({
           </div>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem
-          className="text-destructive focus:text-destructive"
-          onClick={() => {
-            void logout();
-          }}
-        >
-          <LogOut className="size-4" />
-          {t('Sign out')}
+        <DropdownMenuItem asChild className="text-destructive focus:text-destructive">
+          <Link to="/logout">
+            <LogOut className="size-4" />
+            {t('Sign out')}
+          </Link>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
