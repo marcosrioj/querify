@@ -77,7 +77,7 @@ public static class TestDataFactory
             CtaTitle = "Reset",
             CtaUrl = "https://example.test/reset",
             Sort = 1,
-            VoteScore = 10,
+            FeedbackScore = 10,
             AiConfidenceScore = 80,
             IsActive = true,
             FaqId = faqId,
@@ -90,13 +90,13 @@ public static class TestDataFactory
         return faqItem;
     }
 
-    public static async Task<Vote> SeedVoteAsync(
+    public static async Task<Feedback> SeedFeedbackAsync(
         FaqDbContext dbContext,
         Guid tenantId,
         Guid faqItemId,
         bool like = true)
     {
-        var vote = new Vote
+        var feedback = new Feedback
         {
             Like = like,
             UserPrint = "user-print",
@@ -107,9 +107,9 @@ public static class TestDataFactory
             FaqItemId = faqItemId
         };
 
-        dbContext.Votes.Add(vote);
+        dbContext.Feedbacks.Add(feedback);
         await dbContext.SaveChangesAsync();
-        return vote;
+        return feedback;
     }
 
     public static async Task<FaqTag> SeedFaqTagAsync(

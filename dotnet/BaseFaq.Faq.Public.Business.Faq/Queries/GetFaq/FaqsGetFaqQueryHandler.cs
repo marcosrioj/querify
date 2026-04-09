@@ -97,7 +97,7 @@ public class FaqsGetFaqQueryHandler(
                         CtaTitle = item.CtaTitle,
                         CtaUrl = item.CtaUrl,
                         Sort = item.Sort,
-                        VoteScore = item.VoteScore,
+                        FeedbackScore = item.FeedbackScore,
                         AiConfidenceScore = item.AiConfidenceScore,
                         IsActive = item.IsActive,
                         FaqId = item.FaqId,

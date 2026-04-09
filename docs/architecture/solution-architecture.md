@@ -88,7 +88,7 @@ BaseFAQ uses two main EF Core contexts:
 | Context | Responsibility |
 |---|---|
 | `TenantDbContext` | global tenant metadata, users, tenant memberships, AI provider credentials, tenant-to-database mapping |
-| `FaqDbContext` | tenant-specific FAQ product data such as FAQs, FAQ items, content references, tags, and votes |
+| `FaqDbContext` | tenant-specific FAQ product data such as FAQs, FAQ items, content references, tags, and feedback |
 
 The split matters operationally:
 

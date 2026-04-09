@@ -85,7 +85,7 @@ public class FaqItemsSearchFaqItemQueryHandler(
                 CtaTitle = item.CtaTitle,
                 CtaUrl = item.CtaUrl,
                 Sort = item.Sort,
-                VoteScore = item.VoteScore,
+                FeedbackScore = item.FeedbackScore,
                 AiConfidenceScore = item.AiConfidenceScore,
                 IsActive = item.IsActive,
                 FaqId = item.FaqId,
@@ -103,14 +103,14 @@ public class FaqItemsSearchFaqItemQueryHandler(
             return query
                 .OrderBy(item => item.FaqId)
                 .ThenBy(item => item.Sort)
-                .ThenByDescending(item => item.VoteScore)
+                .ThenByDescending(item => item.FeedbackScore)
                 .ThenByDescending(item => item.AiConfidenceScore)
                 .ThenByDescending(item => item.UpdatedDate ?? DateTime.MinValue);
         }
 
         return query
             .OrderBy(item => item.Sort)
-            .ThenByDescending(item => item.VoteScore)
+            .ThenByDescending(item => item.FeedbackScore)
             .ThenByDescending(item => item.AiConfidenceScore)
             .ThenByDescending(item => item.UpdatedDate ?? DateTime.MinValue);
     }

@@ -283,7 +283,7 @@ export function FaqItemFormPage({ mode }: { mode: "create" | "edit" }) {
                   },
                   {
                     label: "Scoring",
-                    value: "Sort, vote, and AI confidence affect ranking",
+                    value: "Sort, feedback, and AI confidence affect ranking",
                   },
                   {
                     label: "Selected FAQ",
@@ -459,12 +459,12 @@ export function FaqItemFormPage({ mode }: { mode: "create" | "edit" }) {
                       description="Lower values usually surface earlier."
                     />
                     <div className="space-y-2">
-                      <p className="text-sm font-medium">{translateText("Vote score")}</p>
+                      <p className="text-sm font-medium">{translateText("Feedback score")}</p>
                       <p className="flex h-9 w-full items-center rounded-md border border-input bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
-                        {mode === "edit" ? (itemQuery.data?.voteScore ?? "—") : "—"}
+                        {mode === "edit" ? (itemQuery.data?.feedbackScore ?? "—") : "—"}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        {translateText("Set automatically by user votes.")}
+                        {translateText("Set automatically by user feedbacks.")}
                       </p>
                     </div>
                     <div className="space-y-2">

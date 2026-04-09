@@ -408,7 +408,7 @@ export function FaqDetailPage() {
                           </p>
                           <div className="mt-3 flex flex-wrap gap-2 text-xs text-muted-foreground">
                             <span>{translateText("Sort {value}", { value: item.sort })}</span>
-                            <span>{translateText("Vote {value}", { value: item.voteScore })}</span>
+                            <span>{translateText("Feedback {value}", { value: item.feedbackScore })}</span>
                             <span>{translateText("AI {value}", { value: item.aiConfidenceScore })}</span>
                             {item.contentRefId ? (
                               <span>

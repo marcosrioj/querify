@@ -238,8 +238,8 @@ export function FaqItemDetailPage() {
                     },
                     { label: "Sort", value: String(itemQuery.data.sort) },
                     {
-                      label: "Vote score",
-                      value: String(itemQuery.data.voteScore),
+                      label: "Feedback score",
+                      value: String(itemQuery.data.feedbackScore),
                     },
                     {
                       label: "AI confidence",

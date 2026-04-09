@@ -195,7 +195,7 @@ function AnswerRow({ item }: { item: FaqItemDto }) {
       </div>
       <div className="space-y-1 text-left text-xs text-muted-foreground sm:text-right">
         <div className="font-semibold text-mono">
-          {translateText("Vote {value}", { value: item.voteScore })}
+          {translateText("Feedback {value}", { value: item.feedbackScore })}
         </div>
         <div className="font-semibold text-mono">
           {translateText("AI {value}", { value: item.aiConfidenceScore })}
@@ -279,7 +279,7 @@ export function DashboardPage() {
   const faqItemTopQuery = useFaqItemList({
     page: 1,
     pageSize: 5,
-    sorting: "VoteScore DESC",
+    sorting: "FeedbackScore DESC",
   });
   const faqItemActiveQuery = useFaqItemList({
     page: 1,
@@ -933,7 +933,7 @@ export function DashboardPage() {
               <CardTitle className="flex flex-wrap items-center gap-2">
                 <span>{translateText("Top Q&A items")}</span>
                 <ContextHint
-                  content="Highest vote scores in the current Q&A list."
+                  content="Highest feedback scores in the current Q&A list."
                   label="Top Q&A item details"
                 />
               </CardTitle>

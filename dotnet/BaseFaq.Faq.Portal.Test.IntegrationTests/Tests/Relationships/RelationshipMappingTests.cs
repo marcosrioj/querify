@@ -5,8 +5,8 @@ using BaseFaq.Faq.Portal.Business.Faq.Queries.GetFaqContentRef;
 using BaseFaq.Faq.Portal.Business.Faq.Queries.GetFaqTag;
 using BaseFaq.Faq.Portal.Business.FaqItem.Commands.CreateFaqItem;
 using BaseFaq.Faq.Portal.Business.FaqItem.Queries.GetFaqItem;
-using BaseFaq.Faq.Portal.Business.Vote.Commands.CreateVote;
-using BaseFaq.Faq.Portal.Business.Vote.Queries.GetVote;
+using BaseFaq.Faq.Portal.Business.Feedback.Commands.CreateFeedback;
+using BaseFaq.Faq.Portal.Business.Feedback.Queries.GetFeedback;
 using BaseFaq.Faq.Portal.Test.IntegrationTests.Helpers;
 using Microsoft.AspNetCore.Http;
 using Xunit;
@@ -92,7 +92,7 @@ public class RelationshipMappingTests
     }
 
     [Fact]
-    public async Task Vote_Query_ReturnsFaqItemRelationship()
+    public async Task Feedback_Query_ReturnsFaqItemRelationship()
     {
         var httpContext = new DefaultHttpContext();
         httpContext.Connection.RemoteIpAddress = IPAddress.Parse("203.0.113.12");
@@ -105,11 +105,11 @@ public class RelationshipMappingTests
             context.SessionService.TenantId,
             faq.Id);
 
-        var createHandler = new VotesCreateVoteCommandHandler(
+        var createHandler = new FeedbacksCreateFeedbackCommandHandler(
             context.DbContext,
             context.SessionService,
             context.HttpContextAccessor);
-        var createRequest = new VotesCreateVoteCommand
+        var createRequest = new FeedbacksCreateFeedbackCommand
         {
             Like = true,
             UnLikeReason = null,
@@ -118,8 +118,8 @@ public class RelationshipMappingTests
 
         var id = await createHandler.Handle(createRequest, CancellationToken.None);
 
-        var queryHandler = new VotesGetVoteQueryHandler(context.DbContext);
-        var result = await queryHandler.Handle(new VotesGetVoteQuery { Id = id }, CancellationToken.None);
+        var queryHandler = new FeedbacksGetFeedbackQueryHandler(context.DbContext);
+        var result = await queryHandler.Handle(new FeedbacksGetFeedbackQuery { Id = id }, CancellationToken.None);
 
         Assert.NotNull(result);
         Assert.Equal(faqItem.Id, result!.FaqItemId);

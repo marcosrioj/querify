@@ -20,7 +20,7 @@ public sealed class FaqSeedService : IFaqSeedService
                dbContext.ContentRefs.Any() ||
                dbContext.FaqTags.Any() ||
                dbContext.FaqContentRefs.Any() ||
-               dbContext.Votes.Any();
+               dbContext.Feedbacks.Any();
     }
 
     public void Seed(FaqDbContext dbContext, Guid tenantId, SeedCounts counts)
@@ -64,7 +64,7 @@ public sealed class FaqSeedService : IFaqSeedService
         var faqItems = new List<FaqItem>();
         var faqTags = new List<FaqTag>();
         var faqContentRefs = new List<FaqContentRef>();
-        var votes = new List<Vote>();
+        var feedbacks = new List<Feedback>();
 
         for (var faqIndex = 0; faqIndex < selectedFaqs.Count; faqIndex++)
         {
@@ -108,13 +108,13 @@ public sealed class FaqSeedService : IFaqSeedService
                     ? contentRef.Id
                     : (Guid?)null;
 
-                var voteBatch = BuildVotes(
+                var feedbackBatch = BuildFeedbacks(
                     tenantId,
                     itemId,
                     faqIndex,
                     itemIndex,
-                    counts.VotesPerItem,
-                    itemDefinition.HelpfulVotePercent,
+                    counts.FeedbacksPerItem,
+                    itemDefinition.HelpfulFeedbackPercent,
                     unlikeReasons,
                     userAgentSamples);
 
@@ -130,13 +130,13 @@ public sealed class FaqSeedService : IFaqSeedService
                     CtaTitle = $"Open {itemDefinition.SourceName}",
                     CtaUrl = itemDefinition.SourceUrl,
                     Sort = itemIndex + 1,
-                    VoteScore = voteBatch.VoteScore,
+                    FeedbackScore = feedbackBatch.FeedbackScore,
                     AiConfidenceScore = Math.Clamp(itemDefinition.AiConfidenceScore, 0, 100),
                     IsActive = true,
                     ContentRefId = contentRefId
                 });
 
-                votes.AddRange(voteBatch.Votes);
+                feedbacks.AddRange(feedbackBatch.Feedbacks);
             }
         }
 
@@ -145,7 +145,7 @@ public sealed class FaqSeedService : IFaqSeedService
         dbContext.FaqContentRefs.AddRange(faqContentRefs);
         dbContext.SaveChanges();
 
-        dbContext.Votes.AddRange(votes);
+        dbContext.Feedbacks.AddRange(feedbacks);
         dbContext.SaveChanges();
     }
 
@@ -199,48 +199,48 @@ public sealed class FaqSeedService : IFaqSeedService
             .ToList();
     }
 
-    private static VoteBatch BuildVotes(
+    private static FeedbackBatch BuildFeedbacks(
         Guid tenantId,
         Guid faqItemId,
         int faqIndex,
         int itemIndex,
-        int votesPerItem,
-        int helpfulVotePercent,
+        int feedbacksPerItem,
+        int helpfulFeedbackPercent,
         UnLikeReason[] unlikeReasons,
         string[] userAgentSamples)
     {
-        var safeVotesPerItem = Math.Max(0, votesPerItem);
-        if (safeVotesPerItem == 0)
+        var safeFeedbacksPerItem = Math.Max(0, feedbacksPerItem);
+        if (safeFeedbacksPerItem == 0)
         {
-            return new VoteBatch(0, []);
+            return new FeedbackBatch(0, []);
         }
 
         var likeCount = (int)Math.Round(
-            safeVotesPerItem * Math.Clamp(helpfulVotePercent, 0, 100) / 100d,
+            safeFeedbacksPerItem * Math.Clamp(helpfulFeedbackPercent, 0, 100) / 100d,
             MidpointRounding.AwayFromZero);
-        likeCount = Math.Clamp(likeCount, 0, safeVotesPerItem);
+        likeCount = Math.Clamp(likeCount, 0, safeFeedbacksPerItem);
 
-        var votes = new List<Vote>(safeVotesPerItem);
-        for (var voteIndex = 0; voteIndex < safeVotesPerItem; voteIndex++)
+        var feedbacks = new List<Feedback>(safeFeedbacksPerItem);
+        for (var feedbackIndex = 0; feedbackIndex < safeFeedbacksPerItem; feedbackIndex++)
         {
-            var like = voteIndex < likeCount;
-            votes.Add(new Vote
+            var like = feedbackIndex < likeCount;
+            feedbacks.Add(new Feedback
             {
                 Id = Guid.NewGuid(),
                 TenantId = tenantId,
                 FaqItemId = faqItemId,
                 Like = like,
-                UserPrint = $"seed-feedback-{faqIndex + 1:00}-{itemIndex + 1:00}-{voteIndex + 1:00}",
-                Ip = $"198.51.100.{((faqIndex * 40) + (itemIndex * 7) + voteIndex) % 200 + 1}",
-                UserAgent = userAgentSamples[(faqIndex + itemIndex + voteIndex) % userAgentSamples.Length],
-                UnLikeReason = like ? null : unlikeReasons[(faqIndex + itemIndex + voteIndex) % unlikeReasons.Length]
+                UserPrint = $"seed-feedback-{faqIndex + 1:00}-{itemIndex + 1:00}-{feedbackIndex + 1:00}",
+                Ip = $"198.51.100.{((faqIndex * 40) + (itemIndex * 7) + feedbackIndex) % 200 + 1}",
+                UserAgent = userAgentSamples[(faqIndex + itemIndex + feedbackIndex) % userAgentSamples.Length],
+                UnLikeReason = like ? null : unlikeReasons[(faqIndex + itemIndex + feedbackIndex) % unlikeReasons.Length]
             });
         }
 
-        return new VoteBatch(
-            VoteScore: likeCount - (safeVotesPerItem - likeCount),
-            Votes: votes);
+        return new FeedbackBatch(
+            FeedbackScore: likeCount - (safeFeedbacksPerItem - likeCount),
+            Feedbacks: feedbacks);
     }
 
-    private sealed record VoteBatch(int VoteScore, List<Vote> Votes);
+    private sealed record FeedbackBatch(int FeedbackScore, List<Feedback> Feedbacks);
 }

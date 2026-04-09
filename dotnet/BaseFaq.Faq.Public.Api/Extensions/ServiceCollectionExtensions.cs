@@ -1,6 +1,6 @@
 using BaseFaq.Faq.Public.Business.Faq.Extensions;
 using BaseFaq.Faq.Public.Business.FaqItem.Extensions;
-using BaseFaq.Faq.Public.Business.Vote.Extensions;
+using BaseFaq.Faq.Public.Business.Feedback.Extensions;
 using BaseFaq.Faq.Common.Persistence.FaqDb.Extensions;
 
 namespace BaseFaq.Faq.Public.Api.Extensions;
@@ -12,7 +12,7 @@ public static class ServiceCollectionExtensions
         services.AddFaqDb();
         services.AddFaqBusiness();
         services.AddFaqItemBusiness();
-        services.AddVoteBusiness();
+        services.AddFeedbackBusiness();
         services.AddEventsFeature(configuration);
     }
 }

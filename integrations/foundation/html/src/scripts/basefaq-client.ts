@@ -62,7 +62,7 @@ export interface FaqItemDto {
   ctaTitle:          string | null;
   ctaUrl:            string | null;
   sort:              number;
-  voteScore:         number;
+  feedbackScore:         number;
   aiConfidenceScore: number;
   isActive:          boolean;
   faqId:             string;
@@ -104,7 +104,7 @@ export interface FaqGetAllRequestParams {
   sorting?:           string;
 }
 
-export interface VoteCreateRequestDto {
+export interface FeedbackCreateRequestDto {
   like:          boolean;
   unlikeReason?: UnLikeReason;
   faqItemId:     string;
@@ -221,9 +221,9 @@ export class BaseFaqClient {
     return this.request<FaqDetailDto>(`/api/faqs/faq/${id}${query}`);
   }
 
-  /** POST /api/faqs/vote — submit a vote for an FAQ item. */
-  async vote(dto: VoteCreateRequestDto): Promise<string> {
-    return this.request<string>('/api/faqs/vote', {
+  /** POST /api/faqs/feedback — submit a feedback for an FAQ item. */
+  async feedback(dto: FeedbackCreateRequestDto): Promise<string> {
+    return this.request<string>('/api/faqs/feedback', {
       method: 'POST',
       body:   JSON.stringify(dto),
     });

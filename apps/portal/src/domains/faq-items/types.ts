@@ -7,7 +7,7 @@ export type FaqItemDto = {
   ctaTitle?: string | null;
   ctaUrl?: string | null;
   sort: number;
-  voteScore: number;
+  feedbackScore: number;
   aiConfidenceScore: number;
   isActive: boolean;
   faqId: string;

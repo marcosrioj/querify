@@ -91,7 +91,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BaseFaq.Faq.Portal.Business
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BaseFaq.Faq.Portal.Business.Tag", "dotnet\BaseFaq.Faq.Portal.Business.Tag\BaseFaq.Faq.Portal.Business.Tag.csproj", "{73A82653-6341-4B75-BC6B-0CF261FB38B7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BaseFaq.Faq.Portal.Business.Vote", "dotnet\BaseFaq.Faq.Portal.Business.Vote\BaseFaq.Faq.Portal.Business.Vote.csproj", "{B3CF1B48-D76A-4E49-A7F7-3E4C8C8A6588}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BaseFaq.Faq.Portal.Business.Feedback", "dotnet\BaseFaq.Faq.Portal.Business.Feedback\BaseFaq.Faq.Portal.Business.Feedback.csproj", "{B3CF1B48-D76A-4E49-A7F7-3E4C8C8A6588}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BaseFaq.Faq.Portal.Business.ContentRef", "dotnet\BaseFaq.Faq.Portal.Business.ContentRef\BaseFaq.Faq.Portal.Business.ContentRef.csproj", "{F13A4883-AC78-4989-9CF2-FFA299908A15}"
 EndProject
@@ -117,7 +117,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Test", "Test", "{EE32ACCA-1
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BaseFaq.Faq.Public.Api", "dotnet\BaseFaq.Faq.Public.Api\BaseFaq.Faq.Public.Api.csproj", "{3A389FD7-652D-4A85-8B82-EDEB3B05AEAB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BaseFaq.Faq.Public.Business.Vote", "dotnet\BaseFaq.Faq.Public.Business.Vote\BaseFaq.Faq.Public.Business.Vote.csproj", "{E55EC03D-A63A-4AC1-BFB9-55DA628E1B1B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BaseFaq.Faq.Public.Business.Feedback", "dotnet\BaseFaq.Faq.Public.Business.Feedback\BaseFaq.Faq.Public.Business.Feedback.csproj", "{E55EC03D-A63A-4AC1-BFB9-55DA628E1B1B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BaseFaq.Faq.Public.Business.FaqItem", "dotnet\BaseFaq.Faq.Public.Business.FaqItem\BaseFaq.Faq.Public.Business.FaqItem.csproj", "{F7A49855-432F-423A-A467-41707FF28DC1}"
 EndProject

@@ -36,7 +36,7 @@ public class FaqItemConfiguration : BaseConfiguration<FaqItem>
         builder.Property(p => p.Sort)
             .IsRequired();
 
-        builder.Property(p => p.VoteScore)
+        builder.Property(p => p.FeedbackScore)
             .IsRequired();
 
         builder.Property(p => p.AiConfidenceScore)

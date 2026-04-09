@@ -287,9 +287,9 @@
   opacity: 0.7;
 }
 
-/* ─── Vote ───────────────────────────────────────────────────────────────── */
+/* ─── Feedback ───────────────────────────────────────────────────────────────── */
 
-.bf-faq__vote {
+.bf-faq__feedback {
   display: flex;
   align-items: center;
   gap: var(--bf-space-3);
@@ -298,25 +298,25 @@
   border-top: var(--bf-border-width-thin) solid var(--bf-color-border);
 }
 
-.bf-faq__vote-label {
+.bf-faq__feedback-label {
   font-size: var(--bf-font-size-sm);
   color: var(--bf-color-text-muted);
 }
 
-.bf-faq__vote-actions {
+.bf-faq__feedback-actions {
   display: flex;
   gap: var(--bf-space-2);
 }
 
-.bf-faq__vote-btn {
+.bf-faq__feedback-btn {
   display: inline-flex;
   align-items: center;
   gap: var(--bf-space-1);
-  padding: var(--bf-vote-btn-padding);
-  font-size: var(--bf-vote-btn-size);
+  padding: var(--bf-feedback-btn-padding);
+  font-size: var(--bf-feedback-btn-size);
   font-weight: var(--bf-font-weight-medium);
   border: var(--bf-border-width-thin) solid var(--bf-color-border);
-  border-radius: var(--bf-vote-btn-radius);
+  border-radius: var(--bf-feedback-btn-radius);
   background: transparent;
   cursor: pointer;
   color: var(--bf-color-text-secondary);
@@ -324,40 +324,40 @@
   line-height: 1;
 }
 
-.bf-faq__vote-btn:hover {
+.bf-faq__feedback-btn:hover {
   border-color: var(--bf-color-border-strong);
   background-color: var(--bf-color-surface-raised);
 }
 
-.bf-faq__vote-btn:focus-visible {
+.bf-faq__feedback-btn:focus-visible {
   outline: var(--bf-focus-ring-width) solid var(--bf-focus-ring-color);
   outline-offset: var(--bf-focus-ring-offset);
 }
 
-.bf-faq__vote-btn--up:hover,
-.bf-faq__vote-btn--up[aria-pressed="true"] {
-  color: var(--bf-color-vote-up);
-  border-color: var(--bf-color-vote-up);
-  background-color: var(--bf-color-vote-up-bg);
+.bf-faq__feedback-btn--up:hover,
+.bf-faq__feedback-btn--up[aria-pressed="true"] {
+  color: var(--bf-color-feedback-up);
+  border-color: var(--bf-color-feedback-up);
+  background-color: var(--bf-color-feedback-up-bg);
 }
 
-.bf-faq__vote-btn--down:hover,
-.bf-faq__vote-btn--down[aria-pressed="true"] {
-  color: var(--bf-color-vote-down);
-  border-color: var(--bf-color-vote-down);
-  background-color: var(--bf-color-vote-down-bg);
+.bf-faq__feedback-btn--down:hover,
+.bf-faq__feedback-btn--down[aria-pressed="true"] {
+  color: var(--bf-color-feedback-down);
+  border-color: var(--bf-color-feedback-down);
+  background-color: var(--bf-color-feedback-down-bg);
 }
 
-.bf-faq__vote-score {
+.bf-faq__feedback-score {
   font-size: var(--bf-font-size-sm);
   color: var(--bf-color-text-muted);
   min-width: 2rem;
   text-align: center;
 }
 
-/* ─── Vote reason modal ──────────────────────────────────────────────────── */
+/* ─── Feedback reason modal ──────────────────────────────────────────────────── */
 
-.bf-vote-modal-backdrop {
+.bf-feedback-modal-backdrop {
   position: fixed;
   inset: 0;
   background: rgb(0 0 0 / 0.5);
@@ -368,7 +368,7 @@
   padding: var(--bf-space-4);
 }
 
-.bf-vote-modal {
+.bf-feedback-modal {
   background: var(--bf-color-surface);
   border-radius: var(--bf-radius-lg);
   padding: var(--bf-space-6);
@@ -377,21 +377,21 @@
   box-shadow: var(--bf-shadow-xl);
 }
 
-.bf-vote-modal__title {
+.bf-feedback-modal__title {
   font-size: var(--bf-font-size-lg);
   font-weight: var(--bf-font-weight-semibold);
   margin: 0 0 var(--bf-space-4) 0;
   color: var(--bf-color-text-primary);
 }
 
-.bf-vote-modal__options {
+.bf-feedback-modal__options {
   display: flex;
   flex-direction: column;
   gap: var(--bf-space-2);
   margin-bottom: var(--bf-space-4);
 }
 
-.bf-vote-modal__option {
+.bf-feedback-modal__option {
   display: flex;
   align-items: center;
   gap: var(--bf-space-3);
@@ -407,25 +407,25 @@
   transition: var(--bf-transition-colors);
 }
 
-.bf-vote-modal__option:hover {
+.bf-feedback-modal__option:hover {
   background-color: var(--bf-color-surface-raised);
   border-color: var(--bf-color-border-strong);
 }
 
-.bf-vote-modal__option[aria-pressed="true"],
-.bf-vote-modal__option.is-selected {
+.bf-feedback-modal__option[aria-pressed="true"],
+.bf-feedback-modal__option.is-selected {
   border-color: var(--bf-color-border-brand);
   background-color: var(--bf-color-interactive-bg);
   color: var(--bf-color-text-brand);
 }
 
-.bf-vote-modal__actions {
+.bf-feedback-modal__actions {
   display: flex;
   gap: var(--bf-space-2);
   justify-content: flex-end;
 }
 
-.bf-vote-modal__submit {
+.bf-feedback-modal__submit {
   padding: var(--bf-space-2) var(--bf-space-5);
   background-color: var(--bf-cta-bg);
   color: var(--bf-cta-color);
@@ -437,11 +437,11 @@
   transition: var(--bf-transition-colors);
 }
 
-.bf-vote-modal__submit:hover {
+.bf-feedback-modal__submit:hover {
   background-color: var(--bf-cta-bg-hover);
 }
 
-.bf-vote-modal__cancel {
+.bf-feedback-modal__cancel {
   padding: var(--bf-space-2) var(--bf-space-5);
   background: transparent;
   color: var(--bf-color-text-secondary);
@@ -453,7 +453,7 @@
   transition: var(--bf-transition-colors);
 }
 
-.bf-vote-modal__cancel:hover {
+.bf-feedback-modal__cancel:hover {
   background-color: var(--bf-color-surface-raised);
 }
 
@@ -676,8 +676,8 @@
 
 @media print {
   .bf-faq__icon,
-  .bf-faq__vote,
-  .bf-faq__vote-modal-backdrop,
+  .bf-faq__feedback,
+  .bf-faq__feedback-modal-backdrop,
   .bf-faq__pagination,
   .bf-faq__item-anchor { display: none !important; }
 
@@ -692,6 +692,6 @@
   .bf-faq__title { font-size: var(--bf-font-size-xl); }
   .bf-faq__question { padding: var(--bf-space-3) var(--bf-space-4); }
   .bf-faq__answer { padding: 0 var(--bf-space-4) var(--bf-space-3); }
-  .bf-faq__vote { flex-wrap: wrap; }
-  .bf-vote-modal { padding: var(--bf-space-4); }
+  .bf-faq__feedback { flex-wrap: wrap; }
+  .bf-feedback-modal { padding: var(--bf-space-4); }
 }

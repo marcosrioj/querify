@@ -28,7 +28,7 @@ All tokens use CSS custom properties (`var(--bf-*)`). IE 11 is not supported. Al
 |--------------------------|--------|-----------------|------------------------|
 | `/api/faqs/faq`          | GET    | `X-Client-Key`  | List all FAQs          |
 | `/api/faqs/faq/{id}`     | GET    | `X-Client-Key`  | Get FAQ by ID          |
-| `/api/faqs/vote`         | POST   | `X-Client-Key`  | Submit item vote       |
+| `/api/faqs/feedback`         | POST   | `X-Client-Key`  | Submit item feedback       |
 
 ## Structured data
 

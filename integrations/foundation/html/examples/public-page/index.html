@@ -236,10 +236,10 @@
       --bf-color-error-bg:    #fef2f2;
       --bf-color-info:        var(--bf-color-brand-600);
       --bf-color-info-bg:     var(--bf-color-brand-50);
-      --bf-color-vote-up:     #16a34a;
-      --bf-color-vote-up-bg:  #f0fdf4;
-      --bf-color-vote-down:   #dc2626;
-      --bf-color-vote-down-bg:#fef2f2;
+      --bf-color-feedback-up:     #16a34a;
+      --bf-color-feedback-up-bg:  #f0fdf4;
+      --bf-color-feedback-down:   #dc2626;
+      --bf-color-feedback-down-bg:#fef2f2;
       --bf-color-focus-ring:  var(--bf-color-brand-500);
       --bf-font-family-base: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
       --bf-font-size-xs:   0.75rem;
@@ -325,8 +325,8 @@
       --bf-color-interactive-hover: #818cf8;
       --bf-color-interactive-bg:    #1e1b4b;
       --bf-color-info-bg:           #1e1b4b;
-      --bf-color-vote-up-bg:        #052e16;
-      --bf-color-vote-down-bg:      #450a0a;
+      --bf-color-feedback-up-bg:        #052e16;
+      --bf-color-feedback-down-bg:      #450a0a;
       --bf-cta-bg:                  #6366f1;
       --bf-cta-bg-hover:            #818cf8;
       --bf-shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.6);
@@ -380,15 +380,15 @@
     .bf-faq__source-link { font-size: var(--bf-font-size-sm); color: var(--bf-source-color); text-decoration: none; display: inline-flex; align-items: center; gap: var(--bf-space-1); }
     .bf-faq__source-link:hover { text-decoration: underline; }
     .bf-faq__source-link:focus-visible { outline: var(--bf-focus-ring-width) solid var(--bf-focus-ring-color); outline-offset: var(--bf-focus-ring-offset); border-radius: var(--bf-radius-sm); }
-    .bf-faq__vote { display: flex; align-items: center; gap: var(--bf-space-3); margin-top: var(--bf-space-4); padding-top: var(--bf-space-3); border-top: var(--bf-border-width-thin) solid var(--bf-color-border); flex-wrap: wrap; }
-    .bf-faq__vote-label { font-size: var(--bf-font-size-sm); color: var(--bf-color-text-muted); }
-    .bf-faq__vote-actions { display: flex; gap: var(--bf-space-2); }
-    .bf-faq__vote-btn { display: inline-flex; align-items: center; gap: var(--bf-space-1); padding: var(--bf-space-1) var(--bf-space-3); font-size: var(--bf-font-size-sm); font-weight: var(--bf-font-weight-medium); border: var(--bf-border-width-thin) solid var(--bf-color-border); border-radius: var(--bf-radius-full); background: transparent; cursor: pointer; color: var(--bf-color-text-secondary); transition: color var(--bf-duration-fast) var(--bf-easing-default), border-color var(--bf-duration-fast) var(--bf-easing-default), background var(--bf-duration-fast) var(--bf-easing-default); line-height: 1; }
-    .bf-faq__vote-btn:hover { border-color: var(--bf-color-border-strong); background: var(--bf-color-surface-raised); }
-    .bf-faq__vote-btn:focus-visible { outline: var(--bf-focus-ring-width) solid var(--bf-focus-ring-color); outline-offset: var(--bf-focus-ring-offset); }
-    .bf-faq__vote-btn--up.is-voted, .bf-faq__vote-btn--up:hover { color: var(--bf-color-vote-up); border-color: var(--bf-color-vote-up); background: var(--bf-color-vote-up-bg); }
-    .bf-faq__vote-btn--down.is-voted, .bf-faq__vote-btn--down:hover { color: var(--bf-color-vote-down); border-color: var(--bf-color-vote-down); background: var(--bf-color-vote-down-bg); }
-    .bf-faq__vote-score { font-size: var(--bf-font-size-sm); color: var(--bf-color-text-muted); min-width: 2rem; text-align: center; }
+    .bf-faq__feedback { display: flex; align-items: center; gap: var(--bf-space-3); margin-top: var(--bf-space-4); padding-top: var(--bf-space-3); border-top: var(--bf-border-width-thin) solid var(--bf-color-border); flex-wrap: wrap; }
+    .bf-faq__feedback-label { font-size: var(--bf-font-size-sm); color: var(--bf-color-text-muted); }
+    .bf-faq__feedback-actions { display: flex; gap: var(--bf-space-2); }
+    .bf-faq__feedback-btn { display: inline-flex; align-items: center; gap: var(--bf-space-1); padding: var(--bf-space-1) var(--bf-space-3); font-size: var(--bf-font-size-sm); font-weight: var(--bf-font-weight-medium); border: var(--bf-border-width-thin) solid var(--bf-color-border); border-radius: var(--bf-radius-full); background: transparent; cursor: pointer; color: var(--bf-color-text-secondary); transition: color var(--bf-duration-fast) var(--bf-easing-default), border-color var(--bf-duration-fast) var(--bf-easing-default), background var(--bf-duration-fast) var(--bf-easing-default); line-height: 1; }
+    .bf-faq__feedback-btn:hover { border-color: var(--bf-color-border-strong); background: var(--bf-color-surface-raised); }
+    .bf-faq__feedback-btn:focus-visible { outline: var(--bf-focus-ring-width) solid var(--bf-focus-ring-color); outline-offset: var(--bf-focus-ring-offset); }
+    .bf-faq__feedback-btn--up.is-selected, .bf-faq__feedback-btn--up:hover { color: var(--bf-color-feedback-up); border-color: var(--bf-color-feedback-up); background: var(--bf-color-feedback-up-bg); }
+    .bf-faq__feedback-btn--down.is-selected, .bf-faq__feedback-btn--down:hover { color: var(--bf-color-feedback-down); border-color: var(--bf-color-feedback-down); background: var(--bf-color-feedback-down-bg); }
+    .bf-faq__feedback-score { font-size: var(--bf-font-size-sm); color: var(--bf-color-text-muted); min-width: 2rem; text-align: center; }
     .bf-tag { display: inline-flex; align-items: center; padding: var(--bf-tag-padding); background: var(--bf-tag-bg); color: var(--bf-tag-color); border-radius: var(--bf-tag-radius); font-size: var(--bf-font-size-xs); font-weight: var(--bf-font-weight-medium); border: var(--bf-border-width-thin) solid var(--bf-color-border); }
     .bf-faq__loading, .bf-faq__error, .bf-faq__empty { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: var(--bf-space-12) var(--bf-space-8); text-align: center; gap: var(--bf-space-3); color: var(--bf-color-text-secondary); }
     .bf-faq__loading-spinner { width: 2rem; height: 2rem; border: var(--bf-border-width-medium) solid var(--bf-color-border); border-top-color: var(--bf-color-interactive); border-radius: 50%; animation: bf-spin 400ms linear infinite; }
@@ -411,18 +411,18 @@
     .bf-pagination__btn:focus-visible { outline: var(--bf-focus-ring-width) solid var(--bf-focus-ring-color); outline-offset: var(--bf-focus-ring-offset); }
     .bf-pagination__info { font-size: var(--bf-font-size-sm); color: var(--bf-color-text-muted); }
     .bf-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border-width: 0; }
-    .bf-vote-modal-backdrop { position: fixed; inset: 0; background: rgb(0 0 0 / 0.5); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: var(--bf-space-4); }
-    .bf-vote-modal { background: var(--bf-color-surface); border-radius: var(--bf-radius-lg); padding: var(--bf-space-6); max-width: 24rem; width: 100%; box-shadow: var(--bf-shadow-xl); }
-    .bf-vote-modal__title { font-size: var(--bf-font-size-lg); font-weight: var(--bf-font-weight-semibold); margin: 0 0 var(--bf-space-4) 0; color: var(--bf-color-text-primary); }
-    .bf-vote-modal__options { display: flex; flex-direction: column; gap: var(--bf-space-2); margin-bottom: var(--bf-space-4); }
-    .bf-vote-modal__option { display: flex; align-items: center; gap: var(--bf-space-3); padding: var(--bf-space-3) var(--bf-space-4); border: var(--bf-border-width-thin) solid var(--bf-color-border); border-radius: var(--bf-radius-md); cursor: pointer; font-size: var(--bf-font-size-sm); color: var(--bf-color-text-secondary); background: transparent; width: 100%; text-align: start; transition: color var(--bf-duration-fast) var(--bf-easing-default), background var(--bf-duration-fast) var(--bf-easing-default), border-color var(--bf-duration-fast) var(--bf-easing-default); }
-    .bf-vote-modal__option:hover { background: var(--bf-color-surface-raised); border-color: var(--bf-color-border-strong); }
-    .bf-vote-modal__option.is-selected { border-color: var(--bf-color-border-brand); background: var(--bf-color-interactive-bg); color: var(--bf-color-text-brand); }
-    .bf-vote-modal__actions { display: flex; gap: var(--bf-space-2); justify-content: flex-end; }
-    .bf-vote-modal__submit { padding: var(--bf-space-2) var(--bf-space-5); background: var(--bf-cta-bg); color: var(--bf-cta-color); border: none; border-radius: var(--bf-cta-radius); font-size: var(--bf-font-size-sm); font-weight: var(--bf-font-weight-semibold); cursor: pointer; transition: background var(--bf-duration-fast) var(--bf-easing-default); }
-    .bf-vote-modal__submit:hover { background: var(--bf-cta-bg-hover); }
-    .bf-vote-modal__cancel { padding: var(--bf-space-2) var(--bf-space-5); background: transparent; color: var(--bf-color-text-secondary); border: var(--bf-border-width-thin) solid var(--bf-color-border); border-radius: var(--bf-cta-radius); font-size: var(--bf-font-size-sm); font-weight: var(--bf-font-weight-medium); cursor: pointer; transition: background var(--bf-duration-fast) var(--bf-easing-default); }
-    .bf-vote-modal__cancel:hover { background: var(--bf-color-surface-raised); }
+    .bf-feedback-modal-backdrop { position: fixed; inset: 0; background: rgb(0 0 0 / 0.5); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: var(--bf-space-4); }
+    .bf-feedback-modal { background: var(--bf-color-surface); border-radius: var(--bf-radius-lg); padding: var(--bf-space-6); max-width: 24rem; width: 100%; box-shadow: var(--bf-shadow-xl); }
+    .bf-feedback-modal__title { font-size: var(--bf-font-size-lg); font-weight: var(--bf-font-weight-semibold); margin: 0 0 var(--bf-space-4) 0; color: var(--bf-color-text-primary); }
+    .bf-feedback-modal__options { display: flex; flex-direction: column; gap: var(--bf-space-2); margin-bottom: var(--bf-space-4); }
+    .bf-feedback-modal__option { display: flex; align-items: center; gap: var(--bf-space-3); padding: var(--bf-space-3) var(--bf-space-4); border: var(--bf-border-width-thin) solid var(--bf-color-border); border-radius: var(--bf-radius-md); cursor: pointer; font-size: var(--bf-font-size-sm); color: var(--bf-color-text-secondary); background: transparent; width: 100%; text-align: start; transition: color var(--bf-duration-fast) var(--bf-easing-default), background var(--bf-duration-fast) var(--bf-easing-default), border-color var(--bf-duration-fast) var(--bf-easing-default); }
+    .bf-feedback-modal__option:hover { background: var(--bf-color-surface-raised); border-color: var(--bf-color-border-strong); }
+    .bf-feedback-modal__option.is-selected { border-color: var(--bf-color-border-brand); background: var(--bf-color-interactive-bg); color: var(--bf-color-text-brand); }
+    .bf-feedback-modal__actions { display: flex; gap: var(--bf-space-2); justify-content: flex-end; }
+    .bf-feedback-modal__submit { padding: var(--bf-space-2) var(--bf-space-5); background: var(--bf-cta-bg); color: var(--bf-cta-color); border: none; border-radius: var(--bf-cta-radius); font-size: var(--bf-font-size-sm); font-weight: var(--bf-font-weight-semibold); cursor: pointer; transition: background var(--bf-duration-fast) var(--bf-easing-default); }
+    .bf-feedback-modal__submit:hover { background: var(--bf-cta-bg-hover); }
+    .bf-feedback-modal__cancel { padding: var(--bf-space-2) var(--bf-space-5); background: transparent; color: var(--bf-color-text-secondary); border: var(--bf-border-width-thin) solid var(--bf-color-border); border-radius: var(--bf-cta-radius); font-size: var(--bf-font-size-sm); font-weight: var(--bf-font-weight-medium); cursor: pointer; transition: background var(--bf-duration-fast) var(--bf-easing-default); }
+    .bf-feedback-modal__cancel:hover { background: var(--bf-color-surface-raised); }
 
     /* FAQ list (multiple FAQs) */
     .bf-faq-list { display: flex; flex-direction: column; gap: var(--bf-space-8); }
@@ -436,7 +436,7 @@
     }
 
     @media print {
-      .page-config, .bf-faq__vote, .bf-faq__icon, .bf-faq__pagination, .bf-toast-container { display: none !important; }
+      .page-config, .bf-faq__feedback, .bf-faq__icon, .bf-faq__pagination, .bf-toast-container { display: none !important; }
       .bf-faq__item { border: none; break-inside: avoid; }
     }
   </style>
@@ -517,19 +517,19 @@
   <!-- ── Toast container ─────────────────────────────────────────────────── -->
   <div class="bf-toast-container" id="toastContainer" role="status" aria-live="polite"></div>
 
-  <!-- ── Vote reason modal (hidden) ──────────────────────────────────────── -->
-  <div id="voteModal" class="bf-vote-modal-backdrop" hidden aria-modal="true" role="dialog" aria-labelledby="voteModalTitle">
-    <div class="bf-vote-modal">
-      <h2 id="voteModalTitle" class="bf-vote-modal__title">What could be improved?</h2>
-      <div class="bf-vote-modal__options" id="voteModalOptions">
-        <button class="bf-vote-modal__option" data-reason="1" type="button">😕 Confusing or unclear</button>
-        <button class="bf-vote-modal__option" data-reason="2" type="button">🔍 Not relevant to my question</button>
-        <button class="bf-vote-modal__option" data-reason="3" type="button">💡 Relevant but not helpful</button>
-        <button class="bf-vote-modal__option" data-reason="4" type="button">📏 Answer length issue</button>
+  <!-- ── Feedback reason modal (hidden) ──────────────────────────────────────── -->
+  <div id="feedbackModal" class="bf-feedback-modal-backdrop" hidden aria-modal="true" role="dialog" aria-labelledby="feedbackModalTitle">
+    <div class="bf-feedback-modal">
+      <h2 id="feedbackModalTitle" class="bf-feedback-modal__title">What could be improved?</h2>
+      <div class="bf-feedback-modal__options" id="feedbackModalOptions">
+        <button class="bf-feedback-modal__option" data-reason="1" type="button">😕 Confusing or unclear</button>
+        <button class="bf-feedback-modal__option" data-reason="2" type="button">🔍 Not relevant to my question</button>
+        <button class="bf-feedback-modal__option" data-reason="3" type="button">💡 Relevant but not helpful</button>
+        <button class="bf-feedback-modal__option" data-reason="4" type="button">📏 Answer length issue</button>
       </div>
-      <div class="bf-vote-modal__actions">
-        <button id="voteModalCancel" class="bf-vote-modal__cancel" type="button">Cancel</button>
-        <button id="voteModalSubmit" class="bf-vote-modal__submit" type="button">Submit</button>
+      <div class="bf-feedback-modal__actions">
+        <button id="feedbackModalCancel" class="bf-feedback-modal__cancel" type="button">Cancel</button>
+        <button id="feedbackModalSubmit" class="bf-feedback-modal__submit" type="button">Submit</button>
       </div>
     </div>
   </div>
@@ -559,7 +559,7 @@
   let totalCount       = 0;
   let pageSize         = 10;
   let singleOpen       = true;
-  let pendingVote      = null; // { itemId, like }
+  let pendingFeedback      = null; // { itemId, like }
   let selectedReason   = null;
 
   // ── DOM refs ──────────────────────────────────────────────────────────
@@ -570,10 +570,10 @@
   const singleOpenCheck = document.getElementById('singleOpenCheck');
   const loadBtn        = document.getElementById('loadBtn');
   const faqOutput      = document.getElementById('faqOutput');
-  const voteModal      = document.getElementById('voteModal');
-  const voteModalCancel = document.getElementById('voteModalCancel');
-  const voteModalSubmit = document.getElementById('voteModalSubmit');
-  const voteModalOptions = document.getElementById('voteModalOptions');
+  const feedbackModal      = document.getElementById('feedbackModal');
+  const feedbackModalCancel = document.getElementById('feedbackModalCancel');
+  const feedbackModalSubmit = document.getElementById('feedbackModalSubmit');
+  const feedbackModalOptions = document.getElementById('feedbackModalOptions');
   const toastContainer = document.getElementById('toastContainer');
 
   // ── URL param seeding ─────────────────────────────────────────────────
@@ -814,27 +814,27 @@
         })()
       : '';
 
-    // Vote
-    const voteHtml = `
-      <div class="bf-faq__vote" data-vote-container data-item-id="${escAttr(item.id)}">
-        <span class="bf-faq__vote-label" id="vote-label-${escAttr(item.id)}">Was this helpful?</span>
-        <div class="bf-faq__vote-actions" role="group" aria-labelledby="vote-label-${escAttr(item.id)}">
+    // Feedback
+    const feedbackHtml = `
+      <div class="bf-faq__feedback" data-feedback-container data-item-id="${escAttr(item.id)}">
+        <span class="bf-faq__feedback-label" id="feedback-label-${escAttr(item.id)}">Was this helpful?</span>
+        <div class="bf-faq__feedback-actions" role="group" aria-labelledby="feedback-label-${escAttr(item.id)}">
           <button
-            class="bf-faq__vote-btn bf-faq__vote-btn--up"
+            class="bf-faq__feedback-btn bf-faq__feedback-btn--up"
             type="button"
-            data-vote-up
+            data-feedback-up
             aria-pressed="false"
             aria-label="Yes, this was helpful"
           >👍 Yes</button>
           <button
-            class="bf-faq__vote-btn bf-faq__vote-btn--down"
+            class="bf-faq__feedback-btn bf-faq__feedback-btn--down"
             type="button"
-            data-vote-down
+            data-feedback-down
             aria-pressed="false"
             aria-label="No, this was not helpful"
           >👎 No</button>
         </div>
-        <span class="bf-faq__vote-score" aria-label="Vote score: ${item.voteScore}">${item.voteScore > 0 ? '+' : ''}${item.voteScore}</span>
+        <span class="bf-faq__feedback-score" aria-label="Feedback score: ${item.feedbackScore}">${item.feedbackScore > 0 ? '+' : ''}${item.feedbackScore}</span>
       </div>`;
 
     return `
@@ -855,7 +855,7 @@
           ${additionalInfoHtml}
           ${ctaHtml}
           ${sourcesHtml}
-          ${voteHtml}
+          ${feedbackHtml}
         </div>
       </details>`;
   }
@@ -993,84 +993,84 @@
 
   window.addEventListener('hashchange', handleDeepLink);
 
-  // ── Vote ───────────────────────────────────────────────────────────────
+  // ── Feedback ───────────────────────────────────────────────────────────────
   document.addEventListener('click', (e) => {
-    const btn = e.target.closest('[data-vote-up], [data-vote-down]');
+    const btn = e.target.closest('[data-feedback-up], [data-feedback-down]');
     if (!btn) return;
-    const container = btn.closest('[data-vote-container]');
+    const container = btn.closest('[data-feedback-container]');
     const itemId    = container?.dataset.itemId;
     if (!itemId) return;
 
-    const isUp = btn.hasAttribute('data-vote-up');
+    const isUp = btn.hasAttribute('data-feedback-up');
 
     if (!isUp) {
-      // Show reason modal for downvote
-      pendingVote  = { itemId, like: false };
+      // Show reason modal for negative feedback
+      pendingFeedback  = { itemId, like: false };
       selectedReason = null;
-      voteModal.querySelectorAll('.bf-vote-modal__option').forEach(o => o.classList.remove('is-selected'));
-      voteModal.hidden = false;
-      voteModal.querySelector('.bf-vote-modal__option')?.focus();
+      feedbackModal.querySelectorAll('.bf-feedback-modal__option').forEach(o => o.classList.remove('is-selected'));
+      feedbackModal.hidden = false;
+      feedbackModal.querySelector('.bf-feedback-modal__option')?.focus();
     } else {
-      submitVote({ itemId, like: true }, btn, container);
+      submitFeedback({ itemId, like: true }, btn, container);
     }
   });
 
   // Modal option selection
-  voteModalOptions.addEventListener('click', (e) => {
-    const opt = e.target.closest('.bf-vote-modal__option');
+  feedbackModalOptions.addEventListener('click', (e) => {
+    const opt = e.target.closest('.bf-feedback-modal__option');
     if (!opt) return;
-    voteModalOptions.querySelectorAll('.bf-vote-modal__option').forEach(o => o.classList.remove('is-selected'));
+    feedbackModalOptions.querySelectorAll('.bf-feedback-modal__option').forEach(o => o.classList.remove('is-selected'));
     opt.classList.add('is-selected');
     selectedReason = Number(opt.dataset.reason);
   });
 
-  voteModalCancel.addEventListener('click', () => {
-    voteModal.hidden = true;
-    pendingVote = null;
+  feedbackModalCancel.addEventListener('click', () => {
+    feedbackModal.hidden = true;
+    pendingFeedback = null;
     selectedReason = null;
   });
 
-  voteModalSubmit.addEventListener('click', async () => {
-    if (!pendingVote) return;
-    voteModal.hidden = true;
-    const { itemId } = pendingVote;
-    const container  = document.querySelector(`[data-vote-container][data-item-id="${itemId}"]`);
-    const downBtn    = container?.querySelector('[data-vote-down]');
-    await submitVote({ itemId, like: false, unlikeReason: selectedReason }, downBtn, container);
-    pendingVote = null;
+  feedbackModalSubmit.addEventListener('click', async () => {
+    if (!pendingFeedback) return;
+    feedbackModal.hidden = true;
+    const { itemId } = pendingFeedback;
+    const container  = document.querySelector(`[data-feedback-container][data-item-id="${itemId}"]`);
+    const downBtn    = container?.querySelector('[data-feedback-down]');
+    await submitFeedback({ itemId, like: false, unlikeReason: selectedReason }, downBtn, container);
+    pendingFeedback = null;
     selectedReason = null;
   });
 
   // Close modal on backdrop click
-  voteModal.addEventListener('click', (e) => {
-    if (e.target === voteModal) {
-      voteModal.hidden = true;
-      pendingVote = null;
+  feedbackModal.addEventListener('click', (e) => {
+    if (e.target === feedbackModal) {
+      feedbackModal.hidden = true;
+      pendingFeedback = null;
     }
   });
 
   // Close modal on Escape
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && !voteModal.hidden) {
-      voteModal.hidden = true;
-      pendingVote = null;
+    if (e.key === 'Escape' && !feedbackModal.hidden) {
+      feedbackModal.hidden = true;
+      pendingFeedback = null;
     }
   });
 
-  async function submitVote({ itemId, like, unlikeReason }, triggerBtn, container) {
+  async function submitFeedback({ itemId, like, unlikeReason }, triggerBtn, container) {
     const payload = { faqItemId: itemId, like };
     if (unlikeReason != null) payload.unlikeReason = unlikeReason;
 
     try {
-      await apiFetch('/api/faqs/vote', { method: 'POST', body: JSON.stringify(payload) });
+      await apiFetch('/api/faqs/feedback', { method: 'POST', body: JSON.stringify(payload) });
 
       // Update UI
       if (triggerBtn) {
-        triggerBtn.classList.add('is-voted');
+        triggerBtn.classList.add('is-selected');
         triggerBtn.setAttribute('aria-pressed', 'true');
       }
       // Update score optimistically
-      const scoreEl = container?.querySelector('.bf-faq__vote-score');
+      const scoreEl = container?.querySelector('.bf-faq__feedback-score');
       if (scoreEl) {
         const prev = parseInt(scoreEl.textContent, 10) || 0;
         const next = like ? prev + 1 : prev - 1;
@@ -1079,7 +1079,7 @@
 
       showToast(like ? 'Thanks for your feedback! 👍' : 'Thanks for letting us know. 👎', 'success');
     } catch (err) {
-      showToast('Could not submit vote: ' + err.message, 'error');
+      showToast('Could not submit feedback: ' + err.message, 'error');
     }
   }
 

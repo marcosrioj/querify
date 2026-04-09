@@ -28,7 +28,7 @@ Required header: X-Client-Key: <your public tenant key>
 |---|---|---|
 | `/api/faqs/faq` | GET | List FAQs (paginated, with status/tag filters) |
 | `/api/faqs/faq/{id}` | GET | Get a single FAQ by UUID |
-| `/api/faqs/vote` | POST | Submit a thumbs-up or thumbs-down vote |
+| `/api/faqs/feedback` | POST | Submit a thumbs-up or thumbs-down feedback |
 
 ### Query parameters
 
@@ -53,7 +53,7 @@ Same include params plus:
 | `searchText` | string | Text search filter |
 | `faqIds` | guid[] | Filter to specific FAQ IDs |
 
-### Vote payload
+### Feedback payload
 
 ```json
 {
@@ -77,7 +77,7 @@ For each FAQ item (`FaqItemDto`), the HTML foundation renders:
 | `additionalInfo` | Highlighted info block below the answer |
 | `ctaTitle` + `ctaUrl` | Call-to-action button (when present on the item) |
 | `contentRefs` | Source links with kind icons |
-| `voteScore` | Live vote score with up/down buttons |
+| `feedbackScore` | Live feedback score with up/down buttons |
 | `tags` | Tag badges on the FAQ header |
 
 ## HTML structure
@@ -106,7 +106,7 @@ For each FAQ item (`FaqItemDto`), the HTML foundation renders:
         <div class="bf-faq__additional-info">…optional…</div>
         <a class="bf-faq__cta">…optional CTA…</a>
         <div class="bf-faq__sources">…optional sources…</div>
-        <div class="bf-faq__vote">…vote buttons…</div>
+        <div class="bf-faq__feedback">…feedback buttons…</div>
       </div>
     </details>
   </div>
@@ -156,7 +156,7 @@ src/seo/
 |---|---|---|
 | `data-basefaq-root` | `section.bf-faq` | Root marker for JS enhancement |
 | `data-basefaq-faq-id` | `section.bf-faq` | FAQ UUID for JSON-LD dedup |
-| `data-basefaq-item-id` | `details.bf-faq__item` | Item UUID for deep-link and vote |
+| `data-basefaq-item-id` | `details.bf-faq__item` | Item UUID for deep-link and feedback |
 | `data-basefaq-schema-mode` | `section.bf-faq` | `canonical`, `mirror`, or `off` |
 | `data-basefaq-render-mode` | `section.bf-faq` | `public-page`, `embedded-block`, etc. |
 
@@ -169,9 +169,9 @@ JSON-LD is injected as `<script type="application/ld+json" data-bf-faq-id="{id}"
 - Native `details`/`summary` keyboard behavior (Enter, Space, click)
 - `aria-expanded` managed by the accordion enhancement
 - `role="list"` / `role="listitem"` on items container
-- `aria-label` on section, vote group, and external links
+- `aria-label` on section, feedback group, and external links
 - `aria-live="polite"` on loading states
-- `aria-pressed` on vote buttons
+- `aria-pressed` on feedback buttons
 - Focus ring: `3px solid var(--bf-color-focus-ring)` with `outline-offset: 2px`
 - `prefers-reduced-motion` respected by accordion animation
 

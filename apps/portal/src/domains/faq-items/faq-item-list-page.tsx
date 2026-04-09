@@ -40,7 +40,7 @@ import {
 const sortingOptions = [
   { value: "UpdatedDate DESC", label: "Last updated" },
   { value: "Question ASC", label: "Question A-Z" },
-  { value: "VoteScore DESC", label: "Vote score" },
+  { value: "FeedbackScore DESC", label: "Feedback score" },
   { value: "AiConfidenceScore DESC", label: "AI confidence" },
 ];
 

@@ -129,7 +129,7 @@ public class EntityConstraintsTests
             CtaTitle = "CTA",
             CtaUrl = "https://example.test/cta",
             Sort = 1,
-            VoteScore = 0,
+            FeedbackScore = 0,
             AiConfidenceScore = 0,
             IsActive = true,
             FaqId = faq.Id,
@@ -156,7 +156,7 @@ public class EntityConstraintsTests
             CtaTitle = "CTA",
             CtaUrl = "https://example.test/cta",
             Sort = 1,
-            VoteScore = 0,
+            FeedbackScore = 0,
             AiConfidenceScore = 0,
             IsActive = true,
             FaqId = faq.Id,
@@ -169,7 +169,7 @@ public class EntityConstraintsTests
     }
 
     [Fact]
-    public async Task Vote_ThrowsWhenUserAgentExceedsMaxLength()
+    public async Task Feedback_ThrowsWhenUserAgentExceedsMaxLength()
     {
         using var context = TestContext.Create();
         var faq = await TestDataFactory.SeedFaqAsync(context.DbContext, context.SessionService.TenantId);
@@ -178,18 +178,18 @@ public class EntityConstraintsTests
             context.SessionService.TenantId,
             faq.Id);
 
-        var vote = new Common.Persistence.FaqDb.Entities.Vote
+        var feedback = new Common.Persistence.FaqDb.Entities.Feedback
         {
             Like = true,
             UserPrint = "user",
             Ip = "127.0.0.1",
-            UserAgent = new string('f', Common.Persistence.FaqDb.Entities.Vote.MaxUserAgentLength + 1),
+            UserAgent = new string('f', Common.Persistence.FaqDb.Entities.Feedback.MaxUserAgentLength + 1),
             UnLikeReason = null,
             TenantId = context.SessionService.TenantId,
             FaqItemId = faqItem.Id
         };
 
-        context.DbContext.Votes.Add(vote);
+        context.DbContext.Feedbacks.Add(feedback);
 
         await Assert.ThrowsAsync<DbUpdateException>(() => context.DbContext.SaveChangesAsync());
     }

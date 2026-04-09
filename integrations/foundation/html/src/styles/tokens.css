@@ -72,11 +72,11 @@
   --bf-color-info:        var(--bf-color-brand-600);
   --bf-color-info-bg:     var(--bf-color-brand-50);
 
-  /* Vote */
-  --bf-color-vote-up:     #16a34a;
-  --bf-color-vote-up-bg:  #f0fdf4;
-  --bf-color-vote-down:   #dc2626;
-  --bf-color-vote-down-bg:#fef2f2;
+  /* Feedback */
+  --bf-color-feedback-up:     #16a34a;
+  --bf-color-feedback-up-bg:  #f0fdf4;
+  --bf-color-feedback-down:   #dc2626;
+  --bf-color-feedback-down-bg:#fef2f2;
 
   /* Focus */
   --bf-color-focus-ring:  var(--bf-color-brand-500);
@@ -230,10 +230,10 @@
   --bf-tag-padding:         var(--bf-space-1) var(--bf-space-3);
   --bf-tag-size:            var(--bf-font-size-xs);
 
-  /* Vote */
-  --bf-vote-btn-size:       var(--bf-font-size-sm);
-  --bf-vote-btn-radius:     var(--bf-radius-full);
-  --bf-vote-btn-padding:    var(--bf-space-1) var(--bf-space-3);
+  /* Feedback */
+  --bf-feedback-btn-size:       var(--bf-font-size-sm);
+  --bf-feedback-btn-radius:     var(--bf-radius-full);
+  --bf-feedback-btn-padding:    var(--bf-space-1) var(--bf-space-3);
 
   /* Source link */
   --bf-source-size:         var(--bf-font-size-sm);

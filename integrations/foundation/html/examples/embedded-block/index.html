@@ -64,10 +64,10 @@
       --bf-color-interactive-bg: #eef2ff;
       --bf-color-info-bg: #eef2ff;
       --bf-color-brand-400: #818cf8;
-      --bf-color-vote-up: #16a34a;
-      --bf-color-vote-up-bg: #f0fdf4;
-      --bf-color-vote-down: #dc2626;
-      --bf-color-vote-down-bg: #fef2f2;
+      --bf-color-feedback-up: #16a34a;
+      --bf-color-feedback-up-bg: #f0fdf4;
+      --bf-color-feedback-down: #dc2626;
+      --bf-color-feedback-down-bg: #fef2f2;
       --bf-color-focus-ring: #6366f1;
       --bf-space-1: 0.25rem; --bf-space-2: 0.5rem; --bf-space-3: 0.75rem;
       --bf-space-4: 1rem;    --bf-space-5: 1.25rem; --bf-space-6: 1.5rem;
@@ -153,13 +153,13 @@
     .bf-faq__sources-list { display: flex; flex-wrap: wrap; gap: var(--bf-space-2); }
     .bf-faq__source-link { font-size: var(--bf-font-size-sm); color: var(--bf-source-color); text-decoration: none; display: inline-flex; align-items: center; gap: var(--bf-space-1); }
     .bf-faq__source-link:hover { text-decoration: underline; }
-    .bf-faq__vote { display: flex; align-items: center; gap: var(--bf-space-3); margin-top: var(--bf-space-4); padding-top: var(--bf-space-3); border-top: var(--bf-border-width-thin) solid var(--bf-color-border); flex-wrap: wrap; }
-    .bf-faq__vote-label { font-size: var(--bf-font-size-sm); color: var(--bf-color-text-muted); }
-    .bf-faq__vote-actions { display: flex; gap: var(--bf-space-2); }
-    .bf-faq__vote-btn { display: inline-flex; align-items: center; gap: var(--bf-space-1); padding: var(--bf-space-1) var(--bf-space-3); font-size: var(--bf-font-size-sm); font-weight: var(--bf-font-weight-medium); border: var(--bf-border-width-thin) solid var(--bf-color-border); border-radius: var(--bf-radius-full); background: transparent; cursor: pointer; color: var(--bf-color-text-secondary); transition: color var(--bf-duration-fast), border-color var(--bf-duration-fast), background var(--bf-duration-fast); line-height: 1; }
-    .bf-faq__vote-btn--up.is-voted { color: var(--bf-color-vote-up); border-color: var(--bf-color-vote-up); background: var(--bf-color-vote-up-bg); }
-    .bf-faq__vote-btn--down.is-voted { color: var(--bf-color-vote-down); border-color: var(--bf-color-vote-down); background: var(--bf-color-vote-down-bg); }
-    .bf-faq__vote-score { font-size: var(--bf-font-size-sm); color: var(--bf-color-text-muted); }
+    .bf-faq__feedback { display: flex; align-items: center; gap: var(--bf-space-3); margin-top: var(--bf-space-4); padding-top: var(--bf-space-3); border-top: var(--bf-border-width-thin) solid var(--bf-color-border); flex-wrap: wrap; }
+    .bf-faq__feedback-label { font-size: var(--bf-font-size-sm); color: var(--bf-color-text-muted); }
+    .bf-faq__feedback-actions { display: flex; gap: var(--bf-space-2); }
+    .bf-faq__feedback-btn { display: inline-flex; align-items: center; gap: var(--bf-space-1); padding: var(--bf-space-1) var(--bf-space-3); font-size: var(--bf-font-size-sm); font-weight: var(--bf-font-weight-medium); border: var(--bf-border-width-thin) solid var(--bf-color-border); border-radius: var(--bf-radius-full); background: transparent; cursor: pointer; color: var(--bf-color-text-secondary); transition: color var(--bf-duration-fast), border-color var(--bf-duration-fast), background var(--bf-duration-fast); line-height: 1; }
+    .bf-faq__feedback-btn--up.is-selected { color: var(--bf-color-feedback-up); border-color: var(--bf-color-feedback-up); background: var(--bf-color-feedback-up-bg); }
+    .bf-faq__feedback-btn--down.is-selected { color: var(--bf-color-feedback-down); border-color: var(--bf-color-feedback-down); background: var(--bf-color-feedback-down-bg); }
+    .bf-faq__feedback-score { font-size: var(--bf-font-size-sm); color: var(--bf-color-text-muted); }
     .bf-tag { display: inline-flex; align-items: center; padding: var(--bf-tag-padding); background: var(--bf-tag-bg); color: var(--bf-tag-color); border-radius: var(--bf-tag-radius); font-size: var(--bf-font-size-xs); font-weight: var(--bf-font-weight-medium); border: var(--bf-border-width-thin) solid var(--bf-color-border); }
     .bf-faq__loading { display: flex; align-items: center; gap: var(--bf-space-3); padding: var(--bf-space-6); color: var(--bf-color-text-muted); font-size: var(--bf-font-size-sm); }
     .bf-faq__loading-spinner { width: 1.25rem; height: 1.25rem; border: 2px solid var(--bf-color-border); border-top-color: var(--bf-color-interactive); border-radius: 50%; animation: bf-spin 400ms linear infinite; flex-shrink: 0; }
@@ -271,14 +271,14 @@
       const cta    = item.ctaUrl
         ? `<a href="${esc(item.ctaUrl)}" class="bf-faq__cta" target="_blank" rel="noopener noreferrer">${esc(item.ctaTitle||'Learn more')}</a>`
         : '';
-      const vote   = `
-        <div class="bf-faq__vote" data-vote-container data-item-id="${esc(item.id)}">
-          <span class="bf-faq__vote-label">Was this helpful?</span>
-          <div class="bf-faq__vote-actions">
-            <button class="bf-faq__vote-btn bf-faq__vote-btn--up" type="button" data-vote-up aria-pressed="false">👍 Yes</button>
-            <button class="bf-faq__vote-btn bf-faq__vote-btn--down" type="button" data-vote-down aria-pressed="false">👎 No</button>
+      const feedback   = `
+        <div class="bf-faq__feedback" data-feedback-container data-item-id="${esc(item.id)}">
+          <span class="bf-faq__feedback-label">Was this helpful?</span>
+          <div class="bf-faq__feedback-actions">
+            <button class="bf-faq__feedback-btn bf-faq__feedback-btn--up" type="button" data-feedback-up aria-pressed="false">👍 Yes</button>
+            <button class="bf-faq__feedback-btn bf-faq__feedback-btn--down" type="button" data-feedback-down aria-pressed="false">👎 No</button>
           </div>
-          <span class="bf-faq__vote-score">${item.voteScore > 0 ? '+' : ''}${item.voteScore}</span>
+          <span class="bf-faq__feedback-score">${item.feedbackScore > 0 ? '+' : ''}${item.feedbackScore}</span>
         </div>`;
       return `
         <details class="bf-faq__item" data-basefaq-item-id="${esc(item.id)}" role="listitem">
@@ -288,7 +288,7 @@
           </summary>
           <div class="bf-faq__answer">
             <div class="bf-faq__answer-body">${answer}</div>
-            ${addl}${cta}${vote}
+            ${addl}${cta}${feedback}
           </div>
         </details>`;
     }
@@ -309,19 +309,19 @@
     }
 
     document.addEventListener('click', async (e) => {
-      const btn = e.target.closest('[data-vote-up],[data-vote-down]');
+      const btn = e.target.closest('[data-feedback-up],[data-feedback-down]');
       if (!btn || !CLIENT_KEY) return;
-      const c   = btn.closest('[data-vote-container]');
+      const c   = btn.closest('[data-feedback-container]');
       const id  = c?.dataset.itemId;
       if (!id) return;
-      const like = btn.hasAttribute('data-vote-up');
+      const like = btn.hasAttribute('data-feedback-up');
       try {
-        await fetch(`${BASE_URL}/api/faqs/vote`, {
+        await fetch(`${BASE_URL}/api/faqs/feedback`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'X-Client-Key': CLIENT_KEY },
           body: JSON.stringify({ faqItemId: id, like }),
         });
-        btn.classList.add('is-voted');
+        btn.classList.add('is-selected');
         btn.setAttribute('aria-pressed', 'true');
       } catch {}
     });

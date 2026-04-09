@@ -28,7 +28,7 @@ public class FaqDbContext(
     public DbSet<ContentRef> ContentRefs { get; set; }
     public DbSet<FaqTag> FaqTags { get; set; }
     public DbSet<FaqContentRef> FaqContentRefs { get; set; }
-    public DbSet<Vote> Votes { get; set; }
+    public DbSet<Feedback> Feedbacks { get; set; }
 
     protected override IEnumerable<string> ConfigurationNamespaces =>
     [

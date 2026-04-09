@@ -10,8 +10,8 @@
  *   bf:faq-view       — FAQ root entered viewport
  *   bf:item-open      — user expanded an FAQ item
  *   bf:item-close     — user collapsed an FAQ item
- *   bf:vote-up        — user voted up on an item
- *   bf:vote-down      — user voted down on an item
+ *   bf:feedback-up        — user selected up on an item
+ *   bf:feedback-down      — user selected down on an item
  *   bf:cta-click      — user clicked a CTA link
  *   bf:source-click   — user clicked a source/content-ref link
  *   bf:search         — user submitted a search query
@@ -68,16 +68,16 @@ export class BaseFaqAnalytics {
       this.emit({ type: 'bf:item-close', faqId: this.faqId(), itemId });
     });
 
-    // Vote buttons
+    // Feedback buttons
     this.root.addEventListener('click', (e) => {
       const target = e.target as Element;
-      const voteBtn = target.closest<HTMLElement>('.bf-faq__vote-btn');
-      if (!voteBtn) return;
-      const item   = voteBtn.closest<HTMLElement>('[data-basefaq-item-id]');
+      const feedbackBtn = target.closest<HTMLElement>('.bf-faq__feedback-btn');
+      if (!feedbackBtn) return;
+      const item   = feedbackBtn.closest<HTMLElement>('[data-basefaq-item-id]');
       const itemId = item?.dataset['basefaqItemId'];
-      const isUp   = voteBtn.classList.contains('bf-faq__vote-btn--up');
+      const isUp   = feedbackBtn.classList.contains('bf-faq__feedback-btn--up');
       this.emit({
-        type:   isUp ? 'bf:vote-up' : 'bf:vote-down',
+        type:   isUp ? 'bf:feedback-up' : 'bf:feedback-down',
         faqId:  this.faqId(),
         itemId,
       });

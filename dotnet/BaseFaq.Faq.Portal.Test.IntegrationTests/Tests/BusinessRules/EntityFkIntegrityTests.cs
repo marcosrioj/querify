@@ -22,7 +22,7 @@ public class EntityFkIntegrityTests
             CtaTitle = "CTA",
             CtaUrl = "https://example.test/cta",
             Sort = 1,
-            VoteScore = 0,
+            FeedbackScore = 0,
             AiConfidenceScore = 0,
             IsActive = true,
             FaqId = Guid.NewGuid(),
@@ -49,7 +49,7 @@ public class EntityFkIntegrityTests
             CtaTitle = "CTA",
             CtaUrl = "https://example.test/cta",
             Sort = 1,
-            VoteScore = 0,
+            FeedbackScore = 0,
             AiConfidenceScore = 0,
             IsActive = true,
             FaqId = faq.Id,
@@ -63,11 +63,11 @@ public class EntityFkIntegrityTests
     }
 
     [Fact]
-    public async Task Vote_ThrowsWhenFaqItemDoesNotExist()
+    public async Task Feedback_ThrowsWhenFaqItemDoesNotExist()
     {
         using var context = TestContext.Create();
 
-        var vote = new Common.Persistence.FaqDb.Entities.Vote
+        var feedback = new Common.Persistence.FaqDb.Entities.Feedback
         {
             Like = true,
             UserPrint = "user",
@@ -78,7 +78,7 @@ public class EntityFkIntegrityTests
             FaqItemId = Guid.NewGuid()
         };
 
-        context.DbContext.Votes.Add(vote);
+        context.DbContext.Feedbacks.Add(feedback);
 
         await Assert.ThrowsAsync<DbUpdateException>(() => context.DbContext.SaveChangesAsync());
     }

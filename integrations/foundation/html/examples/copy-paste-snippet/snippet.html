@@ -60,11 +60,11 @@
     '.bfq__a{padding:0 1.25rem 1rem;border-top:1px solid var(--bb)}',
     '.bfq__abody{font-size:1rem;color:var(--bs);line-height:1.625;padding-top:1rem}',
     '.bfq__abody p{margin:0 0 0.75rem}.bfq__abody p:last-child{margin:0}',
-    '.bfq__vote{display:flex;align-items:center;gap:0.75rem;margin-top:1rem;padding-top:0.75rem;border-top:1px solid var(--bb);flex-wrap:wrap}',
+    '.bfq__feedback{display:flex;align-items:center;gap:0.75rem;margin-top:1rem;padding-top:0.75rem;border-top:1px solid var(--bb);flex-wrap:wrap}',
     '.bfq__vl{font-size:0.875rem;color:var(--bm)}',
     '.bfq__vb{display:inline-flex;align-items:center;gap:0.25rem;padding:0.25rem 0.75rem;font-size:0.875rem;font-weight:500;border:1px solid var(--bb);border-radius:9999px;background:transparent;cursor:pointer;color:var(--bs);transition:color 150ms,border-color 150ms,background 150ms}',
-    '.bfq__vb.up.voted,.bfq__vb.up:hover{color:#16a34a;border-color:#16a34a;background:#f0fdf4}',
-    '.bfq__vb.dn.voted,.bfq__vb.dn:hover{color:#dc2626;border-color:#dc2626;background:#fef2f2}',
+    '.bfq__vb.up.selected,.bfq__vb.up:hover{color:#16a34a;border-color:#16a34a;background:#f0fdf4}',
+    '.bfq__vb.dn.selected,.bfq__vb.dn:hover{color:#dc2626;border-color:#dc2626;background:#fef2f2}',
     '.bfq__score{font-size:0.875rem;color:var(--bm)}',
     '.bfq__loading{padding:2rem;text-align:center;color:var(--bm)}',
     '@media(prefers-reduced-motion:reduce){.bfq__chevron,.bfq__item{transition:none}}',
@@ -93,11 +93,11 @@
             + '<summary class="bfq__q"><span>' + esc(item.question) + '</span>'
             + '<svg class="bfq__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg></summary>'
             + '<div class="bfq__a"><div class="bfq__abody">' + answer + '</div>'
-            + '<div class="bfq__vote">'
+            + '<div class="bfq__feedback">'
             + '<span class="bfq__vl">Was this helpful?</span>'
             + '<button class="bfq__vb up" type="button" data-up aria-pressed="false">👍 Yes</button>'
             + '<button class="bfq__vb dn" type="button" data-dn aria-pressed="false">👎 No</button>'
-            + '<span class="bfq__score">' + (item.voteScore > 0 ? '+' : '') + item.voteScore + '</span>'
+            + '<span class="bfq__score">' + (item.feedbackScore > 0 ? '+' : '') + item.feedbackScore + '</span>'
             + '</div></div></details>';
     });
 
@@ -120,7 +120,7 @@
     el.innerHTML = '<div class="bfq"><p style="color:#dc2626">Error loading FAQ: ' + esc(e.message) + '</p></div>';
   });
 
-  // Vote handler
+  // Feedback handler
   el.addEventListener('click', function(e) {
     var btn = e.target.closest('[data-up],[data-dn]');
     if (!btn) return;
@@ -128,12 +128,12 @@
     var id   = item && item.dataset.id;
     if (!id) return;
     var like = btn.hasAttribute('data-up');
-    fetch(BASE + '/api/faqs/vote', {
+    fetch(BASE + '/api/faqs/feedback', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-Client-Key': KEY },
       body: JSON.stringify({ faqItemId: id, like: like })
     }).then(function() {
-      btn.classList.add('voted');
+      btn.classList.add('selected');
       btn.setAttribute('aria-pressed', 'true');
     }).catch(function() {});
   });

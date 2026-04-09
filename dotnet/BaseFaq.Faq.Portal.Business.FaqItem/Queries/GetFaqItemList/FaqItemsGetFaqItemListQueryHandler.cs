@@ -79,7 +79,7 @@ public class FaqItemsGetFaqItemListQueryHandler(FaqDbContext dbContext)
                 CtaTitle = item.CtaTitle,
                 CtaUrl = item.CtaUrl,
                 Sort = item.Sort,
-                VoteScore = item.VoteScore,
+                FeedbackScore = item.FeedbackScore,
                 AiConfidenceScore = item.AiConfidenceScore,
                 IsActive = item.IsActive,
                 FaqId = item.FaqId,
@@ -176,13 +176,13 @@ public class FaqItemsGetFaqItemListQueryHandler(FaqDbContext dbContext)
                     ? ((IOrderedQueryable<Common.Persistence.FaqDb.Entities.FaqItem>)query)
                     .ThenByDescending(item => item.Sort)
                     : ((IOrderedQueryable<Common.Persistence.FaqDb.Entities.FaqItem>)query).ThenBy(item => item.Sort)),
-            "votescore" => isFirst
-                ? (desc ? query.OrderByDescending(item => item.VoteScore) : query.OrderBy(item => item.VoteScore))
+            "feedbackscore" => isFirst
+                ? (desc ? query.OrderByDescending(item => item.FeedbackScore) : query.OrderBy(item => item.FeedbackScore))
                 : (desc
                     ? ((IOrderedQueryable<Common.Persistence.FaqDb.Entities.FaqItem>)query)
-                    .ThenByDescending(item => item.VoteScore)
+                    .ThenByDescending(item => item.FeedbackScore)
                     : ((IOrderedQueryable<Common.Persistence.FaqDb.Entities.FaqItem>)query).ThenBy(item =>
-                        item.VoteScore)),
+                        item.FeedbackScore)),
             "aiconfidencescore" => isFirst
                 ? (desc
                     ? query.OrderByDescending(item => item.AiConfidenceScore)

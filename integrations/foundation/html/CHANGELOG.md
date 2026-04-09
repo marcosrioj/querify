@@ -14,9 +14,9 @@ All notable changes to the BaseFAQ HTML Foundation integration are documented he
 - `BaseFaqClient` TypeScript API client for `https://dev.faq.public.basefaq.com`
   - `GET /api/faqs/faq` — list with pagination, status filter, and includes
   - `GET /api/faqs/faq/{id}` — single FAQ by ID
-  - `POST /api/faqs/vote` — thumbs up / down with `UnLikeReason`
+  - `POST /api/faqs/feedback` — thumbs up / down with `UnLikeReason`
 - `BaseFaqAccordion` progressive enhancement: single-open mode, animated height, deep-link
-- `BaseFaqAnalytics` event surface: visibility, open/close, vote, CTA, source clicks
+- `BaseFaqAnalytics` event surface: visibility, open/close, feedback, CTA, source clicks
 - `buildFaqPageJsonLd` / `injectFaqPageJsonLd` — FAQPage JSON-LD builder (schema.org)
 - i18n message files for English (`messages.en.json`) and Arabic (`messages.ar.json`)
 - Public page example (`examples/public-page/index.html`) — full API integration with:

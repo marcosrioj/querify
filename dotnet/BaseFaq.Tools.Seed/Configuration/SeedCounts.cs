@@ -10,7 +10,7 @@ public sealed record SeedCounts(
     int ContentRefCount,
     int TagsPerFaq,
     int ContentRefsPerFaq,
-    int VotesPerItem)
+    int FeedbacksPerItem)
 {
     public static SeedCounts Default => new(
         UserCount: 1,
@@ -22,5 +22,5 @@ public sealed record SeedCounts(
         ContentRefCount: 128,
         TagsPerFaq: 4,
         ContentRefsPerFaq: 8,
-        VotesPerItem: 6);
+        FeedbacksPerItem: 6);
 }
