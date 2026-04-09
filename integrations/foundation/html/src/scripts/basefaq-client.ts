@@ -58,6 +58,7 @@ export interface FaqItemDto {
   question:          string;
   shortAnswer:       string;
   answer:            string | null;
+  answers:           FaqItemAnswerDto[];
   additionalInfo:    string | null;
   ctaTitle:          string | null;
   ctaUrl:            string | null;
@@ -67,6 +68,16 @@ export interface FaqItemDto {
   isActive:          boolean;
   faqId:             string;
   contentRefId:      string | null;
+}
+
+export interface FaqItemAnswerDto {
+  id:          string;
+  shortAnswer: string;
+  answer:      string | null;
+  sort:        number;
+  voteScore:   number;
+  isActive:    boolean;
+  faqItemId:   string;
 }
 
 export interface FaqDetailDto {
@@ -108,6 +119,10 @@ export interface FeedbackCreateRequestDto {
   like:          boolean;
   unlikeReason?: UnLikeReason;
   faqItemId:     string;
+}
+
+export interface VoteCreateRequestDto {
+  faqItemAnswerId: string;
 }
 
 // ─── API error ─────────────────────────────────────────────────────────────
@@ -224,6 +239,14 @@ export class BaseFaqClient {
   /** POST /api/faqs/feedback — submit a feedback for an FAQ item. */
   async feedback(dto: FeedbackCreateRequestDto): Promise<string> {
     return this.request<string>('/api/faqs/feedback', {
+      method: 'POST',
+      body:   JSON.stringify(dto),
+    });
+  }
+
+  /** POST /api/faqs/vote — submit a vote for a specific FAQ item answer. */
+  async vote(dto: VoteCreateRequestDto): Promise<string> {
+    return this.request<string>('/api/faqs/vote', {
       method: 'POST',
       body:   JSON.stringify(dto),
     });

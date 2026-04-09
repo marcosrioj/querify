@@ -1,13 +1,18 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import {
+  createFaqItemAnswer,
   createFaqItem,
+  deleteFaqItemAnswer,
   deleteFaqItem,
   getFaqItem,
   listFaqItems,
+  updateFaqItemAnswer,
   updateFaqItem,
 } from '@/domains/faq-items/api';
 import type {
+  FaqItemAnswerCreateRequestDto,
+  FaqItemAnswerUpdateRequestDto,
   FaqItemCreateRequestDto,
   FaqItemUpdateRequestDto,
 } from '@/domains/faq-items/types';
@@ -27,6 +32,13 @@ export const faqItemKeys = {
     isActive?: boolean;
   }) => [...faqItemKeys.all, 'list', params] as const,
   detail: (id: string) => [...faqItemKeys.all, 'detail', id] as const,
+};
+
+export const faqItemAnswerKeys = {
+  all: ['portal', 'faq-item-answers'] as const,
+  create: ['portal', 'faq-item-answers', 'create'] as const,
+  update: (id: string) => [...faqItemAnswerKeys.all, 'update', id] as const,
+  delete: ['portal', 'faq-item-answers', 'delete'] as const,
 };
 
 export function useFaqItemList({
@@ -114,6 +126,57 @@ export function useDeleteFaqItem() {
     onSuccess: async () => {
       toast.success(translateText('Q&A item deleted.'));
       await queryClient.invalidateQueries({ queryKey: faqItemKeys.all });
+    },
+  });
+}
+
+export function useCreateFaqItemAnswer() {
+  const { session } = useAuth();
+  const { currentTenantId } = useTenant();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationKey: faqItemAnswerKeys.create,
+    mutationFn: (body: FaqItemAnswerCreateRequestDto) =>
+      createFaqItemAnswer(session?.accessToken, currentTenantId, body),
+    onSuccess: async () => {
+      toast.success(translateText('Answer created.'));
+      await queryClient.invalidateQueries({ queryKey: faqItemKeys.all });
+      await queryClient.invalidateQueries({ queryKey: faqItemAnswerKeys.all });
+    },
+  });
+}
+
+export function useUpdateFaqItemAnswer(id: string) {
+  const { session } = useAuth();
+  const { currentTenantId } = useTenant();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationKey: faqItemAnswerKeys.update(id),
+    mutationFn: (body: FaqItemAnswerUpdateRequestDto) =>
+      updateFaqItemAnswer(session?.accessToken, currentTenantId, id, body),
+    onSuccess: async () => {
+      toast.success(translateText('Answer updated.'));
+      await queryClient.invalidateQueries({ queryKey: faqItemKeys.all });
+      await queryClient.invalidateQueries({ queryKey: faqItemAnswerKeys.all });
+    },
+  });
+}
+
+export function useDeleteFaqItemAnswer() {
+  const { session } = useAuth();
+  const { currentTenantId } = useTenant();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationKey: faqItemAnswerKeys.delete,
+    mutationFn: (id: string) =>
+      deleteFaqItemAnswer(session?.accessToken, currentTenantId, id),
+    onSuccess: async () => {
+      toast.success(translateText('Answer deleted.'));
+      await queryClient.invalidateQueries({ queryKey: faqItemKeys.all });
+      await queryClient.invalidateQueries({ queryKey: faqItemAnswerKeys.all });
     },
   });
 }

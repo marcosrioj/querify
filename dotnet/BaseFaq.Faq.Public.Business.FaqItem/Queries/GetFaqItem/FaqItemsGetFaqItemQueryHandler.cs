@@ -1,4 +1,5 @@
 using BaseFaq.Faq.Common.Persistence.FaqDb;
+using BaseFaq.Faq.Common.Persistence.FaqDb.Projections;
 using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Common.Infrastructure.Core.Constants;
 using BaseFaq.Models.Faq.Dtos.FaqItem;
@@ -24,22 +25,7 @@ public class FaqItemsGetFaqItemQueryHandler(
         return await dbContext.FaqItems
             .AsNoTracking()
             .Where(item => item.TenantId == tenantId && item.Id == request.Id)
-            .Select(item => new FaqItemDto
-            {
-                Id = item.Id,
-                Question = item.Question,
-                ShortAnswer = item.ShortAnswer,
-                Answer = item.Answer,
-                AdditionalInfo = item.AdditionalInfo,
-                CtaTitle = item.CtaTitle,
-                CtaUrl = item.CtaUrl,
-                Sort = item.Sort,
-                FeedbackScore = item.FeedbackScore,
-                AiConfidenceScore = item.AiConfidenceScore,
-                IsActive = item.IsActive,
-                FaqId = item.FaqId,
-                ContentRefId = item.ContentRefId
-            })
+            .SelectPublicFaqItemDtos()
             .FirstOrDefaultAsync(cancellationToken);
     }
 }

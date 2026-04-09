@@ -16,8 +16,6 @@ public class EntityFkIntegrityTests
         var faqItem = new Common.Persistence.FaqDb.Entities.FaqItem
         {
             Question = "Question",
-            ShortAnswer = "Short",
-            Answer = "Answer",
             AdditionalInfo = "Info",
             CtaTitle = "CTA",
             CtaUrl = "https://example.test/cta",
@@ -43,8 +41,6 @@ public class EntityFkIntegrityTests
         var faqItem = new Common.Persistence.FaqDb.Entities.FaqItem
         {
             Question = "Question",
-            ShortAnswer = "Short",
-            Answer = "Answer",
             AdditionalInfo = "Info",
             CtaTitle = "CTA",
             CtaUrl = "https://example.test/cta",
@@ -79,6 +75,25 @@ public class EntityFkIntegrityTests
         };
 
         context.DbContext.Feedbacks.Add(feedback);
+
+        await Assert.ThrowsAsync<DbUpdateException>(() => context.DbContext.SaveChangesAsync());
+    }
+
+    [Fact]
+    public async Task Vote_ThrowsWhenFaqItemAnswerDoesNotExist()
+    {
+        using var context = TestContext.Create();
+
+        var vote = new Common.Persistence.FaqDb.Entities.Vote
+        {
+            UserPrint = "user",
+            Ip = "127.0.0.1",
+            UserAgent = "agent",
+            TenantId = context.SessionService.TenantId,
+            FaqItemAnswerId = Guid.NewGuid()
+        };
+
+        context.DbContext.Votes.Add(vote);
 
         await Assert.ThrowsAsync<DbUpdateException>(() => context.DbContext.SaveChangesAsync());
     }

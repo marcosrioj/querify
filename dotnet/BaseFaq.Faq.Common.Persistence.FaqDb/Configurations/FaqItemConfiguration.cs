@@ -17,13 +17,6 @@ public class FaqItemConfiguration : BaseConfiguration<FaqItem>
             .HasMaxLength(FaqItem.MaxQuestionLength)
             .IsRequired();
 
-        builder.Property(p => p.ShortAnswer)
-            .HasMaxLength(FaqItem.MaxShortAnswerLength)
-            .IsRequired();
-
-        builder.Property(p => p.Answer)
-            .HasMaxLength(FaqItem.MaxAnswerLength);
-
         builder.Property(p => p.AdditionalInfo)
             .HasMaxLength(FaqItem.MaxAdditionalInfoLength);
 
@@ -53,5 +46,15 @@ public class FaqItemConfiguration : BaseConfiguration<FaqItem>
 
         builder.HasIndex(p => p.FaqId)
             .HasDatabaseName("IX_FaqItem_FaqId");
+
+        builder.HasMany(p => p.Answers)
+            .WithOne(p => p.FaqItem)
+            .HasForeignKey(p => p.FaqItemId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasMany(p => p.Feedbacks)
+            .WithOne(p => p.FaqItem)
+            .HasForeignKey(p => p.FaqItemId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

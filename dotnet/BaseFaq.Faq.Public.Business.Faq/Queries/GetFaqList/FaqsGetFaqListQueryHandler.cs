@@ -109,8 +109,36 @@ public class FaqsGetFaqListQueryHandler(
                     {
                         Id = item.Id,
                         Question = item.Question,
-                        ShortAnswer = item.ShortAnswer,
-                        Answer = item.Answer,
+                        ShortAnswer = item.Answers
+                            .Where(answer => answer.IsActive)
+                            .OrderBy(answer => answer.Sort)
+                            .ThenByDescending(answer => answer.VoteScore)
+                            .ThenBy(answer => answer.Id)
+                            .Select(answer => answer.ShortAnswer)
+                            .FirstOrDefault() ?? string.Empty,
+                        Answer = item.Answers
+                            .Where(answer => answer.IsActive)
+                            .OrderBy(answer => answer.Sort)
+                            .ThenByDescending(answer => answer.VoteScore)
+                            .ThenBy(answer => answer.Id)
+                            .Select(answer => answer.Answer)
+                            .FirstOrDefault(),
+                        Answers = item.Answers
+                            .Where(answer => answer.IsActive)
+                            .OrderBy(answer => answer.Sort)
+                            .ThenByDescending(answer => answer.VoteScore)
+                            .ThenBy(answer => answer.Id)
+                            .Select(answer => new BaseFaq.Models.Faq.Dtos.FaqItemAnswer.FaqItemAnswerDto
+                            {
+                                Id = answer.Id,
+                                ShortAnswer = answer.ShortAnswer,
+                                Answer = answer.Answer,
+                                Sort = answer.Sort,
+                                VoteScore = answer.VoteScore,
+                                IsActive = answer.IsActive,
+                                FaqItemId = answer.FaqItemId
+                            })
+                            .ToList(),
                         AdditionalInfo = item.AdditionalInfo,
                         CtaTitle = item.CtaTitle,
                         CtaUrl = item.CtaUrl,

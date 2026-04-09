@@ -1,4 +1,5 @@
 using BaseFaq.Faq.Common.Persistence.FaqDb;
+using BaseFaq.Faq.Common.Persistence.FaqDb.Projections;
 using BaseFaq.Models.Faq.Dtos.FaqItem;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -10,29 +11,10 @@ public class FaqItemsGetFaqItemQueryHandler(FaqDbContext dbContext)
 {
     public async Task<FaqItemDto?> Handle(FaqItemsGetFaqItemQuery request, CancellationToken cancellationToken)
     {
-        var faqItem = await dbContext.FaqItems
+        return await dbContext.FaqItems
             .AsNoTracking()
-            .FirstOrDefaultAsync(entity => entity.Id == request.Id, cancellationToken);
-        if (faqItem is null)
-        {
-            return null;
-        }
-
-        return new FaqItemDto
-        {
-            Id = faqItem.Id,
-            Question = faqItem.Question,
-            ShortAnswer = faqItem.ShortAnswer,
-            Answer = faqItem.Answer,
-            AdditionalInfo = faqItem.AdditionalInfo,
-            CtaTitle = faqItem.CtaTitle,
-            CtaUrl = faqItem.CtaUrl,
-            Sort = faqItem.Sort,
-            FeedbackScore = faqItem.FeedbackScore,
-            AiConfidenceScore = faqItem.AiConfidenceScore,
-            IsActive = faqItem.IsActive,
-            FaqId = faqItem.FaqId,
-            ContentRefId = faqItem.ContentRefId
-        };
+            .Where(entity => entity.Id == request.Id)
+            .SelectPortalFaqItemDtos()
+            .FirstOrDefaultAsync(cancellationToken);
     }
 }

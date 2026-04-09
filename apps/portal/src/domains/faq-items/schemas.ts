@@ -2,8 +2,6 @@ import { z } from 'zod';
 
 export const faqItemFormSchema = z.object({
   question: z.string().min(3, 'Question is required.'),
-  shortAnswer: z.string().min(3, 'Short answer is required.'),
-  answer: z.string().optional(),
   additionalInfo: z.string().optional(),
   ctaTitle: z.string().optional(),
   ctaUrl: z

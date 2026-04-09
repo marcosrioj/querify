@@ -1,8 +1,29 @@
+export type FaqItemAnswerDto = {
+  id: string;
+  shortAnswer: string;
+  answer?: string | null;
+  sort: number;
+  voteScore: number;
+  isActive: boolean;
+  faqItemId: string;
+};
+
+export type FaqItemAnswerCreateRequestDto = {
+  shortAnswer: string;
+  answer?: string | null;
+  sort: number;
+  isActive: boolean;
+  faqItemId: string;
+};
+
+export type FaqItemAnswerUpdateRequestDto = FaqItemAnswerCreateRequestDto;
+
 export type FaqItemDto = {
   id: string;
   question: string;
-  shortAnswer: string;
+  shortAnswer?: string | null;
   answer?: string | null;
+  answers: FaqItemAnswerDto[];
   additionalInfo?: string | null;
   ctaTitle?: string | null;
   ctaUrl?: string | null;
@@ -16,8 +37,6 @@ export type FaqItemDto = {
 
 export type FaqItemCreateRequestDto = {
   question: string;
-  shortAnswer: string;
-  answer?: string | null;
   additionalInfo?: string | null;
   ctaTitle?: string | null;
   ctaUrl?: string | null;

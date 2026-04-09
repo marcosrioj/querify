@@ -22,8 +22,6 @@ public class FaqItemsUpdateFaqItemCommandHandler(FaqDbContext dbContext)
         }
 
         faqItem.Question = request.Question;
-        faqItem.ShortAnswer = request.ShortAnswer;
-        faqItem.Answer = request.Answer;
         faqItem.AdditionalInfo = request.AdditionalInfo;
         faqItem.CtaTitle = request.CtaTitle;
         faqItem.CtaUrl = request.CtaUrl;

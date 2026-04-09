@@ -31,6 +31,7 @@
         <ProjectReference Include="..\BaseFaq.Faq.Public.Business.Faq\BaseFaq.Faq.Public.Business.Faq.csproj"/>
         <ProjectReference Include="..\BaseFaq.Faq.Public.Business.FaqItem\BaseFaq.Faq.Public.Business.FaqItem.csproj"/>
         <ProjectReference Include="..\BaseFaq.Faq.Public.Business.Feedback\BaseFaq.Faq.Public.Business.Feedback.csproj"/>
+        <ProjectReference Include="..\BaseFaq.Faq.Public.Business.Vote\BaseFaq.Faq.Public.Business.Vote.csproj"/>
     </ItemGroup>
 
 </Project>

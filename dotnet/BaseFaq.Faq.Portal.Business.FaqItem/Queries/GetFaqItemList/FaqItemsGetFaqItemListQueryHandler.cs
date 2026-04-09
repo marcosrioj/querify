@@ -1,4 +1,5 @@
 using BaseFaq.Faq.Common.Persistence.FaqDb;
+using BaseFaq.Faq.Common.Persistence.FaqDb.Projections;
 using BaseFaq.Models.Common.Dtos;
 using BaseFaq.Models.Faq.Dtos.FaqItem;
 using MediatR;
@@ -53,8 +54,8 @@ public class FaqItemsGetFaqItemListQueryHandler(FaqDbContext dbContext)
             var pattern = $"%{request.SearchText.Trim()}%";
             query = query.Where(item =>
                 EF.Functions.ILike(item.Question, pattern) ||
-                EF.Functions.ILike(item.ShortAnswer, pattern) ||
-                (item.Answer != null && EF.Functions.ILike(item.Answer, pattern)) ||
+                item.Answers.Any(answer => EF.Functions.ILike(answer.ShortAnswer, pattern)) ||
+                item.Answers.Any(answer => answer.Answer != null && EF.Functions.ILike(answer.Answer, pattern)) ||
                 (item.AdditionalInfo != null && EF.Functions.ILike(item.AdditionalInfo, pattern)));
         }
 
@@ -69,22 +70,7 @@ public class FaqItemsGetFaqItemListQueryHandler(FaqDbContext dbContext)
         return await query
             .Skip(request.Request.SkipCount)
             .Take(request.Request.MaxResultCount)
-            .Select(item => new FaqItemDto
-            {
-                Id = item.Id,
-                Question = item.Question,
-                ShortAnswer = item.ShortAnswer,
-                Answer = item.Answer,
-                AdditionalInfo = item.AdditionalInfo,
-                CtaTitle = item.CtaTitle,
-                CtaUrl = item.CtaUrl,
-                Sort = item.Sort,
-                FeedbackScore = item.FeedbackScore,
-                AiConfidenceScore = item.AiConfidenceScore,
-                IsActive = item.IsActive,
-                FaqId = item.FaqId,
-                ContentRefId = item.ContentRefId
-            })
+            .SelectPortalFaqItemDtos()
             .ToListAsync(cancellationToken);
     }
 
@@ -132,21 +118,63 @@ public class FaqItemsGetFaqItemListQueryHandler(FaqDbContext dbContext)
                     : ((IOrderedQueryable<Common.Persistence.FaqDb.Entities.FaqItem>)query)
                     .ThenBy(item => item.Question)),
             "answer" => isFirst
-                ? (desc ? query.OrderByDescending(item => item.Answer) : query.OrderBy(item => item.Answer))
+                ? (desc
+                    ? query.OrderByDescending(item => item.Answers
+                        .OrderBy(answer => answer.Sort)
+                        .ThenByDescending(answer => answer.VoteScore)
+                        .ThenBy(answer => answer.Id)
+                        .Select(answer => answer.Answer)
+                        .FirstOrDefault())
+                    : query.OrderBy(item => item.Answers
+                        .OrderBy(answer => answer.Sort)
+                        .ThenByDescending(answer => answer.VoteScore)
+                        .ThenBy(answer => answer.Id)
+                        .Select(answer => answer.Answer)
+                        .FirstOrDefault()))
                 : (desc
                     ? ((IOrderedQueryable<Common.Persistence.FaqDb.Entities.FaqItem>)query)
-                    .ThenByDescending(item => item.Answer)
+                    .ThenByDescending(item => item.Answers
+                        .OrderBy(answer => answer.Sort)
+                        .ThenByDescending(answer => answer.VoteScore)
+                        .ThenBy(answer => answer.Id)
+                        .Select(answer => answer.Answer)
+                        .FirstOrDefault())
                     : ((IOrderedQueryable<Common.Persistence.FaqDb.Entities.FaqItem>)query)
-                    .ThenBy(item => item.Answer)),
+                    .ThenBy(item => item.Answers
+                        .OrderBy(answer => answer.Sort)
+                        .ThenByDescending(answer => answer.VoteScore)
+                        .ThenBy(answer => answer.Id)
+                        .Select(answer => answer.Answer)
+                        .FirstOrDefault())),
             "shortanswer" => isFirst
                 ? (desc
-                    ? query.OrderByDescending(item => item.ShortAnswer)
-                    : query.OrderBy(item => item.ShortAnswer))
+                    ? query.OrderByDescending(item => item.Answers
+                        .OrderBy(answer => answer.Sort)
+                        .ThenByDescending(answer => answer.VoteScore)
+                        .ThenBy(answer => answer.Id)
+                        .Select(answer => answer.ShortAnswer)
+                        .FirstOrDefault())
+                    : query.OrderBy(item => item.Answers
+                        .OrderBy(answer => answer.Sort)
+                        .ThenByDescending(answer => answer.VoteScore)
+                        .ThenBy(answer => answer.Id)
+                        .Select(answer => answer.ShortAnswer)
+                        .FirstOrDefault()))
                 : (desc
                     ? ((IOrderedQueryable<Common.Persistence.FaqDb.Entities.FaqItem>)query)
-                    .ThenByDescending(item => item.ShortAnswer)
+                    .ThenByDescending(item => item.Answers
+                        .OrderBy(answer => answer.Sort)
+                        .ThenByDescending(answer => answer.VoteScore)
+                        .ThenBy(answer => answer.Id)
+                        .Select(answer => answer.ShortAnswer)
+                        .FirstOrDefault())
                     : ((IOrderedQueryable<Common.Persistence.FaqDb.Entities.FaqItem>)query).ThenBy(item =>
-                        item.ShortAnswer)),
+                        item.Answers
+                            .OrderBy(answer => answer.Sort)
+                            .ThenByDescending(answer => answer.VoteScore)
+                            .ThenBy(answer => answer.Id)
+                            .Select(answer => answer.ShortAnswer)
+                            .FirstOrDefault())),
             "additionalinfo" => isFirst
                 ? (desc
                     ? query.OrderByDescending(item => item.AdditionalInfo)

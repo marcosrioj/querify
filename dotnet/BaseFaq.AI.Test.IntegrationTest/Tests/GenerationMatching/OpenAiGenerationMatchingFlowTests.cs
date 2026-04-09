@@ -264,18 +264,14 @@ public sealed class OpenAiGenerationMatchingFlowTests
         string answer,
         int confidence)
     {
-        return new FaqItem
-        {
-            Question = Truncate(question, FaqItem.MaxQuestionLength),
-            ShortAnswer = Truncate(summary, FaqItem.MaxShortAnswerLength),
-            Answer = Truncate(answer, FaqItem.MaxAnswerLength),
-            Sort = 99,
-            FeedbackScore = 0,
-            AiConfidenceScore = Math.Clamp(confidence, 0, 100),
-            IsActive = true,
-            FaqId = faqId,
-            TenantId = tenantId
-        };
+        return CreateFaqItemEntity(
+            faqId,
+            tenantId,
+            Truncate(question, FaqItem.MaxQuestionLength),
+            Truncate(summary, FaqItemAnswer.MaxShortAnswerLength),
+            Truncate(answer, FaqItemAnswer.MaxAnswerLength),
+            sort: 99,
+            aiConfidenceScore: Math.Clamp(confidence, 0, 100));
     }
 
     private static void AssertGeneratedDraftIsComplete(string question, string summary, string answer)
@@ -451,31 +447,23 @@ public sealed class OpenAiGenerationMatchingFlowTests
             TenantId = tenantId
         });
 
-        var similarCandidate = new FaqItem
-        {
-            Question = OpenAiLiveTestSettings.DefaultSimilarCandidateQuestion,
-            ShortAnswer = "Use the forgot password option.",
-            Answer = "Click 'Forgot password' on the sign-in page and follow the recovery email instructions.",
-            Sort = 1,
-            FeedbackScore = 0,
-            AiConfidenceScore = 70,
-            IsActive = true,
-            FaqId = faq.Id,
-            TenantId = tenantId
-        };
+        var similarCandidate = CreateFaqItemEntity(
+            faq.Id,
+            tenantId,
+            OpenAiLiveTestSettings.DefaultSimilarCandidateQuestion,
+            "Use the forgot password option.",
+            "Click 'Forgot password' on the sign-in page and follow the recovery email instructions.",
+            sort: 1,
+            aiConfidenceScore: 70);
 
-        var unrelatedCandidate = new FaqItem
-        {
-            Question = "What payment methods are accepted?",
-            ShortAnswer = "We accept cards and instant transfer.",
-            Answer = "You can pay with credit card, debit card, and instant transfer.",
-            Sort = 2,
-            FeedbackScore = 0,
-            AiConfidenceScore = 70,
-            IsActive = true,
-            FaqId = faq.Id,
-            TenantId = tenantId
-        };
+        var unrelatedCandidate = CreateFaqItemEntity(
+            faq.Id,
+            tenantId,
+            "What payment methods are accepted?",
+            "We accept cards and instant transfer.",
+            "You can pay with credit card, debit card, and instant transfer.",
+            sort: 2,
+            aiConfidenceScore: 70);
 
         faqDbContext.FaqItems.AddRange(similarCandidate, unrelatedCandidate);
         await faqDbContext.SaveChangesAsync();
@@ -492,6 +480,42 @@ public sealed class OpenAiGenerationMatchingFlowTests
         }
 
         return normalized[..maxLength];
+    }
+
+    private static FaqItem CreateFaqItemEntity(
+        Guid faqId,
+        Guid tenantId,
+        string question,
+        string shortAnswer,
+        string answer,
+        int sort,
+        int aiConfidenceScore)
+    {
+        var faqItemId = Guid.NewGuid();
+        return new FaqItem
+        {
+            Id = faqItemId,
+            Question = question,
+            Sort = sort,
+            FeedbackScore = 0,
+            AiConfidenceScore = aiConfidenceScore,
+            IsActive = true,
+            FaqId = faqId,
+            TenantId = tenantId,
+            Answers =
+            [
+                new FaqItemAnswer
+                {
+                    ShortAnswer = shortAnswer,
+                    Answer = answer,
+                    Sort = 1,
+                    VoteScore = 0,
+                    IsActive = true,
+                    TenantId = tenantId,
+                    FaqItemId = faqItemId
+                }
+            ]
+        };
     }
 
     private sealed record RuntimeState(

@@ -16,6 +16,6 @@ public sealed class CleanupService : ICleanupService
     public void CleanFaqDb(FaqDbContext dbContext)
     {
         dbContext.Database.ExecuteSqlRaw(
-            "TRUNCATE TABLE \"Feedbacks\", \"FaqContentRefs\", \"FaqTags\", \"FaqItems\", \"ContentRefs\", \"Tags\", \"Faqs\" RESTART IDENTITY CASCADE;");
+            "TRUNCATE TABLE \"Votes\", \"Feedbacks\", \"FaqItemAnswers\", \"FaqContentRefs\", \"FaqTags\", \"FaqItems\", \"ContentRefs\", \"Tags\", \"Faqs\" RESTART IDENTITY CASCADE;");
     }
 }

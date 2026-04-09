@@ -32,8 +32,6 @@ public class FaqItemCommandQueryTests
         var request = new FaqItemsCreateFaqItemCommand
         {
             Question = "How to sign in?",
-            ShortAnswer = "Use your email.",
-            Answer = "Sign in with email and password.",
             AdditionalInfo = "Contact support if needed.",
             CtaTitle = "Sign in",
             CtaUrl = "https://example.test/login",
@@ -73,8 +71,6 @@ public class FaqItemCommandQueryTests
         await handler.Handle(new FaqItemsCreateFaqItemCommand
         {
             Question = "How to reset password?",
-            ShortAnswer = "Use reset form.",
-            Answer = "Use reset form.",
             AdditionalInfo = "N/A",
             CtaTitle = "Reset",
             CtaUrl = "https://example.test/reset",
@@ -111,8 +107,6 @@ public class FaqItemCommandQueryTests
         await handler.Handle(new FaqItemsCreateFaqItemCommand
         {
             Question = "How to update email?",
-            ShortAnswer = "Use profile settings.",
-            Answer = "Use profile settings.",
             AdditionalInfo = "N/A",
             CtaTitle = "Profile",
             CtaUrl = "https://example.test/profile",
@@ -134,36 +128,30 @@ public class FaqItemCommandQueryTests
         using var context = TestContext.Create();
         var faq = await TestDataFactory.SeedFaqAsync(context.DbContext, context.TenantId);
 
-        var first = new Common.Persistence.FaqDb.Entities.FaqItem
-        {
-            Question = "First sort",
-            ShortAnswer = "First",
-            Answer = "First",
-            AdditionalInfo = "First",
-            CtaTitle = "First",
-            CtaUrl = "https://example.test/first",
-            Sort = 1,
-            FeedbackScore = 5,
-            AiConfidenceScore = 10,
-            IsActive = true,
-            FaqId = faq.Id,
-            TenantId = context.TenantId
-        };
-        var second = new Common.Persistence.FaqDb.Entities.FaqItem
-        {
-            Question = "Second sort",
-            ShortAnswer = "Second",
-            Answer = "Second",
-            AdditionalInfo = "Second",
-            CtaTitle = "Second",
-            CtaUrl = "https://example.test/second",
-            Sort = 2,
-            FeedbackScore = 20,
-            AiConfidenceScore = 50,
-            IsActive = true,
-            FaqId = faq.Id,
-            TenantId = context.TenantId
-        };
+        var first = TestDataFactory.CreateFaqItem(
+            context.TenantId,
+            faq.Id,
+            question: "First sort",
+            shortAnswer: "First",
+            answer: "First",
+            additionalInfo: "First",
+            ctaTitle: "First",
+            ctaUrl: "https://example.test/first",
+            sort: 1,
+            feedbackScore: 5,
+            aiConfidenceScore: 10);
+        var second = TestDataFactory.CreateFaqItem(
+            context.TenantId,
+            faq.Id,
+            question: "Second sort",
+            shortAnswer: "Second",
+            answer: "Second",
+            additionalInfo: "Second",
+            ctaTitle: "Second",
+            ctaUrl: "https://example.test/second",
+            sort: 2,
+            feedbackScore: 20,
+            aiConfidenceScore: 50);
 
         context.DbContext.FaqItems.AddRange(first, second);
         await context.DbContext.SaveChangesAsync();
@@ -233,36 +221,30 @@ public class FaqItemCommandQueryTests
         var faq = await TestDataFactory.SeedFaqAsync(context.DbContext, context.TenantId);
 
         context.DbContext.FaqItems.AddRange(
-            new Common.Persistence.FaqDb.Entities.FaqItem
-            {
-                Question = "How to reset MFA?",
-                ShortAnswer = "Use security page",
-                Answer = "Go to security settings",
-                AdditionalInfo = "Contact support if locked out",
-                CtaTitle = "Security",
-                CtaUrl = "https://example.test/security",
-                Sort = 1,
-                FeedbackScore = 0,
-                AiConfidenceScore = 0,
-                IsActive = true,
-                FaqId = faq.Id,
-                TenantId = context.TenantId
-            },
-            new Common.Persistence.FaqDb.Entities.FaqItem
-            {
-                Question = "How to change billing address?",
-                ShortAnswer = "Use billing page",
-                Answer = "Open billing settings",
-                AdditionalInfo = "Requires owner role",
-                CtaTitle = "Billing",
-                CtaUrl = "https://example.test/billing",
-                Sort = 2,
-                FeedbackScore = 0,
-                AiConfidenceScore = 0,
-                IsActive = true,
-                FaqId = faq.Id,
-                TenantId = context.TenantId
-            });
+            TestDataFactory.CreateFaqItem(
+                context.TenantId,
+                faq.Id,
+                question: "How to reset MFA?",
+                shortAnswer: "Use security page",
+                answer: "Go to security settings",
+                additionalInfo: "Contact support if locked out",
+                ctaTitle: "Security",
+                ctaUrl: "https://example.test/security",
+                sort: 1,
+                feedbackScore: 0,
+                aiConfidenceScore: 0),
+            TestDataFactory.CreateFaqItem(
+                context.TenantId,
+                faq.Id,
+                question: "How to change billing address?",
+                shortAnswer: "Use billing page",
+                answer: "Open billing settings",
+                additionalInfo: "Requires owner role",
+                ctaTitle: "Billing",
+                ctaUrl: "https://example.test/billing",
+                sort: 2,
+                feedbackScore: 0,
+                aiConfidenceScore: 0));
         await context.DbContext.SaveChangesAsync();
 
         var clientKeyContextService = new TestClientKeyContextService(context.ClientKey);
@@ -298,51 +280,42 @@ public class FaqItemCommandQueryTests
         var faq = await TestDataFactory.SeedFaqAsync(context.DbContext, context.TenantId);
 
         context.DbContext.FaqItems.AddRange(
-            new Common.Persistence.FaqDb.Entities.FaqItem
-            {
-                Question = "Q1",
-                ShortAnswer = "A1",
-                Answer = "A1",
-                AdditionalInfo = "I1",
-                CtaTitle = "C1",
-                CtaUrl = "https://example.test/1",
-                Sort = 1,
-                FeedbackScore = 0,
-                AiConfidenceScore = 0,
-                IsActive = true,
-                FaqId = faq.Id,
-                TenantId = context.TenantId
-            },
-            new Common.Persistence.FaqDb.Entities.FaqItem
-            {
-                Question = "Q2",
-                ShortAnswer = "A2",
-                Answer = "A2",
-                AdditionalInfo = "I2",
-                CtaTitle = "C2",
-                CtaUrl = "https://example.test/2",
-                Sort = 2,
-                FeedbackScore = 0,
-                AiConfidenceScore = 0,
-                IsActive = true,
-                FaqId = faq.Id,
-                TenantId = context.TenantId
-            },
-            new Common.Persistence.FaqDb.Entities.FaqItem
-            {
-                Question = "Q3",
-                ShortAnswer = "A3",
-                Answer = "A3",
-                AdditionalInfo = "I3",
-                CtaTitle = "C3",
-                CtaUrl = "https://example.test/3",
-                Sort = 3,
-                FeedbackScore = 0,
-                AiConfidenceScore = 0,
-                IsActive = true,
-                FaqId = faq.Id,
-                TenantId = context.TenantId
-            });
+            TestDataFactory.CreateFaqItem(
+                context.TenantId,
+                faq.Id,
+                question: "Q1",
+                shortAnswer: "A1",
+                answer: "A1",
+                additionalInfo: "I1",
+                ctaTitle: "C1",
+                ctaUrl: "https://example.test/1",
+                sort: 1,
+                feedbackScore: 0,
+                aiConfidenceScore: 0),
+            TestDataFactory.CreateFaqItem(
+                context.TenantId,
+                faq.Id,
+                question: "Q2",
+                shortAnswer: "A2",
+                answer: "A2",
+                additionalInfo: "I2",
+                ctaTitle: "C2",
+                ctaUrl: "https://example.test/2",
+                sort: 2,
+                feedbackScore: 0,
+                aiConfidenceScore: 0),
+            TestDataFactory.CreateFaqItem(
+                context.TenantId,
+                faq.Id,
+                question: "Q3",
+                shortAnswer: "A3",
+                answer: "A3",
+                additionalInfo: "I3",
+                ctaTitle: "C3",
+                ctaUrl: "https://example.test/3",
+                sort: 3,
+                feedbackScore: 0,
+                aiConfidenceScore: 0));
         await context.DbContext.SaveChangesAsync();
 
         var clientKeyContextService = new TestClientKeyContextService(context.ClientKey);
@@ -377,36 +350,30 @@ public class FaqItemCommandQueryTests
         var faq = await TestDataFactory.SeedFaqAsync(context.DbContext, context.TenantId);
 
         context.DbContext.FaqItems.AddRange(
-            new Common.Persistence.FaqDb.Entities.FaqItem
-            {
-                Question = "General question",
-                ShortAnswer = "General short",
-                Answer = "General answer",
-                AdditionalInfo = "Contains custom token: bluebird",
-                CtaTitle = "General",
-                CtaUrl = "https://example.test/general",
-                Sort = 1,
-                FeedbackScore = 0,
-                AiConfidenceScore = 0,
-                IsActive = true,
-                FaqId = faq.Id,
-                TenantId = context.TenantId
-            },
-            new Common.Persistence.FaqDb.Entities.FaqItem
-            {
-                Question = "Another question",
-                ShortAnswer = "Another short",
-                Answer = "Another answer",
-                AdditionalInfo = "No token here",
-                CtaTitle = "Another",
-                CtaUrl = "https://example.test/another",
-                Sort = 2,
-                FeedbackScore = 0,
-                AiConfidenceScore = 0,
-                IsActive = true,
-                FaqId = faq.Id,
-                TenantId = context.TenantId
-            });
+            TestDataFactory.CreateFaqItem(
+                context.TenantId,
+                faq.Id,
+                question: "General question",
+                shortAnswer: "General short",
+                answer: "General answer",
+                additionalInfo: "Contains custom token: bluebird",
+                ctaTitle: "General",
+                ctaUrl: "https://example.test/general",
+                sort: 1,
+                feedbackScore: 0,
+                aiConfidenceScore: 0),
+            TestDataFactory.CreateFaqItem(
+                context.TenantId,
+                faq.Id,
+                question: "Another question",
+                shortAnswer: "Another short",
+                answer: "Another answer",
+                additionalInfo: "No token here",
+                ctaTitle: "Another",
+                ctaUrl: "https://example.test/another",
+                sort: 2,
+                feedbackScore: 0,
+                aiConfidenceScore: 0));
         await context.DbContext.SaveChangesAsync();
 
         var clientKeyContextService = new TestClientKeyContextService(context.ClientKey);

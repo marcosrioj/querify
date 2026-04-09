@@ -1,8 +1,18 @@
-import { ArrowUpRight, BookOpen, FileText, Files, Link2, Pencil, Plus, Trash2 } from "lucide-react";
+import {
+  ArrowUpRight,
+  BookOpen,
+  FileText,
+  Files,
+  Link2,
+  Pencil,
+  Plus,
+  Trash2,
+} from "lucide-react";
 import { useMemo } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useFaqList } from "@/domains/faq/hooks";
 import { useContentRef } from "@/domains/content-refs/hooks";
+import { FaqItemAnswersCard } from "@/domains/faq-items/faq-item-answers-card";
 import { useDeleteFaqItem, useFaqItem } from "@/domains/faq-items/hooks";
 import {
   DetailLayout,
@@ -56,7 +66,9 @@ export function FaqItemDetailPage() {
     resolvedFaqId && resolvedItemId
       ? `/app/faq/${resolvedFaqId}/items/${resolvedItemId}/edit`
       : backTo;
-  const faqSettingsPath = resolvedFaqId ? `/app/faq/${resolvedFaqId}/edit` : backTo;
+  const faqSettingsPath = resolvedFaqId
+    ? `/app/faq/${resolvedFaqId}/edit`
+    : backTo;
   const contentRefPath =
     linkedContentRef && resolvedFaqId
       ? `/app/faq/${resolvedFaqId}/content-refs/${linkedContentRef.id}`
@@ -66,63 +78,77 @@ export function FaqItemDetailPage() {
       ? `/app/faq/${resolvedFaqId}/content-refs/new?faqItemId=${resolvedItemId}`
       : backTo;
   const contentCoverageReady = Boolean(
-    itemQuery.data?.answer || itemQuery.data?.additionalInfo,
+    itemQuery.data?.answers.length || itemQuery.data?.additionalInfo,
   );
   const answerState = useMemo(() => {
     if (!itemQuery.data) {
-      return "Loading";
+      return translateText("Loading");
+    }
+
+    if (itemQuery.data.answers.length === 0) {
+      return translateText("No answers yet");
+    }
+
+    if (itemQuery.data.answers.length > 1) {
+      return translateText("Multiple answers");
     }
 
     if (itemQuery.data.answer && itemQuery.data.additionalInfo) {
-      return "Full answer package";
+      return translateText("Full answer package");
     }
 
     if (itemQuery.data.answer) {
-      return "Expanded answer";
+      return translateText("Expanded answer");
     }
 
-    return "Short answer only";
+    return translateText("Short answer only");
   }, [itemQuery.data]);
   const itemSteps = [
     {
       id: "question",
-      label: "Capture the core answer",
+      label: translateText("Capture the core answer"),
       description: itemQuery.data
-        ? "The question and short answer are already saved."
-        : "Start by saving the core question and short answer.",
+        ? translateText("The question and short answer are already saved.")
+        : translateText("Start by saving the core question and short answer."),
       complete: Boolean(itemQuery.data),
     },
     {
       id: "depth",
-      label: "Add more context",
+      label: translateText("Add more context"),
       description: contentCoverageReady
-        ? "This item already goes beyond the short summary."
-        : "Add a full answer or supporting notes so the item is more helpful than a one-line response.",
+        ? translateText("This item already goes beyond the short summary.")
+        : translateText(
+            "Add a full answer or supporting notes so the item is more helpful than a one-line response.",
+          ),
       complete: contentCoverageReady,
     },
     {
       id: "source",
-      label: "Link a source",
+      label: translateText("Link a source"),
       description: linkedContentRef
-        ? "This answer is already tied to reusable source material."
-        : "Attach a source to improve trust and traceability.",
+        ? translateText(
+            "This answer is already tied to reusable source material.",
+          )
+        : translateText("Attach a source to improve trust and traceability."),
       complete: Boolean(linkedContentRef),
     },
     {
       id: "visibility",
-      label: "Make it active",
+      label: translateText("Make it active"),
       description: itemQuery.data?.isActive
-        ? "This answer is active and can surface in the FAQ."
-        : "Inactive answers stay saved but hidden from end users.",
+        ? translateText("This answer is active and can surface in the FAQ.")
+        : translateText(
+            "Inactive answers stay saved but hidden from end users.",
+          ),
       complete: Boolean(itemQuery.data?.isActive),
     },
   ];
   const nextItemAction =
     !linkedContentRef && createContentRefPath
-      ? { label: "Link a source", to: createContentRefPath }
+      ? { label: translateText("Link a source"), to: createContentRefPath }
       : !itemQuery.data?.isActive
-        ? { label: "Review visibility", to: editPath }
-        : { label: "Edit Q&A item", to: editPath };
+        ? { label: translateText("Review visibility"), to: editPath }
+        : { label: translateText("Edit Q&A item"), to: editPath };
   const showLoadingState =
     !itemQuery.data &&
     (itemQuery.isLoading ||
@@ -143,7 +169,9 @@ export function FaqItemDetailPage() {
       header={
         <PageHeader
           title={itemQuery.data?.question ?? "Q&A item"}
-          description="Review the question, answer, CTA, and source for this item."
+          description={translateText(
+            "Review the question, answer, CTA, and source for this item.",
+          )}
           descriptionMode="hint"
           backTo={backTo}
         />
@@ -160,14 +188,24 @@ export function FaqItemDetailPage() {
                   </Link>
                 </Button>
               ) : null}
-              <Button asChild variant="outline" size="sm" className="w-full justify-start">
+              <Button
+                asChild
+                variant="outline"
+                size="sm"
+                className="w-full justify-start"
+              >
                 <Link to={editPath}>
                   <Pencil className="size-4" />
                   {translateText("Edit")}
                 </Link>
               </Button>
               {contentRefPath ? (
-                <Button asChild variant="outline" size="sm" className="w-full justify-start">
+                <Button
+                  asChild
+                  variant="outline"
+                  size="sm"
+                  className="w-full justify-start"
+                >
                   <Link to={contentRefPath}>
                     <Files className="size-4" />
                     {translateText("Open source")}
@@ -179,8 +217,10 @@ export function FaqItemDetailPage() {
                 title={translateText('Delete Q&A item "{name}"?', {
                   name: itemQuery.data?.question ?? "this item",
                 })}
-                description="This removes the answer record from the FAQ workflow. Keep it only if you no longer need it."
-                confirmLabel="Delete Q&A item"
+                description={translateText(
+                  "This removes the answer record from the FAQ workflow. Keep it only if you no longer need it.",
+                )}
+                confirmLabel={translateText("Delete Q&A item")}
                 isPending={deleteFaqItem.isPending}
                 onConfirm={() =>
                   deleteFaqItem
@@ -188,7 +228,11 @@ export function FaqItemDetailPage() {
                     .then(() => navigate(backTo))
                 }
                 trigger={
-                  <Button variant="destructive" size="sm" className="col-span-2 w-full justify-start">
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    className="col-span-2 w-full justify-start"
+                  >
                     <Trash2 className="size-4" />
                     {translateText("Delete")}
                   </Button>
@@ -206,8 +250,10 @@ export function FaqItemDetailPage() {
                   <CardTitle className="flex flex-wrap items-center gap-2">
                     <span>{translateText("Overview")}</span>
                     <ContextHint
-                      content="Ranking, visibility, and relationship details."
-                      label="Overview details"
+                      content={translateText(
+                        "Ranking, visibility, and relationship details.",
+                      )}
+                      label={translateText("Overview details")}
                     />
                   </CardTitle>
                 </CardHeading>
@@ -221,7 +267,9 @@ export function FaqItemDetailPage() {
                         <Badge
                           variant={itemQuery.data.isActive ? "success" : "mono"}
                         >
-                          {translateText(itemQuery.data.isActive ? "Active" : "Inactive")}
+                          {translateText(
+                            itemQuery.data.isActive ? "Active" : "Inactive",
+                          )}
                         </Badge>
                       ),
                     },
@@ -235,6 +283,10 @@ export function FaqItemDetailPage() {
                         linkedContentRef?.label ||
                         linkedContentRef?.locator ||
                         translateText("No source linked"),
+                    },
+                    {
+                      label: "Answers",
+                      value: String(itemQuery.data.answers.length),
                     },
                     { label: "Sort", value: String(itemQuery.data.sort) },
                     {
@@ -267,44 +319,49 @@ export function FaqItemDetailPage() {
             valueClassName="text-xl sm:text-xl"
             items={[
               {
-                title: "Answer depth",
+                title: translateText("Answer depth"),
                 value: answerState,
-                titleHint: "Current answer depth.",
+                titleHint: translateText("Current answer depth."),
                 icon: FileText,
               },
               {
                 title: "CTA",
-                value: itemQuery.data.ctaUrl ? "Configured" : "Missing",
-                description: itemQuery.data.ctaTitle || itemQuery.data.ctaUrl
-                  ? "This answer can drive the next step"
-                  : "No CTA configured for this answer",
+                value: translateText(
+                  itemQuery.data.ctaUrl ? "Configured" : "Missing",
+                ),
+                description:
+                  itemQuery.data.ctaTitle || itemQuery.data.ctaUrl
+                    ? translateText("This answer can drive the next step")
+                    : translateText("No CTA configured for this answer"),
                 icon: ArrowUpRight,
               },
               {
-                title: "Source",
-                value: linkedContentRef ? "Linked" : "Missing",
+                title: translateText("Source"),
+                value: translateText(linkedContentRef ? "Linked" : "Missing"),
                 description: linkedContentRef
-                  ? "Connected to reusable source material"
-                  : "Attach a source to improve traceability",
+                  ? translateText("Connected to reusable source material")
+                  : translateText("Attach a source to improve traceability"),
                 icon: Files,
               },
               {
                 title: "FAQ",
-                value: parentFaq?.name ?? "Unknown FAQ",
-                titleHint: "FAQ this Q&A item belongs to.",
+                value: parentFaq?.name ?? translateText("Unknown FAQ"),
+                titleHint: translateText("FAQ this Q&A item belongs to."),
                 icon: BookOpen,
               },
             ]}
           />
 
           <Card>
-              <CardHeader>
-                <CardHeading>
-                  <CardTitle className="flex flex-wrap items-center gap-2">
-                    <span>{translateText("Question & answer")}</span>
-                    <ContextHint
-                      content="The question, answer, notes, and CTA live together here."
-                      label="Question and answer details"
+            <CardHeader>
+              <CardHeading>
+                <CardTitle className="flex flex-wrap items-center gap-2">
+                  <span>{translateText("Question & answer")}</span>
+                  <ContextHint
+                    content={translateText(
+                      "The question, answer, notes, and CTA live together here.",
+                    )}
+                    label={translateText("Question and answer details")}
                   />
                 </CardTitle>
               </CardHeading>
@@ -323,7 +380,8 @@ export function FaqItemDetailPage() {
                   {translateText("Short answer")}
                 </p>
                 <p className="mt-2 text-sm leading-6">
-                  {itemQuery.data.shortAnswer}
+                  {itemQuery.data.shortAnswer ||
+                    translateText("No answers yet")}
                 </p>
               </div>
               {itemQuery.data.answer ? (
@@ -349,20 +407,29 @@ export function FaqItemDetailPage() {
               {itemQuery.data.ctaTitle || itemQuery.data.ctaUrl ? (
                 <div className="rounded-2xl border border-border bg-muted/15 p-4">
                   <p className="font-medium text-mono">
-                    {itemQuery.data.ctaTitle || "CTA"}
+                    {itemQuery.data.ctaTitle || translateText("CTA")}
                   </p>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    {itemQuery.data.ctaUrl || "No URL configured"}
+                    {itemQuery.data.ctaUrl ||
+                      translateText("No URL configured")}
                   </p>
                 </div>
               ) : (
                 <EmptyState
-                  title="No CTA"
-                  description="Add a CTA if this Q&A item should drive an external action."
+                  title={translateText("No CTA")}
+                  description={translateText(
+                    "Add a CTA if this Q&A item should drive an external action.",
+                  )}
                 />
               )}
             </CardContent>
           </Card>
+
+          <FaqItemAnswersCard
+            faqItemId={resolvedItemId}
+            answers={itemQuery.data.answers}
+            question={itemQuery.data.question}
+          />
 
           <Card>
             <CardHeader>
@@ -370,8 +437,10 @@ export function FaqItemDetailPage() {
                 <CardTitle className="flex flex-wrap items-center gap-2">
                   <span>{translateText("Links")}</span>
                   <ContextHint
-                    content="See which FAQ and source this Q&A item belongs to."
-                    label="Relationship details"
+                    content={translateText(
+                      "See which FAQ and source this Q&A item belongs to.",
+                    )}
+                    label={translateText("Relationship details")}
                   />
                 </CardTitle>
               </CardHeading>
@@ -385,7 +454,9 @@ export function FaqItemDetailPage() {
                   {parentFaq?.name ?? itemQuery.data.faqId}
                 </p>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Publishing and visibility flow from this FAQ.
+                  {translateText(
+                    "Publishing and visibility flow from this FAQ.",
+                  )}
                 </p>
                 {parentFaq ? (
                   <Button asChild variant="outline" size="sm" className="mt-4">
@@ -405,7 +476,8 @@ export function FaqItemDetailPage() {
                   <>
                     <div className="mt-2 flex flex-wrap items-center gap-2">
                       <p className="font-medium text-mono">
-                        {linkedContentRef.label || translateText("Untitled source")}
+                        {linkedContentRef.label ||
+                          translateText("Untitled source")}
                       </p>
                       <ContentRefKindBadge kind={linkedContentRef.kind} />
                     </div>
@@ -430,7 +502,9 @@ export function FaqItemDetailPage() {
                       {translateText("No source linked")}
                     </p>
                     <p className="mt-1 text-sm text-muted-foreground">
-                      Link source material to improve quality and traceability.
+                      {translateText(
+                        "Link source material to improve quality and traceability.",
+                      )}
                     </p>
                     <Button
                       asChild
@@ -450,12 +524,16 @@ export function FaqItemDetailPage() {
           </Card>
 
           <ProgressChecklistCard
-            title="Tighten this answer before it goes live"
-            description="Use the checklist to spot missing depth, source coverage, or visibility settings without scanning the whole page."
+            title={translateText("Tighten this answer before it goes live")}
+            description={translateText(
+              "Use the checklist to spot missing depth, source coverage, or visibility settings without scanning the whole page.",
+            )}
             steps={itemSteps}
             action={nextItemAction}
             secondaryAction={
-              resolvedFaqId ? { label: "Open FAQ", to: backTo } : undefined
+              resolvedFaqId
+                ? { label: translateText("Open FAQ"), to: backTo }
+                : undefined
             }
           />
         </>

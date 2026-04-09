@@ -1,3 +1,4 @@
+using BaseFaq.Models.Faq.Dtos.FaqItemAnswer;
 using BaseFaq.Models.Faq.Enums;
 
 namespace BaseFaq.Models.Faq.Dtos.FaqItem;
@@ -8,6 +9,7 @@ public class FaqItemDto
     public required string Question { get; set; }
     public required string ShortAnswer { get; set; }
     public string? Answer { get; set; }
+    public List<FaqItemAnswerDto> Answers { get; set; } = [];
     public string? AdditionalInfo { get; set; }
     public string? CtaTitle { get; set; }
     public string? CtaUrl { get; set; }

@@ -148,7 +148,7 @@ export function FaqItemListPage() {
         <div className="space-y-1">
           <div className="font-medium text-mono">{item.question}</div>
           <div className="text-sm text-muted-foreground">
-            {item.shortAnswer}
+            {item.shortAnswer || translateText("No answers yet")}
           </div>
         </div>
       ),

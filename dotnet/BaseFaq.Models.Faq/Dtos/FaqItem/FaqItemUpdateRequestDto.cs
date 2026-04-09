@@ -3,8 +3,6 @@ namespace BaseFaq.Models.Faq.Dtos.FaqItem;
 public class FaqItemUpdateRequestDto
 {
     public required string Question { get; set; }
-    public required string ShortAnswer { get; set; }
-    public string? Answer { get; set; }
     public string? AdditionalInfo { get; set; }
     public string? CtaTitle { get; set; }
     public string? CtaUrl { get; set; }

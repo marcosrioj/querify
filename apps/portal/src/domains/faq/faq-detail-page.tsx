@@ -404,7 +404,7 @@ export function FaqDetailPage() {
                             </Badge>
                           </div>
                           <p className="mt-1 text-sm text-muted-foreground">
-                            {item.shortAnswer}
+                            {item.shortAnswer || translateText("No answers yet")}
                           </p>
                           <div className="mt-3 flex flex-wrap gap-2 text-xs text-muted-foreground">
                             <span>{translateText("Sort {value}", { value: item.sort })}</span>

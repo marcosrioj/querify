@@ -123,8 +123,6 @@ public class EntityConstraintsTests
         var faqItem = new Common.Persistence.FaqDb.Entities.FaqItem
         {
             Question = new string('e', Common.Persistence.FaqDb.Entities.FaqItem.MaxQuestionLength + 1),
-            ShortAnswer = "Short",
-            Answer = "Answer",
             AdditionalInfo = "Info",
             CtaTitle = "CTA",
             CtaUrl = "https://example.test/cta",
@@ -142,28 +140,27 @@ public class EntityConstraintsTests
     }
 
     [Fact]
-    public async Task FaqItem_ThrowsWhenShortAnswerIsMissing()
+    public async Task FaqItemAnswer_ThrowsWhenShortAnswerIsMissing()
     {
         using var context = TestContext.Create();
         var faq = await TestDataFactory.SeedFaqAsync(context.DbContext, context.SessionService.TenantId);
+        var faqItem = await TestDataFactory.SeedFaqItemAsync(
+            context.DbContext,
+            context.SessionService.TenantId,
+            faq.Id);
 
-        var faqItem = new Common.Persistence.FaqDb.Entities.FaqItem
+        var faqItemAnswer = new Common.Persistence.FaqDb.Entities.FaqItemAnswer
         {
-            Question = "Question",
             ShortAnswer = null!,
             Answer = "Answer",
-            AdditionalInfo = "Info",
-            CtaTitle = "CTA",
-            CtaUrl = "https://example.test/cta",
             Sort = 1,
-            FeedbackScore = 0,
-            AiConfidenceScore = 0,
             IsActive = true,
-            FaqId = faq.Id,
+            VoteScore = 0,
+            FaqItemId = faqItem.Id,
             TenantId = context.SessionService.TenantId
         };
 
-        context.DbContext.FaqItems.Add(faqItem);
+        context.DbContext.FaqItemAnswers.Add(faqItemAnswer);
 
         await Assert.ThrowsAsync<DbUpdateException>(() => context.DbContext.SaveChangesAsync());
     }

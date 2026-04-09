@@ -16,8 +16,6 @@ public class FaqItemsCreateFaqItemCommandHandler(FaqDbContext dbContext, ISessio
         var faqItem = new Common.Persistence.FaqDb.Entities.FaqItem
         {
             Question = request.Question,
-            ShortAnswer = request.ShortAnswer,
-            Answer = request.Answer,
             AdditionalInfo = request.AdditionalInfo,
             CtaTitle = request.CtaTitle,
             CtaUrl = request.CtaUrl,

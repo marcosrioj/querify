@@ -52,8 +52,6 @@ public class FaqItemController(IMediator mediator) : ControllerBase
         var id = await mediator.Send(new FaqItemsCreateFaqItemCommand
         {
             Question = dto.Question,
-            ShortAnswer = dto.ShortAnswer,
-            Answer = dto.Answer,
             AdditionalInfo = dto.AdditionalInfo,
             CtaTitle = dto.CtaTitle,
             CtaUrl = dto.CtaUrl,
@@ -76,8 +74,6 @@ public class FaqItemController(IMediator mediator) : ControllerBase
         {
             Id = id,
             Question = dto.Question,
-            ShortAnswer = dto.ShortAnswer,
-            Answer = dto.Answer,
             AdditionalInfo = dto.AdditionalInfo,
             CtaTitle = dto.CtaTitle,
             CtaUrl = dto.CtaUrl,

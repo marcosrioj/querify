@@ -10,13 +10,13 @@ This guide explains how the backend is organized under `dotnet/`, which APIs exi
 |---|---|---|---|---:|
 | `BaseFaq.Tenant.BackOffice.Api` | global administration of tenants, tenant users, AI providers, and tenant metadata | Auth0 JWT | none by default | `5000` |
 | `BaseFaq.Tenant.Portal.Api` | tenant workspace settings and tenant-member operations | Auth0 JWT | `X-Tenant-Id` for tenant-scoped operations | `5002` |
-| `BaseFaq.Faq.Portal.Api` | authenticated FAQ management, content references, tags, feedbacks, generation request entrypoint | Auth0 JWT | `X-Tenant-Id` | `5010` |
+| `BaseFaq.Faq.Portal.Api` | authenticated FAQ management, content references, tags, answer variants, votes, feedbacks, generation request entrypoint | Auth0 JWT | `X-Tenant-Id` | `5010` |
 | `BaseFaq.Faq.Public.Api` | public FAQ access and public FAQ item creation flow | public surface | `X-Client-Key` | `5020` |
 | `BaseFaq.AI.Api` | AI worker host and health endpoint | no user-facing auth flow | tenant inferred from message payload | `5030` |
 
 ## Project taxonomy inside `dotnet/`
 
-`BaseFaq.sln` currently includes 47 `.NET` projects. The inventory below reflects the projects that are actually in the solution, not every folder that exists under `dotnet/`.
+`BaseFaq.sln` currently includes the active `.NET` projects used by the local backend. The inventory below reflects the projects that are actually in the solution, not every folder that exists under `dotnet/`.
 
 ### API hosts
 
@@ -35,12 +35,15 @@ Each service area is split into feature projects:
 - FAQ Portal:
   - `BaseFaq.Faq.Portal.Business.Faq`
   - `BaseFaq.Faq.Portal.Business.FaqItem`
+  - `BaseFaq.Faq.Portal.Business.FaqItemAnswer`
   - `BaseFaq.Faq.Portal.Business.ContentRef`
   - `BaseFaq.Faq.Portal.Business.Tag`
+  - `BaseFaq.Faq.Portal.Business.Vote`
   - `BaseFaq.Faq.Portal.Business.Feedback`
 - FAQ Public:
   - `BaseFaq.Faq.Public.Business.Faq`
   - `BaseFaq.Faq.Public.Business.FaqItem`
+  - `BaseFaq.Faq.Public.Business.Vote`
   - `BaseFaq.Faq.Public.Business.Feedback`
 - Tenant BackOffice:
   - `BaseFaq.Tenant.BackOffice.Business.Tenant`
@@ -132,8 +135,10 @@ This is the global control plane for the platform.
 
 - FAQs
 - FAQ items
+- FAQ item answers
 - content references
 - tags
+- votes
 - feedbacks
 
 Each tenant can point to its own FAQ database connection, which is why migration and seed tooling must resolve tenant metadata first.

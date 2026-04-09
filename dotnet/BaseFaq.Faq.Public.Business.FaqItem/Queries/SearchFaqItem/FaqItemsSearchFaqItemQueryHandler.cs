@@ -1,4 +1,5 @@
 using BaseFaq.Faq.Common.Persistence.FaqDb;
+using BaseFaq.Faq.Common.Persistence.FaqDb.Projections;
 using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Common.Infrastructure.Core.Constants;
 using BaseFaq.Models.Common.Dtos;
@@ -59,8 +60,8 @@ public class FaqItemsSearchFaqItemQueryHandler(
             var term = request.Request.Search.Trim();
             query = query.Where(item =>
                 item.Question.Contains(term) ||
-                item.ShortAnswer.Contains(term) ||
-                (item.Answer != null && item.Answer.Contains(term)) ||
+                item.Answers.Any(answer => answer.ShortAnswer.Contains(term)) ||
+                item.Answers.Any(answer => answer.Answer != null && answer.Answer.Contains(term)) ||
                 (item.AdditionalInfo != null && item.AdditionalInfo.Contains(term)));
         }
 
@@ -75,22 +76,7 @@ public class FaqItemsSearchFaqItemQueryHandler(
         return await query
             .Skip(request.Request.SkipCount)
             .Take(request.Request.MaxResultCount)
-            .Select(item => new FaqItemDto
-            {
-                Id = item.Id,
-                Question = item.Question,
-                ShortAnswer = item.ShortAnswer,
-                Answer = item.Answer,
-                AdditionalInfo = item.AdditionalInfo,
-                CtaTitle = item.CtaTitle,
-                CtaUrl = item.CtaUrl,
-                Sort = item.Sort,
-                FeedbackScore = item.FeedbackScore,
-                AiConfidenceScore = item.AiConfidenceScore,
-                IsActive = item.IsActive,
-                FaqId = item.FaqId,
-                ContentRefId = item.ContentRefId
-            })
+            .SelectPublicFaqItemDtos()
             .ToListAsync(cancellationToken);
     }
 

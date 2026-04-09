@@ -16,6 +16,8 @@ public sealed class FaqSeedService : IFaqSeedService
     {
         return dbContext.Faqs.Any() ||
                dbContext.FaqItems.Any() ||
+               dbContext.FaqItemAnswers.Any() ||
+               dbContext.Votes.Any() ||
                dbContext.Tags.Any() ||
                dbContext.ContentRefs.Any() ||
                dbContext.FaqTags.Any() ||
@@ -62,6 +64,7 @@ public sealed class FaqSeedService : IFaqSeedService
         dbContext.SaveChanges();
 
         var faqItems = new List<FaqItem>();
+        var faqItemAnswers = new List<FaqItemAnswer>();
         var faqTags = new List<FaqTag>();
         var faqContentRefs = new List<FaqContentRef>();
         var feedbacks = new List<Feedback>();
@@ -104,6 +107,7 @@ public sealed class FaqSeedService : IFaqSeedService
             {
                 var itemDefinition = faqDefinition.Items[itemIndex];
                 var itemId = Guid.NewGuid();
+                var answerId = Guid.NewGuid();
                 var contentRefId = contentRefsByUrl.TryGetValue(itemDefinition.SourceUrl, out var contentRef)
                     ? contentRef.Id
                     : (Guid?)null;
@@ -124,8 +128,6 @@ public sealed class FaqSeedService : IFaqSeedService
                     TenantId = tenantId,
                     FaqId = faqEntity.Id,
                     Question = itemDefinition.Question,
-                    ShortAnswer = itemDefinition.ShortAnswer,
-                    Answer = itemDefinition.Answer,
                     AdditionalInfo = $"Official source: {itemDefinition.SourceName}. Retrieved {SourceSnapshotDate}.",
                     CtaTitle = $"Open {itemDefinition.SourceName}",
                     CtaUrl = itemDefinition.SourceUrl,
@@ -136,11 +138,24 @@ public sealed class FaqSeedService : IFaqSeedService
                     ContentRefId = contentRefId
                 });
 
+                faqItemAnswers.Add(new FaqItemAnswer
+                {
+                    Id = answerId,
+                    TenantId = tenantId,
+                    FaqItemId = itemId,
+                    ShortAnswer = itemDefinition.ShortAnswer,
+                    Answer = itemDefinition.Answer,
+                    Sort = 1,
+                    VoteScore = 0,
+                    IsActive = true
+                });
+
                 feedbacks.AddRange(feedbackBatch.Feedbacks);
             }
         }
 
         dbContext.FaqItems.AddRange(faqItems);
+        dbContext.FaqItemAnswers.AddRange(faqItemAnswers);
         dbContext.FaqTags.AddRange(faqTags);
         dbContext.FaqContentRefs.AddRange(faqContentRefs);
         dbContext.SaveChanges();

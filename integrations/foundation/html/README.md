@@ -28,6 +28,7 @@ Required header: X-Client-Key: <your public tenant key>
 |---|---|---|
 | `/api/faqs/faq` | GET | List FAQs (paginated, with status/tag filters) |
 | `/api/faqs/faq/{id}` | GET | Get a single FAQ by UUID |
+| `/api/faqs/vote` | POST | Submit a vote for a specific FAQ item answer |
 | `/api/faqs/feedback` | POST | Submit a thumbs-up or thumbs-down feedback |
 
 ### Query parameters
@@ -53,6 +54,14 @@ Same include params plus:
 | `searchText` | string | Text search filter |
 | `faqIds` | guid[] | Filter to specific FAQ IDs |
 
+### Vote payload
+
+```json
+{
+  "faqItemAnswerId": "uuid"
+}
+```
+
 ### Feedback payload
 
 ```json
@@ -72,8 +81,9 @@ For each FAQ item (`FaqItemDto`), the HTML foundation renders:
 | Field | Rendered as |
 |---|---|
 | `question` | `<summary>` disclosure trigger |
-| `shortAnswer` | Fallback answer when `answer` is null |
-| `answer` | Full HTML answer body (pre-sanitized by API) |
+| `shortAnswer` | Top-ranked answer summary |
+| `answer` | Top-ranked full answer body (pre-sanitized by API) |
+| `answers[]` | Ordered answer variants available for vote-aware rendering |
 | `additionalInfo` | Highlighted info block below the answer |
 | `ctaTitle` + `ctaUrl` | Call-to-action button (when present on the item) |
 | `contentRefs` | Source links with kind icons |

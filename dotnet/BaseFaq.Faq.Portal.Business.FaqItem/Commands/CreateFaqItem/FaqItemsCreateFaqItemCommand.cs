@@ -5,8 +5,6 @@ namespace BaseFaq.Faq.Portal.Business.FaqItem.Commands.CreateFaqItem;
 public sealed class FaqItemsCreateFaqItemCommand : IRequest<Guid>
 {
     public required string Question { get; set; }
-    public required string ShortAnswer { get; set; }
-    public string? Answer { get; set; }
     public string? AdditionalInfo { get; set; }
     public string? CtaTitle { get; set; }
     public string? CtaUrl { get; set; }

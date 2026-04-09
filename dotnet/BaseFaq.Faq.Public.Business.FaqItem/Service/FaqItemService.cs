@@ -16,8 +16,6 @@ public class FaqItemService(IMediator mediator) : IFaqItemService
         var command = new FaqItemsCreateFaqItemCommand
         {
             Question = requestDto.Question,
-            ShortAnswer = requestDto.ShortAnswer,
-            Answer = requestDto.Answer,
             AdditionalInfo = requestDto.AdditionalInfo,
             CtaTitle = requestDto.CtaTitle,
             CtaUrl = requestDto.CtaUrl,

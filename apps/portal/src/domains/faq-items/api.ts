@@ -1,5 +1,7 @@
 import { portalRequest, requireAccessToken, requireTenantId } from '@/platform/api/http-client';
 import type {
+  FaqItemAnswerCreateRequestDto,
+  FaqItemAnswerUpdateRequestDto,
   FaqItemCreateRequestDto,
   FaqItemDto,
   FaqItemUpdateRequestDto,
@@ -96,6 +98,51 @@ export function deleteFaqItem(
   return portalRequest<void>({
     service: 'faq',
     path: `/api/faqs/faq-item/${id}`,
+    method: 'DELETE',
+    accessToken: requireAccessToken(accessToken),
+    tenantId: requireTenantId(tenantId),
+  });
+}
+
+export function createFaqItemAnswer(
+  accessToken: string | undefined,
+  tenantId: string | undefined,
+  body: FaqItemAnswerCreateRequestDto,
+) {
+  return portalRequest<string>({
+    service: 'faq',
+    path: '/api/faqs/faq-item-answer',
+    method: 'POST',
+    accessToken: requireAccessToken(accessToken),
+    tenantId: requireTenantId(tenantId),
+    body,
+  });
+}
+
+export function updateFaqItemAnswer(
+  accessToken: string | undefined,
+  tenantId: string | undefined,
+  id: string,
+  body: FaqItemAnswerUpdateRequestDto,
+) {
+  return portalRequest<string>({
+    service: 'faq',
+    path: `/api/faqs/faq-item-answer/${id}`,
+    method: 'PUT',
+    accessToken: requireAccessToken(accessToken),
+    tenantId: requireTenantId(tenantId),
+    body,
+  });
+}
+
+export function deleteFaqItemAnswer(
+  accessToken: string | undefined,
+  tenantId: string | undefined,
+  id: string,
+) {
+  return portalRequest<void>({
+    service: 'faq',
+    path: `/api/faqs/faq-item-answer/${id}`,
     method: 'DELETE',
     accessToken: requireAccessToken(accessToken),
     tenantId: requireTenantId(tenantId),

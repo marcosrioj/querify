@@ -6,8 +6,6 @@ namespace BaseFaq.Faq.Common.Persistence.FaqDb.Entities;
 public class FaqItem : BaseEntity, IMustHaveTenant
 {
     public const int MaxQuestionLength = 1000;
-    public const int MaxShortAnswerLength = 250;
-    public const int MaxAnswerLength = 5000;
     public const int MaxAdditionalInfoLength = 2000;
     public const int MaxCtaTitleLength = 250;
     public const int MaxCtaUrlLength = 1000;
@@ -16,17 +14,6 @@ public class FaqItem : BaseEntity, IMustHaveTenant
     /// Question text presented to the user.
     /// </summary>
     public required string Question { get; set; }
-
-    /// <summary>
-    /// Short answer or summary version of the response.
-    /// Useful for previews, lists, or condensed displays.
-    /// </summary>
-    public required string ShortAnswer { get; set; }
-
-    /// <summary>
-    /// Full detailed answer for the question.
-    /// </summary>
-    public string? Answer { get; set; }
 
     /// <summary>
     /// Optional complementary information that adds context or clarifications.
@@ -75,4 +62,5 @@ public class FaqItem : BaseEntity, IMustHaveTenant
     public ContentRef? ContentRef { get; set; }
 
     public ICollection<Feedback> Feedbacks { get; set; } = [];
+    public ICollection<FaqItemAnswer> Answers { get; set; } = [];
 }

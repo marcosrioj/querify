@@ -6,6 +6,55 @@ namespace BaseFaq.Faq.Portal.Test.IntegrationTests.Helpers;
 
 public static class TestDataFactory
 {
+    public static FaqItem CreateFaqItem(
+        Guid tenantId,
+        Guid faqId,
+        Guid? contentRefId = null,
+        string? question = null,
+        string? shortAnswer = null,
+        string? answer = null,
+        string? additionalInfo = null,
+        string? ctaTitle = null,
+        string? ctaUrl = null,
+        int sort = 1,
+        int feedbackScore = 10,
+        int aiConfidenceScore = 80,
+        bool isActive = true,
+        int answerSort = 1,
+        int voteScore = 0,
+        bool answerIsActive = true)
+    {
+        var faqItemId = Guid.NewGuid();
+        var faqItem = new FaqItem
+        {
+            Id = faqItemId,
+            Question = question ?? "How do I reset my password?",
+            AdditionalInfo = additionalInfo ?? "Support can help if needed.",
+            CtaTitle = ctaTitle ?? "Reset",
+            CtaUrl = ctaUrl ?? "https://example.test/reset",
+            Sort = sort,
+            FeedbackScore = feedbackScore,
+            AiConfidenceScore = aiConfidenceScore,
+            IsActive = isActive,
+            FaqId = faqId,
+            ContentRefId = contentRefId,
+            TenantId = tenantId
+        };
+
+        faqItem.Answers.Add(new FaqItemAnswer
+        {
+            ShortAnswer = shortAnswer ?? "Use the reset link.",
+            Answer = answer ?? "Click reset in settings.",
+            Sort = answerSort,
+            VoteScore = voteScore,
+            IsActive = answerIsActive,
+            FaqItemId = faqItemId,
+            TenantId = tenantId
+        });
+
+        return faqItem;
+    }
+
     public static async Task<Common.Persistence.FaqDb.Entities.Faq> SeedFaqAsync(
         FaqDbContext dbContext,
         Guid tenantId,
@@ -66,28 +115,62 @@ public static class TestDataFactory
         FaqDbContext dbContext,
         Guid tenantId,
         Guid faqId,
-        Guid? contentRefId = null)
+        Guid? contentRefId = null,
+        string? question = null,
+        string? shortAnswer = null,
+        string? answer = null,
+        string? additionalInfo = null,
+        string? ctaTitle = null,
+        string? ctaUrl = null,
+        int sort = 1,
+        int feedbackScore = 10,
+        int aiConfidenceScore = 80,
+        bool isActive = true)
     {
-        var faqItem = new FaqItem
-        {
-            Question = "How do I reset my password?",
-            ShortAnswer = "Use the reset link.",
-            Answer = "Click reset in settings.",
-            AdditionalInfo = "Support can help if needed.",
-            CtaTitle = "Reset",
-            CtaUrl = "https://example.test/reset",
-            Sort = 1,
-            FeedbackScore = 10,
-            AiConfidenceScore = 80,
-            IsActive = true,
-            FaqId = faqId,
-            ContentRefId = contentRefId,
-            TenantId = tenantId
-        };
+        var faqItem = CreateFaqItem(
+            tenantId,
+            faqId,
+            contentRefId,
+            question,
+            shortAnswer,
+            answer,
+            additionalInfo,
+            ctaTitle,
+            ctaUrl,
+            sort,
+            feedbackScore,
+            aiConfidenceScore,
+            isActive);
 
         dbContext.FaqItems.Add(faqItem);
         await dbContext.SaveChangesAsync();
         return faqItem;
+    }
+
+    public static async Task<FaqItemAnswer> SeedFaqItemAnswerAsync(
+        FaqDbContext dbContext,
+        Guid tenantId,
+        Guid faqItemId,
+        string? shortAnswer = null,
+        string? answer = null,
+        int sort = 1,
+        int voteScore = 0,
+        bool isActive = true)
+    {
+        var faqItemAnswer = new FaqItemAnswer
+        {
+            ShortAnswer = shortAnswer ?? "Use the reset link.",
+            Answer = answer ?? "Click reset in settings.",
+            Sort = sort,
+            VoteScore = voteScore,
+            IsActive = isActive,
+            TenantId = tenantId,
+            FaqItemId = faqItemId
+        };
+
+        dbContext.FaqItemAnswers.Add(faqItemAnswer);
+        await dbContext.SaveChangesAsync();
+        return faqItemAnswer;
     }
 
     public static async Task<Feedback> SeedFeedbackAsync(
@@ -110,6 +193,28 @@ public static class TestDataFactory
         dbContext.Feedbacks.Add(feedback);
         await dbContext.SaveChangesAsync();
         return feedback;
+    }
+
+    public static async Task<Vote> SeedVoteAsync(
+        FaqDbContext dbContext,
+        Guid tenantId,
+        Guid faqItemAnswerId,
+        string? userPrint = null,
+        string? ip = null,
+        string? userAgent = null)
+    {
+        var vote = new Vote
+        {
+            UserPrint = userPrint ?? "user-print",
+            Ip = ip ?? "127.0.0.1",
+            UserAgent = userAgent ?? "TestAgent",
+            TenantId = tenantId,
+            FaqItemAnswerId = faqItemAnswerId
+        };
+
+        dbContext.Votes.Add(vote);
+        await dbContext.SaveChangesAsync();
+        return vote;
     }
 
     public static async Task<FaqTag> SeedFaqTagAsync(

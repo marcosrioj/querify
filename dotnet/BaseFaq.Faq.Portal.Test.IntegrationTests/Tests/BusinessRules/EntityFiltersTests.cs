@@ -1,7 +1,9 @@
 using BaseFaq.Faq.Portal.Business.ContentRef.Queries.GetContentRef;
 using BaseFaq.Faq.Portal.Business.FaqItem.Queries.GetFaqItem;
+using BaseFaq.Faq.Portal.Business.FaqItemAnswer.Queries.GetFaqItemAnswer;
 using BaseFaq.Faq.Portal.Business.Tag.Queries.GetTag;
 using BaseFaq.Faq.Portal.Business.Feedback.Queries.GetFeedback;
+using BaseFaq.Faq.Portal.Business.Vote.Queries.GetVote;
 using BaseFaq.Faq.Portal.Test.IntegrationTests.Helpers;
 using BaseFaq.Faq.Portal.Test.IntegrationTests.Helpers.Infrastructure;
 using Xunit;
@@ -115,6 +117,65 @@ public class EntityFiltersTests
         var handler = new FeedbacksGetFeedbackQueryHandler(contextB.DbContext);
 
         var result = await handler.Handle(new FeedbacksGetFeedbackQuery { Id = feedback.Id }, CancellationToken.None);
+
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public async Task TenantFilters_HideOtherTenantFaqItemAnswers()
+    {
+        using var database = TestDatabase.Create();
+        var tenantA = Guid.NewGuid();
+        var tenantB = Guid.NewGuid();
+
+        using var contextA = TestContext.CreateForDatabase(
+            database.ConnectionString,
+            database.AdminConnectionString,
+            database.DatabaseName,
+            tenantId: tenantA);
+        var faq = await TestDataFactory.SeedFaqAsync(contextA.DbContext, tenantA);
+        var faqItem = await TestDataFactory.SeedFaqItemAsync(contextA.DbContext, tenantA, faq.Id);
+        var faqItemAnswer = await TestDataFactory.SeedFaqItemAnswerAsync(contextA.DbContext, tenantA, faqItem.Id);
+
+        using var contextB = TestContext.CreateForDatabase(
+            database.ConnectionString,
+            database.AdminConnectionString,
+            database.DatabaseName,
+            tenantId: tenantB);
+        var handler = new FaqItemAnswersGetFaqItemAnswerQueryHandler(contextB.DbContext);
+
+        var result = await handler.Handle(
+            new FaqItemAnswersGetFaqItemAnswerQuery { Id = faqItemAnswer.Id },
+            CancellationToken.None);
+
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public async Task TenantFilters_HideOtherTenantVotes()
+    {
+        using var database = TestDatabase.Create();
+        var tenantA = Guid.NewGuid();
+        var tenantB = Guid.NewGuid();
+
+        using var contextA = TestContext.CreateForDatabase(
+            database.ConnectionString,
+            database.AdminConnectionString,
+            database.DatabaseName,
+            tenantId: tenantA);
+        var faq = await TestDataFactory.SeedFaqAsync(contextA.DbContext, tenantA);
+        var faqItem = await TestDataFactory.SeedFaqItemAsync(contextA.DbContext, tenantA, faq.Id);
+        var faqItemAnswer = await TestDataFactory.SeedFaqItemAnswerAsync(contextA.DbContext, tenantA, faqItem.Id);
+        var vote = await TestDataFactory.SeedVoteAsync(contextA.DbContext, tenantA, faqItemAnswer.Id);
+
+        using var contextB = TestContext.CreateForDatabase(
+            database.ConnectionString,
+            database.AdminConnectionString,
+            database.DatabaseName,
+            tenantId: tenantB);
+        var handler = new VotesGetVoteQueryHandler(contextB.DbContext);
+
+        var result = await handler.Handle(new VotesGetVoteQuery { Id = vote.Id }, CancellationToken.None);
 
         Assert.Null(result);
     }
@@ -238,6 +299,71 @@ public class EntityFiltersTests
 
         Assert.NotNull(result);
         Assert.Equal(feedback.Id, result!.Id);
+    }
+
+    [Fact]
+    public async Task TenantFilters_CanBeSkippedForFaqItemAnswers()
+    {
+        using var database = TestDatabase.Create();
+        var tenantA = Guid.NewGuid();
+        var tenantB = Guid.NewGuid();
+
+        using var contextA = TestContext.CreateForDatabase(
+            database.ConnectionString,
+            database.AdminConnectionString,
+            database.DatabaseName,
+            tenantId: tenantA);
+        var faq = await TestDataFactory.SeedFaqAsync(contextA.DbContext, tenantA);
+        var faqItem = await TestDataFactory.SeedFaqItemAsync(contextA.DbContext, tenantA, faq.Id);
+        var faqItemAnswer = await TestDataFactory.SeedFaqItemAnswerAsync(contextA.DbContext, tenantA, faqItem.Id);
+
+        var httpContext = TestHttpContextFactory.CreateWithTenantValidationSkipped();
+        using var contextB = TestContext.CreateForDatabase(
+            database.ConnectionString,
+            database.AdminConnectionString,
+            database.DatabaseName,
+            tenantId: tenantB,
+            httpContext: httpContext);
+        var handler = new FaqItemAnswersGetFaqItemAnswerQueryHandler(contextB.DbContext);
+
+        var result = await handler.Handle(
+            new FaqItemAnswersGetFaqItemAnswerQuery { Id = faqItemAnswer.Id },
+            CancellationToken.None);
+
+        Assert.NotNull(result);
+        Assert.Equal(faqItemAnswer.Id, result!.Id);
+    }
+
+    [Fact]
+    public async Task TenantFilters_CanBeSkippedForVotes()
+    {
+        using var database = TestDatabase.Create();
+        var tenantA = Guid.NewGuid();
+        var tenantB = Guid.NewGuid();
+
+        using var contextA = TestContext.CreateForDatabase(
+            database.ConnectionString,
+            database.AdminConnectionString,
+            database.DatabaseName,
+            tenantId: tenantA);
+        var faq = await TestDataFactory.SeedFaqAsync(contextA.DbContext, tenantA);
+        var faqItem = await TestDataFactory.SeedFaqItemAsync(contextA.DbContext, tenantA, faq.Id);
+        var faqItemAnswer = await TestDataFactory.SeedFaqItemAnswerAsync(contextA.DbContext, tenantA, faqItem.Id);
+        var vote = await TestDataFactory.SeedVoteAsync(contextA.DbContext, tenantA, faqItemAnswer.Id);
+
+        var httpContext = TestHttpContextFactory.CreateWithTenantValidationSkipped();
+        using var contextB = TestContext.CreateForDatabase(
+            database.ConnectionString,
+            database.AdminConnectionString,
+            database.DatabaseName,
+            tenantId: tenantB,
+            httpContext: httpContext);
+        var handler = new VotesGetVoteQueryHandler(contextB.DbContext);
+
+        var result = await handler.Handle(new VotesGetVoteQuery { Id = vote.Id }, CancellationToken.None);
+
+        Assert.NotNull(result);
+        Assert.Equal(vote.Id, result!.Id);
     }
 
     [Fact]

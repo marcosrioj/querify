@@ -1,5 +1,6 @@
 /.idea/
 /.git/
+/.tmp/
 **/node_modules/
 /apps/demos/
 bin/

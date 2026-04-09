@@ -30,9 +30,11 @@
         <ProjectReference Include="..\BaseFaq.Models.Tenant\BaseFaq.Models.Tenant.csproj"/>
         <ProjectReference Include="..\BaseFaq.Faq.Portal.Business.Faq\BaseFaq.Faq.Portal.Business.Faq.csproj"/>
         <ProjectReference Include="..\BaseFaq.Faq.Portal.Business.FaqItem\BaseFaq.Faq.Portal.Business.FaqItem.csproj"/>
+        <ProjectReference Include="..\BaseFaq.Faq.Portal.Business.FaqItemAnswer\BaseFaq.Faq.Portal.Business.FaqItemAnswer.csproj"/>
         <ProjectReference Include="..\BaseFaq.Faq.Portal.Business.Tag\BaseFaq.Faq.Portal.Business.Tag.csproj"/>
         <ProjectReference Include="..\BaseFaq.Faq.Portal.Business.ContentRef\BaseFaq.Faq.Portal.Business.ContentRef.csproj"/>
         <ProjectReference Include="..\BaseFaq.Faq.Portal.Business.Feedback\BaseFaq.Faq.Portal.Business.Feedback.csproj"/>
+        <ProjectReference Include="..\BaseFaq.Faq.Portal.Business.Vote\BaseFaq.Faq.Portal.Business.Vote.csproj"/>
     </ItemGroup>
 
 </Project>

@@ -17,6 +17,7 @@ import {
   useFaqItem,
   useUpdateFaqItem,
 } from "@/domains/faq-items/hooks";
+import { FaqItemAnswersCard } from "@/domains/faq-items/faq-item-answers-card";
 import {
   faqItemFormSchema,
   type FaqItemFormValues,
@@ -103,8 +104,6 @@ export function FaqItemFormPage({ mode }: { mode: "create" | "edit" }) {
     resolver: zodResolver(faqItemFormSchema),
     defaultValues: {
       question: "",
-      shortAnswer: "",
-      answer: "",
       additionalInfo: "",
       ctaTitle: "",
       ctaUrl: "",
@@ -148,8 +147,6 @@ export function FaqItemFormPage({ mode }: { mode: "create" | "edit" }) {
 
     form.reset({
       question: itemQuery.data.question,
-      shortAnswer: itemQuery.data.shortAnswer,
-      answer: itemQuery.data.answer ?? "",
       additionalInfo: itemQuery.data.additionalInfo ?? "",
       ctaTitle: itemQuery.data.ctaTitle ?? "",
       ctaUrl: itemQuery.data.ctaUrl ?? "",
@@ -177,7 +174,6 @@ export function FaqItemFormPage({ mode }: { mode: "create" | "edit" }) {
     ? buildContentRefOption(selectedContentRef)
     : null;
   const questionValue = form.watch("question");
-  const shortAnswerValue = form.watch("shortAnswer");
   const backTo =
     mode === "edit" && currentFaqId && resolvedItemId
       ? `/app/faq/${currentFaqId}/items/${resolvedItemId}`
@@ -220,28 +216,40 @@ export function FaqItemFormPage({ mode }: { mode: "create" | "edit" }) {
   const formSteps = [
     {
       id: "question",
-      label: "Write the question",
+      label: translateText("Write the question"),
       description: questionValue
         ? translateText("Current question: {value}", { value: questionValue })
-        : "Use the exact wording a customer would search or ask.",
+        : translateText(
+            "Use the exact wording a customer would search or ask.",
+          ),
       complete: Boolean(questionValue?.trim()),
     },
     {
-      id: "short-answer",
-      label: "Add the short answer",
-      description: shortAnswerValue
-        ? "The summary answer is in place."
-        : "Give the user the fast answer before they need the longer one.",
-      complete: Boolean(shortAnswerValue?.trim()),
+      id: "answers",
+      label: translateText("Manage answer variants"),
+      description:
+        mode === "edit"
+          ? itemQuery.data?.answers.length
+            ? translateText("{count} answers are already attached.", {
+                count: itemQuery.data.answers.length,
+              })
+            : translateText(
+                "Add the first answer variant after saving the item.",
+              )
+          : translateText(
+              "Create the item first, then manage answers on the item page.",
+            ),
+      complete:
+        mode === "edit" ? Boolean(itemQuery.data?.answers.length) : false,
     },
     {
       id: "faq",
-      label: "Attach the right FAQ",
+      label: translateText("Attach the right FAQ"),
       description: selectedFaq
         ? translateText("Currently attached to {name}.", {
             name: selectedFaq.name,
           })
-        : "Pick the FAQ that controls visibility for this item.",
+        : translateText("Pick the FAQ that controls visibility for this item."),
       complete: Boolean(currentFaqId),
     },
   ];
@@ -253,7 +261,9 @@ export function FaqItemFormPage({ mode }: { mode: "create" | "edit" }) {
       header={
         <PageHeader
           title={mode === "create" ? "New Q&A item" : "Edit Q&A item"}
-          description="Write the question and answer, set score, and link a source."
+          description={translateText(
+            "Write the question, item metadata, and source link. Answers are managed inside the Q&A item.",
+          )}
           descriptionMode="hint"
           backTo={backTo}
         />
@@ -268,8 +278,10 @@ export function FaqItemFormPage({ mode }: { mode: "create" | "edit" }) {
                 <CardTitle className="flex flex-wrap items-center gap-2">
                   <span>{translateText("Quick notes")}</span>
                   <ContextHint
-                    content="Keep each Q&A item clear, ranked, and linked to a FAQ."
-                    label="Quick notes details"
+                    content={translateText(
+                      "Keep each Q&A item clear, ranked, and linked to a FAQ.",
+                    )}
+                    label={translateText("Quick notes details")}
                   />
                 </CardTitle>
               </CardHeading>
@@ -323,8 +335,10 @@ export function FaqItemFormPage({ mode }: { mode: "create" | "edit" }) {
                 <CardTitle className="flex flex-wrap items-center gap-2">
                   <span>{translateText("Details")}</span>
                   <ContextHint
-                    content="Write the question, answer, and source details people rely on."
-                    label="Form details"
+                    content={translateText(
+                      "Write the question and metadata first. Answer variants are managed separately on this item.",
+                    )}
+                    label={translateText("Form details")}
                   />
                 </CardTitle>
               </CardHeading>
@@ -336,7 +350,6 @@ export function FaqItemFormPage({ mode }: { mode: "create" | "edit" }) {
                   onSubmit={form.handleSubmit(async (values) => {
                     const body = {
                       ...values,
-                      answer: values.answer || undefined,
                       additionalInfo: values.additionalInfo || undefined,
                       ctaTitle: values.ctaTitle || undefined,
                       ctaUrl: values.ctaUrl || undefined,
@@ -368,25 +381,6 @@ export function FaqItemFormPage({ mode }: { mode: "create" | "edit" }) {
                     description="Phrase it the way a customer would naturally ask it."
                     placeholder="How do I connect my knowledge base?"
                   />
-                  <TextField
-                    control={form.control}
-                    name="shortAnswer"
-                    label="Short answer"
-                    description="This is the fast summary users should see first."
-                    placeholder="Connect your content source, then publish the FAQ."
-                  />
-                  <FormSectionHeading
-                    title="Expand the answer"
-                    description="Use the short answer for speed, then add fuller guidance or supporting notes if needed."
-                    className="pt-2"
-                  />
-                  <TextareaField
-                    control={form.control}
-                    name="answer"
-                    label="Full answer"
-                    rows={7}
-                    description="Optional deeper answer for users who need more than the summary."
-                  />
                   <TextareaField
                     control={form.control}
                     name="additionalInfo"
@@ -395,8 +389,10 @@ export function FaqItemFormPage({ mode }: { mode: "create" | "edit" }) {
                     description="Optional notes, caveats, or internal context."
                   />
                   <FormSectionHeading
-                    title="Connect it"
-                    description="Pick the FAQ that controls visibility for this item."
+                    title={translateText("Connect it")}
+                    description={translateText(
+                      "Pick the FAQ that controls visibility for this item.",
+                    )}
                     className="pt-2"
                   />
                   <div className="grid gap-4 md:grid-cols-2">
@@ -446,8 +442,10 @@ export function FaqItemFormPage({ mode }: { mode: "create" | "edit" }) {
                     />
                   </div>
                   <FormSectionHeading
-                    title="Tune ranking"
-                    description="These values control where this answer appears relative to other items in the FAQ."
+                    title={translateText("Tune ranking")}
+                    description={translateText(
+                      "These values control where this answer appears relative to other items in the FAQ.",
+                    )}
                     className="pt-2"
                   />
                   <div className="grid gap-4 md:grid-cols-3">
@@ -459,18 +457,26 @@ export function FaqItemFormPage({ mode }: { mode: "create" | "edit" }) {
                       description="Lower values usually surface earlier."
                     />
                     <div className="space-y-2">
-                      <p className="text-sm font-medium">{translateText("Feedback score")}</p>
+                      <p className="text-sm font-medium">
+                        {translateText("Feedback score")}
+                      </p>
                       <p className="flex h-9 w-full items-center rounded-md border border-input bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
-                        {mode === "edit" ? (itemQuery.data?.feedbackScore ?? "—") : "—"}
+                        {mode === "edit"
+                          ? (itemQuery.data?.feedbackScore ?? "—")
+                          : "—"}
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {translateText("Set automatically by user feedbacks.")}
                       </p>
                     </div>
                     <div className="space-y-2">
-                      <p className="text-sm font-medium">{translateText("AI confidence")}</p>
+                      <p className="text-sm font-medium">
+                        {translateText("AI confidence")}
+                      </p>
                       <p className="flex h-9 w-full items-center rounded-md border border-input bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
-                        {mode === "edit" ? (itemQuery.data?.aiConfidenceScore ?? "—") : "—"}
+                        {mode === "edit"
+                          ? (itemQuery.data?.aiConfidenceScore ?? "—")
+                          : "—"}
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {translateText("Set automatically by the AI pipeline.")}
@@ -478,8 +484,10 @@ export function FaqItemFormPage({ mode }: { mode: "create" | "edit" }) {
                     </div>
                   </div>
                   <FormSectionHeading
-                    title="CTA behavior"
-                    description="Optional call-to-action for this Q&A item. Leave blank if no next step is needed."
+                    title={translateText("CTA behavior")}
+                    description={translateText(
+                      "Optional call-to-action for this Q&A item. Leave blank if no next step is needed.",
+                    )}
                     className="pt-2"
                   />
                   <div className="grid gap-4 md:grid-cols-2">
@@ -521,10 +529,44 @@ export function FaqItemFormPage({ mode }: { mode: "create" | "edit" }) {
               </Form>
             </CardContent>
           </Card>
+          {mode === "edit" && resolvedItemId && itemQuery.data ? (
+            <FaqItemAnswersCard
+              faqItemId={resolvedItemId}
+              answers={itemQuery.data.answers}
+              question={itemQuery.data.question}
+            />
+          ) : (
+            <Card>
+              <CardHeader>
+                <CardHeading>
+                  <CardTitle className="flex flex-wrap items-center gap-2">
+                    <span>{translateText("Answers")}</span>
+                    <ContextHint
+                      content={translateText(
+                        "Save the item first, then manage answer variants from the Q&A item page.",
+                      )}
+                      label={translateText("Answer setup details")}
+                    />
+                  </CardTitle>
+                </CardHeading>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  {translateText(
+                    "Answers now live as separate records under each Q&A item. Create the item first, then add and rank answer variants.",
+                  )}
+                </p>
+              </CardContent>
+            </Card>
+          )}
           <ProgressChecklistCard
-            eyebrow={mode === "create" ? "Start here" : "Progress"}
-            title="Complete the essentials first"
-            description="Get the core answer in place before tuning ranking, source links, or CTA behavior."
+            eyebrow={translateText(
+              mode === "create" ? "Start here" : "Progress",
+            )}
+            title={translateText("Complete the essentials first")}
+            description={translateText(
+              "Save the item shell, attach it to the right FAQ, then manage the answer variants.",
+            )}
             steps={formSteps}
           />
         </>
