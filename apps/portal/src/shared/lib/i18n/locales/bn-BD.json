@@ -857,5 +857,7 @@
   "Loading": "লোডিং",
   "Multiple answers": "একাধিক উত্তর",
   "Publishing and visibility flow from this FAQ.": "এই FAQ থেকে প্রকাশনা এবং দৃশ্যমানতা প্রবাহ।",
-  "Link source material to improve quality and traceability.": "গুণমান এবং ট্রেসেবিলিটি উন্নত করতে উৎস উপাদান সংযুক্ত করুন।"
+  "Link source material to improve quality and traceability.": "গুণমান এবং ট্রেসেবিলিটি উন্নত করতে উৎস উপাদান সংযুক্ত করুন।",
+  "Update the answer variant shown for this question.": "এই প্রশ্নের জন্য প্রদর্শিত উত্তর বৈকল্পিক আপডেট করুন।",
+  "Create another answer variant for this question.": "এই প্রশ্নের জন্য অন্য একটি উত্তর বৈকল্পিক তৈরি করুন।"
 }

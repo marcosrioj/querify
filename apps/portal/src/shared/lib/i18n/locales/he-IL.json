@@ -857,5 +857,7 @@
   "Loading": "טוען",
   "Multiple answers": "תשובות מרובות",
   "Publishing and visibility flow from this FAQ.": "זרימת פרסום וראות מ-FAQ זה.",
-  "Link source material to improve quality and traceability.": "קשר חומר מקור לשיפור איכות וניתוח."
+  "Link source material to improve quality and traceability.": "קשר חומר מקור לשיפור איכות וניתוח.",
+  "Update the answer variant shown for this question.": "עדכן את וריאנט התשובה המוצג לשאלה זו.",
+  "Create another answer variant for this question.": "צור וריאנט תשובה נוסף לשאלה זו."
 }

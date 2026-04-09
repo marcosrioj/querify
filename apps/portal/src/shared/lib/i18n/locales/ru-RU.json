@@ -857,5 +857,7 @@
   "Loading": "Загрузка",
   "Multiple answers": "Несколько ответов",
   "Publishing and visibility flow from this FAQ.": "Поток публикации и видимости из этого FAQ.",
-  "Link source material to improve quality and traceability.": "Привязка исходного материала для повышения качества и отслеживаемости."
+  "Link source material to improve quality and traceability.": "Привязка исходного материала для повышения качества и отслеживаемости.",
+  "Update the answer variant shown for this question.": "Обновите вариант ответа, показанный для этого вопроса.",
+  "Create another answer variant for this question.": "Создайте еще один вариант ответа для этого вопроса."
 }

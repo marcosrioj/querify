@@ -857,5 +857,7 @@
   "Loading": "Đang tải",
   "Multiple answers": "Nhiều câu trả lời",
   "Publishing and visibility flow from this FAQ.": "Dòng xuất bản và khả năng hiển thị từ FAQ này.",
-  "Link source material to improve quality and traceability.": "Liên kết tài liệu nguồn để cải thiện chất lượng và khả năng theo dõi."
+  "Link source material to improve quality and traceability.": "Liên kết tài liệu nguồn để cải thiện chất lượng và khả năng theo dõi.",
+  "Update the answer variant shown for this question.": "Cập nhật biến thể câu trả lời được hiển thị cho câu hỏi này.",
+  "Create another answer variant for this question.": "Tạo biến thể câu trả lời khác cho câu hỏi này."
 }

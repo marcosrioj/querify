@@ -857,5 +857,7 @@
   "Loading": "กำลังโหลด",
   "Multiple answers": "หลายคำตอบ",
   "Publishing and visibility flow from this FAQ.": "ไหลไปยังการเผยแพร่และการมองเห็นจากคำถามที่พบบ่อยนี้",
-  "Link source material to improve quality and traceability.": "เชื่อมโยงวัสดุแหล่งที่มาเพื่อปรับปรุงคุณภาพและความสามารถในการติดตาม"
+  "Link source material to improve quality and traceability.": "เชื่อมโยงวัสดุแหล่งที่มาเพื่อปรับปรุงคุณภาพและความสามารถในการติดตาม",
+  "Update the answer variant shown for this question.": "อัปเดตตัวแปรคำตอบที่แสดงสำหรับคำถามนี้",
+  "Create another answer variant for this question.": "สร้างตัวแปรคำตอบอื่นสำหรับคำถามนี้"
 }

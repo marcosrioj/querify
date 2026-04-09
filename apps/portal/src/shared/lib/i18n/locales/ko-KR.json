@@ -857,5 +857,7 @@
   "Loading": "로드 중",
   "Multiple answers": "여러 답변",
   "Publishing and visibility flow from this FAQ.": "이 FAQ에서의 게시 및 가시성 흐름입니다.",
-  "Link source material to improve quality and traceability.": "품질 및 추적 가능성을 개선하기 위해 소스 자료를 연결하세요."
+  "Link source material to improve quality and traceability.": "품질 및 추적 가능성을 개선하기 위해 소스 자료를 연결하세요.",
+  "Update the answer variant shown for this question.": "이 질문에 대해 표시된 답변 변형을 업데이트하십시오.",
+  "Create another answer variant for this question.": "이 질문에 대한 다른 답변 변형을 만드세요."
 }

@@ -857,5 +857,7 @@
   "Loading": "正在加载",
   "Multiple answers": "多个答案",
   "Publishing and visibility flow from this FAQ.": "来自此常见问题的发布和可见性流。",
-  "Link source material to improve quality and traceability.": "链接源材料以改进质量和可追溯性。"
+  "Link source material to improve quality and traceability.": "链接源材料以改进质量和可追溯性。",
+  "Update the answer variant shown for this question.": "更新为此问题显示的答案变体。",
+  "Create another answer variant for this question.": "为此问题创建另一个答案变体。"
 }

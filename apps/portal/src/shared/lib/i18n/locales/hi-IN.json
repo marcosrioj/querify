@@ -857,5 +857,7 @@
   "Loading": "लोड हो रहा है",
   "Multiple answers": "एकाधिक उत्तर",
   "Publishing and visibility flow from this FAQ.": "इस FAQ से प्रकाशन और दृश्यमानता प्रवाह।",
-  "Link source material to improve quality and traceability.": "गुणवत्ता और अनुमेयता को बेहतर बनाने के लिए स्रोत सामग्री लिंक करें।"
+  "Link source material to improve quality and traceability.": "गुणवत्ता और अनुमेयता को बेहतर बनाने के लिए स्रोत सामग्री लिंक करें।",
+  "Update the answer variant shown for this question.": "इस प्रश्न के लिए दिए गए उत्तर वेरिएंट को अपडेट करें।",
+  "Create another answer variant for this question.": "इस प्रश्न के लिए एक और उत्तर वेरिएंट बनाएँ।"
 }

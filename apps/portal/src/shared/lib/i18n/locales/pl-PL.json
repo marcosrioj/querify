@@ -857,5 +857,7 @@
   "Loading": "Ładowanie",
   "Multiple answers": "Wiele odpowiedzi",
   "Publishing and visibility flow from this FAQ.": "Przepływ publikowania i widoczności z tego FAQ.",
-  "Link source material to improve quality and traceability.": "Połącz materiał źródłowy, aby poprawić jakość i identyfikowalność."
+  "Link source material to improve quality and traceability.": "Połącz materiał źródłowy, aby poprawić jakość i identyfikowalność.",
+  "Update the answer variant shown for this question.": "Zaktualizuj wariant odpowiedzi wyświetlany dla tego pytania.",
+  "Create another answer variant for this question.": "Utwórz inny wariant odpowiedzi dla tego pytania."
 }

@@ -857,5 +857,7 @@
   "Loading": "Yükleniyor",
   "Multiple answers": "Çoklu cevaplar",
   "Publishing and visibility flow from this FAQ.": "Bu SSS'den yayımlama ve görünürlük akışı.",
-  "Link source material to improve quality and traceability.": "Kaliteyi ve izlenebilirliği geliştirmek için kaynak materyalini bağlayın."
+  "Link source material to improve quality and traceability.": "Kaliteyi ve izlenebilirliği geliştirmek için kaynak materyalini bağlayın.",
+  "Update the answer variant shown for this question.": "Bu soru için gösterilen cevap varyantını güncelleyin.",
+  "Create another answer variant for this question.": "Bu soru için başka bir cevap varyantı oluşturun."
 }

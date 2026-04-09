@@ -857,5 +857,7 @@
   "Loading": "Loading",
   "Multiple answers": "Multiple answers",
   "Publishing and visibility flow from this FAQ.": "Publishing and visibility flow from this FAQ.",
-  "Link source material to improve quality and traceability.": "Link source material to improve quality and traceability."
+  "Link source material to improve quality and traceability.": "Link source material to improve quality and traceability.",
+  "Update the answer variant shown for this question.": "Update the answer variant shown for this question.",
+  "Create another answer variant for this question.": "Create another answer variant for this question."
 }

@@ -857,5 +857,7 @@
   "Loading": "جاري التحميل",
   "Multiple answers": "إجابات متعددة",
   "Publishing and visibility flow from this FAQ.": "نشر وتدفق الرؤية من هذه الأسئلة الشائعة.",
-  "Link source material to improve quality and traceability.": "ربط المواد المصدر لتحسين الجودة والقابلية للتتبع."
+  "Link source material to improve quality and traceability.": "ربط المواد المصدر لتحسين الجودة والقابلية للتتبع.",
+  "Update the answer variant shown for this question.": "حدث متغير الإجابة المعروض لهذا السؤال.",
+  "Create another answer variant for this question.": "أنشئ متغير إجابة آخر لهذا السؤال."
 }

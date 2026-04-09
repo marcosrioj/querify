@@ -857,5 +857,7 @@
   "Loading": "読み込み中",
   "Multiple answers": " многие回答",
   "Publishing and visibility flow from this FAQ.": "このFAQからの公開と可視性フロー。",
-  "Link source material to improve quality and traceability.": "品質と追跡可能性を向上させるためにソース材料をリンクします。"
+  "Link source material to improve quality and traceability.": "品質と追跡可能性を向上させるためにソース材料をリンクします。",
+  "Update the answer variant shown for this question.": "この質問に対して表示されている回答バリアントを更新します。",
+  "Create another answer variant for this question.": "この質問に別の回答バリアントを作成します。"
 }
