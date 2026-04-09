@@ -67,6 +67,7 @@ Copy `.env.example` to `.env` and adjust as needed.
 | `VITE_AUTH0_DOMAIN` | Auth0 domain |
 | `VITE_AUTH0_AUDIENCE` | Auth0 API audience |
 | `VITE_AUTH0_CLIENT_ID` | SPA client id used by the Portal frontend |
+| `VITE_AUTH0_REDIRECT_URI` | optional Auth0 callback URI override |
 | `VITE_AUTH0_LOGOUT_URI` | optional post-logout redirect URI |
 
 ## Local setup
@@ -134,9 +135,12 @@ The frontend logout handler redirects to `VITE_AUTH0_LOGOUT_URI` when set, other
 
 Portal language and direction now resolve in this order:
 
-1. `User.Language` from the authenticated profile
-2. browser language
-3. English (`en-US`)
+1. `User.Language` from the authenticated profile, when present
+2. the locally stored Portal language in `localStorage`
+3. browser language
+4. English (`en-US`)
+
+On unauthenticated routes such as `/login`, the frontend skips the profile step and resolves language from local storage first, then the browser language, then English.
 
 Direction (`ltr` or `rtl`) is applied at the document level by the frontend.
 
@@ -147,12 +151,16 @@ Implementation references:
 - `apps/portal/src/shared/lib/i18n/locales/*.json`
 - `apps/portal/src/shared/lib/i18n/messages.ts`
 - `apps/portal/src/shared/lib/i18n-core.ts`
-- `apps/portal/src/shared/lib/i18n.tsx`
+- `apps/portal/src/shared/lib/i18n-provider.tsx`
+- `apps/portal/src/shared/lib/use-portal-i18n.ts`
 
 User-facing language controls are available in:
 
+- the login screen header
 - profile settings
 - the top toolbar beside notifications
+
+The login screen selector updates only the frontend-owned stored language. Authenticated selectors still converge on the same local language state, and the toolbar/profile flows additionally persist the preference through the user profile API.
 
 ## Local subdomain option
 

@@ -6,6 +6,8 @@ This document explains how the repository is organized, how the runtime is split
 
 ## Solution shape
 
+The repository root contains one primary `.NET` solution file, `BaseFaq.sln`. It currently includes 47 `.NET` projects under `dotnet/`, while `apps/portal` remains a separate frontend app outside the `.sln`. Two AI scaffold projects also exist under `dotnet/` but are not currently included in the solution: `BaseFaq.AI.Common.Contracts` and `BaseFaq.AI.Common.VectorStore`.
+
 | Delivery root | Responsibility |
 |---|---|
 | `apps/portal` | Tenant-facing web application for authenticated workspace flows |

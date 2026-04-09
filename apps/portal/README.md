@@ -41,7 +41,7 @@ Notes:
 - `domains/billing` and parts of `domains/ai` remain placeholder shells where the backend surface is missing
 - `shared/lib/language.ts` defines the built-in Portal language options and text direction metadata
 - `shared/lib/i18n/locales/*.json` stores the frontend-owned locale catalogs
-- `shared/lib/i18n/messages.ts`, `shared/lib/i18n-core.ts`, and `shared/lib/i18n.tsx` load translations and apply `lang` / `dir`
+- `shared/lib/i18n/messages.ts`, `shared/lib/i18n-core.ts`, `shared/lib/i18n-provider.tsx`, and `shared/lib/use-portal-i18n.ts` load translations and apply `lang` / `dir`
 
 ## Local setup
 
@@ -72,7 +72,6 @@ If you run the local `simulatedev` reverse proxy helper, the same Portal app is 
 The portal logout flow calls Auth0 `/v2/logout` with `returnTo={origin}{BASE_URL}login` by default. If that URL is not listed in the Auth0 application's `Allowed Logout URLs`, Auth0 will reject the redirect after sign-out. Set `VITE_AUTH0_LOGOUT_URI` only when the post-logout target must differ from the default login route.
 
 Do not reuse the backend `SwaggerOptions:swaggerAuth:ClientId` value as the Portal SPA client unless that Auth0 application has also been updated to allow the Portal callback URL above. The backend README documents that client for Swagger UI callback pages on ports `5000`, `5002`, and `5010`.
-Do not reuse the backend `SwaggerOptions:swaggerAuth:ClientId` value as the Portal SPA client unless that Auth0 application has also been updated to allow the Portal callback URL above. The protected API `appsettings.json` files keep those Swagger auth settings for the callback pages on ports `5000`, `5002`, and `5010`.
 
 3. Run the app
 
@@ -101,11 +100,20 @@ npm run build
 
 Portal localization now resolves in this order:
 
-1. `User.Language` from the profile endpoint
-2. browser language
-3. English (`en-US`)
+1. `User.Language` from the authenticated profile, when present
+2. the locally stored Portal language in `localStorage`
+3. browser language
+4. English (`en-US`)
 
-The top toolbar includes a language selector beside notifications, and profile settings also expose the same preference.
+On unauthenticated routes such as `/login`, the app skips the profile lookup and resolves language from local storage first, then the browser language, then English.
+
+Language can be changed from:
+
+- the login screen header selector
+- the top toolbar beside notifications
+- profile settings
+
+The login selector updates only the frontend-owned stored language. The authenticated toolbar and profile flows also persist the preference through the Tenant Portal user profile endpoint.
 
 Portal UI translation is frontend-owned. Keep UI copy in the frontend and route it through the shared i18n helpers instead of expecting backend-translated DTO labels.
 

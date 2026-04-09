@@ -16,6 +16,8 @@ This guide explains how the backend is organized under `dotnet/`, which APIs exi
 
 ## Project taxonomy inside `dotnet/`
 
+`BaseFaq.sln` currently includes 47 `.NET` projects. The inventory below reflects the projects that are actually in the solution, not every folder that exists under `dotnet/`.
+
 ### API hosts
 
 These projects contain ASP.NET Core startup, middleware, and DI registration:
@@ -28,7 +30,7 @@ These projects contain ASP.NET Core startup, middleware, and DI registration:
 
 ### Business modules
 
-Each service area is split into feature projects. Examples:
+Each service area is split into feature projects:
 
 - FAQ Portal:
   - `BaseFaq.Faq.Portal.Business.Faq`
@@ -52,23 +54,44 @@ Each service area is split into feature projects. Examples:
   - `BaseFaq.AI.Business.Common`
   - `BaseFaq.AI.Business.Generation`
   - `BaseFaq.AI.Business.Matching`
-  - `BaseFaq.AI.Common.Contracts`
-  - `BaseFaq.AI.Common.VectorStore` (currently a scaffold project)
 
 ### Shared infrastructure and persistence
 
+- `BaseFaq.Common.EntityFramework.Core`: shared EF Core helpers and database infrastructure used across the solution
 - `BaseFaq.Common.EntityFramework.Tenant`: tenant database context, tenant resolution helpers, and shared tenant infrastructure
 - `BaseFaq.Faq.Common.Persistence.FaqDb`: FAQ database context and FAQ-side persistence
-- `BaseFaq.Common.Infrastructure.*`: API error handling, MVC filters, Swagger, Sentry, MediatR logging, MassTransit, telemetry, and core abstractions
-- `BaseFaq.Models.*`: solution-wide contracts, DTOs, and enums
+- `BaseFaq.Common.Infrastructure.Core`: shared core abstractions and backend helper services
+- `BaseFaq.Common.Infrastructure.ApiErrorHandling`: API error handling conventions
+- `BaseFaq.Common.Infrastructure.MassTransit`: MassTransit registration and messaging conventions
+- `BaseFaq.Common.Infrastructure.MediatR`: MediatR integration and related pipeline behavior
+- `BaseFaq.Common.Infrastructure.Mvc`: MVC filters and ASP.NET Core glue
+- `BaseFaq.Common.Infrastructure.Sentry`: Sentry integration
+- `BaseFaq.Common.Infrastructure.Swagger`: Swagger/OpenAPI wiring
+- `BaseFaq.Common.Infrasctructure.Telemetry`: shared telemetry wiring
+- `BaseFaq.Models.Common`: shared primitive DTOs and common contracts
+- `BaseFaq.Models.Faq`: FAQ-facing contracts
+- `BaseFaq.Models.Tenant`: tenant-facing contracts
+- `BaseFaq.Models.User`: user and profile contracts
+- `BaseFaq.Models.Ai`: AI-facing contracts currently used by the active solution code
 
-### Tools and tests
+### Tests, tools, and samples
 
-- `BaseFaq.Tools.Migration`: tenant-aware migration runner for FAQ databases
-- `BaseFaq.Tools.Seed`: console seed application for essential and sample data
-- `*.Test.IntegrationTests` and `BaseFaq.AI.Test.IntegrationTest`: integration coverage by service area
-- `BaseFaq.Common.Architecture.Test.IntegrationTest`: repository rule-compliance tests for `PROJECT_RULES.md`
-- `BaseFaq.Sample.Ai.Generation`: standalone sample console app used for prompt and provider experimentation
+- `BaseFaq.Faq.Portal.Test.IntegrationTests`
+- `BaseFaq.Faq.Public.Test.IntegrationTests`
+- `BaseFaq.Tenant.BackOffice.Test.IntegrationTests`
+- `BaseFaq.Tenant.Portal.Test.IntegrationTests`
+- `BaseFaq.AI.Test.IntegrationTest`
+- `BaseFaq.Common.Architecture.Test.IntegrationTest`
+- `BaseFaq.Tools.Migration`
+- `BaseFaq.Tools.Seed`
+- `BaseFaq.Sample.Ai.Generation`
+
+### Repo-only AI scaffolds outside `BaseFaq.sln`
+
+The repository also contains these AI projects under `dotnet/`, but they are not currently included in `BaseFaq.sln`:
+
+- `BaseFaq.AI.Common.Contracts`: parallel contracts project with generation and matching message types
+- `BaseFaq.AI.Common.VectorStore`: scaffold project reserved for future vector-store integrations
 
 ## Standard request flow
 

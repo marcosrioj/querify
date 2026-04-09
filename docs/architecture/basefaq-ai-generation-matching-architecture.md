@@ -24,8 +24,8 @@ The important constraint is that the AI worker is intentionally stateless for li
 | `BaseFaq.AI.Business.Generation` | content study, prompt building, generation provider integration, generation consumers |
 | `BaseFaq.AI.Business.Matching` | candidate loading, ranking provider integration, matching consumers |
 | `BaseFaq.Models.Ai` | the contract package currently referenced by the active business code for generation and matching messages |
-| `BaseFaq.AI.Common.Contracts` | parallel contracts project that exists in the solution but is not the only source of active message types today |
-| `BaseFaq.AI.Common.VectorStore` | scaffold project reserved for future vector-store integrations; currently contains only the project shell |
+| `BaseFaq.AI.Common.Contracts` | parallel contracts project that exists in the repository, but is not currently included in `BaseFaq.sln` and is not the primary message-contract source for the active runtime |
+| `BaseFaq.AI.Common.VectorStore` | scaffold project reserved for future vector-store integrations; it exists in the repository but is not currently included in `BaseFaq.sln` |
 | `BaseFaq.Sample.Ai.Generation` | standalone console sample for prompt and provider experimentation outside the worker runtime |
 | `BaseFaq.AI.Test.IntegrationTest` | integration coverage for AI flows |
 
