@@ -1,6 +1,7 @@
 'use client';
 
-import { createContext, ReactNode, useContext } from 'react';
+import { ReactNode } from 'react';
+import { DataGridContext } from '@/components/ui/data-grid-context';
 import { cn } from '@/lib/utils';
 import { ColumnFiltersState, RowData, SortingState, Table } from '@tanstack/react-table';
 
@@ -83,19 +84,6 @@ export interface DataGridProps<TData extends object> {
     footer?: string;
     edgeCell?: string;
   };
-}
-
-const DataGridContext = createContext<
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  DataGridContextProps<any> | undefined
->(undefined);
-
-function useDataGrid() {
-  const context = useContext(DataGridContext);
-  if (!context) {
-    throw new Error('useDataGrid must be used within a DataGridProvider');
-  }
-  return context;
 }
 
 function DataGridProvider<TData extends object>({
@@ -190,4 +178,4 @@ function DataGridContainer({
   );
 }
 
-export { useDataGrid, DataGridProvider, DataGrid, DataGridContainer };
+export { DataGridProvider, DataGrid, DataGridContainer };

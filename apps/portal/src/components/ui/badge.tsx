@@ -231,4 +231,4 @@ function BadgeDot({ className, ...props }: React.ComponentProps<'span'>) {
   );
 }
 
-export { Badge, BadgeButton, BadgeDot, badgeVariants };
+export { Badge, BadgeButton, BadgeDot };

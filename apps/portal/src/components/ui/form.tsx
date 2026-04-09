@@ -137,4 +137,4 @@ function FormMessage({ className, children, ...props }: React.HTMLAttributes<HTM
   );
 }
 
-export { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage, useFormField };
+export { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage };

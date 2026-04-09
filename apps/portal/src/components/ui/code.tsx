@@ -65,4 +65,4 @@ function Code({
   );
 }
 
-export { Code, codeVariants };
+export { Code };

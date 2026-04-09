@@ -178,3 +178,30 @@ The repository README for the portal already calls out important product gaps th
 ## UI implementation rules
 
 For page composition, shared components, and UX consistency, use [`portal-app-ui-prompt-guidance.md`](portal-app-ui-prompt-guidance.md).
+
+## Fast Refresh-safe exports
+
+Keep React component modules in `apps/portal/src/**/*.tsx` compatible with Vite Fast Refresh:
+
+- A component file should export React components and TypeScript types only.
+- Move shared `cva(...)` helpers to sibling modules such as `button.variants.ts` or `input.variants.ts`.
+- Move shared hooks, contexts, constants, and non-JSX helpers to sibling `*.ts` files.
+- Do not export runtime helpers like `buttonVariants`, `useDataGrid`, `useFormField`, `dateInputStyles`, or component-local constants from the same `.tsx` file that exports components.
+
+Preferred pattern:
+
+```text
+components/ui/button.tsx
+components/ui/button.variants.ts
+components/ui/data-grid.tsx
+components/ui/data-grid-context.ts
+```
+
+Validation:
+
+```bash
+cd apps/portal
+npm run lint
+```
+
+The portal ESLint config enforces `react-refresh/only-export-components` so Fast Refresh regressions fail locally instead of surfacing later as Vite HMR invalidation warnings.

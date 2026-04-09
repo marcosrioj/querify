@@ -26,4 +26,4 @@ function Kbd({ className, variant, size, ...props }: React.ComponentProps<'kbd'>
   return <kbd data-slot="kbd" className={cn(kbdVariants({ variant, size }), className)} {...props} />;
 }
 
-export { Kbd, kbdVariants };
+export { Kbd };

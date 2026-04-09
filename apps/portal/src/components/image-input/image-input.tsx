@@ -44,8 +44,8 @@ interface ImageInputExport {
   };
 }
 
-export const DEFAULT_NULL_INDEX = -1;
-export const DEFAULT_DATA_URL_KEY = 'dataURL';
+const DEFAULT_NULL_INDEX = -1;
+const DEFAULT_DATA_URL_KEY = 'dataURL';
 
 const ImageInput: FC<ImageInputProps> = ({
   value,

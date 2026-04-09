@@ -1,6 +1,6 @@
 import { CSSProperties, useId } from 'react';
 import { Button } from '@/components/ui/button';
-import { useDataGrid } from '@/components/ui/data-grid';
+import { useDataGrid } from '@/components/ui/data-grid-context';
 import {
   DataGridTableBase,
   DataGridTableBody,
