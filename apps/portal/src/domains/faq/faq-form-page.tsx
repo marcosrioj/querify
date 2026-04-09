@@ -145,7 +145,7 @@ export function FaqFormPage({ mode }: { mode: "create" | "edit" }) {
             <CardHeader>
               <CardHeading>
                 <CardTitle className="flex flex-wrap items-center gap-2">
-                  <span>Quick notes</span>
+                  <span>{translateText("Quick notes")}</span>
                   <ContextHint
                     content="Keep the FAQ simple, searchable, and ready for publication."
                     label="Quick notes details"
@@ -182,7 +182,7 @@ export function FaqFormPage({ mode }: { mode: "create" | "edit" }) {
             <CardHeader>
               <CardHeading>
                 <CardTitle className="flex flex-wrap items-center gap-2">
-                  <span>Details</span>
+                  <span>{translateText("Details")}</span>
                   <ContextHint
                     content="Set how this FAQ should behave across the portal."
                     label="Form details"
@@ -252,7 +252,7 @@ export function FaqFormPage({ mode }: { mode: "create" | "edit" }) {
                   </div>
                   <div className="flex flex-wrap items-center gap-3">
                     <Button type="submit" disabled={isSubmitting}>
-                      {mode === "create" ? "Create FAQ" : "Save changes"}
+                      {translateText(mode === "create" ? "Create FAQ" : "Save changes")}
                     </Button>
                     <Button asChild variant="outline">
                       <Link
@@ -261,7 +261,7 @@ export function FaqFormPage({ mode }: { mode: "create" | "edit" }) {
                         }
                       >
                         <X className="size-4" />
-                        Cancel
+                        {translateText("Cancel")}
                       </Link>
                     </Button>
                   </div>

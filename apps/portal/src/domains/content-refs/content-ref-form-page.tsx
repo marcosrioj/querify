@@ -147,7 +147,7 @@ export function ContentRefFormPage({ mode }: { mode: "create" | "edit" }) {
             <CardHeader>
               <CardHeading>
                 <CardTitle className="flex flex-wrap items-center gap-2">
-                  <span>Quick notes</span>
+                  <span>{translateText("Quick notes")}</span>
                   <ContextHint
                     content="Good source records stay durable, labeled, and easy to reuse."
                     label="Quick notes details"
@@ -195,7 +195,7 @@ export function ContentRefFormPage({ mode }: { mode: "create" | "edit" }) {
             <CardHeader>
               <CardHeading>
                 <CardTitle className="flex flex-wrap items-center gap-2">
-                  <span>Details</span>
+                  <span>{translateText("Details")}</span>
                   <ContextHint
                     content="Make this source easy to find and reuse."
                     label="Form details"
@@ -228,10 +228,13 @@ export function ContentRefFormPage({ mode }: { mode: "create" | "edit" }) {
                   {originatingFaqItemId ? (
                     <Alert variant="info" appearance="light">
                       <div className="space-y-1">
-                        <AlertTitle>Creating a source for a Q&A item</AlertTitle>
+                        <AlertTitle>
+                          {translateText("Creating a source for a Q&A item")}
+                        </AlertTitle>
                         <AlertDescription>
-                          Save this source first, then link it back to the Q&A
-                          item from the next screen.
+                          {translateText(
+                            "Save this source first, then link it back to the Q&A item from the next screen.",
+                          )}
                         </AlertDescription>
                       </div>
                     </Alert>
@@ -284,12 +287,14 @@ export function ContentRefFormPage({ mode }: { mode: "create" | "edit" }) {
                   </div>
                   <div className="flex flex-wrap items-center gap-3">
                     <Button type="submit" disabled={isSubmitting}>
-                      {mode === "create" ? "Create source" : "Save changes"}
+                      {translateText(
+                        mode === "create" ? "Create source" : "Save changes",
+                      )}
                     </Button>
                     <Button asChild variant="outline">
                       <Link to={contextualBackTo}>
                         <X className="size-4" />
-                        Cancel
+                        {translateText("Cancel")}
                       </Link>
                     </Button>
                   </div>

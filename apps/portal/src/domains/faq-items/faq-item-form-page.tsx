@@ -266,7 +266,7 @@ export function FaqItemFormPage({ mode }: { mode: "create" | "edit" }) {
             <CardHeader>
               <CardHeading>
                 <CardTitle className="flex flex-wrap items-center gap-2">
-                  <span>Quick notes</span>
+                  <span>{translateText("Quick notes")}</span>
                   <ContextHint
                     content="Keep each Q&A item clear, ranked, and linked to a FAQ."
                     label="Quick notes details"
@@ -321,7 +321,7 @@ export function FaqItemFormPage({ mode }: { mode: "create" | "edit" }) {
             <CardHeader>
               <CardHeading>
                 <CardTitle className="flex flex-wrap items-center gap-2">
-                  <span>Details</span>
+                  <span>{translateText("Details")}</span>
                   <ContextHint
                     content="Write the question, answer, and source details people rely on."
                     label="Form details"
@@ -459,18 +459,22 @@ export function FaqItemFormPage({ mode }: { mode: "create" | "edit" }) {
                       description="Lower values usually surface earlier."
                     />
                     <div className="space-y-2">
-                      <p className="text-sm font-medium">Vote score</p>
+                      <p className="text-sm font-medium">{translateText("Vote score")}</p>
                       <p className="flex h-9 w-full items-center rounded-md border border-input bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
                         {mode === "edit" ? (itemQuery.data?.voteScore ?? "—") : "—"}
                       </p>
-                      <p className="text-xs text-muted-foreground">Set automatically by user votes.</p>
+                      <p className="text-xs text-muted-foreground">
+                        {translateText("Set automatically by user votes.")}
+                      </p>
                     </div>
                     <div className="space-y-2">
-                      <p className="text-sm font-medium">AI confidence</p>
+                      <p className="text-sm font-medium">{translateText("AI confidence")}</p>
                       <p className="flex h-9 w-full items-center rounded-md border border-input bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
                         {mode === "edit" ? (itemQuery.data?.aiConfidenceScore ?? "—") : "—"}
                       </p>
-                      <p className="text-xs text-muted-foreground">Set automatically by the AI pipeline.</p>
+                      <p className="text-xs text-muted-foreground">
+                        {translateText("Set automatically by the AI pipeline.")}
+                      </p>
                     </div>
                   </div>
                   <FormSectionHeading
@@ -502,12 +506,14 @@ export function FaqItemFormPage({ mode }: { mode: "create" | "edit" }) {
                   />
                   <div className="flex flex-wrap items-center gap-3">
                     <Button type="submit" disabled={isSubmitting}>
-                      {mode === "create" ? "Create Q&A item" : "Save changes"}
+                      {translateText(
+                        mode === "create" ? "Create Q&A item" : "Save changes",
+                      )}
                     </Button>
                     <Button asChild variant="outline">
                       <Link to={backTo}>
                         <X className="size-4" />
-                        Cancel
+                        {translateText("Cancel")}
                       </Link>
                     </Button>
                   </div>

@@ -26,6 +26,7 @@ import {
 } from "@/shared/ui";
 import { EmptyState, ErrorState } from "@/shared/ui/placeholder-state";
 import { ContentRefKindBadge } from "@/shared/ui/status-badges";
+import { translateText } from "@/shared/lib/i18n-core";
 
 export function FaqItemDetailPage() {
   const navigate = useNavigate();
@@ -155,27 +156,29 @@ export function FaqItemDetailPage() {
                 <Button asChild size="sm" className="w-full justify-start">
                   <Link to={`/app/faq/${resolvedFaqId}`}>
                     <Link2 className="size-4" />
-                    Open FAQ
+                    {translateText("Open FAQ")}
                   </Link>
                 </Button>
               ) : null}
               <Button asChild variant="outline" size="sm" className="w-full justify-start">
                 <Link to={editPath}>
                   <Pencil className="size-4" />
-                  Edit
+                  {translateText("Edit")}
                 </Link>
               </Button>
               {contentRefPath ? (
                 <Button asChild variant="outline" size="sm" className="w-full justify-start">
                   <Link to={contentRefPath}>
                     <Files className="size-4" />
-                    Open source
+                    {translateText("Open source")}
                   </Link>
                 </Button>
               ) : null}
               <div className="col-span-2 h-px bg-border/50" />
               <ConfirmAction
-                title={`Delete Q&A item "${itemQuery.data?.question ?? "this item"}"?`}
+                title={translateText('Delete Q&A item "{name}"?', {
+                  name: itemQuery.data?.question ?? "this item",
+                })}
                 description="This removes the answer record from the FAQ workflow. Keep it only if you no longer need it."
                 confirmLabel="Delete Q&A item"
                 isPending={deleteFaqItem.isPending}
@@ -187,7 +190,7 @@ export function FaqItemDetailPage() {
                 trigger={
                   <Button variant="destructive" size="sm" className="col-span-2 w-full justify-start">
                     <Trash2 className="size-4" />
-                    Delete
+                    {translateText("Delete")}
                   </Button>
                 }
               />
@@ -201,7 +204,7 @@ export function FaqItemDetailPage() {
               <CardHeader>
                 <CardHeading>
                   <CardTitle className="flex flex-wrap items-center gap-2">
-                    <span>Overview</span>
+                    <span>{translateText("Overview")}</span>
                     <ContextHint
                       content="Ranking, visibility, and relationship details."
                       label="Overview details"
@@ -218,7 +221,7 @@ export function FaqItemDetailPage() {
                         <Badge
                           variant={itemQuery.data.isActive ? "success" : "mono"}
                         >
-                          {itemQuery.data.isActive ? "Active" : "Inactive"}
+                          {translateText(itemQuery.data.isActive ? "Active" : "Inactive")}
                         </Badge>
                       ),
                     },
@@ -231,7 +234,7 @@ export function FaqItemDetailPage() {
                       value:
                         linkedContentRef?.label ||
                         linkedContentRef?.locator ||
-                        "None linked",
+                        translateText("No source linked"),
                     },
                     { label: "Sort", value: String(itemQuery.data.sort) },
                     {
@@ -295,13 +298,13 @@ export function FaqItemDetailPage() {
           />
 
           <Card>
-            <CardHeader>
-              <CardHeading>
-                <CardTitle className="flex flex-wrap items-center gap-2">
-                  <span>Question & answer</span>
-                  <ContextHint
-                    content="The question, answer, notes, and CTA live together here."
-                    label="Question and answer details"
+              <CardHeader>
+                <CardHeading>
+                  <CardTitle className="flex flex-wrap items-center gap-2">
+                    <span>{translateText("Question & answer")}</span>
+                    <ContextHint
+                      content="The question, answer, notes, and CTA live together here."
+                      label="Question and answer details"
                   />
                 </CardTitle>
               </CardHeading>
@@ -309,7 +312,7 @@ export function FaqItemDetailPage() {
             <CardContent className="space-y-4">
               <div>
                 <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-                  Question
+                  {translateText("Question")}
                 </p>
                 <p className="mt-2 text-sm leading-6">
                   {itemQuery.data.question}
@@ -317,7 +320,7 @@ export function FaqItemDetailPage() {
               </div>
               <div>
                 <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-                  Short answer
+                  {translateText("Short answer")}
                 </p>
                 <p className="mt-2 text-sm leading-6">
                   {itemQuery.data.shortAnswer}
@@ -326,7 +329,7 @@ export function FaqItemDetailPage() {
               {itemQuery.data.answer ? (
                 <div>
                   <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-                    Full answer
+                    {translateText("Full answer")}
                   </p>
                   <p className="mt-2 whitespace-pre-wrap text-sm leading-6">
                     {itemQuery.data.answer}
@@ -336,7 +339,7 @@ export function FaqItemDetailPage() {
               {itemQuery.data.additionalInfo ? (
                 <div>
                   <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-                    Additional info
+                    {translateText("Additional info")}
                   </p>
                   <p className="mt-2 whitespace-pre-wrap text-sm leading-6">
                     {itemQuery.data.additionalInfo}
@@ -365,7 +368,7 @@ export function FaqItemDetailPage() {
             <CardHeader>
               <CardHeading>
                 <CardTitle className="flex flex-wrap items-center gap-2">
-                  <span>Links</span>
+                  <span>{translateText("Links")}</span>
                   <ContextHint
                     content="See which FAQ and source this Q&A item belongs to."
                     label="Relationship details"
@@ -376,7 +379,7 @@ export function FaqItemDetailPage() {
             <CardContent className="grid gap-4 md:grid-cols-2">
               <div className="rounded-2xl border border-border bg-muted/15 p-4">
                 <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-                  FAQ
+                  {translateText("FAQ")}
                 </p>
                 <p className="mt-2 font-medium text-mono">
                   {parentFaq?.name ?? itemQuery.data.faqId}
@@ -388,7 +391,7 @@ export function FaqItemDetailPage() {
                   <Button asChild variant="outline" size="sm" className="mt-4">
                     <Link to={backTo}>
                       <ArrowUpRight className="size-4" />
-                      Open FAQ
+                      {translateText("Open FAQ")}
                     </Link>
                   </Button>
                 ) : null}
@@ -396,7 +399,7 @@ export function FaqItemDetailPage() {
 
               <div className="rounded-2xl border border-border bg-muted/15 p-4">
                 <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-                  Source
+                  {translateText("Source")}
                 </p>
                 {linkedContentRef ? (
                   <>
@@ -417,14 +420,14 @@ export function FaqItemDetailPage() {
                     >
                       <Link to={contentRefPath}>
                         <ArrowUpRight className="size-4" />
-                        Open source
+                        {translateText("Open source")}
                       </Link>
                     </Button>
                   </>
                 ) : (
                   <>
                     <p className="mt-2 font-medium text-mono">
-                      No source linked
+                      {translateText("No source linked")}
                     </p>
                     <p className="mt-1 text-sm text-muted-foreground">
                       Link source material to improve quality and traceability.
@@ -437,7 +440,7 @@ export function FaqItemDetailPage() {
                     >
                       <Link to={createContentRefPath}>
                         <Plus className="size-4" />
-                        New source
+                        {translateText("New source")}
                       </Link>
                     </Button>
                   </>
