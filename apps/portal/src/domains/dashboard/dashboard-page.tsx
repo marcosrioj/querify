@@ -658,7 +658,7 @@ export function DashboardPage() {
 
               <div className="space-y-3">
                 <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-                  <Gauge className="size-4 text-primary" />
+                  <Gauge className="size-11 text-primary" />
                   {translateText("Workspace health at a glance.")}
                 </div>
                 <p className="text-sm leading-6 text-muted-foreground">
