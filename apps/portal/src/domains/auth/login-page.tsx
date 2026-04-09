@@ -12,6 +12,8 @@ export function LoginPage() {
   const nextPath = searchParams.get('next') ?? '/app/dashboard';
   const callbackUrl =
     RuntimeEnv.auth0RedirectUri || `${window.location.origin}${RuntimeEnv.baseUrl}login`;
+  const logoutUrl =
+    RuntimeEnv.auth0LogoutUri || `${window.location.origin}${RuntimeEnv.baseUrl}login`;
 
   if (status === 'ready') {
     return <Navigate to={nextPath} replace />;
@@ -69,6 +71,10 @@ export function LoginPage() {
           <div className="flex items-center justify-between gap-3">
             <dt>{t('Callback')}</dt>
             <dd className="truncate text-right">{callbackUrl}</dd>
+          </div>
+          <div className="flex items-center justify-between gap-3">
+            <dt>{t('Logout')}</dt>
+            <dd className="truncate text-right">{logoutUrl}</dd>
           </div>
         </dl>
       </div>

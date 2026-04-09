@@ -36,6 +36,10 @@ const resolveRedirectUri = () =>
   RuntimeEnv.auth0RedirectUri ||
   `${window.location.origin}${RuntimeEnv.baseUrl}login`;
 
+const resolveLogoutUri = () =>
+  RuntimeEnv.auth0LogoutUri ||
+  `${window.location.origin}${RuntimeEnv.baseUrl}login`;
+
 const base64UrlDecode = (value: string) => {
   const normalized = value.replace(/-/g, '+').replace(/_/g, '/');
   const padded = normalized.padEnd(
@@ -233,7 +237,7 @@ export function PortalAuthProvider({ children }: PropsWithChildren) {
 
         await client.logout({
           logoutParams: {
-            returnTo: `${window.location.origin}${RuntimeEnv.baseUrl}login`,
+            returnTo: resolveLogoutUri(),
           },
         });
       },

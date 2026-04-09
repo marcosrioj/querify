@@ -61,11 +61,15 @@ Set `VITE_AUTH0_CLIENT_ID` to a real Portal SPA Auth0 client before expecting li
 
 For local Portal login, the Auth0 application must allow:
 - Callback URL: `http://localhost:5500/login`
+- Logout URL: `http://localhost:5500/login`
 - Web Origin: `http://localhost:5500`
 
 If you run the local `simulatedev` reverse proxy helper, the same Portal app is also exposed at `http://dev.portal.basefaq.com`, so Auth0 should additionally allow:
 - Callback URL: `http://dev.portal.basefaq.com/login`
+- Logout URL: `http://dev.portal.basefaq.com/login`
 - Web Origin: `http://dev.portal.basefaq.com`
+
+The portal logout flow calls Auth0 `/v2/logout` with `returnTo={origin}{BASE_URL}login` by default. If that URL is not listed in the Auth0 application's `Allowed Logout URLs`, Auth0 will reject the redirect after sign-out. Set `VITE_AUTH0_LOGOUT_URI` only when the post-logout target must differ from the default login route.
 
 Do not reuse the backend `SwaggerOptions:swaggerAuth:ClientId` value as the Portal SPA client unless that Auth0 application has also been updated to allow the Portal callback URL above. The backend README documents that client for Swagger UI callback pages on ports `5000`, `5002`, and `5010`.
 Do not reuse the backend `SwaggerOptions:swaggerAuth:ClientId` value as the Portal SPA client unless that Auth0 application has also been updated to allow the Portal callback URL above. The protected API `appsettings.json` files keep those Swagger auth settings for the callback pages on ports `5000`, `5002`, and `5010`.

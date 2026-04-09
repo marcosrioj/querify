@@ -67,6 +67,7 @@ Copy `.env.example` to `.env` and adjust as needed.
 | `VITE_AUTH0_DOMAIN` | Auth0 domain |
 | `VITE_AUTH0_AUDIENCE` | Auth0 API audience |
 | `VITE_AUTH0_CLIENT_ID` | SPA client id used by the Portal frontend |
+| `VITE_AUTH0_LOGOUT_URI` | optional post-logout redirect URI |
 | `VITE_AUTH0_PASSWORD_RESET_URL` | optional password reset deep link |
 
 ## Local setup
@@ -117,14 +118,18 @@ Depending on the flow, you may also need:
 For `http://localhost:5500`, the Portal SPA client should allow:
 
 - callback URL: `http://localhost:5500/login`
+- logout URL: `http://localhost:5500/login`
 - web origin: `http://localhost:5500`
 
 If you use the local subdomain helper, also allow:
 
 - callback URL: `http://dev.portal.basefaq.com/login`
+- logout URL: `http://dev.portal.basefaq.com/login`
 - web origin: `http://dev.portal.basefaq.com`
 
 Do not assume the Swagger UI client id used by backend APIs is also valid for the Portal app. The Portal needs its own SPA client configuration unless the same Auth0 application was explicitly set up for both use cases.
+
+The frontend logout handler redirects to `VITE_AUTH0_LOGOUT_URI` when set, otherwise it falls back to `{origin}{BASE_URL}login`. That final URL must be present in the Auth0 application's `Allowed Logout URLs`.
 
 ## Localization and direction
 
