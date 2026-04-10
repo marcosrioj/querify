@@ -61,6 +61,15 @@ export function TenantSwitcher() {
         return;
       }
 
+      if (hasGuidPathSegment(location.pathname)) {
+        // Call navigate and setCurrentTenantId without flushSync so React 18
+        // batches both updates in the same render — the old page never gets
+        // a render with the new tenant ID, preventing spurious API calls.
+        navigate("/app/dashboard", { replace: true, state: null });
+        setCurrentTenantId(tenantId);
+        return;
+      }
+
       flushSync(() => {
         setCurrentTenantId(tenantId);
       });
@@ -73,10 +82,6 @@ export function TenantSwitcher() {
           tenantScopedQueryRoots.has(query.queryKey[1]),
         refetchType: "active",
       });
-
-      if (hasGuidPathSegment(location.pathname)) {
-        navigate("/app/dashboard", { replace: true, state: null });
-      }
     } catch {
       // Mutation errors are surfaced by the shared query provider.
     }
