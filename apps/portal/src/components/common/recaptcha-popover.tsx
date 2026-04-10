@@ -1,5 +1,5 @@
 import * as Popover from '@radix-ui/react-popover';
-import { RiErrorWarningFill } from '@remixicon/react';
+import { TriangleAlert } from 'lucide-react';
 import { toast } from 'sonner';
 import { useRecaptchaV2 } from '@/hooks/use-recaptcha-v2';
 import { Alert, AlertIcon, AlertTitle } from '@/components/ui/alert';
@@ -42,7 +42,7 @@ export function RecaptchaPopover({
           () => (
             <Alert variant="mono" icon="destructive">
               <AlertIcon>
-                <RiErrorWarningFill />
+                <TriangleAlert />
               </AlertIcon>
               <AlertTitle>
                 Please complete the reCAPTCHA verification.
@@ -62,7 +62,7 @@ export function RecaptchaPopover({
         () => (
           <Alert variant="mono" icon="destructive">
             <AlertIcon>
-              <RiErrorWarningFill />
+              <TriangleAlert />
             </AlertIcon>
             <AlertTitle>Please complete the reCAPTCHA verification.</AlertTitle>
           </Alert>

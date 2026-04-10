@@ -18,12 +18,15 @@ It is not the BackOffice UI and it does not own BackOffice API concerns.
 
 ## Technology stack
 
-- React
+- React 19
 - Vite
-- Tailwind-based UI baseline
-- TanStack Query and Table
-- Auth0 SPA authentication
-- frontend-owned localization and RTL/LTR handling
+- Tailwind CSS v4
+- TanStack Query and TanStack Table
+- Auth0 SPA authentication (`@auth0/auth0-spa-js`)
+- `react-hook-form` + `zod` for forms and validation
+- `lucide-react` for icons
+- `sonner` for toast notifications
+- `react-intl` for frontend-owned localization and RTL/LTR handling
 
 ## Repository structure
 
