@@ -36,6 +36,7 @@ import {
 import { PaginationControls } from "@/shared/ui/pagination-controls";
 import { ContentRefKindBadge } from "@/shared/ui/status-badges";
 import { EmptyState, ErrorState } from "@/shared/ui/placeholder-state";
+import { contentRefKindLabels } from "@/shared/constants/backend-enums";
 import { translateText } from "@/shared/lib/i18n-core";
 
 const DETAIL_PAGE_SIZE_OPTIONS = [5, 10, 20];
@@ -288,7 +289,7 @@ export function ContentRefDetailPage() {
             items={[
               {
                 title: "Type",
-                value: <ContentRefKindBadge kind={contentRefQuery.data.kind} />,
+                value: contentRefKindLabels[contentRefQuery.data.kind],
                 titleHint: "How this source is classified.",
                 icon: FileText,
               },
