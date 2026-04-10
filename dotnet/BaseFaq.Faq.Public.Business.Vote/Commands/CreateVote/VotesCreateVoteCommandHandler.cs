@@ -28,12 +28,22 @@ public class VotesCreateVoteCommandHandler(
                 vote.FaqItemAnswerId == request.FaqItemAnswerId &&
                 vote.UserPrint == identity.UserPrint,
                 cancellationToken);
-        if (existing is not null)
-        {
-            return existing.Id;
-        }
 
         var faqItemAnswer = await GetFaqItemAnswerOrThrowAsync(tenantId, request.FaqItemAnswerId, cancellationToken);
+
+        if (existing is not null)
+        {
+            dbContext.Votes.Remove(existing);
+            await dbContext.SaveChangesAsync(cancellationToken);
+
+            faqItemAnswer.VoteScore = await dbContext.Votes
+                .Where(entity => entity.TenantId == tenantId && entity.FaqItemAnswerId == request.FaqItemAnswerId)
+                .CountAsync(cancellationToken);
+            await dbContext.SaveChangesAsync(cancellationToken);
+
+            return Guid.Empty;
+        }
+
         var vote = new Common.Persistence.FaqDb.Entities.Vote
         {
             UserPrint = identity.UserPrint,
