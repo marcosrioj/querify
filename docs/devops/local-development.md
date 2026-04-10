@@ -27,7 +27,7 @@ This gives fast iteration without losing the production-like infrastructure comp
 
 ```bash
 dotnet restore BaseFaq.sln
-dotnet build BaseFaq.sln
+dotnet build BaseFaq.sln --no-restore
 ```
 
 ### 2. Start base services
@@ -102,6 +102,7 @@ dotnet run --project dotnet/BaseFaq.Tenant.Portal.Api
 dotnet run --project dotnet/BaseFaq.Faq.Portal.Api
 dotnet run --project dotnet/BaseFaq.Faq.Public.Api
 dotnet run --project dotnet/BaseFaq.AI.Api
+dotnet run --project dotnet/BaseFaq.Tenant.Worker.Api
 ```
 
 Portal frontend:
@@ -143,6 +144,7 @@ Notes:
 | FAQ Portal API | `http://localhost:5010` |
 | FAQ Public API | `http://localhost:5020` |
 | AI API health | `http://localhost:5030/health` |
+| Tenant Worker API | no HTTP surface; background host only |
 | PostgreSQL | `localhost:5432` |
 | Redis | `localhost:6379` |
 | RabbitMQ UI | `http://localhost:15672` |
@@ -153,6 +155,14 @@ Notes:
 | Grafana | `http://localhost:3000` |
 
 Grafana default local credentials are `admin` / `admin`.
+
+SMTP4Dev local delivery settings:
+
+- host: `host.docker.internal`
+- port: `1025`
+- username: empty
+- password: empty
+- SSL: `false`
 
 ## Hostname strategy
 

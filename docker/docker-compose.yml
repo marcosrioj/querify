@@ -89,6 +89,17 @@ services:
       - "host.docker.internal:host-gateway"
     networks:
       - bf-network
+  basefaq.tenant.worker.api:
+    image: basefaq.tenant.worker.api
+    build:
+      context: ..
+      dockerfile: dotnet/BaseFaq.Tenant.Worker.Api/Dockerfile
+    environment:
+      - DOTNET_ENVIRONMENT=Development
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - bf-network
 
 networks:
   bf-network:

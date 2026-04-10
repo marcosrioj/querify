@@ -14,9 +14,13 @@ This guide explains how the backend is organized under `dotnet/`, which APIs exi
 | `BaseFaq.Faq.Public.Api` | public FAQ access and public FAQ item creation flow | public surface | `X-Client-Key` | `5020` |
 | `BaseFaq.AI.Api` | AI worker host and health endpoint | no user-facing auth flow | tenant inferred from message payload | `5030` |
 
+| Worker | Responsibility | Data boundary | Local port |
+|---|---|---|---:|
+| `BaseFaq.Tenant.Worker.Api` | control-plane background processing for billing webhooks, email outbox, and future platform jobs | `TenantDbContext` only | n/a |
+
 ## Project taxonomy inside `dotnet/`
 
-`BaseFaq.sln` currently includes the active `.NET` projects used by the local backend. The inventory below reflects the projects that are actually in the solution, not every folder that exists under `dotnet/`.
+`BaseFaq.sln` currently includes 51 active `.NET` projects used by the local backend. The inventory below reflects the projects that are actually in the solution, not every folder that exists under `dotnet/`.
 
 ### API hosts
 
@@ -27,6 +31,10 @@ These projects contain ASP.NET Core startup, middleware, and DI registration:
 - `BaseFaq.Tenant.BackOffice.Api`
 - `BaseFaq.Tenant.Portal.Api`
 - `BaseFaq.AI.Api`
+
+### Worker hosts
+
+- `BaseFaq.Tenant.Worker.Api`
 
 ### Business modules
 
@@ -53,6 +61,9 @@ Each service area is split into feature projects:
   - `BaseFaq.Tenant.Portal.Business.Tenant`
   - `BaseFaq.Tenant.Portal.Business.User`
   - `BaseFaq.Tenant.Portal.Business.AiProvider`
+- Tenant Worker:
+  - `BaseFaq.Tenant.Worker.Business.Billing`
+  - `BaseFaq.Tenant.Worker.Business.Email`
 - AI:
   - `BaseFaq.AI.Business.Common`
   - `BaseFaq.AI.Business.Generation`
@@ -126,8 +137,16 @@ The write-side rules are formalized in [`../standards/solution-cqrs-write-rules.
 - tenant-to-FAQ database connection strings
 - client keys
 - tenant AI provider credentials
+- control-plane background-processing state such as billing webhook inbox records and email outbox records
 
 This is the global control plane for the platform.
+
+That also means these responsibilities belong in `TenantDbContext` and not in FAQ persistence:
+
+- billing webhook inboxes
+- email outbox
+- tenant entitlements
+- platform recurring jobs
 
 ### FAQ databases
 
@@ -177,9 +196,11 @@ dotnet run --project dotnet/BaseFaq.Tenant.Portal.Api
 dotnet run --project dotnet/BaseFaq.Faq.Portal.Api
 dotnet run --project dotnet/BaseFaq.Faq.Public.Api
 dotnet run --project dotnet/BaseFaq.AI.Api
+dotnet run --project dotnet/BaseFaq.Tenant.Worker.Api
 ```
 
 For the full local operations model, see [`../devops/local-development.md`](../devops/local-development.md).
+For worker-specific configuration and feature guidance, see [`basefaq-tenant-worker.md`](basefaq-tenant-worker.md).
 
 ## Development conventions
 

@@ -6,7 +6,7 @@ This document explains how the repository is organized, how the runtime is split
 
 ## Solution shape
 
-The repository root contains one primary `.NET` solution file, `BaseFaq.sln`. It currently includes 47 `.NET` projects under `dotnet/`, while `apps/portal` remains a separate frontend app outside the `.sln`. Two AI scaffold projects also exist under `dotnet/` but are not currently included in the solution: `BaseFaq.AI.Common.Contracts` and `BaseFaq.AI.Common.VectorStore`.
+The repository root contains one primary `.NET` solution file, `BaseFaq.sln`. It currently includes 51 `.NET` projects under `dotnet/`, while `apps/portal` remains a separate frontend app outside the `.sln`. Two AI scaffold projects also exist under `dotnet/` but are not currently included in the solution: `BaseFaq.AI.Common.Contracts` and `BaseFaq.AI.Common.VectorStore`.
 
 | Delivery root | Responsibility |
 |---|---|
@@ -27,18 +27,22 @@ The repository root contains one primary `.NET` solution file, `BaseFaq.sln`. It
 | `BaseFaq.Faq.Portal.Api` | authenticated FAQ management APIs | `5010` |
 | `BaseFaq.Faq.Public.Api` | public FAQ access and public FAQ item creation | `5020` |
 | `BaseFaq.AI.Api` | AI worker host for generation and matching plus health endpoint | `5030` |
+| `BaseFaq.Tenant.Worker.Api` | control-plane worker for billing webhooks, email outbox, and future tenant operations | n/a |
 
 ## Core architectural patterns
 
-### 1. API hosts are composition roots
+### 1. Runtime hosts are composition roots
 
-Each API project owns:
+Each runtime host owns:
 
-- ASP.NET Core startup
+- ASP.NET Core startup or generic-host startup
 - dependency injection registration
+- feature registration through `AddFeatures(...)` or a worker-specific equivalent
+
+API hosts additionally own:
+
 - middleware ordering
 - auth and Swagger configuration
-- feature registration through `AddFeatures(...)`
 
 Business logic does not live in the host; the host wires the feature modules and infrastructure together.
 
@@ -87,12 +91,13 @@ BaseFAQ uses two main EF Core contexts:
 
 | Context | Responsibility |
 |---|---|
-| `TenantDbContext` | global tenant metadata, users, tenant memberships, AI provider credentials, tenant-to-database mapping |
+| `TenantDbContext` | global tenant metadata, users, tenant memberships, AI provider credentials, tenant-to-database mapping, and control-plane background-processing state |
 | `FaqDbContext` | tenant-specific FAQ product data such as FAQs, FAQ items, content references, tags, and feedback |
 
 The split matters operationally:
 
 - tenant metadata is centralized
+- control-plane operational workloads belong with tenant metadata
 - FAQ data lives in tenant databases
 - migration and seed tooling must coordinate both stores
 
@@ -116,7 +121,17 @@ Generation and matching are not implemented as direct synchronous controller-to-
 
 This keeps provider latency and retries out of the main request path and allows AI work to evolve independently of the CRUD APIs.
 
-### 8. Cross-cutting concerns are centralized in shared libraries
+### 8. Control-plane background work is isolated from AI work
+
+Control-plane background processing is hosted separately in `BaseFaq.Tenant.Worker.Api`.
+
+That separation is intentional:
+
+- AI generation and matching belong to `BaseFaq.AI.Api`
+- billing webhooks, email outbox delivery, entitlements, and recurring tenant operational jobs belong to `BaseFaq.Tenant.Worker.Api`
+- the worker should operate against `TenantDbContext` and should not take ownership of FAQ product-data workflows
+
+### 9. Cross-cutting concerns are centralized in shared libraries
 
 The `BaseFaq.Common.Infrastructure.*` and `BaseFaq.Common.EntityFramework.*` projects encapsulate recurring concerns:
 
@@ -131,7 +146,7 @@ The `BaseFaq.Common.Infrastructure.*` and `BaseFaq.Common.EntityFramework.*` pro
 
 Feature projects should consume these shared building blocks rather than re-implementing their own versions.
 
-### 9. Integration tests prefer real infrastructure
+### 10. Integration tests prefer real infrastructure
 
 The solution already contains integration test projects per major service area. The testing style favors:
 

@@ -29,6 +29,8 @@ public class TenantDbContext(
 {
     public DbSet<Entities.Tenant> Tenants { get; set; } = null!;
     public DbSet<AiProvider> AiProviders { get; set; } = null!;
+    public DbSet<BillingWebhookInbox> BillingWebhookInboxes { get; set; } = null!;
+    public DbSet<EmailOutbox> EmailOutboxes { get; set; } = null!;
     public DbSet<TenantAiProvider> TenantAiProviders { get; set; } = null!;
     public DbSet<TenantConnection> TenantConnections { get; set; } = null!;
     public DbSet<TenantUser> TenantUsers { get; set; } = null!;

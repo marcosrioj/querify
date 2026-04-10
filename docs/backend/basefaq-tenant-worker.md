@@ -1,0 +1,179 @@
+# BaseFaq Tenant Worker
+
+## Purpose
+
+`BaseFaq.Tenant.Worker.Api` is the dedicated control-plane background-processing host for BaseFAQ.
+
+It runs against `TenantDbContext` only. It must not own FAQ/product data processing and it must not be used as a replacement for `BaseFaq.AI.Api`.
+
+Current responsibilities:
+
+- billing webhook inbox polling and dispatch
+- email outbox polling and delivery
+- future control-plane recurring jobs
+
+## Project structure
+
+The worker follows the same pattern as the rest of the solution: a thin host wires self-contained business modules.
+
+```
+BaseFaq.Tenant.Worker.Api          — host entry point only (Program.cs, session service, wiring)
+BaseFaq.Tenant.Worker.Business.Billing  — billing webhook processing (hosted service, processor, handler, options)
+BaseFaq.Tenant.Worker.Business.Email    — email outbox processing (hosted service, processor, handler, options)
+```
+
+### Worker.Api
+
+Contains only:
+
+- `Program.cs` — generic host bootstrap, telemetry registration, `AddTenantWorkerFeatures(...)`
+- `Infrastructure/TenantWorkerSessionService.cs` — session stub (no request-bound tenant context)
+- `Extensions/ServiceCollectionExtensions.cs` — calls `AddBillingBusiness(...)` and `AddEmailBusiness(...)`
+
+### Business.Billing
+
+Fully self-contained billing processing module:
+
+- `Abstractions/IBillingWebhookInboxProcessor.cs`
+- `Abstractions/WorkItemExecutionResult.cs`
+- `Commands/DispatchBillingWebhookInbox/` — MediatR command and handler
+- `HostedServices/BillingWebhookInboxProcessorHostedService.cs`
+- `Infrastructure/BillingWorkerTelemetry.cs` — activity source (`BaseFaq.Tenant.Worker.Billing`)
+- `Options/BillingProcessingOptions.cs`
+- `Services/BillingWebhookInboxProcessor.cs`
+- `Extensions/ServiceCollectionExtensions.cs` — `AddBillingBusiness(config)` registers everything
+
+### Business.Email
+
+Fully self-contained email processing module:
+
+- `Abstractions/IEmailOutboxProcessor.cs`
+- `Abstractions/WorkItemExecutionResult.cs`
+- `Commands/SendEmailOutbox/` — MediatR command and handler
+- `HostedServices/EmailOutboxProcessorHostedService.cs`
+- `Infrastructure/EmailWorkerTelemetry.cs` — activity source (`BaseFaq.Tenant.Worker.Email`)
+- `Options/EmailProcessingOptions.cs`, `EmailDeliveryOptions.cs`
+- `Services/EmailOutboxProcessor.cs`
+- `Extensions/ServiceCollectionExtensions.cs` — `AddEmailBusiness(config)` registers everything
+
+## Architectural boundaries
+
+- `TenantDbContext` is the global control-plane database
+- `FaqDbContext` remains the tenant product-data database
+- billing, entitlements, platform email, webhook inboxes, and operational jobs belong to `TenantDbContext`
+- FAQ creation, answers, feedback, tagging, and similar tenant product features stay in `FaqDbContext`
+
+The worker intentionally uses a non-request session implementation because these jobs are not triggered by HTTP request context.
+
+## Processing model
+
+Each processor follows the same optimistic-locking pattern:
+
+1. Query `Pending` records where `NextAttemptDateUtc` and `LockedUntilDateUtc` are elapsed.
+2. Claim items one-by-one with `ExecuteUpdateAsync` using a `ProcessingToken` GUID as an optimistic lock.
+3. Send a MediatR command for each claimed item.
+4. On success → mark `Completed`. On exception → schedule retry with backoff. On terminal failure → mark `Failed`.
+
+The hosted service polls in a loop: if items were processed it immediately loops again; if the batch was empty it waits for `PollingInterval`.
+
+## Runtime model
+
+```bash
+dotnet restore dotnet/BaseFaq.Tenant.Worker.Api/BaseFaq.Tenant.Worker.Api.csproj
+dotnet build dotnet/BaseFaq.Tenant.Worker.Api/BaseFaq.Tenant.Worker.Api.csproj --no-restore
+dotnet run --project dotnet/BaseFaq.Tenant.Worker.Api
+```
+
+Run in Docker:
+
+```bash
+docker compose -p bf_services -f docker/docker-compose.yml up -d --build basefaq.tenant.worker.api
+```
+
+## Feature: Billing webhook inbox processor
+
+Hosted service: `BillingWebhookInboxProcessorHostedService` (in `Business.Billing`)
+
+Processing flow:
+- polls `TenantDbContext.BillingWebhookInboxes`
+- checks that the table exists before polling (safe before migrations are applied)
+- claims work in batches using status plus lease fields for multi-instance-safe processing
+- sends `DispatchBillingWebhookInboxCommand` via MediatR
+- records retry timing, attempt counts, and terminal failure state
+- disabled by default in `appsettings.json` until the persistence model and real handler are ready
+
+What is intentionally not implemented yet (handler is a placeholder):
+
+- Stripe webhook verification
+- Stripe event-to-domain mapping
+- billing state transitions
+- entitlement reconciliation
+
+Configuration:
+
+- `TenantWorker:BillingWebhookInbox:Enabled`
+- `TenantWorker:BillingWebhookInbox:PollingIntervalSeconds`
+- `TenantWorker:BillingWebhookInbox:BatchSize`
+- `TenantWorker:BillingWebhookInbox:LeaseDurationSeconds`
+- `TenantWorker:BillingWebhookInbox:FailureBackoffSeconds`
+- `TenantWorker:BillingWebhookInbox:MaxRetryCount`
+
+## Feature: Email outbox processor
+
+Hosted service: `EmailOutboxProcessorHostedService` (in `Business.Email`)
+
+Processing flow:
+- polls `TenantDbContext.EmailOutboxes`
+- checks that the table exists before polling
+- claims work in batches with lease-based processing markers
+- sends `SendEmailOutboxCommand` via MediatR
+- records retries, failures, and completion timestamps
+- disabled by default in `appsettings.json` until the persistence model and real delivery handler are ready
+
+What is intentionally not implemented yet (handler is a placeholder):
+
+- SMTP delivery implementation
+- provider failover
+- template rendering
+- dead-letter routing
+
+Configuration:
+
+- `TenantWorker:EmailOutbox:Enabled`
+- `TenantWorker:EmailOutbox:PollingIntervalSeconds`
+- `TenantWorker:EmailOutbox:BatchSize`
+- `TenantWorker:EmailOutbox:LeaseDurationSeconds`
+- `TenantWorker:EmailOutbox:FailureBackoffSeconds`
+- `TenantWorker:EmailOutbox:MaxRetryCount`
+
+## Email delivery configuration
+
+The worker is preconfigured for the repo's local `smtp4dev` container:
+
+- host: `host.docker.internal`
+- port: `1025`
+- SSL: `false`
+- username: empty
+- password: empty
+- UI: `http://localhost:4590`
+
+Relevant settings:
+
+- `TenantWorker:EmailDelivery:Provider`
+- `TenantWorker:EmailDelivery:DefaultFromAddress`
+- `TenantWorker:EmailDelivery:DefaultFromName`
+- `TenantWorker:EmailDelivery:Smtp:Host`
+- `TenantWorker:EmailDelivery:Smtp:Port`
+- `TenantWorker:EmailDelivery:Smtp:Username`
+- `TenantWorker:EmailDelivery:Smtp:Password`
+- `TenantWorker:EmailDelivery:Smtp:EnableSsl`
+
+## Manual migration requirements
+
+Database migrations were intentionally not created as part of this implementation. Manual `TenantDbContext` migration work is required before production use:
+
+- create `BillingWebhookInboxes`
+- create `EmailOutboxes`
+- create the configured indexes for both tables
+
+Until those tables exist, both processors log and safely skip work.
