@@ -70,7 +70,7 @@ Each service area is split into feature projects:
 - `BaseFaq.Common.Infrastructure.Mvc`: MVC filters and ASP.NET Core glue
 - `BaseFaq.Common.Infrastructure.Sentry`: Sentry integration
 - `BaseFaq.Common.Infrastructure.Swagger`: Swagger/OpenAPI wiring
-- `BaseFaq.Common.Infrasctructure.Telemetry`: shared telemetry wiring
+- `BaseFaq.Common.Infrastructure.Telemetry`: shared telemetry wiring (OpenTelemetry tracing, OTLP export)
 - `BaseFaq.Models.Common`: shared primitive DTOs and common contracts
 - `BaseFaq.Models.Faq`: FAQ-facing contracts
 - `BaseFaq.Models.Tenant`: tenant-facing contracts

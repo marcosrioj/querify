@@ -4,7 +4,7 @@ using Microsoft.Extensions.Hosting;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 
-namespace BaseFaq.Common.Infrasctructure.Telemetry.Extensions;
+namespace BaseFaq.Common.Infrastructure.Telemetry.Extensions;
 
 public static class TelemetryServiceCollectionExtensions
 {

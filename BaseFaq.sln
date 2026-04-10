@@ -151,7 +151,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Ai", "Ai", "{9389F63D-166E-
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BaseFaq.Models.Ai", "dotnet\BaseFaq.Models.Ai\BaseFaq.Models.Ai.csproj", "{2E6B79DE-8A40-400A-A810-C507B2C55559}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BaseFaq.Common.Infrasctructure.Telemetry", "dotnet\BaseFaq.Common.Infrasctructure.Telemetry\BaseFaq.Common.Infrasctructure.Telemetry.csproj", "{7DA1881C-5DFB-4E53-9132-E63D92BF2A61}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BaseFaq.Common.Infrastructure.Telemetry", "dotnet\BaseFaq.Common.Infrastructure.Telemetry\BaseFaq.Common.Infrastructure.Telemetry.csproj", "{7DA1881C-5DFB-4E53-9132-E63D92BF2A61}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Telemetry", "Telemetry", "{2DCC6BC4-C2EC-41CF-A0AC-AADC4580DAB5}"
 EndProject

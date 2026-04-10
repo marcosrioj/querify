@@ -1,7 +1,7 @@
 using BaseFaq.AI.Api.Extensions;
 using BaseFaq.AI.Api.Infrastructure;
 using BaseFaq.Common.Infrastructure.Core.Abstractions;
-using BaseFaq.Common.Infrasctructure.Telemetry.Extensions;
+using BaseFaq.Common.Infrastructure.Telemetry.Extensions;
 
 namespace BaseFaq.AI.Api;
 

@@ -15,7 +15,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\BaseFaq.Common.Infrasctructure.Telemetry\BaseFaq.Common.Infrasctructure.Telemetry.csproj"/>
+        <ProjectReference Include="..\BaseFaq.Common.Infrastructure.Telemetry\BaseFaq.Common.Infrastructure.Telemetry.csproj"/>
         <ProjectReference Include="..\BaseFaq.Common.EntityFramework.Tenant\BaseFaq.Common.EntityFramework.Tenant.csproj"/>
         <ProjectReference Include="..\BaseFaq.AI.Business.Generation\BaseFaq.AI.Business.Generation.csproj"/>
         <ProjectReference Include="..\BaseFaq.AI.Business.Matching\BaseFaq.AI.Business.Matching.csproj"/>
