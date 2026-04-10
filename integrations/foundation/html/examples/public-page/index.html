@@ -428,6 +428,29 @@
     .bf-faq-list { display: flex; flex-direction: column; gap: var(--bf-space-8); }
     .bf-faq-list__item-title { font-size: var(--bf-font-size-xs); font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--bf-color-text-muted); margin: 0 0 var(--bf-space-3) 0; }
 
+    /* ── Answer variants ───────────────────────────────────────────────── */
+    .bf-faq__answer-variants { display: flex; flex-direction: column; gap: var(--bf-space-3); margin-top: var(--bf-space-4); }
+    .bf-faq__answer-variant { border: var(--bf-border-width-thin) solid var(--bf-item-border-color); border-radius: var(--bf-radius-md); padding: var(--bf-space-4); background: var(--bf-color-surface-raised); transition: background var(--bf-duration-fast) var(--bf-easing-default); }
+    .bf-faq__answer-variant:hover { background: var(--bf-color-surface-overlay); }
+    .bf-faq__av-header { display: flex; align-items: flex-start; gap: var(--bf-space-3); margin-bottom: var(--bf-space-2); }
+    .bf-faq__av-num { flex-shrink: 0; width: 1.5rem; height: 1.5rem; background: var(--bf-color-interactive-bg); color: var(--bf-color-interactive); border-radius: var(--bf-radius-full); font-size: var(--bf-font-size-xs); font-weight: var(--bf-font-weight-bold); display: flex; align-items: center; justify-content: center; }
+    .bf-faq__av-short { flex: 1; font-size: var(--bf-font-size-sm); font-weight: var(--bf-font-weight-semibold); color: var(--bf-color-text-primary); margin: 0; line-height: var(--bf-line-height-tight); }
+    .bf-faq__av-body { font-size: var(--bf-font-size-sm); color: var(--bf-color-text-secondary); line-height: var(--bf-line-height-relaxed); margin-bottom: var(--bf-space-3); }
+    .bf-faq__av-body p { margin: 0 0 var(--bf-space-2) 0; } .bf-faq__av-body p:last-child { margin: 0; }
+    .bf-faq__av-body a { color: var(--bf-color-text-brand); text-decoration: underline; }
+
+    /* ── Vote button ───────────────────────────────────────────────────── */
+    .bf-faq__vote { margin-top: var(--bf-space-2); }
+    .bf-faq__vote-btn { display: inline-flex; align-items: center; gap: var(--bf-space-1); padding: var(--bf-space-1) var(--bf-space-3); font-size: var(--bf-font-size-sm); font-weight: var(--bf-font-weight-medium); border: var(--bf-border-width-thin) solid var(--bf-color-border); border-radius: var(--bf-radius-full); background: transparent; cursor: pointer; color: var(--bf-color-text-secondary); transition: color var(--bf-duration-fast) var(--bf-easing-default), border-color var(--bf-duration-fast) var(--bf-easing-default), background var(--bf-duration-fast) var(--bf-easing-default); line-height: 1; }
+    .bf-faq__vote-btn:hover { color: var(--bf-color-interactive); border-color: var(--bf-color-interactive); background: var(--bf-color-interactive-bg); }
+    .bf-faq__vote-btn.is-voted { color: var(--bf-color-interactive); border-color: var(--bf-color-interactive); background: var(--bf-color-interactive-bg); }
+    .bf-faq__vote-btn:focus-visible { outline: var(--bf-focus-ring-width) solid var(--bf-focus-ring-color); outline-offset: var(--bf-focus-ring-offset); }
+    .bf-faq__vote-btn:disabled { opacity: 0.6; cursor: wait; }
+    .bf-faq__vote-score { font-weight: var(--bf-font-weight-semibold); min-width: 1.5rem; text-align: center; }
+
+    /* ── AI confidence badge ───────────────────────────────────────────── */
+    .bf-faq__ai-confidence { display: inline-flex; align-items: center; gap: var(--bf-space-1); padding: var(--bf-space-1) var(--bf-space-2); background: var(--bf-color-surface-overlay); border-radius: var(--bf-radius-sm); font-size: var(--bf-font-size-xs); color: var(--bf-color-text-muted); margin-top: var(--bf-space-3); margin-bottom: var(--bf-space-1); }
+
     @media (max-width: 640px) {
       .bf-faq__question { padding: var(--bf-space-3) var(--bf-space-4); }
       .bf-faq__answer { padding: 0 var(--bf-space-4) var(--bf-space-3); }
@@ -504,6 +527,22 @@
         </div>
 
       </div>
+
+      <!-- ── Display options row ───────────────────────────────────────── -->
+      <div class="page-config__row" style="border-top:1px solid #e5e7eb;padding-top:0.625rem;margin-top:0.5rem;gap:0.375rem;flex-wrap:wrap">
+        <span style="font-size:0.6875rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#6b7280;flex:0 0 auto;align-self:center">Show:</span>
+        <label class="page-config__check-row" title="FAQ tag pills"><input id="showTagsCheck" type="checkbox" checked /> Tags</label>
+        <label class="page-config__check-row" title="Thumbs up / down per item"><input id="showFeedbackCheck" type="checkbox" checked /> Feedback</label>
+        <label class="page-config__check-row" title="Net feedback score"><input id="showFeedbackScoreCheck" type="checkbox" checked /> Score</label>
+        <label class="page-config__check-row" title="Call-to-action button"><input id="showCtaCheck" type="checkbox" checked /> CTA</label>
+        <label class="page-config__check-row" title="AdditionalInfo callout"><input id="showAddlInfoCheck" type="checkbox" checked /> Notes</label>
+        <label class="page-config__check-row" title="Content-ref source links"><input id="showSourcesCheck" type="checkbox" checked /> Sources</label>
+        <label class="page-config__check-row" title="AI confidence score badge"><input id="showAiConfidenceCheck" type="checkbox" /> AI score</label>
+        <label class="page-config__check-row" title="Answer variants list (answers[])"><input id="showAnswerVariantsCheck" type="checkbox" checked /> Variants</label>
+        <label class="page-config__check-row" title="Vote button per answer variant"><input id="showVotesCheck" type="checkbox" checked /> Votes</label>
+        <label class="page-config__check-row" title="Vote count on vote button"><input id="showVoteScoreCheck" type="checkbox" checked /> Vote count</label>
+      </div>
+
     </div>
   </div>
 
@@ -559,8 +598,35 @@
   let totalCount       = 0;
   let pageSize         = 10;
   let singleOpen       = true;
-  let pendingFeedback      = null; // { itemId, like }
+  let pendingFeedback  = null; // { itemId, like }
   let selectedReason   = null;
+
+  // ── Display configuration ─────────────────────────────────────────────
+  const cfg = {
+    showTags:           true,
+    showFeedback:       true,
+    showFeedbackScore:  true,
+    showCta:            true,
+    showAdditionalInfo: true,
+    showSources:        true,
+    showAiConfidence:   false,
+    showAnswerVariants: true,
+    showVotes:          true,
+    showVoteScore:      true,
+  };
+
+  function readCfg() {
+    cfg.showTags           = document.getElementById('showTagsCheck').checked;
+    cfg.showFeedback       = document.getElementById('showFeedbackCheck').checked;
+    cfg.showFeedbackScore  = document.getElementById('showFeedbackScoreCheck').checked;
+    cfg.showCta            = document.getElementById('showCtaCheck').checked;
+    cfg.showAdditionalInfo = document.getElementById('showAddlInfoCheck').checked;
+    cfg.showSources        = document.getElementById('showSourcesCheck').checked;
+    cfg.showAiConfidence   = document.getElementById('showAiConfidenceCheck').checked;
+    cfg.showAnswerVariants = document.getElementById('showAnswerVariantsCheck').checked;
+    cfg.showVotes          = document.getElementById('showVotesCheck').checked;
+    cfg.showVoteScore      = document.getElementById('showVoteScoreCheck').checked;
+  }
 
   // ── DOM refs ──────────────────────────────────────────────────────────
   const clientKeyInput = document.getElementById('clientKeyInput');
@@ -654,6 +720,7 @@
     currentClientKey = key;
     currentFaqId     = faqId;
 
+    readCfg();
     renderSkeleton();
 
     try {
@@ -730,7 +797,7 @@
     const dir          = getDir(faq.language);
     const locale       = faq.language || 'en';
 
-    const tagsHtml = tags.length
+    const tagsHtml = (cfg.showTags && tags.length)
       ? `<div class="bf-faq__tags" aria-label="Tags">
            ${tags.map(t => `<span class="bf-tag">${escHtml(t.value)}</span>`).join('')}
          </div>`
@@ -765,30 +832,49 @@
 
   // ── Render a single FAQ item ────────────────────────────────────────────
   function renderFaqItem(item, faq, idx) {
-    const anchorId  = `bf-item-${item.id}`;
-    const answerBody = item.answer || `<p>${escHtml(item.shortAnswer)}</p>`;
-    const isOpen    = idx === 0 ? '' : '';   // first item could be open by default; left off here
+    const anchorId = `bf-item-${item.id}`;
 
-    // Additional info block
-    const additionalInfoHtml = item.additionalInfo
+    // Active answer variants sorted by .sort
+    const answers = (item.answers || [])
+      .filter(a => a.isActive)
+      .sort((a, b) => a.sort - b.sort);
+
+    // Primary content: answer variants when available, legacy single-answer as fallback.
+    // Guaranteed minimum: question + at least one answer (answers[0] or shortAnswer).
+    const primaryHtml = (cfg.showAnswerVariants && answers.length)
+      ? renderAnswerVariants(answers)
+      : `<div class="bf-faq__answer-body">${item.answer || `<p>${escHtml(item.shortAnswer)}</p>`}</div>`;
+
+    // AI confidence badge (optional)
+    const aiHtml = (cfg.showAiConfidence && item.aiConfidenceScore > 0)
+      ? `<div class="bf-faq__ai-confidence" aria-label="AI confidence: ${item.aiConfidenceScore}%">
+           <svg aria-hidden="true" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+             <circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>
+           </svg>
+           AI ${item.aiConfidenceScore}%
+         </div>`
+      : '';
+
+    // Additional info
+    const additionalInfoHtml = (cfg.showAdditionalInfo && item.additionalInfo)
       ? `<div class="bf-faq__additional-info" role="note" aria-label="Additional information">
            ${escHtml(item.additionalInfo)}
          </div>`
       : '';
 
     // CTA
-    const ctaHtml = item.ctaUrl
+    const ctaHtml = (cfg.showCta && item.ctaUrl)
       ? `<a
             href="${escAttr(item.ctaUrl)}"
             class="bf-faq__cta"
             target="_blank"
             rel="noopener noreferrer"
             aria-label="${escAttr(item.ctaTitle || 'Learn more')} (opens in new tab)"
-          >${escHtml(item.ctaTitle || 'Learn more')} <span aria-label="opens in new tab">↗</span></a>`
+          >${escHtml(item.ctaTitle || 'Learn more')} <span aria-hidden="true">↗</span></a>`
       : '';
 
-    // Sources
-    const sourcesHtml = item.contentRefId && faq.contentRefs?.length
+    // Sources / content refs
+    const sourcesHtml = (cfg.showSources && item.contentRefId && faq.contentRefs?.length)
       ? (() => {
           const refs = faq.contentRefs.filter(r => r.id === item.contentRefId);
           if (!refs.length) return '';
@@ -798,13 +884,9 @@
               ${refs.map(ref => {
                 const label = ref.label || KIND_LABEL[ref.kind] || 'Source';
                 const icon  = KIND_ICON[ref.kind] || '🔗';
-                const isUrl = /^https?:\/\//.test(ref.locator);
-                return isUrl
-                  ? `<a
-                       class="bf-faq__source-link"
-                       href="${escAttr(ref.locator)}"
-                       target="_blank"
-                       rel="noopener noreferrer"
+                return /^https?:\/\//.test(ref.locator)
+                  ? `<a class="bf-faq__source-link" href="${escAttr(ref.locator)}"
+                       target="_blank" rel="noopener noreferrer"
                        aria-label="${escAttr(label)} (opens in new tab)"
                      >${icon} ${escHtml(label)}</a>`
                   : `<span class="bf-faq__source-link">${icon} ${escHtml(label)}</span>`;
@@ -815,27 +897,20 @@
       : '';
 
     // Feedback
-    const feedbackHtml = `
-      <div class="bf-faq__feedback" data-feedback-container data-item-id="${escAttr(item.id)}">
-        <span class="bf-faq__feedback-label" id="feedback-label-${escAttr(item.id)}">Was this helpful?</span>
-        <div class="bf-faq__feedback-actions" role="group" aria-labelledby="feedback-label-${escAttr(item.id)}">
-          <button
-            class="bf-faq__feedback-btn bf-faq__feedback-btn--up"
-            type="button"
-            data-feedback-up
-            aria-pressed="false"
-            aria-label="Yes, this was helpful"
-          >👍 Yes</button>
-          <button
-            class="bf-faq__feedback-btn bf-faq__feedback-btn--down"
-            type="button"
-            data-feedback-down
-            aria-pressed="false"
-            aria-label="No, this was not helpful"
-          >👎 No</button>
-        </div>
-        <span class="bf-faq__feedback-score" aria-label="Feedback score: ${item.feedbackScore}">${item.feedbackScore > 0 ? '+' : ''}${item.feedbackScore}</span>
-      </div>`;
+    const feedbackHtml = cfg.showFeedback
+      ? `<div class="bf-faq__feedback" data-feedback-container data-item-id="${escAttr(item.id)}">
+           <span class="bf-faq__feedback-label" id="feedback-label-${escAttr(item.id)}">Was this helpful?</span>
+           <div class="bf-faq__feedback-actions" role="group" aria-labelledby="feedback-label-${escAttr(item.id)}">
+             <button class="bf-faq__feedback-btn bf-faq__feedback-btn--up" type="button"
+                     data-feedback-up aria-pressed="false" aria-label="Yes, this was helpful">👍 Yes</button>
+             <button class="bf-faq__feedback-btn bf-faq__feedback-btn--down" type="button"
+                     data-feedback-down aria-pressed="false" aria-label="No, this was not helpful">👎 No</button>
+           </div>
+           ${cfg.showFeedbackScore
+             ? `<span class="bf-faq__feedback-score" aria-label="Feedback score: ${item.feedbackScore}">${item.feedbackScore > 0 ? '+' : ''}${item.feedbackScore}</span>`
+             : ''}
+         </div>`
+      : '';
 
     return `
       <details
@@ -851,13 +926,57 @@
           </svg>
         </summary>
         <div class="bf-faq__answer">
-          <div class="bf-faq__answer-body">${answerBody}</div>
+          ${aiHtml}
+          ${primaryHtml}
           ${additionalInfoHtml}
           ${ctaHtml}
           ${sourcesHtml}
           ${feedbackHtml}
         </div>
       </details>`;
+  }
+
+  // ── Render answer variants (FaqItemAnswer[]) ───────────────────────────
+  // Each variant: numbered badge + shortAnswer headline + optional full HTML + vote button.
+  // Guaranteed minimum: answers[0] is always shown (FaqItem.Question + FaqItem.Answers[0]).
+  function renderAnswerVariants(answers) {
+    return `
+      <div class="bf-faq__answer-variants" role="list" aria-label="Answer options">
+        ${answers.map((ans, idx) => {
+          const bodyHtml = ans.answer
+            ? `<div class="bf-faq__av-body">${ans.answer}</div>`
+            : '';
+
+          const voteHtml = cfg.showVotes
+            ? `<div class="bf-faq__vote" data-vote-container data-answer-id="${escAttr(ans.id)}">
+                 <button
+                   class="bf-faq__vote-btn"
+                   type="button"
+                   data-vote-btn
+                   aria-pressed="false"
+                   aria-label="Vote for this answer"
+                 >
+                   <svg aria-hidden="true" width="13" height="13" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                     <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/>
+                     <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
+                   </svg>
+                   Helpful${cfg.showVoteScore ? ` <span class="bf-faq__vote-score">${ans.voteScore}</span>` : ''}
+                 </button>
+               </div>`
+            : '';
+
+          return `
+            <div class="bf-faq__answer-variant" role="listitem" data-answer-id="${escAttr(ans.id)}">
+              <div class="bf-faq__av-header">
+                <span class="bf-faq__av-num" aria-hidden="true">${idx + 1}</span>
+                <p class="bf-faq__av-short">${escHtml(ans.shortAnswer)}</p>
+              </div>
+              ${bodyHtml}
+              ${voteHtml}
+            </div>`;
+        }).join('')}
+      </div>`;
   }
 
   // ── Render error ───────────────────────────────────────────────────────
@@ -1064,17 +1183,18 @@
     try {
       await apiFetch('/api/faqs/feedback', { method: 'POST', body: JSON.stringify(payload) });
 
-      // Update UI
       if (triggerBtn) {
         triggerBtn.classList.add('is-selected');
         triggerBtn.setAttribute('aria-pressed', 'true');
       }
-      // Update score optimistically
-      const scoreEl = container?.querySelector('.bf-faq__feedback-score');
-      if (scoreEl) {
-        const prev = parseInt(scoreEl.textContent, 10) || 0;
-        const next = like ? prev + 1 : prev - 1;
-        scoreEl.textContent = (next > 0 ? '+' : '') + next;
+      // Optimistic score update
+      if (cfg.showFeedbackScore) {
+        const scoreEl = container?.querySelector('.bf-faq__feedback-score');
+        if (scoreEl) {
+          const prev = parseInt(scoreEl.textContent, 10) || 0;
+          const next = like ? prev + 1 : prev - 1;
+          scoreEl.textContent = (next > 0 ? '+' : '') + next;
+        }
       }
 
       showToast(like ? 'Thanks for your feedback! 👍' : 'Thanks for letting us know. 👎', 'success');
@@ -1083,9 +1203,49 @@
     }
   }
 
+  // ── Vote (toggle per answer variant) ───────────────────────────────────
+  // POST /api/faqs/vote { faqItemAnswerId }
+  // Returns: Guid (voted) | Guid.Empty (vote removed — toggle)
+  document.addEventListener('click', async (e) => {
+    const btn = e.target.closest('[data-vote-btn]');
+    if (!btn) return;
+    const voteContainer = btn.closest('[data-vote-container]');
+    const answerId = voteContainer?.dataset.answerId;
+    if (!answerId) return;
+
+    btn.disabled = true; // prevent double-click while in flight
+    try {
+      const result = await apiFetch('/api/faqs/vote', {
+        method: 'POST',
+        body: JSON.stringify({ faqItemAnswerId: answerId }),
+      });
+
+      // Empty Guid → vote was removed (toggle off)
+      const removed = !result || result === '00000000-0000-0000-0000-000000000000';
+
+      btn.classList.toggle('is-voted', !removed);
+      btn.setAttribute('aria-pressed', removed ? 'false' : 'true');
+
+      // Optimistic vote score update
+      if (cfg.showVoteScore) {
+        const scoreEl = btn.querySelector('.bf-faq__vote-score');
+        if (scoreEl) {
+          const prev = parseInt(scoreEl.textContent, 10) || 0;
+          scoreEl.textContent = String(removed ? Math.max(0, prev - 1) : prev + 1);
+        }
+      }
+
+      showToast(removed ? 'Vote removed.' : 'Thanks for voting! 👍', 'success');
+    } catch (err) {
+      showToast('Could not submit vote: ' + err.message, 'error');
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
   // ── JSON-LD ────────────────────────────────────────────────────────────
+  // Uses first active answer variant when available (answers[]) for acceptedAnswer.text.
   function injectJsonLd(faqs) {
-    // Remove previous
     document.querySelectorAll('script[data-bf-jsonld]').forEach(s => s.remove());
 
     faqs.forEach((faq) => {
@@ -1095,14 +1255,21 @@
       const schema = {
         '@context': 'https://schema.org',
         '@type':    'FAQPage',
-        mainEntity: activeItems.map(item => ({
-          '@type': 'Question',
-          name:    item.question,
-          acceptedAnswer: {
-            '@type': 'Answer',
-            text:    stripHtml(item.answer || item.shortAnswer),
-          },
-        })),
+        mainEntity: activeItems.map(item => {
+          // Prefer first active answer variant for richer structured data
+          const activeAnswers = (item.answers || [])
+            .filter(a => a.isActive)
+            .sort((a, b) => a.sort - b.sort);
+          const answerText = activeAnswers.length
+            ? stripHtml(activeAnswers[0].answer || activeAnswers[0].shortAnswer)
+            : stripHtml(item.answer || item.shortAnswer);
+
+          return {
+            '@type': 'Question',
+            name:    item.question,
+            acceptedAnswer: { '@type': 'Answer', text: answerText },
+          };
+        }),
       };
 
       const script = document.createElement('script');

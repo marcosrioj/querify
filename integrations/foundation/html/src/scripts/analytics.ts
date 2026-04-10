@@ -10,8 +10,10 @@
  *   bf:faq-view       — FAQ root entered viewport
  *   bf:item-open      — user expanded an FAQ item
  *   bf:item-close     — user collapsed an FAQ item
- *   bf:feedback-up        — user selected up on an item
- *   bf:feedback-down      — user selected down on an item
+ *   bf:feedback-up    — user submitted a thumbs-up for an item
+ *   bf:feedback-down  — user submitted a thumbs-down for an item
+ *   bf:vote-add       — user voted for an answer variant (FaqItemAnswer)
+ *   bf:vote-remove    — user removed their vote from an answer variant (toggle)
  *   bf:cta-click      — user clicked a CTA link
  *   bf:source-click   — user clicked a source/content-ref link
  *   bf:search         — user submitted a search query
@@ -80,6 +82,25 @@ export class BaseFaqAnalytics {
         type:   isUp ? 'bf:feedback-up' : 'bf:feedback-down',
         faqId:  this.faqId(),
         itemId,
+      });
+    });
+
+    // Vote buttons (per answer variant)
+    this.root.addEventListener('click', (e) => {
+      const target    = e.target as Element;
+      const voteBtn   = target.closest<HTMLElement>('.bf-faq__vote-btn, [data-vb]');
+      if (!voteBtn) return;
+      const item      = voteBtn.closest<HTMLElement>('[data-basefaq-item-id]');
+      const itemId    = item?.dataset['basefaqItemId'];
+      const voteContainer = voteBtn.closest<HTMLElement>('[data-vc], [data-vote-container]');
+      const answerId  = voteContainer?.dataset['aid'] ?? voteContainer?.dataset['answerId'];
+      // Determine toggle direction from current aria-pressed state
+      const wasVoted  = voteBtn.getAttribute('aria-pressed') === 'true';
+      this.emit({
+        type:   wasVoted ? 'bf:vote-remove' : 'bf:vote-add',
+        faqId:  this.faqId(),
+        itemId,
+        meta:   { answerId },
       });
     });
 
