@@ -6,6 +6,18 @@ FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["dotnet/BaseFaq.Tenant.Worker.Api/BaseFaq.Tenant.Worker.Api.csproj", "dotnet/BaseFaq.Tenant.Worker.Api/"]
+COPY ["dotnet/BaseFaq.Common.Infrastructure.Core/BaseFaq.Common.Infrastructure.Core.csproj", "dotnet/BaseFaq.Common.Infrastructure.Core/"]
+COPY ["dotnet/BaseFaq.Common.Infrastructure.Telemetry/BaseFaq.Common.Infrastructure.Telemetry.csproj", "dotnet/BaseFaq.Common.Infrastructure.Telemetry/"]
+COPY ["dotnet/BaseFaq.Common.EntityFramework.Tenant/BaseFaq.Common.EntityFramework.Tenant.csproj", "dotnet/BaseFaq.Common.EntityFramework.Tenant/"]
+COPY ["dotnet/BaseFaq.Tenant.Worker.Business.Billing/BaseFaq.Tenant.Worker.Business.Billing.csproj", "dotnet/BaseFaq.Tenant.Worker.Business.Billing/"]
+COPY ["dotnet/BaseFaq.Tenant.Worker.Business.Email/BaseFaq.Tenant.Worker.Business.Email.csproj", "dotnet/BaseFaq.Tenant.Worker.Business.Email/"]
+COPY ["dotnet/BaseFaq.Common.Infrastructure.ApiErrorHandling/BaseFaq.Common.Infrastructure.ApiErrorHandling.csproj", "dotnet/BaseFaq.Common.Infrastructure.ApiErrorHandling/"]
+COPY ["dotnet/BaseFaq.Common.Infrastructure.MediatR/BaseFaq.Common.Infrastructure.MediatR.csproj", "dotnet/BaseFaq.Common.Infrastructure.MediatR/"]
+COPY ["dotnet/BaseFaq.Common.EntityFramework.Core/BaseFaq.Common.EntityFramework.Core.csproj", "dotnet/BaseFaq.Common.EntityFramework.Core/"]
+COPY ["dotnet/BaseFaq.Models.Common/BaseFaq.Models.Common.csproj", "dotnet/BaseFaq.Models.Common/"]
+COPY ["dotnet/BaseFaq.Models.Tenant/BaseFaq.Models.Tenant.csproj", "dotnet/BaseFaq.Models.Tenant/"]
+COPY ["dotnet/BaseFaq.Models.User/BaseFaq.Models.User.csproj", "dotnet/BaseFaq.Models.User/"]
+COPY ["dotnet/BaseFaq.Models.Faq/BaseFaq.Models.Faq.csproj", "dotnet/BaseFaq.Models.Faq/"]
 RUN dotnet restore "dotnet/BaseFaq.Tenant.Worker.Api/BaseFaq.Tenant.Worker.Api.csproj"
 COPY . .
 WORKDIR "/src/dotnet/BaseFaq.Tenant.Worker.Api"

@@ -1,6 +1,6 @@
 networks:
   bf-network:
-    driver: bridge
+    external: true
     name: bf-network
 
 volumes:

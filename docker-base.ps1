@@ -18,6 +18,11 @@ Write-Host "Starting base services..." -ForegroundColor Green
 Write-Host "=======================================================================" -ForegroundColor Green
 Write-Host ""
 
+$networkExists = docker network inspect bf-network 2>$null
+if (-not $networkExists) {
+  docker network create bf-network
+}
+
 docker compose -p bf_baseservices -f ./docker/docker-compose.baseservices.yml up -d --force-recreate --no-build --remove-orphans --wait
 
 $username = 'postgres'

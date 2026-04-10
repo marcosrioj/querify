@@ -17,6 +17,8 @@ printf "\e[32m%s\e[0m\n" "Starting base services..."
 printf "\e[32m%s\e[0m\n" "======================================================================="
 echo ""
 
+docker network inspect bf-network >/dev/null 2>&1 || docker network create bf-network
+
 docker compose -p bf_baseservices -f ./docker/docker-compose.baseservices.yml up -d --force-recreate --no-build --remove-orphans --wait
 
 username="postgres"
