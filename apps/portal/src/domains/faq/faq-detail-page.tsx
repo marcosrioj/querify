@@ -8,7 +8,7 @@ import {
   Trash2,
   WandSparkles,
 } from "lucide-react";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   useDeleteFaq,
@@ -36,6 +36,7 @@ import {
   ConfirmAction,
   ContextHint,
   DetailPageSkeleton,
+  Input,
   ProgressChecklistCard,
   SidebarSummarySkeleton,
 } from "@/shared/ui";
@@ -67,8 +68,23 @@ export function FaqDetailPage() {
   });
   const deleteFaq = useDeleteFaq();
   const requestGeneration = useRequestFaqGeneration();
+  const [faqItemSearch, setFaqItemSearch] = useState("");
+  const [contentRefSearch, setContentRefSearch] = useState("");
 
   const relatedItems = faqItemQuery.data?.items ?? [];
+  const filteredRelatedItems = useMemo(() => {
+    const searchTerm = faqItemSearch.trim().toLocaleLowerCase();
+
+    if (!searchTerm) {
+      return relatedItems;
+    }
+
+    return relatedItems.filter((item) =>
+      [item.question, item.shortAnswer]
+        .filter(Boolean)
+        .some((value) => value.toLocaleLowerCase().includes(searchTerm)),
+    );
+  }, [faqItemSearch, relatedItems]);
   const relatedContentRefs = useMemo(() => {
     const usageByContentRef = new Map<string, number>();
 
@@ -88,18 +104,40 @@ export function FaqDetailPage() {
       usageCount: usageByContentRef.get(contentRef.id) ?? 0,
     }));
   }, [contentRefQuery.data?.items, relatedItems]);
+  const filteredRelatedContentRefs = useMemo(() => {
+    const searchTerm = contentRefSearch.trim().toLocaleLowerCase();
+
+    if (!searchTerm) {
+      return relatedContentRefs;
+    }
+
+    return relatedContentRefs.filter((contentRef) =>
+      [contentRef.label, contentRef.locator, contentRef.scope]
+        .filter(Boolean)
+        .some((value) => value.toLocaleLowerCase().includes(searchTerm)),
+    );
+  }, [contentRefSearch, relatedContentRefs]);
 
   const activeItemCount = relatedItems.filter((item) => item.isActive).length;
   const generationReady =
     relatedItems.length > 0 && relatedContentRefs.length > 0;
   const relatedItemsPagination = useLocalPagination({
-    items: relatedItems,
+    items: filteredRelatedItems,
     defaultPageSize: DETAIL_PAGE_SIZE_OPTIONS[0],
   });
   const relatedContentRefsPagination = useLocalPagination({
-    items: relatedContentRefs,
+    items: filteredRelatedContentRefs,
     defaultPageSize: DETAIL_PAGE_SIZE_OPTIONS[0],
   });
+
+  useEffect(() => {
+    relatedItemsPagination.setPage(1);
+  }, [faqItemSearch, relatedItemsPagination.setPage]);
+
+  useEffect(() => {
+    relatedContentRefsPagination.setPage(1);
+  }, [contentRefSearch, relatedContentRefsPagination.setPage]);
+
   const createFaqItemPath = `/app/faq/${id}/items/new`;
   const createContentRefPath = `/app/faq/${id}/content-refs/new`;
   const faqEditPath = `/app/faq/${id}/edit`;
@@ -374,7 +412,7 @@ export function FaqDetailPage() {
           />
 
           <Card>
-            <CardHeader>
+            <CardHeader className="gap-4">
               <CardHeading>
                 <CardTitle className="flex flex-wrap items-center gap-2">
                   <span>{translateText("Q&A items")}</span>
@@ -384,76 +422,92 @@ export function FaqDetailPage() {
                   />
                 </CardTitle>
               </CardHeading>
+              <div className="w-full md:w-80">
+                <Input
+                  value={faqItemSearch}
+                  onChange={(event) => setFaqItemSearch(event.target.value)}
+                  placeholder="Search Q&A items"
+                />
+              </div>
             </CardHeader>
             <CardContent className="space-y-3">
               {relatedItems.length ? (
-                <>
-                  {relatedItemsPagination.pagedItems.map((item) => (
-                    <div
-                      key={item.id}
-                      className="rounded-2xl border border-border bg-muted/15 p-4"
-                    >
-                      <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                        <div>
-                          <div className="flex flex-wrap items-center gap-2">
-                            <p className="font-medium text-mono">
-                              {item.question}
+                filteredRelatedItems.length ? (
+                  <>
+                    {relatedItemsPagination.pagedItems.map((item) => (
+                      <div
+                        key={item.id}
+                        className="rounded-2xl border border-border bg-muted/15 p-4"
+                      >
+                        <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                          <div>
+                            <div className="flex flex-wrap items-center gap-2">
+                              <p className="font-medium text-mono">
+                                {item.question}
+                              </p>
+                              <Badge variant={item.isActive ? "success" : "mono"}>
+                                {translateText(item.isActive ? "Active" : "Inactive")}
+                              </Badge>
+                            </div>
+                            <p className="mt-1 text-sm text-muted-foreground">
+                              {item.shortAnswer || translateText("No answers yet")}
                             </p>
-                            <Badge variant={item.isActive ? "success" : "mono"}>
-                              {translateText(item.isActive ? "Active" : "Inactive")}
-                            </Badge>
+                            <div className="mt-3 flex flex-wrap gap-2 text-xs text-muted-foreground">
+                              <span>{translateText("Sort {value}", { value: item.sort })}</span>
+                              <span>{translateText("Feedback {value}", { value: item.feedbackScore })}</span>
+                              <span>{translateText("AI {value}", { value: item.aiConfidenceScore })}</span>
+                              {item.contentRefId ? (
+                                <span>
+                                  {translateText("Linked to")}{" "}
+                                  <Link
+                                    className="font-medium text-primary hover:underline"
+                                    to={`/app/faq/${id}/content-refs/${item.contentRefId}`}
+                                  >
+                                    {translateText("Source")}
+                                  </Link>
+                                </span>
+                              ) : (
+                                <span>{translateText("No source linked yet")}</span>
+                              )}
+                            </div>
                           </div>
-                          <p className="mt-1 text-sm text-muted-foreground">
-                            {item.shortAnswer || translateText("No answers yet")}
-                          </p>
-                          <div className="mt-3 flex flex-wrap gap-2 text-xs text-muted-foreground">
-                            <span>{translateText("Sort {value}", { value: item.sort })}</span>
-                            <span>{translateText("Feedback {value}", { value: item.feedbackScore })}</span>
-                            <span>{translateText("AI {value}", { value: item.aiConfidenceScore })}</span>
-                            {item.contentRefId ? (
-                              <span>
-                                {translateText("Linked to")}{" "}
-                                <Link
-                                  className="font-medium text-primary hover:underline"
-                                  to={`/app/faq/${id}/content-refs/${item.contentRefId}`}
-                                >
-                                  {translateText("Source")}
-                                </Link>
-                              </span>
-                            ) : (
-                              <span>{translateText("No source linked yet")}</span>
-                            )}
+                          <div className="flex flex-wrap gap-2">
+                            <Button asChild variant="ghost" size="sm">
+                              <Link to={`/app/faq/${id}/items/${item.id}/edit`}>
+                                <Pencil className="size-4" />
+                                {translateText("Edit")}
+                              </Link>
+                            </Button>
+                            <Button asChild variant="outline" size="sm">
+                              <Link to={`/app/faq/${id}/items/${item.id}`}>
+                                <ArrowUpRight className="size-4" />
+                                {translateText("Open")}
+                              </Link>
+                            </Button>
                           </div>
-                        </div>
-                        <div className="flex flex-wrap gap-2">
-                          <Button asChild variant="ghost" size="sm">
-                            <Link to={`/app/faq/${id}/items/${item.id}/edit`}>
-                              <Pencil className="size-4" />
-                              {translateText("Edit")}
-                            </Link>
-                          </Button>
-                          <Button asChild variant="outline" size="sm">
-                            <Link to={`/app/faq/${id}/items/${item.id}`}>
-                              <ArrowUpRight className="size-4" />
-                              {translateText("Open")}
-                            </Link>
-                          </Button>
                         </div>
                       </div>
-                    </div>
-                  ))}
-                  {relatedItemsPagination.totalCount >
-                  DETAIL_PAGE_SIZE_OPTIONS[0] ? (
-                    <PaginationControls
-                      page={relatedItemsPagination.page}
-                      pageSize={relatedItemsPagination.pageSize}
-                      totalCount={relatedItemsPagination.totalCount}
-                      onPageChange={relatedItemsPagination.setPage}
-                      onPageSizeChange={relatedItemsPagination.setPageSize}
-                      pageSizeOptions={DETAIL_PAGE_SIZE_OPTIONS}
-                    />
-                  ) : null}
-                </>
+                    ))}
+                    {relatedItemsPagination.totalCount >
+                    DETAIL_PAGE_SIZE_OPTIONS[0] ? (
+                      <PaginationControls
+                        page={relatedItemsPagination.page}
+                        pageSize={relatedItemsPagination.pageSize}
+                        totalCount={relatedItemsPagination.totalCount}
+                        onPageChange={relatedItemsPagination.setPage}
+                        onPageSizeChange={relatedItemsPagination.setPageSize}
+                        pageSizeOptions={DETAIL_PAGE_SIZE_OPTIONS}
+                      />
+                    ) : null}
+                  </>
+                ) : (
+                  <EmptyState
+                    title="No Q&A items in view"
+                    description={translateText("Search: {value}", {
+                      value: faqItemSearch,
+                    })}
+                  />
+                )
               ) : (
                 <EmptyState
                   title="No Q&A items yet"
@@ -465,7 +519,7 @@ export function FaqDetailPage() {
           </Card>
 
           <Card>
-            <CardHeader>
+            <CardHeader className="gap-4">
               <CardHeading>
                 <CardTitle className="flex flex-wrap items-center gap-2">
                   <span>{translateText("Sources")}</span>
@@ -475,60 +529,86 @@ export function FaqDetailPage() {
                   />
                 </CardTitle>
               </CardHeading>
+              <div className="w-full md:w-80">
+                <Input
+                  value={contentRefSearch}
+                  onChange={(event) => setContentRefSearch(event.target.value)}
+                  placeholder="Search sources"
+                />
+              </div>
             </CardHeader>
             <CardContent className="space-y-3">
               {relatedContentRefs.length ? (
-                <>
-                  {relatedContentRefsPagination.pagedItems.map((contentRef) => (
-                    <div
-                      key={contentRef.id}
-                      className="rounded-2xl border border-border bg-muted/15 p-4"
-                    >
-                      <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                        <div>
-                          <div className="flex flex-wrap items-center gap-2">
-                            <p className="font-medium text-mono">
-                              {contentRef.label || translateText("Untitled source")}
+                filteredRelatedContentRefs.length ? (
+                  <>
+                    {relatedContentRefsPagination.pagedItems.map((contentRef) => (
+                      <div
+                        key={contentRef.id}
+                        className="rounded-2xl border border-border bg-muted/15 p-4"
+                      >
+                        <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                          <div>
+                            <div className="flex flex-wrap items-center gap-2">
+                              <p className="font-medium text-mono">
+                                {contentRef.label || translateText("Untitled source")}
+                              </p>
+                              <ContentRefKindBadge kind={contentRef.kind} />
+                            </div>
+                            <p className="mt-1 break-all text-sm text-muted-foreground">
+                              {contentRef.locator}
                             </p>
-                            <ContentRefKindBadge kind={contentRef.kind} />
+                            <p className="mt-3 text-xs text-muted-foreground">
+                              {translateText(
+                                contentRef.usageCount === 1
+                                  ? "Used by {count} linked Q&A item in this FAQ."
+                                  : "Used by {count} linked Q&A items in this FAQ.",
+                                { count: contentRef.usageCount },
+                              )}
+                            </p>
                           </div>
-                          <p className="mt-1 break-all text-sm text-muted-foreground">
-                            {contentRef.locator}
-                          </p>
-                          <p className="mt-3 text-xs text-muted-foreground">
-                            {translateText(
-                              contentRef.usageCount === 1
-                                ? "Used by {count} linked Q&A item in this FAQ."
-                                : "Used by {count} linked Q&A items in this FAQ.",
-                              { count: contentRef.usageCount },
-                            )}
-                          </p>
+                          <div className="flex flex-wrap gap-2">
+                            <Button asChild variant="ghost" size="sm">
+                              <Link
+                                to={`/app/faq/${id}/content-refs/${contentRef.id}/edit`}
+                              >
+                                <Pencil className="size-4" />
+                                {translateText("Edit")}
+                              </Link>
+                            </Button>
+                            <Button asChild variant="outline" size="sm">
+                              <Link
+                                to={`/app/faq/${id}/content-refs/${contentRef.id}`}
+                              >
+                                <ArrowUpRight className="size-4" />
+                                {translateText("Open")}
+                              </Link>
+                            </Button>
+                          </div>
                         </div>
-                        <Button asChild variant="outline" size="sm">
-                          <Link
-                            to={`/app/faq/${id}/content-refs/${contentRef.id}`}
-                          >
-                            <ArrowUpRight className="size-4" />
-                            {translateText("Open")}
-                          </Link>
-                        </Button>
                       </div>
-                    </div>
-                  ))}
-                  {relatedContentRefsPagination.totalCount >
-                  DETAIL_PAGE_SIZE_OPTIONS[0] ? (
-                    <PaginationControls
-                      page={relatedContentRefsPagination.page}
-                      pageSize={relatedContentRefsPagination.pageSize}
-                      totalCount={relatedContentRefsPagination.totalCount}
-                      onPageChange={relatedContentRefsPagination.setPage}
-                      onPageSizeChange={
-                        relatedContentRefsPagination.setPageSize
-                      }
-                      pageSizeOptions={DETAIL_PAGE_SIZE_OPTIONS}
-                    />
-                  ) : null}
-                </>
+                    ))}
+                    {relatedContentRefsPagination.totalCount >
+                    DETAIL_PAGE_SIZE_OPTIONS[0] ? (
+                      <PaginationControls
+                        page={relatedContentRefsPagination.page}
+                        pageSize={relatedContentRefsPagination.pageSize}
+                        totalCount={relatedContentRefsPagination.totalCount}
+                        onPageChange={relatedContentRefsPagination.setPage}
+                        onPageSizeChange={
+                          relatedContentRefsPagination.setPageSize
+                        }
+                        pageSizeOptions={DETAIL_PAGE_SIZE_OPTIONS}
+                      />
+                    ) : null}
+                  </>
+                ) : (
+                  <EmptyState
+                    title="No sources in view"
+                    description={translateText("Search: {value}", {
+                      value: contentRefSearch,
+                    })}
+                  />
+                )
               ) : (
                 <EmptyState
                   title="No sources yet"
