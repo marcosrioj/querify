@@ -1,5 +1,7 @@
 using BaseFaq.Common.EntityFramework.Core.Abstractions;
+using BaseFaq.Common.EntityFramework.Tenant.Abstractions;
 using BaseFaq.Common.EntityFramework.Tenant.Providers;
+using BaseFaq.Common.EntityFramework.Tenant.Services;
 using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -23,6 +25,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IAllowedTenantProvider, AllowedTenantProvider>();
         services.AddScoped<ITenantClientKeyResolver, TenantClientKeyResolver>();
         services.AddScoped<ITenantAiProviderResolver, TenantAiProviderResolver>();
+        services.AddScoped<ITenantEntitlementSynchronizer, TenantEntitlementSynchronizer>();
 
         return services;
     }

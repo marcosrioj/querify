@@ -1,22 +1,29 @@
+using BaseFaq.Common.EntityFramework.Core.Abstractions;
 using BaseFaq.Common.EntityFramework.Core.Entities;
 using BaseFaq.Common.EntityFramework.Tenant.Enums;
+using BaseFaq.Models.Tenant.Enums;
 
 namespace BaseFaq.Common.EntityFramework.Tenant.Entities;
 
-public class BillingWebhookInbox : BaseEntity
+public class BillingWebhookInbox : BaseEntity, IMayHaveTenant
 {
-    public const int MaxProviderLength = 64;
-    public const int MaxEventIdLength = 255;
+    public const int MaxExternalEventIdLength = 255;
     public const int MaxEventTypeLength = 255;
     public const int MaxSignatureLength = 512;
+    public const int MaxProviderAccountIdLength = 255;
     public const int MaxLastErrorLength = 2048;
 
-    public required string Provider { get; set; }
-    public required string EventId { get; set; }
+    public Guid? TenantId { get; set; }
+    public BillingProviderType Provider { get; set; } = BillingProviderType.Unknown;
+    public required string ExternalEventId { get; set; }
     public required string EventType { get; set; }
     public required string PayloadJson { get; set; }
     public string? Signature { get; set; }
+    public bool SignatureValid { get; set; }
+    public bool IsLiveMode { get; set; }
+    public string? ProviderAccountId { get; set; }
     public DateTime ReceivedDateUtc { get; set; } = DateTime.UtcNow;
+    public DateTime? EventCreatedAtUtc { get; set; }
     public ControlPlaneMessageStatus Status { get; set; } = ControlPlaneMessageStatus.Pending;
     public int AttemptCount { get; set; }
     public DateTime? LastAttemptDateUtc { get; set; }

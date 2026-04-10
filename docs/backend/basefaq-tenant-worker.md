@@ -35,12 +35,15 @@ Contains only:
 Fully self-contained billing processing module:
 
 - `Abstractions/IBillingWebhookInboxProcessor.cs`
+- `Abstractions/IBillingProvider.cs`, `IBillingProviderResolver.cs`, `IBillingWebhookDispatcher.cs`, `IBillingWebhookEventHandler.cs`
 - `Abstractions/WorkItemExecutionResult.cs`
 - `Commands/DispatchBillingWebhookInbox/` — MediatR command and handler
+- `EventHandlers/` — normalized billing event handlers for Stripe foundation events
 - `HostedServices/BillingWebhookInboxProcessorHostedService.cs`
 - `Infrastructure/BillingWorkerTelemetry.cs` — activity source (`BaseFaq.Tenant.Worker.Billing`)
-- `Options/BillingProcessingOptions.cs`
-- `Services/BillingWebhookInboxProcessor.cs`
+- `Models/` — provider-agnostic normalized billing webhook event model
+- `Options/BillingProcessingOptions.cs`, `StripeBillingOptions.cs`
+- `Services/BillingWebhookInboxProcessor.cs`, `BillingStateService.cs`, `BillingTenantResolver.cs`, `StripeBillingProvider.cs`, `StripeWebhookEventMapper.cs`
 - `Extensions/ServiceCollectionExtensions.cs` — `AddBillingBusiness(config)` registers everything
 
 ### Business.Email
@@ -99,15 +102,29 @@ Processing flow:
 - checks that the table exists before polling (safe before migrations are applied)
 - claims work in batches using status plus lease fields for multi-instance-safe processing
 - sends `DispatchBillingWebhookInboxCommand` via MediatR
+- resolves the billing provider and normalizes the persisted webhook payload into internal billing event kinds
+- dispatches to idempotent billing handlers that upsert control-plane billing state and reconcile tenant entitlements
 - records retry timing, attempt counts, and terminal failure state
-- disabled by default in `appsettings.json` until the persistence model and real handler are ready
+- remains disabled by default in `appsettings.json` until the persistence model exists and the environment is configured
 
-What is intentionally not implemented yet (handler is a placeholder):
+Current Stripe foundation events:
 
-- Stripe webhook verification
-- Stripe event-to-domain mapping
-- billing state transitions
-- entitlement reconciliation
+- `checkout.session.completed`
+- `customer.subscription.created`
+- `customer.subscription.updated`
+- `customer.subscription.deleted`
+- `invoice.paid`
+- `invoice.payment_failed`
+
+Current normalized state written to `TenantDbContext`:
+
+- `BillingWebhookInboxes`
+- `BillingCustomers`
+- `TenantSubscriptions`
+- `BillingProviderSubscriptions`
+- `BillingInvoices`
+- `BillingPayments`
+- `TenantEntitlementSnapshots`
 
 Configuration:
 
@@ -117,6 +134,11 @@ Configuration:
 - `TenantWorker:BillingWebhookInbox:LeaseDurationSeconds`
 - `TenantWorker:BillingWebhookInbox:FailureBackoffSeconds`
 - `TenantWorker:BillingWebhookInbox:MaxRetryCount`
+- `TenantWorker:Billing:Stripe:ApiKey`
+- `TenantWorker:Billing:Stripe:DefaultCurrency`
+- `TenantWorker:Billing:Stripe:CheckoutSuccessUrl`
+- `TenantWorker:Billing:Stripe:CheckoutCancelUrl`
+- `TenantWorker:Billing:Stripe:BillingPortalReturnUrl`
 
 ## Feature: Email outbox processor
 
@@ -172,8 +194,14 @@ Relevant settings:
 
 Database migrations were intentionally not created as part of this implementation. Manual `TenantDbContext` migration work is required before production use:
 
-- create `BillingWebhookInboxes`
+- create or update `BillingWebhookInboxes`
+- create `BillingCustomers`
+- create `TenantSubscriptions`
+- create `BillingProviderSubscriptions`
+- create `BillingInvoices`
+- create `BillingPayments`
+- create `TenantEntitlementSnapshots`
 - create `EmailOutboxes`
-- create the configured indexes for both tables
+- create the configured billing and email indexes, including unique external-id indexes and the `(Provider, ExternalEventId)` uniqueness on `BillingWebhookInboxes`
 
 Until those tables exist, both processors log and safely skip work.

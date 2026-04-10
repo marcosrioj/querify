@@ -6,7 +6,7 @@ This document explains how the repository is organized, how the runtime is split
 
 ## Solution shape
 
-The repository root contains one primary `.NET` solution file, `BaseFaq.sln`. It currently includes 51 `.NET` projects under `dotnet/`, while `apps/portal` remains a separate frontend app outside the `.sln`. Two AI scaffold projects also exist under `dotnet/` but are not currently included in the solution: `BaseFaq.AI.Common.Contracts` and `BaseFaq.AI.Common.VectorStore`.
+The repository root contains one primary `.NET` solution file, `BaseFaq.sln`. It currently includes 54 `.NET` projects under `dotnet/`, while `apps/portal` remains a separate frontend app outside the `.sln`. Two AI scaffold projects also exist under `dotnet/` but are not currently included in the solution: `BaseFaq.AI.Common.Contracts` and `BaseFaq.AI.Common.VectorStore`.
 
 | Delivery root | Responsibility |
 |---|---|
@@ -24,6 +24,7 @@ The repository root contains one primary `.NET` solution file, `BaseFaq.sln`. It
 | `apps/portal` | Authenticated tenant portal frontend | `5500` |
 | `BaseFaq.Tenant.BackOffice.Api` | back-office tenant and user administration | `5000` |
 | `BaseFaq.Tenant.Portal.Api` | tenant workspace management APIs | `5002` |
+| `BaseFaq.Tenant.Public.Api` | public tenant ingress APIs such as Stripe webhooks | `5004` |
 | `BaseFaq.Faq.Portal.Api` | authenticated FAQ management APIs | `5010` |
 | `BaseFaq.Faq.Public.Api` | public FAQ access and public FAQ item creation | `5020` |
 | `BaseFaq.AI.Api` | AI worker host for generation and matching plus health endpoint | `5030` |
@@ -60,6 +61,8 @@ Inside each area, business modules are further split by feature, for example:
 - `BaseFaq.Faq.Portal.Business.FaqItem`
 - `BaseFaq.Tenant.Portal.Business.Tenant`
 - `BaseFaq.Tenant.BackOffice.Business.User`
+- `BaseFaq.Tenant.Public.Business.Billing`
+- `BaseFaq.Tenant.BackOffice.Business.Billing`
 
 This keeps controller, service, command, and query code grouped by domain capability instead of by technical layer alone.
 
@@ -107,6 +110,7 @@ The solution uses different request contexts depending on the surface:
 
 - authenticated portal flows use `X-Tenant-Id`
 - public FAQ flows use `X-Client-Key`
+- public tenant billing ingress uses anonymous webhook routes with provider signature validation instead of tenant headers
 - shared services resolve the tenant context before hitting tenant-scoped data
 
 Tenant resolution is not an optional add-on; it is part of the backend contract.
@@ -174,6 +178,13 @@ The testing strategy is documented in [`../testing/integration-testing-strategy.
 3. The API resolves the tenant behind that client key.
 4. Public FAQ data is served from the tenant's FAQ database.
 
+### Public billing webhook flow
+
+1. Stripe calls `BaseFaq.Tenant.Public.Api`.
+2. The API reads the exact raw request body and validates the Stripe signature.
+3. The API persists a `BillingWebhookInbox` record in `TenantDbContext`.
+4. `BaseFaq.Tenant.Worker.Api` claims and processes the inbox item asynchronously.
+
 ### AI flow
 
 1. A FAQ feature publishes an event to RabbitMQ.
@@ -189,4 +200,5 @@ The current AI implementation details are documented in [`basefaq-ai-generation-
 - Add new business features under the appropriate bounded-context module instead of enlarging unrelated projects.
 - Keep write flows simple and aligned with the CQRS rules.
 - Treat `TenantDbContext` and `FaqDbContext` as separate ownership boundaries.
+- Put public tenant ingress endpoints such as billing webhooks in `BaseFaq.Tenant.Public.Api`, not in authenticated portal hosts.
 - Update the specific docs in `docs/` when boundaries, startup steps, or operational assumptions change.

@@ -1,25 +1,30 @@
+using BaseFaq.Tenant.Worker.Business.Billing.Abstractions;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
 namespace BaseFaq.Tenant.Worker.Business.Billing.Commands.DispatchBillingWebhookInbox;
 
 public sealed class DispatchBillingWebhookInboxCommandHandler(
+    IBillingProviderResolver billingProviderResolver,
+    IBillingWebhookDispatcher billingWebhookDispatcher,
     ILogger<DispatchBillingWebhookInboxCommandHandler> logger)
     : IRequestHandler<DispatchBillingWebhookInboxCommand>
 {
-    public Task Handle(DispatchBillingWebhookInboxCommand command, CancellationToken cancellationToken)
+    public async Task Handle(DispatchBillingWebhookInboxCommand command, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(command);
 
         var workItem = command.WorkItem;
+        var provider = billingProviderResolver.Resolve(workItem.Provider);
+        var billingEvent = provider.Parse(workItem);
 
-        logger.LogWarning(
-            "Billing webhook inbox record {BillingWebhookInboxId} for provider {Provider} and event {EventType} cannot be dispatched because no billing webhook handler is implemented yet.",
+        logger.LogInformation(
+            "Dispatching billing webhook inbox record {BillingWebhookInboxId} for provider {Provider}, external event {ExternalEventId}, and normalized kind {BillingWebhookEventKind}.",
             workItem.Id,
             workItem.Provider,
-            workItem.EventType);
+            workItem.ExternalEventId,
+            billingEvent.Kind);
 
-        throw new InvalidOperationException(
-            $"No billing webhook handler is implemented for provider '{workItem.Provider}' and event type '{workItem.EventType}'.");
+        await billingWebhookDispatcher.DispatchAsync(billingEvent, cancellationToken);
     }
 }

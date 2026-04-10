@@ -10,6 +10,7 @@ This guide explains how the backend is organized under `dotnet/`, which APIs exi
 |---|---|---|---|---:|
 | `BaseFaq.Tenant.BackOffice.Api` | global administration of tenants, tenant users, AI providers, and tenant metadata | Auth0 JWT | none by default | `5000` |
 | `BaseFaq.Tenant.Portal.Api` | tenant workspace settings and tenant-member operations | Auth0 JWT | `X-Tenant-Id` for tenant-scoped operations | `5002` |
+| `BaseFaq.Tenant.Public.Api` | public tenant ingress endpoints such as Stripe webhooks | public surface | none | `5004` |
 | `BaseFaq.Faq.Portal.Api` | authenticated FAQ management, content references, tags, answer variants, votes, feedbacks, generation request entrypoint | Auth0 JWT | `X-Tenant-Id` | `5010` |
 | `BaseFaq.Faq.Public.Api` | public FAQ access and public FAQ item creation flow | public surface | `X-Client-Key` | `5020` |
 | `BaseFaq.AI.Api` | AI worker host and health endpoint | no user-facing auth flow | tenant inferred from message payload | `5030` |
@@ -20,7 +21,7 @@ This guide explains how the backend is organized under `dotnet/`, which APIs exi
 
 ## Project taxonomy inside `dotnet/`
 
-`BaseFaq.sln` currently includes 51 active `.NET` projects used by the local backend. The inventory below reflects the projects that are actually in the solution, not every folder that exists under `dotnet/`.
+`BaseFaq.sln` currently includes 54 active `.NET` projects used by the local backend. The inventory below reflects the projects that are actually in the solution, not every folder that exists under `dotnet/`.
 
 ### API hosts
 
@@ -30,6 +31,7 @@ These projects contain ASP.NET Core startup, middleware, and DI registration:
 - `BaseFaq.Faq.Public.Api`
 - `BaseFaq.Tenant.BackOffice.Api`
 - `BaseFaq.Tenant.Portal.Api`
+- `BaseFaq.Tenant.Public.Api`
 - `BaseFaq.AI.Api`
 
 ### Worker hosts
@@ -57,10 +59,13 @@ Each service area is split into feature projects:
   - `BaseFaq.Tenant.BackOffice.Business.Tenant`
   - `BaseFaq.Tenant.BackOffice.Business.User`
   - `BaseFaq.Tenant.BackOffice.Business.AiProvider`
+  - `BaseFaq.Tenant.BackOffice.Business.Billing`
 - Tenant Portal:
   - `BaseFaq.Tenant.Portal.Business.Tenant`
   - `BaseFaq.Tenant.Portal.Business.User`
   - `BaseFaq.Tenant.Portal.Business.AiProvider`
+- Tenant Public:
+  - `BaseFaq.Tenant.Public.Business.Billing`
 - Tenant Worker:
   - `BaseFaq.Tenant.Worker.Business.Billing`
   - `BaseFaq.Tenant.Worker.Business.Email`
@@ -138,6 +143,7 @@ The write-side rules are formalized in [`../standards/solution-cqrs-write-rules.
 - client keys
 - tenant AI provider credentials
 - control-plane background-processing state such as billing webhook inbox records and email outbox records
+- normalized billing state such as billing customers, subscriptions, invoices, payments, and entitlement snapshots
 
 This is the global control plane for the platform.
 
@@ -173,6 +179,8 @@ Each tenant can point to its own FAQ database connection, which is why migration
 
 - FAQ Public resolves the tenant from `X-Client-Key`.
 - Public handlers use tenant resolution before reading or writing tenant FAQ data.
+- Tenant Public billing webhooks are anonymous ingress endpoints and do not rely on `X-Tenant-Id` or `X-Client-Key`.
+- Tenant identity for billing may be resolved later by the worker from provider metadata and normalized billing records.
 
 ### AI flows
 
@@ -193,6 +201,7 @@ Typical command set:
 ```bash
 dotnet run --project dotnet/BaseFaq.Tenant.BackOffice.Api
 dotnet run --project dotnet/BaseFaq.Tenant.Portal.Api
+dotnet run --project dotnet/BaseFaq.Tenant.Public.Api
 dotnet run --project dotnet/BaseFaq.Faq.Portal.Api
 dotnet run --project dotnet/BaseFaq.Faq.Public.Api
 dotnet run --project dotnet/BaseFaq.AI.Api
@@ -209,4 +218,5 @@ For worker-specific configuration and feature guidance, see [`basefaq-tenant-wor
 - Keep controllers and services thin; push actual use-case behavior into handlers and domain-specific services.
 - Prefer lowercase kebab-case in route path segments when a controller exposes named actions beyond plain resource ids.
 - Treat tenant data and FAQ data as separate ownership boundaries.
+- Put public tenant ingress endpoints such as billing webhooks in `BaseFaq.Tenant.Public.Api`, not in authenticated portal hosts.
 - Update the corresponding docs when request headers, ports, startup requirements, or operational assumptions change.

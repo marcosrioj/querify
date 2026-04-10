@@ -61,6 +61,20 @@ services:
       - "host.docker.internal:host-gateway"
     networks:
       - bf-network
+  basefaq.tenant.public.api:
+    image: basefaq.tenant.public.api
+    build:
+      context: ..
+      dockerfile: dotnet/BaseFaq.Tenant.Public.Api/Dockerfile
+    ports:
+      - "5004:5004"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:5004
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - bf-network
   basefaq.faq.public.api:
     image: basefaq.faq.public.api
     build:

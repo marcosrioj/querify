@@ -13,13 +13,15 @@ public sealed class BillingWebhookInboxConfiguration : BaseConfiguration<Billing
 
         builder.ToTable("BillingWebhookInboxes");
 
+        builder.Property(entry => entry.TenantId);
+
         builder.Property(entry => entry.Provider)
             .IsRequired()
-            .HasMaxLength(BillingWebhookInbox.MaxProviderLength);
+            .HasConversion<int>();
 
-        builder.Property(entry => entry.EventId)
+        builder.Property(entry => entry.ExternalEventId)
             .IsRequired()
-            .HasMaxLength(BillingWebhookInbox.MaxEventIdLength);
+            .HasMaxLength(BillingWebhookInbox.MaxExternalEventIdLength);
 
         builder.Property(entry => entry.EventType)
             .IsRequired()
@@ -31,6 +33,9 @@ public sealed class BillingWebhookInboxConfiguration : BaseConfiguration<Billing
 
         builder.Property(entry => entry.Signature)
             .HasMaxLength(BillingWebhookInbox.MaxSignatureLength);
+
+        builder.Property(entry => entry.ProviderAccountId)
+            .HasMaxLength(BillingWebhookInbox.MaxProviderAccountIdLength);
 
         builder.Property(entry => entry.Status)
             .IsRequired();
@@ -44,11 +49,14 @@ public sealed class BillingWebhookInboxConfiguration : BaseConfiguration<Billing
         builder.Property(entry => entry.LastError)
             .HasMaxLength(BillingWebhookInbox.MaxLastErrorLength);
 
-        builder.HasIndex(entry => new { entry.Provider, entry.EventId })
+        builder.HasIndex(entry => new { entry.Provider, entry.ExternalEventId })
             .IsUnique()
-            .HasDatabaseName("IX_BillingWebhookInbox_Provider_EventId");
+            .HasDatabaseName("IX_BillingWebhookInbox_Provider_ExternalEventId");
 
         builder.HasIndex(entry => new { entry.Status, entry.NextAttemptDateUtc, entry.LockedUntilDateUtc })
             .HasDatabaseName("IX_BillingWebhookInbox_Status_NextAttempt_LockedUntil");
+
+        builder.HasIndex(entry => entry.ReceivedDateUtc)
+            .HasDatabaseName("IX_BillingWebhookInbox_ReceivedDateUtc");
     }
 }

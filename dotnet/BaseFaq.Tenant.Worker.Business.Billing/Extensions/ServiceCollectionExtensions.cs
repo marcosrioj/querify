@@ -1,5 +1,6 @@
 using BaseFaq.Tenant.Worker.Business.Billing.Abstractions;
 using BaseFaq.Tenant.Worker.Business.Billing.Commands.DispatchBillingWebhookInbox;
+using BaseFaq.Tenant.Worker.Business.Billing.EventHandlers;
 using BaseFaq.Tenant.Worker.Business.Billing.HostedServices;
 using BaseFaq.Tenant.Worker.Business.Billing.Options;
 using BaseFaq.Tenant.Worker.Business.Billing.Services;
@@ -19,11 +20,26 @@ public static class ServiceCollectionExtensions
             .Bind(configuration.GetSection(BillingProcessingOptions.SectionName))
             .ValidateDataAnnotations()
             .ValidateOnStart();
+        services.AddOptions<StripeBillingOptions>()
+            .Bind(configuration.GetSection(StripeBillingOptions.SectionName));
 
         services.AddMediatR(config =>
             config.RegisterServicesFromAssemblyContaining<DispatchBillingWebhookInboxCommandHandler>());
 
         services.AddScoped<IBillingWebhookInboxProcessor, BillingWebhookInboxProcessor>();
+        services.AddScoped<IBillingProvider, StripeBillingProvider>();
+        services.AddScoped<IBillingProviderResolver, BillingProviderResolver>();
+        services.AddScoped<IBillingWebhookDispatcher, BillingWebhookDispatcher>();
+        services.AddScoped<StripeWebhookEventMapper>();
+        services.AddScoped<BillingTenantResolver>();
+        services.AddScoped<BillingStateService>();
+        services.AddScoped<IBillingWebhookEventHandler, UnknownBillingWebhookEventHandler>();
+        services.AddScoped<IBillingWebhookEventHandler, CheckoutCompletedBillingWebhookEventHandler>();
+        services.AddScoped<IBillingWebhookEventHandler, SubscriptionCreatedBillingWebhookEventHandler>();
+        services.AddScoped<IBillingWebhookEventHandler, SubscriptionUpdatedBillingWebhookEventHandler>();
+        services.AddScoped<IBillingWebhookEventHandler, SubscriptionCanceledBillingWebhookEventHandler>();
+        services.AddScoped<IBillingWebhookEventHandler, InvoicePaidBillingWebhookEventHandler>();
+        services.AddScoped<IBillingWebhookEventHandler, InvoicePaymentFailedBillingWebhookEventHandler>();
         services.AddHostedService<BillingWebhookInboxProcessorHostedService>();
 
         return services;

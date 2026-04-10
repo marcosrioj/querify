@@ -65,6 +65,7 @@ Typical local host-based workflow:
 ```bash
 dotnet run --project dotnet/BaseFaq.Tenant.BackOffice.Api
 dotnet run --project dotnet/BaseFaq.Tenant.Portal.Api
+dotnet run --project dotnet/BaseFaq.Tenant.Public.Api
 dotnet run --project dotnet/BaseFaq.Faq.Portal.Api
 dotnet run --project dotnet/BaseFaq.Faq.Public.Api
 dotnet run --project dotnet/BaseFaq.AI.Api
@@ -108,6 +109,7 @@ Use this after the tenant metadata already exists, or when you need to apply FAQ
 | Portal app | `http://localhost:5500` |
 | Tenant BackOffice API | `http://localhost:5000` |
 | Tenant Portal API | `http://localhost:5002` |
+| Tenant Public API | `http://localhost:5004` |
 | FAQ Portal API | `http://localhost:5010` |
 | FAQ Public API | `http://localhost:5020` |
 | AI API health | `http://localhost:5030/health` |
@@ -122,6 +124,7 @@ Use this after the tenant metadata already exists, or when you need to apply FAQ
 - Protected APIs use Auth0-issued JWTs.
 - Tenant-scoped endpoints use `X-Tenant-Id`.
 - Public FAQ requests use `X-Client-Key`.
+- Public billing webhooks use `BaseFaq.Tenant.Public.Api` and do not require JWT, `X-Tenant-Id`, or `X-Client-Key`.
 - Swagger UI auth is configured in the protected API `appsettings.json` files.
 
 ## Documentation
