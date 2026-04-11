@@ -2,6 +2,7 @@ param(
     [string]$HostIp = "127.0.0.1",
     [string]$UpstreamHost = "host.docker.internal",
     [int]$TenantBackOfficePort = 5000,
+    [int]$TenantPublicPort = 5004,
     [int]$TenantPortalPort = 5002,
     [int]$PortalAppPort = 5500,
     [int]$FaqPortalPort = 5010,
@@ -132,6 +133,25 @@ server {
 server {
     listen 80;
     listen 443 ssl;
+    server_name dev.tenant.public.basefaq.com;
+    ssl_certificate /etc/nginx/certs/dev.basefaq.com.crt;
+    ssl_certificate_key /etc/nginx/certs/dev.basefaq.com.key;
+
+    location / {
+        proxy_pass http://__UPSTREAM_HOST__:__TENANT_PUBLIC_PORT__;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+    }
+}
+
+server {
+    listen 80;
+    listen 443 ssl;
     server_name dev.tenant.portal.basefaq.com;
     ssl_certificate /etc/nginx/certs/dev.basefaq.com.crt;
     ssl_certificate_key /etc/nginx/certs/dev.basefaq.com.key;
@@ -228,6 +248,7 @@ server {
 $nginxConfig = $nginxTemplate.
     Replace("__UPSTREAM_HOST__", $UpstreamHost).
     Replace("__TENANT_BACKOFFICE_PORT__", $TenantBackOfficePort.ToString()).
+    Replace("__TENANT_PUBLIC_PORT__", $TenantPublicPort.ToString()).
     Replace("__TENANT_PORTAL_PORT__", $TenantPortalPort.ToString()).
     Replace("__PORTAL_APP_PORT__", $PortalAppPort.ToString()).
     Replace("__FAQ_PORTAL_PORT__", $FaqPortalPort.ToString()).

@@ -3,8 +3,9 @@
 This folder contains a self-contained helper to expose local APIs behind these subdomains:
 
 - `dev.portal.basefaq.com`
-- `dev.tenant.portal.basefaq.com`
 - `dev.tenant.backoffice.basefaq.com`
+- `dev.tenant.public.basefaq.com`
+- `dev.tenant.portal.basefaq.com`
 - `dev.faq.public.basefaq.com`
 - `dev.faq.portal.basefaq.com`
 - `dev.ai.basefaq.com`
@@ -22,6 +23,7 @@ The approach is intentionally decoupled from host machine Nginx:
 
 - `dev.portal.basefaq.com` -> `http://<upstream-host>:5500`
 - `dev.tenant.backoffice.basefaq.com` -> `http://<upstream-host>:5000`
+- `dev.tenant.public.basefaq.com` -> `http://<upstream-host>:5004`
 - `dev.tenant.portal.basefaq.com` -> `http://<upstream-host>:5002`
 - `dev.faq.portal.basefaq.com` -> `http://<upstream-host>:5010`
 - `dev.faq.public.basefaq.com` -> `http://<upstream-host>:5020`
@@ -83,6 +85,7 @@ You can override defaults through environment variables (Linux) or parameters (P
 - API ports:
   - `PORTAL_APP_PORT` / `-PortalAppPort`
   - `TENANT_BACKOFFICE_PORT` / `-TenantBackOfficePort`
+  - `TENANT_PUBLIC_PORT` / `-TenantPublicPort`
   - `TENANT_PORTAL_PORT` / `-TenantPortalPort`
   - `FAQ_PORTAL_PORT` / `-FaqPortalPort`
   - `FAQ_PUBLIC_PORT` / `-FaqPublicPort`

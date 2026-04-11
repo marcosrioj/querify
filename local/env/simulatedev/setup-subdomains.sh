@@ -22,6 +22,7 @@ UPSTREAM_HOST="${UPSTREAM_HOST:-host.docker.internal}"
 HOST_IP="${HOST_IP:-127.0.0.1}"
 
 TENANT_BACKOFFICE_PORT="${TENANT_BACKOFFICE_PORT:-5000}"
+TENANT_PUBLIC_PORT="${TENANT_PUBLIC_PORT:-5004}"
 TENANT_PORTAL_PORT="${TENANT_PORTAL_PORT:-5002}"
 PORTAL_APP_PORT="${PORTAL_APP_PORT:-5500}"
 FAQ_PORTAL_PORT="${FAQ_PORTAL_PORT:-5010}"
@@ -140,6 +141,25 @@ server {
 server {
     listen 80;
     listen 443 ssl;
+    server_name dev.tenant.public.basefaq.com;
+    ssl_certificate /etc/nginx/certs/dev.basefaq.com.crt;
+    ssl_certificate_key /etc/nginx/certs/dev.basefaq.com.key;
+
+    location / {
+        proxy_pass http://$UPSTREAM_HOST:$TENANT_PUBLIC_PORT;
+        proxy_http_version 1.1;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Connection \$connection_upgrade;
+    }
+}
+
+server {
+    listen 80;
+    listen 443 ssl;
     server_name dev.faq.portal.basefaq.com;
     ssl_certificate /etc/nginx/certs/dev.basefaq.com.crt;
     ssl_certificate_key /etc/nginx/certs/dev.basefaq.com.key;
@@ -237,6 +257,7 @@ update_hosts_file() {
     printf "\n%s\n" "$HOSTS_MARKER_BEGIN"
     printf "%s dev.portal.basefaq.com\n" "$HOST_IP"
     printf "%s dev.tenant.backoffice.basefaq.com\n" "$HOST_IP"
+    printf "%s dev.tenant.public.basefaq.com\n" "$HOST_IP"
     printf "%s dev.tenant.portal.basefaq.com\n" "$HOST_IP"
     printf "%s dev.faq.portal.basefaq.com\n" "$HOST_IP"
     printf "%s dev.faq.public.basefaq.com\n" "$HOST_IP"
@@ -296,6 +317,7 @@ print_summary() {
   echo "Domain mappings:"
   echo "  dev.portal.basefaq.com            -> $UPSTREAM_HOST:$PORTAL_APP_PORT"
   echo "  dev.tenant.backoffice.basefaq.com -> $UPSTREAM_HOST:$TENANT_BACKOFFICE_PORT"
+  echo "  dev.tenant.public.basefaq.com     -> $UPSTREAM_HOST:$TENANT_PUBLIC_PORT"
   echo "  dev.tenant.portal.basefaq.com     -> $UPSTREAM_HOST:$TENANT_PORTAL_PORT"
   echo "  dev.faq.portal.basefaq.com        -> $UPSTREAM_HOST:$FAQ_PORTAL_PORT"
   echo "  dev.faq.public.basefaq.com        -> $UPSTREAM_HOST:$FAQ_PUBLIC_PORT"
