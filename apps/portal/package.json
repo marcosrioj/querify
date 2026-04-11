@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:polling": "vite",
     "build": "tsc && vite build",
     "lint": "eslint src",
     "format": "prettier --write .",

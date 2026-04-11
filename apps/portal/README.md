@@ -81,6 +81,14 @@ npm run dev
 
 The Vite dev server runs on `http://localhost:5500`.
 
+If Linux returns `ENOSPC: System limit for number of file watchers reached`, use the polling fallback instead:
+
+```bash
+npm run dev:polling
+```
+
+The same fallback is also enabled when either `CHOKIDAR_USEPOLLING=1` or `VITE_USE_POLLING=1` is set in the environment.
+
 When `local/env/simulatedev/setup-subdomains.sh` or `setup-subdomains.ps1` is active, the app is also reachable through the local hostname `http://dev.portal.basefaq.com`.
 
 4. Build validation
