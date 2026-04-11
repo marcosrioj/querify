@@ -116,7 +116,7 @@ public sealed class IngestStripeWebhookCommandHandler(
     {
         try
         {
-            EventUtility.ConstructEvent(payloadJson, signature, options.Value.WebhookSecret);
+            EventUtility.ConstructEvent(payloadJson, signature, options.Value.WebhookSecret, throwOnApiVersionMismatch: false);
         }
         catch (StripeException ex)
         {

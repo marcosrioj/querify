@@ -29,7 +29,7 @@ public class IngestStripeWebhookCommandHandlerTests
         using var context = TestContext.Create();
 
         var eventId = $"evt_test_{Guid.NewGuid():N}";
-        var payload = StripeTestHelper.BuildPayload(eventId, "checkout.session.completed");
+        var payload = StripeTestHelper.BuildPayload(eventId, "checkout.session.completed", stripeObjectType: "checkout.session");
         var signature = StripeTestHelper.ComputeSignature(TestWebhookSecret, payload);
 
         var handler = CreateHandler(context.DbContext);
@@ -57,7 +57,7 @@ public class IngestStripeWebhookCommandHandlerTests
 
         var tenantId = Guid.NewGuid();
         var eventId = $"evt_test_{Guid.NewGuid():N}";
-        var payload = StripeTestHelper.BuildPayload(eventId, "customer.subscription.created", tenantId: tenantId);
+        var payload = StripeTestHelper.BuildPayload(eventId, "customer.subscription.created", tenantId: tenantId, stripeObjectType: "subscription");
         var signature = StripeTestHelper.ComputeSignature(TestWebhookSecret, payload);
 
         var handler = CreateHandler(context.DbContext);
@@ -77,7 +77,7 @@ public class IngestStripeWebhookCommandHandlerTests
     {
         using var context = TestContext.Create();
 
-        var payload = StripeTestHelper.BuildPayload("evt_nosig", "invoice.paid");
+        var payload = StripeTestHelper.BuildPayload("evt_nosig", "invoice.paid", stripeObjectType: "invoice");
 
         var handler = CreateHandler(context.DbContext);
         var ex = await Assert.ThrowsAsync<ApiErrorException>(() =>
@@ -93,7 +93,7 @@ public class IngestStripeWebhookCommandHandlerTests
     {
         using var context = TestContext.Create();
 
-        var payload = StripeTestHelper.BuildPayload("evt_badsig", "invoice.paid");
+        var payload = StripeTestHelper.BuildPayload("evt_badsig", "invoice.paid", stripeObjectType: "invoice");
         var wrongSignature = "t=1,v1=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
 
         var handler = CreateHandler(context.DbContext);
@@ -111,7 +111,7 @@ public class IngestStripeWebhookCommandHandlerTests
         using var context = TestContext.Create();
 
         var eventId = $"evt_dup_{Guid.NewGuid():N}";
-        var payload = StripeTestHelper.BuildPayload(eventId, "invoice.paid");
+        var payload = StripeTestHelper.BuildPayload(eventId, "invoice.paid", stripeObjectType: "invoice");
         var signature = StripeTestHelper.ComputeSignature(TestWebhookSecret, payload);
 
         var handler = CreateHandler(context.DbContext);

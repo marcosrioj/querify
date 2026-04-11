@@ -25,7 +25,7 @@ public static class TenantDbContextExtensions
 
             var parameter = command.CreateParameter();
             parameter.ParameterName = "tableName";
-            parameter.Value = $"public.{tableName}";
+            parameter.Value = $"public.\"{tableName}\"";
             command.Parameters.Add(parameter);
 
             var result = await command.ExecuteScalarAsync(cancellationToken);

@@ -29,27 +29,42 @@ public static class StripeTestHelper
     /// <summary>
     /// Builds a minimal Stripe event JSON payload. Embed <paramref name="tenantId"/> in
     /// data.object.metadata.tenant_id to exercise the tenant extraction path.
+    /// <para>
+    /// <paramref name="stripeObjectType"/> must match the Stripe object-type discriminator field
+    /// (e.g. "checkout.session", "subscription", "invoice"). Stripe.net v47 requires this field to
+    /// be present in data.object or EventConverter.ReadJson will NullRef.
+    /// </para>
     /// </summary>
     public static string BuildPayload(
         string eventId,
         string eventType,
         Guid? tenantId = null,
         bool liveMode = false,
-        string? objectId = null)
+        string? objectId = null,
+        string stripeObjectType = "checkout.session")
     {
         var metadataPart = tenantId.HasValue
             ? $@"""metadata"": {{ ""tenant_id"": ""{tenantId}"" }}"
             : @"""metadata"": {}";
 
+        // Stripe.net v47 requires "object":"event", "api_version", "pending_webhooks", and "request"
+        // at the root level, plus "object" (type discriminator) inside data.object, or EventConverter
+        // will NullRef during deserialization. Any api_version value works when
+        // throwOnApiVersionMismatch=false is set in the handler.
         return $$"""
             {
               "id": "{{eventId}}",
+              "object": "event",
+              "api_version": "2023-10-16",
               "type": "{{eventType}}",
               "livemode": {{(liveMode ? "true" : "false")}},
               "created": {{DateTimeOffset.UtcNow.ToUnixTimeSeconds()}},
+              "pending_webhooks": 1,
+              "request": null,
               "data": {
                 "object": {
                   "id": "{{objectId ?? "obj_test_001"}}",
+                  "object": "{{stripeObjectType}}",
                   {{metadataPart}}
                 }
               }
