@@ -123,14 +123,14 @@ public sealed class SeedRunner(
 
             faqSeeder.Seed(faqDb, seedTenantId, counts);
 
-            if (billingSeeder.HasBillingData(tenantDb) &&
+            if (billingSeeder.HasBillingData(tenantDb, seedTenantId) &&
                 !Confirm(console, "Billing sample data already exists. Re-seed billing scenarios?"))
             {
                 return 0;
             }
 
-            billingSeeder.SeedBillingData(tenantDb, tenantSeedRequest.FaqConnectionString);
-            console.WriteLine("Billing sample data seeded (5 scenarios: Active, Trial, PastDue, Canceled, Webhook demo).");
+            billingSeeder.SeedBillingData(tenantDb, seedTenantId, tenantSeedRequest.FaqConnectionString);
+            console.WriteLine("Billing sample data seeded for tenant-001 plus 5 demo billing scenarios.");
             return 0;
         }
 

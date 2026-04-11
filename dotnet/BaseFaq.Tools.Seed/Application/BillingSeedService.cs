@@ -13,6 +13,7 @@ public sealed class BillingSeedService : IBillingSeedService
 {
     // Reference date — stable timestamps across seed runs
     private static readonly DateTime SeedNow = new(2026, 4, 10, 0, 0, 0, DateTimeKind.Utc);
+    private const string SeedTenantSlug = "tenant-001";
 
     // Tenant IDs
     private static readonly Guid NorthPeakTenantId    = new("00000001-0001-0001-0001-000000000001");
@@ -22,6 +23,7 @@ public sealed class BillingSeedService : IBillingSeedService
     private static readonly Guid BlueHarborId          = new("00000001-0001-0001-0001-000000000005");
 
     // BillingCustomer IDs
+    private static readonly Guid BcSeedTenantId   = new("00000002-0001-0001-0001-000000000010");
     private static readonly Guid BcNorthPeakId   = new("00000002-0001-0001-0001-000000000001");
     private static readonly Guid BcPacificId     = new("00000002-0001-0001-0001-000000000002");
     private static readonly Guid BcMapleForgeId  = new("00000002-0001-0001-0001-000000000003");
@@ -29,6 +31,7 @@ public sealed class BillingSeedService : IBillingSeedService
     private static readonly Guid BcBlueHarborId  = new("00000002-0001-0001-0001-000000000005");
 
     // TenantSubscription IDs
+    private static readonly Guid SubSeedTenantId   = new("00000003-0001-0001-0001-000000000010");
     private static readonly Guid SubNorthPeakId   = new("00000003-0001-0001-0001-000000000001");
     private static readonly Guid SubPacificId     = new("00000003-0001-0001-0001-000000000002");
     private static readonly Guid SubMapleForgeId  = new("00000003-0001-0001-0001-000000000003");
@@ -36,6 +39,7 @@ public sealed class BillingSeedService : IBillingSeedService
     private static readonly Guid SubBlueHarborId  = new("00000003-0001-0001-0001-000000000005");
 
     // BillingProviderSubscription IDs
+    private static readonly Guid PsSeedTenantId   = new("00000004-0001-0001-0001-000000000010");
     private static readonly Guid PsNorthPeakId   = new("00000004-0001-0001-0001-000000000001");
     private static readonly Guid PsPacificId     = new("00000004-0001-0001-0001-000000000002");
     private static readonly Guid PsMapleForgeId  = new("00000004-0001-0001-0001-000000000003");
@@ -43,6 +47,8 @@ public sealed class BillingSeedService : IBillingSeedService
     private static readonly Guid PsBlueHarborId  = new("00000004-0001-0001-0001-000000000005");
 
     // BillingInvoice IDs
+    private static readonly Guid InvSeedTenant1Id   = new("00000005-0001-0001-0001-000000000010");
+    private static readonly Guid InvSeedTenant2Id   = new("00000005-0001-0001-0001-000000000011");
     private static readonly Guid InvNorthPeak1Id   = new("00000005-0001-0001-0001-000000000001");
     private static readonly Guid InvNorthPeak2Id   = new("00000005-0001-0001-0001-000000000002");
     private static readonly Guid InvMapleForge1Id  = new("00000005-0001-0001-0001-000000000003");
@@ -51,6 +57,8 @@ public sealed class BillingSeedService : IBillingSeedService
     private static readonly Guid InvBlueHarbor1Id  = new("00000005-0001-0001-0001-000000000006");
 
     // BillingPayment IDs
+    private static readonly Guid PaySeedTenant1Id   = new("00000006-0001-0001-0001-000000000010");
+    private static readonly Guid PaySeedTenant2Id   = new("00000006-0001-0001-0001-000000000011");
     private static readonly Guid PayNorthPeak1Id   = new("00000006-0001-0001-0001-000000000001");
     private static readonly Guid PayNorthPeak2Id   = new("00000006-0001-0001-0001-000000000002");
     private static readonly Guid PayMapleForge1Id  = new("00000006-0001-0001-0001-000000000003");
@@ -59,6 +67,7 @@ public sealed class BillingSeedService : IBillingSeedService
     private static readonly Guid PayBlueHarbor1Id  = new("00000006-0001-0001-0001-000000000006");
 
     // TenantEntitlementSnapshot IDs
+    private static readonly Guid EntSeedTenantId   = new("00000007-0001-0001-0001-000000000010");
     private static readonly Guid EntNorthPeakId   = new("00000007-0001-0001-0001-000000000001");
     private static readonly Guid EntPacificId     = new("00000007-0001-0001-0001-000000000002");
     private static readonly Guid EntMapleForgeId  = new("00000007-0001-0001-0001-000000000003");
@@ -77,16 +86,15 @@ public sealed class BillingSeedService : IBillingSeedService
     private static readonly Guid Email2Id = new("00000009-0001-0001-0001-000000000002");
     private static readonly Guid Email3Id = new("00000009-0001-0001-0001-000000000003");
 
-    public bool HasBillingData(TenantDbContext dbContext)
+    public bool HasBillingData(TenantDbContext dbContext, Guid seedTenantId)
     {
-        return dbContext.Tenants
-            .IgnoreQueryFilters()
-            .AsNoTracking()
-            .Any(t => t.Id == NorthPeakTenantId);
+        return HasSeedTenantBillingData(dbContext, seedTenantId) &&
+               HasScenarioBillingData(dbContext);
     }
 
-    public void SeedBillingData(TenantDbContext dbContext, string faqConnectionString)
+    public void SeedBillingData(TenantDbContext dbContext, Guid seedTenantId, string faqConnectionString)
     {
+        SeedPrimarySeedTenantScenario(dbContext, seedTenantId, faqConnectionString);
         SeedScenarioA_NorthPeakAnalytics(dbContext, faqConnectionString);
         SeedScenarioB_PacificTrailStudio(dbContext, faqConnectionString);
         SeedScenarioC_MapleForgeMedia(dbContext, faqConnectionString);
@@ -95,6 +103,104 @@ public sealed class BillingSeedService : IBillingSeedService
         SeedWebhookInboxSamples(dbContext);
         SeedEmailOutboxSamples(dbContext);
         dbContext.SaveChanges();
+    }
+
+    // -------------------------------------------------------------------------
+    // Primary seed workspace — tenant-001: Starter monthly, Active
+    // -------------------------------------------------------------------------
+
+    private static void SeedPrimarySeedTenantScenario(
+        TenantDbContext dbContext,
+        Guid seedTenantId,
+        string faqConnectionString)
+    {
+        EnsureTenant(dbContext, seedTenantId,
+            slug: SeedTenantSlug,
+            name: Tenant.DefaultTenantName,
+            edition: TenantEdition.Free,
+            faqConnectionString: faqConnectionString);
+
+        EnsureBillingCustomer(dbContext, BcSeedTenantId,
+            tenantId: seedTenantId,
+            externalId: "cus_Q8fSeedTenant001",
+            email: "user001@seed.basefaq.local",
+            countryCode: "CA",
+            lastEvent: SeedNow.AddDays(-3));
+
+        EnsureTenantSubscription(dbContext, SubSeedTenantId,
+            tenantId: seedTenantId,
+            planCode: "starter-monthly",
+            interval: BillingIntervalType.Month,
+            status: TenantSubscriptionStatus.Active,
+            currency: "CAD",
+            countryCode: "CA",
+            periodStart: SeedNow.AddDays(-3),
+            periodEnd: SeedNow.AddDays(27),
+            lastEvent: SeedNow.AddDays(-3));
+
+        EnsureBillingProviderSubscription(dbContext, PsSeedTenantId,
+            tenantSubscriptionId: SubSeedTenantId,
+            tenantId: seedTenantId,
+            externalSubId: "sub_1RSeedTenant001",
+            externalPriceId: "price_1RPriceStarterMonthly",
+            externalProductId: "prod_1RProdStarterBaseFaq",
+            status: TenantSubscriptionStatus.Active,
+            periodStart: SeedNow.AddDays(-3),
+            periodEnd: SeedNow.AddDays(27),
+            lastEvent: SeedNow.AddDays(-3));
+
+        EnsureBillingInvoice(dbContext, InvSeedTenant2Id,
+            tenantSubscriptionId: SubSeedTenantId,
+            tenantId: seedTenantId,
+            externalInvoiceId: "in_1RSeedInvMar2026",
+            amountMinor: 2900,
+            currency: "CAD",
+            dueDate: SeedNow.AddDays(-34),
+            paidAt: SeedNow.AddDays(-34),
+            status: BillingInvoiceStatus.Paid,
+            lastEvent: SeedNow.AddDays(-34));
+
+        EnsureBillingPayment(dbContext, PaySeedTenant2Id,
+            invoiceId: InvSeedTenant2Id,
+            tenantId: seedTenantId,
+            externalPaymentId: "pi_3RSeedPay2026Mar",
+            method: "card",
+            amountMinor: 2900,
+            currency: "CAD",
+            status: BillingPaymentStatus.Succeeded,
+            paidAt: SeedNow.AddDays(-34),
+            lastEvent: SeedNow.AddDays(-34));
+
+        EnsureBillingInvoice(dbContext, InvSeedTenant1Id,
+            tenantSubscriptionId: SubSeedTenantId,
+            tenantId: seedTenantId,
+            externalInvoiceId: "in_1RSeedInvApr2026",
+            amountMinor: 2900,
+            currency: "CAD",
+            dueDate: SeedNow.AddDays(-3),
+            paidAt: SeedNow.AddDays(-3),
+            status: BillingInvoiceStatus.Paid,
+            lastEvent: SeedNow.AddDays(-3));
+
+        EnsureBillingPayment(dbContext, PaySeedTenant1Id,
+            invoiceId: InvSeedTenant1Id,
+            tenantId: seedTenantId,
+            externalPaymentId: "pi_3RSeedPay2026Apr",
+            method: "card",
+            amountMinor: 2900,
+            currency: "CAD",
+            status: BillingPaymentStatus.Succeeded,
+            paidAt: SeedNow.AddDays(-3),
+            lastEvent: SeedNow.AddDays(-3));
+
+        EnsureTenantEntitlementSnapshot(dbContext, EntSeedTenantId,
+            tenantId: seedTenantId,
+            planCode: "starter-monthly",
+            subscriptionStatus: TenantSubscriptionStatus.Active,
+            isActive: true,
+            isInGracePeriod: false,
+            effectiveUntil: SeedNow.AddDays(27),
+            featureJson: """{"maxFaqs":10,"maxItemsPerFaq":50,"aiGeneration":true,"analytics":false}""");
     }
 
     // -------------------------------------------------------------------------
@@ -651,6 +757,54 @@ public sealed class BillingSeedService : IBillingSeedService
         }
 
         return tenant;
+    }
+
+    private static bool HasSeedTenantBillingData(TenantDbContext dbContext, Guid seedTenantId)
+    {
+        return dbContext.BillingCustomers
+                   .IgnoreQueryFilters()
+                   .AsNoTracking()
+                   .Any(entry => entry.Id == BcSeedTenantId && entry.TenantId == seedTenantId) &&
+               dbContext.TenantSubscriptions
+                   .IgnoreQueryFilters()
+                   .AsNoTracking()
+                   .Any(entry => entry.Id == SubSeedTenantId && entry.TenantId == seedTenantId) &&
+               dbContext.BillingProviderSubscriptions
+                   .IgnoreQueryFilters()
+                   .AsNoTracking()
+                   .Any(entry => entry.Id == PsSeedTenantId && entry.TenantId == seedTenantId) &&
+               dbContext.BillingInvoices
+                   .IgnoreQueryFilters()
+                   .AsNoTracking()
+                   .Count(entry =>
+                       entry.TenantId == seedTenantId &&
+                       (entry.Id == InvSeedTenant1Id || entry.Id == InvSeedTenant2Id)) == 2 &&
+               dbContext.BillingPayments
+                   .IgnoreQueryFilters()
+                   .AsNoTracking()
+                   .Count(entry =>
+                       entry.TenantId == seedTenantId &&
+                       (entry.Id == PaySeedTenant1Id || entry.Id == PaySeedTenant2Id)) == 2 &&
+               dbContext.TenantEntitlementSnapshots
+                   .IgnoreQueryFilters()
+                   .AsNoTracking()
+                   .Any(entry => entry.Id == EntSeedTenantId && entry.TenantId == seedTenantId);
+    }
+
+    private static bool HasScenarioBillingData(TenantDbContext dbContext)
+    {
+        return dbContext.Tenants
+                   .IgnoreQueryFilters()
+                   .AsNoTracking()
+                   .Any(entry => entry.Id == NorthPeakTenantId) &&
+               dbContext.BillingWebhookInboxes
+                   .IgnoreQueryFilters()
+                   .AsNoTracking()
+                   .Any(entry => entry.Id == Wh1Id) &&
+               dbContext.EmailOutboxes
+                   .IgnoreQueryFilters()
+                   .AsNoTracking()
+                   .Any(entry => entry.Id == Email1Id);
     }
 
     private static void EnsureBillingCustomer(

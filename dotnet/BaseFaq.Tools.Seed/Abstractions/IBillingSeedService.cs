@@ -4,6 +4,6 @@ namespace BaseFaq.Tools.Seed.Abstractions;
 
 public interface IBillingSeedService
 {
-    bool HasBillingData(TenantDbContext dbContext);
-    void SeedBillingData(TenantDbContext dbContext, string faqConnectionString);
+    bool HasBillingData(TenantDbContext dbContext, Guid seedTenantId);
+    void SeedBillingData(TenantDbContext dbContext, Guid seedTenantId, string faqConnectionString);
 }
