@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { PropsWithChildren } from 'react';
 import { createAuth0Client, type Auth0Client } from '@auth0/auth0-spa-js';
+import { refreshAllowedTenantCache } from '@/domains/tenants/api';
 import { AuthContext, type AuthContextValue } from '@/platform/auth/auth-context';
 import { AuthRuntime, RuntimeEnv } from '@/platform/runtime/env';
 import type {
@@ -101,6 +102,10 @@ export function PortalAuthProvider({ children }: PropsWithChildren) {
     const payload = parseJwtPayload(accessToken);
     const auth0User =
       (await client.getUser()) as Record<string, unknown> | undefined;
+
+    await refreshAllowedTenantCache(accessToken).catch((err) => {
+      logger.warn('RefreshAllowedTenantCache failed', err);
+    });
 
     setSession({
       accessToken,

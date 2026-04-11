@@ -30,9 +30,9 @@ public class TenantController(ITenantService tenantService) : ControllerBase
 
     [HttpPost("refresh-allowed-tenant-cache")]
     [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
-    public async Task<IActionResult> RefreshAllowedTenantCache([FromQuery] Guid tenantId, CancellationToken token)
+    public async Task<IActionResult> RefreshAllowedTenantCache(CancellationToken token)
     {
-        var result = await tenantService.RefreshAllowedTenantCache(tenantId, token);
+        var result = await tenantService.RefreshAllowedTenantCache(token);
         return Ok(result);
     }
 

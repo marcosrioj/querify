@@ -55,8 +55,7 @@ export function TenantSwitcher() {
     }
 
     try {
-      const cacheUpdated =
-        await refreshAllowedTenantCache.mutateAsync(tenantId);
+      const cacheUpdated = await refreshAllowedTenantCache.mutateAsync();
       if (!cacheUpdated) {
         return;
       }

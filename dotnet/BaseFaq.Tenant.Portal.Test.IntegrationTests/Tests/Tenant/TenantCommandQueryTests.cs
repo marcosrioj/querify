@@ -340,11 +340,10 @@ public class TenantCommandQueryTests
         var handler = new TenantsRefreshAllowedTenantCacheCommandHandler(
             context.SessionService,
             allowedTenantStore,
-            new AllowedTenantProvider(context.DbContext),
-            new TenantPortalAccessService(context.DbContext, context.SessionService));
+            new AllowedTenantProvider(context.DbContext));
 
         var result = await handler.Handle(
-            new TenantsRefreshAllowedTenantCacheCommand { TenantId = selectedTenantId },
+            new TenantsRefreshAllowedTenantCacheCommand(),
             CancellationToken.None);
 
         Assert.True(result);

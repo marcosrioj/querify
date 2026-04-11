@@ -51,13 +51,10 @@ export function createOrUpdateTenant(
   });
 }
 
-export function refreshAllowedTenantCache(
-  accessToken: string | undefined,
-  tenantId: string | undefined,
-) {
+export function refreshAllowedTenantCache(accessToken: string | undefined) {
   return portalRequest<boolean>({
     service: 'tenant',
-    path: `/api/tenant/tenants/refresh-allowed-tenant-cache?tenantId=${requireTenantId(tenantId)}`,
+    path: '/api/tenant/tenants/refresh-allowed-tenant-cache',
     method: 'POST',
     accessToken: requireAccessToken(accessToken),
   });

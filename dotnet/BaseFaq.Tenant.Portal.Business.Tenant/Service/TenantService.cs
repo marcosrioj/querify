@@ -32,9 +32,9 @@ public class TenantService(IMediator mediator) : ITenantService
         return mediator.Send(command, token);
     }
 
-    public Task<bool> RefreshAllowedTenantCache(Guid tenantId, CancellationToken token)
+    public Task<bool> RefreshAllowedTenantCache(CancellationToken token)
     {
-        return mediator.Send(new TenantsRefreshAllowedTenantCacheCommand { TenantId = tenantId }, token);
+        return mediator.Send(new TenantsRefreshAllowedTenantCacheCommand(), token);
     }
 
     public Task<string?> GetClientKey(Guid tenantId, CancellationToken token)

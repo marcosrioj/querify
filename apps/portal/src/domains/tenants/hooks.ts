@@ -90,8 +90,7 @@ export function useRefreshAllowedTenantCache() {
 
   return useMutation({
     mutationKey: ['portal', 'tenant-domain', 'refresh-allowed-tenant-cache'],
-    mutationFn: (tenantId: string) =>
-      refreshAllowedTenantCache(session?.accessToken, tenantId),
+    mutationFn: () => refreshAllowedTenantCache(session?.accessToken),
   });
 }
 
