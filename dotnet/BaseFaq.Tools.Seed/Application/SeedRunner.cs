@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Npgsql;
 
+
 namespace BaseFaq.Tools.Seed.Application;
 
 public sealed class SeedRunner(
@@ -14,6 +15,7 @@ public sealed class SeedRunner(
     IDbContextFactory dbContextFactory,
     ITenantSeedService tenantSeeder,
     IFaqSeedService faqSeeder,
+    IBillingSeedService billingSeeder,
     ICleanupService cleanupService,
     SeedCounts counts)
     : ISeedRunner
@@ -120,6 +122,15 @@ public sealed class SeedRunner(
             }
 
             faqSeeder.Seed(faqDb, seedTenantId, counts);
+
+            if (billingSeeder.HasBillingData(tenantDb) &&
+                !Confirm(console, "Billing sample data already exists. Re-seed billing scenarios?"))
+            {
+                return 0;
+            }
+
+            billingSeeder.SeedBillingData(tenantDb, tenantSeedRequest.FaqConnectionString);
+            console.WriteLine("Billing sample data seeded (5 scenarios: Active, Trial, PastDue, Canceled, Webhook demo).");
             return 0;
         }
 

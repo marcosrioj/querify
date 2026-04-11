@@ -190,6 +190,32 @@ Relevant settings:
 - `TenantWorker:EmailDelivery:Smtp:Password`
 - `TenantWorker:EmailDelivery:Smtp:EnableSsl`
 
+## Sample data
+
+The seed tool (`BaseFaq.Tools.Seed`) includes realistic billing sample data for local development, demos, QA, and integration tests.
+
+Running option `1` or `3` from the seed tool menu seeds five billing scenarios in `TenantDb`:
+
+- **NorthPeak Analytics** — Pro monthly, Active. Two paid invoices. Use to validate healthy subscription flows and BackOffice billing views.
+- **Pacific Trail Studio** — Starter monthly, Trialing. No payment yet, trial active. Use to validate trial entitlement logic.
+- **MapleForge Media** — Pro monthly, PastDue. Latest payment failed (`card_declined`), in grace period. Use to validate past-due flows and failed payment screens.
+- **Aurora Clinic Systems** — Pro yearly, Canceled. Historical invoice and payment exist. Entitlement inactive. Use to validate cancellation flows.
+- **BlueHarbor Legal** — Business monthly, Active. Primary tenant for webhook and email outbox demo rows.
+
+Webhook inbox sample rows:
+- `checkout.session.completed` — Completed
+- `customer.subscription.updated` — Completed
+- `invoice.payment_failed` — Failed with error (for BackOffice troubleshooting)
+- `invoice.paid` — Pending (for worker processing demos)
+- `customer.subscription.deleted` — Completed
+
+Email outbox sample rows:
+- Invoice receipt for BlueHarbor — Pending
+- Payment failure notification for MapleForge — Completed
+- Trial payment method reminder for PacificTrail — Failed, retryable
+
+All billing seed IDs are deterministic (fixed GUIDs), making the data suitable for integration tests.
+
 ## Manual migration requirements
 
 Database migrations were intentionally not created as part of this implementation. Manual `TenantDbContext` migration work is required before production use:

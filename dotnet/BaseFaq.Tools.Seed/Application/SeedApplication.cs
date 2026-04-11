@@ -26,6 +26,7 @@ public sealed class SeedApplication
         var dbContextFactory = new DbContextFactory();
         var tenantSeeder = new TenantSeedService();
         var faqSeeder = new FaqSeedService();
+        var billingSeeder = new BillingSeedService();
         var cleanupService = new CleanupService();
         var counts = SeedCounts.Default;
 
@@ -35,6 +36,7 @@ public sealed class SeedApplication
             dbContextFactory,
             tenantSeeder,
             faqSeeder,
+            billingSeeder,
             cleanupService,
             counts);
 

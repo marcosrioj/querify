@@ -24,6 +24,18 @@ This is the minimum required tenant-side data for AI, tenant configuration, and 
 
 Sample seed creates realistic FAQ-style data in the FAQ database for the essential seed tenant.
 
+It also seeds billing sample scenarios in `TenantDb` covering five tenants with varied states:
+
+| Tenant | Plan | Status |
+|---|---|---|
+| NorthPeak Analytics | pro-monthly | Active — healthy, two paid invoices |
+| Pacific Trail Studio | starter-monthly | Trialing — no payment yet, trial ends May 15 2026 |
+| MapleForge Media | pro-monthly | PastDue — latest payment failed, in grace period |
+| Aurora Clinic Systems | pro-yearly | Canceled — historical invoices, entitlement inactive |
+| BlueHarbor Legal | business-monthly | Active — webhook and email outbox troubleshooting demo |
+
+Billing seed also includes five `BillingWebhookInbox` rows (Completed, Completed, Failed-with-error, Pending, Completed) and three `EmailOutbox` rows (Pending, Completed, Failed-retryable).
+
 ## Configuration source
 
 The tool reads:
