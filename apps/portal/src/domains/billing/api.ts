@@ -12,38 +12,29 @@ import type {
   TenantSubscriptionDetailDto,
 } from '@/domains/billing/types';
 
-function resolveTenantQuery(tenantId?: string) {
-  const resolvedTenantId = requireTenantId(tenantId);
-
-  return {
-    tenantId: resolvedTenantId,
-    query: {
-      tenantId: resolvedTenantId,
-    },
-  };
+function resolveTenantHeader(tenantId?: string) {
+  return requireTenantId(tenantId);
 }
 
 export function getBillingSummary(accessToken?: string, tenantId?: string) {
-  const request = resolveTenantQuery(tenantId);
+  const resolvedTenantId = resolveTenantHeader(tenantId);
 
   return portalRequest<TenantBillingSummaryDto>({
     service: 'tenant',
     path: '/api/tenant/billing/summary',
     accessToken: requireAccessToken(accessToken),
-    tenantId: request.tenantId,
-    query: request.query,
+    tenantId: resolvedTenantId,
   });
 }
 
 export function getBillingSubscription(accessToken?: string, tenantId?: string) {
-  const request = resolveTenantQuery(tenantId);
+  const resolvedTenantId = resolveTenantHeader(tenantId);
 
   return portalRequest<TenantSubscriptionDetailDto>({
     service: 'tenant',
     path: '/api/tenant/billing/subscription',
     accessToken: requireAccessToken(accessToken),
-    tenantId: request.tenantId,
-    query: request.query,
+    tenantId: resolvedTenantId,
   });
 }
 
@@ -52,17 +43,14 @@ export function getBillingInvoices(
   tenantId: string | undefined,
   requestDto: BillingListRequest,
 ) {
-  const request = resolveTenantQuery(tenantId);
+  const resolvedTenantId = resolveTenantHeader(tenantId);
 
   return portalRequest<PagedResultDto<BillingInvoiceDto>>({
     service: 'tenant',
     path: '/api/tenant/billing/invoices',
     accessToken: requireAccessToken(accessToken),
-    tenantId: request.tenantId,
-    query: {
-      ...request.query,
-      ...requestDto,
-    },
+    tenantId: resolvedTenantId,
+    query: requestDto,
   });
 }
 
@@ -71,16 +59,13 @@ export function getBillingPayments(
   tenantId: string | undefined,
   requestDto: BillingListRequest,
 ) {
-  const request = resolveTenantQuery(tenantId);
+  const resolvedTenantId = resolveTenantHeader(tenantId);
 
   return portalRequest<PagedResultDto<BillingPaymentDto>>({
     service: 'tenant',
     path: '/api/tenant/billing/payments',
     accessToken: requireAccessToken(accessToken),
-    tenantId: request.tenantId,
-    query: {
-      ...request.query,
-      ...requestDto,
-    },
+    tenantId: resolvedTenantId,
+    query: requestDto,
   });
 }

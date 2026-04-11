@@ -1,3 +1,4 @@
+using BaseFaq.Common.Infrastructure.Core.Extensions;
 using BaseFaq.Models.Common.Dtos;
 using BaseFaq.Models.Tenant.Dtos.Billing;
 using BaseFaq.Tenant.Portal.Business.Billing.Abstractions;
@@ -14,16 +15,18 @@ public sealed class BillingController(IBillingPortalService billingService) : Co
 {
     [HttpGet("summary")]
     [ProducesResponseType(typeof(TenantBillingSummaryDto), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetSummary([FromQuery] Guid tenantId, CancellationToken token)
+    public async Task<IActionResult> GetSummary(CancellationToken token)
     {
+        var tenantId = HttpContext.GetTenantIdFromHeader();
         var result = await billingService.GetSummary(tenantId, token);
         return Ok(result);
     }
 
     [HttpGet("subscription")]
     [ProducesResponseType(typeof(TenantSubscriptionDetailDto), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetSubscription([FromQuery] Guid tenantId, CancellationToken token)
+    public async Task<IActionResult> GetSubscription(CancellationToken token)
     {
+        var tenantId = HttpContext.GetTenantIdFromHeader();
         var result = await billingService.GetSubscription(tenantId, token);
         return Ok(result);
     }
@@ -31,10 +34,10 @@ public sealed class BillingController(IBillingPortalService billingService) : Co
     [HttpGet("invoices")]
     [ProducesResponseType(typeof(PagedResultDto<BillingInvoiceDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetInvoices(
-        [FromQuery] Guid tenantId,
         [FromQuery] BillingInvoiceGetAllRequestDto requestDto,
         CancellationToken token)
     {
+        var tenantId = HttpContext.GetTenantIdFromHeader();
         var result = await billingService.GetInvoices(tenantId, requestDto, token);
         return Ok(result);
     }
@@ -42,10 +45,10 @@ public sealed class BillingController(IBillingPortalService billingService) : Co
     [HttpGet("payments")]
     [ProducesResponseType(typeof(PagedResultDto<BillingPaymentDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetPayments(
-        [FromQuery] Guid tenantId,
         [FromQuery] BillingPaymentGetAllRequestDto requestDto,
         CancellationToken token)
     {
+        var tenantId = HttpContext.GetTenantIdFromHeader();
         var result = await billingService.GetPayments(tenantId, requestDto, token);
         return Ok(result);
     }
