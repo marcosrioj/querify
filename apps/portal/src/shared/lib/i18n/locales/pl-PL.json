@@ -923,5 +923,7 @@
   "Paid": "Opłacone",
   "Pending": "Oczekujące",
   "Refunded": "Zwrócone",
-  "Void": "Unieważnione"
+  "Void": "Unieważnione",
+  "Payment": "Płatność",
+  "Method": "Metoda"
 }

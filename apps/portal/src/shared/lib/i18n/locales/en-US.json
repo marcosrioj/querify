@@ -923,5 +923,7 @@
   "Paid": "Paid",
   "Pending": "Pending",
   "Refunded": "Refunded",
-  "Void": "Void"
+  "Void": "Void",
+  "Payment": "Payment",
+  "Method": "Method"
 }

@@ -923,5 +923,7 @@
   "Paid": "支払い済み",
   "Pending": "保留中",
   "Refunded": "返金済み",
-  "Void": "無効"
+  "Void": "無効",
+  "Payment": "支払い",
+  "Method": "方法"
 }

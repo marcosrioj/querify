@@ -923,5 +923,7 @@
   "Paid": "Ödendi",
   "Pending": "Beklemede",
   "Refunded": "İade edildi",
-  "Void": "Geçersiz kılındı"
+  "Void": "Geçersiz kılındı",
+  "Payment": "Ödeme",
+  "Method": "Yöntem"
 }

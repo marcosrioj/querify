@@ -923,5 +923,7 @@
   "Paid": "Đã thanh toán",
   "Pending": "Đang chờ",
   "Refunded": "Đã hoàn tiền",
-  "Void": "Đã hủy"
+  "Void": "Đã hủy",
+  "Payment": "Thanh toán",
+  "Method": "Phương thức"
 }

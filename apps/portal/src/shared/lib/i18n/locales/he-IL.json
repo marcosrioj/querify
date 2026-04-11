@@ -923,5 +923,7 @@
   "Paid": "שולם",
   "Pending": "ממתין",
   "Refunded": "הוחזר",
-  "Void": "בוטל"
+  "Void": "בוטל",
+  "Payment": "תשלום",
+  "Method": "שיטה"
 }

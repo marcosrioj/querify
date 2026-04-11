@@ -152,7 +152,13 @@ function getPaymentBadgeVariant(status: BillingPaymentStatus) {
   }
 }
 
-function InvoiceActions({ invoice }: { invoice: BillingInvoiceDto }) {
+function InvoiceActions({
+  invoice,
+  language,
+}: {
+  invoice: BillingInvoiceDto;
+  language: string;
+}) {
   if (!invoice.hostedUrl && !invoice.pdfUrl) {
     return null;
   }
@@ -162,7 +168,7 @@ function InvoiceActions({ invoice }: { invoice: BillingInvoiceDto }) {
       {invoice.hostedUrl ? (
         <Button asChild variant="outline" size="sm">
           <a href={invoice.hostedUrl} target="_blank" rel="noreferrer">
-            {translateText('Open')}
+            {translateText('Open', undefined, language)}
             <ArrowUpRight className="size-4" />
           </a>
         </Button>
@@ -196,23 +202,31 @@ function InvoiceHistoryCard({
     <Card>
       <CardHeader>
         <CardHeading>
-          <CardTitle>{translateText('Invoice history')}</CardTitle>
+          <CardTitle>{translateText('Invoice history', undefined, language)}</CardTitle>
           <CardDescription>
-            Latest invoices recorded for this workspace.
+            {translateText(
+              'Latest invoices recorded for this workspace.',
+              undefined,
+              language,
+            )}
           </CardDescription>
         </CardHeading>
       </CardHeader>
       <CardContent className="space-y-4">
         {isError && !invoices.length ? (
           <ErrorState
-            title="Billing request failed"
+            title={translateText('Billing request failed', undefined, language)}
             error={error}
             retry={onRetry}
           />
         ) : !invoices.length ? (
           <EmptyState
-            title="No invoices yet"
-            description="Invoices will appear here after the first billing cycle is recorded."
+            title={translateText('No invoices yet', undefined, language)}
+            description={translateText(
+              'Invoices will appear here after the first billing cycle is recorded.',
+              undefined,
+              language,
+            )}
           />
         ) : (
           <>
@@ -225,7 +239,7 @@ function InvoiceHistoryCard({
                   <div className="space-y-3">
                     <div>
                       <p className="text-[0.6875rem] font-medium uppercase tracking-[0.16em] text-muted-foreground">
-                        Invoice
+                        {translateText('Invoice', undefined, language)}
                       </p>
                       <p className="mt-1.5 font-medium text-mono">
                         {invoice.externalInvoiceId}
@@ -233,7 +247,7 @@ function InvoiceHistoryCard({
                     </div>
                     <div>
                       <p className="text-[0.6875rem] font-medium uppercase tracking-[0.16em] text-muted-foreground">
-                        Date
+                        {translateText('Date', undefined, language)}
                       </p>
                       <p className="mt-1.5 text-sm">
                         {formatDateTime(
@@ -246,26 +260,30 @@ function InvoiceHistoryCard({
                     </div>
                     <div>
                       <p className="text-[0.6875rem] font-medium uppercase tracking-[0.16em] text-muted-foreground">
-                        Status
+                        {translateText('Status', undefined, language)}
                       </p>
                       <div className="mt-1.5">
                         <Badge
                           variant={getInvoiceBadgeVariant(invoice.status)}
                           appearance="outline"
                         >
-                          {billingInvoiceStatusLabels[invoice.status]}
+                          {translateText(
+                            billingInvoiceStatusLabels[invoice.status],
+                            undefined,
+                            language,
+                          )}
                         </Badge>
                       </div>
                     </div>
                     <div>
                       <p className="text-[0.6875rem] font-medium uppercase tracking-[0.16em] text-muted-foreground">
-                        Amount
+                        {translateText('Amount', undefined, language)}
                       </p>
                       <p className="mt-1.5 text-sm font-medium">
                         {formatMoney(invoice.amountMinor, invoice.currency, language)}
                       </p>
                     </div>
-                    <InvoiceActions invoice={invoice} />
+                    <InvoiceActions invoice={invoice} language={language} />
                   </div>
                 </div>
               ))}
@@ -275,11 +293,15 @@ function InvoiceHistoryCard({
               <Table>
                 <TableHeader className="bg-muted/50">
                   <TableRow>
-                    <TableHead>Invoice</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Amount</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead>{translateText('Invoice', undefined, language)}</TableHead>
+                    <TableHead>{translateText('Date', undefined, language)}</TableHead>
+                    <TableHead>{translateText('Status', undefined, language)}</TableHead>
+                    <TableHead className="text-right">
+                      {translateText('Amount', undefined, language)}
+                    </TableHead>
+                    <TableHead className="text-right">
+                      {translateText('Actions', undefined, language)}
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -301,7 +323,11 @@ function InvoiceHistoryCard({
                           variant={getInvoiceBadgeVariant(invoice.status)}
                           appearance="outline"
                         >
-                          {billingInvoiceStatusLabels[invoice.status]}
+                          {translateText(
+                            billingInvoiceStatusLabels[invoice.status],
+                            undefined,
+                            language,
+                          )}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
@@ -309,7 +335,7 @@ function InvoiceHistoryCard({
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end">
-                          <InvoiceActions invoice={invoice} />
+                          <InvoiceActions invoice={invoice} language={language} />
                         </div>
                       </TableCell>
                     </TableRow>
@@ -341,23 +367,31 @@ function PaymentHistoryCard({
     <Card>
       <CardHeader>
         <CardHeading>
-          <CardTitle>Payment history</CardTitle>
+          <CardTitle>{translateText('Payment history', undefined, language)}</CardTitle>
           <CardDescription>
-            Latest payment attempts and results.
+            {translateText(
+              'Latest payment attempts and results.',
+              undefined,
+              language,
+            )}
           </CardDescription>
         </CardHeading>
       </CardHeader>
       <CardContent className="space-y-4">
         {isError && !payments.length ? (
           <ErrorState
-            title="Billing request failed"
+            title={translateText('Billing request failed', undefined, language)}
             error={error}
             retry={onRetry}
           />
         ) : !payments.length ? (
           <EmptyState
-            title="No payments yet"
-            description="Successful and failed payment attempts will appear here."
+            title={translateText('No payments yet', undefined, language)}
+            description={translateText(
+              'Successful and failed payment attempts will appear here.',
+              undefined,
+              language,
+            )}
           />
         ) : (
           <>
@@ -370,7 +404,7 @@ function PaymentHistoryCard({
                   <div className="space-y-3">
                     <div>
                       <p className="text-[0.6875rem] font-medium uppercase tracking-[0.16em] text-muted-foreground">
-                        Payment
+                        {translateText('Payment', undefined, language)}
                       </p>
                       <p className="mt-1.5 font-medium text-mono">
                         {payment.externalPaymentId || payment.id}
@@ -378,7 +412,7 @@ function PaymentHistoryCard({
                     </div>
                     <div>
                       <p className="text-[0.6875rem] font-medium uppercase tracking-[0.16em] text-muted-foreground">
-                        Date
+                        {translateText('Date', undefined, language)}
                       </p>
                       <p className="mt-1.5 text-sm">
                         {formatDateTime(
@@ -389,20 +423,24 @@ function PaymentHistoryCard({
                     </div>
                     <div>
                       <p className="text-[0.6875rem] font-medium uppercase tracking-[0.16em] text-muted-foreground">
-                        Status
+                        {translateText('Status', undefined, language)}
                       </p>
                       <div className="mt-1.5">
                         <Badge
                           variant={getPaymentBadgeVariant(payment.status)}
                           appearance="outline"
                         >
-                          {billingPaymentStatusLabels[payment.status]}
+                          {translateText(
+                            billingPaymentStatusLabels[payment.status],
+                            undefined,
+                            language,
+                          )}
                         </Badge>
                       </div>
                     </div>
                     <div>
                       <p className="text-[0.6875rem] font-medium uppercase tracking-[0.16em] text-muted-foreground">
-                        Amount
+                        {translateText('Amount', undefined, language)}
                       </p>
                       <p className="mt-1.5 text-sm font-medium">
                         {formatMoney(payment.amountMinor, payment.currency, language)}
@@ -410,7 +448,7 @@ function PaymentHistoryCard({
                     </div>
                     <div>
                       <p className="text-[0.6875rem] font-medium uppercase tracking-[0.16em] text-muted-foreground">
-                        Method
+                        {translateText('Method', undefined, language)}
                       </p>
                       <p className="mt-1.5 text-sm">
                         {payment.method || translateText('Not available', undefined, language)}
@@ -425,11 +463,13 @@ function PaymentHistoryCard({
               <Table>
                 <TableHeader className="bg-muted/50">
                   <TableRow>
-                    <TableHead>Payment</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Method</TableHead>
-                    <TableHead className="text-right">Amount</TableHead>
+                    <TableHead>{translateText('Payment', undefined, language)}</TableHead>
+                    <TableHead>{translateText('Date', undefined, language)}</TableHead>
+                    <TableHead>{translateText('Status', undefined, language)}</TableHead>
+                    <TableHead>{translateText('Method', undefined, language)}</TableHead>
+                    <TableHead className="text-right">
+                      {translateText('Amount', undefined, language)}
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -449,7 +489,11 @@ function PaymentHistoryCard({
                           variant={getPaymentBadgeVariant(payment.status)}
                           appearance="outline"
                         >
-                          {billingPaymentStatusLabels[payment.status]}
+                          {translateText(
+                            billingPaymentStatusLabels[payment.status],
+                            undefined,
+                            language,
+                          )}
                         </Badge>
                       </TableCell>
                       <TableCell>
@@ -498,12 +542,20 @@ export function BillingPage() {
     return (
       <PageSurface className="space-y-5 lg:space-y-7.5">
         <PageHeader
-          title="Billing"
-          description="See plan details, invoices, and recent payments for this workspace."
+          title={translateText('Billing', undefined, language)}
+          description={translateText(
+            'See plan details, invoices, and recent payments for this workspace.',
+            undefined,
+            language,
+          )}
         />
         <EmptyState
-          title="No workspace selected"
-          description="Select a workspace to load its billing details."
+          title={translateText('No workspace selected', undefined, language)}
+          description={translateText(
+            'Select a workspace to load its billing details.',
+            undefined,
+            language,
+          )}
         />
       </PageSurface>
     );
@@ -516,11 +568,15 @@ export function BillingPage() {
     return (
       <PageSurface className="space-y-5 lg:space-y-7.5">
         <PageHeader
-          title="Billing"
-          description="See plan details, invoices, and recent payments for this workspace."
+          title={translateText('Billing', undefined, language)}
+          description={translateText(
+            'See plan details, invoices, and recent payments for this workspace.',
+            undefined,
+            language,
+          )}
         />
         <ErrorState
-          title="Billing request failed"
+          title={translateText('Billing request failed', undefined, language)}
           error={summaryQuery.error || subscriptionQuery.error}
           retry={() => {
             void Promise.all([
@@ -544,42 +600,58 @@ export function BillingPage() {
   return (
     <PageSurface className="space-y-5 lg:space-y-7.5">
       <PageHeader
-        title="Billing"
-        description="See plan details, invoices, and recent payments for this workspace."
+        title={translateText('Billing', undefined, language)}
+        description={translateText(
+          'See plan details, invoices, and recent payments for this workspace.',
+          undefined,
+          language,
+        )}
       />
 
       <SectionGrid
         items={[
           {
-            title: 'Current plan',
+            title: translateText('Current plan', undefined, language),
             value:
               summary?.currentPlanCode ||
-              tenantEditionLabels[currentTenant.edition],
+              translateText(tenantEditionLabels[currentTenant.edition], undefined, language),
             description: currentTenant.slug,
             icon: CreditCard,
           },
           {
-            title: 'Subscription status',
-            value: tenantSubscriptionStatusLabels[
-              subscription?.status ?? summary?.subscriptionStatus ?? 0
-            ],
-            description: billingProviderLabels[
-              subscription?.defaultProvider ?? summary?.defaultProvider ?? 0
-            ],
+            title: translateText('Subscription status', undefined, language),
+            value: translateText(
+              tenantSubscriptionStatusLabels[
+                subscription?.status ?? summary?.subscriptionStatus ?? 0
+              ],
+              undefined,
+              language,
+            ),
+            description: translateText(
+              billingProviderLabels[
+                subscription?.defaultProvider ?? summary?.defaultProvider ?? 0
+              ],
+              undefined,
+              language,
+            ),
             icon: ShieldCheck,
           },
           {
-            title: 'Invoices shown',
+            title: translateText('Invoices shown', undefined, language),
             value: invoicesQuery.data?.totalCount ?? 0,
-            description: 'Latest records sorted by billing activity',
+            description: translateText(
+              'Latest records sorted by billing activity',
+              undefined,
+              language,
+            ),
             icon: Receipt,
           },
           {
-            title: 'Payments shown',
+            title: translateText('Payments shown', undefined, language),
             value: paymentsQuery.data?.totalCount ?? 0,
             description: canManageBilling
-              ? 'Visible for workspace owners'
-              : 'Visible in read-only mode',
+              ? translateText('Visible for workspace owners', undefined, language)
+              : translateText('Visible in read-only mode', undefined, language),
             icon: Wallet,
           },
         ]}
@@ -589,9 +661,13 @@ export function BillingPage() {
         <Card>
           <CardHeader className="gap-4 md:flex-row md:items-start md:justify-between">
             <CardHeading>
-              <CardTitle>Subscription overview</CardTitle>
+              <CardTitle>{translateText('Subscription overview', undefined, language)}</CardTitle>
               <CardDescription>
-                Live subscription state for the current workspace.
+                {translateText(
+                  'Live subscription state for the current workspace.',
+                  undefined,
+                  language,
+                )}
               </CardDescription>
             </CardHeading>
             <Badge
@@ -601,9 +677,13 @@ export function BillingPage() {
               appearance="outline"
             >
               {
-                tenantSubscriptionStatusLabels[
-                  subscription?.status ?? summary?.subscriptionStatus ?? 0
-                ]
+                translateText(
+                  tenantSubscriptionStatusLabels[
+                    subscription?.status ?? summary?.subscriptionStatus ?? 0
+                  ],
+                  undefined,
+                  language,
+                )
               }
             </Badge>
           </CardHeader>
@@ -611,22 +691,26 @@ export function BillingPage() {
             <KeyValueList
               items={[
                 {
-                  label: 'Workspace',
+                  label: translateText('Workspace', undefined, language),
                   value: currentTenant.name,
                 },
                 {
-                  label: 'Plan',
+                  label: translateText('Plan', undefined, language),
                   value:
                     subscription?.planCode ||
                     summary?.currentPlanCode ||
                     translateText('Not available', undefined, language),
                 },
                 {
-                  label: 'Billing interval',
-                  value: billingIntervalLabels[subscription?.billingInterval ?? 0],
+                  label: translateText('Billing interval', undefined, language),
+                  value: translateText(
+                    billingIntervalLabels[subscription?.billingInterval ?? 0],
+                    undefined,
+                    language,
+                  ),
                 },
                 {
-                  label: 'Current period',
+                  label: translateText('Current period', undefined, language),
                   value: formatPeriod(
                     subscription?.currentPeriodStartUtc ||
                       summary?.currentPeriodStartUtc,
@@ -636,22 +720,25 @@ export function BillingPage() {
                   ),
                 },
                 {
-                  label: 'Grace period',
+                  label: translateText('Grace period', undefined, language),
                   value: summary?.graceUntilUtc
                     ? formatDateTime(summary.graceUntilUtc, language)
                     : translateText('Not in grace period', undefined, language),
                 },
                 {
-                  label: 'Provider',
-                  value:
+                  label: translateText('Provider', undefined, language),
+                  value: translateText(
                     billingProviderLabels[
                       subscription?.defaultProvider ??
                         summary?.defaultProvider ??
                         0
                     ],
+                    undefined,
+                    language,
+                  ),
                 },
                 {
-                  label: 'Provider subscriptions',
+                  label: translateText('Provider subscriptions', undefined, language),
                   value: subscription?.providerSubscriptions.length ?? 0,
                 },
               ]}
@@ -668,7 +755,7 @@ export function BillingPage() {
                   target="_blank"
                   rel="noreferrer"
                 >
-                  {translateText('Open latest invoice')}
+                  {translateText('Open latest invoice', undefined, language)}
                   <ArrowUpRight className="size-4" />
                 </a>
               </Button>
@@ -682,7 +769,7 @@ export function BillingPage() {
                   target="_blank"
                   rel="noreferrer"
                 >
-                  Download invoice PDF
+                  {translateText('Download invoice PDF', undefined, language)}
                   <Download className="size-4" />
                 </a>
               </Button>
@@ -693,9 +780,13 @@ export function BillingPage() {
         <Card>
           <CardHeader>
             <CardHeading>
-              <CardTitle>Entitlement snapshot</CardTitle>
+              <CardTitle>{translateText('Entitlement snapshot', undefined, language)}</CardTitle>
               <CardDescription>
-                Current access derived from billing events.
+                {translateText(
+                  'Current access derived from billing events.',
+                  undefined,
+                  language,
+                )}
               </CardDescription>
             </CardHeading>
           </CardHeader>
@@ -704,32 +795,35 @@ export function BillingPage() {
               <KeyValueList
                 items={[
                   {
-                    label: 'Plan',
+                    label: translateText('Plan', undefined, language),
                     value:
                       summary.entitlement.planCode ||
                       translateText('Not available', undefined, language),
                   },
                   {
-                    label: 'Status',
-                    value:
+                    label: translateText('Status', undefined, language),
+                    value: translateText(
                       tenantSubscriptionStatusLabels[
                         summary.entitlement.subscriptionStatus
                       ],
+                      undefined,
+                      language,
+                    ),
                   },
                   {
-                    label: 'Active',
+                    label: translateText('Active', undefined, language),
                     value: summary.entitlement.isActive
                       ? translateText('Yes', undefined, language)
                       : translateText('No', undefined, language),
                   },
                   {
-                    label: 'In grace period',
+                    label: translateText('In grace period', undefined, language),
                     value: summary.entitlement.isInGracePeriod
                       ? translateText('Yes', undefined, language)
                       : translateText('No', undefined, language),
                   },
                   {
-                    label: 'Effective until',
+                    label: translateText('Effective until', undefined, language),
                     value: summary.entitlement.effectiveUntilUtc
                       ? formatDateTime(
                           summary.entitlement.effectiveUntilUtc,
@@ -738,7 +832,7 @@ export function BillingPage() {
                       : translateText('Not available', undefined, language),
                   },
                   {
-                    label: 'Updated',
+                    label: translateText('Updated', undefined, language),
                     value: summary.entitlement.updatedAtUtc
                       ? formatDateTime(summary.entitlement.updatedAtUtc, language)
                       : translateText('Not available', undefined, language),
@@ -747,8 +841,16 @@ export function BillingPage() {
               />
             ) : (
               <EmptyState
-                title="No entitlement snapshot yet"
-                description="The billing worker has not produced an entitlement snapshot for this workspace yet."
+                title={translateText(
+                  'No entitlement snapshot yet',
+                  undefined,
+                  language,
+                )}
+                description={translateText(
+                  'The billing worker has not produced an entitlement snapshot for this workspace yet.',
+                  undefined,
+                  language,
+                )}
               />
             )}
           </CardContent>

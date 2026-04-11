@@ -923,5 +923,7 @@
   "Paid": "已支付",
   "Pending": "待处理",
   "Refunded": "已退款",
-  "Void": "已作废"
+  "Void": "已作废",
+  "Payment": "付款",
+  "Method": "方式"
 }

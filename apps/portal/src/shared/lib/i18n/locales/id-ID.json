@@ -923,5 +923,7 @@
   "Paid": "Lunas",
   "Pending": "Menunggu",
   "Refunded": "Dikembalikan",
-  "Void": "Dibatalkan"
+  "Void": "Dibatalkan",
+  "Payment": "Pembayaran",
+  "Method": "Metode"
 }

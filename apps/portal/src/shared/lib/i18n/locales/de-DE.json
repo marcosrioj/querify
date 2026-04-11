@@ -923,5 +923,7 @@
   "Paid": "Bezahlt",
   "Pending": "Ausstehend",
   "Refunded": "Erstattet",
-  "Void": "Storniert"
+  "Void": "Storniert",
+  "Payment": "Zahlung",
+  "Method": "Methode"
 }

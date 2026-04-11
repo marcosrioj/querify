@@ -923,5 +923,7 @@
   "Paid": "Pagado",
   "Pending": "Pendiente",
   "Refunded": "Reembolsado",
-  "Void": "Anulado"
+  "Void": "Anulado",
+  "Payment": "Pago",
+  "Method": "Método"
 }

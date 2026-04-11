@@ -923,5 +923,7 @@
   "Paid": "결제 완료",
   "Pending": "대기 중",
   "Refunded": "환불됨",
-  "Void": "무효"
+  "Void": "무효",
+  "Payment": "결제",
+  "Method": "방법"
 }
