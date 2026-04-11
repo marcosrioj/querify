@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import {
   ArrowUpRight,
   CreditCard,
@@ -22,6 +23,7 @@ import {
 } from '@/shared/layout/page-layouts';
 import { translateText } from '@/shared/lib/i18n-core';
 import { usePortalI18n } from '@/shared/lib/use-portal-i18n';
+import { PaginationControls } from '@/shared/ui/pagination-controls';
 import {
   Badge,
   Button,
@@ -185,6 +187,8 @@ function InvoiceActions({
   );
 }
 
+const BILLING_PAGE_SIZE_OPTIONS = [5, 10, 20];
+
 function InvoiceHistoryCard({
   invoices,
   isError,
@@ -198,6 +202,12 @@ function InvoiceHistoryCard({
   onRetry: () => void;
   language: string;
 }) {
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(5);
+  const showPagination = invoices.length > 5;
+  const start = (page - 1) * pageSize;
+  const visibleInvoices = showPagination ? invoices.slice(start, start + pageSize) : invoices;
+
   return (
     <Card>
       <CardHeader>
@@ -231,7 +241,7 @@ function InvoiceHistoryCard({
         ) : (
           <>
             <div className="space-y-3 lg:hidden">
-              {invoices.map((invoice) => (
+              {visibleInvoices.map((invoice) => (
                 <div
                   key={invoice.id}
                   className="rounded-xl border border-border/80 bg-card p-4"
@@ -305,7 +315,7 @@ function InvoiceHistoryCard({
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {invoices.map((invoice) => (
+                  {visibleInvoices.map((invoice) => (
                     <TableRow key={invoice.id}>
                       <TableCell className="font-medium text-mono">
                         {invoice.externalInvoiceId}
@@ -343,6 +353,20 @@ function InvoiceHistoryCard({
                 </TableBody>
               </Table>
             </div>
+
+            {showPagination && (
+              <PaginationControls
+                page={page}
+                pageSize={pageSize}
+                totalCount={invoices.length}
+                onPageChange={(nextPage) => setPage(nextPage)}
+                onPageSizeChange={(nextPageSize) => {
+                  setPageSize(nextPageSize);
+                  setPage(1);
+                }}
+                pageSizeOptions={BILLING_PAGE_SIZE_OPTIONS}
+              />
+            )}
           </>
         )}
       </CardContent>
@@ -363,6 +387,12 @@ function PaymentHistoryCard({
   onRetry: () => void;
   language: string;
 }) {
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(5);
+  const showPagination = payments.length > 5;
+  const start = (page - 1) * pageSize;
+  const visiblePayments = showPagination ? payments.slice(start, start + pageSize) : payments;
+
   return (
     <Card>
       <CardHeader>
@@ -396,7 +426,7 @@ function PaymentHistoryCard({
         ) : (
           <>
             <div className="space-y-3 lg:hidden">
-              {payments.map((payment) => (
+              {visiblePayments.map((payment) => (
                 <div
                   key={payment.id}
                   className="rounded-xl border border-border/80 bg-card p-4"
@@ -473,7 +503,7 @@ function PaymentHistoryCard({
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {payments.map((payment) => (
+                  {visiblePayments.map((payment) => (
                     <TableRow key={payment.id}>
                       <TableCell className="font-medium text-mono">
                         {payment.externalPaymentId || payment.id}
@@ -507,6 +537,20 @@ function PaymentHistoryCard({
                 </TableBody>
               </Table>
             </div>
+
+            {showPagination && (
+              <PaginationControls
+                page={page}
+                pageSize={pageSize}
+                totalCount={payments.length}
+                onPageChange={(nextPage) => setPage(nextPage)}
+                onPageSizeChange={(nextPageSize) => {
+                  setPageSize(nextPageSize);
+                  setPage(1);
+                }}
+                pageSizeOptions={BILLING_PAGE_SIZE_OPTIONS}
+              />
+            )}
           </>
         )}
       </CardContent>
