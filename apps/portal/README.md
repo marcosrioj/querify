@@ -38,7 +38,7 @@ Notes:
 - `domains/faq`, `domains/faq-items`, and `domains/content-refs` use the real CRUD APIs
 - `domains/tenants` and `domains/settings/profile` use the real Tenant Portal APIs
 - `domains/members` uses the isolated TenantUser API in Tenant Portal
-- `domains/billing` and parts of `domains/ai` remain placeholder shells where the backend surface is missing
+- parts of `domains/ai` remain placeholder shells where the backend surface is missing
 - `shared/lib/language.ts` defines the built-in Portal language options and text direction metadata
 - `shared/lib/i18n/locales/*.json` stores the frontend-owned locale catalogs
 - `shared/lib/i18n/messages.ts`, `shared/lib/i18n-core.ts`, `shared/lib/i18n-provider.tsx`, and `shared/lib/use-portal-i18n.ts` load translations and apply `lang` / `dir`
@@ -92,7 +92,6 @@ npm run build
 ## Current gaps
 
 - Member adds require an already-existing BaseFAQ user email; invitation acceptance is not exposed yet
-- No Portal billing/invoice API exists yet
 - No Portal AI jobs/progress listing API exists yet
 - FAQ, FAQ Item, and Content Ref text search/filtering are client-side on the loaded page because the backend list contracts do not expose search parameters yet
 

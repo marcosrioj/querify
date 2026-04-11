@@ -33,6 +33,7 @@
         <ProjectReference Include="..\BaseFaq.Common.Infrastructure.Core\BaseFaq.Common.Infrastructure.Core.csproj"/>
         <ProjectReference Include="..\BaseFaq.Models.Tenant\BaseFaq.Models.Tenant.csproj"/>
         <ProjectReference Include="..\BaseFaq.Models.User\BaseFaq.Models.User.csproj"/>
+        <ProjectReference Include="..\BaseFaq.Tenant.Portal.Business.Billing\BaseFaq.Tenant.Portal.Business.Billing.csproj"/>
         <ProjectReference Include="..\BaseFaq.Tenant.Portal.Business.Tenant\BaseFaq.Tenant.Portal.Business.Tenant.csproj"/>
         <ProjectReference Include="..\BaseFaq.Tenant.Portal.Business.User\BaseFaq.Tenant.Portal.Business.User.csproj"/>
     </ItemGroup>
