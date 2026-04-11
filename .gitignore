@@ -1,6 +1,7 @@
 /.idea/
 /.git/
 /.tmp/
+/.obsidian/
 **/node_modules/
 /apps/demos/
 bin/
