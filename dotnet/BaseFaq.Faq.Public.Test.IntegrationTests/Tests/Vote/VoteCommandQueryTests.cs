@@ -49,7 +49,7 @@ public class VoteCommandQueryTests
     }
 
     [Fact]
-    public async Task CreateVote_ReturnsExistingVoteForSameUserPrint()
+    public async Task CreateVote_TogglesVoteForSameUserPrint()
     {
         var httpContext = new DefaultHttpContext();
         httpContext.Connection.RemoteIpAddress = IPAddress.Parse("198.51.100.30");
@@ -73,6 +73,8 @@ public class VoteCommandQueryTests
         {
             FaqItemAnswerId = faqItemAnswer.Id
         }, CancellationToken.None);
+
+        // Second call from the same user toggles the vote off
         var secondId = await handler.Handle(new VotesCreateVoteCommand
         {
             FaqItemAnswerId = faqItemAnswer.Id
@@ -81,9 +83,10 @@ public class VoteCommandQueryTests
         var votes = context.DbContext.Votes.Where(vote => vote.FaqItemAnswerId == faqItemAnswer.Id).ToList();
         var updatedAnswer = await context.DbContext.FaqItemAnswers.FindAsync(faqItemAnswer.Id);
 
-        Assert.Single(votes);
-        Assert.Equal(firstId, secondId);
-        Assert.Equal(1, updatedAnswer!.VoteScore);
+        Assert.NotEqual(Guid.Empty, firstId);
+        Assert.Equal(Guid.Empty, secondId);
+        Assert.Empty(votes);
+        Assert.Equal(0, updatedAnswer!.VoteScore);
     }
 
     [Fact]
