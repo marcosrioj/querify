@@ -53,7 +53,7 @@ import {
 
 function formatDateTime(value: string | null | undefined, language: string) {
   if (!value) {
-    return 'Not available';
+    return translateText('Not available', undefined, language);
   }
 
   return new Intl.DateTimeFormat(language, {
@@ -68,15 +68,23 @@ function formatPeriod(
   language: string,
 ) {
   if (!startValue && !endValue) {
-    return 'Not scheduled';
+    return translateText('Not scheduled', undefined, language);
   }
 
   if (!startValue) {
-    return `Until ${formatDateTime(endValue, language)}`;
+    return translateText(
+      'Until {value}',
+      { value: formatDateTime(endValue, language) },
+      language,
+    );
   }
 
   if (!endValue) {
-    return `From ${formatDateTime(startValue, language)}`;
+    return translateText(
+      'From {value}',
+      { value: formatDateTime(startValue, language) },
+      language,
+    );
   }
 
   return `${formatDateTime(startValue, language)} - ${formatDateTime(endValue, language)}`;
@@ -335,7 +343,7 @@ function PaymentHistoryCard({
         <CardHeading>
           <CardTitle>Payment history</CardTitle>
           <CardDescription>
-            Latest payment attempts and their recorded outcome.
+            Latest payment attempts and results.
           </CardDescription>
         </CardHeading>
       </CardHeader>
@@ -405,7 +413,7 @@ function PaymentHistoryCard({
                         Method
                       </p>
                       <p className="mt-1.5 text-sm">
-                        {payment.method || 'Not available'}
+                        {payment.method || translateText('Not available', undefined, language)}
                       </p>
                     </div>
                   </div>
@@ -444,7 +452,9 @@ function PaymentHistoryCard({
                           {billingPaymentStatusLabels[payment.status]}
                         </Badge>
                       </TableCell>
-                      <TableCell>{payment.method || 'Not available'}</TableCell>
+                      <TableCell>
+                        {payment.method || translateText('Not available', undefined, language)}
+                      </TableCell>
                       <TableCell className="text-right">
                         {formatMoney(payment.amountMinor, payment.currency, language)}
                       </TableCell>
@@ -609,7 +619,7 @@ export function BillingPage() {
                   value:
                     subscription?.planCode ||
                     summary?.currentPlanCode ||
-                    'Not available',
+                    translateText('Not available', undefined, language),
                 },
                 {
                   label: 'Billing interval',
@@ -629,7 +639,7 @@ export function BillingPage() {
                   label: 'Grace period',
                   value: summary?.graceUntilUtc
                     ? formatDateTime(summary.graceUntilUtc, language)
-                    : 'Not in grace period',
+                    : translateText('Not in grace period', undefined, language),
                 },
                 {
                   label: 'Provider',
@@ -695,7 +705,9 @@ export function BillingPage() {
                 items={[
                   {
                     label: 'Plan',
-                    value: summary.entitlement.planCode || 'Not available',
+                    value:
+                      summary.entitlement.planCode ||
+                      translateText('Not available', undefined, language),
                   },
                   {
                     label: 'Status',
@@ -706,11 +718,15 @@ export function BillingPage() {
                   },
                   {
                     label: 'Active',
-                    value: summary.entitlement.isActive ? 'Yes' : 'No',
+                    value: summary.entitlement.isActive
+                      ? translateText('Yes', undefined, language)
+                      : translateText('No', undefined, language),
                   },
                   {
                     label: 'In grace period',
-                    value: summary.entitlement.isInGracePeriod ? 'Yes' : 'No',
+                    value: summary.entitlement.isInGracePeriod
+                      ? translateText('Yes', undefined, language)
+                      : translateText('No', undefined, language),
                   },
                   {
                     label: 'Effective until',
@@ -719,13 +735,13 @@ export function BillingPage() {
                           summary.entitlement.effectiveUntilUtc,
                           language,
                         )
-                      : 'Not available',
+                      : translateText('Not available', undefined, language),
                   },
                   {
                     label: 'Updated',
                     value: summary.entitlement.updatedAtUtc
                       ? formatDateTime(summary.entitlement.updatedAtUtc, language)
-                      : 'Not available',
+                      : translateText('Not available', undefined, language),
                   },
                 ]}
               />
