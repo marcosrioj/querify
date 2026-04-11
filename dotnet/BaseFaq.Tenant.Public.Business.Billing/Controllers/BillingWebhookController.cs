@@ -15,7 +15,7 @@ public class BillingWebhookController(IBillingWebhookService billingWebhookServi
 {
     [HttpPost]
     [Consumes("application/json")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> ReceiveStripeWebhook(CancellationToken token)
     {
