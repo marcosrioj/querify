@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <TargetFramework>net10.0</TargetFramework>
@@ -31,11 +31,8 @@
     <ItemGroup>
         <ProjectReference Include="..\BaseFaq.Common.EntityFramework.Tenant\BaseFaq.Common.EntityFramework.Tenant.csproj"/>
         <ProjectReference Include="..\BaseFaq.Common.Infrastructure.Core\BaseFaq.Common.Infrastructure.Core.csproj"/>
-        <ProjectReference Include="..\BaseFaq.Models.Tenant\BaseFaq.Models.Tenant.csproj"/>
-        <ProjectReference Include="..\BaseFaq.Models.User\BaseFaq.Models.User.csproj"/>
-        <ProjectReference Include="..\BaseFaq.Tenant.BackOffice.Business.Billing\BaseFaq.Tenant.BackOffice.Business.Billing.csproj"/>
-        <ProjectReference Include="..\BaseFaq.Tenant.BackOffice.Business.Tenant\BaseFaq.Tenant.BackOffice.Business.Tenant.csproj"/>
-        <ProjectReference Include="..\BaseFaq.Tenant.BackOffice.Business.User\BaseFaq.Tenant.BackOffice.Business.User.csproj"/>
+        <ProjectReference Include="..\BaseFaq.Tenant.Worker.Business.Billing\BaseFaq.Tenant.Worker.Business.Billing.csproj"/>
+        <ProjectReference Include="..\BaseFaq.Tenant.Worker.Business.Email\BaseFaq.Tenant.Worker.Business.Email.csproj"/>
     </ItemGroup>
 
 </Project>
