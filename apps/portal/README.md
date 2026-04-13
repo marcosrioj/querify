@@ -71,6 +71,10 @@ If you run the local `simulatedev` reverse proxy helper, the same Portal app is 
 
 The portal logout flow calls Auth0 `/v2/logout` with `returnTo={origin}{BASE_URL}login` by default. If that URL is not listed in the Auth0 application's `Allowed Logout URLs`, Auth0 will reject the redirect after sign-out. Set `VITE_AUTH0_LOGOUT_URI` only when the post-logout target must differ from the default login route.
 
+For stable SPA sessions, configure Auth0 for refresh tokens as well:
+- the Portal client should be a Single Page Application with Refresh Token Rotation enabled
+- the `https://basefaq.com` API audience should allow offline access so Auth0 can issue refresh tokens for `offline_access`
+
 Do not reuse the backend `SwaggerOptions:swaggerAuth:ClientId` value as the Portal SPA client unless that Auth0 application has also been updated to allow the Portal callback URL above. The backend README documents that client for Swagger UI callback pages on ports `5000`, `5002`, and `5010`.
 
 3. Run the app

@@ -13,6 +13,8 @@ import type {
 import { logger } from '@/platform/telemetry/logger';
 import { translateText } from '@/shared/lib/i18n-core';
 
+const AUTH0_SCOPE = 'openid profile email offline_access';
+
 const resolveRedirectUri = () =>
   RuntimeEnv.auth0RedirectUri ||
   `${window.location.origin}${RuntimeEnv.baseUrl}login`;
@@ -20,6 +22,11 @@ const resolveRedirectUri = () =>
 const resolveLogoutUri = () =>
   RuntimeEnv.auth0LogoutUri ||
   `${window.location.origin}${RuntimeEnv.baseUrl}login`;
+
+const auth0AuthorizationParams = {
+  audience: RuntimeEnv.auth0Audience,
+  scope: AUTH0_SCOPE,
+} as const;
 
 const base64UrlDecode = (value: string) => {
   const normalized = value.replace(/-/g, '+').replace(/_/g, '/');
@@ -56,6 +63,17 @@ const normalizeRole = (payload: Record<string, unknown>): PortalRole => {
   return String(rawRole).toLowerCase().includes('admin') ? 'Admin' : 'Member';
 };
 
+const isRecoverableAuthError = (error: unknown) => {
+  if (!error || typeof error !== 'object') {
+    return false;
+  }
+
+  const errorCode =
+    'error' in error ? String((error as { error?: unknown }).error ?? '') : '';
+
+  return errorCode === 'missing_refresh_token' || errorCode === 'invalid_grant';
+};
+
 const buildUser = (
   payload: Record<string, unknown>,
   auth0User?: Record<string, unknown>,
@@ -84,21 +102,37 @@ export function PortalAuthProvider({ children }: PropsWithChildren) {
   const [error, setError] = useState<string>();
   const clientRef = useRef<Auth0Client | null>(null);
 
+  const resetSession = (nextError?: string) => {
+    setSession(undefined);
+    setUser(undefined);
+    setStatus('unauthenticated');
+    setError(nextError);
+  };
+
   const syncSession = async (client: Auth0Client) => {
     const isAuthenticated = await client.isAuthenticated();
 
     if (!isAuthenticated) {
-      setSession(undefined);
-      setUser(undefined);
-      setStatus('unauthenticated');
+      resetSession();
       return;
     }
 
-    const accessToken = await client.getTokenSilently({
-      authorizationParams: {
-        audience: RuntimeEnv.auth0Audience,
-      },
-    });
+    let accessToken: string;
+
+    try {
+      accessToken = await client.getTokenSilently({
+        authorizationParams: auth0AuthorizationParams,
+      });
+    } catch (tokenError) {
+      if (isRecoverableAuthError(tokenError)) {
+        logger.warn('Recoverable Auth0 session bootstrap error', tokenError);
+        resetSession();
+        return;
+      }
+
+      throw tokenError;
+    }
+
     const payload = parseJwtPayload(accessToken);
     const auth0User =
       (await client.getUser()) as Record<string, unknown> | undefined;
@@ -136,11 +170,12 @@ export function PortalAuthProvider({ children }: PropsWithChildren) {
           domain: RuntimeEnv.auth0Domain,
           clientId: RuntimeEnv.auth0ClientId,
           authorizationParams: {
-            audience: RuntimeEnv.auth0Audience,
+            ...auth0AuthorizationParams,
             redirect_uri: resolveRedirectUri(),
           },
           cacheLocation: 'localstorage',
           useRefreshTokens: true,
+          useRefreshTokensFallback: true,
         });
 
         if (!mounted) {
@@ -166,6 +201,11 @@ export function PortalAuthProvider({ children }: PropsWithChildren) {
       } catch (bootError) {
         logger.error('Auth bootstrap failed', bootError);
         if (!mounted) {
+          return;
+        }
+
+        if (isRecoverableAuthError(bootError)) {
+          resetSession();
           return;
         }
 
@@ -200,7 +240,7 @@ export function PortalAuthProvider({ children }: PropsWithChildren) {
 
         await client.loginWithRedirect({
           authorizationParams: {
-            audience: RuntimeEnv.auth0Audience,
+            ...auth0AuthorizationParams,
             redirect_uri: resolveRedirectUri(),
           },
           appState: {
@@ -211,15 +251,11 @@ export function PortalAuthProvider({ children }: PropsWithChildren) {
       async logout() {
         const client = clientRef.current;
         if (!client) {
-          setSession(undefined);
-          setUser(undefined);
-          setStatus('unauthenticated');
+          resetSession();
           return;
         }
 
-        setSession(undefined);
-        setUser(undefined);
-        setStatus('unauthenticated');
+        resetSession();
 
         await client.logout({
           logoutParams: {
@@ -243,9 +279,7 @@ export function PortalAuthProvider({ children }: PropsWithChildren) {
 
         try {
           const accessToken = await client.getTokenSilently({
-            authorizationParams: {
-              audience: RuntimeEnv.auth0Audience,
-            },
+            authorizationParams: auth0AuthorizationParams,
           });
 
           const payload = parseJwtPayload(accessToken);
@@ -259,6 +293,12 @@ export function PortalAuthProvider({ children }: PropsWithChildren) {
           return accessToken;
         } catch (tokenError) {
           logger.warn('Access token refresh failed', tokenError);
+
+          if (isRecoverableAuthError(tokenError)) {
+            resetSession();
+            return undefined;
+          }
+
           return session?.accessToken;
         }
       },

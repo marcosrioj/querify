@@ -130,6 +130,11 @@ If you use the local subdomain helper, also allow:
 - logout URL: `http://dev.portal.basefaq.com/login`
 - web origin: `http://dev.portal.basefaq.com`
 
+For refresh-token based SPA sessions, also configure:
+
+- the Portal client as a Single Page Application with Refresh Token Rotation enabled
+- the `https://basefaq.com` API audience with offline access enabled so Auth0 can issue refresh tokens for `offline_access`
+
 Do not assume the Swagger UI client id used by backend APIs is also valid for the Portal app. The Portal needs its own SPA client configuration unless the same Auth0 application was explicitly set up for both use cases.
 
 The frontend logout handler redirects to `VITE_AUTH0_LOGOUT_URI` when set, otherwise it falls back to `{origin}{BASE_URL}login`. That final URL must be present in the Auth0 application's `Allowed Logout URLs`.
