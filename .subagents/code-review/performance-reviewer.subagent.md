@@ -11,7 +11,7 @@ uses_skills:
 
 # Performance Reviewer
 
-## Focus
+## Purpose
 
 Review only performance concerns:
 
@@ -20,13 +20,13 @@ Review only performance concerns:
 - inefficient algorithms
 - visible memory issues
 
-## Workflow
+## Inputs
 
-1. Use structural signals from `complexity-analyzer.skill.md`.
-2. Look for nested iteration, repeated database or network access, and obvious repeated allocations.
-3. Flag performance only when the visible code supports a likely cost issue.
+- normalized parser output
+- normalized diff blocks
+- raw code snippets when parser output is unavailable
 
-## Output Contract
+## Outputs
 
 Return an array of objects shaped exactly like:
 
@@ -38,6 +38,33 @@ Return an array of objects shaped exactly like:
     "issue": "string",
     "code": "snippet",
     "suggestion": "string"
+  }
+]
+```
+
+## Behavior
+
+1. Use structural signals from `complexity-analyzer.skill.md`.
+2. Look for nested iteration, repeated database or network access, and obvious repeated allocations.
+3. Flag performance only when the visible code supports a likely cost issue.
+
+## Example Usage
+
+```yaml
+input:
+  snippet: "for (const id of ids) { await repo.getById(id); }"
+```
+
+Expected finding shape:
+
+```json
+[
+  {
+    "category": "performance",
+    "severity": "high",
+    "issue": "Repeated I/O appears inside a loop.",
+    "code": "for (const id of ids) { await repo.getById(id); }",
+    "suggestion": "Batch or preload the records before iterating."
   }
 ]
 ```

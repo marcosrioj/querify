@@ -10,7 +10,7 @@ uses_skills:
 
 # Secrets Detector
 
-## Focus
+## Purpose
 
 Detect only hardcoded secret patterns such as:
 
@@ -25,13 +25,7 @@ Detect only hardcoded secret patterns such as:
 - normalized parser evidence
 - raw code or config when parser output is unavailable
 
-## Workflow
-
-1. Find credential-like literals and secret-bearing config keys.
-2. Distinguish placeholders, dummy values, and obvious examples from likely live credentials.
-3. Report only values that look real enough to matter.
-
-## Output Contract
+## Outputs
 
 Return an array of objects shaped exactly like:
 
@@ -43,6 +37,33 @@ Return an array of objects shaped exactly like:
     "code": "snippet",
     "explanation": "string",
     "fix": "string"
+  }
+]
+```
+
+## Behavior
+
+1. Find credential-like literals and secret-bearing config keys.
+2. Distinguish placeholders, dummy values, and obvious examples from likely live credentials.
+3. Report only values that look real enough to matter.
+
+## Example Usage
+
+```yaml
+input:
+  snippet: "const apiKey = \"sk-live-1234567890\";"
+```
+
+Expected finding shape:
+
+```json
+[
+  {
+    "type": "hardcoded secret",
+    "severity": "high",
+    "code": "const apiKey = \"sk-live-1234567890\";",
+    "explanation": "A credential-like value is embedded directly in source code.",
+    "fix": "Move the secret to a secret manager or environment configuration and rotate it."
   }
 ]
 ```

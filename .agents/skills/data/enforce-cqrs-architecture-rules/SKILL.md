@@ -1,6 +1,8 @@
 ---
 name: enforce-cqrs-architecture-rules
 description: Encode BaseFAQ's write-side architecture rules as automated compliance checks.
+type: repository-skill
+scope: basefaq-repository
 category: data
 priority: high
 triggers:

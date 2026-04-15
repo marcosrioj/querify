@@ -37,7 +37,7 @@ Use this precedence order:
 
 1. `AGENTS.md`
 2. primary orchestrators under `.agents/*.agent.md`
-3. the selected skill or skills under `.agents/skills/` and `.agents/shared/*.skill.md`
+3. the selected skill or skills under `.agents/skills/`, `.agents/shared/*.skill.md`, and `.agents/privacy/*.skill.md`
 4. shared context, patterns, glossary, and templates under `.agents/`
 5. BaseFAQ internal workers under `.agents/subagents/*.toml`
 6. generic reusable specialists under `.subagents/**/*.subagent.md`
@@ -84,6 +84,34 @@ Use this destination map:
 - BaseFAQ internal worker definition -> `subagents/*.toml` and `subagents/README.md`
 - generic reusable specialist definition -> `../.subagents/**/*.subagent.md`
 - scaffolding rules -> `templates/*`
+
+## Artifact Naming Standards
+
+Use one naming convention across the agent ecosystem:
+
+- orchestrators: `kebab-case-orchestrator.agent.md`
+- reusable decision or detector specialists: `kebab-case.subagent.md`
+- flat operational skills: `kebab-case.skill.md`
+- repository-owned skills: `skills/<category>/<skill-name>/SKILL.md`
+- internal execution workers: `kebab-case-worker.toml`
+
+Metadata rules:
+
+- front matter `name` must match the artifact identifier exactly
+- repository-owned skills use `type: repository-skill`
+- shared or privacy flat skills use `type: shared-skill`
+- generic markdown subagents use `type: reusable-specialist`
+- orchestrators use `type: primary-agent`
+- workers use `role = "execution-worker"`
+
+Shape rules:
+
+- orchestrators must expose at minimum `Purpose`, `Inputs`, `Outputs`, `Behavior`, and `Example Usage`
+- markdown subagents must expose at minimum `Purpose`, `Inputs`, `Outputs`, `Behavior`, and `Example Usage`
+- flat skills under `.agents/shared/` and `.agents/privacy/` must expose at minimum `Purpose`, `Inputs`, `Outputs`, `Behavior`, and `Example Usage`
+- repository-owned skills under `.agents/skills/` use the repository skill shape documented in [`skills/README.md`](skills/README.md)
+
+The human-facing documentation for these conventions lives in [`../docs/agents/README.md`](../docs/agents/README.md).
 
 ## How To Think
 
@@ -156,6 +184,11 @@ Use intent-first routing, not title matching alone.
   - Shared skills: `shared/code-parser.skill.md`, `shared/code-diff-parser.skill.md`, `shared/complexity-analyzer.skill.md`
   - Required specialists: `.subagents/code-review/*.subagent.md`
   - Required integration: `security-orchestrator.agent.md` when available
+
+- "privacy request", "gdpr", "lgpd", "ccpa", "pipl", "consent withdrawal", "data deletion request", "data subject request"
+  - Primary orchestrator: `privacy/privacy-orchestrator.agent.md`
+  - Shared skills: `privacy/dsar.skill.md`, `privacy/consent.skill.md`, `privacy/audit.skill.md`, `privacy/data-classification.skill.md`
+  - Required specialists: `privacy/privacy-engine.subagent.md`, `privacy/*.subagent.md`
 
 When more than one skill applies, prefer one primary skill plus only the minimum supporting set needed to finish the task end-to-end.
 
@@ -239,3 +272,10 @@ The active skill index lives in [`skills/README.md`](skills/README.md).
 ## Worker Catalog
 
 The active worker index lives in [`subagents/README.md`](subagents/README.md).
+
+## Agent Documentation
+
+The human-readable catalog for all orchestrators, subagents, skills, and workers lives in:
+
+- [`../docs/agents/README.md`](../docs/agents/README.md)
+- [`../docs/agents/catalog.md`](../docs/agents/catalog.md)

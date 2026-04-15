@@ -1,6 +1,8 @@
 ---
 name: bootstrap-local-platform-stack
 description: Bring up the BaseFAQ local runtime, infrastructure, app hosts, and observability stack in the supported sequence.
+type: repository-skill
+scope: basefaq-repository
 category: data
 priority: medium
 triggers:

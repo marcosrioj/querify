@@ -1,6 +1,8 @@
 ---
 name: design-provenance-and-trust
 description: Represent source evidence, citations, confidence, and trust explicitly so BaseFAQ content can be audited and reused safely.
+type: repository-skill
+scope: basefaq-repository
 category: domain
 priority: high
 triggers:

@@ -11,7 +11,7 @@ uses_skills:
 
 # Best Practices Reviewer
 
-## Focus
+## Purpose
 
 Review only best-practices concerns:
 
@@ -20,13 +20,13 @@ Review only best-practices concerns:
 - improper typing
 - framework misuse
 
-## Workflow
+## Inputs
 
-1. Inspect the visible asynchronous and typed boundaries.
-2. Flag missing error handling when the code performs I/O or external operations without visible failure handling.
-3. Flag framework misuse only when the framework-specific risk is directly visible.
+- normalized parser output
+- normalized diff blocks
+- raw code snippets when parser output is unavailable
 
-## Output Contract
+## Outputs
 
 Return an array of objects shaped exactly like:
 
@@ -38,6 +38,33 @@ Return an array of objects shaped exactly like:
     "issue": "string",
     "code": "snippet",
     "suggestion": "string"
+  }
+]
+```
+
+## Behavior
+
+1. Inspect the visible asynchronous and typed boundaries.
+2. Flag missing error handling when the code performs I/O or external operations without visible failure handling.
+3. Flag framework misuse only when the framework-specific risk is directly visible.
+
+## Example Usage
+
+```yaml
+input:
+  snippet: "await repo.save(entity); mailer.send(entity);"
+```
+
+Expected finding shape:
+
+```json
+[
+  {
+    "category": "best-practices",
+    "severity": "medium",
+    "issue": "The workflow performs async and side-effecting work without visible error handling.",
+    "code": "await repo.save(entity); mailer.send(entity);",
+    "suggestion": "Add explicit failure handling around the repository and mailer calls."
   }
 ]
 ```

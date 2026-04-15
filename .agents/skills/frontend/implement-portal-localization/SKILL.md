@@ -1,6 +1,8 @@
 ---
 name: implement-portal-localization
 description: Maintain BaseFAQ Portal localization, language precedence, and RTL/LTR behavior as a frontend-owned capability.
+type: repository-skill
+scope: basefaq-repository
 category: frontend
 priority: high
 triggers:

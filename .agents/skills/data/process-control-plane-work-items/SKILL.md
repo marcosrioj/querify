@@ -1,6 +1,8 @@
 ---
 name: process-control-plane-work-items
 description: Implement BaseFAQ's lease-based background-processing pattern for retryable work stored in TenantDbContext.
+type: repository-skill
+scope: basefaq-repository
 category: data
 priority: high
 triggers:

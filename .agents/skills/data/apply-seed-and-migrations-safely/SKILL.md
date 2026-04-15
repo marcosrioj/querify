@@ -1,6 +1,8 @@
 ---
 name: apply-seed-and-migrations-safely
 description: Initialize and evolve BaseFAQ tenant and FAQ databases through the repository tools rather than ad hoc database changes.
+type: repository-skill
+scope: basefaq-repository
 category: data
 priority: high
 triggers:

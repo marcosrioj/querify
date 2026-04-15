@@ -10,7 +10,7 @@ uses_skills:
 
 # Deserialization Detector
 
-## Focus
+## Purpose
 
 Detect only unsafe deserialization patterns such as:
 
@@ -24,13 +24,7 @@ Detect only unsafe deserialization patterns such as:
 - normalized parser evidence
 - raw code or config when parser output is unavailable
 
-## Workflow
-
-1. Find serializer or loader APIs.
-2. Confirm the payload source is untrusted or externally supplied.
-3. Flag only well-known unsafe or unrestricted deserialization patterns.
-
-## Output Contract
+## Outputs
 
 Return an array of objects shaped exactly like:
 
@@ -42,6 +36,33 @@ Return an array of objects shaped exactly like:
     "code": "snippet",
     "explanation": "string",
     "fix": "string"
+  }
+]
+```
+
+## Behavior
+
+1. Find serializer or loader APIs.
+2. Confirm the payload source is untrusted or externally supplied.
+3. Flag only well-known unsafe or unrestricted deserialization patterns.
+
+## Example Usage
+
+```yaml
+input:
+  snippet: "const obj = yaml.load(req.body.payload);"
+```
+
+Expected finding shape:
+
+```json
+[
+  {
+    "type": "unsafe deserialization",
+    "severity": "high",
+    "code": "const obj = yaml.load(req.body.payload);",
+    "explanation": "Untrusted payload data reaches an unsafe loader.",
+    "fix": "Use a safe loader and validate the payload against a strict schema."
   }
 ]
 ```

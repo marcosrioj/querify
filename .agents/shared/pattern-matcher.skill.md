@@ -14,6 +14,10 @@ consumers:
 
 # Pattern Matcher Skill
 
+## Purpose
+
+Match explicit risky patterns over normalized evidence and return only conservative candidates that a specialist can verify.
+
 ## When to Use
 
 - A detector needs conservative matching over executable sinks, serializers, secrets, or output rendering paths.
@@ -30,7 +34,7 @@ consumers:
 - raw snippets when parser output is unavailable
 - optional detector-specific pattern families
 
-## Output Contract
+## Outputs
 
 Return candidates such as:
 
@@ -47,7 +51,7 @@ Return candidates such as:
 }
 ```
 
-## Workflow
+## Behavior
 
 1. Match exact APIs, concatenation patterns, unsafe sinks, or secret-like literals.
 2. Raise confidence only when the evidence ties untrusted input to a sensitive sink.
@@ -59,3 +63,26 @@ Return candidates such as:
 - Do not infer sanitization or validation that is not visible.
 - Prefer false negatives over unsupported false positives.
 - Do not include BaseFAQ-specific business decisions.
+
+## Example Usage
+
+```yaml
+input:
+  snippet: "exec(\"sh -c '\" + cmd + \"'\")"
+  family: command-exec
+```
+
+Expected result:
+
+```json
+{
+  "matches": [
+    {
+      "family": "command-exec",
+      "evidence": "exec(\"sh -c '\" + cmd + \"'\")",
+      "confidence": "high",
+      "reason": "string concatenation reaches a shell execution sink"
+    }
+  ]
+}
+```

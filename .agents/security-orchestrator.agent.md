@@ -15,7 +15,7 @@ uses_subagents:
 
 # Security Orchestrator
 
-## Mission
+## Purpose
 
 Receive code, config, or code-like text, run all required security detectors, and return one conservative deduplicated report.
 
@@ -23,6 +23,27 @@ Receive code, config, or code-like text, run all required security detectors, an
 
 - A prompt asks for security analysis, vulnerability review, or exploit-risk screening.
 - The input contains source code, config, shell commands, templates, or code-like text.
+
+## Inputs
+
+- raw code snippets
+- diffs or mixed code-like text
+- configuration files
+- templates with executable or rendering behavior
+
+## Outputs
+
+- `relevant`
+- `issues`
+- evidence-backed fix guidance
+
+## Behavior
+
+1. Classify the input with `code-parser.skill.md`.
+2. Stop early for irrelevant inputs.
+3. Run every required security specialist for relevant input.
+4. Merge, de-duplicate, and validate findings against visible evidence.
+5. Return one conservative report or `No security analysis needed`.
 
 ## Input Validation
 
@@ -103,7 +124,7 @@ No security analysis needed
 - Only flag risks tied to explicit evidence.
 - Do not assume sanitization, taint flow, framework behavior, or trust boundaries unless visible in the input.
 
-## Self-Check Simulation
+## Example Usage
 
 ### Vulnerable snippet
 

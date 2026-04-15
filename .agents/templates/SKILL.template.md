@@ -1,6 +1,8 @@
 ---
 name: example-skill
 description: One-sentence description of the owned BaseFAQ outcome.
+type: repository-skill
+scope: basefaq-repository
 category: backend
 priority: high
 triggers:

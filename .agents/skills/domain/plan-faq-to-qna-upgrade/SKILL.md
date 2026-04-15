@@ -1,6 +1,8 @@
 ---
 name: plan-faq-to-qna-upgrade
 description: Sequence the additive product and engineering work needed to move BaseFAQ from FAQ surfaces toward a question-and-answer platform.
+type: repository-skill
+scope: basefaq-repository
 category: domain
 priority: high
 triggers:

@@ -1,6 +1,8 @@
 ---
 name: build-portal-domain-data-flow
 description: Add or extend a Portal domain with BaseFAQ-standard API wiring, TanStack Query hooks, and route integration.
+type: repository-skill
+scope: basefaq-repository
 category: frontend
 priority: high
 triggers:

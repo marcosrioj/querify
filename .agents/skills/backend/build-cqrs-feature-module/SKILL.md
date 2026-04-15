@@ -1,6 +1,8 @@
 ---
 name: build-cqrs-feature-module
 description: Build or refactor a BaseFAQ backend capability into the repository-standard CQRS module shape.
+type: repository-skill
+scope: basefaq-repository
 category: backend
 priority: high
 triggers:

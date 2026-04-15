@@ -8,6 +8,7 @@ Use this file to map user prompts to the right BaseFAQ skill set.
 |---|---|
 | code review, review diff, review pr, analyze snippet, code quality, architecture review, performance review | `code-review-orchestrator.agent.md` |
 | security review, vulnerability scan, xss, sql injection, hardcoded secret, unsafe deserialization | `security-orchestrator.agent.md` |
+| privacy request, gdpr, lgpd, ccpa, pipl, consent withdrawal, dsar, delete my data | `privacy/privacy-orchestrator.agent.md` |
 
 ## Single-Skill Routing
 
@@ -65,6 +66,25 @@ When the prompt supplies code or review-oriented code input:
 3. Run all code-review specialists under `.subagents/code-review/`.
 4. Always run [`../security-orchestrator.agent.md`](../security-orchestrator.agent.md) when available.
 5. If the input is not code, return `No code review needed`.
+
+## Privacy Routing
+
+When the prompt asks to interpret or fulfill a privacy right, consent change, or jurisdiction-specific privacy rule:
+
+1. Route to [`../privacy/privacy-orchestrator.agent.md`](../privacy/privacy-orchestrator.agent.md).
+2. Use the shared privacy engine:
+   - [`../privacy/privacy-engine.subagent.md`](../privacy/privacy-engine.subagent.md)
+3. Use flat operational skills:
+   - [`../privacy/dsar.skill.md`](../privacy/dsar.skill.md)
+   - [`../privacy/consent.skill.md`](../privacy/consent.skill.md)
+   - [`../privacy/audit.skill.md`](../privacy/audit.skill.md)
+   - [`../privacy/data-classification.skill.md`](../privacy/data-classification.skill.md)
+4. Route to the correct jurisdiction specialist:
+   - [`../privacy/gdpr.subagent.md`](../privacy/gdpr.subagent.md)
+   - [`../privacy/lgpd.subagent.md`](../privacy/lgpd.subagent.md)
+   - [`../privacy/ccpa.subagent.md`](../privacy/ccpa.subagent.md)
+   - [`../privacy/pipl.subagent.md`](../privacy/pipl.subagent.md)
+5. If more than one law applies, keep the union of obligations and the strictest compatible deadline.
 
 ## Multi-Skill Routing
 
@@ -135,6 +155,22 @@ When the prompt supplies code or review-oriented code input:
   - `.subagents/code-review/best-practices-reviewer.subagent.md`
 - Mandatory integration:
   - [`../security-orchestrator.agent.md`](../security-orchestrator.agent.md)
+
+### Privacy Compliance
+
+- Primary orchestrator: [`../privacy/privacy-orchestrator.agent.md`](../privacy/privacy-orchestrator.agent.md)
+- Shared routing specialist:
+  - [`../privacy/privacy-engine.subagent.md`](../privacy/privacy-engine.subagent.md)
+- Required flat skills:
+  - [`../privacy/dsar.skill.md`](../privacy/dsar.skill.md)
+  - [`../privacy/consent.skill.md`](../privacy/consent.skill.md)
+  - [`../privacy/audit.skill.md`](../privacy/audit.skill.md)
+  - [`../privacy/data-classification.skill.md`](../privacy/data-classification.skill.md)
+- Jurisdiction specialists:
+  - [`../privacy/gdpr.subagent.md`](../privacy/gdpr.subagent.md)
+  - [`../privacy/lgpd.subagent.md`](../privacy/lgpd.subagent.md)
+  - [`../privacy/ccpa.subagent.md`](../privacy/ccpa.subagent.md)
+  - [`../privacy/pipl.subagent.md`](../privacy/pipl.subagent.md)
 
 ## Conflict Resolution
 

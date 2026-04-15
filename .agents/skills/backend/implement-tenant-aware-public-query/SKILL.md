@@ -1,6 +1,8 @@
 ---
 name: implement-tenant-aware-public-query
 description: Build safe public read paths that resolve tenant context from public credentials before touching tenant FAQ data.
+type: repository-skill
+scope: basefaq-repository
 category: backend
 priority: high
 triggers:

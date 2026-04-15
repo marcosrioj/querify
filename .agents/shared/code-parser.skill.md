@@ -19,6 +19,10 @@ consumers:
 
 # Code Parser Skill
 
+## Purpose
+
+Normalize code-like, diff-like, config-like, or mixed input into evidence blocks that downstream agents can analyze conservatively.
+
 ## When to Use
 
 - The input may contain source code, diffs, config, shell commands, templates, or mixed text with embedded code.
@@ -36,7 +40,7 @@ consumers:
 - config files such as `.env`, YAML, JSON, XML, `appsettings.json`
 - text with embedded code or configuration fragments
 
-## Output Contract
+## Outputs
 
 Return normalized evidence blocks such as:
 
@@ -54,7 +58,7 @@ Return normalized evidence blocks such as:
 }
 ```
 
-## Workflow
+## Behavior
 
 1. Detect whether the input is relevant to static code analysis, code review, or security analysis.
 2. Infer language or format only from explicit syntax, filenames, or well-known config structure.
@@ -67,3 +71,26 @@ Return normalized evidence blocks such as:
 - Prefer `mixed` over an overconfident language guess.
 - If the input is not code/config-like, say so explicitly.
 - Do not include business logic or BaseFAQ-specific assumptions.
+
+## Example Usage
+
+```yaml
+input:
+  snippet: "const sql = \"SELECT * FROM users WHERE email = '\" + req.body.email + \"'\";"
+```
+
+Expected result:
+
+```json
+{
+  "input_type": "code",
+  "languages": ["js"],
+  "regions": [
+    {
+      "kind": "sql-fragment",
+      "evidence": "const sql = \"SELECT * FROM users WHERE email = '\" + req.body.email + \"'\";",
+      "reason": "dynamic SQL string construction is visible"
+    }
+  ]
+}
+```

@@ -1,6 +1,8 @@
 ---
 name: prioritize-integration-rollout
 description: Plan BaseFAQ external delivery channels around canonical HTML, tenant-safe public contracts, and phased integration rollout.
+type: repository-skill
+scope: basefaq-repository
 category: distribution
 priority: high
 triggers:

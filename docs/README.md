@@ -18,6 +18,11 @@ This folder is the canonical knowledge base for the repository. The root `README
 - [`architecture/basefaq-ai-generation-matching-architecture.md`](architecture/basefaq-ai-generation-matching-architecture.md): current AI runtime, message flow, and implementation status.
 - [`architecture/basefaq-integrations-architecture.md`](architecture/basefaq-integrations-architecture.md): planned `/integrations` scope for external renderers, SDKs, CMS and commerce plugins, packaging, release discipline, and ecosystem expansion.
 
+### Agents
+
+- [`agents/README.md`](agents/README.md): taxonomy, naming standards, and operator guidance for the repository agent ecosystem.
+- [`agents/catalog.md`](agents/catalog.md): catalog of every orchestrator, subagent, skill, and execution worker, including when to use each one.
+
 ### Frontend
 
 - [`frontend/portal-app.md`](frontend/portal-app.md): portal application scope, setup, environment variables, API dependencies, and local validation.

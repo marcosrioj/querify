@@ -1,6 +1,8 @@
 ---
 name: model-question-thread-domain
 description: Model BaseFAQ's future knowledge system as question threads with reusable spaces, answer candidates, and lifecycle history.
+type: repository-skill
+scope: basefaq-repository
 category: domain
 priority: high
 triggers:

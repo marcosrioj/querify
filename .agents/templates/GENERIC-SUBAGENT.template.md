@@ -9,18 +9,26 @@ uses_skills:
 
 # Example Generic Subagent
 
-## Focus
+## Purpose
 
-- State exactly one narrow concern.
+- State the narrow reusable concern.
 
 ## Inputs
 
 - State the accepted input types.
 
-## Workflow
+## Outputs
+
+- State the returned decision or finding shape.
+
+## Behavior
 
 1. State how evidence is matched.
 2. State when to suppress a finding.
+
+## Example Usage
+
+- Give one short example of the specialist in use.
 
 ## Output Contract
 
@@ -32,11 +40,11 @@ uses_skills:
     "code": "snippet",
     "explanation": "string",
     "fix": "string"
-  }
+}
 ]
 ```
 
-## Conservative Rules
+## Guardrails
 
 - Prefer evidence-backed findings only.
 - Suppress speculative results.

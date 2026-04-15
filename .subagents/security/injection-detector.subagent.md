@@ -10,7 +10,7 @@ uses_skills:
 
 # Injection Detector
 
-## Focus
+## Purpose
 
 Detect only these vulnerability families:
 
@@ -25,13 +25,7 @@ Detect only these vulnerability families:
 - normalized parser evidence
 - raw code or config when parser output is unavailable
 
-## Workflow
-
-1. Look for explicit sensitive sinks such as shell execution, process launching, eval-like APIs, dynamic SQL string building, and filesystem path composition.
-2. Confirm that untrusted input or variable concatenation visibly reaches the sink.
-3. Report only evidence-backed findings.
-
-## Output Contract
+## Outputs
 
 Return an array of objects shaped exactly like:
 
@@ -43,6 +37,33 @@ Return an array of objects shaped exactly like:
     "code": "snippet",
     "explanation": "string",
     "fix": "string"
+  }
+]
+```
+
+## Behavior
+
+1. Look for explicit sensitive sinks such as shell execution, process launching, eval-like APIs, dynamic SQL string building, and filesystem path composition.
+2. Confirm that untrusted input or variable concatenation visibly reaches the sink.
+3. Report only evidence-backed findings.
+
+## Example Usage
+
+```yaml
+input:
+  snippet: "exec(\"sh -c '\" + cmd + \"'\")"
+```
+
+Expected finding shape:
+
+```json
+[
+  {
+    "type": "command injection",
+    "severity": "high",
+    "code": "exec(\"sh -c '\" + cmd + \"'\")",
+    "explanation": "User-controlled input reaches a shell execution sink through string concatenation.",
+    "fix": "Avoid shell invocation with untrusted input and use fixed arguments."
   }
 ]
 ```

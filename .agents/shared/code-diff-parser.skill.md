@@ -14,6 +14,10 @@ consumers:
 
 # Code Diff Parser Skill
 
+## Purpose
+
+Normalize diff-like input into file and hunk blocks so reviewers can reason about logical changes instead of raw patch text.
+
 ## When to Use
 
 - The input may be a patch, PR diff, unified diff, or mixed review content containing changed code blocks.
@@ -33,7 +37,7 @@ consumers:
 - hunk-based snippets using `@@`
 - mixed text containing patch blocks
 
-## Output Contract
+## Outputs
 
 Return normalized diff evidence such as:
 
@@ -58,7 +62,7 @@ Return normalized diff evidence such as:
 }
 ```
 
-## Workflow
+## Behavior
 
 1. Confirm the input is diff-like from patch headers or hunk markers.
 2. Split by file and hunk.
@@ -71,3 +75,36 @@ Return normalized diff evidence such as:
 - Keep removed and added lines distinct.
 - If the input is not a diff, say so explicitly rather than coercing it into diff output.
 - Do not include business logic.
+
+## Example Usage
+
+```yaml
+input:
+  diff: |
+    @@
+    -const a = 1;
+    +const a = userInput;
+```
+
+Expected result:
+
+```json
+{
+  "input_shape": "diff",
+  "files": [
+    {
+      "path": "unknown",
+      "language": "unknown",
+      "blocks": [
+        {
+          "header": "@@",
+          "added": ["const a = userInput;"],
+          "removed": ["const a = 1;"],
+          "context": [],
+          "normalized_snippet": "const a = userInput;"
+        }
+      ]
+    }
+  ]
+}
+```

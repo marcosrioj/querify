@@ -39,6 +39,15 @@ Use them only after:
 - `quality-review-worker.toml`
   - Perform bounded review and verification work after implementation is framed.
 
+## Naming Standards
+
+- worker files use `kebab-case-worker.toml`
+- `name` must match the filename stem exactly
+- `role` must be `execution-worker`
+- `model_reasoning_effort` defaults to `xhigh`
+
+The human-facing usage guide for workers and other agent artifacts lives in [`../../docs/agents/catalog.md`](../../docs/agents/catalog.md).
+
 ## Guardrails
 
 - Workers do not select skills.

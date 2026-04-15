@@ -1,6 +1,8 @@
 ---
 name: write-real-database-integration-tests
 description: Validate BaseFAQ behavior against real PostgreSQL-backed integration flows instead of mocked approximations.
+type: repository-skill
+scope: basefaq-repository
 category: data
 priority: high
 triggers:

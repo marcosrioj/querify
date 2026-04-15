@@ -14,9 +14,15 @@ Shared generic skills can also live in `.agents/shared/*.skill.md` when they are
 - non-business
 - reusable by multiple agents or specialists
 
-Domain skills are stored as `skills/<category>/<skill-name>/SKILL.md` and shared generic skills may live in `.agents/shared/*.skill.md`.
+Privacy operational skills may live in `.agents/privacy/*.skill.md` when they are:
 
-Each skill follows one normalized shape:
+- reusable across privacy orchestrators and privacy specialists
+- stateless or close to stateless
+- focused on one operational action such as consent, DSAR handling, audit, or classification
+
+Repository-owned skills are stored as `skills/<category>/<skill-name>/SKILL.md`. Flat operational skills may live in `.agents/shared/*.skill.md` or `.agents/privacy/*.skill.md`.
+
+Repository-owned skills follow this normalized shape:
 
 - metadata front matter
 - `When to Use`
@@ -25,6 +31,15 @@ Each skill follows one normalized shape:
 - `BaseFAQ Domain Alignment`
 - `Collaborates With`
 - `Done When`
+
+Flat operational skills under `.agents/shared/` and `.agents/privacy/` follow this normalized shape:
+
+- metadata front matter
+- `Purpose`
+- `Inputs`
+- `Outputs`
+- `Behavior`
+- `Example Usage`
 
 When a skill is created or changed, also review:
 
@@ -42,6 +57,17 @@ When a skill is created or changed, also review:
   - Detect long methods, deep nesting, and high cognitive complexity.
 - `pattern-matcher.skill.md`
   - Match conservative vulnerability patterns and return evidence-backed candidates.
+
+## Privacy Flat Skills
+
+- `privacy/dsar.skill.md`
+  - Execute data subject or consumer rights workflows after a law-specific specialist has framed the request.
+- `privacy/consent.skill.md`
+  - Manage consent capture, refresh, withdrawal, and proof.
+- `privacy/audit.skill.md`
+  - Record traceability and decision evidence for privacy workflows.
+- `privacy/data-classification.skill.md`
+  - Classify personal data, sensitivity, and downstream control needs.
 
 ## Categories
 

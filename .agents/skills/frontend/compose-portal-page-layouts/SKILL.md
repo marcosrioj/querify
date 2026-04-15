@@ -1,6 +1,8 @@
 ---
 name: compose-portal-page-layouts
 description: Structure Portal pages with BaseFAQ shared layout primitives so screens stay coherent across domains.
+type: repository-skill
+scope: basefaq-repository
 category: frontend
 priority: high
 triggers:

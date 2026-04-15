@@ -11,7 +11,7 @@ uses_skills:
 
 # Architecture Reviewer
 
-## Focus
+## Purpose
 
 Review only architecture concerns:
 
@@ -20,13 +20,13 @@ Review only architecture concerns:
 - misuse of patterns
 - visible anti-patterns
 
-## Workflow
+## Inputs
 
-1. Inspect class and function responsibilities in the provided scope.
-2. Flag mixed concerns only when the snippet visibly combines unrelated layers or responsibilities.
-3. Flag pattern misuse only when the expected pattern is visible from the code itself.
+- normalized parser output
+- normalized diff blocks
+- raw code snippets when parser output is unavailable
 
-## Output Contract
+## Outputs
 
 Return an array of objects shaped exactly like:
 
@@ -38,6 +38,33 @@ Return an array of objects shaped exactly like:
     "issue": "string",
     "code": "snippet",
     "suggestion": "string"
+  }
+]
+```
+
+## Behavior
+
+1. Inspect class and function responsibilities in the provided scope.
+2. Flag mixed concerns only when the snippet visibly combines unrelated layers or responsibilities.
+3. Flag pattern misuse only when the expected pattern is visible from the code itself.
+
+## Example Usage
+
+```yaml
+input:
+  snippet: "async controller(req, res) { const entity = await repo.get(); mailer.send(); return render(entity); }"
+```
+
+Expected finding shape:
+
+```json
+[
+  {
+    "category": "architecture",
+    "severity": "high",
+    "issue": "The same method mixes transport, persistence, messaging, and rendering concerns.",
+    "code": "async controller(req, res) { const entity = await repo.get(); mailer.send(); return render(entity); }",
+    "suggestion": "Split the workflow into narrower collaborators with one responsibility each."
   }
 ]
 ```

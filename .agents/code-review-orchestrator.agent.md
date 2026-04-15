@@ -18,7 +18,7 @@ integrates_with:
 
 # Code Review Orchestrator
 
-## Mission
+## Purpose
 
 Receive code input, run a complete modular review, integrate security findings when available, and return one production-grade report.
 
@@ -30,6 +30,28 @@ This orchestrator must run automatically unless explicitly disabled when the pro
 - fenced code blocks
 - a diff or PR-like patch
 - a code snippet intended for inspection
+
+## Inputs
+
+- full file bodies
+- unified diffs or patches
+- isolated code snippets
+- mixed code plus review context
+
+## Outputs
+
+- grouped issue list
+- quality score
+- main risks summary
+- suggested improvements
+
+## Behavior
+
+1. Classify the input shape and skip non-code content.
+2. Normalize diff-like input with `code-diff-parser.skill.md` when needed.
+3. Run all review specialists and integrate security findings when available.
+4. Merge and de-duplicate the issues, then compute the quality score.
+5. Return one review report or `No code review needed`.
 
 ## Input Validation
 
@@ -158,7 +180,7 @@ If the input is not code:
 No code review needed
 ```
 
-## Self-Test Simulation
+## Example Usage
 
 ### Review snippet
 

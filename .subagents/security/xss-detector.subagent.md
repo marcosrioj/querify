@@ -10,7 +10,7 @@ uses_skills:
 
 # XSS Detector
 
-## Focus
+## Purpose
 
 Detect only XSS-related risk:
 
@@ -24,13 +24,7 @@ Detect only XSS-related risk:
 - normalized parser evidence
 - raw code or templates when parser output is unavailable
 
-## Workflow
-
-1. Find HTML rendering sinks.
-2. Confirm that untrusted content is interpolated or concatenated into those sinks.
-3. Suppress findings when visible escaping or sanitization is present.
-
-## Output Contract
+## Outputs
 
 Return an array of objects shaped exactly like:
 
@@ -42,6 +36,33 @@ Return an array of objects shaped exactly like:
     "code": "snippet",
     "explanation": "string",
     "fix": "string"
+  }
+]
+```
+
+## Behavior
+
+1. Find HTML rendering sinks.
+2. Confirm that untrusted content is interpolated or concatenated into those sinks.
+3. Suppress findings when visible escaping or sanitization is present.
+
+## Example Usage
+
+```yaml
+input:
+  snippet: "element.innerHTML = \"<div>\" + req.query.name + \"</div>\";"
+```
+
+Expected finding shape:
+
+```json
+[
+  {
+    "type": "xss",
+    "severity": "high",
+    "code": "element.innerHTML = \"<div>\" + req.query.name + \"</div>\";",
+    "explanation": "Untrusted content reaches an unsafe DOM sink without visible protection.",
+    "fix": "Use a safe text sink or sanitize and encode the value before rendering."
   }
 ]
 ```

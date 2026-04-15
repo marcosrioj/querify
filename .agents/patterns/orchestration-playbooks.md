@@ -53,6 +53,25 @@ Use when the prompt concerns external integrations, embeds, or SDK rollout.
 2. `design-provenance-and-trust` if public content trust is part of the surface
 3. Optional worker: `distribution-worker`
 
+## Privacy Compliance Playbook
+
+Use when the prompt concerns privacy rights, consent lifecycle, privacy-law applicability, or multi-jurisdiction privacy handling.
+
+1. Run [`../privacy/privacy-orchestrator.agent.md`](../privacy/privacy-orchestrator.agent.md).
+2. Resolve applicability with:
+   - [`../privacy/privacy-engine.subagent.md`](../privacy/privacy-engine.subagent.md)
+3. Route to one or more jurisdiction specialists:
+   - [`../privacy/gdpr.subagent.md`](../privacy/gdpr.subagent.md)
+   - [`../privacy/lgpd.subagent.md`](../privacy/lgpd.subagent.md)
+   - [`../privacy/ccpa.subagent.md`](../privacy/ccpa.subagent.md)
+   - [`../privacy/pipl.subagent.md`](../privacy/pipl.subagent.md)
+4. Execute the minimum required operational skills:
+   - [`../privacy/dsar.skill.md`](../privacy/dsar.skill.md)
+   - [`../privacy/consent.skill.md`](../privacy/consent.skill.md)
+   - [`../privacy/data-classification.skill.md`](../privacy/data-classification.skill.md)
+   - [`../privacy/audit.skill.md`](../privacy/audit.skill.md)
+5. De-duplicate overlapping obligations and preserve the strictest compatible deadline.
+
 ## Security Analysis Playbook
 
 Use when the prompt is about vulnerability review or security-focused static analysis.

@@ -1,6 +1,8 @@
 ---
 name: design-confirmed-actions-and-stateful-feedback
 description: Wrap destructive or expensive Portal actions in confirmations and explicit loading, empty, and error states.
+type: repository-skill
+scope: basefaq-repository
 category: frontend
 priority: high
 triggers:

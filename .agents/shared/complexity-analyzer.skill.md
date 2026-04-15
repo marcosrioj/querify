@@ -14,6 +14,10 @@ consumers:
 
 # Complexity Analyzer Skill
 
+## Purpose
+
+Return conservative structural complexity signals from visible code so reviewers can reason about maintainability and likely hot spots.
+
 ## When to Use
 
 - A review task needs structural signals about code difficulty, maintainability, or likely error-proneness.
@@ -30,7 +34,7 @@ consumers:
 - normalized diff blocks
 - parser output from `code-parser.skill.md` or `code-diff-parser.skill.md`
 
-## Output Contract
+## Outputs
 
 Return structural observations such as:
 
@@ -52,7 +56,7 @@ Return structural observations such as:
 }
 ```
 
-## Workflow
+## Behavior
 
 1. Identify visible function, method, or block boundaries.
 2. Count structural signals only when they are explicit in the input.
@@ -63,3 +67,37 @@ Return structural observations such as:
 - Do not compute exact complexity from incomplete snippets.
 - Do not flag small functions simply for containing one conditional or one loop.
 - Use conservative thresholds and explain why a block appears complex.
+
+## Example Usage
+
+```yaml
+input:
+  snippet: |
+    function f(ids) {
+      for (const a of ids) {
+        for (const b of ids) {
+          for (const c of ids) {
+            work(a, b, c);
+          }
+        }
+      }
+    }
+```
+
+Expected result:
+
+```json
+{
+  "functions": [
+    {
+      "name": "f",
+      "signals": ["deep-nesting", "high-cognitive-complexity"],
+      "metrics": {
+        "line_count": 7,
+        "max_nesting_depth": 3,
+        "loop_depth": 3
+      }
+    }
+  ]
+}
+```

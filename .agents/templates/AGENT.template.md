@@ -11,31 +11,30 @@ uses_subagents:
 
 # Example Orchestrator
 
-## Mission
+## Purpose
 
 - State the owned orchestration responsibility.
+
+## Inputs
+
+- State the accepted input shape.
+
+## Outputs
+
+- State the returned decision or result package.
+
+## Behavior
+
+1. State the default orchestration sequence.
+2. State how skills and specialists are composed.
+
+## Example Usage
+
+- Give one short invocation or routing example.
 
 ## When to Use
 
 - State the prompts or inputs that should route here.
-
-## Input Validation
-
-1. State how the input is classified.
-2. State when to skip the workflow.
-
-## Execution Graph
-
-1. List the required skills and specialists.
-2. State whether any of them are mandatory.
-
-## Aggregation Rules
-
-- State deduplication and prioritization behavior.
-
-## Output Contract
-
-- State the final output shape.
 
 ## Guardrails
 

@@ -5,6 +5,7 @@ priority = "secondary"
 derived_from = ["legacy-agent-name"]
 model = "gpt-5.4"
 model_reasoning_effort = "xhigh"
+sandbox_mode = "workspace-write"
 recommended_skills = ["example-skill"]
 owned_paths = ["path/or/project/*"]
 developer_instructions = """

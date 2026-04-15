@@ -1,6 +1,8 @@
 ---
 name: publish-asynchronous-ai-request
 description: Start BaseFAQ generation or matching work asynchronously through versioned events, tenant-aware provider resolution, and correlation ids.
+type: repository-skill
+scope: basefaq-repository
 category: ai
 priority: high
 triggers:
