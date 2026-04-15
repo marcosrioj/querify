@@ -53,6 +53,21 @@ Use when the prompt concerns external integrations, embeds, or SDK rollout.
 2. `design-provenance-and-trust` if public content trust is part of the surface
 3. Optional worker: `distribution-worker`
 
+## Security Analysis Playbook
+
+Use when the prompt is about vulnerability review or security-focused static analysis.
+
+1. Run [`../security-orchestrator.agent.md`](../security-orchestrator.agent.md).
+2. Normalize the input with:
+   - [`../shared/code-parser.skill.md`](../shared/code-parser.skill.md)
+   - [`../shared/pattern-matcher.skill.md`](../shared/pattern-matcher.skill.md)
+3. Execute all specialists:
+   - `.subagents/security/injection-detector.subagent.md`
+   - `.subagents/security/xss-detector.subagent.md`
+   - `.subagents/security/deserialization-detector.subagent.md`
+   - `.subagents/security/secrets-detector.subagent.md`
+4. De-duplicate and validate the final report inside the orchestrator before returning results.
+
 ## Agent System Maintenance Playbook
 
 Use when the prompt explicitly asks to add or update:

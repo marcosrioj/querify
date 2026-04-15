@@ -8,7 +8,15 @@ The skill catalog is also self-maintained:
 - if a skill boundary, trigger, ownership path, or collaboration rule changes, update the skill in the same task
 - do not finish reusable work while leaving the skill catalog stale
 
-Each skill is stored as `skills/<category>/<skill-name>/SKILL.md` and follows one normalized shape:
+Shared generic skills can also live in `.agents/shared/*.skill.md` when they are:
+
+- cross-domain
+- non-business
+- reusable by multiple agents or specialists
+
+Domain skills are stored as `skills/<category>/<skill-name>/SKILL.md` and shared generic skills may live in `.agents/shared/*.skill.md`.
+
+Each skill follows one normalized shape:
 
 - metadata front matter
 - `When to Use`
@@ -23,6 +31,13 @@ When a skill is created or changed, also review:
 - [`../AGENTS.md`](../AGENTS.md)
 - [`../patterns/intent-routing.md`](../patterns/intent-routing.md)
 - [`../patterns/orchestration-playbooks.md`](../patterns/orchestration-playbooks.md)
+
+## Shared Generic Skills
+
+- `code-parser.skill.md`
+  - Classify input as code, config, or text and normalize language-aware evidence.
+- `pattern-matcher.skill.md`
+  - Match conservative vulnerability patterns and return evidence-backed candidates.
 
 ## Categories
 

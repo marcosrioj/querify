@@ -2,6 +2,12 @@
 
 Use this file to map user prompts to the right BaseFAQ skill set.
 
+## Primary Agent Routing
+
+| Prompt Shape | Primary Agent |
+|---|---|
+| security review, vulnerability scan, xss, sql injection, hardcoded secret, unsafe deserialization | `security-orchestrator.agent.md` |
+
 ## Single-Skill Routing
 
 | Prompt Shape | Primary Skill |
@@ -34,6 +40,17 @@ Then:
 1. Execute the relevant main domain skill first when the change is tied to a repository boundary.
 2. Always run [`agent-system-maintenance.md`](agent-system-maintenance.md) before finishing.
 3. Update the exact `.agents/` files that now hold the reusable knowledge.
+
+## Security Routing
+
+When the prompt asks to analyze code, config, or text for vulnerabilities:
+
+1. Route to [`security-orchestrator.agent.md`](../security-orchestrator.agent.md).
+2. Use shared skills:
+   - [`../shared/code-parser.skill.md`](../shared/code-parser.skill.md)
+   - [`../shared/pattern-matcher.skill.md`](../shared/pattern-matcher.skill.md)
+3. Run all security specialists under `.subagents/security/`.
+4. If the input is not relevant code/config/text, return `No security analysis needed`.
 
 ## Multi-Skill Routing
 
@@ -77,6 +94,18 @@ Then:
 - Primary: use the domain skill that exposed the reusable change
 - Mandatory follow-up:
   - [`agent-system-maintenance.md`](agent-system-maintenance.md)
+
+### Security Analysis
+
+- Primary orchestrator: [`../security-orchestrator.agent.md`](../security-orchestrator.agent.md)
+- Shared skills:
+  - [`../shared/code-parser.skill.md`](../shared/code-parser.skill.md)
+  - [`../shared/pattern-matcher.skill.md`](../shared/pattern-matcher.skill.md)
+- Required specialists:
+  - `.subagents/security/injection-detector.subagent.md`
+  - `.subagents/security/xss-detector.subagent.md`
+  - `.subagents/security/deserialization-detector.subagent.md`
+  - `.subagents/security/secrets-detector.subagent.md`
 
 ## Conflict Resolution
 

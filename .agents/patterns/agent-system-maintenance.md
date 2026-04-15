@@ -60,6 +60,7 @@ You may skip `.agents/` updates only when all of these are true:
 ### Update `shared/*` when
 
 - BaseFAQ context, standards, or repository-level facts changed
+- shared generic skills such as `*.skill.md` changed
 
 ### Update `glossary/basefaq-glossary.md` when
 
@@ -80,6 +81,12 @@ Also update `skills/README.md` when the skill catalog changes.
 - a worker became obsolete
 
 Also update `subagents/README.md` when the worker catalog changes.
+
+### Update root `.subagents/**/*` when
+
+- a generic reusable specialist is added or changed
+- a low-priority detector or analyzer boundary changes
+- a generic specialist becomes obsolete
 
 ### Update `templates/*` when
 

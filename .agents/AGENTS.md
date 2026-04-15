@@ -36,15 +36,18 @@ Read these support files before making broad changes:
 Use this precedence order:
 
 1. `AGENTS.md`
-2. the selected skill or skills under `skills/`
-3. shared context, patterns, glossary, and templates under `.agents/`
-4. subagents under `subagents/`
+2. primary orchestrators under `.agents/*.agent.md`
+3. the selected skill or skills under `.agents/skills/` and `.agents/shared/*.skill.md`
+4. shared context, patterns, glossary, and templates under `.agents/`
+5. BaseFAQ internal workers under `.agents/subagents/*.toml`
+6. generic reusable specialists under `.subagents/**/*.subagent.md`
 
 Hard rule: skills outrank subagents.
 
 - Skills decide what kind of work BaseFAQ needs.
 - Subagents execute bounded work that has already been framed by one or more skills.
 - Subagents must not invent strategy, rename the domain, or override BaseFAQ standards.
+- Agents in `.agents/` orchestrate; specialists in `.subagents/` detect or execute narrow reusable concerns.
 
 When `.agents/` defines a configurable reasoning depth for workers or future agent artifacts, the default must be `xhigh`.
 
@@ -75,9 +78,11 @@ Use this destination map:
 - multi-skill execution flow -> `patterns/orchestration-playbooks.md`
 - system behavior and precedence -> `AGENTS.md`
 - reusable BaseFAQ context or standards -> `shared/*`
+- generic reusable skills with no business ownership -> `shared/*.skill.md`
 - vocabulary or domain language -> `glossary/basefaq-glossary.md`
 - reusable specialist capability -> `skills/<category>/<skill>/SKILL.md` and `skills/README.md`
-- execution worker definition -> `subagents/*.toml` and `subagents/README.md`
+- BaseFAQ internal worker definition -> `subagents/*.toml` and `subagents/README.md`
+- generic reusable specialist definition -> `../.subagents/**/*.subagent.md`
 - scaffolding rules -> `templates/*`
 
 ## How To Think
@@ -141,6 +146,11 @@ Use intent-first routing, not title matching alone.
   - Primary: `apply-seed-and-migrations-safely` or `bootstrap-local-platform-stack`
   - Supporting: `write-real-database-integration-tests` when schema changes are involved
 
+- "security review", "scan vulnerabilities", "xss", "sql injection", "hardcoded secrets", "unsafe deserialization"
+  - Primary orchestrator: `security-orchestrator.agent.md`
+  - Shared skills: `shared/code-parser.skill.md`, `shared/pattern-matcher.skill.md`
+  - Required specialists: `.subagents/security/*.subagent.md`
+
 When more than one skill applies, prefer one primary skill plus only the minimum supporting set needed to finish the task end-to-end.
 
 ## How To Use Subagents
@@ -166,6 +176,7 @@ Do not use a subagent when:
 - Pass the selected skill names into the worker prompt.
 - Require the worker to preserve BaseFAQ terminology and standards.
 - Review every worker output against the selected skills before using it.
+- For security analysis, run all required specialists under `.subagents/security/` and aggregate them in `security-orchestrator.agent.md`.
 
 ## Execution Flow
 
