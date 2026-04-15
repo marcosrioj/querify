@@ -2,6 +2,12 @@
 
 Subagents are execution workers. They are intentionally lower priority than skills.
 
+The worker catalog is also self-maintained:
+
+- if a future task reveals a new recurring execution boundary, add or update the corresponding worker
+- if a worker becomes obsolete or its ownership changes, update this catalog in the same task
+- worker changes should also trigger review of routing and orchestration files through [`../patterns/agent-system-maintenance.md`](../patterns/agent-system-maintenance.md)
+
 Use them only after:
 
 1. the parent agent has chosen the relevant skill or skills

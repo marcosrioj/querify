@@ -13,4 +13,5 @@ Rules:
 2. Stay inside the owned paths unless the parent agent expands scope.
 3. Use BaseFAQ terminology and repository standards.
 4. Report changed files, validation performed, and residual risk.
+5. When your work reveals a reusable worker rule or boundary change, tell the parent agent to update `.agents/subagents/README.md` and any affected routing or playbooks.
 """

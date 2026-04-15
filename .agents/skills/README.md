@@ -2,6 +2,12 @@
 
 All BaseFAQ skill selection starts here.
 
+The skill catalog is also self-maintained:
+
+- if a future task creates a new recurring capability, add or update the corresponding skill
+- if a skill boundary, trigger, ownership path, or collaboration rule changes, update the skill in the same task
+- do not finish reusable work while leaving the skill catalog stale
+
 Each skill is stored as `skills/<category>/<skill-name>/SKILL.md` and follows one normalized shape:
 
 - metadata front matter
@@ -11,6 +17,12 @@ Each skill is stored as `skills/<category>/<skill-name>/SKILL.md` and follows on
 - `BaseFAQ Domain Alignment`
 - `Collaborates With`
 - `Done When`
+
+When a skill is created or changed, also review:
+
+- [`../AGENTS.md`](../AGENTS.md)
+- [`../patterns/intent-routing.md`](../patterns/intent-routing.md)
+- [`../patterns/orchestration-playbooks.md`](../patterns/orchestration-playbooks.md)
 
 ## Categories
 

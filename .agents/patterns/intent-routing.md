@@ -18,6 +18,23 @@ Use this file to map user prompts to the right BaseFAQ skill set.
 | local platform stack, Docker, observability bootstrapping | `bootstrap-local-platform-stack` |
 | integration rollout, embed/sdk/plugin strategy | `prioritize-integration-rollout` |
 
+## Agent-System Routing
+
+When the prompt asks to create or update:
+
+- a pattern
+- shared logic/rules
+- an agent
+- a skill
+- a subagent
+- reusable orchestration behavior
+
+Then:
+
+1. Execute the relevant main domain skill first when the change is tied to a repository boundary.
+2. Always run [`agent-system-maintenance.md`](agent-system-maintenance.md) before finishing.
+3. Update the exact `.agents/` files that now hold the reusable knowledge.
+
 ## Multi-Skill Routing
 
 ### Create API
@@ -55,6 +72,12 @@ Use this file to map user prompts to the right BaseFAQ skill set.
   - `process-control-plane-work-items` when durable worker state is involved
   - `write-real-database-integration-tests`
 
+### Evolve Agent System
+
+- Primary: use the domain skill that exposed the reusable change
+- Mandatory follow-up:
+  - [`agent-system-maintenance.md`](agent-system-maintenance.md)
+
 ## Conflict Resolution
 
 When multiple skills seem plausible:
@@ -63,3 +86,4 @@ When multiple skills seem plausible:
 2. prefer BaseFAQ domain semantics over generic technology terms
 3. add supporting skills only for cross-cutting requirements
 4. do not use a subagent to break the tie
+5. if reusable agent knowledge changed, update `.agents/` before closing the task

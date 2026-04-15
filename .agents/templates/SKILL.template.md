@@ -38,3 +38,8 @@ collaborates_with:
 ## Done When
 
 - State the observable outcomes that prove the skill was applied correctly.
+
+## Agent-System Update Notes
+
+- State which `.agents/` files must also be reviewed when this skill is created or updated.
+- At minimum, consider `skills/README.md`, `patterns/intent-routing.md`, and `patterns/orchestration-playbooks.md`.

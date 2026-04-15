@@ -2,6 +2,12 @@
 
 These are the standard multi-skill combinations for common BaseFAQ tasks.
 
+## Mandatory Post-Task Pass
+
+After any playbook completes, run [`agent-system-maintenance.md`](agent-system-maintenance.md).
+
+If the task created reusable routing, logic, standards, skill boundaries, or worker boundaries, update `.agents/` before closing the work.
+
 ## Backend Feature Playbook
 
 Use when the prompt is effectively "create API" or "add a backend capability."
@@ -46,3 +52,26 @@ Use when the prompt concerns external integrations, embeds, or SDK rollout.
 1. `prioritize-integration-rollout`
 2. `design-provenance-and-trust` if public content trust is part of the surface
 3. Optional worker: `distribution-worker`
+
+## Agent System Maintenance Playbook
+
+Use when the prompt explicitly asks to add or update:
+
+- pattern
+- logic
+- agent behavior
+- skill
+- subagent
+- reusable orchestration rules
+
+1. Apply the main domain playbook first if the change is tied to a repository feature.
+2. Run [`agent-system-maintenance.md`](agent-system-maintenance.md).
+3. Update the minimum correct files in:
+   - `AGENTS.md`
+   - `patterns/`
+   - `shared/`
+   - `glossary/`
+   - `skills/`
+   - `subagents/`
+   - `templates/`
+4. Prefer updating the existing catalog before creating new artifacts.

@@ -10,6 +10,7 @@ This system exists to make BaseFAQ work predictable:
 - route work to the smallest correct BaseFAQ skill set
 - use subagents only as execution workers
 - preserve BaseFAQ architecture, domain language, and delivery standards
+- update `.agents/` itself whenever a solved task creates reusable agent knowledge
 
 ## Domain Context (BaseFAQ)
 
@@ -28,6 +29,7 @@ Read these support files before making broad changes:
 1. [`shared/basefaq-domain-context.md`](shared/basefaq-domain-context.md)
 2. [`shared/basefaq-engineering-standards.md`](shared/basefaq-engineering-standards.md)
 3. [`patterns/intent-routing.md`](patterns/intent-routing.md)
+4. [`patterns/agent-system-maintenance.md`](patterns/agent-system-maintenance.md)
 
 ## Source Of Truth And Precedence
 
@@ -43,6 +45,38 @@ Hard rule: skills outrank subagents.
 - Skills decide what kind of work BaseFAQ needs.
 - Subagents execute bounded work that has already been framed by one or more skills.
 - Subagents must not invent strategy, rename the domain, or override BaseFAQ standards.
+
+## Self-Evolution Rule
+
+After every non-trivial prompt, run a mandatory maintenance check on `.agents/`.
+
+Automatic means default behavior:
+
+- do not wait for the user to explicitly ask for an `.agents` update
+- if the task changes reusable BaseFAQ knowledge, update `.agents/` in the same execution flow
+- only skip the update when the task is truly one-off and produces no reusable routing, standards, or execution knowledge
+
+Update `.agents/` when any of these becomes true:
+
+- a new repeated prompt shape appears
+- an existing routing rule becomes incomplete or wrong
+- a repository standard, logic rule, or domain convention changes
+- a new reusable skill is needed
+- an existing skill boundary changes
+- a new worker/subagent boundary is needed
+- an existing worker becomes obsolete or misaligned
+- a new glossary term, shared context fact, or orchestration pattern becomes reusable
+
+Use this destination map:
+
+- routing heuristics -> `patterns/intent-routing.md`
+- multi-skill execution flow -> `patterns/orchestration-playbooks.md`
+- system behavior and precedence -> `AGENTS.md`
+- reusable BaseFAQ context or standards -> `shared/*`
+- vocabulary or domain language -> `glossary/basefaq-glossary.md`
+- reusable specialist capability -> `skills/<category>/<skill>/SKILL.md` and `skills/README.md`
+- execution worker definition -> `subagents/*.toml` and `subagents/README.md`
+- scaffolding rules -> `templates/*`
 
 ## How To Think
 
@@ -65,6 +99,7 @@ For every prompt, reason in this order:
    - Use a subagent only when there is a clear bounded execution unit.
    - Do not delegate the immediate strategy decision.
 6. Validate against BaseFAQ standards before executing.
+7. Before finishing, decide whether the task changed reusable agent knowledge and update `.agents/` if it did.
 
 ## How To Select Skills
 
@@ -145,7 +180,8 @@ Do not use a subagent when:
    - code review for architecture-only changes
    - integration tests for backend and data changes
    - build or lint checks for frontend and docs changes
-9. Report the selected skills, changed files, validation performed, and residual risk.
+9. Run [`patterns/agent-system-maintenance.md`](patterns/agent-system-maintenance.md) and update `.agents/` when the task produced reusable knowledge.
+10. Report the selected skills, changed files, validation performed, and residual risk.
 
 ## Output Standards
 
