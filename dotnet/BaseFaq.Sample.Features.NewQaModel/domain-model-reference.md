@@ -15,13 +15,36 @@ This reference covers:
 
 It does not repeat every line of code. The source files remain the implementation authority.
 
+## Production persistence guidance
+
+This sample uses its own `DomainEntity` so the Q&A model can be explained in isolation.
+
+That is not the recommended migration shape for the repository.
+
+When the model moves into the main solution:
+
+- keep `BaseEntity` as the identifier root
+- keep `AuditableEntity` for audit and soft-delete integration
+- keep `IMustHaveTenant` so the existing `BaseDbContext` tenant filters and indexes still apply
+- treat `DomainEntity` as the conceptual responsibility to preserve, not as a mandatory replacement of those shared abstractions
+
+Recommended split of responsibilities:
+
+| Concern | Keep from current solution | Add or preserve for the Q&A migration |
+| --- | --- | --- |
+| Tenant isolation | `IMustHaveTenant`, `BaseDbContext` tenant query filters, tenant indexes | Reject cross-tenant relationships on the write side before `SaveChanges` |
+| Audit and soft delete | `AuditableEntity`, `BaseDbContext` audit stamping, soft-delete filters | Keep `ThreadActivity` append-only by workflow policy and persistence rules |
+| Public exposure | Existing auth and endpoint boundaries | Add fail-closed publish, validate, accept, and cite rules for Q&A lifecycle transitions |
+| Provenance | Existing persistence and DTO validation patterns | Add explicit source visibility, citation, and excerpt controls |
+| Flexible metadata | Existing command/DTO validation approach | Validate JSON, URLs, and other free-form payloads before persistence |
+
 ## Type inventory
 
 ### Classes
 
 | Type | File | Role |
 | --- | --- | --- |
-| `DomainEntity` | [Domain/DomainEntity.cs](./Domain/DomainEntity.cs) | Shared audit and tenancy base class. |
+| `DomainEntity` | [Domain/DomainEntity.cs](./Domain/DomainEntity.cs) | Conceptual shared audit and tenancy base class for the sample. In production, these responsibilities should usually map onto `BaseEntity` + `AuditableEntity` + `IMustHaveTenant`. |
 | `QuestionSpace` | [Domain/QuestionSpace.cs](./Domain/QuestionSpace.cs) | Top-level container that groups questions and defines governance defaults. |
 | `Question` | [Domain/Question.cs](./Domain/Question.cs) | Main thread aggregate for a single user-facing question. |
 | `Answer` | [Domain/Answer.cs](./Domain/Answer.cs) | Candidate or canonical response attached to a question. |
@@ -101,6 +124,7 @@ Key fields:
 Design note:
 
 - this class is intentionally small because lifecycle detail for question threads lives in `ThreadActivity`, not in the base entity
+- during migration, this responsibility should usually be represented by the repository-standard `BaseEntity`, `AuditableEntity`, and `IMustHaveTenant` instead of a second parallel base type
 
 ### `QuestionSpace`
 
@@ -122,7 +146,7 @@ Core fields:
 | `Summary` | Description of what belongs in the space. |
 | `DefaultLanguage` | Default locale used for curation and rendering. |
 | `Kind` | Operating model of the space. |
-| `Visibility` | Audience exposure of the space. |
+| `Visibility` | Audience exposure of the space. The implementation now defaults this to `Internal`. |
 | `ModerationPolicy` | Review model for new submissions. |
 | `SearchMarkupMode` | Search-facing rendering posture. |
 | `ProductScope`, `JourneyScope` | Optional business boundaries. |
@@ -139,6 +163,7 @@ Relationships:
 Design note:
 
 - `QuestionSpace` is the primary grouping unit of the model; `Topic` classifies, but does not replace it
+- production implementation should keep space exposure fail-closed even if the persistence entity continues to use repository-standard base types and public setters
 
 ### `Question`
 
@@ -161,7 +186,7 @@ Core fields:
 | `ContextNote` | Extra intake or moderator context. |
 | `Kind` | How the question entered the model. |
 | `Status` | Current lifecycle state of the thread. |
-| `Visibility` | Audience exposure of the thread. |
+| `Visibility` | Audience exposure of the thread. The implementation defaults this to `Internal` and rejects public exposure for pre-review states. |
 | `OriginChannel` | Channel that created the thread. |
 | `Language` | Source language captured at intake. |
 | `ProductScope`, `JourneyScope`, `AudienceScope` | Business segmentation. |
@@ -194,6 +219,7 @@ Important timestamps:
 Design note:
 
 - `Question` is the main operational aggregate of the model
+- accepted answers, source links, duplicate links, and activity entries must be tenant-checked before attachment, even though read-side tenant filtering already exists in `BaseDbContext`
 
 ### `Answer`
 
@@ -214,7 +240,7 @@ Core fields:
 | `Body` | Full response body. |
 | `Kind` | Origin model of the answer. |
 | `Status` | Current lifecycle state of the answer. |
-| `Visibility` | Audience exposure of the answer. |
+| `Visibility` | Audience exposure of the answer. The implementation defaults this to `Internal` and only allows public exposure from published or validated states. |
 | `Language` | Language of the answer variant. |
 | `ContextKey` | Variant selector for country, plan, version, or integration. |
 | `ApplicabilityRulesJson` | Serialized matching rules for contextual fit. |
@@ -225,8 +251,8 @@ Core fields:
 | `Rank` | Ordering signal among answer candidates. |
 | `RevisionNumber` | Current revision pointer of the answer. |
 | `IsAccepted` | Whether the answer is the chosen resolution of the thread. |
-| `IsCanonical` | Whether the answer is the preferred answer variant. |
-| `IsOfficial` | Whether the answer is owned by the official operation. |
+| `IsCanonical` | Whether the answer is the preferred answer variant. It now starts false until explicitly promoted. |
+| `IsOfficial` | Whether the answer is owned by the official operation. It now starts false until explicitly promoted. |
 
 Relationships:
 
@@ -246,6 +272,7 @@ Important timestamps:
 Design note:
 
 - the model allows many answers per question because a serious Q&A platform cannot assume one static response forever
+- public exposure must stay fail-closed for answers, especially AI drafts and unreviewed candidates, regardless of whether the final EF entity keeps public setters
 
 ### `KnowledgeSource`
 
@@ -271,6 +298,9 @@ Core fields:
 | `MediaType` | MIME-like media classification if needed. |
 | `Checksum` | Stable content fingerprint when available. |
 | `MetadataJson` | Extensibility payload for source-specific metadata. |
+| `Visibility` | Source-level exposure boundary used to prevent internal artifacts from leaking into public trust surfaces. |
+| `AllowsPublicCitation` | Whether the source may be cited directly on public surfaces. |
+| `AllowsPublicExcerpt` | Whether excerpt text may be shown publicly. |
 | `IsAuthoritative` | Strong trust signal for canonical sources. |
 | `CapturedAtUtc` | When the source was observed or imported. |
 | `LastVerifiedAtUtc` | When the source was last revalidated. |
@@ -284,6 +314,8 @@ Relationships:
 Design note:
 
 - `KnowledgeSource` stores the artifact itself; link entities store why the artifact matters in a specific context
+- public citation now requires explicit source verification and explicit public citation or excerpt permission
+- in production, that policy can live in handlers, validators, or domain services; it does not require abandoning the current EF base abstractions
 
 ### `Topic`
 
@@ -339,6 +371,7 @@ Core fields:
 Design note:
 
 - a source may be globally trustworthy, but its importance to a specific question is modeled here
+- public question exposure now re-checks whether excerpts from the linked source are actually safe to show
 
 ### `AnswerSourceLink`
 
@@ -367,6 +400,7 @@ Core fields:
 Design note:
 
 - separating `QuestionSourceLink` from `AnswerSourceLink` keeps origin and evidence concerns distinct
+- public citations and excerpts are now blocked unless the reusable source explicitly allows them
 
 ### `ThreadActivity`
 
@@ -396,6 +430,7 @@ Core fields:
 Design note:
 
 - this is the main simplification mechanism of the sample: one journal instead of many separate revision and moderation entities
+- the production migration should preserve append-only behavior even if the persistence entity still inherits from `AuditableEntity`; operationally, updates and deletes should not be part of the normal workflow for this journal
 
 ## Enum reference
 

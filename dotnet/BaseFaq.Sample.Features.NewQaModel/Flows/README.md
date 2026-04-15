@@ -6,6 +6,8 @@ It is not a list of every theoretical property permutation. It is the set of cor
 
 For a full reference of every class and every enum in the sample model, use [../domain-model-reference.md](../domain-model-reference.md).
 
+When this model is migrated into the main solution, the preferred production implementation is still to keep `BaseEntity`, `AuditableEntity`, `IMustHaveTenant`, and `BaseDbContext`, then apply the Q&A-specific safety rules on top of that existing infrastructure.
+
 ## Structural map
 
 ```mermaid

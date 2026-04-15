@@ -19,7 +19,7 @@ flowchart TD
     Support --> Normalize
     Community --> Normalize
     Ops --> Normalize
-    Normalize[Create KnowledgeSource] --> Verify[Set authority and verification fields]
+    Normalize[Create KnowledgeSource] --> Verify[Set authority, verification, and exposure fields]
     Verify --> QAttach[Attach to Question through QuestionSourceLink]
     Verify --> AAttach[Attach to Answer through AnswerSourceLink]
     QAttach --> QRole{SourceRole}
@@ -43,7 +43,7 @@ flowchart TD
 
 | Entity | Role in the flow | Important members |
 | --- | --- | --- |
-| [KnowledgeSource](../Domain/KnowledgeSource.cs) | Durable record of the source artifact. | `Kind`, `Locator`, `SystemName`, `ExternalId`, `Language`, `MediaType`, `MetadataJson`, `IsAuthoritative`, `CapturedAtUtc`, `LastVerifiedAtUtc` |
+| [KnowledgeSource](../Domain/KnowledgeSource.cs) | Durable record of the source artifact. | `Kind`, `Locator`, `SystemName`, `ExternalId`, `Language`, `MediaType`, `MetadataJson`, `Visibility`, `AllowsPublicCitation`, `AllowsPublicExcerpt`, `IsAuthoritative`, `CapturedAtUtc`, `LastVerifiedAtUtc` |
 | [QuestionSourceLink](../Domain/QuestionSourceLink.cs) | Explains why a source is attached to the thread. | `Role`, `Excerpt`, `Scope`, `ConfidenceScore`, `IsPrimary` |
 | [AnswerSourceLink](../Domain/AnswerSourceLink.cs) | Explains why a source is attached to the answer. | `Role`, `Excerpt`, `Scope`, `ConfidenceScore`, `IsPrimary` |
 | [Question](../Domain/Question.cs) | Receives confidence and provenance context. | `ConfidenceScore`, `OriginUrl`, `OriginReference`, `ThreadSummary` |
@@ -62,4 +62,5 @@ flowchart TD
 
 - Provenance is split in two layers on purpose: `KnowledgeSource` stores the artifact, while `QuestionSourceLink` and `AnswerSourceLink` store why that artifact matters to a specific thread or answer.
 - `IsAuthoritative` and `LastVerifiedAtUtc` live on `KnowledgeSource` because trust in the artifact should be reusable across multiple threads.
+- Public citations and excerpts now require explicit source-level exposure settings, not just a link role.
 - `ConfidenceScore` lives on `Question`, `Answer`, and the link entities, which allows trust to be both global and context-specific.

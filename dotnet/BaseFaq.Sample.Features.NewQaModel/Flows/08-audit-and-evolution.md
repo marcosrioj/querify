@@ -42,4 +42,5 @@ flowchart TD
 
 - The sample deliberately uses `ThreadActivity` instead of separate revision, moderation-history, and feedback-history entities.
 - `RevisionNumber` on `Question` and `Answer` is the current pointer. The historical detail belongs in `ThreadActivity.SnapshotJson`.
+- The implementation now enforces append-only behavior by constructing `ThreadActivity` through factories, validating JSON payloads, and rejecting archival of journal entries.
 - `DomainEntity` provides cross-cutting audit fields, while `ThreadActivity` provides event-level narrative.

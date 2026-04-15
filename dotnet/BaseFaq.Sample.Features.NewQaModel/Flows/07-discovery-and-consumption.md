@@ -48,4 +48,5 @@ flowchart TD
 
 - Discovery starts at `QuestionSpace`, not at `Question`. The space defines whether the renderer should expose lists, canonical pages, or both.
 - `AcceptedAnswerId` is the fastest path for consumption. When it is empty, consumers must apply fallback selection logic over `Answer.Status`, `IsCanonical`, and `Visibility`.
+- The implementation now defaults spaces, questions, and answers to `Internal`, so public discovery only happens after an explicit promotion step.
 - `Topic` supports discovery and navigation, but it does not replace the primary grouping role of `QuestionSpace`.

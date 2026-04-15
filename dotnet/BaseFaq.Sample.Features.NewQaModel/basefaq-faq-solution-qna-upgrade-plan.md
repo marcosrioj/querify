@@ -18,12 +18,15 @@ Targets:
 
 Required updates:
 
+- keep `BaseEntity`, `AuditableEntity`, and `IMustHaveTenant` as the shared persistence contract instead of replacing them with a second base hierarchy
+- map the responsibility expressed by `DomainEntity` onto those existing abstractions and the current `BaseDbContext` pipeline
 - map legacy collection entities to the new concept of spaces
 - map legacy item entities to question threads
 - support accepted answer semantics instead of first-answer semantics
 - support answer variants by context
 - introduce explicit provenance at question and answer level
 - introduce append-only workflow history
+- reject cross-tenant attachments on the write side instead of relying only on query filters
 - keep migrations additive to avoid rewriting every tenant database at once
 
 ### 2. Shared contracts
@@ -52,6 +55,7 @@ Required updates:
 - add question review, answer review, accept answer, validate answer, mark duplicate, and escalate flows
 - update projections and ranking to prefer accepted or validated answers
 - write thread activity on every relevant workflow transition
+- validate cross-tenant relationships before persistence when commands attach questions, answers, sources, or activity records
 - support directional voting if community ranking is required
 
 ### 4. Public business layer and APIs
@@ -68,6 +72,7 @@ Required updates:
 - expose source-backed trust data where appropriate
 - allow incoming question submission through public surfaces with moderation gates
 - filter by visibility and lifecycle state
+- keep public source citation and excerpt behavior fail-closed unless the backing source explicitly allows it
 - keep backward compatibility for consumers that still expect legacy FAQ payloads
 
 ### 5. Portal frontend
@@ -132,6 +137,7 @@ Required updates:
 - cluster duplicate questions
 - propose accepted-answer candidates, not only generated text
 - route AI output through moderation before it becomes official
+- prevent AI draft output from becoming public or official until the expected review and validation path has completed
 
 ### 9. Analytics and reporting
 
@@ -177,11 +183,16 @@ Targets:
 
 Required updates:
 
+- keep tenant query filters and tenant indexes from `BaseDbContext`
+- define write-side guards for cross-tenant relationships instead of depending only on read-side filters
 - define who can publish official answers
 - define who can accept answers
 - define who can validate answers
 - define how AI drafts are labeled and approved
+- define which source kinds may be cited publicly, which may be excerpted publicly, and which remain internal-only by default
+- define validation rules for flexible metadata such as source metadata JSON, snapshots, and external locators
 - define retention policy for thread activity and evidence history
+- define append-only handling for thread activity so normal workflows never edit or soft-delete journal entries
 
 ### 12. Tooling
 
@@ -213,6 +224,9 @@ Required updates:
 - cover visibility filtering
 - cover source-link persistence
 - cover public question-page behavior
+- cover cross-tenant attachment rejection on writes
+- cover public citation and excerpt restrictions for internal or unverified sources
+- cover append-only handling of thread activity
 - cover compatibility with old FAQ-oriented flows during transition
 
 ## Recommended order
@@ -230,5 +244,6 @@ Required updates:
 The cleanest next move is:
 
 1. align shared DTOs with the new question-and-answer language
-2. change public projections to use accepted-answer semantics
-3. add moderation and provenance fields to portal workflows
+2. keep the existing persistence base abstractions and define the Q&A-specific write-side security rules around them
+3. change public projections to use accepted-answer semantics
+4. add moderation and provenance fields to portal workflows
