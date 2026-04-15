@@ -98,6 +98,112 @@ Repository-owned skills keep the existing BaseFAQ implementation-guide shape:
 4. Use workers only when the parent agent has already chosen strategy and the owned-path boundary is clear.
 5. Update the catalog and the relevant `.agents/` indexes when a reusable capability, naming rule, or boundary changes.
 
+## How Users Ask For Work
+
+Users normally ask in natural language in the chat. They do not need to know the agent names in advance.
+
+The usual flow is:
+
+1. The user describes the goal.
+2. The routing rules decide which orchestrator or skill should own the task.
+3. That orchestrator calls the required subagents and skills.
+4. If the work is large, the parent agent may delegate execution to a worker.
+
+### What A Good Request Looks Like
+
+A good request usually contains:
+
+- the goal
+- the context
+- the input
+- any constraints
+
+Simple template:
+
+```text
+I want [goal].
+Context: [system, law, screen, service, or domain].
+Input: [code, diff, scenario, file, or error].
+Constraints: [optional restrictions].
+```
+
+### Examples
+
+Security review:
+
+```text
+Analyze this code for XSS, SQL injection, and hardcoded secrets.
+```
+
+Code review:
+
+```text
+Review this diff and focus on architecture, performance, and maintainability risks.
+```
+
+Privacy workflow:
+
+```text
+An EU user asked to delete all personal data. Tell me which flow applies and what steps are required.
+```
+
+Backend feature:
+
+```text
+Create a CQRS endpoint to list FAQs by tenant and add the right integration tests.
+```
+
+Frontend feature:
+
+```text
+Add loading, empty, and error states to this Portal page, and keep the existing layout pattern.
+```
+
+Architecture or strategy:
+
+```text
+Explain whether this should use GDPR, LGPD, or CCPA rules based on the scenario below.
+```
+
+### When To Name An Agent Explicitly
+
+Most of the time, users should ask for the outcome, not the agent.
+
+Explicit agent naming is useful when the user wants to force a specific path, for example:
+
+```text
+Use the privacy-orchestrator for this case.
+```
+
+```text
+Run the security-orchestrator on this snippet.
+```
+
+```text
+Use dsar.skill for this request flow.
+```
+
+### Tips For New Users
+
+- Ask for the result you want, not the implementation path.
+- Include the relevant code, diff, file, or business scenario when possible.
+- Mention the boundary when you know it: Portal, backend, AI workflow, privacy, data, or integrations.
+- State restrictions early, such as "docs only", "no code changes", or "minimal fix".
+
+### Weak Vs Strong Requests
+
+Weak request:
+
+```text
+Check this.
+```
+
+Strong request:
+
+```text
+Review this diff for security and performance problems. Do not suggest style-only changes.
+```
+
 ## Catalog
 
 Use [`catalog.md`](catalog.md) for the full list of artifacts and when to use each one.
