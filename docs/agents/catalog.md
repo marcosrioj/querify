@@ -68,9 +68,8 @@ This catalog is the human-readable reference for every orchestrator, subagent, s
 | `enforce-cqrs-architecture-rules` | `.agents/skills/data/enforce-cqrs-architecture-rules/SKILL.md` | Encoding or updating repository-wide CQRS compliance checks. | `build-cqrs-feature-module`, `write-real-database-integration-tests` |
 | `process-control-plane-work-items` | `.agents/skills/data/process-control-plane-work-items/SKILL.md` | Implementing lease-based retryable background processing in `TenantDbContext`. | `write-real-database-integration-tests` |
 | `write-real-database-integration-tests` | `.agents/skills/data/write-real-database-integration-tests/SKILL.md` | Verifying backend behavior with real PostgreSQL-backed integration coverage. | Backend, data, and worker skills |
-| `model-question-thread-domain` | `.agents/skills/domain/model-question-thread-domain/SKILL.md` | Modeling the FAQ-to-Q&A domain transition. | `design-provenance-and-trust`, `plan-faq-to-qna-upgrade` |
-| `design-provenance-and-trust` | `.agents/skills/domain/design-provenance-and-trust/SKILL.md` | Designing evidence, citations, confidence, and trust semantics. | `model-question-thread-domain`, `plan-faq-to-qna-upgrade` |
-| `plan-faq-to-qna-upgrade` | `.agents/skills/domain/plan-faq-to-qna-upgrade/SKILL.md` | Sequencing the product and engineering transition from FAQ to Q&A. | `model-question-thread-domain`, `design-provenance-and-trust` |
+| `model-question-thread-domain` | `.agents/skills/domain/model-question-thread-domain/SKILL.md` | Modeling the question-thread domain and core aggregates. | `design-provenance-and-trust` |
+| `design-provenance-and-trust` | `.agents/skills/domain/design-provenance-and-trust/SKILL.md` | Designing evidence, citations, confidence, and trust semantics. | `model-question-thread-domain` |
 | `publish-asynchronous-ai-request` | `.agents/skills/ai/publish-asynchronous-ai-request/SKILL.md` | Starting generation or matching through async events and correlation ids. | `process-control-plane-work-items`, `write-real-database-integration-tests` |
 | `prioritize-integration-rollout` | `.agents/skills/distribution/prioritize-integration-rollout/SKILL.md` | Planning integration and distribution rollout for embeds, SDKs, and plugins. | `design-provenance-and-trust` |
 
