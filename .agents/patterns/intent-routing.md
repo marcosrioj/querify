@@ -6,6 +6,7 @@ Use this file to map user prompts to the right BaseFAQ skill set.
 
 | Prompt Shape | Primary Agent |
 |---|---|
+| code review, review diff, review pr, analyze snippet, code quality, architecture review, performance review | `code-review-orchestrator.agent.md` |
 | security review, vulnerability scan, xss, sql injection, hardcoded secret, unsafe deserialization | `security-orchestrator.agent.md` |
 
 ## Single-Skill Routing
@@ -51,6 +52,19 @@ When the prompt asks to analyze code, config, or text for vulnerabilities:
    - [`../shared/pattern-matcher.skill.md`](../shared/pattern-matcher.skill.md)
 3. Run all security specialists under `.subagents/security/`.
 4. If the input is not relevant code/config/text, return `No security analysis needed`.
+
+## Code Review Routing
+
+When the prompt supplies code or review-oriented code input:
+
+1. Route to [`code-review-orchestrator.agent.md`](../code-review-orchestrator.agent.md).
+2. Use shared skills:
+   - [`../shared/code-parser.skill.md`](../shared/code-parser.skill.md)
+   - [`../shared/code-diff-parser.skill.md`](../shared/code-diff-parser.skill.md)
+   - [`../shared/complexity-analyzer.skill.md`](../shared/complexity-analyzer.skill.md)
+3. Run all code-review specialists under `.subagents/code-review/`.
+4. Always run [`../security-orchestrator.agent.md`](../security-orchestrator.agent.md) when available.
+5. If the input is not code, return `No code review needed`.
 
 ## Multi-Skill Routing
 
@@ -106,6 +120,21 @@ When the prompt asks to analyze code, config, or text for vulnerabilities:
   - `.subagents/security/xss-detector.subagent.md`
   - `.subagents/security/deserialization-detector.subagent.md`
   - `.subagents/security/secrets-detector.subagent.md`
+
+### Code Review
+
+- Primary orchestrator: [`../code-review-orchestrator.agent.md`](../code-review-orchestrator.agent.md)
+- Shared skills:
+  - [`../shared/code-parser.skill.md`](../shared/code-parser.skill.md)
+  - [`../shared/code-diff-parser.skill.md`](../shared/code-diff-parser.skill.md)
+  - [`../shared/complexity-analyzer.skill.md`](../shared/complexity-analyzer.skill.md)
+- Required specialists:
+  - `.subagents/code-review/readability-reviewer.subagent.md`
+  - `.subagents/code-review/architecture-reviewer.subagent.md`
+  - `.subagents/code-review/performance-reviewer.subagent.md`
+  - `.subagents/code-review/best-practices-reviewer.subagent.md`
+- Mandatory integration:
+  - [`../security-orchestrator.agent.md`](../security-orchestrator.agent.md)
 
 ## Conflict Resolution
 

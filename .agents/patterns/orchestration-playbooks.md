@@ -68,6 +68,23 @@ Use when the prompt is about vulnerability review or security-focused static ana
    - `.subagents/security/secrets-detector.subagent.md`
 4. De-duplicate and validate the final report inside the orchestrator before returning results.
 
+## Code Review Playbook
+
+Use when the prompt is about code quality, PR review, diff review, snippet review, maintainability, architecture, performance, or best-practices review.
+
+1. Run [`../code-review-orchestrator.agent.md`](../code-review-orchestrator.agent.md).
+2. Normalize the input with:
+   - [`../shared/code-parser.skill.md`](../shared/code-parser.skill.md)
+   - [`../shared/code-diff-parser.skill.md`](../shared/code-diff-parser.skill.md)
+   - [`../shared/complexity-analyzer.skill.md`](../shared/complexity-analyzer.skill.md)
+3. Execute all specialists:
+   - `.subagents/code-review/readability-reviewer.subagent.md`
+   - `.subagents/code-review/architecture-reviewer.subagent.md`
+   - `.subagents/code-review/performance-reviewer.subagent.md`
+   - `.subagents/code-review/best-practices-reviewer.subagent.md`
+4. Always run [`../security-orchestrator.agent.md`](../security-orchestrator.agent.md) when available.
+5. De-duplicate, validate, score, and render the final review inside the orchestrator.
+
 ## Agent System Maintenance Playbook
 
 Use when the prompt explicitly asks to add or update:

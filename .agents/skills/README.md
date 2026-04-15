@@ -36,6 +36,10 @@ When a skill is created or changed, also review:
 
 - `code-parser.skill.md`
   - Classify input as code, config, or text and normalize language-aware evidence.
+- `code-diff-parser.skill.md`
+  - Extract changed code blocks from diffs and normalize review scope.
+- `complexity-analyzer.skill.md`
+  - Detect long methods, deep nesting, and high cognitive complexity.
 - `pattern-matcher.skill.md`
   - Match conservative vulnerability patterns and return evidence-backed candidates.
 

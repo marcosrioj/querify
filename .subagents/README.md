@@ -15,3 +15,10 @@ Rules:
 - `security/xss-detector.subagent.md`
 - `security/deserialization-detector.subagent.md`
 - `security/secrets-detector.subagent.md`
+
+## Code Review Specialists
+
+- `code-review/readability-reviewer.subagent.md`
+- `code-review/architecture-reviewer.subagent.md`
+- `code-review/performance-reviewer.subagent.md`
+- `code-review/best-practices-reviewer.subagent.md`

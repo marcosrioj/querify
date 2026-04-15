@@ -10,6 +10,8 @@ The worker catalog is also self-maintained:
 
 Generic reusable specialists that are not BaseFAQ-specific belong in the root `.subagents/` tree, not here.
 
+The generic code-review specialists in root `.subagents/code-review/` are the detection layer for reusable review concerns.
+
 Reasoning-depth rule:
 
 - when a worker definition supports `model_reasoning_effort`, use `xhigh` as the default across the BaseFAQ agent system

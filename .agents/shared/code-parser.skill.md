@@ -1,11 +1,16 @@
 ---
 name: code-parser
-description: Parse and normalize code-like, config-like, or text-like input into evidence that other agents can analyze conservatively.
+description: Parse and normalize code-like, diff-like, config-like, or text-like input into evidence that other agents can analyze conservatively.
 type: shared-skill
 scope: cross-domain
 priority: high
 consumers:
+  - code-review-orchestrator.agent.md
   - security-orchestrator.agent.md
+  - .subagents/code-review/readability-reviewer.subagent.md
+  - .subagents/code-review/architecture-reviewer.subagent.md
+  - .subagents/code-review/performance-reviewer.subagent.md
+  - .subagents/code-review/best-practices-reviewer.subagent.md
   - .subagents/security/injection-detector.subagent.md
   - .subagents/security/xss-detector.subagent.md
   - .subagents/security/deserialization-detector.subagent.md
@@ -16,12 +21,12 @@ consumers:
 
 ## When to Use
 
-- The input may contain source code, config, shell commands, templates, or mixed text with embedded code.
+- The input may contain source code, diffs, config, shell commands, templates, or mixed text with embedded code.
 - Another agent needs structured evidence instead of raw text scanning.
 
 ## Responsibilities
 
-- Classify input as `code`, `config`, `text`, or `mixed`.
+- Classify input as `code`, `diff`, `config`, `text`, or `mixed`.
 - Infer likely language or format conservatively.
 - Split input into analyzable regions such as executable statements, string literals, HTML sinks, file-path operations, query builders, config keys, and credential-like values.
 
@@ -37,7 +42,7 @@ Return normalized evidence blocks such as:
 
 ```json
 {
-  "input_type": "code | config | text | mixed",
+  "input_type": "code | diff | config | text | mixed",
   "languages": ["ts", "js", "csharp", "yaml", "json"],
   "regions": [
     {
@@ -51,7 +56,7 @@ Return normalized evidence blocks such as:
 
 ## Workflow
 
-1. Detect whether the input is relevant to static security analysis.
+1. Detect whether the input is relevant to static code analysis, code review, or security analysis.
 2. Infer language or format only from explicit syntax, filenames, or well-known config structure.
 3. Extract only evidence-backed regions.
 4. Preserve exact snippets so downstream detectors can cite real input.

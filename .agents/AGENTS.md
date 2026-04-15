@@ -151,7 +151,24 @@ Use intent-first routing, not title matching alone.
   - Shared skills: `shared/code-parser.skill.md`, `shared/pattern-matcher.skill.md`
   - Required specialists: `.subagents/security/*.subagent.md`
 
+- "code review", "review diff", "review PR", "analyze snippet", or any prompt that contains full code, a code fence, or diff-like hunks
+  - Primary orchestrator: `code-review-orchestrator.agent.md`
+  - Shared skills: `shared/code-parser.skill.md`, `shared/code-diff-parser.skill.md`, `shared/complexity-analyzer.skill.md`
+  - Required specialists: `.subagents/code-review/*.subagent.md`
+  - Required integration: `security-orchestrator.agent.md` when available
+
 When more than one skill applies, prefer one primary skill plus only the minimum supporting set needed to finish the task end-to-end.
+
+## Automatic Review Trigger
+
+Run `code-review-orchestrator.agent.md` automatically unless the user explicitly disables review when at least one of these is true:
+
+- the prompt contains a full file body
+- the prompt contains fenced code blocks
+- the prompt contains diff markers such as `diff --git`, `@@`, or patch-like added and removed lines
+- the prompt is clearly a PR, diff, snippet, or review request
+
+Do not auto-trigger code review only because a prompt mentions filenames, function names, or implementation ideas without actual code input.
 
 ## How To Use Subagents
 
@@ -177,6 +194,7 @@ Do not use a subagent when:
 - Require the worker to preserve BaseFAQ terminology and standards.
 - Review every worker output against the selected skills before using it.
 - For security analysis, run all required specialists under `.subagents/security/` and aggregate them in `security-orchestrator.agent.md`.
+- For code review, run all required specialists under `.subagents/code-review/` and integrate `security-orchestrator.agent.md` when available.
 
 ## Execution Flow
 
