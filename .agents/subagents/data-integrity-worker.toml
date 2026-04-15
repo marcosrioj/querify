@@ -4,7 +4,7 @@ role = "execution-worker"
 priority = "secondary"
 derived_from = ["platform-engineer", "postgres-pro", "test-automator"]
 model = "gpt-5.4"
-model_reasoning_effort = "high"
+model_reasoning_effort = "xhigh"
 sandbox_mode = "workspace-write"
 recommended_skills = [
   "apply-seed-and-migrations-safely",

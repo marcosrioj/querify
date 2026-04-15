@@ -46,6 +46,8 @@ Hard rule: skills outrank subagents.
 - Subagents execute bounded work that has already been framed by one or more skills.
 - Subagents must not invent strategy, rename the domain, or override BaseFAQ standards.
 
+When `.agents/` defines a configurable reasoning depth for workers or future agent artifacts, the default must be `xhigh`.
+
 ## Self-Evolution Rule
 
 After every non-trivial prompt, run a mandatory maintenance check on `.agents/`.
@@ -100,6 +102,7 @@ For every prompt, reason in this order:
    - Do not delegate the immediate strategy decision.
 6. Validate against BaseFAQ standards before executing.
 7. Before finishing, decide whether the task changed reusable agent knowledge and update `.agents/` if it did.
+8. When a worker or template exposes `model_reasoning_effort` or an equivalent reasoning-depth setting, set it to `xhigh` unless there is a strong, explicit reason not to.
 
 ## How To Select Skills
 

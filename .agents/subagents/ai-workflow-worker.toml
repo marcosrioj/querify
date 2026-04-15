@@ -4,7 +4,7 @@ role = "execution-worker"
 priority = "secondary"
 derived_from = ["ai-engineer", "llm-architect", "prompt-engineer"]
 model = "gpt-5.4"
-model_reasoning_effort = "high"
+model_reasoning_effort = "xhigh"
 sandbox_mode = "workspace-write"
 recommended_skills = [
   "publish-asynchronous-ai-request",

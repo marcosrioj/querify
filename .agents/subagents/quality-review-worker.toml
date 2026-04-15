@@ -4,7 +4,7 @@ role = "execution-worker"
 priority = "secondary"
 derived_from = ["code-reviewer", "reviewer"]
 model = "gpt-5.4"
-model_reasoning_effort = "high"
+model_reasoning_effort = "xhigh"
 sandbox_mode = "read-only"
 recommended_skills = [
   "build-cqrs-feature-module",

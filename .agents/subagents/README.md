@@ -8,6 +8,10 @@ The worker catalog is also self-maintained:
 - if a worker becomes obsolete or its ownership changes, update this catalog in the same task
 - worker changes should also trigger review of routing and orchestration files through [`../patterns/agent-system-maintenance.md`](../patterns/agent-system-maintenance.md)
 
+Reasoning-depth rule:
+
+- when a worker definition supports `model_reasoning_effort`, use `xhigh` as the default across the BaseFAQ agent system
+
 Use them only after:
 
 1. the parent agent has chosen the relevant skill or skills
