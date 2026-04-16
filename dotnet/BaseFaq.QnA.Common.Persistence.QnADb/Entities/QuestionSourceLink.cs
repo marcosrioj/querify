@@ -41,16 +41,6 @@ public class QuestionSourceLink : BaseEntity, IMustHaveTenant
     public int Order { get; set; }
 
     /// <summary>
-    /// Confidence assigned to this specific link.
-    /// </summary>
-    public int ConfidenceScore { get; set; }
-
-    /// <summary>
-    /// Indicates whether this is the primary source for the question.
-    /// </summary>
-    public bool IsPrimary { get; set; }
-
-    /// <summary>
     /// Tenant that owns the link.
     /// </summary>
     public required Guid TenantId { get; set; }

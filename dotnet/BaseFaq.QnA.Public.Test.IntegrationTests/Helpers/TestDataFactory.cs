@@ -129,8 +129,6 @@ public static class TestDataFactory
             TrustNote = "Reviewed",
             EvidenceSummary = "Docs backed",
             Rank = rank,
-            IsOfficial = true,
-            IsCanonical = rank == 1,
             CreatedBy = "test",
             UpdatedBy = "test"
         };
@@ -175,7 +173,6 @@ public static class TestDataFactory
         if (accept)
         {
             var acceptedAtUtc = DateTime.UtcNow;
-            entity.IsAccepted = true;
             entity.AcceptedAtUtc = acceptedAtUtc;
             question.AcceptedAnswerId = entity.Id;
             question.AcceptedAnswer = entity;

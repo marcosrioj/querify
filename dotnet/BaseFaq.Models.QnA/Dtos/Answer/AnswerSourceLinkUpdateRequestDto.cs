@@ -8,6 +8,4 @@ public class AnswerSourceLinkUpdateRequestDto
     public Guid SourceId { get; set; }
     public SourceRole Role { get; set; } = SourceRole.Evidence;
     public int Order { get; set; }
-    public int ConfidenceScore { get; set; }
-    public bool IsPrimary { get; set; }
 }

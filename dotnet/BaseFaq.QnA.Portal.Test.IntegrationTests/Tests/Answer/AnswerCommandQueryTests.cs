@@ -31,9 +31,7 @@ public class AnswerCommandQueryTests
                 Language = "en-US",
                 ContextKey = "portal",
                 ConfidenceScore = 91,
-                Rank = 2,
-                IsCanonical = true,
-                IsOfficial = true
+                Rank = 2
             }
         }, CancellationToken.None);
 

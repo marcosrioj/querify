@@ -89,21 +89,6 @@ public class Answer : BaseEntity, IMustHaveTenant
     public int RevisionNumber { get; set; }
 
     /// <summary>
-    /// Indicates whether this answer was accepted as the primary answer.
-    /// </summary>
-    public bool IsAccepted { get; set; }
-
-    /// <summary>
-    /// Indicates whether this answer is the canonical variant among equivalent answers.
-    /// </summary>
-    public bool IsCanonical { get; set; }
-
-    /// <summary>
-    /// Indicates whether the answer is considered official.
-    /// </summary>
-    public bool IsOfficial { get; set; }
-
-    /// <summary>
     /// Id of the question that owns the answer.
     /// </summary>
     public required Guid QuestionId { get; set; }
@@ -137,11 +122,6 @@ public class Answer : BaseEntity, IMustHaveTenant
     /// Sources that support the answer.
     /// </summary>
     public ICollection<AnswerSourceLink> Sources { get; set; } = [];
-
-    /// <summary>
-    /// Thread events linked directly to the answer.
-    /// </summary>
-    public ICollection<ThreadActivity> Activities { get; set; } = [];
 
     /// <summary>
     /// Tenant that owns the answer.

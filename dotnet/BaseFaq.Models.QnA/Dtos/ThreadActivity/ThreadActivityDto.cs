@@ -13,7 +13,5 @@ public class ThreadActivityDto
     public string? ActorLabel { get; set; }
     public string? Notes { get; set; }
     public string? MetadataJson { get; set; }
-    public string? SnapshotJson { get; set; }
-    public int? RevisionNumber { get; set; }
     public DateTime OccurredAtUtc { get; set; }
 }

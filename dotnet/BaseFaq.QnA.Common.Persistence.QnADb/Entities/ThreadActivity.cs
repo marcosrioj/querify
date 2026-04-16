@@ -13,8 +13,6 @@ public class ThreadActivity : BaseEntity, IMustHaveTenant
     public const int MaxActorLabelLength = 200;
     public const int MaxNotesLength = 4000;
     public const int MaxMetadataLength = 4000;
-    public const int MaxSnapshotLength = 12000;
-
     /// <summary>
     /// Id of the question that owns the event.
     /// </summary>
@@ -59,16 +57,6 @@ public class ThreadActivity : BaseEntity, IMustHaveTenant
     /// Serialized metadata for the event.
     /// </summary>
     public string? MetadataJson { get; set; }
-
-    /// <summary>
-    /// Serialized snapshot of the relevant state at the time of the event.
-    /// </summary>
-    public string? SnapshotJson { get; set; }
-
-    /// <summary>
-    /// Revision of the thread or answer that the event refers to.
-    /// </summary>
-    public int? RevisionNumber { get; set; }
 
     /// <summary>
     /// Timestamp when the event occurred.

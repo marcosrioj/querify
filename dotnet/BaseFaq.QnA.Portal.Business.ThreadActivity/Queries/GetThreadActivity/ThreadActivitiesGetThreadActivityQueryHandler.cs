@@ -37,8 +37,6 @@ public sealed class ThreadActivitiesGetThreadActivityQueryHandler(
                 ActorLabel = entity.ActorLabel,
                 Notes = entity.Notes,
                 MetadataJson = entity.MetadataJson,
-                SnapshotJson = entity.SnapshotJson,
-                RevisionNumber = entity.RevisionNumber,
                 OccurredAtUtc = entity.OccurredAtUtc
             };
     }

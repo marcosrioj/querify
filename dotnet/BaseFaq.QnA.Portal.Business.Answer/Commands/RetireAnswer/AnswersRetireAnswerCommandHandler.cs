@@ -38,7 +38,7 @@ public sealed class AnswersRetireAnswerCommandHandler(
             Question = entity.Question,
             AnswerId = entity.Id,
             Answer = entity,
-            Kind = ActivityKind.AnswerRejected,
+            Kind = ActivityKind.AnswerRetired,
             ActorKind = ActorKind.Moderator,
             ActorLabel = userId,
             OccurredAtUtc = DateTime.UtcNow,

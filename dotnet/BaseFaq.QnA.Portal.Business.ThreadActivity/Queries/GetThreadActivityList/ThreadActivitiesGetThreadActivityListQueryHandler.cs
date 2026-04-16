@@ -68,8 +68,6 @@ public sealed class ThreadActivitiesGetThreadActivityListQueryHandler(
                     ActorLabel = activity.ActorLabel,
                     Notes = activity.Notes,
                     MetadataJson = activity.MetadataJson,
-                    SnapshotJson = activity.SnapshotJson,
-                    RevisionNumber = activity.RevisionNumber,
                     OccurredAtUtc = activity.OccurredAtUtc
                 })
                 .ToList());

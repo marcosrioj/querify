@@ -10,5 +10,4 @@ public class AnswerGetAllRequestDto : PagedAndSortedResultRequestDto
     public VisibilityScope? Visibility { get; set; }
     public string? ContextKey { get; set; }
     public bool? IsAccepted { get; set; }
-    public bool? IsCanonical { get; set; }
 }

@@ -38,17 +38,17 @@ public sealed class AnswersGetAnswerListQueryHandler(
             query = query.Where(answer => answer.ContextKey == request.Request.ContextKey);
 
         if (request.Request.IsAccepted is not null)
-            query = query.Where(answer => answer.IsAccepted == request.Request.IsAccepted);
-
-        if (request.Request.IsCanonical is not null)
-            query = query.Where(answer => answer.IsCanonical == request.Request.IsCanonical);
+            query = request.Request.IsAccepted.Value
+                ? query.Where(answer => answer.Question != null && answer.Question.AcceptedAnswerId == answer.Id)
+                : query.Where(answer => answer.Question == null || answer.Question.AcceptedAnswerId != answer.Id);
 
         query = request.Request.Sorting?.Trim().ToLowerInvariant() switch
         {
             "headline desc" => query.OrderByDescending(answer => answer.Headline),
             "rank" => query.OrderBy(answer => answer.Rank),
             "rank desc" => query.OrderByDescending(answer => answer.Rank),
-            _ => query.OrderByDescending(answer => answer.IsAccepted).ThenByDescending(answer => answer.Rank)
+            _ => query.OrderByDescending(answer => answer.Question != null && answer.Question.AcceptedAnswerId == answer.Id)
+                .ThenByDescending(answer => answer.Rank)
         };
 
         var totalCount = await query.CountAsync(cancellationToken);
@@ -63,7 +63,7 @@ public sealed class AnswersGetAnswerListQueryHandler(
             items.Select(answer =>
             {
                 IEnumerable<ThreadActivityEntity> questionActivity = answer.Question?.Activities ?? [];
-                return answer.ToPortalAnswerDto(questionActivity);
+                return answer.ToPortalAnswerDto(questionActivity, answer.Question?.AcceptedAnswerId);
             }).ToList());
     }
 }

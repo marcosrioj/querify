@@ -78,5 +78,10 @@ public enum ActivityKind
     /// <summary>
     /// An answer-level ranking vote was received.
     /// </summary>
-    VoteReceived = 15
+    VoteReceived = 15,
+
+    /// <summary>
+    /// An answer was retired from active use.
+    /// </summary>
+    AnswerRetired = 16
 }

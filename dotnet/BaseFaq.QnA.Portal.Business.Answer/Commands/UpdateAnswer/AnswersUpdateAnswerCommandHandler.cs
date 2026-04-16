@@ -67,8 +67,6 @@ public sealed class AnswersUpdateAnswerCommandHandler(
         entity.EvidenceSummary = request.EvidenceSummary;
         entity.Rank = request.Rank;
         entity.Kind = request.Kind;
-        entity.IsOfficial = request.IsOfficial;
-        entity.IsCanonical = request.IsCanonical;
 
         switch (request.Status)
         {

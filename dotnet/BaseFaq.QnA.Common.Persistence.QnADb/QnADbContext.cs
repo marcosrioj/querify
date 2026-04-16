@@ -102,6 +102,15 @@ public class QnADbContext(
                 if (acceptedAnswer.QuestionId != question.Id)
                     throw new InvalidOperationException(
                         $"Question '{question.Id}' accepts answer '{acceptedAnswerId}' from a different thread.");
+
+                if (acceptedAnswer.Status is not AnswerStatus.Published and not AnswerStatus.Validated)
+                    throw new InvalidOperationException(
+                        $"Question '{question.Id}' cannot accept answer '{acceptedAnswerId}' while it is in status '{acceptedAnswer.Status}'.");
+
+                if (question.Visibility.IsPubliclyVisible() &&
+                    !acceptedAnswer.Visibility.IsPubliclyVisible())
+                    throw new InvalidOperationException(
+                        $"Question '{question.Id}' cannot expose accepted answer '{acceptedAnswerId}' while the answer is not publicly visible.");
             }
 
             if (question.DuplicateOfQuestionId is Guid duplicateQuestionId)
@@ -136,10 +145,6 @@ public class QnADbContext(
                 throw new InvalidOperationException(
                     $"AI draft answer '{answer.Id}' must be validated before public exposure.");
 
-            if (answer.IsAccepted &&
-                answer.Status is not AnswerStatus.Published and not AnswerStatus.Validated)
-                throw new InvalidOperationException(
-                    $"Accepted answer '{answer.Id}' must stay in published or validated status.");
         }
     }
 
@@ -293,7 +298,9 @@ public class QnADbContext(
                 .Select(answer => new AnswerLookup
                 {
                     TenantId = answer.TenantId,
-                    QuestionId = answer.QuestionId
+                    QuestionId = answer.QuestionId,
+                    Status = answer.Status,
+                    Visibility = answer.Visibility
                 })
                 .SingleOrDefault();
 
@@ -358,7 +365,9 @@ public class QnADbContext(
                 cache[entry.Entity.Id] = new AnswerLookup
                 {
                     TenantId = entry.Entity.TenantId,
-                    QuestionId = entry.Entity.QuestionId
+                    QuestionId = entry.Entity.QuestionId,
+                    Status = entry.Entity.Status,
+                    Visibility = entry.Entity.Visibility
                 };
 
             return cache;
@@ -374,5 +383,7 @@ public class QnADbContext(
     {
         public required Guid TenantId { get; init; }
         public required Guid QuestionId { get; init; }
+        public required AnswerStatus Status { get; init; }
+        public required VisibilityScope Visibility { get; init; }
     }
 }

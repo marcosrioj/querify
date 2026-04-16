@@ -41,9 +41,7 @@ public class RelationshipMappingTests
                 QuestionId = question.Id,
                 SourceId = source.Id,
                 Role = SourceRole.SupportingContext,
-                Order = 1,
-                ConfidenceScore = 95,
-                IsPrimary = true
+                Order = 1
             }
         }, CancellationToken.None);
 
@@ -76,9 +74,7 @@ public class RelationshipMappingTests
                 AnswerId = answer.Id,
                 SourceId = source.Id,
                 Role = SourceRole.Evidence,
-                Order = 1,
-                ConfidenceScore = 90,
-                IsPrimary = true
+                Order = 1
             }
         }, CancellationToken.None);
 

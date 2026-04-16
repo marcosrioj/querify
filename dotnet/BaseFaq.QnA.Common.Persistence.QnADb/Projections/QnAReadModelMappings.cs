@@ -80,12 +80,12 @@ public static class QnAReadModelMappings
             ValidatedAtUtc = entity.ValidatedAtUtc,
             LastActivityAtUtc = entity.LastActivityAtUtc,
             FeedbackScore = ThreadActivitySignals.ComputeFeedbackScore(entity.Activities),
-            AcceptedAnswer = entity.AcceptedAnswer?.ToPortalAnswerDto(entity.Activities),
+            AcceptedAnswer = entity.AcceptedAnswer?.ToPortalAnswerDto(entity.Activities, entity.AcceptedAnswerId),
             Answers = entity.Answers
-                .OrderByDescending(answer => answer.IsAccepted)
+                .OrderByDescending(answer => answer.Id == entity.AcceptedAnswerId)
                 .ThenByDescending(answer => answer.Rank)
                 .ThenBy(answer => answer.Headline)
-                .Select(answer => answer.ToPortalAnswerDto(entity.Activities))
+                .Select(answer => answer.ToPortalAnswerDto(entity.Activities, entity.AcceptedAnswerId))
                 .ToList(),
             Topics = entity.Topics.Select(link => link.Topic.ToTopicDto()).ToList(),
             Sources = entity.Sources
@@ -114,10 +114,10 @@ public static class QnAReadModelMappings
             .Where(answer =>
                 answer.Visibility is VisibilityScope.Public or VisibilityScope.PublicIndexed &&
                 answer.Status is AnswerStatus.Published or AnswerStatus.Validated)
-            .OrderByDescending(answer => answer.IsAccepted)
+            .OrderByDescending(answer => answer.Id == entity.AcceptedAnswerId)
             .ThenByDescending(answer => answer.Rank)
             .ThenBy(answer => answer.Headline)
-            .Select(answer => answer.ToPublicAnswerDto(entity.Activities))
+            .Select(answer => answer.ToPublicAnswerDto(entity.Activities, entity.AcceptedAnswerId))
             .ToList();
         var acceptedAnswer = publicAnswers.FirstOrDefault(answer => answer.Id == entity.AcceptedAnswerId);
 
@@ -169,16 +169,18 @@ public static class QnAReadModelMappings
 
     public static AnswerDto ToPortalAnswerDto(
         this Answer entity,
-        IEnumerable<ThreadActivity> questionActivity)
+        IEnumerable<ThreadActivity> questionActivity,
+        Guid? acceptedAnswerId)
     {
-        return ToAnswerDto(entity, questionActivity, false);
+        return ToAnswerDto(entity, questionActivity, acceptedAnswerId, false);
     }
 
     public static AnswerDto ToPublicAnswerDto(
         this Answer entity,
-        IEnumerable<ThreadActivity> questionActivity)
+        IEnumerable<ThreadActivity> questionActivity,
+        Guid? acceptedAnswerId)
     {
-        return ToAnswerDto(entity, questionActivity, true);
+        return ToAnswerDto(entity, questionActivity, acceptedAnswerId, true);
     }
 
     public static QuestionSpaceDto ToQuestionSpaceDto(this QuestionSpace entity)
@@ -253,8 +255,6 @@ public static class QnAReadModelMappings
             SourceId = entity.SourceId,
             Role = entity.Role,
             Order = entity.Order,
-            ConfidenceScore = entity.ConfidenceScore,
-            IsPrimary = entity.IsPrimary,
             Source = entity.Source?.ToKnowledgeSourceDto()
         };
     }
@@ -268,8 +268,6 @@ public static class QnAReadModelMappings
             SourceId = entity.SourceId,
             Role = entity.Role,
             Order = entity.Order,
-            ConfidenceScore = entity.ConfidenceScore,
-            IsPrimary = entity.IsPrimary,
             Source = entity.Source?.ToKnowledgeSourceDto()
         };
     }
@@ -287,8 +285,6 @@ public static class QnAReadModelMappings
             ActorLabel = entity.ActorLabel,
             Notes = entity.Notes,
             MetadataJson = entity.MetadataJson,
-            SnapshotJson = entity.SnapshotJson,
-            RevisionNumber = entity.RevisionNumber,
             OccurredAtUtc = entity.OccurredAtUtc
         };
     }
@@ -296,6 +292,7 @@ public static class QnAReadModelMappings
     private static AnswerDto ToAnswerDto(
         Answer entity,
         IEnumerable<ThreadActivity> questionActivity,
+        Guid? acceptedAnswerId,
         bool publicOnly)
     {
         IEnumerable<AnswerSourceLink> sources = entity.Sources;
@@ -323,9 +320,8 @@ public static class QnAReadModelMappings
             ConfidenceScore = entity.ConfidenceScore,
             Rank = entity.Rank,
             RevisionNumber = entity.RevisionNumber,
-            IsAccepted = entity.IsAccepted,
-            IsCanonical = entity.IsCanonical,
-            IsOfficial = entity.IsOfficial,
+            IsAccepted = entity.Id == acceptedAnswerId,
+            IsOfficial = entity.Kind == AnswerKind.Official,
             PublishedAtUtc = entity.PublishedAtUtc,
             ValidatedAtUtc = entity.ValidatedAtUtc,
             AcceptedAtUtc = entity.AcceptedAtUtc,

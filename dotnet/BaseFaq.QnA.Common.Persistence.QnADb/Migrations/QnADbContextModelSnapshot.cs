@@ -72,16 +72,7 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
                         .HasMaxLength(250)
                         .HasColumnType("character varying(250)");
 
-                    b.Property<bool>("IsAccepted")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("IsCanonical")
-                        .HasColumnType("boolean");
-
                     b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("IsOfficial")
                         .HasColumnType("boolean");
 
                     b.Property<int>("Kind")
@@ -150,9 +141,6 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
                     b.Property<Guid>("AnswerId")
                         .HasColumnType("uuid");
 
-                    b.Property<int>("ConfidenceScore")
-                        .HasColumnType("integer");
-
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
 
@@ -166,9 +154,6 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("IsPrimary")
                         .HasColumnType("boolean");
 
                     b.Property<int>("Order")
@@ -451,9 +436,6 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<int>("ConfidenceScore")
-                        .HasColumnType("integer");
-
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
 
@@ -467,9 +449,6 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("IsPrimary")
                         .HasColumnType("boolean");
 
                     b.Property<int>("Order")
@@ -819,13 +798,6 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
                     b.Property<Guid>("QuestionId")
                         .HasColumnType("uuid");
 
-                    b.Property<int?>("RevisionNumber")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("SnapshotJson")
-                        .HasMaxLength(12000)
-                        .HasColumnType("character varying(12000)");
-
                     b.Property<Guid>("TenantId")
                         .HasColumnType("uuid");
 
@@ -1042,9 +1014,8 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
             modelBuilder.Entity("BaseFaq.QnA.Common.Persistence.QnADb.Entities.ThreadActivity", b =>
                 {
                     b.HasOne("BaseFaq.QnA.Common.Persistence.QnADb.Entities.Answer", "Answer")
-                        .WithMany("Activities")
-                        .HasForeignKey("AnswerId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .WithMany()
+                        .HasForeignKey("AnswerId");
 
                     b.HasOne("BaseFaq.QnA.Common.Persistence.QnADb.Entities.Question", "Question")
                         .WithMany("Activities")
@@ -1059,8 +1030,6 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
 
             modelBuilder.Entity("BaseFaq.QnA.Common.Persistence.QnADb.Entities.Answer", b =>
                 {
-                    b.Navigation("Activities");
-
                     b.Navigation("Sources");
                 });
 

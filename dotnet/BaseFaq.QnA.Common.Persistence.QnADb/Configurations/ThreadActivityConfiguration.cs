@@ -28,9 +28,6 @@ public class ThreadActivityConfiguration : BaseConfiguration<ThreadActivity>
         builder.Property(activity => activity.MetadataJson)
             .HasMaxLength(ThreadActivity.MaxMetadataLength);
 
-        builder.Property(activity => activity.SnapshotJson)
-            .HasMaxLength(ThreadActivity.MaxSnapshotLength);
-
         builder.Property(activity => activity.OccurredAtUtc)
             .IsRequired();
 

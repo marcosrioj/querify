@@ -18,6 +18,4 @@ public class AnswerUpdateRequestDto
     public string? AuthorLabel { get; set; }
     public int ConfidenceScore { get; set; }
     public int Rank { get; set; }
-    public bool IsCanonical { get; set; }
-    public bool IsOfficial { get; set; } = true;
 }

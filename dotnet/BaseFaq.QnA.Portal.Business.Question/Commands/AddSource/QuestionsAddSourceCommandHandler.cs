@@ -47,8 +47,6 @@ public sealed class QuestionsAddSourceCommandHandler(
             Source = source,
             Role = request.Request.Role,
             Order = request.Request.Order,
-            ConfidenceScore = request.Request.ConfidenceScore,
-            IsPrimary = request.Request.IsPrimary,
             CreatedBy = userId,
             UpdatedBy = userId
         };

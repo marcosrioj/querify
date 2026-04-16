@@ -22,7 +22,6 @@ public class AnswerDto
     public int Rank { get; set; }
     public int RevisionNumber { get; set; }
     public bool IsAccepted { get; set; }
-    public bool IsCanonical { get; set; }
     public bool IsOfficial { get; set; }
     public DateTime? PublishedAtUtc { get; set; }
     public DateTime? ValidatedAtUtc { get; set; }

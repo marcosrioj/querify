@@ -31,6 +31,6 @@ public sealed class AnswersGetAnswerQueryHandler(
             throw new ApiErrorException($"Answer '{request.Id}' was not found.", (int)HttpStatusCode.NotFound);
 
         IEnumerable<ThreadActivityEntity> questionActivity = entity.Question?.Activities ?? [];
-        return entity.ToPortalAnswerDto(questionActivity);
+        return entity.ToPortalAnswerDto(questionActivity, entity.Question?.AcceptedAnswerId);
     }
 }

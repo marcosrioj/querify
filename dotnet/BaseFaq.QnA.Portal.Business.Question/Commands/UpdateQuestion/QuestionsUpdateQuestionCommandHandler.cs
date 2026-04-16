@@ -87,7 +87,6 @@ public sealed class QuestionsUpdateQuestionCommandHandler(
             entity.Status = entity.Status == QuestionStatus.Validated
                 ? QuestionStatus.Validated
                 : QuestionStatus.Answered;
-            answer.IsAccepted = true;
             answer.AcceptedAtUtc = acceptedAtUtc;
 
             AddThreadActivity(entity, ActivityKind.AnswerAccepted, userId, answer);
