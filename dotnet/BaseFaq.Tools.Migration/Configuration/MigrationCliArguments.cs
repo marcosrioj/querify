@@ -18,35 +18,42 @@ internal sealed class MigrationCliArguments
             var argument = args[i];
             if (!argument.StartsWith("--", StringComparison.Ordinal))
             {
-                throw new ArgumentException(
-                    $"Invalid argument '{argument}'. Use --app, --command, --migration-name.");
+                continue;
             }
-
-            if (i + 1 >= args.Length)
-            {
-                throw new ArgumentException($"Missing value for argument '{argument}'.");
-            }
-
-            var value = args[++i];
 
             switch (argument.ToLowerInvariant())
             {
                 case "--app":
-                    parsed.App = ParseApp(value);
+                    EnsureValue(args, i, argument);
+                    parsed.App = ParseApp(args[++i]);
                     break;
                 case "--command":
-                    parsed.Command = ParseCommand(value);
+                    EnsureValue(args, i, argument);
+                    parsed.Command = ParseCommand(args[++i]);
                     break;
                 case "--migration-name":
-                    parsed.MigrationName = ParseMigrationName(value);
+                    EnsureValue(args, i, argument);
+                    parsed.MigrationName = ParseMigrationName(args[++i]);
                     break;
                 default:
-                    throw new ArgumentException(
-                        $"Unknown argument '{argument}'. Supported: --app, --command, --migration-name.");
+                    if (i + 1 < args.Length && !args[i + 1].StartsWith("--", StringComparison.Ordinal))
+                    {
+                        i++;
+                    }
+
+                    break;
             }
         }
 
         return parsed;
+    }
+
+    private static void EnsureValue(string[] args, int index, string argument)
+    {
+        if (index + 1 >= args.Length || args[index + 1].StartsWith("--", StringComparison.Ordinal))
+        {
+            throw new ArgumentException($"Missing value for argument '{argument}'.");
+        }
     }
 
     private static AppEnum ParseApp(string value)
@@ -57,7 +64,13 @@ internal sealed class MigrationCliArguments
             return AppEnum.Faq;
         }
 
-        throw new ArgumentException($"Unsupported app '{value}'. Supported: {AppEnum.Faq}.");
+        if (string.Equals(value, "2", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(value, AppEnum.QnA.ToString(), StringComparison.OrdinalIgnoreCase))
+        {
+            return AppEnum.QnA;
+        }
+
+        throw new ArgumentException($"Unsupported app '{value}'. Supported: {AppEnum.Faq}, {AppEnum.QnA}.");
     }
 
     private static MigrationCommand ParseCommand(string value)

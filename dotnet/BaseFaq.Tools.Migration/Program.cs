@@ -10,6 +10,11 @@ public static class Program
 {
     public static int Main(string[] args)
     {
+        if (IsEfDesignTimeInvocation(args))
+        {
+            return 0;
+        }
+
         MigrationCliArguments cliArguments;
         try
         {
@@ -80,6 +85,14 @@ public static class Program
             return 1;
         }
 
-        return EfMigrationsRunner.AddFaqMigration(solutionRoot, migrationName, app);
+        return EfMigrationsRunner.AddMigration(solutionRoot, migrationName, app);
+    }
+
+    private static bool IsEfDesignTimeInvocation(string[] args)
+    {
+        return args.Any(arg =>
+            string.Equals(arg, "--applicationName", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(arg, "--projectDir", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(arg, "--rootnamespace", StringComparison.OrdinalIgnoreCase));
     }
 }

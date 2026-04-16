@@ -8,6 +8,7 @@ internal static class MigrationPrompt
     {
         Console.WriteLine("Which AppEnum?");
         Console.WriteLine($"1) {AppEnum.Faq}");
+        Console.WriteLine($"2) {AppEnum.QnA}");
 
         while (true)
         {
@@ -22,6 +23,12 @@ internal static class MigrationPrompt
                 string.Equals(input, AppEnum.Faq.ToString(), StringComparison.OrdinalIgnoreCase))
             {
                 return AppEnum.Faq;
+            }
+
+            if (string.Equals(input, "2", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(input, AppEnum.QnA.ToString(), StringComparison.OrdinalIgnoreCase))
+            {
+                return AppEnum.QnA;
             }
 
             Console.WriteLine("Invalid AppEnum value.");

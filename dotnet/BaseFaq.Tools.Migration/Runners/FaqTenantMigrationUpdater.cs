@@ -1,5 +1,6 @@
 using BaseFaq.Common.EntityFramework.Tenant;
 using BaseFaq.Faq.Common.Persistence.FaqDb;
+using BaseFaq.QnA.Common.Persistence.QnADb;
 using BaseFaq.Tools.Migration.Services;
 using BaseFaq.Models.Common.Enums;
 using Microsoft.AspNetCore.Http;
@@ -12,12 +13,6 @@ internal static class FaqTenantMigrationUpdater
 {
     public static void ApplyAll(IConfiguration configuration, string tenantDbConnectionString, AppEnum app)
     {
-        if (app != AppEnum.Faq)
-        {
-            throw new InvalidOperationException(
-                $"Database update is only supported for {AppEnum.Faq} at the moment.");
-        }
-
         var sessionService = new MigrationsSessionService();
         var tenantConnectionProvider = new NoopTenantConnectionStringProvider();
         var httpContextAccessor = new HttpContextAccessor();
@@ -33,7 +28,7 @@ internal static class FaqTenantMigrationUpdater
 
         var tenantConnectionStrings = tenantDbContext.Tenants
             .AsNoTracking()
-            .Where(item => item.App == app)
+            .Where(item => item.App == ResolveTenantApp(app))
             .Select(item => item.ConnectionString)
             .ToList();
 
@@ -60,22 +55,68 @@ internal static class FaqTenantMigrationUpdater
         var index = 1;
         foreach (var connectionString in uniqueConnections)
         {
-            var options = new DbContextOptionsBuilder<FaqDbContext>()
-                .UseNpgsql(connectionString)
-                .Options;
-
-            using var faqDbContext = new FaqDbContext(
-                options,
-                sessionService,
-                configuration,
-                tenantConnectionProvider,
-                httpContextAccessor);
-
             Console.WriteLine($"[{index}/{uniqueConnections.Count}] Updating tenant database...");
-            faqDbContext.Database.Migrate();
+            ApplyMigration(app, connectionString, sessionService, configuration, tenantConnectionProvider, httpContextAccessor);
             index++;
         }
 
         Console.WriteLine("Database update completed.");
+    }
+
+    private static AppEnum ResolveTenantApp(AppEnum app)
+    {
+        return app switch
+        {
+            AppEnum.Faq => AppEnum.Faq,
+            AppEnum.QnA => AppEnum.Faq,
+            _ => throw new InvalidOperationException($"Database update is not supported for {app}.")
+        };
+    }
+
+    private static void ApplyMigration(
+        AppEnum app,
+        string connectionString,
+        MigrationsSessionService sessionService,
+        IConfiguration configuration,
+        NoopTenantConnectionStringProvider tenantConnectionProvider,
+        IHttpContextAccessor httpContextAccessor)
+    {
+        switch (app)
+        {
+            case AppEnum.Faq:
+            {
+                var options = new DbContextOptionsBuilder<FaqDbContext>()
+                    .UseNpgsql(connectionString)
+                    .Options;
+
+                using var faqDbContext = new FaqDbContext(
+                    options,
+                    sessionService,
+                    configuration,
+                    tenantConnectionProvider,
+                    httpContextAccessor);
+
+                faqDbContext.Database.Migrate();
+                break;
+            }
+            case AppEnum.QnA:
+            {
+                var options = new DbContextOptionsBuilder<QnADbContext>()
+                    .UseNpgsql(connectionString)
+                    .Options;
+
+                using var qnaDbContext = new QnADbContext(
+                    options,
+                    sessionService,
+                    configuration,
+                    tenantConnectionProvider,
+                    httpContextAccessor);
+
+                qnaDbContext.Database.Migrate();
+                break;
+            }
+            default:
+                throw new InvalidOperationException($"Database update is not supported for {app}.");
+        }
     }
 }

@@ -5,19 +5,9 @@ namespace BaseFaq.Tools.Migration.Runners;
 
 internal static class EfMigrationsRunner
 {
-    public static int AddFaqMigration(string solutionRoot, string migrationName, AppEnum app)
+    public static int AddMigration(string solutionRoot, string migrationName, AppEnum app)
     {
-        if (app != AppEnum.Faq)
-        {
-            Console.Error.WriteLine($"Migrations are only supported for {AppEnum.Faq} at the moment.");
-            return 1;
-        }
-
-        var projectPath = Path.Combine(
-            solutionRoot,
-            "dotnet",
-            "BaseFaq.Faq.Common.Persistence.FaqDb",
-            "BaseFaq.Faq.Common.Persistence.FaqDb.csproj");
+        var projectPath = ResolveProjectPath(solutionRoot, app);
 
         var startupProjectPath = Path.Combine(
             solutionRoot,
@@ -48,6 +38,8 @@ internal static class EfMigrationsRunner
         processInfo.ArgumentList.Add("migrations");
         processInfo.ArgumentList.Add("add");
         processInfo.ArgumentList.Add(migrationName);
+        processInfo.ArgumentList.Add("--context");
+        processInfo.ArgumentList.Add(ResolveContextName(app));
         processInfo.ArgumentList.Add("--project");
         processInfo.ArgumentList.Add(projectPath);
         processInfo.ArgumentList.Add("--startup-project");
@@ -83,5 +75,33 @@ internal static class EfMigrationsRunner
         process.WaitForExit();
 
         return process.ExitCode;
+    }
+
+    private static string ResolveProjectPath(string solutionRoot, AppEnum app)
+    {
+        return app switch
+        {
+            AppEnum.Faq => Path.Combine(
+                solutionRoot,
+                "dotnet",
+                "BaseFaq.Faq.Common.Persistence.FaqDb",
+                "BaseFaq.Faq.Common.Persistence.FaqDb.csproj"),
+            AppEnum.QnA => Path.Combine(
+                solutionRoot,
+                "dotnet",
+                "BaseFaq.QnA.Common.Persistence.QnADb",
+                "BaseFaq.QnA.Common.Persistence.QnADb.csproj"),
+            _ => throw new InvalidOperationException($"Migrations are not supported for {app}.")
+        };
+    }
+
+    private static string ResolveContextName(AppEnum app)
+    {
+        return app switch
+        {
+            AppEnum.Faq => "FaqDbContext",
+            AppEnum.QnA => "QnADbContext",
+            _ => throw new InvalidOperationException($"Migrations are not supported for {app}.")
+        };
     }
 }
