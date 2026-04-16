@@ -4,8 +4,8 @@ description: Detect reflected or stored XSS risk where untrusted input reaches H
 type: reusable-specialist
 priority: secondary
 uses_skills:
-  - ../../.agents/shared/code-parser.skill.md
-  - ../../.agents/shared/pattern-matcher.skill.md
+  - ../../shared/code-parser.skill.md
+  - ../../shared/pattern-matcher.skill.md
 ---
 
 # XSS Detector

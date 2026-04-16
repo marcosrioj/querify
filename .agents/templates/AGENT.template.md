@@ -6,7 +6,7 @@ priority: high
 uses_skills:
   - shared/example.skill.md
 uses_subagents:
-  - .subagents/example/example-detector.subagent.md
+  - .agents/subagents/example/example-detector.subagent.md
 ---
 
 # Example Orchestrator

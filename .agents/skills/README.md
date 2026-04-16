@@ -110,6 +110,8 @@ When a skill is created or changed, also review:
   - Model reusable evidence, citations, and trust semantics.
 - `plan-faq-to-qna-upgrade`
   - Sequence additive product and engineering changes from FAQ to Q&A.
+- `migrate-faqdb-to-qnadb`
+  - Drive FAQ-to-QnA parity work across models, APIs, UI, runtime, and tests.
 
 ### AI
 
@@ -131,6 +133,8 @@ When a skill is created or changed, also review:
   - Start in `data/`
 - Prompt contains "question thread", "answer", "knowledge", "provenance"
   - Start in `domain/`
+- Prompt contains "FaqDb", "QnADb", "FAQ parity", "port FAQ to QnA"
+  - Start in `domain/` with `migrate-faqdb-to-qnadb`
 - Prompt contains "generation", "matching", "provider", "RabbitMQ"
   - Start in `ai/`
 - Prompt contains "integrations", "embed", "SDK", "WordPress", "distribution"

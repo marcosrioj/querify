@@ -4,9 +4,9 @@ description: Review code for missing error handling, bad async usage, improper t
 type: reusable-specialist
 priority: secondary
 uses_skills:
-  - ../../.agents/shared/code-parser.skill.md
-  - ../../.agents/shared/code-diff-parser.skill.md
-  - ../../.agents/shared/complexity-analyzer.skill.md
+  - ../../shared/code-parser.skill.md
+  - ../../shared/code-diff-parser.skill.md
+  - ../../shared/complexity-analyzer.skill.md
 ---
 
 # Best Practices Reviewer

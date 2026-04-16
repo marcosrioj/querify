@@ -6,10 +6,10 @@ scope: cross-domain
 priority: high
 consumers:
   - security-orchestrator.agent.md
-  - .subagents/security/injection-detector.subagent.md
-  - .subagents/security/xss-detector.subagent.md
-  - .subagents/security/deserialization-detector.subagent.md
-  - .subagents/security/secrets-detector.subagent.md
+  - .agents/subagents/security/injection-detector.subagent.md
+  - .agents/subagents/security/xss-detector.subagent.md
+  - .agents/subagents/security/deserialization-detector.subagent.md
+  - .agents/subagents/security/secrets-detector.subagent.md
 ---
 
 # Pattern Matcher Skill

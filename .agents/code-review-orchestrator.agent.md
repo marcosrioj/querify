@@ -8,10 +8,10 @@ uses_skills:
   - shared/code-diff-parser.skill.md
   - shared/complexity-analyzer.skill.md
 uses_subagents:
-  - .subagents/code-review/readability-reviewer.subagent.md
-  - .subagents/code-review/architecture-reviewer.subagent.md
-  - .subagents/code-review/performance-reviewer.subagent.md
-  - .subagents/code-review/best-practices-reviewer.subagent.md
+  - .agents/subagents/code-review/readability-reviewer.subagent.md
+  - .agents/subagents/code-review/architecture-reviewer.subagent.md
+  - .agents/subagents/code-review/performance-reviewer.subagent.md
+  - .agents/subagents/code-review/best-practices-reviewer.subagent.md
 integrates_with:
   - security-orchestrator.agent.md
 ---

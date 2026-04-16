@@ -10,7 +10,7 @@ The ecosystem is standardized into five artifact families:
    - Path: `.agents/*.agent.md` and `.agents/privacy/*.agent.md`
    - Purpose: high-level coordination, routing, aggregation, and final response composition.
 2. Markdown subagents
-   - Path: `.agents/privacy/*.subagent.md` and `.subagents/**/*.subagent.md`
+   - Path: `.agents/privacy/*.subagent.md` and `.agents/subagents/**/*.subagent.md`
    - Purpose: narrow decision logic, jurisdiction interpretation, or generic analysis.
 3. Flat operational skills
    - Path: `.agents/shared/*.skill.md` and `.agents/privacy/*.skill.md`

@@ -3,7 +3,7 @@
 ## Scope Reviewed
 
 - previous BaseFAQ-specific skills under the legacy `.agents/` tree
-- generic external specialists under the legacy `.subagents/` tree
+- generic external specialists under the legacy external specialist tree
 
 ## Overlaps
 
@@ -26,7 +26,7 @@
 
 ### Generic subagent overlaps
 
-The old `.subagents/` tree contained many near-duplicates:
+The old external specialist tree contained many near-duplicates:
 
 - multiple backend implementers
 - multiple frontend implementers and UI specialists

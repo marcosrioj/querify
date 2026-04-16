@@ -82,7 +82,7 @@ Also update `skills/README.md` when the skill catalog changes.
 
 Also update `subagents/README.md` when the worker catalog changes.
 
-### Update root `.subagents/**/*` when
+### Update `subagents/**/*.subagent.md` when
 
 - a generic reusable specialist is added or changed
 - a low-priority detector or analyzer boundary changes

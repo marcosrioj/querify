@@ -4,9 +4,9 @@ description: Review code for visible algorithmic inefficiencies, repeated I/O, a
 type: reusable-specialist
 priority: secondary
 uses_skills:
-  - ../../.agents/shared/code-parser.skill.md
-  - ../../.agents/shared/code-diff-parser.skill.md
-  - ../../.agents/shared/complexity-analyzer.skill.md
+  - ../../shared/code-parser.skill.md
+  - ../../shared/code-diff-parser.skill.md
+  - ../../shared/complexity-analyzer.skill.md
 ---
 
 # Performance Reviewer

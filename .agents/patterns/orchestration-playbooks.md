@@ -36,6 +36,17 @@ Use when the prompt is about moving BaseFAQ toward Q&A semantics.
 3. `plan-faq-to-qna-upgrade`
 4. Optional worker: `domain-model-worker`
 
+## FaqDb To QnADb Migration Playbook
+
+Use when the prompt is about carrying FAQ behavior or completeness forward onto the QnA model and app stack.
+
+1. `migrate-faqdb-to-qnadb`
+2. `build-cqrs-feature-module` when Portal or Public backend surfaces move
+3. `build-portal-domain-data-flow` when Portal routes, hooks, or pages move
+4. `apply-seed-and-migrations-safely` when persistence, migrations, or seed data change
+5. `write-real-database-integration-tests`
+6. Optional workers: `domain-model-worker`, `backend-feature-worker`, `portal-frontend-worker`, `data-integrity-worker`
+
 ## AI Workflow Playbook
 
 Use when the prompt involves queue-backed generation or matching.
@@ -81,10 +92,10 @@ Use when the prompt is about vulnerability review or security-focused static ana
    - [`../shared/code-parser.skill.md`](../shared/code-parser.skill.md)
    - [`../shared/pattern-matcher.skill.md`](../shared/pattern-matcher.skill.md)
 3. Execute all specialists:
-   - `.subagents/security/injection-detector.subagent.md`
-   - `.subagents/security/xss-detector.subagent.md`
-   - `.subagents/security/deserialization-detector.subagent.md`
-   - `.subagents/security/secrets-detector.subagent.md`
+   - `.agents/subagents/security/injection-detector.subagent.md`
+   - `.agents/subagents/security/xss-detector.subagent.md`
+   - `.agents/subagents/security/deserialization-detector.subagent.md`
+   - `.agents/subagents/security/secrets-detector.subagent.md`
 4. De-duplicate and validate the final report inside the orchestrator before returning results.
 
 ## Code Review Playbook
@@ -97,10 +108,10 @@ Use when the prompt is about code quality, PR review, diff review, snippet revie
    - [`../shared/code-diff-parser.skill.md`](../shared/code-diff-parser.skill.md)
    - [`../shared/complexity-analyzer.skill.md`](../shared/complexity-analyzer.skill.md)
 3. Execute all specialists:
-   - `.subagents/code-review/readability-reviewer.subagent.md`
-   - `.subagents/code-review/architecture-reviewer.subagent.md`
-   - `.subagents/code-review/performance-reviewer.subagent.md`
-   - `.subagents/code-review/best-practices-reviewer.subagent.md`
+   - `.agents/subagents/code-review/readability-reviewer.subagent.md`
+   - `.agents/subagents/code-review/architecture-reviewer.subagent.md`
+   - `.agents/subagents/code-review/performance-reviewer.subagent.md`
+   - `.agents/subagents/code-review/best-practices-reviewer.subagent.md`
 4. Always run [`../security-orchestrator.agent.md`](../security-orchestrator.agent.md) when available.
 5. De-duplicate, validate, score, and render the final review inside the orchestrator.
 

@@ -4,7 +4,7 @@ description: One-sentence description of the narrow reusable specialist concern.
 type: reusable-specialist
 priority: secondary
 uses_skills:
-  - ../../.agents/shared/example.skill.md
+  - ../../shared/example.skill.md
 ---
 
 # Example Generic Subagent

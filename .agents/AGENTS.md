@@ -40,14 +40,14 @@ Use this precedence order:
 3. the selected skill or skills under `.agents/skills/`, `.agents/shared/*.skill.md`, and `.agents/privacy/*.skill.md`
 4. shared context, patterns, glossary, and templates under `.agents/`
 5. BaseFAQ internal workers under `.agents/subagents/*.toml`
-6. generic reusable specialists under `.subagents/**/*.subagent.md`
+6. generic reusable specialists under `.agents/subagents/**/*.subagent.md`
 
 Hard rule: skills outrank subagents.
 
 - Skills decide what kind of work BaseFAQ needs.
 - Subagents execute bounded work that has already been framed by one or more skills.
 - Subagents must not invent strategy, rename the domain, or override BaseFAQ standards.
-- Agents in `.agents/` orchestrate; specialists in `.subagents/` detect or execute narrow reusable concerns.
+- Agents in `.agents/` orchestrate; specialists in `.agents/subagents/` detect or execute narrow reusable concerns.
 
 When `.agents/` defines a configurable reasoning depth for workers or future agent artifacts, the default must be `xhigh`.
 
@@ -82,7 +82,7 @@ Use this destination map:
 - vocabulary or domain language -> `glossary/basefaq-glossary.md`
 - reusable specialist capability -> `skills/<category>/<skill>/SKILL.md` and `skills/README.md`
 - BaseFAQ internal worker definition -> `subagents/*.toml` and `subagents/README.md`
-- generic reusable specialist definition -> `../.subagents/**/*.subagent.md`
+- generic reusable specialist definition -> `subagents/**/*.subagent.md`
 - scaffolding rules -> `templates/*`
 
 ## Artifact Naming Standards
@@ -167,6 +167,10 @@ Use intent-first routing, not title matching alone.
   - Primary: `model-question-thread-domain`
   - Supporting: `design-provenance-and-trust`, `plan-faq-to-qna-upgrade`
 
+- "faqdb to qnadb", "faq parity migration", "port faq surface to qna"
+  - Primary: `migrate-faqdb-to-qnadb`
+  - Supporting: `build-cqrs-feature-module`, `build-portal-domain-data-flow`, `apply-seed-and-migrations-safely`, `write-real-database-integration-tests`
+
 - "design distribution layer", "integrations strategy", "embed/sdk/plugin rollout"
   - Primary: `prioritize-integration-rollout`
 
@@ -177,12 +181,12 @@ Use intent-first routing, not title matching alone.
 - "security review", "scan vulnerabilities", "xss", "sql injection", "hardcoded secrets", "unsafe deserialization"
   - Primary orchestrator: `security-orchestrator.agent.md`
   - Shared skills: `shared/code-parser.skill.md`, `shared/pattern-matcher.skill.md`
-  - Required specialists: `.subagents/security/*.subagent.md`
+  - Required specialists: `.agents/subagents/security/*.subagent.md`
 
 - "code review", "review diff", "review PR", "analyze snippet", or any prompt that contains full code, a code fence, or diff-like hunks
   - Primary orchestrator: `code-review-orchestrator.agent.md`
   - Shared skills: `shared/code-parser.skill.md`, `shared/code-diff-parser.skill.md`, `shared/complexity-analyzer.skill.md`
-  - Required specialists: `.subagents/code-review/*.subagent.md`
+  - Required specialists: `.agents/subagents/code-review/*.subagent.md`
   - Required integration: `security-orchestrator.agent.md` when available
 
 - "privacy request", "gdpr", "lgpd", "ccpa", "pipl", "consent withdrawal", "data deletion request", "data subject request"
@@ -226,8 +230,8 @@ Do not use a subagent when:
 - Pass the selected skill names into the worker prompt.
 - Require the worker to preserve BaseFAQ terminology and standards.
 - Review every worker output against the selected skills before using it.
-- For security analysis, run all required specialists under `.subagents/security/` and aggregate them in `security-orchestrator.agent.md`.
-- For code review, run all required specialists under `.subagents/code-review/` and integrate `security-orchestrator.agent.md` when available.
+- For security analysis, run all required specialists under `.agents/subagents/security/` and aggregate them in `security-orchestrator.agent.md`.
+- For code review, run all required specialists under `.agents/subagents/code-review/` and integrate `security-orchestrator.agent.md` when available.
 
 ## Execution Flow
 

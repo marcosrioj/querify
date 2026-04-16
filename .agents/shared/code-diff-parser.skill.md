@@ -6,10 +6,10 @@ scope: cross-domain
 priority: high
 consumers:
   - code-review-orchestrator.agent.md
-  - .subagents/code-review/readability-reviewer.subagent.md
-  - .subagents/code-review/architecture-reviewer.subagent.md
-  - .subagents/code-review/performance-reviewer.subagent.md
-  - .subagents/code-review/best-practices-reviewer.subagent.md
+  - .agents/subagents/code-review/readability-reviewer.subagent.md
+  - .agents/subagents/code-review/architecture-reviewer.subagent.md
+  - .agents/subagents/code-review/performance-reviewer.subagent.md
+  - .agents/subagents/code-review/best-practices-reviewer.subagent.md
 ---
 
 # Code Diff Parser Skill

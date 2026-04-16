@@ -1,16 +1,18 @@
 # BaseFAQ Subagents
 
-Subagents are execution workers. They are intentionally lower priority than skills.
+Subagents under this tree are lower priority than skills. This tree now hosts both BaseFAQ execution workers and generic reusable markdown specialists in one consolidated location.
 
-The worker catalog is also self-maintained:
+The subagent catalog is also self-maintained:
 
 - if a future task reveals a new recurring execution boundary, add or update the corresponding worker
-- if a worker becomes obsolete or its ownership changes, update this catalog in the same task
-- worker changes should also trigger review of routing and orchestration files through [`../patterns/agent-system-maintenance.md`](../patterns/agent-system-maintenance.md)
+- if a future task reveals a new reusable generic specialist, add or update the corresponding markdown subagent
+- if a worker or specialist becomes obsolete or its ownership changes, update this catalog in the same task
+- subagent changes should also trigger review of routing and orchestration files through [`../patterns/agent-system-maintenance.md`](../patterns/agent-system-maintenance.md)
 
-Generic reusable specialists that are not BaseFAQ-specific belong in the root `.subagents/` tree, not here.
+Path layout:
 
-The generic code-review specialists in root `.subagents/code-review/` are the detection layer for reusable review concerns.
+- `*.toml` at the root of this folder are BaseFAQ execution workers
+- `code-review/*.subagent.md` and `security/*.subagent.md` are reusable generic markdown specialists
 
 Reasoning-depth rule:
 
@@ -22,7 +24,7 @@ Use them only after:
 2. the file ownership boundary is clear
 3. the worker can operate without redefining strategy
 
-## Worker Catalog
+## Execution Worker Catalog
 
 - `backend-feature-worker.toml`
   - Execute scoped backend feature work inside BaseFAQ API and business modules.
@@ -39,18 +41,39 @@ Use them only after:
 - `quality-review-worker.toml`
   - Perform bounded review and verification work after implementation is framed.
 
+## Generic Specialist Catalog
+
+- `code-review/readability-reviewer.subagent.md`
+  - Reusable readability and maintainability reviewer for code input.
+- `code-review/architecture-reviewer.subagent.md`
+  - Reusable architecture and separation-of-concerns reviewer for code input.
+- `code-review/performance-reviewer.subagent.md`
+  - Reusable performance reviewer for visible hot paths and repeated work.
+- `code-review/best-practices-reviewer.subagent.md`
+  - Reusable best-practices reviewer for error handling and framework misuse.
+- `security/injection-detector.subagent.md`
+  - Reusable detector for command injection, SQL injection, eval, and path traversal patterns.
+- `security/xss-detector.subagent.md`
+  - Reusable detector for HTML, DOM, and templating XSS sinks.
+- `security/deserialization-detector.subagent.md`
+  - Reusable detector for unsafe deserialization patterns.
+- `security/secrets-detector.subagent.md`
+  - Reusable detector for hardcoded credentials and secret-like values.
+
 ## Naming Standards
 
 - worker files use `kebab-case-worker.toml`
+- markdown specialists use `kebab-case.subagent.md`
 - `name` must match the filename stem exactly
-- `role` must be `execution-worker`
-- `model_reasoning_effort` defaults to `xhigh`
+- worker `role` must be `execution-worker`
+- markdown specialists use `type: reusable-specialist`
+- `model_reasoning_effort` defaults to `xhigh` when a worker definition supports it
 
 The human-facing usage guide for workers and other agent artifacts lives in [`../../docs/agents/catalog.md`](../../docs/agents/catalog.md).
 
 ## Guardrails
 
-- Workers do not select skills.
-- Workers do not invent new BaseFAQ terminology.
-- Workers do not widen scope unless the parent agent explicitly expands it.
+- Workers and specialists do not select skills.
+- Workers and specialists do not invent new BaseFAQ terminology.
+- Workers and specialists do not widen scope unless the parent agent explicitly expands it.
 - Workers must report changed files, validation performed, and residual risk.

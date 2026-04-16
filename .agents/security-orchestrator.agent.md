@@ -7,10 +7,10 @@ uses_skills:
   - shared/code-parser.skill.md
   - shared/pattern-matcher.skill.md
 uses_subagents:
-  - .subagents/security/injection-detector.subagent.md
-  - .subagents/security/xss-detector.subagent.md
-  - .subagents/security/deserialization-detector.subagent.md
-  - .subagents/security/secrets-detector.subagent.md
+  - .agents/subagents/security/injection-detector.subagent.md
+  - .agents/subagents/security/xss-detector.subagent.md
+  - .agents/subagents/security/deserialization-detector.subagent.md
+  - .agents/subagents/security/secrets-detector.subagent.md
 ---
 
 # Security Orchestrator

@@ -4,8 +4,8 @@ description: Detect unsafe deserialization of untrusted data using risky seriali
 type: reusable-specialist
 priority: secondary
 uses_skills:
-  - ../../.agents/shared/code-parser.skill.md
-  - ../../.agents/shared/pattern-matcher.skill.md
+  - ../../shared/code-parser.skill.md
+  - ../../shared/pattern-matcher.skill.md
 ---
 
 # Deserialization Detector

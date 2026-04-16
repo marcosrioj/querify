@@ -24,14 +24,14 @@ This catalog is the human-readable reference for every orchestrator, subagent, s
 
 | Artifact | Path | Use When | Called By |
 |---|---|---|---|
-| `readability-reviewer` | `.subagents/code-review/readability-reviewer.subagent.md` | Code review needs clarity, naming, duplication, or scanability findings. | `code-review-orchestrator` |
-| `architecture-reviewer` | `.subagents/code-review/architecture-reviewer.subagent.md` | Code review needs separation-of-concerns or architectural anti-pattern findings. | `code-review-orchestrator` |
-| `performance-reviewer` | `.subagents/code-review/performance-reviewer.subagent.md` | Code review needs visible hot-path, loop, or repeated-I/O analysis. | `code-review-orchestrator` |
-| `best-practices-reviewer` | `.subagents/code-review/best-practices-reviewer.subagent.md` | Code review needs missing error handling, async misuse, or framework misuse findings. | `code-review-orchestrator` |
-| `injection-detector` | `.subagents/security/injection-detector.subagent.md` | Security analysis needs command injection, SQL injection, eval, or path traversal detection. | `security-orchestrator` |
-| `xss-detector` | `.subagents/security/xss-detector.subagent.md` | Security analysis needs HTML or DOM sink review for XSS risk. | `security-orchestrator` |
-| `deserialization-detector` | `.subagents/security/deserialization-detector.subagent.md` | Security analysis needs unsafe deserialization review. | `security-orchestrator` |
-| `secrets-detector` | `.subagents/security/secrets-detector.subagent.md` | Security analysis needs hardcoded-secret detection. | `security-orchestrator` |
+| `readability-reviewer` | `.agents/subagents/code-review/readability-reviewer.subagent.md` | Code review needs clarity, naming, duplication, or scanability findings. | `code-review-orchestrator` |
+| `architecture-reviewer` | `.agents/subagents/code-review/architecture-reviewer.subagent.md` | Code review needs separation-of-concerns or architectural anti-pattern findings. | `code-review-orchestrator` |
+| `performance-reviewer` | `.agents/subagents/code-review/performance-reviewer.subagent.md` | Code review needs visible hot-path, loop, or repeated-I/O analysis. | `code-review-orchestrator` |
+| `best-practices-reviewer` | `.agents/subagents/code-review/best-practices-reviewer.subagent.md` | Code review needs missing error handling, async misuse, or framework misuse findings. | `code-review-orchestrator` |
+| `injection-detector` | `.agents/subagents/security/injection-detector.subagent.md` | Security analysis needs command injection, SQL injection, eval, or path traversal detection. | `security-orchestrator` |
+| `xss-detector` | `.agents/subagents/security/xss-detector.subagent.md` | Security analysis needs HTML or DOM sink review for XSS risk. | `security-orchestrator` |
+| `deserialization-detector` | `.agents/subagents/security/deserialization-detector.subagent.md` | Security analysis needs unsafe deserialization review. | `security-orchestrator` |
+| `secrets-detector` | `.agents/subagents/security/secrets-detector.subagent.md` | Security analysis needs hardcoded-secret detection. | `security-orchestrator` |
 
 ## Flat Operational Skills
 
@@ -70,6 +70,8 @@ This catalog is the human-readable reference for every orchestrator, subagent, s
 | `write-real-database-integration-tests` | `.agents/skills/data/write-real-database-integration-tests/SKILL.md` | Verifying backend behavior with real PostgreSQL-backed integration coverage. | Backend, data, and worker skills |
 | `model-question-thread-domain` | `.agents/skills/domain/model-question-thread-domain/SKILL.md` | Modeling the question-thread domain and core aggregates. | `design-provenance-and-trust` |
 | `design-provenance-and-trust` | `.agents/skills/domain/design-provenance-and-trust/SKILL.md` | Designing evidence, citations, confidence, and trust semantics. | `model-question-thread-domain` |
+| `plan-faq-to-qna-upgrade` | `.agents/skills/domain/plan-faq-to-qna-upgrade/SKILL.md` | Sequencing additive product and engineering changes from FAQ toward Q&A. | `model-question-thread-domain`, `design-provenance-and-trust` |
+| `migrate-faqdb-to-qnadb` | `.agents/skills/domain/migrate-faqdb-to-qnadb/SKILL.md` | Carrying FAQ behavior and parity forward onto QnA persistence and app surfaces. | `plan-faq-to-qna-upgrade`, `apply-seed-and-migrations-safely`, `write-real-database-integration-tests` |
 | `publish-asynchronous-ai-request` | `.agents/skills/ai/publish-asynchronous-ai-request/SKILL.md` | Starting generation or matching through async events and correlation ids. | `process-control-plane-work-items`, `write-real-database-integration-tests` |
 | `prioritize-integration-rollout` | `.agents/skills/distribution/prioritize-integration-rollout/SKILL.md` | Planning integration and distribution rollout for embeds, SDKs, and plugins. | `design-provenance-and-trust` |
 

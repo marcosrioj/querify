@@ -7,14 +7,14 @@ priority: high
 consumers:
   - code-review-orchestrator.agent.md
   - security-orchestrator.agent.md
-  - .subagents/code-review/readability-reviewer.subagent.md
-  - .subagents/code-review/architecture-reviewer.subagent.md
-  - .subagents/code-review/performance-reviewer.subagent.md
-  - .subagents/code-review/best-practices-reviewer.subagent.md
-  - .subagents/security/injection-detector.subagent.md
-  - .subagents/security/xss-detector.subagent.md
-  - .subagents/security/deserialization-detector.subagent.md
-  - .subagents/security/secrets-detector.subagent.md
+  - .agents/subagents/code-review/readability-reviewer.subagent.md
+  - .agents/subagents/code-review/architecture-reviewer.subagent.md
+  - .agents/subagents/code-review/performance-reviewer.subagent.md
+  - .agents/subagents/code-review/best-practices-reviewer.subagent.md
+  - .agents/subagents/security/injection-detector.subagent.md
+  - .agents/subagents/security/xss-detector.subagent.md
+  - .agents/subagents/security/deserialization-detector.subagent.md
+  - .agents/subagents/security/secrets-detector.subagent.md
 ---
 
 # Code Parser Skill
