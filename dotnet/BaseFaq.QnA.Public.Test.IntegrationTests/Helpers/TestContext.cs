@@ -16,6 +16,7 @@ public sealed class TestContext : IDisposable
     private TestContext(
         QnADbContext dbContext,
         HttpContextAccessor httpContextAccessor,
+        TestSessionService sessionService,
         Guid tenantId,
         Guid userId,
         string clientKey,
@@ -25,6 +26,7 @@ public sealed class TestContext : IDisposable
     {
         DbContext = dbContext;
         HttpContextAccessor = httpContextAccessor;
+        SessionService = sessionService;
         TenantId = tenantId;
         UserId = userId;
         ClientKey = clientKey;
@@ -35,6 +37,7 @@ public sealed class TestContext : IDisposable
 
     public QnADbContext DbContext { get; }
     public HttpContextAccessor HttpContextAccessor { get; }
+    public TestSessionService SessionService { get; }
     public Guid TenantId { get; }
     public Guid UserId { get; }
     public string ClientKey { get; }
@@ -103,6 +106,7 @@ public sealed class TestContext : IDisposable
         return new TestContext(
             dbContext,
             httpContextAccessor,
+            sessionService,
             resolvedTenantId,
             resolvedUserId,
             resolvedClientKey,

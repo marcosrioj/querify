@@ -22,6 +22,9 @@ public class ThreadActivityConfiguration : BaseConfiguration<ThreadActivity>
         builder.Property(activity => activity.ActorLabel)
             .HasMaxLength(ThreadActivity.MaxActorLabelLength);
 
+        builder.Property(activity => activity.UserPrint)
+            .HasMaxLength(ThreadActivity.MaxUserPrintLength);
+
         builder.Property(activity => activity.Notes)
             .HasMaxLength(ThreadActivity.MaxNotesLength);
 

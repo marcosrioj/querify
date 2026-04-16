@@ -4,6 +4,7 @@ using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Common.Infrastructure.Core.Constants;
 using BaseFaq.Models.QnA.Enums;
 using BaseFaq.QnA.Common.Persistence.QnADb;
+using BaseFaq.QnA.Common.Persistence.QnADb.Identity;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -16,11 +17,17 @@ public sealed class QuestionsCreateQuestionCommandHandler(
     QnADbContext dbContext,
     IClientKeyContextService clientKeyContextService,
     ITenantClientKeyResolver tenantClientKeyResolver,
+    ISessionService sessionService,
+    IClaimService claimService,
     IHttpContextAccessor httpContextAccessor)
     : IRequestHandler<QuestionsCreateQuestionCommand, Guid>
 {
     public async Task<Guid> Handle(QuestionsCreateQuestionCommand request, CancellationToken cancellationToken)
     {
+        var httpContext = httpContextAccessor.HttpContext ?? throw new ApiErrorException(
+            "HttpContext is missing from the current request.",
+            (int)HttpStatusCode.Unauthorized);
+        var identity = ThreadActivityUserPrint.ResolveCurrent(httpContext, claimService, sessionService);
         var tenantId = await ResolveTenantIdAndSetContextAsync(cancellationToken);
         var space = await dbContext.QuestionSpaces
             .Include(entity => entity.Questions)
@@ -78,7 +85,8 @@ public sealed class QuestionsCreateQuestionCommandHandler(
             Question = entity,
             Kind = ActivityKind.QuestionCreated,
             ActorKind = ActorKind.Customer,
-            ActorLabel = "public",
+            ActorLabel = identity.UserPrint,
+            UserPrint = identity.UserPrint,
             OccurredAtUtc = DateTime.UtcNow,
             CreatedBy = "public",
             UpdatedBy = "public"
@@ -94,7 +102,8 @@ public sealed class QuestionsCreateQuestionCommandHandler(
             Question = entity,
             Kind = ActivityKind.QuestionSubmitted,
             ActorKind = ActorKind.Customer,
-            ActorLabel = "public",
+            ActorLabel = identity.UserPrint,
+            UserPrint = identity.UserPrint,
             OccurredAtUtc = DateTime.UtcNow,
             CreatedBy = "public",
             UpdatedBy = "public"

@@ -5,8 +5,8 @@ using BaseFaq.Common.Infrastructure.Core.Constants;
 using BaseFaq.Models.QnA.Enums;
 using BaseFaq.QnA.Common.Persistence.QnADb;
 using BaseFaq.QnA.Common.Persistence.QnADb.Entities;
+using BaseFaq.QnA.Common.Persistence.QnADb.Identity;
 using BaseFaq.QnA.Common.Persistence.QnADb.Projections;
-using BaseFaq.QnA.Public.Business.Feedback.Helpers;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -17,12 +17,17 @@ public sealed class FeedbacksCreateFeedbackCommandHandler(
     QnADbContext dbContext,
     IClientKeyContextService clientKeyContextService,
     ITenantClientKeyResolver tenantClientKeyResolver,
+    ISessionService sessionService,
+    IClaimService claimService,
     IHttpContextAccessor httpContextAccessor)
     : IRequestHandler<FeedbacksCreateFeedbackCommand, Guid>
 {
     public async Task<Guid> Handle(FeedbacksCreateFeedbackCommand request, CancellationToken cancellationToken)
     {
-        var identity = FeedbackRequestContext.GetIdentity(httpContextAccessor);
+        var httpContext = httpContextAccessor.HttpContext ?? throw new ApiErrorException(
+            "HttpContext is missing from the current request.",
+            (int)HttpStatusCode.Unauthorized);
+        var identity = ThreadActivityUserPrint.ResolveCurrent(httpContext, claimService, sessionService);
         var tenantId = await ResolveTenantIdAndSetContextAsync(cancellationToken);
         var question = await dbContext.Questions
             .Include(entity => entity.Activities)
@@ -43,15 +48,24 @@ public sealed class FeedbacksCreateFeedbackCommandHandler(
 
         var latest = question.Activities
             .Where(activity => activity.Kind == ActivityKind.FeedbackReceived)
-            .Select(activity => new { activity, metadata = ThreadActivitySignals.ParseFeedback(activity.MetadataJson) })
-            .Where(item => item.metadata?.UserPrint == identity.UserPrint)
-            .OrderByDescending(item => item.activity.OccurredAtUtc)
+            .Select(activity =>
+            {
+                var metadata = ThreadActivitySignals.ParseFeedback(activity.MetadataJson);
+                return new
+                {
+                    Activity = activity,
+                    Metadata = metadata,
+                    UserPrint = ThreadActivityUserPrint.ResolveStored(activity.UserPrint, metadata?.UserPrint)
+                };
+            })
+            .Where(item => item.Metadata is not null && item.UserPrint == identity.UserPrint)
+            .OrderByDescending(item => item.Activity.OccurredAtUtc)
             .FirstOrDefault();
 
-        if (latest?.metadata is not null &&
-            latest.metadata.Like == request.Request.Like &&
-            latest.metadata.Reason == request.Request.Reason)
-            return latest.activity.Id;
+        if (latest?.Metadata is not null &&
+            latest.Metadata.Like == request.Request.Like &&
+            latest.Metadata.Reason == request.Request.Reason)
+            return latest.Activity.Id;
 
         var activity = new ThreadActivity
         {
@@ -61,6 +75,7 @@ public sealed class FeedbacksCreateFeedbackCommandHandler(
             Kind = ActivityKind.FeedbackReceived,
             ActorKind = ActorKind.Customer,
             ActorLabel = identity.UserPrint,
+            UserPrint = identity.UserPrint,
             Notes = request.Request.Notes,
             MetadataJson = ThreadActivitySignals.CreateFeedbackMetadata(
                 identity.UserPrint,

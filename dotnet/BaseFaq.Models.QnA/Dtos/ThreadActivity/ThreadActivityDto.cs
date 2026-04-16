@@ -11,6 +11,7 @@ public class ThreadActivityDto
     public ActivityKind Kind { get; set; }
     public ActorKind ActorKind { get; set; }
     public string? ActorLabel { get; set; }
+    public string? UserPrint { get; set; }
     public string? Notes { get; set; }
     public string? MetadataJson { get; set; }
     public DateTime OccurredAtUtc { get; set; }

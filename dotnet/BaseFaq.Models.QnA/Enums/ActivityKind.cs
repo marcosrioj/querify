@@ -83,5 +83,10 @@ public enum ActivityKind
     /// <summary>
     /// An answer was retired from active use.
     /// </summary>
-    AnswerRetired = 16
+    AnswerRetired = 16,
+
+    /// <summary>
+    /// A public report signal was received for the thread or a visible answer.
+    /// </summary>
+    ReportReceived = 17
 }

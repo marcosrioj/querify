@@ -4,6 +4,7 @@ using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.QnA.Dtos.ThreadActivity;
 using BaseFaq.QnA.Common.Persistence.QnADb;
+using BaseFaq.QnA.Common.Persistence.QnADb.Projections;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -26,18 +27,6 @@ public sealed class ThreadActivitiesGetThreadActivityQueryHandler(
             ? throw new ApiErrorException(
                 $"Thread activity '{request.Id}' was not found.",
                 (int)HttpStatusCode.NotFound)
-            : new ThreadActivityDto
-            {
-                Id = entity.Id,
-                TenantId = entity.TenantId,
-                QuestionId = entity.QuestionId,
-                AnswerId = entity.AnswerId,
-                Kind = entity.Kind,
-                ActorKind = entity.ActorKind,
-                ActorLabel = entity.ActorLabel,
-                Notes = entity.Notes,
-                MetadataJson = entity.MetadataJson,
-                OccurredAtUtc = entity.OccurredAtUtc
-            };
+            : entity.ToThreadActivityDto();
     }
 }

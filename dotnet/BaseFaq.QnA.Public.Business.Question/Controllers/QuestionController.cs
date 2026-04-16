@@ -41,4 +41,11 @@ public class QuestionController(IQuestionService questionService) : ControllerBa
     {
         return StatusCode(StatusCodes.Status201Created, await questionService.Create(dto, token));
     }
+
+    [HttpPost("report")]
+    [ProducesResponseType(typeof(Guid), StatusCodes.Status201Created)]
+    public async Task<IActionResult> Report([FromBody] QuestionReportCreateRequestDto dto, CancellationToken token)
+    {
+        return StatusCode(StatusCodes.Status201Created, await questionService.Report(dto, token));
+    }
 }

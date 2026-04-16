@@ -3,6 +3,7 @@ using BaseFaq.Models.Common.Dtos;
 using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.QnA.Dtos.ThreadActivity;
 using BaseFaq.QnA.Common.Persistence.QnADb;
+using BaseFaq.QnA.Common.Persistence.QnADb.Projections;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -57,19 +58,7 @@ public sealed class ThreadActivitiesGetThreadActivityListQueryHandler(
 
         return new PagedResultDto<ThreadActivityDto>(
             totalCount,
-            items.Select(activity => new ThreadActivityDto
-                {
-                    Id = activity.Id,
-                    TenantId = activity.TenantId,
-                    QuestionId = activity.QuestionId,
-                    AnswerId = activity.AnswerId,
-                    Kind = activity.Kind,
-                    ActorKind = activity.ActorKind,
-                    ActorLabel = activity.ActorLabel,
-                    Notes = activity.Notes,
-                    MetadataJson = activity.MetadataJson,
-                    OccurredAtUtc = activity.OccurredAtUtc
-                })
+            items.Select(activity => activity.ToThreadActivityDto())
                 .ToList());
     }
 }

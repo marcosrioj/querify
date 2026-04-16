@@ -1,5 +1,6 @@
 using System.Text.Json;
 using BaseFaq.Models.QnA.Enums;
+using BaseFaq.QnA.Common.Persistence.QnADb.Identity;
 using BaseFaq.QnA.Common.Persistence.QnADb.Entities;
 
 namespace BaseFaq.QnA.Common.Persistence.QnADb.Projections;
@@ -10,9 +11,18 @@ public static class ThreadActivitySignals
     {
         return activities
             .Where(activity => activity.Kind == ActivityKind.FeedbackReceived)
-            .Select(activity => new { activity.OccurredAtUtc, Metadata = ParseFeedback(activity.MetadataJson) })
-            .Where(item => item.Metadata is not null)
-            .GroupBy(item => item.Metadata!.UserPrint)
+            .Select(activity =>
+            {
+                var metadata = ParseFeedback(activity.MetadataJson);
+                return new
+                {
+                    activity.OccurredAtUtc,
+                    Metadata = metadata,
+                    UserPrint = ThreadActivityUserPrint.ResolveStored(activity.UserPrint, metadata?.UserPrint)
+                };
+            })
+            .Where(item => item.Metadata is not null && !string.IsNullOrWhiteSpace(item.UserPrint))
+            .GroupBy(item => item.UserPrint!, StringComparer.Ordinal)
             .Select(group => group.OrderByDescending(item => item.OccurredAtUtc).First().Metadata!)
             .Sum(metadata => metadata.Like ? 1 : -1);
     }
@@ -21,9 +31,18 @@ public static class ThreadActivitySignals
     {
         return activities
             .Where(activity => activity.Kind == ActivityKind.VoteReceived && activity.AnswerId == answerId)
-            .Select(activity => new { activity.OccurredAtUtc, Metadata = ParseVote(activity.MetadataJson) })
-            .Where(item => item.Metadata is not null)
-            .GroupBy(item => item.Metadata!.UserPrint)
+            .Select(activity =>
+            {
+                var metadata = ParseVote(activity.MetadataJson);
+                return new
+                {
+                    activity.OccurredAtUtc,
+                    Metadata = metadata,
+                    UserPrint = ThreadActivityUserPrint.ResolveStored(activity.UserPrint, metadata?.UserPrint)
+                };
+            })
+            .Where(item => item.Metadata is not null && !string.IsNullOrWhiteSpace(item.UserPrint))
+            .GroupBy(item => item.UserPrint!, StringComparer.Ordinal)
             .Select(group => group.OrderByDescending(item => item.OccurredAtUtc).First().Metadata!)
             .Sum(metadata => metadata.VoteValue);
     }
@@ -88,6 +107,35 @@ public static class ThreadActivitySignals
         }
     }
 
+    public static string CreateReportMetadata(
+        string userPrint,
+        string ip,
+        string userAgent,
+        string? reason)
+    {
+        return JsonSerializer.Serialize(new ReportSignalMetadata
+        {
+            UserPrint = userPrint,
+            Ip = ip,
+            UserAgent = userAgent,
+            Reason = reason
+        });
+    }
+
+    public static ReportSignalMetadata? ParseReport(string? metadataJson)
+    {
+        if (string.IsNullOrWhiteSpace(metadataJson)) return null;
+
+        try
+        {
+            return JsonSerializer.Deserialize<ReportSignalMetadata>(metadataJson);
+        }
+        catch (JsonException)
+        {
+            return null;
+        }
+    }
+
     public sealed class FeedbackSignalMetadata
     {
         public required string UserPrint { get; init; }
@@ -103,5 +151,13 @@ public static class ThreadActivitySignals
         public string? Ip { get; init; }
         public string? UserAgent { get; init; }
         public required int VoteValue { get; init; }
+    }
+
+    public sealed class ReportSignalMetadata
+    {
+        public required string UserPrint { get; init; }
+        public string? Ip { get; init; }
+        public string? UserAgent { get; init; }
+        public string? Reason { get; init; }
     }
 }

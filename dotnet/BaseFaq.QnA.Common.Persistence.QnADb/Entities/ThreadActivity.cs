@@ -11,6 +11,7 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Entities;
 public class ThreadActivity : BaseEntity, IMustHaveTenant
 {
     public const int MaxActorLabelLength = 200;
+    public const int MaxUserPrintLength = 200;
     public const int MaxNotesLength = 4000;
     public const int MaxMetadataLength = 4000;
     /// <summary>
@@ -47,6 +48,11 @@ public class ThreadActivity : BaseEntity, IMustHaveTenant
     /// Name or label of the actor associated with the event.
     /// </summary>
     public string? ActorLabel { get; set; }
+
+    /// <summary>
+    /// Canonical identity of the effective actor for public and authenticated activity flows.
+    /// </summary>
+    public string? UserPrint { get; set; }
 
     /// <summary>
     /// Free-form notes about the event.

@@ -11,93 +11,89 @@ using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 
-namespace BaseFaq.QnA.Public.Business.Vote.Commands.CreateVote;
+namespace BaseFaq.QnA.Public.Business.Question.Commands.CreateReport;
 
-public sealed class VotesCreateVoteCommandHandler(
+public sealed class QuestionsCreateReportCommandHandler(
     QnADbContext dbContext,
     IClientKeyContextService clientKeyContextService,
     ITenantClientKeyResolver tenantClientKeyResolver,
     ISessionService sessionService,
     IClaimService claimService,
     IHttpContextAccessor httpContextAccessor)
-    : IRequestHandler<VotesCreateVoteCommand, Guid>
+    : IRequestHandler<QuestionsCreateReportCommand, Guid>
 {
-    public async Task<Guid> Handle(VotesCreateVoteCommand request, CancellationToken cancellationToken)
+    public async Task<Guid> Handle(QuestionsCreateReportCommand request, CancellationToken cancellationToken)
     {
         var httpContext = httpContextAccessor.HttpContext ?? throw new ApiErrorException(
             "HttpContext is missing from the current request.",
             (int)HttpStatusCode.Unauthorized);
         var identity = ThreadActivityUserPrint.ResolveCurrent(httpContext, claimService, sessionService);
         var tenantId = await ResolveTenantIdAndSetContextAsync(cancellationToken);
-        var answer = await dbContext.Answers
-            .Include(entity => entity.Question)
-            .ThenInclude(question => question.Activities)
+        var question = await dbContext.Questions
+            .Include(entity => entity.Activities)
             .SingleOrDefaultAsync(
                 entity =>
                     entity.TenantId == tenantId &&
-                    entity.Id == request.Request.AnswerId &&
-                    entity.QuestionId == request.Request.QuestionId &&
+                    entity.Id == request.Request.QuestionId &&
                     (entity.Visibility == VisibilityScope.Public ||
                      entity.Visibility == VisibilityScope.PublicIndexed) &&
-                    (entity.Status == AnswerStatus.Published || entity.Status == AnswerStatus.Validated),
+                    (entity.Status == QuestionStatus.Open || entity.Status == QuestionStatus.Answered ||
+                     entity.Status == QuestionStatus.Validated),
                 cancellationToken);
 
-        if (answer is null ||
-            answer.Question.TenantId != tenantId ||
-            answer.Question.Visibility is not (VisibilityScope.Public or VisibilityScope.PublicIndexed))
+        if (question is null)
             throw new ApiErrorException(
-                $"Answer '{request.Request.AnswerId}' was not found.",
+                $"Question '{request.Request.QuestionId}' was not found.",
                 (int)HttpStatusCode.NotFound);
 
-        var latest = answer.Question.Activities
-            .Where(activity =>
-                activity.Kind == ActivityKind.VoteReceived && activity.AnswerId == request.Request.AnswerId)
-            .Select(activity =>
-            {
-                var metadata = ThreadActivitySignals.ParseVote(activity.MetadataJson);
-                return new
-                {
-                    Activity = activity,
-                    Metadata = metadata,
-                    UserPrint = ThreadActivityUserPrint.ResolveStored(activity.UserPrint, metadata?.UserPrint)
-                };
-            })
-            .Where(item => item.Metadata is not null && item.UserPrint == identity.UserPrint)
-            .OrderByDescending(item => item.Activity.OccurredAtUtc)
-            .FirstOrDefault();
+        Answer? answer = null;
+        if (request.Request.AnswerId is Guid answerId)
+        {
+            answer = await dbContext.Answers
+                .SingleOrDefaultAsync(
+                    entity =>
+                        entity.TenantId == tenantId &&
+                        entity.Id == answerId &&
+                        entity.QuestionId == question.Id &&
+                        (entity.Visibility == VisibilityScope.Public ||
+                         entity.Visibility == VisibilityScope.PublicIndexed) &&
+                        (entity.Status == AnswerStatus.Published || entity.Status == AnswerStatus.Validated),
+                    cancellationToken);
 
-        var requestedValue = request.Request.IsUpvote ? 1 : -1;
-        var effectiveValue = latest?.Metadata?.VoteValue;
-        var storedValue = effectiveValue == requestedValue ? 0 : requestedValue;
+            if (answer is null)
+                throw new ApiErrorException(
+                    $"Answer '{answerId}' was not found.",
+                    (int)HttpStatusCode.NotFound);
+        }
 
         var activity = new ThreadActivity
         {
-            TenantId = answer.TenantId,
-            QuestionId = answer.QuestionId,
-            Question = answer.Question,
-            AnswerId = answer.Id,
+            TenantId = question.TenantId,
+            QuestionId = question.Id,
+            Question = question,
+            AnswerId = answer?.Id,
             Answer = answer,
-            Kind = ActivityKind.VoteReceived,
+            Kind = ActivityKind.ReportReceived,
             ActorKind = ActorKind.Customer,
             ActorLabel = identity.UserPrint,
             UserPrint = identity.UserPrint,
             Notes = request.Request.Notes,
-            MetadataJson = ThreadActivitySignals.CreateVoteMetadata(
+            MetadataJson = ThreadActivitySignals.CreateReportMetadata(
                 identity.UserPrint,
                 identity.Ip,
                 identity.UserAgent,
-                storedValue),
+                request.Request.Reason),
             OccurredAtUtc = DateTime.UtcNow,
             CreatedBy = identity.UserPrint,
             UpdatedBy = identity.UserPrint
         };
 
-        answer.Question.Activities.Add(activity);
-        answer.Question.LastActivityAtUtc = activity.OccurredAtUtc;
+        question.Activities.Add(activity);
+        question.LastActivityAtUtc = activity.OccurredAtUtc;
         dbContext.ThreadActivities.Add(activity);
 
         await dbContext.SaveChangesAsync(cancellationToken);
-        return storedValue == 0 ? Guid.Empty : activity.Id;
+        return activity.Id;
     }
 
     private async Task<Guid> ResolveTenantIdAndSetContextAsync(CancellationToken cancellationToken)
