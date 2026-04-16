@@ -4,5 +4,5 @@ namespace BaseFaq.QnA.Portal.Business.Answer.Commands.PublishAnswer;
 
 public sealed class AnswersPublishAnswerCommand : IRequest<Guid>
 {
-    public Guid Id { get; set; }
+    public required Guid Id { get; set; }
 }

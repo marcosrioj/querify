@@ -4,5 +4,5 @@ namespace BaseFaq.QnA.Portal.Business.Answer.Commands.ValidateAnswer;
 
 public sealed class AnswersValidateAnswerCommand : IRequest<Guid>
 {
-    public Guid Id { get; set; }
+    public required Guid Id { get; set; }
 }

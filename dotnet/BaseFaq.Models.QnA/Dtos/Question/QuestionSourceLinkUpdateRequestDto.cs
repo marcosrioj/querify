@@ -4,8 +4,8 @@ namespace BaseFaq.Models.QnA.Dtos.Question;
 
 public class QuestionSourceLinkUpdateRequestDto
 {
-    public Guid QuestionId { get; set; }
-    public Guid SourceId { get; set; }
-    public SourceRole Role { get; set; } = SourceRole.QuestionOrigin;
-    public int Order { get; set; }
+    public required Guid QuestionId { get; set; }
+    public required Guid SourceId { get; set; }
+    public required SourceRole Role { get; set; } = SourceRole.QuestionOrigin;
+    public required int Order { get; set; }
 }

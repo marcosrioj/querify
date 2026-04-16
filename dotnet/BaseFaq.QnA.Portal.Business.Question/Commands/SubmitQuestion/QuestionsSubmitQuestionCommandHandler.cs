@@ -46,6 +46,9 @@ public sealed class QuestionsSubmitQuestionCommandHandler(
             Kind = kind,
             ActorKind = ActorKind.Moderator,
             ActorLabel = userId,
+            UserPrint = string.Empty,
+            Ip = string.Empty,
+            UserAgent = string.Empty,
             OccurredAtUtc = DateTime.UtcNow,
             CreatedBy = userId,
             UpdatedBy = userId

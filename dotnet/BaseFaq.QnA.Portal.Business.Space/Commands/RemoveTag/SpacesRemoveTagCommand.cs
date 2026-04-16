@@ -4,6 +4,6 @@ namespace BaseFaq.QnA.Portal.Business.Space.Commands.RemoveTag;
 
 public sealed class SpacesRemoveTagCommand : IRequest
 {
-    public Guid SpaceId { get; set; }
-    public Guid TagId { get; set; }
+    public required Guid SpaceId { get; set; }
+    public required Guid TagId { get; set; }
 }

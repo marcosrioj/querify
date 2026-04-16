@@ -4,5 +4,5 @@ namespace BaseFaq.QnA.Portal.Business.Tag.Commands.DeleteTag;
 
 public sealed class TagsDeleteTagCommand : IRequest
 {
-    public Guid Id { get; set; }
+    public required Guid Id { get; set; }
 }

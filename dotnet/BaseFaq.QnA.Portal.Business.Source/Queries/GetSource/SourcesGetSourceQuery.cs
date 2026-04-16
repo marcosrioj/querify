@@ -5,5 +5,5 @@ namespace BaseFaq.QnA.Portal.Business.Source.Queries.GetSource;
 
 public sealed class SourcesGetSourceQuery : IRequest<SourceDto>
 {
-    public Guid Id { get; set; }
+    public required Guid Id { get; set; }
 }

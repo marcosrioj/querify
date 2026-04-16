@@ -5,6 +5,6 @@ namespace BaseFaq.QnA.Portal.Business.Tag.Commands.UpdateTag;
 
 public sealed class TagsUpdateTagCommand : IRequest<Guid>
 {
-    public Guid Id { get; set; }
+    public required Guid Id { get; set; }
     public required TagUpdateRequestDto Request { get; set; }
 }

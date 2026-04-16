@@ -40,22 +40,22 @@ public class Space : BaseEntity, IMustHaveTenant
     /// <summary>
     /// Functional kind of the space, such as curated knowledge or community.
     /// </summary>
-    public SpaceKind Kind { get; set; } = SpaceKind.CuratedKnowledge;
+    public required SpaceKind Kind { get; set; } = SpaceKind.CuratedKnowledge;
 
     /// <summary>
     /// Visibility scope for the space.
     /// </summary>
-    public VisibilityScope Visibility { get; set; } = VisibilityScope.Internal;
+    public required VisibilityScope Visibility { get; set; } = VisibilityScope.Internal;
 
     /// <summary>
     /// Moderation policy applied to the space workflow.
     /// </summary>
-    public ModerationPolicy ModerationPolicy { get; set; } = ModerationPolicy.PreModeration;
+    public required ModerationPolicy ModerationPolicy { get; set; } = ModerationPolicy.PreModeration;
 
     /// <summary>
     /// Controls markup behavior for search and indexable surfaces.
     /// </summary>
-    public SearchMarkupMode SearchMarkupMode { get; set; } = SearchMarkupMode.Off;
+    public required SearchMarkupMode SearchMarkupMode { get; set; } = SearchMarkupMode.Off;
 
     /// <summary>
     /// Optional product scope covered by the space.
@@ -70,22 +70,22 @@ public class Space : BaseEntity, IMustHaveTenant
     /// <summary>
     /// Indicates whether the space accepts new questions.
     /// </summary>
-    public bool AcceptsQuestions { get; set; }
+    public required bool AcceptsQuestions { get; set; }
 
     /// <summary>
     /// Indicates whether the space accepts answers.
     /// </summary>
-    public bool AcceptsAnswers { get; set; }
+    public required bool AcceptsAnswers { get; set; }
 
     /// <summary>
     /// Defines whether new questions require review before moving through the workflow.
     /// </summary>
-    public bool RequiresQuestionReview { get; set; } = true;
+    public required bool RequiresQuestionReview { get; set; } = true;
 
     /// <summary>
     /// Defines whether new answers require review before exposure.
     /// </summary>
-    public bool RequiresAnswerReview { get; set; } = true;
+    public required bool RequiresAnswerReview { get; set; } = true;
 
     /// <summary>
     /// Timestamp when the space was published for consumption.

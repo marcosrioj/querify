@@ -31,6 +31,7 @@ public class EntityConstraintsTests
             OriginChannel = ChannelKind.Manual,
             Language = "en-US",
             ContextKey = "default",
+            ConfidenceScore = 50,
             RevisionNumber = 1,
             CreatedBy = "test",
             UpdatedBy = "test"
@@ -64,6 +65,7 @@ public class EntityConstraintsTests
             Language = "en-US",
             ContextKey = "default",
             ConfidenceScore = 50,
+            Rank = 1,
             RevisionNumber = 1,
             CreatedBy = "test",
             UpdatedBy = "test"
@@ -88,6 +90,7 @@ public class EntityConstraintsTests
             Visibility = VisibilityScope.Public,
             AllowsPublicCitation = true,
             AllowsPublicExcerpt = true,
+            IsAuthoritative = false,
             LastVerifiedAtUtc = DateTime.UtcNow,
             CreatedBy = "test",
             UpdatedBy = "test"

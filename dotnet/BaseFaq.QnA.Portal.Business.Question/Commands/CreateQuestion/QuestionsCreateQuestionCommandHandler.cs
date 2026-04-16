@@ -38,7 +38,11 @@ public sealed class QuestionsCreateQuestionCommandHandler(
             Title = request.Request.Title,
             Key = request.Request.Key,
             Kind = request.Request.Kind,
+            Status = request.Request.Status,
+            Visibility = request.Request.Visibility,
             OriginChannel = request.Request.OriginChannel,
+            ConfidenceScore = request.Request.ConfidenceScore,
+            RevisionNumber = 0,
             CreatedBy = userId,
             UpdatedBy = userId
         };
@@ -63,6 +67,9 @@ public sealed class QuestionsCreateQuestionCommandHandler(
             Kind = kind,
             ActorKind = ActorKind.Moderator,
             ActorLabel = userId,
+            UserPrint = string.Empty,
+            Ip = string.Empty,
+            UserAgent = string.Empty,
             OccurredAtUtc = DateTime.UtcNow,
             CreatedBy = userId,
             UpdatedBy = userId

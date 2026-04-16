@@ -41,6 +41,9 @@ public sealed class AnswersPublishAnswerCommandHandler(
             Kind = ActivityKind.AnswerPublished,
             ActorKind = ActorKind.Moderator,
             ActorLabel = userId,
+            UserPrint = string.Empty,
+            Ip = string.Empty,
+            UserAgent = string.Empty,
             OccurredAtUtc = DateTime.UtcNow,
             CreatedBy = userId,
             UpdatedBy = userId

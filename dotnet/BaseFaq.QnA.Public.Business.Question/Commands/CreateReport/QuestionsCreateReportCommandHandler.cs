@@ -76,6 +76,9 @@ public sealed class QuestionsCreateReportCommandHandler(
             Kind = ActivityKind.ReportReceived,
             ActorKind = ActorKind.Customer,
             ActorLabel = identity.UserPrint,
+            UserPrint = string.Empty,
+            Ip = string.Empty,
+            UserAgent = string.Empty,
             Notes = request.Request.Notes,
             MetadataJson = ActivitySignals.CreateReportMetadata(
                 identity.UserPrint,

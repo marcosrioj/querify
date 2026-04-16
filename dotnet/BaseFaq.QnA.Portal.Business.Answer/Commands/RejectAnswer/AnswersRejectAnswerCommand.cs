@@ -4,5 +4,5 @@ namespace BaseFaq.QnA.Portal.Business.Answer.Commands.RejectAnswer;
 
 public sealed class AnswersRejectAnswerCommand : IRequest<Guid>
 {
-    public Guid Id { get; set; }
+    public required Guid Id { get; set; }
 }

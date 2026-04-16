@@ -25,6 +25,10 @@ public sealed class SourcesCreateSourceCommandHandler(
             TenantId = tenantId,
             Kind = request.Request.Kind,
             Locator = request.Request.Locator,
+            Visibility = request.Request.Visibility,
+            AllowsPublicCitation = request.Request.AllowsPublicCitation,
+            AllowsPublicExcerpt = request.Request.AllowsPublicExcerpt,
+            IsAuthoritative = request.Request.IsAuthoritative,
             CreatedBy = userId,
             UpdatedBy = userId
         };

@@ -96,6 +96,8 @@ public class QuestionSignalTests
             ActorKind = ActorKind.Customer,
             ActorLabel = "legacy-feedback-a",
             UserPrint = "canonical-user",
+            Ip = "192.0.2.60",
+            UserAgent = "QnAFeedbackLegacy/1.0",
             MetadataJson = ActivitySignals.CreateFeedbackMetadata(
                 "legacy-feedback-a",
                 "192.0.2.60",
@@ -116,6 +118,8 @@ public class QuestionSignalTests
             ActorKind = ActorKind.Customer,
             ActorLabel = "legacy-feedback-b",
             UserPrint = "canonical-user",
+            Ip = "192.0.2.60",
+            UserAgent = "QnAFeedbackLegacy/1.1",
             MetadataJson = ActivitySignals.CreateFeedbackMetadata(
                 "legacy-feedback-b",
                 "192.0.2.60",
@@ -138,6 +142,8 @@ public class QuestionSignalTests
             ActorKind = ActorKind.Customer,
             ActorLabel = "legacy-vote-a",
             UserPrint = "canonical-user",
+            Ip = "192.0.2.61",
+            UserAgent = "QnAVoteLegacy/1.0",
             MetadataJson = ActivitySignals.CreateVoteMetadata(
                 "legacy-vote-a",
                 "192.0.2.61",
@@ -159,6 +165,8 @@ public class QuestionSignalTests
             ActorKind = ActorKind.Customer,
             ActorLabel = "legacy-vote-b",
             UserPrint = "canonical-user",
+            Ip = "192.0.2.61",
+            UserAgent = "QnAVoteLegacy/1.1",
             MetadataJson = ActivitySignals.CreateVoteMetadata(
                 "legacy-vote-b",
                 "192.0.2.61",

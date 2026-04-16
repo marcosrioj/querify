@@ -2,7 +2,7 @@ namespace BaseFaq.Models.QnA.Dtos.Question;
 
 public class QuestionTagDto
 {
-    public Guid Id { get; set; }
-    public Guid QuestionId { get; set; }
-    public Guid TagId { get; set; }
+    public required Guid Id { get; set; }
+    public required Guid QuestionId { get; set; }
+    public required Guid TagId { get; set; }
 }

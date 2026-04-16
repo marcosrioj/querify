@@ -5,5 +5,5 @@ namespace BaseFaq.QnA.Portal.Business.Tag.Queries.GetTag;
 
 public sealed class TagsGetTagQuery : IRequest<TagDto>
 {
-    public Guid Id { get; set; }
+    public required Guid Id { get; set; }
 }

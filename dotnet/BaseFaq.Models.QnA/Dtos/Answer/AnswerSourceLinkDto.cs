@@ -4,10 +4,10 @@ namespace BaseFaq.Models.QnA.Dtos.Answer;
 
 public class AnswerSourceLinkDto
 {
-    public Guid Id { get; set; }
-    public Guid AnswerId { get; set; }
-    public Guid SourceId { get; set; }
-    public SourceRole Role { get; set; }
-    public int Order { get; set; }
+    public required Guid Id { get; set; }
+    public required Guid AnswerId { get; set; }
+    public required Guid SourceId { get; set; }
+    public required SourceRole Role { get; set; }
+    public required int Order { get; set; }
     public BaseFaq.Models.QnA.Dtos.Source.SourceDto? Source { get; set; }
 }

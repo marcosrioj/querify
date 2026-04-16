@@ -4,6 +4,6 @@ namespace BaseFaq.QnA.Portal.Business.Answer.Commands.RemoveSource;
 
 public sealed class AnswersRemoveSourceCommand : IRequest
 {
-    public Guid AnswerId { get; set; }
-    public Guid SourceLinkId { get; set; }
+    public required Guid AnswerId { get; set; }
+    public required Guid SourceLinkId { get; set; }
 }

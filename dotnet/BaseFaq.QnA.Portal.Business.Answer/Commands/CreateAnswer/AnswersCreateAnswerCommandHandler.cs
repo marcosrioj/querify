@@ -40,6 +40,11 @@ public sealed class AnswersCreateAnswerCommandHandler(
             Question = question,
             Headline = request.Request.Headline,
             Kind = request.Request.Kind,
+            Status = request.Request.Status,
+            Visibility = request.Request.Visibility,
+            ConfidenceScore = request.Request.ConfidenceScore,
+            Rank = request.Request.Rank,
+            RevisionNumber = 0,
             CreatedBy = userId,
             UpdatedBy = userId
         };
@@ -71,6 +76,9 @@ public sealed class AnswersCreateAnswerCommandHandler(
             Kind = kind,
             ActorKind = ActorKind.Moderator,
             ActorLabel = userId,
+            UserPrint = string.Empty,
+            Ip = string.Empty,
+            UserAgent = string.Empty,
             OccurredAtUtc = DateTime.UtcNow,
             CreatedBy = userId,
             UpdatedBy = userId

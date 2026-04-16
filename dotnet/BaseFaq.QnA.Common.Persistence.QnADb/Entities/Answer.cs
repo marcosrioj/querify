@@ -31,17 +31,17 @@ public class Answer : BaseEntity, IMustHaveTenant
     /// <summary>
     /// Functional classification of the answer.
     /// </summary>
-    public AnswerKind Kind { get; set; } = AnswerKind.Official;
+    public required AnswerKind Kind { get; set; } = AnswerKind.Official;
 
     /// <summary>
     /// Current workflow state of the answer.
     /// </summary>
-    public AnswerStatus Status { get; set; } = AnswerStatus.Draft;
+    public required AnswerStatus Status { get; set; } = AnswerStatus.Draft;
 
     /// <summary>
     /// Visibility scope of the answer.
     /// </summary>
-    public VisibilityScope Visibility { get; set; } = VisibilityScope.Internal;
+    public required VisibilityScope Visibility { get; set; } = VisibilityScope.Internal;
 
     /// <summary>
     /// Language of the answer variant.
@@ -76,17 +76,17 @@ public class Answer : BaseEntity, IMustHaveTenant
     /// <summary>
     /// Calculated confidence level for the answer.
     /// </summary>
-    public int ConfidenceScore { get; set; }
+    public required int ConfidenceScore { get; set; }
 
     /// <summary>
     /// Relative ranking of the answer among other answers to the same question.
     /// </summary>
-    public int Rank { get; set; }
+    public required int Rank { get; set; }
 
     /// <summary>
     /// Current revision of the answer.
     /// </summary>
-    public int RevisionNumber { get; set; }
+    public required int RevisionNumber { get; set; }
 
     /// <summary>
     /// Id of the question that owns the answer.

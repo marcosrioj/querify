@@ -5,5 +5,5 @@ namespace BaseFaq.QnA.Portal.Business.Activity.Queries.GetActivity;
 
 public sealed class ActivitiesGetActivityQuery : IRequest<ActivityDto>
 {
-    public Guid Id { get; set; }
+    public required Guid Id { get; set; }
 }

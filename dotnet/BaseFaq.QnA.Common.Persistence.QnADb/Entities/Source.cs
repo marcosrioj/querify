@@ -23,7 +23,7 @@ public class Source : BaseEntity, IMustHaveTenant
     /// <summary>
     /// Source kind, such as document, ticket, chat, page, or internal note.
     /// </summary>
-    public SourceKind Kind { get; set; } = SourceKind.Other;
+    public required SourceKind Kind { get; set; } = SourceKind.Other;
 
     /// <summary>
     /// Stable pointer to the source, such as a URL, external id, or path.
@@ -73,22 +73,22 @@ public class Source : BaseEntity, IMustHaveTenant
     /// <summary>
     /// Allowed visibility scope for the source.
     /// </summary>
-    public VisibilityScope Visibility { get; set; } = VisibilityScope.Internal;
+    public required VisibilityScope Visibility { get; set; } = VisibilityScope.Internal;
 
     /// <summary>
     /// Indicates whether the source can be cited publicly.
     /// </summary>
-    public bool AllowsPublicCitation { get; set; }
+    public required bool AllowsPublicCitation { get; set; }
 
     /// <summary>
     /// Indicates whether excerpts from the source can be shown publicly.
     /// </summary>
-    public bool AllowsPublicExcerpt { get; set; }
+    public required bool AllowsPublicExcerpt { get; set; }
 
     /// <summary>
     /// Indicates whether the source is considered authoritative.
     /// </summary>
-    public bool IsAuthoritative { get; set; }
+    public required bool IsAuthoritative { get; set; }
 
     /// <summary>
     /// Timestamp when the source was captured.

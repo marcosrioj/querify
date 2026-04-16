@@ -5,5 +5,5 @@ namespace BaseFaq.QnA.Public.Business.Space.Queries.GetSpace;
 
 public sealed class SpacesGetSpaceQuery : IRequest<SpaceDto>
 {
-    public Guid Id { get; set; }
+    public required Guid Id { get; set; }
 }

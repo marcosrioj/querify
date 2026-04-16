@@ -41,6 +41,9 @@ public sealed class AnswersRetireAnswerCommandHandler(
             Kind = ActivityKind.AnswerRetired,
             ActorKind = ActorKind.Moderator,
             ActorLabel = userId,
+            UserPrint = string.Empty,
+            Ip = string.Empty,
+            UserAgent = string.Empty,
             OccurredAtUtc = DateTime.UtcNow,
             CreatedBy = userId,
             UpdatedBy = userId

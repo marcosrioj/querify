@@ -5,5 +5,5 @@ namespace BaseFaq.QnA.Portal.Business.Answer.Queries.GetAnswer;
 
 public sealed class AnswersGetAnswerQuery : IRequest<AnswerDto>
 {
-    public Guid Id { get; set; }
+    public required Guid Id { get; set; }
 }

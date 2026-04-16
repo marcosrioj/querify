@@ -75,6 +75,9 @@ public sealed class FeedbacksCreateFeedbackCommandHandler(
             Kind = ActivityKind.FeedbackReceived,
             ActorKind = ActorKind.Customer,
             ActorLabel = identity.UserPrint,
+            UserPrint = string.Empty,
+            Ip = string.Empty,
+            UserAgent = string.Empty,
             Notes = request.Request.Notes,
             MetadataJson = ActivitySignals.CreateFeedbackMetadata(
                 identity.UserPrint,

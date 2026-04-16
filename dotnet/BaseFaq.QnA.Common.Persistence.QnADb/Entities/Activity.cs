@@ -39,12 +39,12 @@ public class Activity : BaseEntity, IMustHaveTenant
     /// <summary>
     /// Type of event recorded in the thread.
     /// </summary>
-    public ActivityKind Kind { get; set; }
+    public required ActivityKind Kind { get; set; }
 
     /// <summary>
     /// Type of actor that executed or originated the event.
     /// </summary>
-    public ActorKind ActorKind { get; set; } = ActorKind.System;
+    public required ActorKind ActorKind { get; set; } = ActorKind.System;
 
     /// <summary>
     /// Name or label of the actor associated with the event.
@@ -54,17 +54,17 @@ public class Activity : BaseEntity, IMustHaveTenant
     /// <summary>
     /// Calculated canonical identity of the effective actor for public and authenticated activity flows.
     /// </summary>
-    public string UserPrint { get; set; } = string.Empty;
+    public required string UserPrint { get; set; } = string.Empty;
 
     /// <summary>
     /// Calculated originating IP address for the activity.
     /// </summary>
-    public string Ip { get; set; } = string.Empty;
+    public required string Ip { get; set; } = string.Empty;
 
     /// <summary>
     /// Calculated originating user agent for the activity.
     /// </summary>
-    public string UserAgent { get; set; } = string.Empty;
+    public required string UserAgent { get; set; } = string.Empty;
 
     /// <summary>
     /// Free-form notes about the event.
@@ -79,7 +79,7 @@ public class Activity : BaseEntity, IMustHaveTenant
     /// <summary>
     /// Timestamp when the event occurred.
     /// </summary>
-    public DateTime OccurredAtUtc { get; set; } = DateTime.UtcNow;
+    public required DateTime OccurredAtUtc { get; set; } = DateTime.UtcNow;
 
     /// <summary>
     /// Tenant that owns the event.

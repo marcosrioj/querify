@@ -91,6 +91,9 @@ public static class TestDataFactory
             Kind = ActivityKind.QuestionCreated,
             ActorKind = ActorKind.Moderator,
             ActorLabel = "tester",
+            UserPrint = "tester",
+            Ip = "127.0.0.1",
+            UserAgent = "QnATest/1.0",
             OccurredAtUtc = DateTime.UtcNow,
             CreatedBy = "test",
             UpdatedBy = "test"
@@ -132,7 +135,10 @@ public static class TestDataFactory
             ConfidenceScore = 92,
             TrustNote = "Trusted",
             EvidenceSummary = "Backed by docs",
+            Status = status,
+            Visibility = visibility,
             Rank = rank,
+            RevisionNumber = status == AnswerStatus.Validated ? 2 : 1,
             CreatedBy = "test",
             UpdatedBy = "test"
         };
@@ -166,6 +172,9 @@ public static class TestDataFactory
             Kind = ActivityKind.AnswerCreated,
             ActorKind = ActorKind.Moderator,
             ActorLabel = "tester",
+            UserPrint = "tester",
+            Ip = "127.0.0.1",
+            UserAgent = "QnATest/1.0",
             OccurredAtUtc = DateTime.UtcNow,
             CreatedBy = "test",
             UpdatedBy = "test"
@@ -195,6 +204,9 @@ public static class TestDataFactory
                 Kind = ActivityKind.AnswerAccepted,
                 ActorKind = ActorKind.Moderator,
                 ActorLabel = "tester",
+                UserPrint = "tester",
+                Ip = "127.0.0.1",
+                UserAgent = "QnATest/1.0",
                 OccurredAtUtc = acceptedAtUtc,
                 CreatedBy = "test",
                 UpdatedBy = "test"

@@ -4,17 +4,17 @@ namespace BaseFaq.Models.QnA.Dtos.Activity;
 
 public class ActivityDto
 {
-    public Guid Id { get; set; }
-    public Guid TenantId { get; set; }
-    public Guid QuestionId { get; set; }
+    public required Guid Id { get; set; }
+    public required Guid TenantId { get; set; }
+    public required Guid QuestionId { get; set; }
     public Guid? AnswerId { get; set; }
-    public ActivityKind Kind { get; set; }
-    public ActorKind ActorKind { get; set; }
+    public required ActivityKind Kind { get; set; }
+    public required ActorKind ActorKind { get; set; }
     public string? ActorLabel { get; set; }
-    public string UserPrint { get; set; } = string.Empty;
-    public string Ip { get; set; } = string.Empty;
-    public string UserAgent { get; set; } = string.Empty;
+    public required string UserPrint { get; set; } = string.Empty;
+    public required string Ip { get; set; } = string.Empty;
+    public required string UserAgent { get; set; } = string.Empty;
     public string? Notes { get; set; }
     public string? MetadataJson { get; set; }
-    public DateTime OccurredAtUtc { get; set; }
+    public required DateTime OccurredAtUtc { get; set; }
 }

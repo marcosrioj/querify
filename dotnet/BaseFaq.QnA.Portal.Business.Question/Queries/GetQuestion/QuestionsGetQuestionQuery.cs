@@ -5,5 +5,5 @@ namespace BaseFaq.QnA.Portal.Business.Question.Queries.GetQuestion;
 
 public sealed class QuestionsGetQuestionQuery : IRequest<QuestionDetailDto>
 {
-    public Guid Id { get; set; }
+    public required Guid Id { get; set; }
 }

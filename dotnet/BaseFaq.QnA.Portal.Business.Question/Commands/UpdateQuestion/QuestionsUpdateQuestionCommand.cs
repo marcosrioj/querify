@@ -5,6 +5,6 @@ namespace BaseFaq.QnA.Portal.Business.Question.Commands.UpdateQuestion;
 
 public sealed class QuestionsUpdateQuestionCommand : IRequest<Guid>
 {
-    public Guid Id { get; set; }
+    public required Guid Id { get; set; }
     public required QuestionUpdateRequestDto Request { get; set; }
 }

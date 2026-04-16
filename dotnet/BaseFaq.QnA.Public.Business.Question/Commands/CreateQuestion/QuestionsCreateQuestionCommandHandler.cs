@@ -86,6 +86,9 @@ public sealed class QuestionsCreateQuestionCommandHandler(
             Kind = ActivityKind.QuestionCreated,
             ActorKind = ActorKind.Customer,
             ActorLabel = identity.UserPrint,
+            UserPrint = string.Empty,
+            Ip = string.Empty,
+            UserAgent = string.Empty,
             OccurredAtUtc = DateTime.UtcNow,
             CreatedBy = "public",
             UpdatedBy = "public"
@@ -102,6 +105,9 @@ public sealed class QuestionsCreateQuestionCommandHandler(
             Kind = ActivityKind.QuestionSubmitted,
             ActorKind = ActorKind.Customer,
             ActorLabel = identity.UserPrint,
+            UserPrint = string.Empty,
+            Ip = string.Empty,
+            UserAgent = string.Empty,
             OccurredAtUtc = DateTime.UtcNow,
             CreatedBy = "public",
             UpdatedBy = "public"

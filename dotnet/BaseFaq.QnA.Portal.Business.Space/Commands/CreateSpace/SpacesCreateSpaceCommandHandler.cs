@@ -25,6 +25,14 @@ public sealed class SpacesCreateSpaceCommandHandler(
             Name = request.Request.Name,
             Key = request.Request.Key,
             DefaultLanguage = request.Request.DefaultLanguage,
+            Kind = request.Request.Kind,
+            Visibility = request.Request.Visibility,
+            ModerationPolicy = request.Request.ModerationPolicy,
+            SearchMarkupMode = request.Request.SearchMarkupMode,
+            AcceptsQuestions = request.Request.AcceptsQuestions,
+            AcceptsAnswers = request.Request.AcceptsAnswers,
+            RequiresQuestionReview = request.Request.RequiresQuestionReview,
+            RequiresAnswerReview = request.Request.RequiresAnswerReview,
             CreatedBy = userId,
             UpdatedBy = userId
         };

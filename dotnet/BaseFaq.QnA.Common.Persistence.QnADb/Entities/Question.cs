@@ -45,22 +45,22 @@ public class Question : BaseEntity, IMustHaveTenant
     /// <summary>
     /// Functional classification of the question.
     /// </summary>
-    public QuestionKind Kind { get; set; } = QuestionKind.Curated;
+    public required QuestionKind Kind { get; set; } = QuestionKind.Curated;
 
     /// <summary>
     /// Current workflow state of the question.
     /// </summary>
-    public QuestionStatus Status { get; set; } = QuestionStatus.Draft;
+    public required QuestionStatus Status { get; set; } = QuestionStatus.Draft;
 
     /// <summary>
     /// Visibility scope of the question.
     /// </summary>
-    public VisibilityScope Visibility { get; set; } = VisibilityScope.Internal;
+    public required VisibilityScope Visibility { get; set; } = VisibilityScope.Internal;
 
     /// <summary>
     /// Channel where the question originated.
     /// </summary>
-    public ChannelKind OriginChannel { get; set; } = ChannelKind.Manual;
+    public required ChannelKind OriginChannel { get; set; } = ChannelKind.Manual;
 
     /// <summary>
     /// Language captured for the question.
@@ -105,12 +105,12 @@ public class Question : BaseEntity, IMustHaveTenant
     /// <summary>
     /// Accumulated confidence that the question is well answered and safe to serve.
     /// </summary>
-    public int ConfidenceScore { get; set; }
+    public required int ConfidenceScore { get; set; }
 
     /// <summary>
     /// Current revision of the thread.
     /// </summary>
-    public int RevisionNumber { get; set; }
+    public required int RevisionNumber { get; set; }
 
     /// <summary>
     /// Identifier of the space that owns the question.

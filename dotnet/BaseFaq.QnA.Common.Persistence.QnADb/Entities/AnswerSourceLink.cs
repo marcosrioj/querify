@@ -33,12 +33,12 @@ public class AnswerSourceLink : BaseEntity, IMustHaveTenant
     /// <summary>
     /// Role of the source for the answer, such as evidence or canonical reference.
     /// </summary>
-    public SourceRole Role { get; set; } = SourceRole.Evidence;
+    public required SourceRole Role { get; set; } = SourceRole.Evidence;
 
     /// <summary>
     /// Display order or priority of the source in the set.
     /// </summary>
-    public int Order { get; set; }
+    public required int Order { get; set; }
 
     /// <summary>
     /// Tenant that owns the link.
