@@ -15,13 +15,17 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useActivityList } from '@/domains/activity/hooks';
 import type { ActivityDto } from '@/domains/activity/types';
 import { useDeleteAnswer } from '@/domains/answers/hooks';
+import { usePortalTimeZone } from '@/domains/settings/settings-hooks';
 import { useQuestion, useAddQuestionSource, useAddQuestionTag, useApproveQuestion, useDeleteQuestion, useEscalateQuestion, useRejectQuestion, useRemoveQuestionSource, useRemoveQuestionTag, useSubmitQuestion, useUpdateQuestion, useQuestionList } from '@/domains/questions/hooks';
 import type { QuestionDetailDto, QuestionUpdateRequestDto } from '@/domains/questions/types';
 import { useSourceList } from '@/domains/sources/hooks';
 import { useSpace } from '@/domains/spaces/hooks';
 import { useTagList } from '@/domains/tags/hooks';
 import {
+  AnswerStatus,
+  QuestionStatus,
   SourceRole,
+  VisibilityScope,
   sourceRoleLabels,
 } from '@/shared/constants/backend-enums';
 import { DetailLayout, KeyValueList, PageHeader, SectionGrid } from '@/shared/layout/page-layouts';
@@ -55,6 +59,7 @@ import {
   VisibilityBadge,
 } from '@/shared/ui/status-badges';
 import { translateText } from '@/shared/lib/i18n-core';
+import { formatOptionalDateTimeInTimeZone } from '@/shared/lib/time-zone';
 
 function buildQuestionUpdateBody(
   question: QuestionDetailDto,
@@ -79,14 +84,31 @@ function buildQuestionUpdateBody(
     originUrl: question.originUrl ?? undefined,
     originReference: question.originReference ?? undefined,
     confidenceScore: question.confidenceScore,
-    acceptedAnswerId: question.acceptedAnswerId ?? undefined,
-    duplicateOfQuestionId: question.duplicateOfQuestionId ?? undefined,
+    acceptedAnswerId: question.acceptedAnswerId ?? null,
+    duplicateOfQuestionId: question.duplicateOfQuestionId ?? null,
     ...overrides,
   };
 }
 
+function getQuestionStatusAfterClearingResolution(question: QuestionDetailDto) {
+  if (question.duplicateOfQuestionId) {
+    return QuestionStatus.Duplicate;
+  }
+
+  if (question.acceptedAnswerId) {
+    return question.validatedAtUtc ? QuestionStatus.Validated : QuestionStatus.Answered;
+  }
+
+  if (question.validatedAtUtc) {
+    return QuestionStatus.Validated;
+  }
+
+  return QuestionStatus.Open;
+}
+
 export function QuestionDetailPage() {
   const navigate = useNavigate();
+  const portalTimeZone = usePortalTimeZone();
   const { id } = useParams();
   const questionQuery = useQuestion(id);
   const spaceQuery = useSpace(questionQuery.data?.spaceId);
@@ -166,6 +188,29 @@ export function QuestionDetailPage() {
   const duplicateTarget = duplicateOptions.find(
     (question) => question.id === questionQuery.data?.duplicateOfQuestionId,
   );
+  const acceptedAnswerOptions = (questionQuery.data?.answers ?? []).filter(
+    (answer) =>
+      answer.status === AnswerStatus.Published ||
+      answer.status === AnswerStatus.Validated,
+  );
+  const spaceBlocksAnswers = spaceQuery.data ? !spaceQuery.data.acceptsAnswers : false;
+  const canSubmit = questionQuery.data?.status === QuestionStatus.Draft;
+  const canApprove =
+    questionQuery.data?.status === QuestionStatus.PendingReview ||
+    questionQuery.data?.status === QuestionStatus.Escalated;
+  const canReject =
+    questionQuery.data?.status !== QuestionStatus.Draft ||
+    questionQuery.data?.visibility !== VisibilityScope.Internal;
+  const canEscalate =
+    questionQuery.data?.status !== QuestionStatus.Escalated &&
+    questionQuery.data?.status !== QuestionStatus.Duplicate &&
+    questionQuery.data?.status !== QuestionStatus.Archived;
+  const workflowSummary =
+    questionQuery.data?.status === QuestionStatus.Draft
+      ? spaceQuery.data?.requiresQuestionReview
+        ? translateText('Submitting this question will move it into pending review.')
+        : translateText('Submitting this question will open it immediately.')
+      : translateText('Current status controls which workflow actions are available.');
 
   return (
     <DetailLayout
@@ -181,12 +226,19 @@ export function QuestionDetailPage() {
         <>
           <Card>
             <CardContent className="grid grid-cols-2 gap-2 p-3">
-              <Button asChild size="sm" className="w-full justify-start">
-                <Link to={`/app/answers/new?questionId=${id}`}>
+              {spaceBlocksAnswers ? (
+                <Button size="sm" className="w-full justify-start" disabled>
                   <Plus className="size-4" />
                   {translateText('New answer')}
-                </Link>
-              </Button>
+                </Button>
+              ) : (
+                <Button asChild size="sm" className="w-full justify-start">
+                  <Link to={`/app/answers/new?questionId=${id}`}>
+                    <Plus className="size-4" />
+                    {translateText('New answer')}
+                  </Link>
+                </Button>
+              )}
               <Button asChild variant="outline" size="sm" className="w-full justify-start">
                 <Link to={`/app/questions/${id}/edit`}>
                   <Pencil className="size-4" />
@@ -224,6 +276,11 @@ export function QuestionDetailPage() {
                   </Button>
                 }
               />
+              {spaceBlocksAnswers ? (
+                <p className="col-span-2 text-xs text-muted-foreground">
+                  {translateText('This space does not accept new answers.')}
+                </p>
+              ) : null}
             </CardContent>
           </Card>
           {showLoadingState ? (
@@ -250,6 +307,14 @@ export function QuestionDetailPage() {
                     {
                       label: 'Accepted answer',
                       value: questionQuery.data.acceptedAnswer?.headline || 'None',
+                    },
+                    {
+                      label: 'Last activity',
+                      value: formatOptionalDateTimeInTimeZone(
+                        questionQuery.data.lastActivityAtUtc,
+                        portalTimeZone,
+                        translateText('Not set'),
+                      ),
                     },
                   ]}
                 />
@@ -347,36 +412,133 @@ export function QuestionDetailPage() {
                 <CardTitle>{translateText('Workflow actions')}</CardTitle>
               </CardHeading>
             </CardHeader>
-            <CardContent className="flex flex-wrap gap-3">
+            <CardContent className="space-y-4">
+              <p className="text-sm text-muted-foreground">{workflowSummary}</p>
+              <div className="flex flex-wrap gap-3">
               <Button
                 variant="outline"
                 onClick={() => void submitQuestion.mutateAsync(id)}
-                disabled={submitQuestion.isPending}
+                disabled={!canSubmit || submitQuestion.isPending}
               >
                 {translateText('Submit for review')}
               </Button>
               <Button
                 variant="outline"
                 onClick={() => void approveQuestion.mutateAsync(id)}
-                disabled={approveQuestion.isPending}
+                disabled={!canApprove || approveQuestion.isPending}
               >
                 {translateText('Approve')}
               </Button>
               <Button
                 variant="outline"
                 onClick={() => void rejectQuestion.mutateAsync({ id })}
-                disabled={rejectQuestion.isPending}
+                disabled={!canReject || rejectQuestion.isPending}
               >
                 {translateText('Reject')}
               </Button>
               <Button
                 variant="outline"
                 onClick={() => void escalateQuestion.mutateAsync({ id })}
-                disabled={escalateQuestion.isPending}
+                disabled={!canEscalate || escalateQuestion.isPending}
               >
                 <TriangleAlert className="size-4" />
                 {translateText('Escalate')}
               </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardHeading>
+                <CardTitle>{translateText('Context and timing')}</CardTitle>
+              </CardHeading>
+            </CardHeader>
+            <CardContent>
+              <KeyValueList
+                items={[
+                  {
+                    label: 'Product scope',
+                    value: questionQuery.data.productScope || 'Not set',
+                  },
+                  {
+                    label: 'Journey scope',
+                    value: questionQuery.data.journeyScope || 'Not set',
+                  },
+                  {
+                    label: 'Audience scope',
+                    value: questionQuery.data.audienceScope || 'Not set',
+                  },
+                  {
+                    label: 'Origin URL',
+                    value: questionQuery.data.originUrl || 'Not set',
+                  },
+                  {
+                    label: 'Origin reference',
+                    value: questionQuery.data.originReference || 'Not set',
+                  },
+                  {
+                    label: 'Answered at',
+                    value: formatOptionalDateTimeInTimeZone(
+                      questionQuery.data.answeredAtUtc,
+                      portalTimeZone,
+                      translateText('Not set'),
+                    ),
+                  },
+                  {
+                    label: 'Resolved at',
+                    value: formatOptionalDateTimeInTimeZone(
+                      questionQuery.data.resolvedAtUtc,
+                      portalTimeZone,
+                      translateText('Not set'),
+                    ),
+                  },
+                  {
+                    label: 'Validated at',
+                    value: formatOptionalDateTimeInTimeZone(
+                      questionQuery.data.validatedAtUtc,
+                      portalTimeZone,
+                      translateText('Not set'),
+                    ),
+                  },
+                ]}
+              />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardHeading>
+                <CardTitle>{translateText('Summary and context')}</CardTitle>
+              </CardHeading>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="rounded-2xl border border-border bg-muted/10 p-4">
+                  <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
+                    {translateText('Summary')}
+                  </p>
+                  <p className="mt-2 text-sm leading-6">
+                    {questionQuery.data.summary || translateText('No summary provided.')}
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-border bg-muted/10 p-4">
+                  <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
+                    {translateText('Thread summary')}
+                  </p>
+                  <p className="mt-2 text-sm leading-6">
+                    {questionQuery.data.threadSummary || translateText('No summary provided.')}
+                  </p>
+                </div>
+              </div>
+              <div className="rounded-2xl border border-border bg-muted/10 p-4">
+                <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
+                  {translateText('Context note')}
+                </p>
+                <p className="mt-2 whitespace-pre-wrap text-sm leading-6">
+                  {questionQuery.data.contextNote || translateText('No context note recorded.')}
+                </p>
+              </div>
             </CardContent>
           </Card>
 
@@ -396,30 +558,57 @@ export function QuestionDetailPage() {
                   </p>
                   <Select value={selectedAnswerId} onValueChange={setSelectedAnswerId}>
                     <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select accepted answer" />
+                      <SelectValue placeholder={translateText('Select accepted answer')} />
                     </SelectTrigger>
                     <SelectContent>
-                      {questionQuery.data.answers.map((answer) => (
+                      {acceptedAnswerOptions.map((answer) => (
                         <SelectItem key={answer.id} value={answer.id}>
                           {answer.headline}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
-                  <Button
-                    disabled={!selectedAnswerId || updateQuestion.isPending}
-                    onClick={() =>
-                      updateQuestion
-                        .mutateAsync(
+                  {acceptedAnswerOptions.length ? (
+                    <Button
+                      disabled={!selectedAnswerId || updateQuestion.isPending}
+                      onClick={() =>
+                        updateQuestion
+                          .mutateAsync(
+                            buildQuestionUpdateBody(questionQuery.data, {
+                              acceptedAnswerId: selectedAnswerId,
+                            }),
+                          )
+                          .then(() => setSelectedAnswerId(''))
+                      }
+                    >
+                      {translateText('Set accepted answer')}
+                    </Button>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">
+                      {translateText(
+                        'Publish or validate an answer before it can be accepted.',
+                      )}
+                    </p>
+                  )}
+                  {questionQuery.data.acceptedAnswerId ? (
+                    <Button
+                      variant="outline"
+                      disabled={updateQuestion.isPending}
+                      onClick={() =>
+                        updateQuestion.mutateAsync(
                           buildQuestionUpdateBody(questionQuery.data, {
-                            acceptedAnswerId: selectedAnswerId,
+                            acceptedAnswerId: null,
+                            status: getQuestionStatusAfterClearingResolution({
+                              ...questionQuery.data,
+                              acceptedAnswerId: null,
+                            }),
                           }),
                         )
-                        .then(() => setSelectedAnswerId(''))
-                    }
-                  >
-                    {translateText('Set accepted answer')}
-                  </Button>
+                      }
+                    >
+                      {translateText('Clear accepted answer')}
+                    </Button>
+                  ) : null}
                 </div>
                 <div className="space-y-3">
                   <p className="text-sm text-muted-foreground">
@@ -429,7 +618,7 @@ export function QuestionDetailPage() {
                   </p>
                   <Select value={selectedDuplicateId} onValueChange={setSelectedDuplicateId}>
                     <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select duplicate target" />
+                      <SelectValue placeholder={translateText('Select duplicate target')} />
                     </SelectTrigger>
                     <SelectContent>
                       {duplicateOptions.map((question) => (
@@ -454,6 +643,25 @@ export function QuestionDetailPage() {
                     <GitFork className="size-4" />
                     {translateText('Set duplicate target')}
                   </Button>
+                  {questionQuery.data.duplicateOfQuestionId ? (
+                    <Button
+                      variant="outline"
+                      disabled={updateQuestion.isPending}
+                      onClick={() =>
+                        updateQuestion.mutateAsync(
+                          buildQuestionUpdateBody(questionQuery.data, {
+                            duplicateOfQuestionId: null,
+                            status: getQuestionStatusAfterClearingResolution({
+                              ...questionQuery.data,
+                              duplicateOfQuestionId: null,
+                            }),
+                          }),
+                        )
+                      }
+                    >
+                      {translateText('Clear duplicate target')}
+                    </Button>
+                  ) : null}
                 </div>
               </div>
             </CardContent>
@@ -495,7 +703,7 @@ export function QuestionDetailPage() {
               <div className="flex flex-col gap-3 sm:flex-row">
                 <Select value={selectedTagId} onValueChange={setSelectedTagId}>
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Attach existing tag" />
+                    <SelectValue placeholder={translateText('Attach existing tag')} />
                   </SelectTrigger>
                   <SelectContent>
                     {availableTags.map((tag) => (
@@ -552,6 +760,19 @@ export function QuestionDetailPage() {
                               value: sourceLink.order,
                             })}
                           </Badge>
+                          {sourceLink.source ? (
+                            <>
+                              <VisibilityBadge visibility={sourceLink.source.visibility} />
+                              {sourceLink.source.isAuthoritative ? (
+                                <Badge variant="primary">{translateText('Authoritative')}</Badge>
+                              ) : null}
+                              {sourceLink.source.allowsPublicCitation ? (
+                                <Badge variant="success" appearance="outline">
+                                  {translateText('Public citation')}
+                                </Badge>
+                              ) : null}
+                            </>
+                          ) : null}
                         </div>
                       </div>
                       <div className="flex flex-wrap gap-2">
@@ -584,7 +805,7 @@ export function QuestionDetailPage() {
               <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_220px_160px]">
                 <Select value={selectedSourceId} onValueChange={setSelectedSourceId}>
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Attach existing source" />
+                    <SelectValue placeholder={translateText('Attach existing source')} />
                   </SelectTrigger>
                   <SelectContent>
                     {availableSources.map((source) => (
@@ -596,12 +817,12 @@ export function QuestionDetailPage() {
                 </Select>
                 <Select value={selectedSourceRole} onValueChange={setSelectedSourceRole}>
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Source role" />
+                    <SelectValue placeholder={translateText('Source role')} />
                   </SelectTrigger>
                   <SelectContent>
                     {Object.entries(sourceRoleLabels).map(([value, label]) => (
                       <SelectItem key={value} value={value}>
-                        {label}
+                        {translateText(label)}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -695,8 +916,16 @@ export function QuestionDetailPage() {
               ) : (
                 <EmptyState
                   title="No answers yet"
-                  description="Create the first answer candidate for this thread."
-                  action={{ label: 'New answer', to: `/app/answers/new?questionId=${id}` }}
+                  description={
+                    spaceBlocksAnswers
+                      ? 'This space currently blocks new answer creation.'
+                      : 'Create the first answer candidate for this thread.'
+                  }
+                  action={
+                    spaceBlocksAnswers
+                      ? undefined
+                      : { label: 'New answer', to: `/app/answers/new?questionId=${id}` }
+                  }
                 />
               )}
             </CardContent>

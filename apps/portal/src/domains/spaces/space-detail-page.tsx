@@ -10,9 +10,11 @@ import {
 } from 'lucide-react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useQuestionList } from '@/domains/questions/hooks';
+import { usePortalTimeZone } from '@/domains/settings/settings-hooks';
 import { useSourceList } from '@/domains/sources/hooks';
 import { useSpace, useAddSpaceSource, useAddSpaceTag, useDeleteSpace, useRemoveSpaceSource, useRemoveSpaceTag } from '@/domains/spaces/hooks';
 import { useTagList } from '@/domains/tags/hooks';
+import { searchMarkupModeLabels } from '@/shared/constants/backend-enums';
 import { DetailLayout, KeyValueList, PageHeader, SectionGrid } from '@/shared/layout/page-layouts';
 import {
   Badge,
@@ -40,9 +42,11 @@ import {
   VisibilityBadge,
 } from '@/shared/ui/status-badges';
 import { translateText } from '@/shared/lib/i18n-core';
+import { formatOptionalDateTimeInTimeZone } from '@/shared/lib/time-zone';
 
 export function SpaceDetailPage() {
   const navigate = useNavigate();
+  const portalTimeZone = usePortalTimeZone();
   const { id } = useParams();
   const spaceQuery = useSpace(id);
   const questionQuery = useQuestionList({
@@ -95,6 +99,7 @@ export function SpaceDetailPage() {
   const showLoadingState =
     !spaceQuery.data &&
     (spaceQuery.isLoading || questionQuery.isLoading || sourceOptionsQuery.isLoading);
+  const blocksQuestions = spaceQuery.data ? !spaceQuery.data.acceptsQuestions : false;
 
   return (
     <DetailLayout
@@ -110,12 +115,19 @@ export function SpaceDetailPage() {
         <>
           <Card>
             <CardContent className="grid grid-cols-2 gap-2 p-3">
-              <Button asChild size="sm" className="w-full justify-start">
-                <Link to={`/app/questions/new?spaceId=${id}`}>
+              {blocksQuestions ? (
+                <Button size="sm" className="w-full justify-start" disabled>
                   <Plus className="size-4" />
                   {translateText('New question')}
-                </Link>
-              </Button>
+                </Button>
+              ) : (
+                <Button asChild size="sm" className="w-full justify-start">
+                  <Link to={`/app/questions/new?spaceId=${id}`}>
+                    <Plus className="size-4" />
+                    {translateText('New question')}
+                  </Link>
+                </Button>
+              )}
               <Button asChild variant="outline" size="sm" className="w-full justify-start">
                 <Link to={`/app/spaces/${id}/edit`}>
                   <Pencil className="size-4" />
@@ -145,6 +157,11 @@ export function SpaceDetailPage() {
                   </Button>
                 }
               />
+              {blocksQuestions ? (
+                <p className="col-span-2 text-xs text-muted-foreground">
+                  {translateText('This space does not accept new questions.')}
+                </p>
+              ) : null}
             </CardContent>
           </Card>
           {showLoadingState ? (
@@ -176,6 +193,14 @@ export function SpaceDetailPage() {
                     {
                       label: 'Curated sources',
                       value: String(spaceQuery.data.curatedSources.length),
+                    },
+                    {
+                      label: 'Published at',
+                      value: formatOptionalDateTimeInTimeZone(
+                        spaceQuery.data.publishedAtUtc,
+                        portalTimeZone,
+                        translateText('Not set'),
+                      ),
                     },
                   ]}
                 />
@@ -292,6 +317,48 @@ export function SpaceDetailPage() {
           <Card>
             <CardHeader>
               <CardHeading>
+                <CardTitle>{translateText('Scope and publishing')}</CardTitle>
+              </CardHeading>
+            </CardHeader>
+            <CardContent>
+              <KeyValueList
+                items={[
+                  {
+                    label: 'Product scope',
+                    value: spaceQuery.data.productScope || 'Not set',
+                  },
+                  {
+                    label: 'Journey scope',
+                    value: spaceQuery.data.journeyScope || 'Not set',
+                  },
+                  {
+                    label: 'Search markup',
+                    value: searchMarkupModeLabels[spaceQuery.data.searchMarkupMode],
+                  },
+                  {
+                    label: 'Published at',
+                    value: formatOptionalDateTimeInTimeZone(
+                      spaceQuery.data.publishedAtUtc,
+                      portalTimeZone,
+                      translateText('Not set'),
+                    ),
+                  },
+                  {
+                    label: 'Last validated',
+                    value: formatOptionalDateTimeInTimeZone(
+                      spaceQuery.data.lastValidatedAtUtc,
+                      portalTimeZone,
+                      translateText('Not set'),
+                    ),
+                  },
+                ]}
+              />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardHeading>
                 <CardTitle className="flex items-center gap-2">
                   <span>{translateText('Tags')}</span>
                   <Badge variant="outline">
@@ -327,7 +394,7 @@ export function SpaceDetailPage() {
               <div className="flex flex-col gap-3 sm:flex-row">
                 <Select value={selectedTagId} onValueChange={setSelectedTagId}>
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Attach existing tag" />
+                    <SelectValue placeholder={translateText('Attach existing tag')} />
                   </SelectTrigger>
                   <SelectContent>
                     {availableTags.map((tag) => (
@@ -381,6 +448,20 @@ export function SpaceDetailPage() {
                         </p>
                       </div>
                       <div className="flex flex-wrap gap-2">
+                        <VisibilityBadge visibility={source.visibility} />
+                        {source.isAuthoritative ? (
+                          <Badge variant="primary">{translateText('Authoritative')}</Badge>
+                        ) : null}
+                        {source.allowsPublicCitation ? (
+                          <Badge variant="success" appearance="outline">
+                            {translateText('Public citation')}
+                          </Badge>
+                        ) : null}
+                        {source.allowsPublicExcerpt ? (
+                          <Badge variant="outline">
+                            {translateText('Public excerpt')}
+                          </Badge>
+                        ) : null}
                         <Button asChild variant="outline" size="sm">
                           <Link to={`/app/sources/${source.id}`}>
                             <Link2 className="size-4" />
@@ -408,7 +489,7 @@ export function SpaceDetailPage() {
               <div className="flex flex-col gap-3 sm:flex-row">
                 <Select value={selectedSourceId} onValueChange={setSelectedSourceId}>
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Attach existing source" />
+                    <SelectValue placeholder={translateText('Attach existing source')} />
                   </SelectTrigger>
                   <SelectContent>
                     {availableSources.map((source) => (
@@ -462,8 +543,16 @@ export function SpaceDetailPage() {
               ) : (
                 <EmptyState
                   title="No questions yet"
-                  description="Create the first thread in this space to start the QnA workflow."
-                  action={{ label: 'New question', to: `/app/questions/new?spaceId=${id}` }}
+                  description={
+                    blocksQuestions
+                      ? 'Question intake is disabled for this space.'
+                      : 'Create the first thread in this space to start the QnA workflow.'
+                  }
+                  action={
+                    blocksQuestions
+                      ? undefined
+                      : { label: 'New question', to: `/app/questions/new?spaceId=${id}` }
+                  }
                 />
               )}
             </CardContent>

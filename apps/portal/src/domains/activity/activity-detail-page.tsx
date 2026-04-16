@@ -1,5 +1,6 @@
 import { Link, useParams } from 'react-router-dom';
 import { useActivity } from '@/domains/activity/hooks';
+import { usePortalTimeZone } from '@/domains/settings/settings-hooks';
 import { DetailLayout, KeyValueList, PageHeader, SectionGrid } from '@/shared/layout/page-layouts';
 import {
   Button,
@@ -15,8 +16,10 @@ import {
 import { ErrorState } from '@/shared/ui/placeholder-state';
 import { ActivityKindBadge, ActorKindBadge } from '@/shared/ui/status-badges';
 import { translateText } from '@/shared/lib/i18n-core';
+import { formatOptionalDateTimeInTimeZone } from '@/shared/lib/time-zone';
 
 export function ActivityDetailPage() {
+  const portalTimeZone = usePortalTimeZone();
   const { id } = useParams();
   const activityQuery = useActivity(id);
 
@@ -116,9 +119,16 @@ export function ActivityDetailPage() {
                 items={[
                   { label: 'Actor label', value: activityQuery.data.actorLabel || 'Not set' },
                   { label: 'User print', value: activityQuery.data.userPrint },
-                  { label: 'IP', value: activityQuery.data.ip },
-                  { label: 'User agent', value: activityQuery.data.userAgent },
-                  { label: 'Occurred at', value: activityQuery.data.occurredAtUtc },
+                  { label: 'IP', value: activityQuery.data.ip || 'Not set' },
+                  { label: 'User agent', value: activityQuery.data.userAgent || 'Not set' },
+                  {
+                    label: 'Occurred at',
+                    value: formatOptionalDateTimeInTimeZone(
+                      activityQuery.data.occurredAtUtc,
+                      portalTimeZone,
+                      translateText('Not set'),
+                    ),
+                  },
                 ]}
               />
             </CardContent>

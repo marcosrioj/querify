@@ -14,6 +14,7 @@ import { useQuestionList, useDeleteQuestion } from '@/domains/questions/hooks';
 import type { QuestionDto } from '@/domains/questions/types';
 import { useSpaceList } from '@/domains/spaces/hooks';
 import {
+  questionKindLabels,
   QuestionStatus,
   questionStatusLabels,
   visibilityScopeLabels,
@@ -38,7 +39,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/shared/ui';
-import { QuestionStatusBadge, VisibilityBadge } from '@/shared/ui/status-badges';
+import { ChannelKindBadge, QuestionKindBadge, QuestionStatusBadge, VisibilityBadge } from '@/shared/ui/status-badges';
 
 const sortingOptions = [
   { value: 'LastActivityAtUtc DESC', label: 'Latest activity' },
@@ -51,6 +52,9 @@ const QUESTION_FILTER_DEFAULTS = {
   status: 'all',
   visibility: 'all',
   spaceId: 'all',
+  kind: 'all',
+  language: '',
+  contextKey: '',
 } as const;
 
 export function QuestionListPage() {
@@ -75,10 +79,14 @@ export function QuestionListPage() {
   const statusFilter = filters.status;
   const visibilityFilter = filters.visibility;
   const spaceFilter = filters.spaceId;
+  const kindFilter = filters.kind;
+  const languageFilter = filters.language;
+  const contextKeyFilter = filters.contextKey;
   const apiStatus = statusFilter === 'all' ? undefined : Number(statusFilter);
   const apiVisibility =
     visibilityFilter === 'all' ? undefined : Number(visibilityFilter);
   const apiSpaceId = spaceFilter === 'all' ? undefined : spaceFilter;
+  const apiKind = kindFilter === 'all' ? undefined : Number(kindFilter);
 
   const questionQuery = useQuestionList({
     page,
@@ -88,6 +96,9 @@ export function QuestionListPage() {
     status: apiStatus,
     visibility: apiVisibility,
     spaceId: apiSpaceId,
+    kind: apiKind,
+    language: languageFilter || undefined,
+    contextKey: contextKeyFilter || undefined,
   });
   const spaceOptionsQuery = useSpaceList({
     page: 1,
@@ -140,6 +151,14 @@ export function QuestionListPage() {
           <div className="font-medium text-mono">{question.title}</div>
           <div className="text-sm text-muted-foreground">
             {spaceLookup[question.spaceId] ?? question.spaceKey} • {question.key}
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <QuestionKindBadge kind={question.kind} />
+            <ChannelKindBadge kind={question.originChannel} />
+          </div>
+          <div className="text-sm text-muted-foreground">
+            {question.language || translateText('No language set')}
+            {question.contextKey ? ` • ${question.contextKey}` : ''}
           </div>
           {question.summary ? (
             <div className="line-clamp-2 text-sm text-muted-foreground">
@@ -295,17 +314,27 @@ export function QuestionListPage() {
         loading={questionQuery.isLoading}
         onRowClick={(question) => navigate(`/app/questions/${question.id}`)}
         toolbar={
-          <div className="grid w-full gap-2 sm:grid-cols-2 xl:grid-cols-[minmax(280px,1fr)_220px_220px_220px]">
+          <div className="grid w-full gap-2 sm:grid-cols-2 xl:grid-cols-[minmax(240px,1fr)_220px_220px_220px_220px]">
             <div className="sm:col-span-2 xl:col-span-1">
               <Input
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
-                placeholder="Search questions"
+                placeholder={translateText('Search questions')}
               />
             </div>
+            <Input
+              value={languageFilter}
+              onChange={(event) => setFilter('language', event.target.value)}
+              placeholder={translateText('Language code')}
+            />
+            <Input
+              value={contextKeyFilter}
+              onChange={(event) => setFilter('contextKey', event.target.value)}
+              placeholder={translateText('Context key')}
+            />
             <Select value={spaceFilter} onValueChange={(value) => setFilter('spaceId', value)}>
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="Space" />
+                <SelectValue placeholder={translateText('Space')} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All spaces</SelectItem>
@@ -316,15 +345,28 @@ export function QuestionListPage() {
                 ))}
               </SelectContent>
             </Select>
-            <Select value={statusFilter} onValueChange={(value) => setFilter('status', value)}>
+              <Select value={kindFilter} onValueChange={(value) => setFilter('kind', value)}>
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="Status" />
+                <SelectValue placeholder={translateText('Question kind')} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All kinds</SelectItem>
+                {Object.entries(questionKindLabels).map(([value, label]) => (
+                  <SelectItem key={value} value={value}>
+                    {translateText(label)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+              <Select value={statusFilter} onValueChange={(value) => setFilter('status', value)}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder={translateText('Status')} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All statuses</SelectItem>
                 {Object.entries(questionStatusLabels).map(([value, label]) => (
                   <SelectItem key={value} value={value}>
-                    {label}
+                    {translateText(label)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -334,26 +376,26 @@ export function QuestionListPage() {
               onValueChange={(value) => setFilter('visibility', value)}
             >
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="Visibility" />
+                <SelectValue placeholder={translateText('Visibility')} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All visibility</SelectItem>
                 {Object.entries(visibilityScopeLabels).map(([value, label]) => (
                   <SelectItem key={value} value={value}>
-                    {label}
+                    {translateText(label)}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
-            <div className="sm:col-span-2 xl:col-span-4">
+            <div className="sm:col-span-2 xl:col-span-5">
               <Select value={sorting} onValueChange={setSorting}>
                 <SelectTrigger className="w-full xl:max-w-[240px]">
-                  <SelectValue placeholder="Sort questions" />
+                  <SelectValue placeholder={translateText('Sort questions')} />
                 </SelectTrigger>
                 <SelectContent>
                   {sortingOptions.map((option) => (
                     <SelectItem key={option.value} value={option.value}>
-                      {option.label}
+                      {translateText(option.label)}
                     </SelectItem>
                   ))}
                 </SelectContent>

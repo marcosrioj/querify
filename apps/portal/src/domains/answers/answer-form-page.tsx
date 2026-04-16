@@ -14,6 +14,7 @@ import {
 import { useAnswer, useCreateAnswer, useUpdateAnswer } from '@/domains/answers/hooks';
 import { answerFormSchema, type AnswerFormValues } from '@/domains/answers/schemas';
 import { useQuestion, useQuestionList } from '@/domains/questions/hooks';
+import { useSpace } from '@/domains/spaces/hooks';
 import { DetailLayout, KeyValueList, PageHeader } from '@/shared/layout/page-layouts';
 import {
   Button,
@@ -119,6 +120,17 @@ export function AnswerFormPage({ mode }: { mode: 'create' | 'edit' }) {
     questionOptionsQuery.data?.items.find(
       (question) => question.id === selectedQuestionId,
     ) ?? selectedQuestionQuery.data;
+  const selectedSpaceQuery = useSpace(selectedQuestion?.spaceId);
+  const selectedVisibility = Number(form.watch('visibility')) as VisibilityScope;
+  const selectedStatus = Number(form.watch('status')) as AnswerStatus;
+  const publicVisibilitySelected =
+    selectedVisibility === VisibilityScope.Public ||
+    selectedVisibility === VisibilityScope.PublicIndexed;
+  const invalidPublicStatus =
+    publicVisibilitySelected &&
+    selectedStatus !== AnswerStatus.Published &&
+    selectedStatus !== AnswerStatus.Validated;
+  const spaceBlocksAnswers = selectedSpaceQuery.data?.acceptsAnswers === false;
   const questionOptions = (questionOptionsQuery.data?.items ?? []).map(
     buildQuestionOption,
   );
@@ -364,7 +376,7 @@ export function AnswerFormPage({ mode }: { mode: 'create' | 'edit' }) {
                   description="Optional machine-readable rules that constrain when the answer applies."
                 />
                 <div className="flex flex-wrap items-center gap-3">
-                  <Button type="submit" disabled={isSubmitting}>
+                  <Button type="submit" disabled={isSubmitting || spaceBlocksAnswers}>
                     {translateText(mode === 'create' ? 'Create answer' : 'Save changes')}
                   </Button>
                   <Button asChild variant="outline">
@@ -374,6 +386,18 @@ export function AnswerFormPage({ mode }: { mode: 'create' | 'edit' }) {
                     </Link>
                   </Button>
                 </div>
+                {spaceBlocksAnswers ? (
+                  <p className="text-sm text-muted-foreground">
+                    {translateText('This space does not accept new answers.')}
+                  </p>
+                ) : null}
+                {invalidPublicStatus ? (
+                  <p className="text-sm text-muted-foreground">
+                    {translateText(
+                      'Public visibility requires status Published or Validated.',
+                    )}
+                  </p>
+                ) : null}
               </form>
             </Form>
           </CardContent>

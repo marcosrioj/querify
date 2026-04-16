@@ -1,5 +1,6 @@
 import { ExternalLink, Pencil, Trash2 } from 'lucide-react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
+import { usePortalTimeZone } from '@/domains/settings/settings-hooks';
 import { useDeleteSource, useSource } from '@/domains/sources/hooks';
 import { DetailLayout, KeyValueList, PageHeader, SectionGrid } from '@/shared/layout/page-layouts';
 import {
@@ -17,9 +18,11 @@ import {
 import { EmptyState, ErrorState } from '@/shared/ui/placeholder-state';
 import { SourceKindBadge, VisibilityBadge } from '@/shared/ui/status-badges';
 import { translateText } from '@/shared/lib/i18n-core';
+import { formatOptionalDateTimeInTimeZone } from '@/shared/lib/time-zone';
 
 export function SourceDetailPage() {
   const navigate = useNavigate();
+  const portalTimeZone = usePortalTimeZone();
   const { id } = useParams();
   const sourceQuery = useSource(id);
   const deleteSource = useDeleteSource();
@@ -104,6 +107,14 @@ export function SourceDetailPage() {
                       label: 'Language',
                       value: sourceQuery.data.language || 'Not set',
                     },
+                    {
+                      label: 'Last verified',
+                      value: formatOptionalDateTimeInTimeZone(
+                        sourceQuery.data.lastVerifiedAtUtc,
+                        portalTimeZone,
+                        translateText('Not set'),
+                      ),
+                    },
                   ]}
                 />
               </CardContent>
@@ -136,6 +147,12 @@ export function SourceDetailPage() {
                 title: 'Citation',
                 value: translateText(
                   sourceQuery.data.allowsPublicCitation ? 'Allowed' : 'Internal only',
+                ),
+              },
+              {
+                title: 'Excerpt',
+                value: translateText(
+                  sourceQuery.data.allowsPublicExcerpt ? 'Allowed' : 'Internal only',
                 ),
               },
               {
@@ -185,11 +202,19 @@ export function SourceDetailPage() {
                   { label: 'Media type', value: sourceQuery.data.mediaType || 'Not set' },
                   {
                     label: 'Captured at',
-                    value: sourceQuery.data.capturedAtUtc || 'Not set',
+                    value: formatOptionalDateTimeInTimeZone(
+                      sourceQuery.data.capturedAtUtc,
+                      portalTimeZone,
+                      translateText('Not set'),
+                    ),
                   },
                   {
                     label: 'Last verified',
-                    value: sourceQuery.data.lastVerifiedAtUtc || 'Not set',
+                    value: formatOptionalDateTimeInTimeZone(
+                      sourceQuery.data.lastVerifiedAtUtc,
+                      portalTimeZone,
+                      translateText('Not set'),
+                    ),
                   },
                 ]}
               />

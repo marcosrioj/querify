@@ -39,6 +39,12 @@ public sealed class QuestionsUpdateQuestionCommandHandler(
 
         Apply(entity, request.Request, userId);
 
+        if (!request.Request.DuplicateOfQuestionId.HasValue && entity.DuplicateOfQuestionId.HasValue)
+        {
+            entity.DuplicateOfQuestionId = null;
+            entity.DuplicateOfQuestion = null;
+        }
+
         if (request.Request.DuplicateOfQuestionId is Guid duplicateId && duplicateId != entity.DuplicateOfQuestionId)
         {
             var canonical = await dbContext.Questions
@@ -59,6 +65,15 @@ public sealed class QuestionsUpdateQuestionCommandHandler(
                 entity,
                 ActivityKind.QuestionMarkedDuplicate,
                 userId);
+        }
+
+        if (!request.Request.AcceptedAnswerId.HasValue && entity.AcceptedAnswerId.HasValue)
+        {
+            if (entity.AcceptedAnswer is not null)
+                entity.AcceptedAnswer.AcceptedAtUtc = null;
+
+            entity.AcceptedAnswerId = null;
+            entity.AcceptedAnswer = null;
         }
 
         if (request.Request.AcceptedAnswerId is Guid acceptedAnswerId && acceptedAnswerId != entity.AcceptedAnswerId)

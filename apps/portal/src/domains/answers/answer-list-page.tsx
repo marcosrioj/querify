@@ -15,6 +15,7 @@ import { useQuestionList } from '@/domains/questions/hooks';
 import {
   AnswerStatus,
   answerStatusLabels,
+  visibilityScopeLabels,
 } from '@/shared/constants/backend-enums';
 import { ListLayout, PageHeader, SectionGrid } from '@/shared/layout/page-layouts';
 import { clampPage } from '@/shared/lib/pagination';
@@ -27,6 +28,7 @@ import {
   Badge,
   Button,
   ConfirmAction,
+  Input,
   SectionGridSkeleton,
   Select,
   SelectContent,
@@ -47,6 +49,8 @@ const ANSWER_FILTER_DEFAULTS = {
   status: 'all',
   questionId: 'all',
   accepted: 'all',
+  visibility: 'all',
+  contextKey: '',
 } as const;
 
 export function AnswerListPage() {
@@ -67,10 +71,14 @@ export function AnswerListPage() {
   const statusFilter = filters.status;
   const questionFilter = filters.questionId;
   const acceptedFilter = filters.accepted;
+  const visibilityFilter = filters.visibility;
+  const contextKeyFilter = filters.contextKey;
   const apiStatus = statusFilter === 'all' ? undefined : Number(statusFilter);
   const apiQuestionId = questionFilter === 'all' ? undefined : questionFilter;
   const apiAccepted =
     acceptedFilter === 'all' ? undefined : acceptedFilter === 'true';
+  const apiVisibility =
+    visibilityFilter === 'all' ? undefined : Number(visibilityFilter);
 
   const answerQuery = useAnswerList({
     page,
@@ -79,6 +87,8 @@ export function AnswerListPage() {
     status: apiStatus,
     questionId: apiQuestionId,
     isAccepted: apiAccepted,
+    visibility: apiVisibility,
+    contextKey: contextKeyFilter || undefined,
   });
   const questionOptionsQuery = useQuestionList({
     page: 1,
@@ -130,6 +140,10 @@ export function AnswerListPage() {
           <div className="font-medium text-mono">{answer.headline}</div>
           <div className="text-sm text-muted-foreground">
             {questionLookup[answer.questionId] ?? answer.questionId}
+          </div>
+          <div className="text-sm text-muted-foreground">
+            {answer.contextKey || translateText('No context key')}
+            {answer.language ? ` • ${answer.language}` : ''}
           </div>
           {answer.body ? (
             <div className="line-clamp-2 text-sm text-muted-foreground">{answer.body}</div>
@@ -272,10 +286,15 @@ export function AnswerListPage() {
         loading={answerQuery.isLoading}
         onRowClick={(answer) => navigate(`/app/answers/${answer.id}`)}
         toolbar={
-          <div className="grid w-full gap-2 sm:grid-cols-2 xl:grid-cols-[220px_220px_220px]">
+          <div className="grid w-full gap-2 sm:grid-cols-2 xl:grid-cols-[220px_220px_220px_220px_220px]">
+            <Input
+              value={contextKeyFilter}
+              onChange={(event) => setFilter('contextKey', event.target.value)}
+              placeholder={translateText('Context key')}
+            />
             <Select value={questionFilter} onValueChange={(value) => setFilter('questionId', value)}>
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="Question" />
+                <SelectValue placeholder={translateText('Question')} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All questions</SelectItem>
@@ -288,20 +307,36 @@ export function AnswerListPage() {
             </Select>
             <Select value={statusFilter} onValueChange={(value) => setFilter('status', value)}>
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="Status" />
+                <SelectValue placeholder={translateText('Status')} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All statuses</SelectItem>
                 {Object.entries(answerStatusLabels).map(([value, label]) => (
                   <SelectItem key={value} value={value}>
-                    {label}
+                    {translateText(label)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select
+              value={visibilityFilter}
+              onValueChange={(value) => setFilter('visibility', value)}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder={translateText('Visibility')} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All visibility</SelectItem>
+                {Object.entries(visibilityScopeLabels).map(([value, label]) => (
+                  <SelectItem key={value} value={value}>
+                    {translateText(label)}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
             <Select value={acceptedFilter} onValueChange={(value) => setFilter('accepted', value)}>
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="Accepted state" />
+                <SelectValue placeholder={translateText('Accepted state')} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All answer states</SelectItem>
@@ -309,15 +344,15 @@ export function AnswerListPage() {
                 <SelectItem value="false">Not accepted</SelectItem>
               </SelectContent>
             </Select>
-            <div className="sm:col-span-2 xl:col-span-3">
+            <div className="sm:col-span-2 xl:col-span-5">
               <Select value={sorting} onValueChange={setSorting}>
                 <SelectTrigger className="w-full xl:max-w-[240px]">
-                  <SelectValue placeholder="Sort answers" />
+                  <SelectValue placeholder={translateText('Sort answers')} />
                 </SelectTrigger>
                 <SelectContent>
                   {sortingOptions.map((option) => (
                     <SelectItem key={option.value} value={option.value}>
-                      {option.label}
+                      {translateText(option.label)}
                     </SelectItem>
                   ))}
                 </SelectContent>

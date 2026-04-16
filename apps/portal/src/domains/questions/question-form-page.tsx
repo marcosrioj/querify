@@ -127,6 +127,17 @@ export function QuestionFormPage({ mode }: { mode: 'create' | 'edit' }) {
   const selectedSpace =
     spaceOptionsQuery.data?.items.find((space) => space.id === selectedSpaceId) ??
     selectedSpaceQuery.data;
+  const selectedVisibility = Number(form.watch('visibility')) as VisibilityScope;
+  const selectedStatus = Number(form.watch('status')) as QuestionStatus;
+  const publicVisibilitySelected =
+    selectedVisibility === VisibilityScope.Public ||
+    selectedVisibility === VisibilityScope.PublicIndexed;
+  const invalidPublicStatus =
+    publicVisibilitySelected &&
+    selectedStatus !== QuestionStatus.Open &&
+    selectedStatus !== QuestionStatus.Answered &&
+    selectedStatus !== QuestionStatus.Validated;
+  const spaceBlocksQuestions = selectedSpace?.acceptsQuestions === false;
   const spaceOptions = (spaceOptionsQuery.data?.items ?? []).map(buildSpaceOption);
   const selectedSpaceOption = selectedSpace ? buildSpaceOption(selectedSpace) : null;
   const languageOptions = portalLanguageOptions.map((option) => ({
@@ -407,7 +418,7 @@ export function QuestionFormPage({ mode }: { mode: 'create' | 'edit' }) {
                   />
                 </div>
                 <div className="flex flex-wrap items-center gap-3">
-                  <Button type="submit" disabled={isSubmitting}>
+                  <Button type="submit" disabled={isSubmitting || spaceBlocksQuestions}>
                     {translateText(mode === 'create' ? 'Create question' : 'Save changes')}
                   </Button>
                   <Button asChild variant="outline">
@@ -417,6 +428,18 @@ export function QuestionFormPage({ mode }: { mode: 'create' | 'edit' }) {
                     </Link>
                   </Button>
                 </div>
+                {spaceBlocksQuestions ? (
+                  <p className="text-sm text-muted-foreground">
+                    {translateText('This space does not accept new questions.')}
+                  </p>
+                ) : null}
+                {invalidPublicStatus ? (
+                  <p className="text-sm text-muted-foreground">
+                    {translateText(
+                      'Public visibility requires status Open, Answered, or Validated.',
+                    )}
+                  </p>
+                ) : null}
               </form>
             </Form>
           </CardContent>

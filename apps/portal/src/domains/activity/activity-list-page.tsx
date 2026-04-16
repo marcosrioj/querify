@@ -209,13 +209,13 @@ export function ActivityListPage() {
           <div className="grid w-full gap-2 sm:grid-cols-2 xl:grid-cols-[220px_220px_220px]">
             <Select value={kindFilter} onValueChange={(value) => setFilter('kind', value)}>
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="Event kind" />
+                <SelectValue placeholder={translateText('Event kind')} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All event kinds</SelectItem>
                 {Object.entries(activityKindLabels).map(([value, label]) => (
                   <SelectItem key={value} value={value}>
-                    {label}
+                    {translateText(label)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -225,28 +225,28 @@ export function ActivityListPage() {
               onValueChange={(value) => setFilter('actorKind', value)}
             >
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="Actor kind" />
+                <SelectValue placeholder={translateText('Actor kind')} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All actors</SelectItem>
                 {Object.entries(actorKindLabels).map(([value, label]) => (
                   <SelectItem key={value} value={value}>
-                    {label}
+                    {translateText(label)}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
             <Select value={sorting} onValueChange={setSorting}>
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="Sort events" />
+                <SelectValue placeholder={translateText('Sort events')} />
               </SelectTrigger>
-              <SelectContent>
-                {sortingOptions.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
+                <SelectContent>
+                  {sortingOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {translateText(option.label)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
             </Select>
           </div>
         }

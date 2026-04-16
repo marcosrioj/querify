@@ -27,6 +27,7 @@ import { PaginationControls } from '@/shared/ui/pagination-controls';
 import { EmptyState, ErrorState } from '@/shared/ui/placeholder-state';
 import { translateText } from '@/shared/lib/i18n-core';
 import {
+  Badge,
   Button,
   ConfirmAction,
   Input,
@@ -53,6 +54,8 @@ const sortingOptions = [
 const SPACE_FILTER_DEFAULTS = {
   visibility: 'all',
   kind: 'all',
+  acceptsQuestions: 'all',
+  acceptsAnswers: 'all',
 } as const;
 
 export function SpaceListPage() {
@@ -76,9 +79,19 @@ export function SpaceListPage() {
   });
   const visibilityFilter = filters.visibility;
   const kindFilter = filters.kind;
+  const acceptsQuestionsFilter = filters.acceptsQuestions;
+  const acceptsAnswersFilter = filters.acceptsAnswers;
   const apiVisibility =
     visibilityFilter === 'all' ? undefined : Number(visibilityFilter);
   const apiKind = kindFilter === 'all' ? undefined : Number(kindFilter);
+  const apiAcceptsQuestions =
+    acceptsQuestionsFilter === 'all'
+      ? undefined
+      : acceptsQuestionsFilter === 'true';
+  const apiAcceptsAnswers =
+    acceptsAnswersFilter === 'all'
+      ? undefined
+      : acceptsAnswersFilter === 'true';
 
   const spaceQuery = useSpaceList({
     page,
@@ -87,6 +100,8 @@ export function SpaceListPage() {
     searchText: debouncedSearch || undefined,
     visibility: apiVisibility,
     kind: apiKind,
+    acceptsQuestions: apiAcceptsQuestions,
+    acceptsAnswers: apiAcceptsAnswers,
   });
 
   useEffect(() => {
@@ -142,6 +157,18 @@ export function SpaceListPage() {
         <div className="space-y-2">
           <SpaceKindBadge kind={space.kind} />
           <ModerationPolicyBadge policy={space.moderationPolicy} />
+          <div className="flex flex-wrap gap-2">
+            <Badge variant={space.acceptsQuestions ? 'success' : 'mono'} appearance="outline">
+              {translateText(
+                space.acceptsQuestions ? 'Questions enabled' : 'Questions disabled',
+              )}
+            </Badge>
+            <Badge variant={space.acceptsAnswers ? 'success' : 'mono'} appearance="outline">
+              {translateText(
+                space.acceptsAnswers ? 'Answers enabled' : 'Answers disabled',
+              )}
+            </Badge>
+          </div>
         </div>
       ),
     },
@@ -276,7 +303,7 @@ export function SpaceListPage() {
               <Input
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
-                placeholder="Search spaces"
+                placeholder={translateText('Search spaces')}
                 className="w-full"
               />
             </div>
@@ -285,38 +312,64 @@ export function SpaceListPage() {
               onValueChange={(value) => setFilter('visibility', value)}
             >
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="Visibility" />
+                <SelectValue placeholder={translateText('Visibility')} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All visibility</SelectItem>
                 {Object.entries(visibilityScopeLabels).map(([value, label]) => (
                   <SelectItem key={value} value={value}>
-                    {label}
+                    {translateText(label)}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
             <Select value={kindFilter} onValueChange={(value) => setFilter('kind', value)}>
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="Space model" />
+                <SelectValue placeholder={translateText('Space model')} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All models</SelectItem>
                 {Object.entries(spaceKindLabels).map(([value, label]) => (
                   <SelectItem key={value} value={value}>
-                    {label}
+                    {translateText(label)}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
+            <Select
+              value={acceptsQuestionsFilter}
+              onValueChange={(value) => setFilter('acceptsQuestions', value)}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder={translateText('Question intake')} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All question states</SelectItem>
+                <SelectItem value="true">Questions enabled</SelectItem>
+                <SelectItem value="false">Questions disabled</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select
+              value={acceptsAnswersFilter}
+              onValueChange={(value) => setFilter('acceptsAnswers', value)}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder={translateText('Answer intake')} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All answer states</SelectItem>
+                <SelectItem value="true">Answers enabled</SelectItem>
+                <SelectItem value="false">Answers disabled</SelectItem>
+              </SelectContent>
+            </Select>
             <Select value={sorting} onValueChange={setSorting}>
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="Sort spaces" />
+                <SelectValue placeholder={translateText('Sort spaces')} />
               </SelectTrigger>
               <SelectContent>
                 {sortingOptions.map((option) => (
                   <SelectItem key={option.value} value={option.value}>
-                    {option.label}
+                    {translateText(option.label)}
                   </SelectItem>
                 ))}
               </SelectContent>

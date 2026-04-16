@@ -138,7 +138,7 @@ export function TagListPage() {
           <Input
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search tags"
+            placeholder={translateText('Search tags')}
             className="w-full max-w-sm"
           />
         }

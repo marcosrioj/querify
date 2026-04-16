@@ -49,6 +49,7 @@ const SOURCE_FILTER_DEFAULTS = {
   kind: 'all',
   visibility: 'all',
   authoritative: 'all',
+  systemName: '',
 } as const;
 
 export function SourceListPage() {
@@ -73,6 +74,7 @@ export function SourceListPage() {
   const kindFilter = filters.kind;
   const visibilityFilter = filters.visibility;
   const authoritativeFilter = filters.authoritative;
+  const systemNameFilter = filters.systemName;
   const apiKind = kindFilter === 'all' ? undefined : Number(kindFilter);
   const apiVisibility =
     visibilityFilter === 'all' ? undefined : Number(visibilityFilter);
@@ -89,6 +91,7 @@ export function SourceListPage() {
     kind: apiKind,
     visibility: apiVisibility,
     isAuthoritative: apiAuthoritative,
+    systemName: systemNameFilter || undefined,
   });
 
   useEffect(() => {
@@ -125,6 +128,10 @@ export function SourceListPage() {
             {source.label || translateText('Untitled source')}
           </div>
           <div className="break-all text-sm text-muted-foreground">{source.locator}</div>
+          <div className="text-sm text-muted-foreground">
+            {source.systemName || translateText('No system name recorded')}
+            {source.language ? ` • ${source.language}` : ''}
+          </div>
         </div>
       ),
     },
@@ -152,6 +159,9 @@ export function SourceListPage() {
             <Badge variant="success" appearance="outline">
               {translateText('Public citation')}
             </Badge>
+          ) : null}
+          {source.allowsPublicExcerpt ? (
+            <Badge variant="outline">{translateText('Public excerpt')}</Badge>
           ) : null}
         </div>
       ),
@@ -263,23 +273,28 @@ export function SourceListPage() {
         loading={sourceQuery.isLoading}
         onRowClick={(source) => navigate(`/app/sources/${source.id}`)}
         toolbar={
-          <div className="grid w-full gap-2 sm:grid-cols-2 xl:grid-cols-[minmax(280px,1fr)_220px_220px_220px]">
+          <div className="grid w-full gap-2 sm:grid-cols-2 xl:grid-cols-[minmax(240px,1fr)_220px_220px_220px_220px]">
             <div className="sm:col-span-2 xl:col-span-1">
               <Input
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
-                placeholder="Search sources"
+                placeholder={translateText('Search sources')}
               />
             </div>
+            <Input
+              value={systemNameFilter}
+              onChange={(event) => setFilter('systemName', event.target.value)}
+              placeholder={translateText('System name')}
+            />
             <Select value={kindFilter} onValueChange={(value) => setFilter('kind', value)}>
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="Source kind" />
+                <SelectValue placeholder={translateText('Source kind')} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All kinds</SelectItem>
                 {Object.entries(sourceKindLabels).map(([value, label]) => (
                   <SelectItem key={value} value={value}>
-                    {label}
+                    {translateText(label)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -289,13 +304,13 @@ export function SourceListPage() {
               onValueChange={(value) => setFilter('visibility', value)}
             >
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="Visibility" />
+                <SelectValue placeholder={translateText('Visibility')} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All visibility</SelectItem>
                 {Object.entries(visibilityScopeLabels).map(([value, label]) => (
                   <SelectItem key={value} value={value}>
-                    {label}
+                    {translateText(label)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -305,7 +320,7 @@ export function SourceListPage() {
               onValueChange={(value) => setFilter('authoritative', value)}
             >
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="Authoritative state" />
+                <SelectValue placeholder={translateText('Authoritative state')} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All trust states</SelectItem>
@@ -313,15 +328,15 @@ export function SourceListPage() {
                 <SelectItem value="false">Reference only</SelectItem>
               </SelectContent>
             </Select>
-            <div className="sm:col-span-2 xl:col-span-4">
+            <div className="sm:col-span-2 xl:col-span-5">
               <Select value={sorting} onValueChange={setSorting}>
                 <SelectTrigger className="w-full xl:max-w-[240px]">
-                  <SelectValue placeholder="Sort sources" />
+                  <SelectValue placeholder={translateText('Sort sources')} />
                 </SelectTrigger>
                 <SelectContent>
                   {sortingOptions.map((option) => (
                     <SelectItem key={option.value} value={option.value}>
-                      {option.label}
+                      {translateText(option.label)}
                     </SelectItem>
                   ))}
                 </SelectContent>

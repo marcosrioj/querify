@@ -9,8 +9,10 @@ import {
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useAnswer, useAddAnswerSource, useDeleteAnswer, usePublishAnswer, useRejectAnswer, useRemoveAnswerSource, useRetireAnswer, useValidateAnswer } from '@/domains/answers/hooks';
 import { useQuestion } from '@/domains/questions/hooks';
+import { usePortalTimeZone } from '@/domains/settings/settings-hooks';
 import { useSourceList } from '@/domains/sources/hooks';
 import {
+  AnswerStatus,
   SourceRole,
   sourceRoleLabels,
 } from '@/shared/constants/backend-enums';
@@ -41,9 +43,11 @@ import {
   VisibilityBadge,
 } from '@/shared/ui/status-badges';
 import { translateText } from '@/shared/lib/i18n-core';
+import { formatOptionalDateTimeInTimeZone } from '@/shared/lib/time-zone';
 
 export function AnswerDetailPage() {
   const navigate = useNavigate();
+  const portalTimeZone = usePortalTimeZone();
   const { id } = useParams();
   const answerQuery = useAnswer(id);
   const questionQuery = useQuestion(answerQuery.data?.questionId);
@@ -81,6 +85,21 @@ export function AnswerDetailPage() {
   const showLoadingState =
     !answerQuery.data &&
     (answerQuery.isLoading || questionQuery.isLoading || sourceOptionsQuery.isLoading);
+  const canPublish =
+    answerQuery.data?.status === AnswerStatus.Draft ||
+    answerQuery.data?.status === AnswerStatus.PendingReview ||
+    answerQuery.data?.status === AnswerStatus.Rejected;
+  const canValidate = answerQuery.data?.status === AnswerStatus.Published;
+  const canReject = answerQuery.data?.status !== AnswerStatus.Rejected;
+  const canRetire =
+    answerQuery.data?.status === AnswerStatus.Published ||
+    answerQuery.data?.status === AnswerStatus.Validated ||
+    answerQuery.data?.status === AnswerStatus.Rejected;
+  const lifecycleSummary =
+    answerQuery.data?.status === AnswerStatus.Draft ||
+    answerQuery.data?.status === AnswerStatus.PendingReview
+      ? translateText('Publish the answer before exposing it publicly or accepting it.')
+      : translateText('Current status controls which lifecycle actions are available.');
 
   return (
     <DetailLayout
@@ -160,6 +179,14 @@ export function AnswerDetailPage() {
                       label: 'Confidence',
                       value: String(answerQuery.data.confidenceScore),
                     },
+                    {
+                      label: 'Published at',
+                      value: formatOptionalDateTimeInTimeZone(
+                        answerQuery.data.publishedAtUtc,
+                        portalTimeZone,
+                        translateText('Not set'),
+                      ),
+                    },
                   ]}
                 />
               </CardContent>
@@ -222,35 +249,96 @@ export function AnswerDetailPage() {
                 </CardTitle>
               </CardHeading>
             </CardHeader>
-            <CardContent className="flex flex-wrap gap-3">
+            <CardContent className="space-y-4">
+              <p className="text-sm text-muted-foreground">{lifecycleSummary}</p>
+              <div className="flex flex-wrap gap-3">
               <Button
                 variant="outline"
                 onClick={() => void publishAnswer.mutateAsync(id)}
-                disabled={publishAnswer.isPending}
+                disabled={!canPublish || publishAnswer.isPending}
               >
                 {translateText('Publish')}
               </Button>
               <Button
                 variant="outline"
                 onClick={() => void validateAnswer.mutateAsync(id)}
-                disabled={validateAnswer.isPending}
+                disabled={!canValidate || validateAnswer.isPending}
               >
                 {translateText('Validate')}
               </Button>
               <Button
                 variant="outline"
                 onClick={() => void rejectAnswer.mutateAsync(id)}
-                disabled={rejectAnswer.isPending}
+                disabled={!canReject || rejectAnswer.isPending}
               >
                 {translateText('Reject')}
               </Button>
               <Button
                 variant="outline"
                 onClick={() => void retireAnswer.mutateAsync(id)}
-                disabled={retireAnswer.isPending}
+                disabled={!canRetire || retireAnswer.isPending}
               >
                 {translateText('Retire')}
               </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardHeading>
+                <CardTitle>{translateText('Context and timing')}</CardTitle>
+              </CardHeading>
+            </CardHeader>
+            <CardContent>
+              <KeyValueList
+                items={[
+                  {
+                    label: 'Author label',
+                    value: answerQuery.data.authorLabel || 'Not set',
+                  },
+                  {
+                    label: 'Language',
+                    value: answerQuery.data.language || 'Not set',
+                  },
+                  {
+                    label: 'Context key',
+                    value: answerQuery.data.contextKey || 'Not set',
+                  },
+                  {
+                    label: 'Published at',
+                    value: formatOptionalDateTimeInTimeZone(
+                      answerQuery.data.publishedAtUtc,
+                      portalTimeZone,
+                      translateText('Not set'),
+                    ),
+                  },
+                  {
+                    label: 'Validated at',
+                    value: formatOptionalDateTimeInTimeZone(
+                      answerQuery.data.validatedAtUtc,
+                      portalTimeZone,
+                      translateText('Not set'),
+                    ),
+                  },
+                  {
+                    label: 'Accepted at',
+                    value: formatOptionalDateTimeInTimeZone(
+                      answerQuery.data.acceptedAtUtc,
+                      portalTimeZone,
+                      translateText('Not set'),
+                    ),
+                  },
+                  {
+                    label: 'Retired at',
+                    value: formatOptionalDateTimeInTimeZone(
+                      answerQuery.data.retiredAtUtc,
+                      portalTimeZone,
+                      translateText('Not set'),
+                    ),
+                  },
+                ]}
+              />
             </CardContent>
           </Card>
 
@@ -295,6 +383,20 @@ export function AnswerDetailPage() {
                   </p>
                 </div>
               </div>
+              <div className="rounded-2xl border border-border bg-muted/10 p-4">
+                <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
+                  {translateText('Applicability rules JSON')}
+                </p>
+                {answerQuery.data.applicabilityRulesJson ? (
+                  <pre className="mt-2 overflow-x-auto whitespace-pre-wrap text-sm leading-6">
+                    {answerQuery.data.applicabilityRulesJson}
+                  </pre>
+                ) : (
+                  <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                    {translateText('No applicability rules recorded.')}
+                  </p>
+                )}
+              </div>
             </CardContent>
           </Card>
 
@@ -332,6 +434,24 @@ export function AnswerDetailPage() {
                               value: sourceLink.order,
                             })}
                           </Badge>
+                          {sourceLink.source ? (
+                            <>
+                              <VisibilityBadge visibility={sourceLink.source.visibility} />
+                              {sourceLink.source.isAuthoritative ? (
+                                <Badge variant="primary">{translateText('Authoritative')}</Badge>
+                              ) : null}
+                              {sourceLink.source.allowsPublicCitation ? (
+                                <Badge variant="success" appearance="outline">
+                                  {translateText('Public citation')}
+                                </Badge>
+                              ) : null}
+                              {sourceLink.source.allowsPublicExcerpt ? (
+                                <Badge variant="outline">
+                                  {translateText('Public excerpt')}
+                                </Badge>
+                              ) : null}
+                            </>
+                          ) : null}
                         </div>
                       </div>
                       <div className="flex flex-wrap gap-2">
@@ -364,7 +484,7 @@ export function AnswerDetailPage() {
               <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_220px_160px]">
                 <Select value={selectedSourceId} onValueChange={setSelectedSourceId}>
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Attach existing source" />
+                    <SelectValue placeholder={translateText('Attach existing source')} />
                   </SelectTrigger>
                   <SelectContent>
                     {availableSources.map((source) => (
@@ -376,12 +496,12 @@ export function AnswerDetailPage() {
                 </Select>
                 <Select value={selectedSourceRole} onValueChange={setSelectedSourceRole}>
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Source role" />
+                    <SelectValue placeholder={translateText('Source role')} />
                   </SelectTrigger>
                   <SelectContent>
                     {Object.entries(sourceRoleLabels).map(([value, label]) => (
                       <SelectItem key={value} value={value}>
-                        {label}
+                        {translateText(label)}
                       </SelectItem>
                     ))}
                   </SelectContent>
