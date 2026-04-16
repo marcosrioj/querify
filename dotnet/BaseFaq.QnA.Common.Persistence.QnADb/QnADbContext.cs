@@ -3,6 +3,7 @@ using BaseFaq.Common.EntityFramework.Core.Abstractions;
 using BaseFaq.Common.EntityFramework.Core.Entities;
 using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Models.Common.Enums;
+using BaseFaq.Models.QnA.Enums;
 using BaseFaq.QnA.Common.Persistence.QnADb.Entities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -68,6 +69,7 @@ public class QnADbContext(
 
         ValidateQuestions(cache);
         ValidateAnswers(cache);
+        ValidateKnowledgeSources();
         ValidateQuestionSourceLinks(cache);
         ValidateAnswerSourceLinks(cache);
         ValidateThreadActivities(cache);
@@ -84,6 +86,13 @@ public class QnADbContext(
             var question = entry.Entity;
 
             EnsureTenantMatch(question.TenantId, cache.GetQuestionSpaceTenant(question.SpaceId), nameof(Question.SpaceId));
+
+            if (question.Visibility.IsPubliclyVisible() &&
+                question.Status is not QuestionStatus.Open and not QuestionStatus.Answered and not QuestionStatus.Validated)
+            {
+                throw new InvalidOperationException(
+                    $"Question '{question.Id}' cannot be public while in status '{question.Status}'.");
+            }
 
             if (question.AcceptedAnswerId is Guid acceptedAnswerId)
             {
@@ -118,6 +127,60 @@ public class QnADbContext(
         {
             var answer = entry.Entity;
             EnsureTenantMatch(answer.TenantId, cache.GetQuestionTenant(answer.QuestionId), nameof(Answer.QuestionId));
+
+            if (answer.Visibility.IsPubliclyVisible() &&
+                answer.Status is not AnswerStatus.Published and not AnswerStatus.Validated)
+            {
+                throw new InvalidOperationException(
+                    $"Answer '{answer.Id}' cannot be public while in status '{answer.Status}'.");
+            }
+
+            if (answer.Visibility.IsPubliclyVisible() &&
+                answer.Kind == AnswerKind.AiDraft &&
+                answer.Status != AnswerStatus.Validated)
+            {
+                throw new InvalidOperationException(
+                    $"AI draft answer '{answer.Id}' must be validated before public exposure.");
+            }
+
+            if (answer.IsAccepted &&
+                answer.Status is not AnswerStatus.Published and not AnswerStatus.Validated)
+            {
+                throw new InvalidOperationException(
+                    $"Accepted answer '{answer.Id}' must stay in published or validated status.");
+            }
+        }
+    }
+
+    private void ValidateKnowledgeSources()
+    {
+        foreach (var entry in ChangeTracker.Entries<KnowledgeSource>()
+                     .Where(entry => entry.State is EntityState.Added or EntityState.Modified))
+        {
+            var source = entry.Entity;
+
+            if (!source.Visibility.IsPubliclyVisible())
+            {
+                if (source.AllowsPublicCitation || source.AllowsPublicExcerpt)
+                {
+                    throw new InvalidOperationException(
+                        $"Knowledge source '{source.Id}' cannot allow public citation or excerpt reuse while not publicly visible.");
+                }
+
+                continue;
+            }
+
+            if (source.Kind == SourceKind.InternalNote)
+            {
+                throw new InvalidOperationException(
+                    $"Knowledge source '{source.Id}' cannot expose internal notes publicly.");
+            }
+
+            if (source.LastVerifiedAtUtc is null)
+            {
+                throw new InvalidOperationException(
+                    $"Knowledge source '{source.Id}' must be verified before public exposure.");
+            }
         }
     }
 
@@ -146,8 +209,14 @@ public class QnADbContext(
     private void ValidateThreadActivities(IntegrityLookupCache cache)
     {
         foreach (var entry in ChangeTracker.Entries<ThreadActivity>()
-                     .Where(entry => entry.State is EntityState.Added or EntityState.Modified))
+                     .Where(entry => entry.State != EntityState.Unchanged))
         {
+            if (entry.State is EntityState.Modified or EntityState.Deleted)
+            {
+                throw new InvalidOperationException(
+                    $"Thread activity '{entry.Entity.Id}' is append-only and cannot be modified or deleted.");
+            }
+
             var activity = entry.Entity;
             EnsureTenantMatch(activity.TenantId, cache.GetQuestionTenant(activity.QuestionId), nameof(ThreadActivity.QuestionId));
 
