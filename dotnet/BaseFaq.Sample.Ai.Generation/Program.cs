@@ -109,7 +109,7 @@ public static class Program
 
                          SCOPE
                          - Generate between 6 and 8 user-facing questions.
-                         - Focus only on topics explicitly supported by the reference.
+                         - Focus only on tags explicitly supported by the reference.
                          - Do not expand beyond the documented scope.
 
                          REFERENCE_CONTEXT

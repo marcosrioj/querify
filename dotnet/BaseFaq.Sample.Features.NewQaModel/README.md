@@ -110,9 +110,9 @@ Why it exists:
 
 - provenance is central to trust, moderation, AI safety, and future enterprise features
 
-### `Topic`
+### `Tag`
 
-`Topic` is the lightweight classification entity.
+`Tag` is the lightweight classification entity.
 
 Business role:
 
@@ -177,7 +177,7 @@ The sample does not create dedicated entities for every possible future concern.
 What was intentionally simplified:
 
 - revision history is handled through `ThreadActivity` snapshots
-- topic assignment uses direct collections instead of explicit join entities in the sample
+- tag assignment uses direct collections instead of explicit join entities in the sample
 - community reputation, moderation queues, and analytics are not modeled as standalone entities yet
 - collection-level source metadata is kept simple through direct `CuratedSources`
 
@@ -223,7 +223,7 @@ The solution-wide transition backlog that uses this sample as the target now als
 - [Domain/Question.cs](./Domain/Question.cs)
 - [Domain/Answer.cs](./Domain/Answer.cs)
 - [Domain/KnowledgeSource.cs](./Domain/KnowledgeSource.cs)
-- [Domain/Topic.cs](./Domain/Topic.cs)
+- [Domain/Tag.cs](./Domain/Tag.cs)
 - [Domain/QuestionSourceLink.cs](./Domain/QuestionSourceLink.cs)
 - [Domain/AnswerSourceLink.cs](./Domain/AnswerSourceLink.cs)
 - [Domain/ThreadActivity.cs](./Domain/ThreadActivity.cs)

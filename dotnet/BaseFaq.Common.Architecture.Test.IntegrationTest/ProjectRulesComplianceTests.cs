@@ -43,7 +43,7 @@ public class ProjectRulesComplianceTests
         "dotnet/BaseFaq.QnA.Portal.Business.Question/BaseFaq.QnA.Portal.Business.Question.csproj",
         "dotnet/BaseFaq.QnA.Portal.Business.QuestionSpace/BaseFaq.QnA.Portal.Business.QuestionSpace.csproj",
         "dotnet/BaseFaq.QnA.Portal.Business.ThreadActivity/BaseFaq.QnA.Portal.Business.ThreadActivity.csproj",
-        "dotnet/BaseFaq.QnA.Portal.Business.Topic/BaseFaq.QnA.Portal.Business.Topic.csproj",
+        "dotnet/BaseFaq.QnA.Portal.Business.Tag/BaseFaq.QnA.Portal.Business.Tag.csproj",
         "dotnet/BaseFaq.QnA.Public.Business.Feedback/BaseFaq.QnA.Public.Business.Feedback.csproj",
         "dotnet/BaseFaq.QnA.Public.Business.Question/BaseFaq.QnA.Public.Business.Question.csproj",
         "dotnet/BaseFaq.QnA.Public.Business.QuestionSpace/BaseFaq.QnA.Public.Business.QuestionSpace.csproj",
@@ -57,7 +57,7 @@ public class ProjectRulesComplianceTests
         "dotnet/BaseFaq.Models.QnA/Dtos/Question",
         "dotnet/BaseFaq.Models.QnA/Dtos/QuestionSpace",
         "dotnet/BaseFaq.Models.QnA/Dtos/ThreadActivity",
-        "dotnet/BaseFaq.Models.QnA/Dtos/Topic"
+        "dotnet/BaseFaq.Models.QnA/Dtos/Tag"
     ];
 
     private static readonly string[] ProhibitedQnAModelDtoDirectories =
@@ -72,12 +72,12 @@ public class ProjectRulesComplianceTests
         "dotnet/BaseFaq.Models.QnA/Dtos/KnowledgeSource/KnowledgeSourceDto.cs",
         "dotnet/BaseFaq.Models.QnA/Dtos/Question/QuestionDto.cs",
         "dotnet/BaseFaq.Models.QnA/Dtos/Question/QuestionSourceLinkDto.cs",
-        "dotnet/BaseFaq.Models.QnA/Dtos/Question/QuestionTopicDto.cs",
+        "dotnet/BaseFaq.Models.QnA/Dtos/Question/QuestionTagDto.cs",
         "dotnet/BaseFaq.Models.QnA/Dtos/QuestionSpace/QuestionSpaceDto.cs",
         "dotnet/BaseFaq.Models.QnA/Dtos/QuestionSpace/QuestionSpaceSourceDto.cs",
-        "dotnet/BaseFaq.Models.QnA/Dtos/QuestionSpace/QuestionSpaceTopicDto.cs",
+        "dotnet/BaseFaq.Models.QnA/Dtos/QuestionSpace/QuestionSpaceTagDto.cs",
         "dotnet/BaseFaq.Models.QnA/Dtos/ThreadActivity/ThreadActivityDto.cs",
-        "dotnet/BaseFaq.Models.QnA/Dtos/Topic/TopicDto.cs"
+        "dotnet/BaseFaq.Models.QnA/Dtos/Tag/TagDto.cs"
     ];
 
     private static readonly HashSet<string> AllowedQnAHelperFiles = new(StringComparer.Ordinal)

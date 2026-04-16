@@ -4,7 +4,7 @@ using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.QnA.Dtos.KnowledgeSource;
 using BaseFaq.Models.QnA.Dtos.QuestionSpace;
-using BaseFaq.Models.QnA.Dtos.Topic;
+using BaseFaq.Models.QnA.Dtos.Tag;
 using BaseFaq.QnA.Common.Persistence.QnADb;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -22,8 +22,8 @@ public sealed class QuestionSpacesGetQuestionSpaceQueryHandler(
         var tenantId = sessionService.GetTenantId(AppEnum.QnA);
         var entity = await dbContext.QuestionSpaces
             .Include(space => space.Questions)
-            .Include(space => space.Topics)
-            .ThenInclude(link => link.Topic)
+            .Include(space => space.Tags)
+            .ThenInclude(link => link.Tag)
             .Include(space => space.Sources)
             .ThenInclude(link => link.KnowledgeSource)
             .AsNoTracking()
@@ -53,15 +53,13 @@ public sealed class QuestionSpacesGetQuestionSpaceQueryHandler(
             PublishedAtUtc = entity.PublishedAtUtc,
             LastValidatedAtUtc = entity.LastValidatedAtUtc,
             QuestionCount = entity.Questions.Count,
-            Topics = entity.Topics
-                .Select(link => link.Topic)
-                .Select(topic => new TopicDto
+            Tags = entity.Tags
+                .Select(link => link.Tag)
+                .Select(tag => new TagDto
                 {
-                    Id = topic.Id,
-                    TenantId = topic.TenantId,
-                    Name = topic.Name,
-                    Category = topic.Category,
-                    Description = topic.Description
+                    Id = tag.Id,
+                    TenantId = tag.TenantId,
+                    Name = tag.Name
                 })
                 .ToList(),
             CuratedSources = entity.Sources

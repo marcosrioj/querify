@@ -50,20 +50,20 @@ public class QuestionSpaceController(IQuestionSpaceService questionSpaceService)
         return NoContent();
     }
 
-    [HttpPost("{id:guid}/topic")]
+    [HttpPost("{id:guid}/tag")]
     [ProducesResponseType(typeof(Guid), StatusCodes.Status201Created)]
-    public async Task<IActionResult> AddTopic(Guid id, [FromBody] QuestionSpaceTopicCreateRequestDto dto,
+    public async Task<IActionResult> AddTag(Guid id, [FromBody] QuestionSpaceTagCreateRequestDto dto,
         CancellationToken token)
     {
         dto.QuestionSpaceId = id;
-        return StatusCode(StatusCodes.Status201Created, await questionSpaceService.AddTopic(dto, token));
+        return StatusCode(StatusCodes.Status201Created, await questionSpaceService.AddTag(dto, token));
     }
 
-    [HttpDelete("{id:guid}/topic/{topicId:guid}")]
+    [HttpDelete("{id:guid}/tag/{tagId:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    public async Task<IActionResult> RemoveTopic(Guid id, Guid topicId, CancellationToken token)
+    public async Task<IActionResult> RemoveTag(Guid id, Guid tagId, CancellationToken token)
     {
-        await questionSpaceService.RemoveTopic(id, topicId, token);
+        await questionSpaceService.RemoveTag(id, tagId, token);
         return NoContent();
     }
 

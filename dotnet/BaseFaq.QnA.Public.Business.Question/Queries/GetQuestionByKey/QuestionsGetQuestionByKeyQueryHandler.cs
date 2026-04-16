@@ -56,8 +56,8 @@ public sealed class QuestionsGetQuestionByKeyQueryHandler(
             .ThenInclude(link => link.Source)
             .Include(question => question.Sources)
             .ThenInclude(link => link.Source)
-            .Include(question => question.Topics)
-            .ThenInclude(link => link.Topic)
+            .Include(question => question.Tags)
+            .ThenInclude(link => link.Tag)
             .Include(question => question.Activities)
             .Where(question =>
                 question.TenantId == tenantId &&

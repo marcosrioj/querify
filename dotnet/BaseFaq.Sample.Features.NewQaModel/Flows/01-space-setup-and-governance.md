@@ -16,7 +16,7 @@ flowchart TD
     Hybrid --> Governance
     Governance[Set VisibilityScope, ModerationPolicy, SearchMarkupMode] --> Intake[Set AcceptsQuestions and AcceptsAnswers]
     Intake --> Review[Set RequiresQuestionReview and RequiresAnswerReview]
-    Review --> Classify[Attach Topic values]
+    Review --> Classify[Attach Tag values]
     Classify --> Curate[Attach curated KnowledgeSource values]
     Curate --> Publish[Set PublishedAtUtc when surface is ready]
     Publish --> Operate[QuestionSpace is ready to receive threads]
@@ -27,7 +27,7 @@ flowchart TD
 | Entity | Role in the flow | Important members |
 | --- | --- | --- |
 | [QuestionSpace](../Domain/QuestionSpace.cs) | Top-level container for the Q&A surface. | `Name`, `Key`, `DefaultLanguage`, `Kind`, `Visibility`, `ModerationPolicy`, `SearchMarkupMode`, `AcceptsQuestions`, `AcceptsAnswers`, `RequiresQuestionReview`, `RequiresAnswerReview`, `PublishedAtUtc` |
-| [Topic](../Domain/Topic.cs) | Taxonomy attached to the space for routing and discovery. | `Name`, `Category`, `Description` |
+| [Tag](../Domain/Tag.cs) | Taxonomy attached to the space for routing and discovery. | `Name` |
 | [KnowledgeSource](../Domain/KnowledgeSource.cs) | Curated sources that the space trusts or reuses by default. | `Kind`, `Locator`, `SystemName`, `IsAuthoritative`, `LastVerifiedAtUtc` |
 
 ## Enums involved
@@ -42,6 +42,6 @@ flowchart TD
 ## Interaction notes
 
 - `QuestionSpace` is the primary grouping entity for all future `Question` threads.
-- `Topic` is classification, not containment. It cuts across spaces and threads.
+- `Tag` is classification, not containment. It cuts across spaces and threads.
 - `KnowledgeSource` at the space level is a reusable trust pool, not yet evidence for a specific question or answer.
 - The sample does not include a dedicated space-level audit journal yet. Governance at this level is represented through the configured fields on `QuestionSpace`.

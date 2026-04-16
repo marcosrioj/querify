@@ -4,7 +4,7 @@ using BaseFaq.Models.QnA.Enums;
 using BaseFaq.QnA.Portal.Business.Answer.Commands.AddSource;
 using BaseFaq.QnA.Portal.Business.Answer.Queries.GetAnswer;
 using BaseFaq.QnA.Portal.Business.Question.Commands.AddSource;
-using BaseFaq.QnA.Portal.Business.Question.Commands.AddTopic;
+using BaseFaq.QnA.Portal.Business.Question.Commands.AddTag;
 using BaseFaq.QnA.Portal.Business.Question.Queries.GetQuestion;
 using BaseFaq.QnA.Portal.Test.IntegrationTests.Helpers;
 using Xunit;
@@ -14,22 +14,22 @@ namespace BaseFaq.QnA.Portal.Test.IntegrationTests.Tests.Relationships;
 public class RelationshipMappingTests
 {
     [Fact]
-    public async Task Question_Query_ReturnsTopicAndSourceRelationships()
+    public async Task Question_Query_ReturnsTagAndSourceRelationships()
     {
         using var context = TestContext.Create();
         var tenantId = context.SessionService.TenantId;
         var space = await TestDataFactory.SeedQuestionSpaceAsync(context.DbContext, tenantId);
         var question = await TestDataFactory.SeedQuestionAsync(context.DbContext, tenantId, space.Id);
-        var topic = await TestDataFactory.SeedTopicAsync(context.DbContext, tenantId, "billing");
+        var tag = await TestDataFactory.SeedTagAsync(context.DbContext, tenantId, "billing");
         var source = await TestDataFactory.SeedKnowledgeSourceAsync(context.DbContext, tenantId);
 
-        var addTopicHandler = new QuestionsAddTopicCommandHandler(context.DbContext, context.SessionService);
-        await addTopicHandler.Handle(new QuestionsAddTopicCommand
+        var addTagHandler = new QuestionsAddTagCommandHandler(context.DbContext, context.SessionService);
+        await addTagHandler.Handle(new QuestionsAddTagCommand
         {
-            Request = new QuestionTopicCreateRequestDto
+            Request = new QuestionTagCreateRequestDto
             {
                 QuestionId = question.Id,
-                TopicId = topic.Id
+                TagId = tag.Id
             }
         }, CancellationToken.None);
 
@@ -49,8 +49,8 @@ public class RelationshipMappingTests
         var result =
             await queryHandler.Handle(new QuestionsGetQuestionQuery { Id = question.Id }, CancellationToken.None);
 
-        Assert.Single(result.Topics);
-        Assert.Equal(topic.Id, result.Topics[0].Id);
+        Assert.Single(result.Tags);
+        Assert.Equal(tag.Id, result.Tags[0].Id);
         Assert.Single(result.Sources);
         Assert.Equal(source.Id, result.Sources[0].SourceId);
         Assert.Equal(SourceRole.SupportingContext, result.Sources[0].Role);

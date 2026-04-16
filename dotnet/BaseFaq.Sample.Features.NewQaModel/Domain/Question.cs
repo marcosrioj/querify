@@ -19,7 +19,7 @@ public sealed class Question : DomainEntity
 
     private readonly List<Answer> answers = [];
     private readonly List<QuestionSourceLink> sources = [];
-    private readonly List<Topic> topics = [];
+    private readonly List<Tag> tags = [];
     private readonly List<ThreadActivity> activity = [];
     private readonly List<Question> duplicateQuestions = [];
 
@@ -122,7 +122,7 @@ public sealed class Question : DomainEntity
 
     public IReadOnlyCollection<Answer> Answers => answers;
     public IReadOnlyCollection<QuestionSourceLink> Sources => sources;
-    public IReadOnlyCollection<Topic> Topics => topics;
+    public IReadOnlyCollection<Tag> Tags => tags;
     public IReadOnlyCollection<ThreadActivity> Activity => activity;
 
     public void UpdateContent(
@@ -287,18 +287,18 @@ public sealed class Question : DomainEntity
         Touch(updatedBy, updatedAtUtc);
     }
 
-    public void AddTopic(Topic topic, string? updatedBy = null, DateTime? updatedAtUtc = null)
+    public void AddTag(Tag tag, string? updatedBy = null, DateTime? updatedAtUtc = null)
     {
-        ArgumentNullException.ThrowIfNull(topic);
-        EnsureSameTenant(topic, "question topic");
+        ArgumentNullException.ThrowIfNull(tag);
+        EnsureSameTenant(tag, "question tag");
 
-        if (topics.Any(existing => existing.Id == topic.Id))
+        if (tags.Any(existing => existing.Id == tag.Id))
         {
             return;
         }
 
-        topics.Add(topic);
-        topic.AttachToQuestion(this);
+        tags.Add(tag);
+        tag.AttachToQuestion(this);
         Touch(updatedBy, updatedAtUtc);
     }
 

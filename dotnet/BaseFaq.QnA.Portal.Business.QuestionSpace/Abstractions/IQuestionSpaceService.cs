@@ -10,8 +10,8 @@ public interface IQuestionSpaceService
     Task<PagedResultDto<QuestionSpaceDto>> GetAll(QuestionSpaceGetAllRequestDto requestDto, CancellationToken token);
     Task<QuestionSpaceDetailDto> GetById(Guid id, CancellationToken token);
     Task<Guid> Update(Guid id, QuestionSpaceUpdateRequestDto dto, CancellationToken token);
-    Task<Guid> AddTopic(QuestionSpaceTopicCreateRequestDto dto, CancellationToken token);
-    Task RemoveTopic(Guid questionSpaceId, Guid topicId, CancellationToken token);
+    Task<Guid> AddTag(QuestionSpaceTagCreateRequestDto dto, CancellationToken token);
+    Task RemoveTag(Guid questionSpaceId, Guid tagId, CancellationToken token);
     Task<Guid> AddCuratedSource(QuestionSpaceSourceCreateRequestDto dto, CancellationToken token);
     Task RemoveCuratedSource(Guid questionSpaceId, Guid knowledgeSourceId, CancellationToken token);
 }

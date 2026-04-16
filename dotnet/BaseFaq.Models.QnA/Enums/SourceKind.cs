@@ -37,7 +37,7 @@ public enum SourceKind
     Ticket = 6,
 
     /// <summary>
-    /// A community thread or discussion topic.
+    /// A community thread or discussion tag.
     /// </summary>
     CommunityThread = 7,
 

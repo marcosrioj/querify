@@ -12,7 +12,7 @@ public sealed class QuestionSpace : DomainEntity
     public const int MaxJourneyScopeLength = 200;
 
     private readonly List<Question> questions = [];
-    private readonly List<Topic> topics = [];
+    private readonly List<Tag> tags = [];
     private readonly List<KnowledgeSource> curatedSources = [];
 
     private QuestionSpace()
@@ -71,7 +71,7 @@ public sealed class QuestionSpace : DomainEntity
     public DateTime? LastValidatedAtUtc { get; private set; }
 
     public IReadOnlyCollection<Question> Questions => questions;
-    public IReadOnlyCollection<Topic> Topics => topics;
+    public IReadOnlyCollection<Tag> Tags => tags;
     public IReadOnlyCollection<KnowledgeSource> CuratedSources => curatedSources;
 
     public void UpdateMetadata(
@@ -151,18 +151,18 @@ public sealed class QuestionSpace : DomainEntity
         Touch(updatedBy, updatedAtUtc);
     }
 
-    public void AddTopic(Topic topic, string? updatedBy = null, DateTime? updatedAtUtc = null)
+    public void AddTag(Tag tag, string? updatedBy = null, DateTime? updatedAtUtc = null)
     {
-        ArgumentNullException.ThrowIfNull(topic);
-        EnsureSameTenant(topic, "question space topic");
+        ArgumentNullException.ThrowIfNull(tag);
+        EnsureSameTenant(tag, "question space tag");
 
-        if (topics.Any(existing => existing.Id == topic.Id))
+        if (tags.Any(existing => existing.Id == tag.Id))
         {
             return;
         }
 
-        topics.Add(topic);
-        topic.AttachToSpace(this);
+        tags.Add(tag);
+        tag.AttachToSpace(this);
         Touch(updatedBy, updatedAtUtc);
     }
 

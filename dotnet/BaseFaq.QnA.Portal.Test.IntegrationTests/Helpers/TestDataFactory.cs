@@ -210,18 +210,16 @@ public static class TestDataFactory
         return entity;
     }
 
-    public static async Task<Topic> SeedTopicAsync(QnADbContext dbContext, Guid tenantId, string? name = null)
+    public static async Task<Tag> SeedTagAsync(QnADbContext dbContext, Guid tenantId, string? name = null)
     {
-        var entity = new Topic
+        var entity = new Tag
         {
             TenantId = tenantId,
             Name = name ?? "billing",
-            Category = "product",
-            Description = "Billing related",
             CreatedBy = "test",
             UpdatedBy = "test"
         };
-        dbContext.Topics.Add(entity);
+        dbContext.Tags.Add(entity);
         await dbContext.SaveChangesAsync();
         return entity;
     }

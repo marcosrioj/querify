@@ -2,11 +2,11 @@ using BaseFaq.Models.Common.Dtos;
 using BaseFaq.Models.QnA.Dtos.QuestionSpace;
 using BaseFaq.QnA.Portal.Business.QuestionSpace.Abstractions;
 using BaseFaq.QnA.Portal.Business.QuestionSpace.Commands.AddCuratedSource;
-using BaseFaq.QnA.Portal.Business.QuestionSpace.Commands.AddTopic;
+using BaseFaq.QnA.Portal.Business.QuestionSpace.Commands.AddTag;
 using BaseFaq.QnA.Portal.Business.QuestionSpace.Commands.CreateQuestionSpace;
 using BaseFaq.QnA.Portal.Business.QuestionSpace.Commands.DeleteQuestionSpace;
 using BaseFaq.QnA.Portal.Business.QuestionSpace.Commands.RemoveCuratedSource;
-using BaseFaq.QnA.Portal.Business.QuestionSpace.Commands.RemoveTopic;
+using BaseFaq.QnA.Portal.Business.QuestionSpace.Commands.RemoveTag;
 using BaseFaq.QnA.Portal.Business.QuestionSpace.Commands.UpdateQuestionSpace;
 using BaseFaq.QnA.Portal.Business.QuestionSpace.Queries.GetQuestionSpace;
 using BaseFaq.QnA.Portal.Business.QuestionSpace.Queries.GetQuestionSpaceList;
@@ -45,18 +45,18 @@ public sealed class QuestionSpaceService(IMediator mediator) : IQuestionSpaceSer
         return mediator.Send(new QuestionSpacesDeleteQuestionSpaceCommand { Id = id }, token);
     }
 
-    public Task<Guid> AddTopic(QuestionSpaceTopicCreateRequestDto dto, CancellationToken token)
+    public Task<Guid> AddTag(QuestionSpaceTagCreateRequestDto dto, CancellationToken token)
     {
         ArgumentNullException.ThrowIfNull(dto);
-        return mediator.Send(new QuestionSpacesAddTopicCommand { Request = dto }, token);
+        return mediator.Send(new QuestionSpacesAddTagCommand { Request = dto }, token);
     }
 
-    public Task RemoveTopic(Guid questionSpaceId, Guid topicId, CancellationToken token)
+    public Task RemoveTag(Guid questionSpaceId, Guid tagId, CancellationToken token)
     {
-        return mediator.Send(new QuestionSpacesRemoveTopicCommand
+        return mediator.Send(new QuestionSpacesRemoveTagCommand
         {
             QuestionSpaceId = questionSpaceId,
-            TopicId = topicId
+            TagId = tagId
         }, token);
     }
 

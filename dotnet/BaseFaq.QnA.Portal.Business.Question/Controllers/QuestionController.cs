@@ -76,20 +76,20 @@ public class QuestionController(IQuestionService questionService) : ControllerBa
         return NoContent();
     }
 
-    [HttpPost("{id:guid}/topic")]
+    [HttpPost("{id:guid}/tag")]
     [ProducesResponseType(typeof(Guid), StatusCodes.Status201Created)]
-    public async Task<IActionResult> AddTopic(Guid id, [FromBody] QuestionTopicCreateRequestDto dto,
+    public async Task<IActionResult> AddTag(Guid id, [FromBody] QuestionTagCreateRequestDto dto,
         CancellationToken token)
     {
         dto.QuestionId = id;
-        return StatusCode(StatusCodes.Status201Created, await questionService.AddTopic(dto, token));
+        return StatusCode(StatusCodes.Status201Created, await questionService.AddTag(dto, token));
     }
 
-    [HttpDelete("{id:guid}/topic/{topicId:guid}")]
+    [HttpDelete("{id:guid}/tag/{tagId:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    public async Task<IActionResult> RemoveTopic(Guid id, Guid topicId, CancellationToken token)
+    public async Task<IActionResult> RemoveTag(Guid id, Guid tagId, CancellationToken token)
     {
-        await questionService.RemoveTopic(id, topicId, token);
+        await questionService.RemoveTag(id, tagId, token);
         return NoContent();
     }
 

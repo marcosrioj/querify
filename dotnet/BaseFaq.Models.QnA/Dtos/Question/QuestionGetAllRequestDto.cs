@@ -16,7 +16,7 @@ public class QuestionGetAllRequestDto : PagedAndSortedResultRequestDto
     public string? ContextKey { get; set; }
     public string? Language { get; set; }
     public bool IncludeAnswers { get; set; }
-    public bool IncludeTopics { get; set; }
+    public bool IncludeTags { get; set; }
     public bool IncludeSources { get; set; }
     public bool IncludeActivity { get; set; }
 }

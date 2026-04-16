@@ -304,7 +304,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BaseFaq.QnA.Portal.Business
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BaseFaq.QnA.Portal.Business.ThreadActivity", "dotnet\BaseFaq.QnA.Portal.Business.ThreadActivity\BaseFaq.QnA.Portal.Business.ThreadActivity.csproj", "{6FB52111-460D-46D7-B419-833D5ED57FDB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BaseFaq.QnA.Portal.Business.Topic", "dotnet\BaseFaq.QnA.Portal.Business.Topic\BaseFaq.QnA.Portal.Business.Topic.csproj", "{BE826F11-4844-4590-A791-D1733BABDDF9}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BaseFaq.QnA.Portal.Business.Tag", "dotnet\BaseFaq.QnA.Portal.Business.Tag\BaseFaq.QnA.Portal.Business.Tag.csproj", "{BE826F11-4844-4590-A791-D1733BABDDF9}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Business", "Business", "{5079C62A-E2C7-CD19-AEA3-B571D094DB16}"
 EndProject

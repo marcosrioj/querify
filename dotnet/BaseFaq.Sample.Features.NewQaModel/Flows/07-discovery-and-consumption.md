@@ -9,7 +9,7 @@ flowchart TD
     Request[Renderer, widget, API, or search surface] --> SpaceGate{QuestionSpace.Visibility}
     SpaceGate -->|not allowed| Stop[Do not expose surface]
     SpaceGate -->|allowed| Markup{SearchMarkupMode}
-    Markup --> CuratedList[Render collection or topic list]
+    Markup --> CuratedList[Render collection or tag list]
     Markup --> QuestionPage[Render canonical thread page]
     Markup --> Hybrid[Render both list and canonical pages]
     CuratedList --> Filter
@@ -22,7 +22,7 @@ flowchart TD
     Accepted --> AnswerGate
     Fallback --> AnswerGate
     AnswerGate{Answer visibility and status valid?} -->|no| HideAnswer[Do not render answer]
-    AnswerGate -->|yes| Experience[Return thread, answer, topics, and trust context]
+    AnswerGate -->|yes| Experience[Return thread, answer, tags, and trust context]
 ```
 
 ## Entities involved
@@ -30,9 +30,9 @@ flowchart TD
 | Entity | Role in the flow | Important members |
 | --- | --- | --- |
 | [QuestionSpace](../Domain/QuestionSpace.cs) | Defines whether the surface is visible and how it behaves for search and rendering. | `Visibility`, `SearchMarkupMode`, `Kind`, `PublishedAtUtc` |
-| [Question](../Domain/Question.cs) | Provides the canonical thread metadata to be rendered. | `Status`, `Visibility`, `Summary`, `ThreadSummary`, `Topics`, `AcceptedAnswerId` |
+| [Question](../Domain/Question.cs) | Provides the canonical thread metadata to be rendered. | `Status`, `Visibility`, `Summary`, `ThreadSummary`, `Tags`, `AcceptedAnswerId` |
 | [Answer](../Domain/Answer.cs) | Supplies the chosen response payload. | `Status`, `Visibility`, `Headline`, `Body`, `TrustNote`, `EvidenceSummary`, `IsCanonical`, `IsOfficial` |
-| [Topic](../Domain/Topic.cs) | Supports landing pages, filters, and navigation. | `Name`, `Category` |
+| [Tag](../Domain/Tag.cs) | Supports landing pages, filters, and navigation. | `Name` |
 
 ## Enums involved
 
@@ -49,4 +49,4 @@ flowchart TD
 - Discovery starts at `QuestionSpace`, not at `Question`. The space defines whether the renderer should expose lists, canonical pages, or both.
 - `AcceptedAnswerId` is the fastest path for consumption. When it is empty, consumers must apply fallback selection logic over `Answer.Status`, `IsCanonical`, and `Visibility`.
 - The implementation now defaults spaces, questions, and answers to `Internal`, so public discovery only happens after an explicit promotion step.
-- `Topic` supports discovery and navigation, but it does not replace the primary grouping role of `QuestionSpace`.
+- `Tag` supports discovery and navigation, but it does not replace the primary grouping role of `QuestionSpace`.

@@ -14,8 +14,8 @@ public interface IQuestionService
     Task<Guid> Approve(Guid id, CancellationToken token);
     Task<Guid> Reject(Guid id, string? notes, CancellationToken token);
     Task<Guid> Escalate(Guid id, string? notes, CancellationToken token);
-    Task<Guid> AddTopic(QuestionTopicCreateRequestDto dto, CancellationToken token);
-    Task RemoveTopic(Guid questionId, Guid topicId, CancellationToken token);
+    Task<Guid> AddTag(QuestionTagCreateRequestDto dto, CancellationToken token);
+    Task RemoveTag(Guid questionId, Guid tagId, CancellationToken token);
     Task<Guid> AddSource(QuestionSourceLinkCreateRequestDto dto, CancellationToken token);
     Task RemoveSource(Guid questionId, Guid sourceLinkId, CancellationToken token);
 }

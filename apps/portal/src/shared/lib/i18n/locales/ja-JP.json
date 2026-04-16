@@ -166,7 +166,7 @@
   "Continue with Auth0": "Auth0 で続行",
   "Create": "作成",
   "Create a FAQ and connect source material before launching generation.": "生成を開始する前に FAQ を作成し、ソース資料を接続してください。",
-  "Create a FAQ to group Q&A items by topic or product.": "トピックや製品ごとに Q&A 項目をまとめる FAQ を作成してください。",
+  "Create a FAQ to group Q&A items by tag or product.": "トピックや製品ごとに Q&A 項目をまとめる FAQ を作成してください。",
   "Create a FAQ to start building help content for this workspace.": "このワークスペースのヘルプコンテンツ作成を始めるために FAQ を作成してください。",
   "Create clean FAQ spaces, then fill them with Q&A items and source material.": "整理された FAQ スペースを作成し、その後 Q&A 項目とソース資料で埋めてください。",
   "Create a Q&A item and link it to the right FAQ.": "Q&A 項目を作成し、適切な FAQ にリンクしてください。",

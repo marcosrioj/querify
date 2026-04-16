@@ -2,14 +2,14 @@ using BaseFaq.Models.Common.Dtos;
 using BaseFaq.Models.QnA.Dtos.Question;
 using BaseFaq.QnA.Portal.Business.Question.Abstractions;
 using BaseFaq.QnA.Portal.Business.Question.Commands.AddSource;
-using BaseFaq.QnA.Portal.Business.Question.Commands.AddTopic;
+using BaseFaq.QnA.Portal.Business.Question.Commands.AddTag;
 using BaseFaq.QnA.Portal.Business.Question.Commands.ApproveQuestion;
 using BaseFaq.QnA.Portal.Business.Question.Commands.CreateQuestion;
 using BaseFaq.QnA.Portal.Business.Question.Commands.DeleteQuestion;
 using BaseFaq.QnA.Portal.Business.Question.Commands.EscalateQuestion;
 using BaseFaq.QnA.Portal.Business.Question.Commands.RejectQuestion;
 using BaseFaq.QnA.Portal.Business.Question.Commands.RemoveSource;
-using BaseFaq.QnA.Portal.Business.Question.Commands.RemoveTopic;
+using BaseFaq.QnA.Portal.Business.Question.Commands.RemoveTag;
 using BaseFaq.QnA.Portal.Business.Question.Commands.SubmitQuestion;
 using BaseFaq.QnA.Portal.Business.Question.Commands.UpdateQuestion;
 using BaseFaq.QnA.Portal.Business.Question.Queries.GetQuestion;
@@ -68,18 +68,18 @@ public sealed class QuestionService(IMediator mediator) : IQuestionService
         return mediator.Send(new QuestionsEscalateQuestionCommand { Id = id, Notes = notes }, token);
     }
 
-    public Task<Guid> AddTopic(QuestionTopicCreateRequestDto dto, CancellationToken token)
+    public Task<Guid> AddTag(QuestionTagCreateRequestDto dto, CancellationToken token)
     {
         ArgumentNullException.ThrowIfNull(dto);
-        return mediator.Send(new QuestionsAddTopicCommand { Request = dto }, token);
+        return mediator.Send(new QuestionsAddTagCommand { Request = dto }, token);
     }
 
-    public Task RemoveTopic(Guid questionId, Guid topicId, CancellationToken token)
+    public Task RemoveTag(Guid questionId, Guid tagId, CancellationToken token)
     {
-        return mediator.Send(new QuestionsRemoveTopicCommand
+        return mediator.Send(new QuestionsRemoveTagCommand
         {
             QuestionId = questionId,
-            TopicId = topicId
+            TagId = tagId
         }, token);
     }
 

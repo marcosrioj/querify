@@ -28,13 +28,13 @@ public class QnADbContext(
     public DbSet<Question> Questions { get; set; }
     public DbSet<Answer> Answers { get; set; }
     public DbSet<KnowledgeSource> KnowledgeSources { get; set; }
-    public DbSet<Topic> Topics { get; set; }
+    public DbSet<Tag> Tags { get; set; }
     public DbSet<QuestionSourceLink> QuestionSourceLinks { get; set; }
     public DbSet<AnswerSourceLink> AnswerSourceLinks { get; set; }
     public DbSet<ThreadActivity> ThreadActivities { get; set; }
-    public DbSet<QuestionSpaceTopic> QuestionSpaceTopics { get; set; }
+    public DbSet<QuestionSpaceTag> QuestionSpaceTags { get; set; }
     public DbSet<QuestionSpaceSource> QuestionSpaceSources { get; set; }
-    public DbSet<QuestionTopic> QuestionTopics { get; set; }
+    public DbSet<QuestionTag> QuestionTags { get; set; }
 
     protected override IEnumerable<string> ConfigurationNamespaces =>
     [
@@ -73,9 +73,9 @@ public class QnADbContext(
         ValidateQuestionSourceLinks(cache);
         ValidateAnswerSourceLinks(cache);
         ValidateThreadActivities(cache);
-        ValidateQuestionSpaceTopics(cache);
+        ValidateQuestionSpaceTags(cache);
         ValidateQuestionSpaceSources(cache);
-        ValidateQuestionTopics(cache);
+        ValidateQuestionTags(cache);
     }
 
     private void ValidateQuestions(IntegrityLookupCache cache)
@@ -224,15 +224,15 @@ public class QnADbContext(
         }
     }
 
-    private void ValidateQuestionSpaceTopics(IntegrityLookupCache cache)
+    private void ValidateQuestionSpaceTags(IntegrityLookupCache cache)
     {
-        foreach (var entry in ChangeTracker.Entries<QuestionSpaceTopic>()
+        foreach (var entry in ChangeTracker.Entries<QuestionSpaceTag>()
                      .Where(entry => entry.State is EntityState.Added or EntityState.Modified))
         {
             var link = entry.Entity;
             EnsureTenantMatch(link.TenantId, cache.GetQuestionSpaceTenant(link.QuestionSpaceId),
-                nameof(QuestionSpaceTopic.QuestionSpaceId));
-            EnsureTenantMatch(link.TenantId, cache.GetTopicTenant(link.TopicId), nameof(QuestionSpaceTopic.TopicId));
+                nameof(QuestionSpaceTag.QuestionSpaceId));
+            EnsureTenantMatch(link.TenantId, cache.GetTagTenant(link.TagId), nameof(QuestionSpaceTag.TagId));
         }
     }
 
@@ -249,15 +249,15 @@ public class QnADbContext(
         }
     }
 
-    private void ValidateQuestionTopics(IntegrityLookupCache cache)
+    private void ValidateQuestionTags(IntegrityLookupCache cache)
     {
-        foreach (var entry in ChangeTracker.Entries<QuestionTopic>()
+        foreach (var entry in ChangeTracker.Entries<QuestionTag>()
                      .Where(entry => entry.State is EntityState.Added or EntityState.Modified))
         {
             var link = entry.Entity;
             EnsureTenantMatch(link.TenantId, cache.GetQuestionTenant(link.QuestionId),
-                nameof(QuestionTopic.QuestionId));
-            EnsureTenantMatch(link.TenantId, cache.GetTopicTenant(link.TopicId), nameof(QuestionTopic.TopicId));
+                nameof(QuestionTag.QuestionId));
+            EnsureTenantMatch(link.TenantId, cache.GetTagTenant(link.TagId), nameof(QuestionTag.TagId));
         }
     }
 
@@ -274,7 +274,7 @@ public class QnADbContext(
         private Dictionary<Guid, Guid>? _knowledgeSourceTenants;
         private Dictionary<Guid, Guid>? _questionSpaceTenants;
         private Dictionary<Guid, Guid>? _questionTenants;
-        private Dictionary<Guid, Guid>? _topicTenants;
+        private Dictionary<Guid, Guid>? _tagTenants;
 
         public Guid GetQuestionSpaceTenant(Guid id)
         {
@@ -316,9 +316,9 @@ public class QnADbContext(
             return GetTenant<KnowledgeSource>(id, nameof(KnowledgeSource), ref _knowledgeSourceTenants);
         }
 
-        public Guid GetTopicTenant(Guid id)
+        public Guid GetTagTenant(Guid id)
         {
-            return GetTenant<Topic>(id, nameof(Topic), ref _topicTenants);
+            return GetTenant<Tag>(id, nameof(Tag), ref _tagTenants);
         }
 
         private Guid GetTenant<TEntity>(Guid id, string entityName, ref Dictionary<Guid, Guid>? cache)

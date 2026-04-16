@@ -28,8 +28,8 @@ public sealed class QuestionsGetQuestionQueryHandler(
             .ThenInclude(link => link.Source)
             .Include(question => question.Sources)
             .ThenInclude(link => link.Source)
-            .Include(question => question.Topics)
-            .ThenInclude(link => link.Topic)
+            .Include(question => question.Tags)
+            .ThenInclude(link => link.Tag)
             .Include(question => question.Activities)
             .AsNoTracking()
             .SingleOrDefaultAsync(question => question.TenantId == tenantId && question.Id == request.Id,

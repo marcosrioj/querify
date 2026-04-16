@@ -178,9 +178,9 @@ public class Question : BaseEntity, IMustHaveTenant
     public ICollection<QuestionSourceLink> Sources { get; set; } = [];
 
     /// <summary>
-    /// Relationships between the question and its topics.
+    /// Relationships between the question and its tags.
     /// </summary>
-    public ICollection<QuestionTopic> Topics { get; set; } = [];
+    public ICollection<QuestionTag> Tags { get; set; } = [];
 
     /// <summary>
     /// History of thread events and changes.

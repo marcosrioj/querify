@@ -570,7 +570,7 @@ public sealed class TenantSeedService : ITenantSeedService
                Objective: rank candidate FAQ questions by true semantic relevance to the query.
                Hard constraints:
                - Prioritize semantic equivalence over keyword overlap.
-               - Penalize partial-topic overlap and near-miss intent.
+               - Penalize partial-tag overlap and near-miss intent.
                - Prefer language-consistent candidates when meaning is otherwise similar.
                - Return deterministic results for the same inputs.
                - Output valid JSON only, no markdown or additional narrative.

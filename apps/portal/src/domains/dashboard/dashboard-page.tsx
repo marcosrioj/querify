@@ -989,7 +989,7 @@ export function DashboardPage() {
             ) : (
               <EmptyMiniState
                 title="No FAQs yet"
-                description="Create a FAQ to group Q&A items by topic or product."
+                description="Create a FAQ to group Q&A items by tag or product."
               />
             )}
           </CardContent>

@@ -4,7 +4,7 @@ using BaseFaq.QnA.Portal.Business.KnowledgeSource.Extensions;
 using BaseFaq.QnA.Portal.Business.Question.Extensions;
 using BaseFaq.QnA.Portal.Business.QuestionSpace.Extensions;
 using BaseFaq.QnA.Portal.Business.ThreadActivity.Extensions;
-using BaseFaq.QnA.Portal.Business.Topic.Extensions;
+using BaseFaq.QnA.Portal.Business.Tag.Extensions;
 
 namespace BaseFaq.QnA.Portal.Api.Extensions;
 
@@ -18,7 +18,7 @@ public static class ServiceCollectionExtensions
         services.AddQuestionBusiness();
         services.AddQuestionSpaceBusiness();
         services.AddThreadActivityBusiness();
-        services.AddTopicBusiness();
+        services.AddTagBusiness();
         services.AddEventsFeature(configuration);
     }
 }

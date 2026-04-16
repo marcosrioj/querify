@@ -103,9 +103,9 @@ public class QuestionSpace : BaseEntity, IMustHaveTenant
     public ICollection<Question> Questions { get; set; } = [];
 
     /// <summary>
-    /// Relationships between the space and the topics that classify it.
+    /// Relationships between the space and the tags that classify it.
     /// </summary>
-    public ICollection<QuestionSpaceTopic> Topics { get; set; } = [];
+    public ICollection<QuestionSpaceTag> Tags { get; set; } = [];
 
     /// <summary>
     /// Relationships between the space and the curated sources available to it.

@@ -49,7 +49,7 @@ Recommended split of responsibilities:
 | `Question` | [Domain/Question.cs](./Domain/Question.cs) | Main thread aggregate for a single user-facing question. |
 | `Answer` | [Domain/Answer.cs](./Domain/Answer.cs) | Candidate or canonical response attached to a question. |
 | `KnowledgeSource` | [Domain/KnowledgeSource.cs](./Domain/KnowledgeSource.cs) | Reference record for evidence, origin, and trust inputs. |
-| `Topic` | [Domain/Topic.cs](./Domain/Topic.cs) | Lightweight taxonomy that classifies spaces and questions. |
+| `Tag` | [Domain/Tag.cs](./Domain/Tag.cs) | Lightweight taxonomy that classifies spaces and questions. |
 | `QuestionSourceLink` | [Domain/QuestionSourceLink.cs](./Domain/QuestionSourceLink.cs) | Context-specific link from a question to a source. |
 | `AnswerSourceLink` | [Domain/AnswerSourceLink.cs](./Domain/AnswerSourceLink.cs) | Context-specific link from an answer to a source. |
 | `ThreadActivity` | [Domain/ThreadActivity.cs](./Domain/ThreadActivity.cs) | Append-only journal for workflow, moderation, trust, and audit events. |
@@ -77,7 +77,7 @@ Recommended split of responsibilities:
 ```mermaid
 flowchart LR
     Space[QuestionSpace]
-    Topic[Topic]
+    Tag[Tag]
     Question[Question]
     Answer[Answer]
     Source[KnowledgeSource]
@@ -86,10 +86,10 @@ flowchart LR
     Activity[ThreadActivity]
 
     Space -->|contains| Question
-    Space -->|classified by| Topic
+    Space -->|classified by| Tag
     Space -->|curates| Source
     Question -->|belongs to| Space
-    Question -->|classified by| Topic
+    Question -->|classified by| Tag
     Question -->|has candidates| Answer
     Question -->|links to source context| QLink
     QLink --> Source
@@ -157,12 +157,12 @@ Core fields:
 Relationships:
 
 - `Questions`: the primary set of threads inside the space
-- `Topics`: classification labels used across the space
+- `Tags`: classification labels used across the space
 - `CuratedSources`: reusable sources curated at space level
 
 Design note:
 
-- `QuestionSpace` is the primary grouping unit of the model; `Topic` classifies, but does not replace it
+- `QuestionSpace` is the primary grouping unit of the model; `Tag` classifies, but does not replace it
 - production implementation should keep space exposure fail-closed even if the persistence entity continues to use repository-standard base types and public setters
 
 ### `Question`
@@ -206,7 +206,7 @@ Relationships:
 | `DuplicateQuestions` | Reverse navigation from a canonical question to its duplicates. |
 | `Answers` | Candidate and final answers for the thread. |
 | `Sources` | Question-specific origin and context links. |
-| `Topics` | Tags and taxonomy labels applied to the thread. |
+| `Tags` | Tags and taxonomy labels applied to the thread. |
 | `Activity` | Append-only journal of thread events. |
 
 Important timestamps:
@@ -317,9 +317,9 @@ Design note:
 - public citation now requires explicit source verification and explicit public citation or excerpt permission
 - in production, that policy can live in handlers, validators, or domain services; it does not require abandoning the current EF base abstractions
 
-### `Topic`
+### `Tag`
 
-Source: [Domain/Topic.cs](./Domain/Topic.cs)
+Source: [Domain/Tag.cs](./Domain/Tag.cs)
 
 Business role:
 
@@ -331,18 +331,16 @@ Core fields:
 
 | Field | Meaning |
 | --- | --- |
-| `Name` | Normalized topic label such as `billing` or `api`. |
-| `Category` | Optional higher-level grouping such as product, journey, or version. |
-| `Description` | Optional explanatory text for operators. |
+| `Name` | Normalized tag label such as `billing` or `api`. |
 
 Relationships:
 
-- `Spaces`: spaces classified by this topic
-- `Questions`: questions classified by this topic
+- `Spaces`: spaces classified by this tag
+- `Questions`: questions classified by this tag
 
 Design note:
 
-- `Topic` is intentionally lightweight and not modeled as a heavy ontology
+- `Tag` is intentionally lightweight and not modeled as a heavy ontology
 
 ### `QuestionSourceLink`
 

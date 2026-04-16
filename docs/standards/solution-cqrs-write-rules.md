@@ -130,7 +130,7 @@ When the work belongs to `BaseFaq.QnA.Common.Persistence.QnADb/Entities`:
 
 - keep entities as state-only persistence models
 - do not add behavior methods, factory methods, or transition methods
-- do not add convenience projection properties such as computed topic or source collections
+- do not add convenience projection properties such as computed tag or source collections
 - do not use `[NotMapped]` computed properties to hide query shaping inside entities
 - keep relation creation, validation, status transitions, and DTO shaping inside commands, queries, and feature-local private methods
 

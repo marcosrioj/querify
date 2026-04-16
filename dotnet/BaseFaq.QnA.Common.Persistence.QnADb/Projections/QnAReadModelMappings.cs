@@ -3,7 +3,7 @@ using BaseFaq.Models.QnA.Dtos.KnowledgeSource;
 using BaseFaq.Models.QnA.Dtos.Question;
 using BaseFaq.Models.QnA.Dtos.QuestionSpace;
 using BaseFaq.Models.QnA.Dtos.ThreadActivity;
-using BaseFaq.Models.QnA.Dtos.Topic;
+using BaseFaq.Models.QnA.Dtos.Tag;
 using BaseFaq.Models.QnA.Enums;
 using BaseFaq.QnA.Common.Persistence.QnADb.Entities;
 
@@ -87,7 +87,7 @@ public static class QnAReadModelMappings
                 .ThenBy(answer => answer.Headline)
                 .Select(answer => answer.ToPortalAnswerDto(entity.Activities, entity.AcceptedAnswerId))
                 .ToList(),
-            Topics = entity.Topics.Select(link => link.Topic.ToTopicDto()).ToList(),
+            Tags = entity.Tags.Select(link => link.Tag.ToTagDto()).ToList(),
             Sources = entity.Sources
                 .OrderBy(source => source.Order)
                 .Select(source => source.ToQuestionSourceLinkDto())
@@ -154,8 +154,8 @@ public static class QnAReadModelMappings
             FeedbackScore = ThreadActivitySignals.ComputeFeedbackScore(entity.Activities),
             AcceptedAnswer = request.IncludeAnswers ? acceptedAnswer : null,
             Answers = request.IncludeAnswers ? publicAnswers : [],
-            Topics = request.IncludeTopics
-                ? entity.Topics.Select(link => link.Topic.ToTopicDto()).ToList()
+            Tags = request.IncludeTags
+                ? entity.Tags.Select(link => link.Tag.ToTagDto()).ToList()
                 : [],
             Sources = request.IncludeSources ? publicSources : [],
             Activity = request.IncludeActivity
@@ -209,15 +209,13 @@ public static class QnAReadModelMappings
         };
     }
 
-    public static TopicDto ToTopicDto(this Topic entity)
+    public static TagDto ToTagDto(this Tag entity)
     {
-        return new TopicDto
+        return new TagDto
         {
             Id = entity.Id,
             TenantId = entity.TenantId,
-            Name = entity.Name,
-            Category = entity.Category,
-            Description = entity.Description
+            Name = entity.Name
         };
     }
 
