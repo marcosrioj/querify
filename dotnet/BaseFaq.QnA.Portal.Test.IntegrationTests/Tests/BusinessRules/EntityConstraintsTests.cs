@@ -106,7 +106,7 @@ public class EntityConstraintsTests
         var question =
             await TestDataFactory.SeedQuestionAsync(context.DbContext, context.SessionService.TenantId, space.Id);
 
-        var activity = question.Activity.Single();
+        var activity = question.Activities.Single();
         activity.Notes = "Edited after creation";
 
         await Assert.ThrowsAsync<InvalidOperationException>(() => context.DbContext.SaveChangesAsync());

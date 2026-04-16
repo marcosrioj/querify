@@ -141,7 +141,7 @@ public class Answer : BaseEntity, IMustHaveTenant
     /// <summary>
     /// Thread events linked directly to the answer.
     /// </summary>
-    public ICollection<ThreadActivity> Activity { get; set; } = [];
+    public ICollection<ThreadActivity> Activities { get; set; } = [];
 
     /// <summary>
     /// Tenant that owns the answer.

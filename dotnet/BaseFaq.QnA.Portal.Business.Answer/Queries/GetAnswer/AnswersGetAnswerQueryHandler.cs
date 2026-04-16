@@ -21,7 +21,7 @@ public sealed class AnswersGetAnswerQueryHandler(
         var tenantId = sessionService.GetTenantId(AppEnum.QnA);
         var entity = await dbContext.Answers
             .Include(answer => answer.Question)
-            .ThenInclude(question => question.Activity)
+            .ThenInclude(question => question.Activities)
             .Include(answer => answer.Sources)
             .ThenInclude(link => link.Source)
             .AsNoTracking()
@@ -30,7 +30,7 @@ public sealed class AnswersGetAnswerQueryHandler(
         if (entity is null)
             throw new ApiErrorException($"Answer '{request.Id}' was not found.", (int)HttpStatusCode.NotFound);
 
-        IEnumerable<ThreadActivityEntity> questionActivity = entity.Question?.Activity ?? [];
+        IEnumerable<ThreadActivityEntity> questionActivity = entity.Question?.Activities ?? [];
         return entity.ToPortalAnswerDto(questionActivity);
     }
 }

@@ -21,7 +21,7 @@ public sealed class AnswersGetAnswerListQueryHandler(
         var tenantId = sessionService.GetTenantId(AppEnum.QnA);
         var query = dbContext.Answers
             .Include(answer => answer.Question)
-            .ThenInclude(question => question.Activity)
+            .ThenInclude(question => question.Activities)
             .Include(answer => answer.Sources)
             .ThenInclude(link => link.Source)
             .Where(answer => answer.TenantId == tenantId);
@@ -62,7 +62,7 @@ public sealed class AnswersGetAnswerListQueryHandler(
             totalCount,
             items.Select(answer =>
             {
-                IEnumerable<ThreadActivityEntity> questionActivity = answer.Question?.Activity ?? [];
+                IEnumerable<ThreadActivityEntity> questionActivity = answer.Question?.Activities ?? [];
                 return answer.ToPortalAnswerDto(questionActivity);
             }).ToList());
     }

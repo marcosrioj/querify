@@ -22,9 +22,9 @@ public sealed class QuestionSpacesGetQuestionSpaceQueryHandler(
         var tenantId = sessionService.GetTenantId(AppEnum.QnA);
         var entity = await dbContext.QuestionSpaces
             .Include(space => space.Questions)
-            .Include(space => space.QuestionSpaceTopics)
+            .Include(space => space.Topics)
             .ThenInclude(link => link.Topic)
-            .Include(space => space.QuestionSpaceSources)
+            .Include(space => space.Sources)
             .ThenInclude(link => link.KnowledgeSource)
             .AsNoTracking()
             .SingleOrDefaultAsync(space => space.TenantId == tenantId && space.Id == request.Id, cancellationToken);
@@ -53,7 +53,7 @@ public sealed class QuestionSpacesGetQuestionSpaceQueryHandler(
             PublishedAtUtc = entity.PublishedAtUtc,
             LastValidatedAtUtc = entity.LastValidatedAtUtc,
             QuestionCount = entity.Questions.Count,
-            Topics = entity.QuestionSpaceTopics
+            Topics = entity.Topics
                 .Select(link => link.Topic)
                 .Select(topic => new TopicDto
                 {
@@ -64,7 +64,7 @@ public sealed class QuestionSpacesGetQuestionSpaceQueryHandler(
                     Description = topic.Description
                 })
                 .ToList(),
-            CuratedSources = entity.QuestionSpaceSources
+            CuratedSources = entity.Sources
                 .Select(link => link.KnowledgeSource)
                 .Select(source => new KnowledgeSourceDto
                 {

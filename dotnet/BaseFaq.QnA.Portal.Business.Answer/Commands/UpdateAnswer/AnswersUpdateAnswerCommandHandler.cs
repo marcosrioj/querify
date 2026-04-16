@@ -23,7 +23,7 @@ public sealed class AnswersUpdateAnswerCommandHandler(
         var userId = sessionService.GetUserId().ToString();
         var entity = await dbContext.Answers
             .Include(answer => answer.Question)
-            .ThenInclude(question => question.Activity)
+            .ThenInclude(question => question.Activities)
             .Include(answer => answer.Sources)
             .ThenInclude(link => link.Source)
             .SingleOrDefaultAsync(answer => answer.TenantId == tenantId && answer.Id == request.Id, cancellationToken);
@@ -46,7 +46,7 @@ public sealed class AnswersUpdateAnswerCommandHandler(
             CreatedBy = userId,
             UpdatedBy = userId
         };
-        entity.Question.Activity.Add(activity);
+        entity.Question.Activities.Add(activity);
         entity.Question.LastActivityAtUtc = activity.OccurredAtUtc;
         dbContext.ThreadActivities.Add(activity);
 

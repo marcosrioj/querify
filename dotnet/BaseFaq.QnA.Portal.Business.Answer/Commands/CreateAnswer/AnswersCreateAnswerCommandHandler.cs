@@ -24,7 +24,7 @@ public sealed class AnswersCreateAnswerCommandHandler(
         var userId = sessionService.GetUserId().ToString();
         var question = await dbContext.Questions
             .Include(entity => entity.Answers)
-            .Include(entity => entity.Activity)
+            .Include(entity => entity.Activities)
             .SingleOrDefaultAsync(entity => entity.TenantId == tenantId && entity.Id == request.Request.QuestionId,
                 cancellationToken);
 
@@ -76,7 +76,7 @@ public sealed class AnswersCreateAnswerCommandHandler(
             UpdatedBy = userId
         };
 
-        question.Activity.Add(activity);
+        question.Activities.Add(activity);
         question.LastActivityAtUtc = activity.OccurredAtUtc;
         dbContext.ThreadActivities.Add(activity);
     }

@@ -68,7 +68,7 @@ public sealed class QuestionsCreateQuestionCommandHandler(
             UpdatedBy = userId
         };
 
-        question.Activity.Add(activity);
+        question.Activities.Add(activity);
         question.LastActivityAtUtc = activity.OccurredAtUtc;
         dbContext.ThreadActivities.Add(activity);
     }

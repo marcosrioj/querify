@@ -43,7 +43,7 @@ public static class QnAReadModelMappings
             ResolvedAtUtc = entity.ResolvedAtUtc,
             ValidatedAtUtc = entity.ValidatedAtUtc,
             LastActivityAtUtc = entity.LastActivityAtUtc,
-            FeedbackScore = ThreadActivitySignals.ComputeFeedbackScore(entity.Activity)
+            FeedbackScore = ThreadActivitySignals.ComputeFeedbackScore(entity.Activities)
         };
     }
 
@@ -79,20 +79,20 @@ public static class QnAReadModelMappings
             ResolvedAtUtc = entity.ResolvedAtUtc,
             ValidatedAtUtc = entity.ValidatedAtUtc,
             LastActivityAtUtc = entity.LastActivityAtUtc,
-            FeedbackScore = ThreadActivitySignals.ComputeFeedbackScore(entity.Activity),
-            AcceptedAnswer = entity.AcceptedAnswer?.ToPortalAnswerDto(entity.Activity),
+            FeedbackScore = ThreadActivitySignals.ComputeFeedbackScore(entity.Activities),
+            AcceptedAnswer = entity.AcceptedAnswer?.ToPortalAnswerDto(entity.Activities),
             Answers = entity.Answers
                 .OrderByDescending(answer => answer.IsAccepted)
                 .ThenByDescending(answer => answer.Rank)
                 .ThenBy(answer => answer.Headline)
-                .Select(answer => answer.ToPortalAnswerDto(entity.Activity))
+                .Select(answer => answer.ToPortalAnswerDto(entity.Activities))
                 .ToList(),
-            Topics = entity.QuestionTopics.Select(link => link.Topic.ToTopicDto()).ToList(),
+            Topics = entity.Topics.Select(link => link.Topic.ToTopicDto()).ToList(),
             Sources = entity.Sources
                 .OrderBy(source => source.Order)
                 .Select(source => source.ToQuestionSourceLinkDto())
                 .ToList(),
-            Activity = entity.Activity
+            Activity = entity.Activities
                 .OrderByDescending(activity => activity.OccurredAtUtc)
                 .Select(activity => activity.ToThreadActivityDto())
                 .ToList()
@@ -117,7 +117,7 @@ public static class QnAReadModelMappings
             .OrderByDescending(answer => answer.IsAccepted)
             .ThenByDescending(answer => answer.Rank)
             .ThenBy(answer => answer.Headline)
-            .Select(answer => answer.ToPublicAnswerDto(entity.Activity))
+            .Select(answer => answer.ToPublicAnswerDto(entity.Activities))
             .ToList();
         var acceptedAnswer = publicAnswers.FirstOrDefault(answer => answer.Id == entity.AcceptedAnswerId);
 
@@ -151,15 +151,15 @@ public static class QnAReadModelMappings
             ResolvedAtUtc = entity.ResolvedAtUtc,
             ValidatedAtUtc = entity.ValidatedAtUtc,
             LastActivityAtUtc = entity.LastActivityAtUtc,
-            FeedbackScore = ThreadActivitySignals.ComputeFeedbackScore(entity.Activity),
+            FeedbackScore = ThreadActivitySignals.ComputeFeedbackScore(entity.Activities),
             AcceptedAnswer = request.IncludeAnswers ? acceptedAnswer : null,
             Answers = request.IncludeAnswers ? publicAnswers : [],
             Topics = request.IncludeTopics
-                ? entity.QuestionTopics.Select(link => link.Topic.ToTopicDto()).ToList()
+                ? entity.Topics.Select(link => link.Topic.ToTopicDto()).ToList()
                 : [],
             Sources = request.IncludeSources ? publicSources : [],
             Activity = request.IncludeActivity
-                ? entity.Activity
+                ? entity.Activities
                     .OrderByDescending(activity => activity.OccurredAtUtc)
                     .Select(activity => activity.ToThreadActivityDto())
                     .ToList()

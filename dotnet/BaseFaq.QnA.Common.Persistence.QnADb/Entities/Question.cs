@@ -180,12 +180,12 @@ public class Question : BaseEntity, IMustHaveTenant
     /// <summary>
     /// Relationships between the question and its topics.
     /// </summary>
-    public ICollection<QuestionTopic> QuestionTopics { get; set; } = [];
+    public ICollection<QuestionTopic> Topics { get; set; } = [];
 
     /// <summary>
     /// History of thread events and changes.
     /// </summary>
-    public ICollection<ThreadActivity> Activity { get; set; } = [];
+    public ICollection<ThreadActivity> Activities { get; set; } = [];
 
     /// <summary>
     /// Tenant that owns the question.

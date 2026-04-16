@@ -29,12 +29,12 @@ public class TopicConfiguration : BaseConfiguration<Topic>
         builder.HasIndex(topic => new { topic.TenantId, topic.Name })
             .HasDatabaseName("IX_Topic_TenantId_Name");
 
-        builder.HasMany(topic => topic.QuestionSpaceTopics)
+        builder.HasMany(topic => topic.Spaces)
             .WithOne(link => link.Topic)
             .HasForeignKey(link => link.TopicId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        builder.HasMany(topic => topic.QuestionTopics)
+        builder.HasMany(topic => topic.Questions)
             .WithOne(link => link.Topic)
             .HasForeignKey(link => link.TopicId)
             .OnDelete(DeleteBehavior.Cascade);

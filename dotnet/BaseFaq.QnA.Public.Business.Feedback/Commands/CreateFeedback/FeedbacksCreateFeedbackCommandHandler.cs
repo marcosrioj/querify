@@ -25,7 +25,7 @@ public sealed class FeedbacksCreateFeedbackCommandHandler(
         var identity = FeedbackRequestContext.GetIdentity(httpContextAccessor);
         var tenantId = await ResolveTenantIdAndSetContextAsync(cancellationToken);
         var question = await dbContext.Questions
-            .Include(entity => entity.Activity)
+            .Include(entity => entity.Activities)
             .SingleOrDefaultAsync(
                 entity =>
                     entity.TenantId == tenantId &&
@@ -41,7 +41,7 @@ public sealed class FeedbacksCreateFeedbackCommandHandler(
                 $"Question '{request.Request.QuestionId}' was not found.",
                 (int)HttpStatusCode.NotFound);
 
-        var latest = question.Activity
+        var latest = question.Activities
             .Where(activity => activity.Kind == ActivityKind.FeedbackReceived)
             .Select(activity => new { activity, metadata = ThreadActivitySignals.ParseFeedback(activity.MetadataJson) })
             .Where(item => item.metadata?.UserPrint == identity.UserPrint)
@@ -73,7 +73,7 @@ public sealed class FeedbacksCreateFeedbackCommandHandler(
             UpdatedBy = identity.UserPrint
         };
 
-        question.Activity.Add(activity);
+        question.Activities.Add(activity);
         question.LastActivityAtUtc = activity.OccurredAtUtc;
         dbContext.ThreadActivities.Add(activity);
 

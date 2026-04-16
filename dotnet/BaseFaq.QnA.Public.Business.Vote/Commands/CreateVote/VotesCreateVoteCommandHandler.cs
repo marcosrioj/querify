@@ -26,7 +26,7 @@ public sealed class VotesCreateVoteCommandHandler(
         var tenantId = await ResolveTenantIdAndSetContextAsync(cancellationToken);
         var answer = await dbContext.Answers
             .Include(entity => entity.Question)
-            .ThenInclude(question => question.Activity)
+            .ThenInclude(question => question.Activities)
             .SingleOrDefaultAsync(
                 entity =>
                     entity.TenantId == tenantId &&
@@ -44,7 +44,7 @@ public sealed class VotesCreateVoteCommandHandler(
                 $"Answer '{request.Request.AnswerId}' was not found.",
                 (int)HttpStatusCode.NotFound);
 
-        var latest = answer.Question.Activity
+        var latest = answer.Question.Activities
             .Where(activity =>
                 activity.Kind == ActivityKind.VoteReceived && activity.AnswerId == request.Request.AnswerId)
             .Select(activity => new { activity, metadata = ThreadActivitySignals.ParseVote(activity.MetadataJson) })
@@ -77,7 +77,7 @@ public sealed class VotesCreateVoteCommandHandler(
             UpdatedBy = identity.UserPrint
         };
 
-        answer.Question.Activity.Add(activity);
+        answer.Question.Activities.Add(activity);
         answer.Question.LastActivityAtUtc = activity.OccurredAtUtc;
         dbContext.ThreadActivities.Add(activity);
 

@@ -30,12 +30,12 @@ public class Topic : BaseEntity, IMustHaveTenant
     /// <summary>
     /// Relationships between the topic and the spaces where it appears.
     /// </summary>
-    public ICollection<QuestionSpaceTopic> QuestionSpaceTopics { get; set; } = [];
+    public ICollection<QuestionSpaceTopic> Spaces { get; set; } = [];
 
     /// <summary>
     /// Relationships between the topic and the questions classified by it.
     /// </summary>
-    public ICollection<QuestionTopic> QuestionTopics { get; set; } = [];
+    public ICollection<QuestionTopic> Questions { get; set; } = [];
 
     /// <summary>
     /// Tenant that owns the topic.

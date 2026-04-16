@@ -22,9 +22,9 @@ public sealed class QuestionSpacesUpdateQuestionSpaceCommandHandler(
         var tenantId = sessionService.GetTenantId(AppEnum.QnA);
         var userId = sessionService.GetUserId().ToString();
         var entity = await dbContext.QuestionSpaces
-            .Include(space => space.QuestionSpaceTopics)
+            .Include(space => space.Topics)
             .ThenInclude(link => link.Topic)
-            .Include(space => space.QuestionSpaceSources)
+            .Include(space => space.Sources)
             .ThenInclude(link => link.KnowledgeSource)
             .SingleOrDefaultAsync(space => space.TenantId == tenantId && space.Id == request.Id, cancellationToken);
 

@@ -83,7 +83,7 @@ public static class TestDataFactory
             UpdatedBy = "test"
         };
         space.Questions.Add(entity);
-        entity.Activity.Add(new ThreadActivity
+        entity.Activities.Add(new ThreadActivity
         {
             TenantId = tenantId,
             Question = entity,
@@ -95,7 +95,7 @@ public static class TestDataFactory
             CreatedBy = "test",
             UpdatedBy = "test"
         });
-        entity.LastActivityAtUtc = entity.Activity.Max(activity => activity.OccurredAtUtc);
+        entity.LastActivityAtUtc = entity.Activities.Max(activity => activity.OccurredAtUtc);
 
         dbContext.Questions.Add(entity);
         await dbContext.SaveChangesAsync();
@@ -172,7 +172,7 @@ public static class TestDataFactory
             CreatedBy = "test",
             UpdatedBy = "test"
         };
-        question.Activity.Add(createdActivity);
+        question.Activities.Add(createdActivity);
         question.LastActivityAtUtc = createdActivity.OccurredAtUtc;
         dbContext.ThreadActivities.Add(createdActivity);
 
@@ -202,7 +202,7 @@ public static class TestDataFactory
                 CreatedBy = "test",
                 UpdatedBy = "test"
             };
-            question.Activity.Add(acceptedActivity);
+            question.Activities.Add(acceptedActivity);
             question.LastActivityAtUtc = acceptedActivity.OccurredAtUtc;
             dbContext.ThreadActivities.Add(acceptedActivity);
         }

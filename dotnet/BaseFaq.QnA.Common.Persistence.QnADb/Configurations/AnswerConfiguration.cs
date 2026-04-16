@@ -49,7 +49,7 @@ public class AnswerConfiguration : BaseConfiguration<Answer>
             .HasForeignKey(sourceLink => sourceLink.AnswerId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        builder.HasMany(answer => answer.Activity)
+        builder.HasMany(answer => answer.Activities)
             .WithOne(activity => activity.Answer)
             .HasForeignKey(activity => activity.AnswerId)
             .OnDelete(DeleteBehavior.SetNull);

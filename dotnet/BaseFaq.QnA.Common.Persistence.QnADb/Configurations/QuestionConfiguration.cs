@@ -81,12 +81,12 @@ public class QuestionConfiguration : BaseConfiguration<Question>
             .HasForeignKey(sourceLink => sourceLink.QuestionId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        builder.HasMany(question => question.QuestionTopics)
+        builder.HasMany(question => question.Topics)
             .WithOne(topicLink => topicLink.Question)
             .HasForeignKey(topicLink => topicLink.QuestionId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        builder.HasMany(question => question.Activity)
+        builder.HasMany(question => question.Activities)
             .WithOne(activity => activity.Question)
             .HasForeignKey(activity => activity.QuestionId)
             .OnDelete(DeleteBehavior.Cascade);

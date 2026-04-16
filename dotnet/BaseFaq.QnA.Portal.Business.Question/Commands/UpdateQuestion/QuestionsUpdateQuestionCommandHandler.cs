@@ -24,7 +24,7 @@ public sealed class QuestionsUpdateQuestionCommandHandler(
         var userId = sessionService.GetUserId().ToString();
         var entity = await dbContext.Questions
             .Include(question => question.Answers)
-            .Include(question => question.Activity)
+            .Include(question => question.Activities)
             .SingleOrDefaultAsync(question => question.TenantId == tenantId && question.Id == request.Id,
                 cancellationToken);
 
@@ -123,7 +123,7 @@ public sealed class QuestionsUpdateQuestionCommandHandler(
             question.DuplicateOfQuestionId is Guid duplicateOfQuestionId)
             activity.MetadataJson = $"{{\"duplicateOfQuestionId\":\"{duplicateOfQuestionId}\"}}";
 
-        question.Activity.Add(activity);
+        question.Activities.Add(activity);
         question.LastActivityAtUtc = activity.OccurredAtUtc;
         dbContext.ThreadActivities.Add(activity);
     }

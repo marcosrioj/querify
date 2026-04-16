@@ -103,7 +103,7 @@ public class KnowledgeSource : BaseEntity, IMustHaveTenant
     /// <summary>
     /// Spaces that curate or expose this source.
     /// </summary>
-    public ICollection<QuestionSpaceSource> QuestionSpaceSources { get; set; } = [];
+    public ICollection<QuestionSpaceSource> Spaces { get; set; } = [];
 
     /// <summary>
     /// Links between the source and questions.

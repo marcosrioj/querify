@@ -19,7 +19,7 @@ public sealed class QuestionSpacesAddTopicCommandHandler(
         var tenantId = sessionService.GetTenantId(AppEnum.QnA);
         var userId = sessionService.GetUserId().ToString();
         var space = await dbContext.QuestionSpaces
-            .Include(entity => entity.QuestionSpaceTopics)
+            .Include(entity => entity.Topics)
             .SingleOrDefaultAsync(entity => entity.TenantId == tenantId && entity.Id == request.Request.QuestionSpaceId,
                 cancellationToken);
         var topic = await dbContext.Topics
@@ -35,8 +35,8 @@ public sealed class QuestionSpacesAddTopicCommandHandler(
             throw new ApiErrorException($"Topic '{request.Request.TopicId}' was not found.",
                 (int)HttpStatusCode.NotFound);
 
-        if (space.QuestionSpaceTopics.All(link => link.TopicId != topic.Id))
-            space.QuestionSpaceTopics.Add(new QuestionSpaceTopic
+        if (space.Topics.All(link => link.TopicId != topic.Id))
+            space.Topics.Add(new QuestionSpaceTopic
             {
                 TenantId = tenantId,
                 QuestionSpaceId = space.Id,
@@ -49,6 +49,6 @@ public sealed class QuestionSpacesAddTopicCommandHandler(
 
         await dbContext.SaveChangesAsync(cancellationToken);
 
-        return space.QuestionSpaceTopics.Single(link => link.TopicId == topic.Id).Id;
+        return space.Topics.Single(link => link.TopicId == topic.Id).Id;
     }
 }

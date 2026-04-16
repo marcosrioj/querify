@@ -28,9 +28,9 @@ public sealed class QuestionsGetQuestionQueryHandler(
             .ThenInclude(link => link.Source)
             .Include(question => question.Sources)
             .ThenInclude(link => link.Source)
-            .Include(question => question.QuestionTopics)
+            .Include(question => question.Topics)
             .ThenInclude(link => link.Topic)
-            .Include(question => question.Activity)
+            .Include(question => question.Activities)
             .AsNoTracking()
             .SingleOrDefaultAsync(question => question.TenantId == tenantId && question.Id == request.Id,
                 cancellationToken);

@@ -19,9 +19,9 @@ public sealed class QuestionSpacesGetQuestionSpaceListQueryHandler(
         var tenantId = sessionService.GetTenantId(AppEnum.QnA);
         var query = dbContext.QuestionSpaces
             .Include(space => space.Questions)
-            .Include(space => space.QuestionSpaceTopics)
+            .Include(space => space.Topics)
             .ThenInclude(link => link.Topic)
-            .Include(space => space.QuestionSpaceSources)
+            .Include(space => space.Sources)
             .ThenInclude(link => link.KnowledgeSource)
             .Where(space => space.TenantId == tenantId);
 

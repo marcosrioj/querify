@@ -985,13 +985,13 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
             modelBuilder.Entity("BaseFaq.QnA.Common.Persistence.QnADb.Entities.QuestionSpaceSource", b =>
                 {
                     b.HasOne("BaseFaq.QnA.Common.Persistence.QnADb.Entities.KnowledgeSource", "KnowledgeSource")
-                        .WithMany("QuestionSpaceSources")
+                        .WithMany("Spaces")
                         .HasForeignKey("KnowledgeSourceId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("BaseFaq.QnA.Common.Persistence.QnADb.Entities.QuestionSpace", "QuestionSpace")
-                        .WithMany("QuestionSpaceSources")
+                        .WithMany("Sources")
                         .HasForeignKey("QuestionSpaceId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1004,13 +1004,13 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
             modelBuilder.Entity("BaseFaq.QnA.Common.Persistence.QnADb.Entities.QuestionSpaceTopic", b =>
                 {
                     b.HasOne("BaseFaq.QnA.Common.Persistence.QnADb.Entities.QuestionSpace", "QuestionSpace")
-                        .WithMany("QuestionSpaceTopics")
+                        .WithMany("Topics")
                         .HasForeignKey("QuestionSpaceId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("BaseFaq.QnA.Common.Persistence.QnADb.Entities.Topic", "Topic")
-                        .WithMany("QuestionSpaceTopics")
+                        .WithMany("Spaces")
                         .HasForeignKey("TopicId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1023,13 +1023,13 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
             modelBuilder.Entity("BaseFaq.QnA.Common.Persistence.QnADb.Entities.QuestionTopic", b =>
                 {
                     b.HasOne("BaseFaq.QnA.Common.Persistence.QnADb.Entities.Question", "Question")
-                        .WithMany("QuestionTopics")
+                        .WithMany("Topics")
                         .HasForeignKey("QuestionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("BaseFaq.QnA.Common.Persistence.QnADb.Entities.Topic", "Topic")
-                        .WithMany("QuestionTopics")
+                        .WithMany("Questions")
                         .HasForeignKey("TopicId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1042,12 +1042,12 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
             modelBuilder.Entity("BaseFaq.QnA.Common.Persistence.QnADb.Entities.ThreadActivity", b =>
                 {
                     b.HasOne("BaseFaq.QnA.Common.Persistence.QnADb.Entities.Answer", "Answer")
-                        .WithMany("Activity")
+                        .WithMany("Activities")
                         .HasForeignKey("AnswerId")
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("BaseFaq.QnA.Common.Persistence.QnADb.Entities.Question", "Question")
-                        .WithMany("Activity")
+                        .WithMany("Activities")
                         .HasForeignKey("QuestionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1059,7 +1059,7 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
 
             modelBuilder.Entity("BaseFaq.QnA.Common.Persistence.QnADb.Entities.Answer", b =>
                 {
-                    b.Navigation("Activity");
+                    b.Navigation("Activities");
 
                     b.Navigation("Sources");
                 });
@@ -1068,38 +1068,38 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
                 {
                     b.Navigation("Answers");
 
-                    b.Navigation("QuestionSpaceSources");
+                    b.Navigation("Spaces");
 
                     b.Navigation("Questions");
                 });
 
             modelBuilder.Entity("BaseFaq.QnA.Common.Persistence.QnADb.Entities.Question", b =>
                 {
-                    b.Navigation("Activity");
+                    b.Navigation("Activities");
 
                     b.Navigation("Answers");
 
                     b.Navigation("DuplicateQuestions");
 
-                    b.Navigation("QuestionTopics");
+                    b.Navigation("Topics");
 
                     b.Navigation("Sources");
                 });
 
             modelBuilder.Entity("BaseFaq.QnA.Common.Persistence.QnADb.Entities.QuestionSpace", b =>
                 {
-                    b.Navigation("QuestionSpaceSources");
+                    b.Navigation("Sources");
 
-                    b.Navigation("QuestionSpaceTopics");
+                    b.Navigation("Topics");
 
                     b.Navigation("Questions");
                 });
 
             modelBuilder.Entity("BaseFaq.QnA.Common.Persistence.QnADb.Entities.Topic", b =>
                 {
-                    b.Navigation("QuestionSpaceTopics");
+                    b.Navigation("Spaces");
 
-                    b.Navigation("QuestionTopics");
+                    b.Navigation("Questions");
                 });
 #pragma warning restore 612, 618
         }

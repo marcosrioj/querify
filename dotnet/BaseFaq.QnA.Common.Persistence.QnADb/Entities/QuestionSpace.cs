@@ -105,12 +105,12 @@ public class QuestionSpace : BaseEntity, IMustHaveTenant
     /// <summary>
     /// Relationships between the space and the topics that classify it.
     /// </summary>
-    public ICollection<QuestionSpaceTopic> QuestionSpaceTopics { get; set; } = [];
+    public ICollection<QuestionSpaceTopic> Topics { get; set; } = [];
 
     /// <summary>
     /// Relationships between the space and the curated sources available to it.
     /// </summary>
-    public ICollection<QuestionSpaceSource> QuestionSpaceSources { get; set; } = [];
+    public ICollection<QuestionSpaceSource> Sources { get; set; } = [];
 
     /// <summary>
     /// Tenant that owns the space.

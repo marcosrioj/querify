@@ -19,7 +19,7 @@ public sealed class QuestionSpacesAddCuratedSourceCommandHandler(
         var tenantId = sessionService.GetTenantId(AppEnum.QnA);
         var userId = sessionService.GetUserId().ToString();
         var space = await dbContext.QuestionSpaces
-            .Include(entity => entity.QuestionSpaceSources)
+            .Include(entity => entity.Sources)
             .SingleOrDefaultAsync(entity => entity.TenantId == tenantId && entity.Id == request.Request.QuestionSpaceId,
                 cancellationToken);
         var source = await dbContext.KnowledgeSources
@@ -37,8 +37,8 @@ public sealed class QuestionSpacesAddCuratedSourceCommandHandler(
                 $"Knowledge source '{request.Request.KnowledgeSourceId}' was not found.",
                 (int)HttpStatusCode.NotFound);
 
-        if (space.QuestionSpaceSources.All(link => link.KnowledgeSourceId != source.Id))
-            space.QuestionSpaceSources.Add(new QuestionSpaceSource
+        if (space.Sources.All(link => link.KnowledgeSourceId != source.Id))
+            space.Sources.Add(new QuestionSpaceSource
             {
                 TenantId = tenantId,
                 QuestionSpaceId = space.Id,
@@ -51,6 +51,6 @@ public sealed class QuestionSpacesAddCuratedSourceCommandHandler(
 
         await dbContext.SaveChangesAsync(cancellationToken);
 
-        return space.QuestionSpaceSources.Single(link => link.KnowledgeSourceId == source.Id).Id;
+        return space.Sources.Single(link => link.KnowledgeSourceId == source.Id).Id;
     }
 }

@@ -27,7 +27,7 @@ public sealed class QuestionsGetQuestionListQueryHandler(
         var tenantId = await ResolveTenantIdAndSetContextAsync(cancellationToken);
         var query = dbContext.Questions
             .Include(question => question.Space)
-            .Include(question => question.Activity)
+            .Include(question => question.Activities)
             .Where(question =>
                 question.TenantId == tenantId &&
                 (question.Visibility == VisibilityScope.Public ||

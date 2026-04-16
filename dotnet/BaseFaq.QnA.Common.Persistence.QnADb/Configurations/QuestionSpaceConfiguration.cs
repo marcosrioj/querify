@@ -46,12 +46,12 @@ public class QuestionSpaceConfiguration : BaseConfiguration<QuestionSpace>
             .HasForeignKey(question => question.SpaceId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        builder.HasMany(space => space.QuestionSpaceTopics)
+        builder.HasMany(space => space.Topics)
             .WithOne(link => link.QuestionSpace)
             .HasForeignKey(link => link.QuestionSpaceId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        builder.HasMany(space => space.QuestionSpaceSources)
+        builder.HasMany(space => space.Sources)
             .WithOne(link => link.QuestionSpace)
             .HasForeignKey(link => link.QuestionSpaceId)
             .OnDelete(DeleteBehavior.Cascade);

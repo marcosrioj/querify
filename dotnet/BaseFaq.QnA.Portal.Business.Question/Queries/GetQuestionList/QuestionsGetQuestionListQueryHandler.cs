@@ -23,7 +23,7 @@ public sealed class QuestionsGetQuestionListQueryHandler(
         var tenantId = sessionService.GetTenantId(AppEnum.QnA);
         var query = dbContext.Questions
             .Include(question => question.Space)
-            .Include(question => question.Activity)
+            .Include(question => question.Activities)
             .Where(question => question.TenantId == tenantId);
 
         if (!string.IsNullOrWhiteSpace(request.Request.SearchText))

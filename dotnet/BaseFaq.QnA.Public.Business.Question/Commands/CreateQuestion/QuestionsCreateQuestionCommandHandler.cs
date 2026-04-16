@@ -83,7 +83,7 @@ public sealed class QuestionsCreateQuestionCommandHandler(
             CreatedBy = "public",
             UpdatedBy = "public"
         };
-        entity.Activity.Add(createdActivity);
+        entity.Activities.Add(createdActivity);
         entity.LastActivityAtUtc = createdActivity.OccurredAtUtc;
         dbContext.ThreadActivities.Add(createdActivity);
 
@@ -99,7 +99,7 @@ public sealed class QuestionsCreateQuestionCommandHandler(
             CreatedBy = "public",
             UpdatedBy = "public"
         };
-        entity.Activity.Add(submittedActivity);
+        entity.Activities.Add(submittedActivity);
         entity.LastActivityAtUtc = submittedActivity.OccurredAtUtc;
         dbContext.ThreadActivities.Add(submittedActivity);
 

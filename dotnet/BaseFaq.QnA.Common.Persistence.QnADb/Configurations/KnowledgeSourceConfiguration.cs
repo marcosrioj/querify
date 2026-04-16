@@ -44,7 +44,7 @@ public class KnowledgeSourceConfiguration : BaseConfiguration<KnowledgeSource>
         builder.Property(source => source.TenantId)
             .IsRequired();
 
-        builder.HasMany(source => source.QuestionSpaceSources)
+        builder.HasMany(source => source.Spaces)
             .WithOne(link => link.KnowledgeSource)
             .HasForeignKey(link => link.KnowledgeSourceId)
             .OnDelete(DeleteBehavior.Cascade);
