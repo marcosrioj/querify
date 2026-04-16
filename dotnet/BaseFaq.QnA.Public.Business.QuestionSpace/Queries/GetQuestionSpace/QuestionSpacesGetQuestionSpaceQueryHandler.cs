@@ -1,23 +1,28 @@
 using System.Net;
 using BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception;
 using BaseFaq.Common.Infrastructure.Core.Abstractions;
+using BaseFaq.Common.Infrastructure.Core.Constants;
 using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.QnA.Dtos.QuestionSpace;
 using BaseFaq.Models.QnA.Enums;
 using BaseFaq.QnA.Common.Persistence.QnADb;
+using BaseFaq.QnA.Common.Persistence.QnADb.Projections;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 
-namespace BaseFaq.QnA.Public.Business.QuestionSpace.Queries;
+namespace BaseFaq.QnA.Public.Business.QuestionSpace.Queries.GetQuestionSpace;
 
 public sealed class QuestionSpacesGetQuestionSpaceQueryHandler(
     QnADbContext dbContext,
-    ISessionService sessionService)
+    IClientKeyContextService clientKeyContextService,
+    ITenantClientKeyResolver tenantClientKeyResolver,
+    IHttpContextAccessor httpContextAccessor)
     : IRequestHandler<QuestionSpacesGetQuestionSpaceQuery, QuestionSpaceDto>
 {
     public async Task<QuestionSpaceDto> Handle(QuestionSpacesGetQuestionSpaceQuery request, CancellationToken cancellationToken)
     {
-        var tenantId = sessionService.GetTenantId(AppEnum.QnA);
+        var tenantId = await ResolveTenantIdAndSetContextAsync(cancellationToken);
         var entity = await dbContext.QuestionSpaces
             .Include(space => space.Questions)
             .AsNoTracking()
@@ -30,27 +35,14 @@ public sealed class QuestionSpacesGetQuestionSpaceQueryHandler(
 
         return entity is null
             ? throw new ApiErrorException($"Question space '{request.Id}' was not found.", errorCode: (int)HttpStatusCode.NotFound)
-            : new QuestionSpaceDto
-            {
-                Id = entity.Id,
-                TenantId = entity.TenantId,
-                Name = entity.Name,
-                Key = entity.Key,
-                Summary = entity.Summary,
-                DefaultLanguage = entity.DefaultLanguage,
-                Kind = entity.Kind,
-                Visibility = entity.Visibility,
-                ModerationPolicy = entity.ModerationPolicy,
-                SearchMarkupMode = entity.SearchMarkupMode,
-                ProductScope = entity.ProductScope,
-                JourneyScope = entity.JourneyScope,
-                AcceptsQuestions = entity.AcceptsQuestions,
-                AcceptsAnswers = entity.AcceptsAnswers,
-                RequiresQuestionReview = entity.RequiresQuestionReview,
-                RequiresAnswerReview = entity.RequiresAnswerReview,
-                PublishedAtUtc = entity.PublishedAtUtc,
-                LastValidatedAtUtc = entity.LastValidatedAtUtc,
-                QuestionCount = entity.Questions.Count
-            };
+            : entity.ToQuestionSpaceDto();
+    }
+
+    private async Task<Guid> ResolveTenantIdAndSetContextAsync(CancellationToken cancellationToken)
+    {
+        var clientKey = clientKeyContextService.GetRequiredClientKey();
+        var tenantId = await tenantClientKeyResolver.ResolveTenantId(clientKey, cancellationToken);
+        httpContextAccessor.HttpContext?.Items[TenantContextKeys.TenantIdItemKey] = tenantId;
+        return tenantId;
     }
 }

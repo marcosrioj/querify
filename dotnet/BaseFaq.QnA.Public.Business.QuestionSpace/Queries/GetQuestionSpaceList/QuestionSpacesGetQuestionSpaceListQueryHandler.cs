@@ -1,17 +1,23 @@
-using BaseFaq.Models.Common.Dtos;
 using BaseFaq.Common.Infrastructure.Core.Abstractions;
+using BaseFaq.Common.Infrastructure.Core.Constants;
+using BaseFaq.Models.Common.Dtos;
 using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.QnA.Dtos.QuestionSpace;
 using BaseFaq.Models.QnA.Enums;
 using BaseFaq.QnA.Common.Persistence.QnADb;
+using BaseFaq.QnA.Common.Persistence.QnADb.Projections;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using QuestionSpaceEntity = BaseFaq.QnA.Common.Persistence.QnADb.Entities.QuestionSpace;
 
-namespace BaseFaq.QnA.Public.Business.QuestionSpace.Queries;
+namespace BaseFaq.QnA.Public.Business.QuestionSpace.Queries.GetQuestionSpaceList;
 
 public sealed class QuestionSpacesGetQuestionSpaceListQueryHandler(
     QnADbContext dbContext,
-    ISessionService sessionService)
+    IClientKeyContextService clientKeyContextService,
+    ITenantClientKeyResolver tenantClientKeyResolver,
+    IHttpContextAccessor httpContextAccessor)
     : IRequestHandler<QuestionSpacesGetQuestionSpaceListQuery, PagedResultDto<QuestionSpaceDto>>
 {
     public async Task<PagedResultDto<QuestionSpaceDto>> Handle(QuestionSpacesGetQuestionSpaceListQuery request, CancellationToken cancellationToken)
@@ -19,8 +25,8 @@ public sealed class QuestionSpacesGetQuestionSpaceListQueryHandler(
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(request.Request);
 
-        var tenantId = sessionService.GetTenantId(AppEnum.QnA);
-        IQueryable<Common.Persistence.QnADb.Entities.QuestionSpace> query = dbContext.QuestionSpaces
+        var tenantId = await ResolveTenantIdAndSetContextAsync(cancellationToken);
+        IQueryable<QuestionSpaceEntity> query = dbContext.QuestionSpaces
             .Include(space => space.Questions)
             .Where(space =>
                 space.TenantId == tenantId &&
@@ -58,29 +64,14 @@ public sealed class QuestionSpacesGetQuestionSpaceListQueryHandler(
 
         return new PagedResultDto<QuestionSpaceDto>(
             totalCount,
-            items.Select(
-                    entity => new QuestionSpaceDto
-                    {
-                        Id = entity.Id,
-                        TenantId = entity.TenantId,
-                        Name = entity.Name,
-                        Key = entity.Key,
-                        Summary = entity.Summary,
-                        DefaultLanguage = entity.DefaultLanguage,
-                        Kind = entity.Kind,
-                        Visibility = entity.Visibility,
-                        ModerationPolicy = entity.ModerationPolicy,
-                        SearchMarkupMode = entity.SearchMarkupMode,
-                        ProductScope = entity.ProductScope,
-                        JourneyScope = entity.JourneyScope,
-                        AcceptsQuestions = entity.AcceptsQuestions,
-                        AcceptsAnswers = entity.AcceptsAnswers,
-                        RequiresQuestionReview = entity.RequiresQuestionReview,
-                        RequiresAnswerReview = entity.RequiresAnswerReview,
-                        PublishedAtUtc = entity.PublishedAtUtc,
-                        LastValidatedAtUtc = entity.LastValidatedAtUtc,
-                        QuestionCount = entity.Questions.Count
-                    })
-                .ToList());
+            items.Select(entity => entity.ToQuestionSpaceDto()).ToList());
+    }
+
+    private async Task<Guid> ResolveTenantIdAndSetContextAsync(CancellationToken cancellationToken)
+    {
+        var clientKey = clientKeyContextService.GetRequiredClientKey();
+        var tenantId = await tenantClientKeyResolver.ResolveTenantId(clientKey, cancellationToken);
+        httpContextAccessor.HttpContext?.Items[TenantContextKeys.TenantIdItemKey] = tenantId;
+        return tenantId;
     }
 }

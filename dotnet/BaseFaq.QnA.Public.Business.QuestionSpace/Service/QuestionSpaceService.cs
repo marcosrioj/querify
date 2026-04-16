@@ -1,7 +1,9 @@
 using BaseFaq.Models.Common.Dtos;
 using BaseFaq.Models.QnA.Dtos.QuestionSpace;
 using BaseFaq.QnA.Public.Business.QuestionSpace.Abstractions;
-using BaseFaq.QnA.Public.Business.QuestionSpace.Queries;
+using BaseFaq.QnA.Public.Business.QuestionSpace.Queries.GetQuestionSpace;
+using BaseFaq.QnA.Public.Business.QuestionSpace.Queries.GetQuestionSpaceByKey;
+using BaseFaq.QnA.Public.Business.QuestionSpace.Queries.GetQuestionSpaceList;
 using MediatR;
 
 namespace BaseFaq.QnA.Public.Business.QuestionSpace.Service;

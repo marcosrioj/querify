@@ -1,7 +1,7 @@
 using BaseFaq.Models.QnA.Dtos.Question;
 using MediatR;
 
-namespace BaseFaq.QnA.Portal.Business.Question.Commands;
+namespace BaseFaq.QnA.Portal.Business.Question.Commands.RemoveTopic;
 
 public sealed class QuestionsRemoveTopicCommand : IRequest
 {

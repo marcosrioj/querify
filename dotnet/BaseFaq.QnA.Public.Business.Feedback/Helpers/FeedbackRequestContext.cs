@@ -6,9 +6,10 @@ using Microsoft.AspNetCore.Http;
 
 namespace BaseFaq.QnA.Public.Business.Feedback.Helpers;
 
-internal static class FeedbackRequestContext
+public static class FeedbackRequestContext
 {
-    public static FeedbackRequestIdentity GetIdentity(IHttpContextAccessor httpContextAccessor)
+    public static FeedbackRequestIdentity GetIdentity(
+        IHttpContextAccessor httpContextAccessor)
     {
         var httpContext = httpContextAccessor.HttpContext;
         if (httpContext is null)
@@ -36,7 +37,6 @@ internal static class FeedbackRequestContext
         var payload = $"{ip}|{userAgent}";
         var hash = sha.ComputeHash(Encoding.UTF8.GetBytes(payload));
         var builder = new StringBuilder(hash.Length * 2);
-
         foreach (var item in hash)
         {
             builder.Append(item.ToString("x2"));
@@ -46,4 +46,4 @@ internal static class FeedbackRequestContext
     }
 }
 
-internal readonly record struct FeedbackRequestIdentity(string UserPrint, string Ip, string UserAgent);
+public readonly record struct FeedbackRequestIdentity(string UserPrint, string Ip, string UserAgent);

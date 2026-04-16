@@ -9,7 +9,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using AnswerSourceLinkEntity = BaseFaq.QnA.Common.Persistence.QnADb.Entities.AnswerSourceLink;
 
-namespace BaseFaq.QnA.Portal.Business.Answer.Commands;
+namespace BaseFaq.QnA.Portal.Business.Answer.Commands.AddSource;
 
 public sealed class AnswersAddSourceCommandHandler(
     QnADbContext dbContext,

@@ -1,20 +1,23 @@
-using BaseFaq.Models.Common.Dtos;
-using System.Text.Json;
 using BaseFaq.Common.Infrastructure.Core.Abstractions;
+using BaseFaq.Common.Infrastructure.Core.Constants;
+using BaseFaq.Models.Common.Dtos;
 using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.QnA.Dtos.Question;
 using BaseFaq.Models.QnA.Enums;
 using BaseFaq.QnA.Common.Persistence.QnADb;
+using BaseFaq.QnA.Common.Persistence.QnADb.Projections;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using QuestionEntity = BaseFaq.QnA.Common.Persistence.QnADb.Entities.Question;
-using ThreadActivityEntity = BaseFaq.QnA.Common.Persistence.QnADb.Entities.ThreadActivity;
 
-namespace BaseFaq.QnA.Public.Business.Question.Queries;
+namespace BaseFaq.QnA.Public.Business.Question.Queries.GetQuestionList;
 
 public sealed class QuestionsGetQuestionListQueryHandler(
     QnADbContext dbContext,
-    ISessionService sessionService)
+    IClientKeyContextService clientKeyContextService,
+    ITenantClientKeyResolver tenantClientKeyResolver,
+    IHttpContextAccessor httpContextAccessor)
     : IRequestHandler<QuestionsGetQuestionListQuery, PagedResultDto<QuestionDto>>
 {
     public async Task<PagedResultDto<QuestionDto>> Handle(QuestionsGetQuestionListQuery request, CancellationToken cancellationToken)
@@ -22,7 +25,7 @@ public sealed class QuestionsGetQuestionListQueryHandler(
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(request.Request);
 
-        var tenantId = sessionService.GetTenantId(AppEnum.QnA);
+        var tenantId = await ResolveTenantIdAndSetContextAsync(cancellationToken);
         IQueryable<QuestionEntity> query = dbContext.Questions
             .Include(question => question.Space)
             .Include(question => question.Activity)
@@ -72,78 +75,14 @@ public sealed class QuestionsGetQuestionListQueryHandler(
             .Take(request.Request.MaxResultCount)
             .ToListAsync(cancellationToken);
 
-        return new PagedResultDto<QuestionDto>(
-            totalCount,
-            items.Select(MapQuestion).ToList());
+        return new PagedResultDto<QuestionDto>(totalCount, items.Select(entity => entity.ToQuestionDto()).ToList());
     }
 
-    private static QuestionDto MapQuestion(QuestionEntity entity)
+    private async Task<Guid> ResolveTenantIdAndSetContextAsync(CancellationToken cancellationToken)
     {
-        return new QuestionDto
-        {
-            Id = entity.Id,
-            TenantId = entity.TenantId,
-            SpaceId = entity.SpaceId,
-            SpaceKey = entity.Space?.Key ?? string.Empty,
-            Title = entity.Title,
-            Key = entity.Key,
-            Summary = entity.Summary,
-            ContextNote = entity.ContextNote,
-            Kind = entity.Kind,
-            Status = entity.Status,
-            Visibility = entity.Visibility,
-            OriginChannel = entity.OriginChannel,
-            Language = entity.Language,
-            ProductScope = entity.ProductScope,
-            JourneyScope = entity.JourneyScope,
-            AudienceScope = entity.AudienceScope,
-            ContextKey = entity.ContextKey,
-            OriginUrl = entity.OriginUrl,
-            OriginReference = entity.OriginReference,
-            ThreadSummary = entity.ThreadSummary,
-            ConfidenceScore = entity.ConfidenceScore,
-            RevisionNumber = entity.RevisionNumber,
-            AcceptedAnswerId = entity.AcceptedAnswerId,
-            DuplicateOfQuestionId = entity.DuplicateOfQuestionId,
-            AnsweredAtUtc = entity.AnsweredAtUtc,
-            ResolvedAtUtc = entity.ResolvedAtUtc,
-            ValidatedAtUtc = entity.ValidatedAtUtc,
-            LastActivityAtUtc = entity.LastActivityAtUtc,
-            FeedbackScore = ComputeFeedbackScore(entity.Activity)
-        };
-    }
-
-    private static int ComputeFeedbackScore(IEnumerable<ThreadActivityEntity> activities)
-    {
-        return activities
-            .Where(activity => activity.Kind == ActivityKind.FeedbackReceived)
-            .Select(activity => new { activity, metadata = ParseFeedback(activity.MetadataJson) })
-            .Where(item => item.metadata is not null)
-            .GroupBy(item => item.metadata!.UserPrint)
-            .Select(group => group.OrderByDescending(item => item.activity.OccurredAtUtc).First().metadata!)
-            .Sum(metadata => metadata.Like ? 1 : -1);
-    }
-
-    private static FeedbackMetadata? ParseFeedback(string? metadataJson)
-    {
-        if (string.IsNullOrWhiteSpace(metadataJson))
-        {
-            return null;
-        }
-
-        try
-        {
-            return JsonSerializer.Deserialize<FeedbackMetadata>(metadataJson);
-        }
-        catch (JsonException)
-        {
-            return null;
-        }
-    }
-
-    private sealed class FeedbackMetadata
-    {
-        public required string UserPrint { get; init; }
-        public required bool Like { get; init; }
+        var clientKey = clientKeyContextService.GetRequiredClientKey();
+        var tenantId = await tenantClientKeyResolver.ResolveTenantId(clientKey, cancellationToken);
+        httpContextAccessor.HttpContext?.Items[TenantContextKeys.TenantIdItemKey] = tenantId;
+        return tenantId;
     }
 }

@@ -6,7 +6,7 @@ using BaseFaq.QnA.Common.Persistence.QnADb;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
-namespace BaseFaq.QnA.Portal.Business.Question.Commands;
+namespace BaseFaq.QnA.Portal.Business.Question.Commands.DeleteQuestion;
 
 public sealed class QuestionsDeleteQuestionCommandHandler(
     QnADbContext dbContext,

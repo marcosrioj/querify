@@ -2,7 +2,7 @@ using BaseFaq.Models.Common.Dtos;
 using BaseFaq.Models.QnA.Dtos.Question;
 using MediatR;
 
-namespace BaseFaq.QnA.Public.Business.Question.Queries;
+namespace BaseFaq.QnA.Public.Business.Question.Queries.GetQuestionByKey;
 
 public sealed class QuestionsGetQuestionByKeyQuery : IRequest<QuestionDetailDto>
 {

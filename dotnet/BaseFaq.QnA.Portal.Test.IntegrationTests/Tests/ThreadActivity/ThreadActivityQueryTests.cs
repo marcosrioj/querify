@@ -1,6 +1,7 @@
 using BaseFaq.Models.QnA.Dtos.ThreadActivity;
 using BaseFaq.Models.QnA.Enums;
-using BaseFaq.QnA.Portal.Business.ThreadActivity.Queries;
+using BaseFaq.QnA.Portal.Business.ThreadActivity.Queries.GetThreadActivity;
+using BaseFaq.QnA.Portal.Business.ThreadActivity.Queries.GetThreadActivityList;
 using BaseFaq.QnA.Portal.Test.IntegrationTests.Helpers;
 using Xunit;
 

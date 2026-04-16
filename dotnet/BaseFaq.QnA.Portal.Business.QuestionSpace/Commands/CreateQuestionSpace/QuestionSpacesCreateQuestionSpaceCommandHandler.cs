@@ -5,7 +5,7 @@ using BaseFaq.QnA.Common.Persistence.QnADb;
 using MediatR;
 using QuestionSpaceEntity = BaseFaq.QnA.Common.Persistence.QnADb.Entities.QuestionSpace;
 
-namespace BaseFaq.QnA.Portal.Business.QuestionSpace.Commands;
+namespace BaseFaq.QnA.Portal.Business.QuestionSpace.Commands.CreateQuestionSpace;
 
 public sealed class QuestionSpacesCreateQuestionSpaceCommandHandler(
     QnADbContext dbContext,

@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using QuestionEntity = BaseFaq.QnA.Common.Persistence.QnADb.Entities.Question;
 using ThreadActivityEntity = BaseFaq.QnA.Common.Persistence.QnADb.Entities.ThreadActivity;
 
-namespace BaseFaq.QnA.Portal.Business.Question.Commands;
+namespace BaseFaq.QnA.Portal.Business.Question.Commands.EscalateQuestion;
 
 public sealed class QuestionsEscalateQuestionCommandHandler(
     QnADbContext dbContext,

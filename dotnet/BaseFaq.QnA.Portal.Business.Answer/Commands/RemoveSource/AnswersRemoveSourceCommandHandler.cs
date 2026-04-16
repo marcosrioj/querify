@@ -6,7 +6,7 @@ using BaseFaq.QnA.Common.Persistence.QnADb;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
-namespace BaseFaq.QnA.Portal.Business.Answer.Commands;
+namespace BaseFaq.QnA.Portal.Business.Answer.Commands.RemoveSource;
 
 public sealed class AnswersRemoveSourceCommandHandler(
     QnADbContext dbContext,

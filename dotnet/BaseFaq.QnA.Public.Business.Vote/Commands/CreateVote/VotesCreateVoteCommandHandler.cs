@@ -1,30 +1,36 @@
 using System.Net;
-using System.Text.Json;
 using BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception;
+using BaseFaq.Common.Infrastructure.Core.Abstractions;
+using BaseFaq.Common.Infrastructure.Core.Constants;
 using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.QnA.Dtos.Answer;
 using BaseFaq.Models.QnA.Enums;
 using BaseFaq.QnA.Common.Persistence.QnADb;
+using BaseFaq.QnA.Common.Persistence.QnADb.Projections;
 using BaseFaq.QnA.Public.Business.Vote.Helpers;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 
-namespace BaseFaq.QnA.Public.Business.Vote.Commands;
+namespace BaseFaq.QnA.Public.Business.Vote.Commands.CreateVote;
 
 public sealed class VotesCreateVoteCommandHandler(
     QnADbContext dbContext,
+    IClientKeyContextService clientKeyContextService,
+    ITenantClientKeyResolver tenantClientKeyResolver,
     IHttpContextAccessor httpContextAccessor)
     : IRequestHandler<VotesCreateVoteCommand, Guid>
 {
     public async Task<Guid> Handle(VotesCreateVoteCommand request, CancellationToken cancellationToken)
     {
         var identity = VoteRequestContext.GetIdentity(httpContextAccessor);
+        var tenantId = await ResolveTenantIdAndSetContextAsync(cancellationToken);
         var answer = await dbContext.Answers
             .Include(entity => entity.Question)
             .ThenInclude(question => question.Activity)
             .SingleOrDefaultAsync(
                 entity =>
+                    entity.TenantId == tenantId &&
                     entity.Id == request.Request.AnswerId &&
                     entity.QuestionId == request.Request.QuestionId &&
                     (entity.Visibility == VisibilityScope.Public || entity.Visibility == VisibilityScope.PublicIndexed) &&
@@ -32,7 +38,8 @@ public sealed class VotesCreateVoteCommandHandler(
                 cancellationToken);
 
         if (answer is null ||
-            answer.Question.Visibility is not VisibilityScope.Public and not VisibilityScope.PublicIndexed)
+            answer.Question.TenantId != tenantId ||
+            answer.Question.Visibility is not (VisibilityScope.Public or VisibilityScope.PublicIndexed))
         {
             throw new ApiErrorException(
                 $"Answer '{request.Request.AnswerId}' was not found.",
@@ -41,7 +48,7 @@ public sealed class VotesCreateVoteCommandHandler(
 
         var latest = answer.Question.Activity
             .Where(activity => activity.Kind == ActivityKind.VoteReceived && activity.AnswerId == request.Request.AnswerId)
-            .Select(activity => new { activity, metadata = ParseVote(activity.MetadataJson) })
+            .Select(activity => new { activity, metadata = ThreadActivitySignals.ParseVote(activity.MetadataJson) })
             .Where(item => item.metadata?.UserPrint == identity.UserPrint)
             .OrderByDescending(item => item.activity.OccurredAtUtc)
             .FirstOrDefault();
@@ -61,7 +68,11 @@ public sealed class VotesCreateVoteCommandHandler(
             ActorKind = ActorKind.Customer,
             ActorLabel = identity.UserPrint,
             Notes = request.Request.Notes,
-            MetadataJson = CreateVoteMetadata(identity, storedValue),
+            MetadataJson = ThreadActivitySignals.CreateVoteMetadata(
+                identity.UserPrint,
+                identity.Ip,
+                identity.UserAgent,
+                storedValue),
             OccurredAtUtc = DateTime.UtcNow,
             CreatedBy = identity.UserPrint,
             UpdatedBy = identity.UserPrint
@@ -75,39 +86,11 @@ public sealed class VotesCreateVoteCommandHandler(
         return storedValue == 0 ? Guid.Empty : activity.Id;
     }
 
-    private static string CreateVoteMetadata(VoteRequestIdentity identity, int voteValue)
+    private async Task<Guid> ResolveTenantIdAndSetContextAsync(CancellationToken cancellationToken)
     {
-        return JsonSerializer.Serialize(new VoteMetadata
-        {
-            UserPrint = identity.UserPrint,
-            Ip = identity.Ip,
-            UserAgent = identity.UserAgent,
-            VoteValue = voteValue
-        });
-    }
-
-    private static VoteMetadata? ParseVote(string? metadataJson)
-    {
-        if (string.IsNullOrWhiteSpace(metadataJson))
-        {
-            return null;
-        }
-
-        try
-        {
-            return JsonSerializer.Deserialize<VoteMetadata>(metadataJson);
-        }
-        catch (JsonException)
-        {
-            return null;
-        }
-    }
-
-    private sealed class VoteMetadata
-    {
-        public required string UserPrint { get; init; }
-        public required string Ip { get; init; }
-        public required string UserAgent { get; init; }
-        public required int VoteValue { get; init; }
+        var clientKey = clientKeyContextService.GetRequiredClientKey();
+        var tenantId = await tenantClientKeyResolver.ResolveTenantId(clientKey, cancellationToken);
+        httpContextAccessor.HttpContext?.Items[TenantContextKeys.TenantIdItemKey] = tenantId;
+        return tenantId;
     }
 }

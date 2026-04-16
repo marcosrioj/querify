@@ -1,5 +1,6 @@
 using BaseFaq.QnA.Portal.Business.ThreadActivity.Abstractions;
-using BaseFaq.QnA.Portal.Business.ThreadActivity.Queries;
+using BaseFaq.QnA.Portal.Business.ThreadActivity.Queries.GetThreadActivity;
+using BaseFaq.QnA.Portal.Business.ThreadActivity.Queries.GetThreadActivityList;
 using BaseFaq.QnA.Portal.Business.ThreadActivity.Service;
 using Microsoft.Extensions.DependencyInjection;
 

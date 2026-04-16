@@ -7,7 +7,7 @@ using BaseFaq.QnA.Common.Persistence.QnADb;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
-namespace BaseFaq.QnA.Portal.Business.Topic.Queries;
+namespace BaseFaq.QnA.Portal.Business.Topic.Queries.GetTopic;
 
 public sealed class TopicsGetTopicQuery : IRequest<TopicDto>
 {

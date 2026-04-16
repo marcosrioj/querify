@@ -1,25 +1,28 @@
 using System.Net;
 using BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception;
 using BaseFaq.Common.Infrastructure.Core.Abstractions;
+using BaseFaq.Common.Infrastructure.Core.Constants;
 using BaseFaq.Models.Common.Enums;
-using BaseFaq.Models.QnA.Dtos.Question;
 using BaseFaq.Models.QnA.Enums;
 using BaseFaq.QnA.Common.Persistence.QnADb;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using QuestionEntity = BaseFaq.QnA.Common.Persistence.QnADb.Entities.Question;
 using ThreadActivityEntity = BaseFaq.QnA.Common.Persistence.QnADb.Entities.ThreadActivity;
 
-namespace BaseFaq.QnA.Public.Business.Question.Commands;
+namespace BaseFaq.QnA.Public.Business.Question.Commands.CreateQuestion;
 
 public sealed class QuestionsCreateQuestionCommandHandler(
     QnADbContext dbContext,
-    ISessionService sessionService)
+    IClientKeyContextService clientKeyContextService,
+    ITenantClientKeyResolver tenantClientKeyResolver,
+    IHttpContextAccessor httpContextAccessor)
     : IRequestHandler<QuestionsCreateQuestionCommand, Guid>
 {
     public async Task<Guid> Handle(QuestionsCreateQuestionCommand request, CancellationToken cancellationToken)
     {
-        var tenantId = sessionService.GetTenantId(AppEnum.QnA);
+        var tenantId = await ResolveTenantIdAndSetContextAsync(cancellationToken);
         var space = await dbContext.QuestionSpaces
             .Include(entity => entity.Questions)
             .SingleOrDefaultAsync(
@@ -107,5 +110,13 @@ public sealed class QuestionsCreateQuestionCommandHandler(
 
         await dbContext.SaveChangesAsync(cancellationToken);
         return entity.Id;
+    }
+
+    private async Task<Guid> ResolveTenantIdAndSetContextAsync(CancellationToken cancellationToken)
+    {
+        var clientKey = clientKeyContextService.GetRequiredClientKey();
+        var tenantId = await tenantClientKeyResolver.ResolveTenantId(clientKey, cancellationToken);
+        httpContextAccessor.HttpContext?.Items[TenantContextKeys.TenantIdItemKey] = tenantId;
+        return tenantId;
     }
 }

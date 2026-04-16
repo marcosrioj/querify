@@ -6,7 +6,7 @@ using BaseFaq.QnA.Common.Persistence.QnADb;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
-namespace BaseFaq.QnA.Portal.Business.Topic.Commands;
+namespace BaseFaq.QnA.Portal.Business.Topic.Commands.DeleteTopic;
 
 public sealed class TopicsDeleteTopicCommandHandler(QnADbContext dbContext, ISessionService sessionService)
     : IRequestHandler<TopicsDeleteTopicCommand>

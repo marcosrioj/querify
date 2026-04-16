@@ -1,5 +1,7 @@
 using BaseFaq.QnA.Public.Business.QuestionSpace.Abstractions;
-using BaseFaq.QnA.Public.Business.QuestionSpace.Queries;
+using BaseFaq.QnA.Public.Business.QuestionSpace.Queries.GetQuestionSpace;
+using BaseFaq.QnA.Public.Business.QuestionSpace.Queries.GetQuestionSpaceByKey;
+using BaseFaq.QnA.Public.Business.QuestionSpace.Queries.GetQuestionSpaceList;
 using BaseFaq.QnA.Public.Business.QuestionSpace.Service;
 using Microsoft.Extensions.DependencyInjection;
 

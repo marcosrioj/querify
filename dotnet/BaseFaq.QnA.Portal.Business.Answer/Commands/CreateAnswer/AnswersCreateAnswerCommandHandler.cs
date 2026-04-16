@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using AnswerEntity = BaseFaq.QnA.Common.Persistence.QnADb.Entities.Answer;
 using ThreadActivityEntity = BaseFaq.QnA.Common.Persistence.QnADb.Entities.ThreadActivity;
 
-namespace BaseFaq.QnA.Portal.Business.Answer.Commands;
+namespace BaseFaq.QnA.Portal.Business.Answer.Commands.CreateAnswer;
 
 public sealed class AnswersCreateAnswerCommandHandler(
     QnADbContext dbContext,

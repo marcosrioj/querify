@@ -7,7 +7,7 @@ using BaseFaq.QnA.Common.Persistence.QnADb;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
-namespace BaseFaq.QnA.Portal.Business.ThreadActivity.Queries;
+namespace BaseFaq.QnA.Portal.Business.ThreadActivity.Queries.GetThreadActivity;
 
 public sealed class ThreadActivitiesGetThreadActivityQueryHandler(QnADbContext dbContext, ISessionService sessionService)
     : IRequestHandler<ThreadActivitiesGetThreadActivityQuery, ThreadActivityDto>

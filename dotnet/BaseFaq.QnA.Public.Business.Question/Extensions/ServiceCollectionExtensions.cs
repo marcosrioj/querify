@@ -1,5 +1,5 @@
 using BaseFaq.QnA.Public.Business.Question.Abstractions;
-using BaseFaq.QnA.Public.Business.Question.Commands;
+using BaseFaq.QnA.Public.Business.Question.Commands.CreateQuestion;
 using BaseFaq.QnA.Public.Business.Question.Service;
 using Microsoft.Extensions.DependencyInjection;
 

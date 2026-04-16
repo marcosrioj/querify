@@ -1,7 +1,9 @@
 using System.Net;
 using BaseFaq.Models.QnA.Dtos.Question;
-using BaseFaq.QnA.Public.Business.Feedback.Commands;
-using BaseFaq.QnA.Public.Business.Question.Queries;
+using BaseFaq.QnA.Public.Business.Feedback.Commands.CreateFeedback;
+using BaseFaq.QnA.Public.Business.Question.Queries.GetQuestion;
+using BaseFaq.QnA.Public.Business.Question.Queries.GetQuestionByKey;
+using BaseFaq.QnA.Public.Business.Question.Queries.GetQuestionList;
 using BaseFaq.QnA.Public.Test.IntegrationTests.Helpers;
 using Microsoft.AspNetCore.Http;
 using Xunit;
@@ -20,7 +22,11 @@ public class FeedbackCommandQueryTests
         using var context = TestContext.Create(httpContext: httpContext);
         var space = await TestDataFactory.SeedQuestionSpaceAsync(context.DbContext, context.TenantId);
         var question = await TestDataFactory.SeedQuestionAsync(context.DbContext, context.TenantId, space.Id);
-        var feedbackHandler = new FeedbacksCreateFeedbackCommandHandler(context.DbContext, context.HttpContextAccessor);
+        var feedbackHandler = new FeedbacksCreateFeedbackCommandHandler(
+            context.DbContext,
+            new TestClientKeyContextService(context.ClientKey),
+            new TestTenantClientKeyResolver(context.TenantId, context.ClientKey),
+            context.HttpContextAccessor);
 
         await feedbackHandler.Handle(new FeedbacksCreateFeedbackCommand
         {
@@ -43,7 +49,9 @@ public class FeedbackCommandQueryTests
 
         var questionHandler = new QuestionsGetQuestionQueryHandler(
             context.DbContext,
-            new TestSessionService(context.TenantId, context.UserId));
+            new TestClientKeyContextService(context.ClientKey),
+            new TestTenantClientKeyResolver(context.TenantId, context.ClientKey),
+            context.HttpContextAccessor);
         var result = await questionHandler.Handle(new QuestionsGetQuestionQuery
         {
             Id = question.Id,

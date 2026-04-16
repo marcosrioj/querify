@@ -28,7 +28,9 @@ Apply these rules to:
 
 ### 1) CQRS Write Contract
 - Command handlers return only simple values: `Guid`, `bool`, `string`, or `void`.
+- Complex response types belong to query handlers only.
 - Commands must never return DTOs, lists, paged results, or wrapper response objects.
+- Command handlers must never implement `IRequestHandler<TCommand, TComplex>` where `TComplex` is a DTO, list, paged result, or wrapper object.
 - No read-after-write inside command flow.
 - Query DTOs are read-side only (`GET` + query handlers).
 
@@ -68,6 +70,9 @@ Apply these rules to:
 - Do not keep aggregate files such as `Dtos/QuestionDtos.cs` or any other `*Dtos.cs` catch-all file in `BaseFaq.Models.QnA`.
 - Keep namespaces and file ownership coherent with the folder that owns the DTO.
 - Do not introduce pseudo-entity folders such as `Dtos/Link`; link DTOs belong to the owning feature folders like `Dtos/Answer`, `Dtos/Question`, or `Dtos/QuestionSpace`.
+- QnA write-side `*RequestDto` types must be flat and must not inherit from other request DTO types.
+- QnA query request DTOs for paged or sorted list reads may inherit the shared pagination base used by the project pattern.
+- Each QnA write-side request DTO must declare its own properties explicitly.
 
 ## Folder Ownership Rules (Do Not Mix Responsibilities)
 

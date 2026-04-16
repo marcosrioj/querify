@@ -1,7 +1,7 @@
 using BaseFaq.Models.QnA.Dtos.Answer;
 using MediatR;
 
-namespace BaseFaq.QnA.Portal.Business.Answer.Commands;
+namespace BaseFaq.QnA.Portal.Business.Answer.Commands.UpdateAnswer;
 
 public sealed class AnswersUpdateAnswerCommand : IRequest<Guid>
 {

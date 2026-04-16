@@ -23,12 +23,16 @@ Preferred command return types:
 - `string`
 - `void` / `IRequest`
 
+Command handlers may return only those same simple values.
+Complex response types belong to query handlers only.
+
 Do not return:
 
 - DTOs
 - lists
 - paged results
 - wrapper objects that only hide a simple value
+- complex handler response types such as `IRequestHandler<TCommand, TDto>`
 
 ## Rule 2: no read-after-write just to shape the response
 
@@ -115,6 +119,10 @@ When the work belongs to `BaseFaq.Models.QnA`:
 - do not place catch-all DTO files directly under `dotnet/BaseFaq.Models.QnA/Dtos`
 - do not create pseudo-entity folders such as `dotnet/BaseFaq.Models.QnA/Dtos/Link`
 - place link DTOs under the owning feature folders like `Dtos/Answer`, `Dtos/Question`, and `Dtos/QuestionSpace`
+- keep write-side handler request DTOs flat
+- do not inherit one write-side `*RequestDto` from another `*RequestDto`
+- let paged or sorted query request DTOs inherit the shared pagination base used by the project pattern
+- declare request DTO properties explicitly on each write-side QnA request type
 
 ## Rule 10: QnA persistence entities stay anemic
 
@@ -136,6 +144,7 @@ When the work belongs to `BaseFaq.QnA.Common.Persistence.QnADb/Entities`:
 ## Review checklist
 
 - command returns only a simple value
+- command handler returns only a simple value
 - no read-after-write response shaping
 - write controller returns a write result, not a read DTO
 - service write methods stay thin
@@ -146,6 +155,7 @@ When the work belongs to `BaseFaq.QnA.Common.Persistence.QnADb/Entities`:
 ## Anti-patterns
 
 - command handler returning `*Dto`
+- command handler implementing `IRequestHandler<TCommand, TComplex>`
 - command returning `List<T>`
 - controller returning `CreatedAtAction(..., dto)` for a write flow that only needs an id
 - services querying the database after the command only to return a richer payload

@@ -74,8 +74,7 @@ public sealed class TestContext : IDisposable
             configuration,
             tenantConnectionStringProvider,
             httpContextAccessor);
-
-        EnsureDatabase(dbContext);
+        dbContext.Database.Migrate();
 
         return new TestContext(
             dbContext,
@@ -94,16 +93,5 @@ public sealed class TestContext : IDisposable
         {
             TestDatabase.DropDatabase(_adminConnectionString, _databaseName);
         }
-    }
-
-    private static void EnsureDatabase(QnADbContext dbContext)
-    {
-        if (dbContext.Database.GetMigrations().Any())
-        {
-            dbContext.Database.Migrate();
-            return;
-        }
-
-        dbContext.Database.EnsureCreated();
     }
 }

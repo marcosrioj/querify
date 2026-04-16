@@ -1,7 +1,7 @@
 using BaseFaq.Models.QnA.Dtos.Question;
 using MediatR;
 
-namespace BaseFaq.QnA.Portal.Business.Question.Commands;
+namespace BaseFaq.QnA.Portal.Business.Question.Commands.AddTopic;
 
 public sealed class QuestionsAddTopicCommand : IRequest<Guid>
 {

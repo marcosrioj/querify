@@ -6,7 +6,7 @@ using BaseFaq.QnA.Common.Persistence.QnADb;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
-namespace BaseFaq.QnA.Portal.Business.QuestionSpace.Queries;
+namespace BaseFaq.QnA.Portal.Business.QuestionSpace.Queries.GetQuestionSpaceList;
 
 public sealed class QuestionSpacesGetQuestionSpaceListQueryHandler(
     QnADbContext dbContext,

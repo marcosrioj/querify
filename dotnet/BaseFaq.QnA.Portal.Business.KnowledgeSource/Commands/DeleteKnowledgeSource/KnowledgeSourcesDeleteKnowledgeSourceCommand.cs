@@ -4,7 +4,7 @@ using BaseFaq.QnA.Common.Persistence.QnADb;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
-namespace BaseFaq.QnA.Portal.Business.KnowledgeSource.Commands;
+namespace BaseFaq.QnA.Portal.Business.KnowledgeSource.Commands.DeleteKnowledgeSource;
 
 public sealed class KnowledgeSourcesDeleteKnowledgeSourceCommand : IRequest
 {

@@ -1,8 +1,15 @@
 using BaseFaq.Models.Common.Dtos;
 using BaseFaq.Models.QnA.Dtos.QuestionSpace;
 using BaseFaq.QnA.Portal.Business.QuestionSpace.Abstractions;
-using BaseFaq.QnA.Portal.Business.QuestionSpace.Commands;
-using BaseFaq.QnA.Portal.Business.QuestionSpace.Queries;
+using BaseFaq.QnA.Portal.Business.QuestionSpace.Commands.AddCuratedSource;
+using BaseFaq.QnA.Portal.Business.QuestionSpace.Commands.AddTopic;
+using BaseFaq.QnA.Portal.Business.QuestionSpace.Commands.CreateQuestionSpace;
+using BaseFaq.QnA.Portal.Business.QuestionSpace.Commands.DeleteQuestionSpace;
+using BaseFaq.QnA.Portal.Business.QuestionSpace.Commands.RemoveCuratedSource;
+using BaseFaq.QnA.Portal.Business.QuestionSpace.Commands.RemoveTopic;
+using BaseFaq.QnA.Portal.Business.QuestionSpace.Commands.UpdateQuestionSpace;
+using BaseFaq.QnA.Portal.Business.QuestionSpace.Queries.GetQuestionSpace;
+using BaseFaq.QnA.Portal.Business.QuestionSpace.Queries.GetQuestionSpaceList;
 using MediatR;
 
 namespace BaseFaq.QnA.Portal.Business.QuestionSpace.Service;

@@ -7,7 +7,7 @@ using BaseFaq.QnA.Common.Persistence.QnADb;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
-namespace BaseFaq.QnA.Portal.Business.KnowledgeSource.Commands;
+namespace BaseFaq.QnA.Portal.Business.KnowledgeSource.Commands.UpdateKnowledgeSource;
 
 public sealed class KnowledgeSourcesUpdateKnowledgeSourceCommandHandler(QnADbContext dbContext, ISessionService sessionService)
     : IRequestHandler<KnowledgeSourcesUpdateKnowledgeSourceCommand, Guid>
@@ -36,7 +36,7 @@ public sealed class KnowledgeSourcesUpdateKnowledgeSourceCommandHandler(QnADbCon
 
     private static void Apply(
         Common.Persistence.QnADb.Entities.KnowledgeSource entity,
-        KnowledgeSourceCreateRequestDto request,
+        KnowledgeSourceUpdateRequestDto request,
         string userId)
     {
         entity.Kind = request.Kind;

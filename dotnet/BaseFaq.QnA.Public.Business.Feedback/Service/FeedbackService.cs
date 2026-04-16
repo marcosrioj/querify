@@ -1,6 +1,6 @@
 using BaseFaq.Models.QnA.Dtos.Question;
 using BaseFaq.QnA.Public.Business.Feedback.Abstractions;
-using BaseFaq.QnA.Public.Business.Feedback.Commands;
+using BaseFaq.QnA.Public.Business.Feedback.Commands.CreateFeedback;
 using MediatR;
 
 namespace BaseFaq.QnA.Public.Business.Feedback.Service;

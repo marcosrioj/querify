@@ -8,7 +8,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using ThreadActivityEntity = BaseFaq.QnA.Common.Persistence.QnADb.Entities.ThreadActivity;
 
-namespace BaseFaq.QnA.Portal.Business.Answer.Commands;
+namespace BaseFaq.QnA.Portal.Business.Answer.Commands.RetireAnswer;
 
 public sealed class AnswersRetireAnswerCommandHandler(
     QnADbContext dbContext,

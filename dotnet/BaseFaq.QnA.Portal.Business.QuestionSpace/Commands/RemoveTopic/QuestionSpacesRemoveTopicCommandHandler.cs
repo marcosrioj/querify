@@ -6,7 +6,7 @@ using BaseFaq.QnA.Common.Persistence.QnADb;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
-namespace BaseFaq.QnA.Portal.Business.QuestionSpace.Commands;
+namespace BaseFaq.QnA.Portal.Business.QuestionSpace.Commands.RemoveTopic;
 
 public sealed class QuestionSpacesRemoveTopicCommandHandler(
     QnADbContext dbContext,

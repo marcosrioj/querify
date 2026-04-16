@@ -4,7 +4,7 @@ using BaseFaq.QnA.Public.Business.Feedback.Abstractions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
-namespace BaseFaq.QnA.Public.Business.Controllers;
+namespace BaseFaq.QnA.Public.Business.Feedback.Controllers;
 
 [ApiController]
 [SkipTenantAccessValidation]

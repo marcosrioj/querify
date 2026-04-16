@@ -1,4 +1,6 @@
-using BaseFaq.QnA.Public.Business.QuestionSpace.Queries;
+using BaseFaq.QnA.Public.Business.QuestionSpace.Queries.GetQuestionSpace;
+using BaseFaq.QnA.Public.Business.QuestionSpace.Queries.GetQuestionSpaceByKey;
+using BaseFaq.QnA.Public.Business.QuestionSpace.Queries.GetQuestionSpaceList;
 using BaseFaq.QnA.Public.Test.IntegrationTests.Helpers;
 using Xunit;
 
@@ -17,7 +19,9 @@ public class QuestionSpaceQueryTests
             key: "public-portal");
         var handler = new QuestionSpacesGetQuestionSpaceByKeyQueryHandler(
             context.DbContext,
-            new TestSessionService(context.TenantId, context.UserId));
+            new TestClientKeyContextService(context.ClientKey),
+            new TestTenantClientKeyResolver(context.TenantId, context.ClientKey),
+            context.HttpContextAccessor);
 
         var result = await handler.Handle(new QuestionSpacesGetQuestionSpaceByKeyQuery
         {

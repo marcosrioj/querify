@@ -7,7 +7,7 @@ using BaseFaq.QnA.Common.Persistence.QnADb;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
-namespace BaseFaq.QnA.Portal.Business.Topic.Commands;
+namespace BaseFaq.QnA.Portal.Business.Topic.Commands.UpdateTopic;
 
 public sealed class TopicsUpdateTopicCommand : IRequest<Guid>
 {

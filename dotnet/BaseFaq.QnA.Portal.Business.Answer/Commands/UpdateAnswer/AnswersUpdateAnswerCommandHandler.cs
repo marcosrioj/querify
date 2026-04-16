@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using AnswerEntity = BaseFaq.QnA.Common.Persistence.QnADb.Entities.Answer;
 using ThreadActivityEntity = BaseFaq.QnA.Common.Persistence.QnADb.Entities.ThreadActivity;
 
-namespace BaseFaq.QnA.Portal.Business.Answer.Commands;
+namespace BaseFaq.QnA.Portal.Business.Answer.Commands.UpdateAnswer;
 
 public sealed class AnswersUpdateAnswerCommandHandler(
     QnADbContext dbContext,
@@ -56,7 +56,7 @@ public sealed class AnswersUpdateAnswerCommandHandler(
         return request.Id;
     }
 
-    private static void Apply(AnswerEntity entity, AnswerCreateRequestDto request, string userId)
+    private static void Apply(AnswerEntity entity, AnswerUpdateRequestDto request, string userId)
     {
         entity.Headline = request.Headline;
         entity.Body = request.Body;

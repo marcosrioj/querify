@@ -1,6 +1,6 @@
 using BaseFaq.Models.QnA.Dtos.Answer;
 using BaseFaq.QnA.Public.Business.Vote.Abstractions;
-using BaseFaq.QnA.Public.Business.Vote.Commands;
+using BaseFaq.QnA.Public.Business.Vote.Commands.CreateVote;
 using MediatR;
 
 namespace BaseFaq.QnA.Public.Business.Vote.Service;

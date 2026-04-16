@@ -1,8 +1,10 @@
 using BaseFaq.Models.Common.Dtos;
 using BaseFaq.Models.QnA.Dtos.Question;
 using BaseFaq.QnA.Public.Business.Question.Abstractions;
-using BaseFaq.QnA.Public.Business.Question.Commands;
-using BaseFaq.QnA.Public.Business.Question.Queries;
+using BaseFaq.QnA.Public.Business.Question.Commands.CreateQuestion;
+using BaseFaq.QnA.Public.Business.Question.Queries.GetQuestion;
+using BaseFaq.QnA.Public.Business.Question.Queries.GetQuestionByKey;
+using BaseFaq.QnA.Public.Business.Question.Queries.GetQuestionList;
 using MediatR;
 
 namespace BaseFaq.QnA.Public.Business.Question.Service;

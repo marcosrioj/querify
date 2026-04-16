@@ -1,5 +1,5 @@
 using BaseFaq.QnA.Public.Business.Vote.Abstractions;
-using BaseFaq.QnA.Public.Business.Vote.Commands;
+using BaseFaq.QnA.Public.Business.Vote.Commands.CreateVote;
 using BaseFaq.QnA.Public.Business.Vote.Service;
 using Microsoft.Extensions.DependencyInjection;
 

@@ -8,7 +8,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using QuestionSpaceEntity = BaseFaq.QnA.Common.Persistence.QnADb.Entities.QuestionSpace;
 
-namespace BaseFaq.QnA.Portal.Business.QuestionSpace.Commands;
+namespace BaseFaq.QnA.Portal.Business.QuestionSpace.Commands.UpdateQuestionSpace;
 
 public sealed class QuestionSpacesUpdateQuestionSpaceCommandHandler(
     QnADbContext dbContext,
@@ -38,7 +38,7 @@ public sealed class QuestionSpacesUpdateQuestionSpaceCommandHandler(
 
     private static void Apply(
         QuestionSpaceEntity entity,
-        QuestionSpaceCreateRequestDto request,
+        QuestionSpaceUpdateRequestDto request,
         string userId)
     {
         entity.Name = request.Name;

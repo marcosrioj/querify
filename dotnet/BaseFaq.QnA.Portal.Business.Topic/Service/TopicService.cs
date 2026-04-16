@@ -1,8 +1,11 @@
 using BaseFaq.Models.Common.Dtos;
 using BaseFaq.Models.QnA.Dtos.Topic;
 using BaseFaq.QnA.Portal.Business.Topic.Abstractions;
-using BaseFaq.QnA.Portal.Business.Topic.Commands;
-using BaseFaq.QnA.Portal.Business.Topic.Queries;
+using BaseFaq.QnA.Portal.Business.Topic.Commands.CreateTopic;
+using BaseFaq.QnA.Portal.Business.Topic.Commands.DeleteTopic;
+using BaseFaq.QnA.Portal.Business.Topic.Commands.UpdateTopic;
+using BaseFaq.QnA.Portal.Business.Topic.Queries.GetTopic;
+using BaseFaq.QnA.Portal.Business.Topic.Queries.GetTopicList;
 using MediatR;
 
 namespace BaseFaq.QnA.Portal.Business.Topic.Service;

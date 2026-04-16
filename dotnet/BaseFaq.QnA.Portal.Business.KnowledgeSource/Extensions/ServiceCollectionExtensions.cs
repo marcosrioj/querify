@@ -1,5 +1,7 @@
 using BaseFaq.QnA.Portal.Business.KnowledgeSource.Abstractions;
-using BaseFaq.QnA.Portal.Business.KnowledgeSource.Commands;
+using BaseFaq.QnA.Portal.Business.KnowledgeSource.Commands.CreateKnowledgeSource;
+using BaseFaq.QnA.Portal.Business.KnowledgeSource.Commands.DeleteKnowledgeSource;
+using BaseFaq.QnA.Portal.Business.KnowledgeSource.Commands.UpdateKnowledgeSource;
 using BaseFaq.QnA.Portal.Business.KnowledgeSource.Service;
 using Microsoft.Extensions.DependencyInjection;
 

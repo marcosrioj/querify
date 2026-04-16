@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
-namespace BaseFaq.QnA.Portal.Business.Controllers;
+namespace BaseFaq.QnA.Portal.Business.ThreadActivity.Controllers;
 
 [Authorize]
 [ApiController]

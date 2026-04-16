@@ -1,8 +1,17 @@
 using BaseFaq.Models.Common.Dtos;
 using BaseFaq.Models.QnA.Dtos.Answer;
 using BaseFaq.QnA.Portal.Business.Answer.Abstractions;
-using BaseFaq.QnA.Portal.Business.Answer.Commands;
-using BaseFaq.QnA.Portal.Business.Answer.Queries;
+using BaseFaq.QnA.Portal.Business.Answer.Commands.AddSource;
+using BaseFaq.QnA.Portal.Business.Answer.Commands.CreateAnswer;
+using BaseFaq.QnA.Portal.Business.Answer.Commands.DeleteAnswer;
+using BaseFaq.QnA.Portal.Business.Answer.Commands.PublishAnswer;
+using BaseFaq.QnA.Portal.Business.Answer.Commands.RejectAnswer;
+using BaseFaq.QnA.Portal.Business.Answer.Commands.RemoveSource;
+using BaseFaq.QnA.Portal.Business.Answer.Commands.RetireAnswer;
+using BaseFaq.QnA.Portal.Business.Answer.Commands.UpdateAnswer;
+using BaseFaq.QnA.Portal.Business.Answer.Commands.ValidateAnswer;
+using BaseFaq.QnA.Portal.Business.Answer.Queries.GetAnswer;
+using BaseFaq.QnA.Portal.Business.Answer.Queries.GetAnswerList;
 using MediatR;
 
 namespace BaseFaq.QnA.Portal.Business.Answer.Service;

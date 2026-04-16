@@ -1,5 +1,13 @@
 using BaseFaq.QnA.Portal.Business.Answer.Abstractions;
-using BaseFaq.QnA.Portal.Business.Answer.Commands;
+using BaseFaq.QnA.Portal.Business.Answer.Commands.AddSource;
+using BaseFaq.QnA.Portal.Business.Answer.Commands.CreateAnswer;
+using BaseFaq.QnA.Portal.Business.Answer.Commands.DeleteAnswer;
+using BaseFaq.QnA.Portal.Business.Answer.Commands.PublishAnswer;
+using BaseFaq.QnA.Portal.Business.Answer.Commands.RejectAnswer;
+using BaseFaq.QnA.Portal.Business.Answer.Commands.RemoveSource;
+using BaseFaq.QnA.Portal.Business.Answer.Commands.RetireAnswer;
+using BaseFaq.QnA.Portal.Business.Answer.Commands.UpdateAnswer;
+using BaseFaq.QnA.Portal.Business.Answer.Commands.ValidateAnswer;
 using BaseFaq.QnA.Portal.Business.Answer.Service;
 using Microsoft.Extensions.DependencyInjection;
 

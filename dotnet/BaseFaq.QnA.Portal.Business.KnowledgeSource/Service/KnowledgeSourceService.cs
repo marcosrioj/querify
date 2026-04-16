@@ -1,8 +1,11 @@
 using BaseFaq.Models.Common.Dtos;
 using BaseFaq.Models.QnA.Dtos.KnowledgeSource;
 using BaseFaq.QnA.Portal.Business.KnowledgeSource.Abstractions;
-using BaseFaq.QnA.Portal.Business.KnowledgeSource.Commands;
-using BaseFaq.QnA.Portal.Business.KnowledgeSource.Queries;
+using BaseFaq.QnA.Portal.Business.KnowledgeSource.Commands.CreateKnowledgeSource;
+using BaseFaq.QnA.Portal.Business.KnowledgeSource.Commands.DeleteKnowledgeSource;
+using BaseFaq.QnA.Portal.Business.KnowledgeSource.Commands.UpdateKnowledgeSource;
+using BaseFaq.QnA.Portal.Business.KnowledgeSource.Queries.GetKnowledgeSource;
+using BaseFaq.QnA.Portal.Business.KnowledgeSource.Queries.GetKnowledgeSourceList;
 using MediatR;
 
 namespace BaseFaq.QnA.Portal.Business.KnowledgeSource.Service;

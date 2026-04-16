@@ -1,6 +1,8 @@
 using BaseFaq.Models.QnA.Dtos.Question;
 using BaseFaq.Models.QnA.Enums;
-using BaseFaq.QnA.Public.Business.Question.Queries;
+using BaseFaq.QnA.Public.Business.Question.Queries.GetQuestion;
+using BaseFaq.QnA.Public.Business.Question.Queries.GetQuestionByKey;
+using BaseFaq.QnA.Public.Business.Question.Queries.GetQuestionList;
 using BaseFaq.QnA.Public.Test.IntegrationTests.Helpers;
 using Xunit;
 
@@ -31,7 +33,9 @@ public class QuestionQueryTests
 
         var handler = new QuestionsGetQuestionQueryHandler(
             context.DbContext,
-            new TestSessionService(context.TenantId, context.UserId));
+            new TestClientKeyContextService(context.ClientKey),
+            new TestTenantClientKeyResolver(context.TenantId, context.ClientKey),
+            context.HttpContextAccessor);
         var result = await handler.Handle(new QuestionsGetQuestionQuery
         {
             Id = question.Id,

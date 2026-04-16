@@ -90,6 +90,10 @@ public class ProjectRulesComplianceTests
         new(@"\b(?:class|record)\s+\w+(?:\s*\([^\)]*\))?\s*:\s*IRequest(?:<\s*(?<type>[^>]+)\s*>)?",
             RegexOptions.Multiline | RegexOptions.Compiled);
 
+    private static readonly Regex CommandHandlerResponseTypeRegex =
+        new(@"IRequestHandler\s*<\s*[^,>]+Command\s*,\s*(?<type>[^>]+)\s*>",
+            RegexOptions.Multiline | RegexOptions.Compiled);
+
     private static readonly Regex ControllerMethodRegex =
         new(@"(?<attrs>(?:\s*\[[^\]]+\]\s*)+)\s*public\s+(?:async\s+)?Task<IActionResult>\s+\w+\s*\(",
             RegexOptions.Multiline | RegexOptions.Compiled);
@@ -111,6 +115,10 @@ public class ProjectRulesComplianceTests
 
     private static readonly Regex QnAEntityConstructorRegex =
         new(@"^\s*(?:public|internal|protected|private)\s+(?<name>[A-Za-z_][A-Za-z0-9_]*)\s*\(",
+            RegexOptions.Multiline | RegexOptions.Compiled);
+
+    private static readonly Regex QnARequestDtoInheritanceRegex =
+        new(@"\bclass\s+(?<name>\w*RequestDto)\s*:\s*(?<base>[A-Za-z_][A-Za-z0-9_<>,\.\?]*)",
             RegexOptions.Multiline | RegexOptions.Compiled);
 
     private static readonly string RepositoryRoot = FindRepositoryRoot();
@@ -158,6 +166,41 @@ public class ProjectRulesComplianceTests
 
                 failures.Add(
                     $"{ToRelativePath(filePath)}: command response type '{responseType.Value.Trim()}' is not allowed.");
+            }
+        }
+
+        Assert.True(failures.Count == 0, BuildFailureMessage(failures));
+    }
+
+    [Fact]
+    public void CommandHandlers_MustReturnSimpleTypesOnly()
+    {
+        var failures = new List<string>();
+
+        foreach (var filePath in EnumerateSourceFiles())
+        {
+            if (!filePath.Contains($"{Path.DirectorySeparatorChar}Commands{Path.DirectorySeparatorChar}",
+                    StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            if (!Path.GetFileName(filePath).EndsWith("CommandHandler.cs", StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            var source = File.ReadAllText(filePath);
+            foreach (Match match in CommandHandlerResponseTypeRegex.Matches(source))
+            {
+                var normalizedType = NormalizeType(match.Groups["type"].Value);
+                if (AllowedSimpleTypes.Contains(normalizedType))
+                {
+                    continue;
+                }
+
+                failures.Add(
+                    $"{ToRelativePath(filePath)}: command handler response type '{match.Groups["type"].Value.Trim()}' is not allowed.");
             }
         }
 
@@ -351,6 +394,38 @@ public class ProjectRulesComplianceTests
             {
                 failures.Add($"{ToRelativePath(filePath)}: aggregate *Dtos.cs files are not allowed in BaseFaq.Models.QnA.");
             }
+        }
+
+        Assert.True(failures.Count == 0, BuildFailureMessage(failures));
+    }
+
+    [Fact]
+    public void QnARequestDtos_MustUseAllowedInheritanceOnly()
+    {
+        var failures = new List<string>();
+        var qnaDtosRoot = ToAbsolutePath("dotnet/BaseFaq.Models.QnA/Dtos");
+
+        foreach (var filePath in Directory.EnumerateFiles(qnaDtosRoot, "*RequestDto.cs", SearchOption.AllDirectories))
+        {
+            var source = File.ReadAllText(filePath);
+            var match = QnARequestDtoInheritanceRegex.Match(source);
+            if (!match.Success)
+            {
+                continue;
+            }
+
+            var dtoName = match.Groups["name"].Value;
+            var baseType = NormalizeType(match.Groups["base"].Value);
+            var isAllowedPagedQueryDto =
+                dtoName.EndsWith("GetAllRequestDto", StringComparison.Ordinal) &&
+                string.Equals(baseType, "PagedAndSortedResultRequestDto", StringComparison.Ordinal);
+
+            if (isAllowedPagedQueryDto)
+            {
+                continue;
+            }
+
+            failures.Add($"{ToRelativePath(filePath)}: request DTO inheritance from '{match.Groups["base"].Value}' is not allowed for '{dtoName}' in BaseFaq.Models.QnA.");
         }
 
         Assert.True(failures.Count == 0, BuildFailureMessage(failures));

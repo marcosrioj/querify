@@ -1,7 +1,8 @@
 using BaseFaq.Models.Common.Dtos;
 using BaseFaq.Models.QnA.Dtos.ThreadActivity;
 using BaseFaq.QnA.Portal.Business.ThreadActivity.Abstractions;
-using BaseFaq.QnA.Portal.Business.ThreadActivity.Queries;
+using BaseFaq.QnA.Portal.Business.ThreadActivity.Queries.GetThreadActivity;
+using BaseFaq.QnA.Portal.Business.ThreadActivity.Queries.GetThreadActivityList;
 using MediatR;
 
 namespace BaseFaq.QnA.Portal.Business.ThreadActivity.Service;

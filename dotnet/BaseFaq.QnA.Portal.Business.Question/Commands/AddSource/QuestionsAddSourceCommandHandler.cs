@@ -8,7 +8,7 @@ using BaseFaq.QnA.Common.Persistence.QnADb;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
-namespace BaseFaq.QnA.Portal.Business.Question.Commands;
+namespace BaseFaq.QnA.Portal.Business.Question.Commands.AddSource;
 
 public sealed class QuestionsAddSourceCommandHandler(
     QnADbContext dbContext,

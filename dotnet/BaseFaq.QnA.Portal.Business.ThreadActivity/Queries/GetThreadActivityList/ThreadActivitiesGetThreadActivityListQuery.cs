@@ -7,7 +7,7 @@ using BaseFaq.QnA.Common.Persistence.QnADb.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
-namespace BaseFaq.QnA.Portal.Business.ThreadActivity.Queries;
+namespace BaseFaq.QnA.Portal.Business.ThreadActivity.Queries.GetThreadActivityList;
 
 public sealed class ThreadActivitiesGetThreadActivityListQuery : IRequest<PagedResultDto<ThreadActivityDto>>
 {

@@ -1,8 +1,10 @@
 using System.Net;
 using BaseFaq.Models.QnA.Dtos.Answer;
 using BaseFaq.Models.QnA.Dtos.Question;
-using BaseFaq.QnA.Public.Business.Question.Queries;
-using BaseFaq.QnA.Public.Business.Vote.Commands;
+using BaseFaq.QnA.Public.Business.Question.Queries.GetQuestion;
+using BaseFaq.QnA.Public.Business.Question.Queries.GetQuestionByKey;
+using BaseFaq.QnA.Public.Business.Question.Queries.GetQuestionList;
+using BaseFaq.QnA.Public.Business.Vote.Commands.CreateVote;
 using BaseFaq.QnA.Public.Test.IntegrationTests.Helpers;
 using Microsoft.AspNetCore.Http;
 using Xunit;
@@ -27,7 +29,11 @@ public class VoteCommandQueryTests
             question.Id,
             headline: "Public accepted answer",
             accept: true);
-        var voteHandler = new VotesCreateVoteCommandHandler(context.DbContext, context.HttpContextAccessor);
+        var voteHandler = new VotesCreateVoteCommandHandler(
+            context.DbContext,
+            new TestClientKeyContextService(context.ClientKey),
+            new TestTenantClientKeyResolver(context.TenantId, context.ClientKey),
+            context.HttpContextAccessor);
 
         var firstVoteId = await voteHandler.Handle(new VotesCreateVoteCommand
         {
@@ -51,7 +57,9 @@ public class VoteCommandQueryTests
 
         var questionHandler = new QuestionsGetQuestionQueryHandler(
             context.DbContext,
-            new TestSessionService(context.TenantId, context.UserId));
+            new TestClientKeyContextService(context.ClientKey),
+            new TestTenantClientKeyResolver(context.TenantId, context.ClientKey),
+            context.HttpContextAccessor);
         var result = await questionHandler.Handle(new QuestionsGetQuestionQuery
         {
             Id = question.Id,

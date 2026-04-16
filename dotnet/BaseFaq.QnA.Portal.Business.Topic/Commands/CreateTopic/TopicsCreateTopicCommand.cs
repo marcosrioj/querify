@@ -5,7 +5,7 @@ using BaseFaq.QnA.Common.Persistence.QnADb;
 using BaseFaq.QnA.Common.Persistence.QnADb.Entities;
 using MediatR;
 
-namespace BaseFaq.QnA.Portal.Business.Topic.Commands;
+namespace BaseFaq.QnA.Portal.Business.Topic.Commands.CreateTopic;
 
 public sealed class TopicsCreateTopicCommand : IRequest<Guid>
 {

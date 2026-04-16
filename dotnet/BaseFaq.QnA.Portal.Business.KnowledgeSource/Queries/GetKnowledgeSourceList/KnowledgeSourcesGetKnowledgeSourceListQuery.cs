@@ -7,7 +7,7 @@ using BaseFaq.QnA.Common.Persistence.QnADb.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
-namespace BaseFaq.QnA.Portal.Business.KnowledgeSource.Queries;
+namespace BaseFaq.QnA.Portal.Business.KnowledgeSource.Queries.GetKnowledgeSourceList;
 
 public sealed class KnowledgeSourcesGetKnowledgeSourceListQuery : IRequest<PagedResultDto<KnowledgeSourceDto>>
 {
