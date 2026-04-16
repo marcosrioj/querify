@@ -178,13 +178,11 @@ public sealed class QuestionsUpdateQuestionCommandHandler(
                 "Only open, answered, or validated questions can be exposed publicly.");
 
         foreach (var sourceLink in entity.Sources)
-        {
             if (sourceLink.Role is SourceRole.Citation or SourceRole.CanonicalReference &&
                 (sourceLink.Source.Visibility is not VisibilityScope.Public and not VisibilityScope.PublicIndexed ||
                  !sourceLink.Source.AllowsPublicCitation))
                 throw new InvalidOperationException(
                     "Public citations require a publicly visible source that explicitly allows citation.");
-        }
 
         if (entity.AcceptedAnswer is not null &&
             entity.AcceptedAnswer.Visibility is not VisibilityScope.Public and not VisibilityScope.PublicIndexed)

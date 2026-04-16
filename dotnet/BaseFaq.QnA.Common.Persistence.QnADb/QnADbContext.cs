@@ -172,7 +172,6 @@ public class QnADbContext : BaseDbContext<QnADbContext>
                 answer.Status != AnswerStatus.Validated)
                 throw new InvalidOperationException(
                     $"AI draft answer '{answer.Id}' must be validated before public exposure.");
-
         }
     }
 
@@ -299,9 +298,9 @@ public class QnADbContext : BaseDbContext<QnADbContext>
     private sealed class IntegrityLookupCache(QnADbContext dbContext)
     {
         private Dictionary<Guid, AnswerLookup>? _answers;
+        private Dictionary<Guid, Guid>? _questionTenants;
         private Dictionary<Guid, Guid>? _sourceTenants;
         private Dictionary<Guid, Guid>? _spaceTenants;
-        private Dictionary<Guid, Guid>? _questionTenants;
         private Dictionary<Guid, Guid>? _tagTenants;
 
         public Guid GetSpaceTenant(Guid id)

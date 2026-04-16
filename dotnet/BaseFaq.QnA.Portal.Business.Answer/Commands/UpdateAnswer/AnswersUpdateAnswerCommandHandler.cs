@@ -122,12 +122,10 @@ public sealed class AnswersUpdateAnswerCommandHandler(
             throw new InvalidOperationException("AI draft answers must be validated before public exposure.");
 
         foreach (var sourceLink in entity.Sources)
-        {
             if (sourceLink.Role is SourceRole.Citation or SourceRole.CanonicalReference &&
                 (sourceLink.Source.Visibility is not VisibilityScope.Public and not VisibilityScope.PublicIndexed ||
                  !sourceLink.Source.AllowsPublicCitation))
                 throw new InvalidOperationException(
                     "Public citations require a publicly visible source that explicitly allows citation.");
-        }
     }
 }

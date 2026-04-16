@@ -48,6 +48,5 @@ public class AnswerConfiguration : BaseConfiguration<Answer>
             .WithOne(sourceLink => sourceLink.Answer)
             .HasForeignKey(sourceLink => sourceLink.AnswerId)
             .OnDelete(DeleteBehavior.Cascade);
-
     }
 }

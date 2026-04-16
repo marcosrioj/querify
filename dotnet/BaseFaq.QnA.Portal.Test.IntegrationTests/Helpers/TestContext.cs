@@ -1,9 +1,9 @@
+using System.Net;
 using BaseFaq.QnA.Common.Persistence.QnADb;
 using BaseFaq.QnA.Portal.Test.IntegrationTests.Helpers.Infrastructure;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using System.Net;
 
 namespace BaseFaq.QnA.Portal.Test.IntegrationTests.Helpers;
 

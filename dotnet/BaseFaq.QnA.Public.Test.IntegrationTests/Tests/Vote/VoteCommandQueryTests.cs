@@ -20,7 +20,7 @@ public class VoteCommandQueryTests
         var httpContext = CreateHttpContext(
             "192.0.2.45",
             "QnAPublicVote/1.0",
-            externalUserId: "external-auth-user");
+            "external-auth-user");
 
         using var context = TestContext.Create(httpContext: httpContext);
         var space = await TestDataFactory.SeedSpaceAsync(context.DbContext, context.TenantId);
@@ -127,12 +127,10 @@ public class VoteCommandQueryTests
         httpContext.Request.Headers.UserAgent = userAgent;
 
         if (!string.IsNullOrWhiteSpace(externalUserId))
-        {
             httpContext.User = new ClaimsPrincipal(
                 new ClaimsIdentity(
                     [new Claim("sub", externalUserId)],
-                    authenticationType: "TestAuth"));
-        }
+                    "TestAuth"));
 
         return httpContext;
     }

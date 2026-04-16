@@ -102,8 +102,8 @@ public class QuestionSignalTests
                 "legacy-feedback-a",
                 "192.0.2.60",
                 "QnAFeedbackLegacy/1.0",
-                like: true,
-                reason: null),
+                true,
+                null),
             OccurredAtUtc = baseTime,
             CreatedBy = "test",
             UpdatedBy = "test"
@@ -124,8 +124,8 @@ public class QuestionSignalTests
                 "legacy-feedback-b",
                 "192.0.2.60",
                 "QnAFeedbackLegacy/1.1",
-                like: false,
-                reason: "Not relevant"),
+                false,
+                "Not relevant"),
             OccurredAtUtc = baseTime.AddMinutes(1),
             CreatedBy = "test",
             UpdatedBy = "test"
@@ -148,7 +148,7 @@ public class QuestionSignalTests
                 "legacy-vote-a",
                 "192.0.2.61",
                 "QnAVoteLegacy/1.0",
-                voteValue: 1),
+                1),
             OccurredAtUtc = baseTime.AddMinutes(2),
             CreatedBy = "test",
             UpdatedBy = "test"
@@ -171,7 +171,7 @@ public class QuestionSignalTests
                 "legacy-vote-b",
                 "192.0.2.61",
                 "QnAVoteLegacy/1.1",
-                voteValue: -1),
+                -1),
             OccurredAtUtc = baseTime.AddMinutes(3),
             CreatedBy = "test",
             UpdatedBy = "test"

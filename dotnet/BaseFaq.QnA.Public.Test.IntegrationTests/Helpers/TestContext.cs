@@ -1,10 +1,10 @@
+using System.Net;
 using BaseFaq.Common.Infrastructure.Core.Constants;
 using BaseFaq.QnA.Common.Persistence.QnADb;
 using BaseFaq.QnA.Public.Test.IntegrationTests.Helpers.Infrastructure;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using System.Net;
 
 namespace BaseFaq.QnA.Public.Test.IntegrationTests.Helpers;
 

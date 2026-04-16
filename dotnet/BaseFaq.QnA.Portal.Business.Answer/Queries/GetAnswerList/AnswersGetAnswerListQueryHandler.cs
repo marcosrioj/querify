@@ -47,7 +47,8 @@ public sealed class AnswersGetAnswerListQueryHandler(
             "headline desc" => query.OrderByDescending(answer => answer.Headline),
             "rank" => query.OrderBy(answer => answer.Rank),
             "rank desc" => query.OrderByDescending(answer => answer.Rank),
-            _ => query.OrderByDescending(answer => answer.Question != null && answer.Question.AcceptedAnswerId == answer.Id)
+            _ => query.OrderByDescending(answer =>
+                    answer.Question != null && answer.Question.AcceptedAnswerId == answer.Id)
                 .ThenByDescending(answer => answer.Rank)
         };
 
