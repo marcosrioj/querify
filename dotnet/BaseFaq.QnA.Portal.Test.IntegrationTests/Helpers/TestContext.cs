@@ -3,6 +3,7 @@ using BaseFaq.QnA.Portal.Test.IntegrationTests.Helpers.Infrastructure;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using System.Net;
 
 namespace BaseFaq.QnA.Portal.Test.IntegrationTests.Helpers;
 
@@ -65,7 +66,11 @@ public sealed class TestContext : IDisposable
         var resolvedTenantId = tenantId ?? Guid.NewGuid();
         var resolvedUserId = userId ?? Guid.NewGuid();
         var sessionService = new TestSessionService(resolvedTenantId, resolvedUserId);
-        var httpContextAccessor = new HttpContextAccessor { HttpContext = httpContext };
+        var resolvedHttpContext = httpContext ?? new DefaultHttpContext();
+        resolvedHttpContext.Connection.RemoteIpAddress ??= IPAddress.Loopback;
+        if (string.IsNullOrWhiteSpace(resolvedHttpContext.Request.Headers.UserAgent))
+            resolvedHttpContext.Request.Headers.UserAgent = "QnAPortalTest/1.0";
+        var httpContextAccessor = new HttpContextAccessor { HttpContext = resolvedHttpContext };
 
         var options = new DbContextOptionsBuilder<QnADbContext>()
             .UseNpgsql(connectionString)

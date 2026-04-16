@@ -3,8 +3,7 @@ using System.Security.Claims;
 using BaseFaq.Common.Infrastructure.Core.Services;
 using BaseFaq.Models.QnA.Dtos.Answer;
 using BaseFaq.Models.QnA.Dtos.Question;
-using BaseFaq.QnA.Common.Persistence.QnADb.Identity;
-using BaseFaq.QnA.Common.Persistence.QnADb.Projections;
+using BaseFaq.QnA.Common.Helper.Activities;
 using BaseFaq.QnA.Public.Business.Question.Queries.GetQuestion;
 using BaseFaq.QnA.Public.Business.Vote.Commands.CreateVote;
 using BaseFaq.QnA.Public.Test.IntegrationTests.Helpers;
@@ -73,10 +72,11 @@ public class VoteCommandQueryTests
             question.Id,
             "Public accepted answer",
             accept: true);
-        var expectedIdentity = ActivityUserPrint.ResolveCurrent(
-            context.HttpContextAccessor.HttpContext!,
-            new ClaimService(context.HttpContextAccessor),
-            context.SessionService);
+        var expectedIdentity = ActivityIdentityResolver.ResolveActivityIdentity(
+            context.SessionService,
+            ActivityRequestInfo.GetRequiredIp(context.HttpContextAccessor.HttpContext!),
+            ActivityRequestInfo.GetRequiredUserAgent(context.HttpContextAccessor.HttpContext!),
+            new ClaimService(context.HttpContextAccessor).GetExternalUserId());
 
         var voteId = await CreateVoteHandler(context).Handle(new VotesCreateVoteCommand
         {

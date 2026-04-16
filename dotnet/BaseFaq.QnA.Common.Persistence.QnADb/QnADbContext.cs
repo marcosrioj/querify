@@ -5,7 +5,6 @@ using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.QnA.Enums;
 using BaseFaq.QnA.Common.Persistence.QnADb.Entities;
-using BaseFaq.QnA.Common.Persistence.QnADb.Identity;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -14,9 +13,6 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb;
 
 public class QnADbContext : BaseDbContext<QnADbContext>
 {
-    private readonly ISessionService _sessionService;
-    private readonly IHttpContextAccessor _httpContextAccessor;
-
     public QnADbContext(
         DbContextOptions<QnADbContext> options,
         ISessionService sessionService,
@@ -30,8 +26,6 @@ public class QnADbContext : BaseDbContext<QnADbContext>
             tenantConnectionStringProvider,
             httpContextAccessor)
     {
-        _sessionService = sessionService;
-        _httpContextAccessor = httpContextAccessor;
     }
 
     public DbSet<Space> Spaces { get; set; }
@@ -55,7 +49,7 @@ public class QnADbContext : BaseDbContext<QnADbContext>
 
     public override int SaveChanges(bool acceptAllChangesOnSuccess)
     {
-        PopulateActivityIdentity();
+        EnsureActivityIdentity();
         EnsureTenantIntegrity();
         return base.SaveChanges(acceptAllChangesOnSuccess);
     }
@@ -64,100 +58,36 @@ public class QnADbContext : BaseDbContext<QnADbContext>
         bool acceptAllChangesOnSuccess,
         CancellationToken cancellationToken = default)
     {
-        PopulateActivityIdentity();
+        EnsureActivityIdentity();
         EnsureTenantIntegrity();
         return base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
     }
 
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
-        PopulateActivityIdentity();
+        EnsureActivityIdentity();
         EnsureTenantIntegrity();
         return base.SaveChangesAsync(cancellationToken);
     }
 
-    public ActivityUserIdentity ResolveActivityIdentity(
-        string? explicitUserPrint = null,
-        string? explicitIp = null,
-        string? explicitUserAgent = null,
-        params string?[] fallbackLabels)
-    {
-        return ActivityUserPrint.ResolveForPersistence(
-            _httpContextAccessor.HttpContext,
-            _sessionService,
-            explicitUserPrint,
-            explicitIp,
-            explicitUserAgent,
-            fallbackLabels);
-    }
-
-    public Activity CreateActivity(
-        Guid tenantId,
-        Question question,
-        ActivityKind kind,
-        ActorKind actorKind,
-        string actorLabel,
-        DateTime occurredAtUtc,
-        Guid? answerId = null,
-        Answer? answer = null,
-        string? notes = null,
-        string? metadataJson = null,
-        string? createdBy = null,
-        string? updatedBy = null,
-        string? explicitUserPrint = null,
-        string? explicitIp = null,
-        string? explicitUserAgent = null)
-    {
-        var resolvedCreatedBy = string.IsNullOrWhiteSpace(createdBy) ? actorLabel : createdBy;
-        var resolvedUpdatedBy = string.IsNullOrWhiteSpace(updatedBy) ? resolvedCreatedBy : updatedBy;
-        var identity = ResolveActivityIdentity(
-            explicitUserPrint,
-            explicitIp,
-            explicitUserAgent,
-            actorLabel,
-            resolvedCreatedBy,
-            resolvedUpdatedBy);
-
-        return new Activity
-        {
-            TenantId = tenantId,
-            QuestionId = question.Id,
-            Question = question,
-            AnswerId = answerId,
-            Answer = answer,
-            Kind = kind,
-            ActorKind = actorKind,
-            ActorLabel = actorLabel,
-            UserPrint = identity.UserPrint,
-            Ip = identity.Ip,
-            UserAgent = identity.UserAgent,
-            Notes = notes,
-            MetadataJson = metadataJson,
-            OccurredAtUtc = occurredAtUtc,
-            CreatedBy = resolvedCreatedBy,
-            UpdatedBy = resolvedUpdatedBy
-        };
-    }
-
-    private void PopulateActivityIdentity()
+    private void EnsureActivityIdentity()
     {
         foreach (var entry in ChangeTracker.Entries<Activity>()
                      .Where(entry => entry.State == EntityState.Added))
         {
             var activity = entry.Entity;
-            var identity = ActivityUserPrint.ResolveForPersistence(
-                _httpContextAccessor.HttpContext,
-                _sessionService,
-                activity.UserPrint,
-                activity.Ip,
-                activity.UserAgent,
-                activity.ActorLabel,
-                activity.CreatedBy,
-                activity.UpdatedBy);
 
-            activity.UserPrint = identity.UserPrint;
-            activity.Ip = identity.Ip;
-            activity.UserAgent = identity.UserAgent;
+            if (string.IsNullOrWhiteSpace(activity.UserPrint))
+                throw new InvalidOperationException(
+                    $"Activity '{activity.Id}' must include a resolved '{nameof(Activity.UserPrint)}'.");
+
+            if (string.IsNullOrWhiteSpace(activity.Ip))
+                throw new InvalidOperationException(
+                    $"Activity '{activity.Id}' must include a resolved '{nameof(Activity.Ip)}'.");
+
+            if (string.IsNullOrWhiteSpace(activity.UserAgent))
+                throw new InvalidOperationException(
+                    $"Activity '{activity.Id}' must include a resolved '{nameof(Activity.UserAgent)}'.");
         }
     }
 

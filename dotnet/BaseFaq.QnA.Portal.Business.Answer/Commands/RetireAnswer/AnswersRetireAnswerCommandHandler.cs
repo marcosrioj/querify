@@ -3,8 +3,10 @@ using BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception;
 using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.QnA.Enums;
+using BaseFaq.QnA.Common.Helper.Activities;
 using BaseFaq.QnA.Common.Persistence.QnADb;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using ActivityEntity = BaseFaq.QnA.Common.Persistence.QnADb.Entities.Activity;
 
@@ -12,7 +14,8 @@ namespace BaseFaq.QnA.Portal.Business.Answer.Commands.RetireAnswer;
 
 public sealed class AnswersRetireAnswerCommandHandler(
     QnADbContext dbContext,
-    ISessionService sessionService)
+    ISessionService sessionService,
+    IHttpContextAccessor httpContextAccessor)
     : IRequestHandler<AnswersRetireAnswerCommand, Guid>
 {
     public async Task<Guid> Handle(AnswersRetireAnswerCommand request, CancellationToken cancellationToken)
@@ -31,7 +34,7 @@ public sealed class AnswersRetireAnswerCommandHandler(
         entity.Visibility = VisibilityScope.Internal;
         entity.RetiredAtUtc = DateTime.UtcNow;
 
-        var activityIdentity = dbContext.ResolveActivityIdentity(userId, null, null, userId);
+        var activityIdentity = ResolveActivityIdentity(userId);
         var activity = new ActivityEntity
         {
             TenantId = entity.TenantId,
@@ -56,5 +59,15 @@ public sealed class AnswersRetireAnswerCommandHandler(
 
         await dbContext.SaveChangesAsync(cancellationToken);
         return request.Id;
+    }
+
+    private ActivityUserIdentity ResolveActivityIdentity(string userId)
+    {
+        var httpContext = httpContextAccessor.HttpContext
+                          ?? throw new InvalidOperationException("HttpContext is missing from the current request.");
+        return ActivityIdentityResolver.ResolveActivityIdentity(
+            userId,
+            ActivityRequestInfo.GetRequiredIp(httpContext),
+            ActivityRequestInfo.GetRequiredUserAgent(httpContext));
     }
 }

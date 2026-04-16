@@ -5,6 +5,7 @@ using BaseFaq.Models.QnA.Dtos.Space;
 using BaseFaq.Models.QnA.Dtos.Activity;
 using BaseFaq.Models.QnA.Dtos.Tag;
 using BaseFaq.Models.QnA.Enums;
+using BaseFaq.QnA.Common.Helper.Activities;
 using BaseFaq.QnA.Common.Persistence.QnADb.Entities;
 
 namespace BaseFaq.QnA.Common.Persistence.QnADb.Projections;
@@ -43,7 +44,7 @@ public static class QnAReadModelMappings
             ResolvedAtUtc = entity.ResolvedAtUtc,
             ValidatedAtUtc = entity.ValidatedAtUtc,
             LastActivityAtUtc = entity.LastActivityAtUtc,
-            FeedbackScore = ActivitySignals.ComputeFeedbackScore(entity.Activities)
+            FeedbackScore = ActivitySignals.ComputeFeedbackScore(entity.Activities.Select(ToSignalEntry))
         };
     }
 
@@ -79,7 +80,7 @@ public static class QnAReadModelMappings
             ResolvedAtUtc = entity.ResolvedAtUtc,
             ValidatedAtUtc = entity.ValidatedAtUtc,
             LastActivityAtUtc = entity.LastActivityAtUtc,
-            FeedbackScore = ActivitySignals.ComputeFeedbackScore(entity.Activities),
+            FeedbackScore = ActivitySignals.ComputeFeedbackScore(entity.Activities.Select(ToSignalEntry)),
             AcceptedAnswer = entity.AcceptedAnswer?.ToPortalAnswerDto(entity.Activities, entity.AcceptedAnswerId),
             Answers = entity.Answers
                 .OrderByDescending(answer => answer.Id == entity.AcceptedAnswerId)
@@ -151,7 +152,7 @@ public static class QnAReadModelMappings
             ResolvedAtUtc = entity.ResolvedAtUtc,
             ValidatedAtUtc = entity.ValidatedAtUtc,
             LastActivityAtUtc = entity.LastActivityAtUtc,
-            FeedbackScore = ActivitySignals.ComputeFeedbackScore(entity.Activities),
+            FeedbackScore = ActivitySignals.ComputeFeedbackScore(entity.Activities.Select(ToSignalEntry)),
             AcceptedAnswer = request.IncludeAnswers ? acceptedAnswer : null,
             Answers = request.IncludeAnswers ? publicAnswers : [],
             Tags = request.IncludeTags
@@ -327,12 +328,22 @@ public static class QnAReadModelMappings
             ValidatedAtUtc = entity.ValidatedAtUtc,
             AcceptedAtUtc = entity.AcceptedAtUtc,
             RetiredAtUtc = entity.RetiredAtUtc,
-            VoteScore = ActivitySignals.ComputeVoteScore(questionActivity, entity.Id),
+            VoteScore = ActivitySignals.ComputeVoteScore(questionActivity.Select(ToSignalEntry), entity.Id),
             Sources = sources
                 .OrderBy(source => source.Order)
                 .Select(source => source.ToAnswerSourceLinkDto())
                 .ToList()
         };
+    }
+
+    private static ActivitySignalEntry ToSignalEntry(Activity entity)
+    {
+        return new ActivitySignalEntry(
+            entity.Kind,
+            entity.AnswerId,
+            entity.OccurredAtUtc,
+            entity.UserPrint,
+            entity.MetadataJson);
     }
 
     private static string GetRequiredSpaceKey(Question entity)

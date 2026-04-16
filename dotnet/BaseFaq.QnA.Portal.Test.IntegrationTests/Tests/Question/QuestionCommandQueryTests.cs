@@ -25,7 +25,10 @@ public class QuestionCommandQueryTests
             question.Id,
             visibility: VisibilityScope.PublicIndexed,
             accept: false);
-        var updateHandler = new QuestionsUpdateQuestionCommandHandler(context.DbContext, context.SessionService);
+        var updateHandler = new QuestionsUpdateQuestionCommandHandler(
+            context.DbContext,
+            context.SessionService,
+            context.HttpContextAccessor);
         await updateHandler.Handle(new QuestionsUpdateQuestionCommand
         {
             Id = question.Id,

@@ -4,8 +4,10 @@ using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.QnA.Dtos.Answer;
 using BaseFaq.Models.QnA.Enums;
+using BaseFaq.QnA.Common.Helper.Activities;
 using BaseFaq.QnA.Common.Persistence.QnADb;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using AnswerEntity = BaseFaq.QnA.Common.Persistence.QnADb.Entities.Answer;
 using ActivityEntity = BaseFaq.QnA.Common.Persistence.QnADb.Entities.Activity;
@@ -14,7 +16,8 @@ namespace BaseFaq.QnA.Portal.Business.Answer.Commands.UpdateAnswer;
 
 public sealed class AnswersUpdateAnswerCommandHandler(
     QnADbContext dbContext,
-    ISessionService sessionService)
+    ISessionService sessionService,
+    IHttpContextAccessor httpContextAccessor)
     : IRequestHandler<AnswersUpdateAnswerCommand, Guid>
 {
     public async Task<Guid> Handle(AnswersUpdateAnswerCommand request, CancellationToken cancellationToken)
@@ -32,7 +35,7 @@ public sealed class AnswersUpdateAnswerCommandHandler(
             throw new ApiErrorException($"Answer '{request.Id}' was not found.", (int)HttpStatusCode.NotFound);
 
         Apply(entity, request.Request, userId);
-        var activityIdentity = dbContext.ResolveActivityIdentity(userId, null, null, userId);
+        var activityIdentity = ResolveActivityIdentity(userId);
         var activity = new ActivityEntity
         {
             TenantId = entity.TenantId,
@@ -56,6 +59,16 @@ public sealed class AnswersUpdateAnswerCommandHandler(
 
         await dbContext.SaveChangesAsync(cancellationToken);
         return request.Id;
+    }
+
+    private ActivityUserIdentity ResolveActivityIdentity(string userId)
+    {
+        var httpContext = httpContextAccessor.HttpContext
+                          ?? throw new InvalidOperationException("HttpContext is missing from the current request.");
+        return ActivityIdentityResolver.ResolveActivityIdentity(
+            userId,
+            ActivityRequestInfo.GetRequiredIp(httpContext),
+            ActivityRequestInfo.GetRequiredUserAgent(httpContext));
     }
 
     private static void Apply(AnswerEntity entity, AnswerUpdateRequestDto request, string userId)

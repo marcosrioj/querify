@@ -17,7 +17,10 @@ public class AnswerCommandQueryTests
         var question =
             await TestDataFactory.SeedQuestionAsync(context.DbContext, context.SessionService.TenantId, space.Id);
 
-        var createHandler = new AnswersCreateAnswerCommandHandler(context.DbContext, context.SessionService);
+        var createHandler = new AnswersCreateAnswerCommandHandler(
+            context.DbContext,
+            context.SessionService,
+            context.HttpContextAccessor);
         var id = await createHandler.Handle(new AnswersCreateAnswerCommand
         {
             Request = new AnswerCreateRequestDto

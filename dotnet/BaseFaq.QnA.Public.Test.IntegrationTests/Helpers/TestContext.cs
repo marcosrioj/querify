@@ -4,6 +4,7 @@ using BaseFaq.QnA.Public.Test.IntegrationTests.Helpers.Infrastructure;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using System.Net;
 
 namespace BaseFaq.QnA.Public.Test.IntegrationTests.Helpers;
 
@@ -83,6 +84,9 @@ public sealed class TestContext : IDisposable
         var resolvedClientKey = clientKey ?? "test-client-key";
         var sessionService = new TestSessionService(resolvedTenantId, resolvedUserId);
         var resolvedHttpContext = httpContext ?? new DefaultHttpContext();
+        resolvedHttpContext.Connection.RemoteIpAddress ??= IPAddress.Loopback;
+        if (string.IsNullOrWhiteSpace(resolvedHttpContext.Request.Headers.UserAgent))
+            resolvedHttpContext.Request.Headers.UserAgent = "QnAPublicTest/1.0";
         resolvedHttpContext.Items[ClientKeyContextKeys.ClientKeyItemKey] = resolvedClientKey;
         var httpContextAccessor = new HttpContextAccessor { HttpContext = resolvedHttpContext };
 

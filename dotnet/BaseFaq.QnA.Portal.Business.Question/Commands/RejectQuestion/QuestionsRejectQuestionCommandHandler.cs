@@ -3,8 +3,10 @@ using BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception;
 using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.QnA.Enums;
+using BaseFaq.QnA.Common.Helper.Activities;
 using BaseFaq.QnA.Common.Persistence.QnADb;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using QuestionEntity = BaseFaq.QnA.Common.Persistence.QnADb.Entities.Question;
 using ActivityEntity = BaseFaq.QnA.Common.Persistence.QnADb.Entities.Activity;
@@ -13,7 +15,8 @@ namespace BaseFaq.QnA.Portal.Business.Question.Commands.RejectQuestion;
 
 public sealed class QuestionsRejectQuestionCommandHandler(
     QnADbContext dbContext,
-    ISessionService sessionService)
+    ISessionService sessionService,
+    IHttpContextAccessor httpContextAccessor)
     : IRequestHandler<QuestionsRejectQuestionCommand, Guid>
 {
     public async Task<Guid> Handle(QuestionsRejectQuestionCommand request, CancellationToken cancellationToken)
@@ -37,7 +40,7 @@ public sealed class QuestionsRejectQuestionCommandHandler(
 
     private void AddActivity(QuestionEntity question, ActivityKind kind, string userId, string? notes = null)
     {
-        var activityIdentity = dbContext.ResolveActivityIdentity(userId, null, null, userId);
+        var activityIdentity = ResolveActivityIdentity(userId);
         var activity = new ActivityEntity
         {
             TenantId = question.TenantId,
@@ -58,5 +61,15 @@ public sealed class QuestionsRejectQuestionCommandHandler(
         question.Activities.Add(activity);
         question.LastActivityAtUtc = activity.OccurredAtUtc;
         dbContext.Activities.Add(activity);
+    }
+
+    private ActivityUserIdentity ResolveActivityIdentity(string userId)
+    {
+        var httpContext = httpContextAccessor.HttpContext
+                          ?? throw new InvalidOperationException("HttpContext is missing from the current request.");
+        return ActivityIdentityResolver.ResolveActivityIdentity(
+            userId,
+            ActivityRequestInfo.GetRequiredIp(httpContext),
+            ActivityRequestInfo.GetRequiredUserAgent(httpContext));
     }
 }

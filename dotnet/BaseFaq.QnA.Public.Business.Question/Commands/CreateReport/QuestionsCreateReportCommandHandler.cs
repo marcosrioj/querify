@@ -3,10 +3,9 @@ using BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception;
 using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Common.Infrastructure.Core.Constants;
 using BaseFaq.Models.QnA.Enums;
+using BaseFaq.QnA.Common.Helper.Activities;
 using BaseFaq.QnA.Common.Persistence.QnADb;
 using BaseFaq.QnA.Common.Persistence.QnADb.Entities;
-using BaseFaq.QnA.Common.Persistence.QnADb.Identity;
-using BaseFaq.QnA.Common.Persistence.QnADb.Projections;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -27,7 +26,11 @@ public sealed class QuestionsCreateReportCommandHandler(
         var httpContext = httpContextAccessor.HttpContext ?? throw new ApiErrorException(
             "HttpContext is missing from the current request.",
             (int)HttpStatusCode.Unauthorized);
-        var identity = ActivityUserPrint.ResolveCurrent(httpContext, claimService, sessionService);
+        var identity = ActivityIdentityResolver.ResolveActivityIdentity(
+            sessionService,
+            ActivityRequestInfo.GetRequiredIp(httpContext),
+            ActivityRequestInfo.GetRequiredUserAgent(httpContext),
+            claimService.GetExternalUserId());
         var tenantId = await ResolveTenantIdAndSetContextAsync(cancellationToken);
         var question = await dbContext.Questions
             .Include(entity => entity.Activities)

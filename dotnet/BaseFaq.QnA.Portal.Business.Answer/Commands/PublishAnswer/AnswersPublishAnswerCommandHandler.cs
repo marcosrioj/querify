@@ -3,8 +3,10 @@ using BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception;
 using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.QnA.Enums;
+using BaseFaq.QnA.Common.Helper.Activities;
 using BaseFaq.QnA.Common.Persistence.QnADb;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using ActivityEntity = BaseFaq.QnA.Common.Persistence.QnADb.Entities.Activity;
 
@@ -12,7 +14,8 @@ namespace BaseFaq.QnA.Portal.Business.Answer.Commands.PublishAnswer;
 
 public sealed class AnswersPublishAnswerCommandHandler(
     QnADbContext dbContext,
-    ISessionService sessionService)
+    ISessionService sessionService,
+    IHttpContextAccessor httpContextAccessor)
     : IRequestHandler<AnswersPublishAnswerCommand, Guid>
 {
     public async Task<Guid> Handle(AnswersPublishAnswerCommand request, CancellationToken cancellationToken)
@@ -31,7 +34,7 @@ public sealed class AnswersPublishAnswerCommandHandler(
         entity.PublishedAtUtc = DateTime.UtcNow;
         entity.RevisionNumber++;
 
-        var activityIdentity = dbContext.ResolveActivityIdentity(userId, null, null, userId);
+        var activityIdentity = ResolveActivityIdentity(userId);
         var activity = new ActivityEntity
         {
             TenantId = entity.TenantId,
@@ -56,5 +59,15 @@ public sealed class AnswersPublishAnswerCommandHandler(
 
         await dbContext.SaveChangesAsync(cancellationToken);
         return request.Id;
+    }
+
+    private ActivityUserIdentity ResolveActivityIdentity(string userId)
+    {
+        var httpContext = httpContextAccessor.HttpContext
+                          ?? throw new InvalidOperationException("HttpContext is missing from the current request.");
+        return ActivityIdentityResolver.ResolveActivityIdentity(
+            userId,
+            ActivityRequestInfo.GetRequiredIp(httpContext),
+            ActivityRequestInfo.GetRequiredUserAgent(httpContext));
     }
 }

@@ -1,13 +1,11 @@
 using System.Text.Json;
 using BaseFaq.Models.QnA.Enums;
-using BaseFaq.QnA.Common.Persistence.QnADb.Identity;
-using BaseFaq.QnA.Common.Persistence.QnADb.Entities;
 
-namespace BaseFaq.QnA.Common.Persistence.QnADb.Projections;
+namespace BaseFaq.QnA.Common.Helper.Activities;
 
 public static class ActivitySignals
 {
-    public static int ComputeFeedbackScore(IEnumerable<Activity> activities)
+    public static int ComputeFeedbackScore(IEnumerable<ActivitySignalEntry> activities)
     {
         return activities
             .Where(activity => activity.Kind == ActivityKind.FeedbackReceived)
@@ -18,7 +16,7 @@ public static class ActivitySignals
                 {
                     activity.OccurredAtUtc,
                     Metadata = metadata,
-                    UserPrint = ActivityUserPrint.ResolveStored(activity.UserPrint, metadata?.UserPrint)
+                    UserPrint = ActivityIdentityResolver.ResolveStored(activity.UserPrint, metadata?.UserPrint)
                 };
             })
             .Where(item => item.Metadata is not null && !string.IsNullOrWhiteSpace(item.UserPrint))
@@ -27,7 +25,7 @@ public static class ActivitySignals
             .Sum(metadata => metadata.Like ? 1 : -1);
     }
 
-    public static int ComputeVoteScore(IEnumerable<Activity> activities, Guid answerId)
+    public static int ComputeVoteScore(IEnumerable<ActivitySignalEntry> activities, Guid answerId)
     {
         return activities
             .Where(activity => activity.Kind == ActivityKind.VoteReceived && activity.AnswerId == answerId)
@@ -38,7 +36,7 @@ public static class ActivitySignals
                 {
                     activity.OccurredAtUtc,
                     Metadata = metadata,
-                    UserPrint = ActivityUserPrint.ResolveStored(activity.UserPrint, metadata?.UserPrint)
+                    UserPrint = ActivityIdentityResolver.ResolveStored(activity.UserPrint, metadata?.UserPrint)
                 };
             })
             .Where(item => item.Metadata is not null && !string.IsNullOrWhiteSpace(item.UserPrint))
@@ -66,7 +64,8 @@ public static class ActivitySignals
 
     public static FeedbackSignalMetadata? ParseFeedback(string? metadataJson)
     {
-        if (string.IsNullOrWhiteSpace(metadataJson)) return null;
+        if (string.IsNullOrWhiteSpace(metadataJson))
+            return null;
 
         try
         {
@@ -95,7 +94,8 @@ public static class ActivitySignals
 
     public static VoteSignalMetadata? ParseVote(string? metadataJson)
     {
-        if (string.IsNullOrWhiteSpace(metadataJson)) return null;
+        if (string.IsNullOrWhiteSpace(metadataJson))
+            return null;
 
         try
         {
@@ -124,7 +124,8 @@ public static class ActivitySignals
 
     public static ReportSignalMetadata? ParseReport(string? metadataJson)
     {
-        if (string.IsNullOrWhiteSpace(metadataJson)) return null;
+        if (string.IsNullOrWhiteSpace(metadataJson))
+            return null;
 
         try
         {

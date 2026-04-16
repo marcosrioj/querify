@@ -2,8 +2,7 @@ using System.Net;
 using System.Security.Claims;
 using BaseFaq.Common.Infrastructure.Core.Services;
 using BaseFaq.Models.QnA.Dtos.Question;
-using BaseFaq.QnA.Common.Persistence.QnADb.Identity;
-using BaseFaq.QnA.Common.Persistence.QnADb.Projections;
+using BaseFaq.QnA.Common.Helper.Activities;
 using BaseFaq.QnA.Public.Business.Feedback.Commands.CreateFeedback;
 using BaseFaq.QnA.Public.Business.Question.Queries.GetQuestion;
 using BaseFaq.QnA.Public.Test.IntegrationTests.Helpers;
@@ -59,10 +58,11 @@ public class FeedbackCommandQueryTests
         using var context = TestContext.Create(httpContext: httpContext);
         var space = await TestDataFactory.SeedSpaceAsync(context.DbContext, context.TenantId);
         var question = await TestDataFactory.SeedQuestionAsync(context.DbContext, context.TenantId, space.Id);
-        var expectedIdentity = ActivityUserPrint.ResolveCurrent(
-            context.HttpContextAccessor.HttpContext!,
-            new ClaimService(context.HttpContextAccessor),
-            context.SessionService);
+        var expectedIdentity = ActivityIdentityResolver.ResolveActivityIdentity(
+            context.SessionService,
+            ActivityRequestInfo.GetRequiredIp(context.HttpContextAccessor.HttpContext!),
+            ActivityRequestInfo.GetRequiredUserAgent(context.HttpContextAccessor.HttpContext!),
+            new ClaimService(context.HttpContextAccessor).GetExternalUserId());
 
         var feedbackId = await CreateFeedbackHandler(context).Handle(new FeedbacksCreateFeedbackCommand
         {
