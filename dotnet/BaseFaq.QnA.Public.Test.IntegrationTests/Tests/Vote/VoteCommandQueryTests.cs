@@ -24,7 +24,7 @@ public class VoteCommandQueryTests
             externalUserId: "external-auth-user");
 
         using var context = TestContext.Create(httpContext: httpContext);
-        var space = await TestDataFactory.SeedQuestionSpaceAsync(context.DbContext, context.TenantId);
+        var space = await TestDataFactory.SeedSpaceAsync(context.DbContext, context.TenantId);
         var question = await TestDataFactory.SeedQuestionAsync(context.DbContext, context.TenantId, space.Id);
         var answer = await TestDataFactory.SeedAnswerAsync(
             context.DbContext,
@@ -44,7 +44,7 @@ public class VoteCommandQueryTests
             }
         }, CancellationToken.None);
 
-        var activity = await context.DbContext.ThreadActivities.FindAsync(voteId);
+        var activity = await context.DbContext.Activities.FindAsync(voteId);
         var result = await CreateQuestionHandler(context).Handle(new QuestionsGetQuestionQuery
         {
             Id = question.Id,
@@ -53,7 +53,7 @@ public class VoteCommandQueryTests
 
         Assert.NotNull(activity);
         Assert.Equal(context.UserId.ToString("D"), activity!.UserPrint);
-        Assert.Equal(context.UserId.ToString("D"), ThreadActivitySignals.ParseVote(activity.MetadataJson)?.UserPrint);
+        Assert.Equal(context.UserId.ToString("D"), ActivitySignals.ParseVote(activity.MetadataJson)?.UserPrint);
         Assert.Equal(1, result.AcceptedAnswer!.VoteScore);
     }
 
@@ -63,7 +63,7 @@ public class VoteCommandQueryTests
         var httpContext = CreateHttpContext("192.0.2.46", "QnAPublicVote/2.0");
 
         using var context = TestContext.Create(httpContext: httpContext);
-        var space = await TestDataFactory.SeedQuestionSpaceAsync(context.DbContext, context.TenantId);
+        var space = await TestDataFactory.SeedSpaceAsync(context.DbContext, context.TenantId);
         var question = await TestDataFactory.SeedQuestionAsync(context.DbContext, context.TenantId, space.Id);
         var answer = await TestDataFactory.SeedAnswerAsync(
             context.DbContext,
@@ -71,7 +71,7 @@ public class VoteCommandQueryTests
             question.Id,
             "Public accepted answer",
             accept: true);
-        var expectedIdentity = ThreadActivityUserPrint.ResolveCurrent(
+        var expectedIdentity = ActivityUserPrint.ResolveCurrent(
             context.HttpContextAccessor.HttpContext!,
             new ClaimService(context.HttpContextAccessor),
             context.SessionService);
@@ -86,11 +86,11 @@ public class VoteCommandQueryTests
             }
         }, CancellationToken.None);
 
-        var activity = await context.DbContext.ThreadActivities.FindAsync(voteId);
+        var activity = await context.DbContext.Activities.FindAsync(voteId);
 
         Assert.NotNull(activity);
         Assert.Equal(expectedIdentity.UserPrint, activity!.UserPrint);
-        Assert.Equal(expectedIdentity.UserPrint, ThreadActivitySignals.ParseVote(activity.MetadataJson)?.UserPrint);
+        Assert.Equal(expectedIdentity.UserPrint, ActivitySignals.ParseVote(activity.MetadataJson)?.UserPrint);
     }
 
     private static VotesCreateVoteCommandHandler CreateVoteHandler(TestContext context)

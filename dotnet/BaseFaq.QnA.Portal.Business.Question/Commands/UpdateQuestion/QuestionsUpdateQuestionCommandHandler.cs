@@ -9,7 +9,7 @@ using BaseFaq.QnA.Common.Persistence.QnADb.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using QuestionEntity = BaseFaq.QnA.Common.Persistence.QnADb.Entities.Question;
-using ThreadActivityEntity = BaseFaq.QnA.Common.Persistence.QnADb.Entities.ThreadActivity;
+using ActivityEntity = BaseFaq.QnA.Common.Persistence.QnADb.Entities.Activity;
 
 namespace BaseFaq.QnA.Portal.Business.Question.Commands.UpdateQuestion;
 
@@ -49,7 +49,7 @@ public sealed class QuestionsUpdateQuestionCommandHandler(
             if (canonical.DuplicateQuestions.All(existing => existing.Id != entity.Id))
                 canonical.DuplicateQuestions.Add(entity);
 
-            AddThreadActivity(
+            AddActivity(
                 entity,
                 ActivityKind.QuestionMarkedDuplicate,
                 userId);
@@ -89,21 +89,21 @@ public sealed class QuestionsUpdateQuestionCommandHandler(
                 : QuestionStatus.Answered;
             answer.AcceptedAtUtc = acceptedAtUtc;
 
-            AddThreadActivity(entity, ActivityKind.AnswerAccepted, userId, answer);
+            AddActivity(entity, ActivityKind.AnswerAccepted, userId, answer);
         }
 
-        AddThreadActivity(entity, ActivityKind.QuestionUpdated, userId);
+        AddActivity(entity, ActivityKind.QuestionUpdated, userId);
         await dbContext.SaveChangesAsync(cancellationToken);
         return request.Id;
     }
 
-    private void AddThreadActivity(
+    private void AddActivity(
         QuestionEntity question,
         ActivityKind kind,
         string userId,
         Answer? answer = null)
     {
-        var activity = new ThreadActivityEntity
+        var activity = new ActivityEntity
         {
             TenantId = question.TenantId,
             QuestionId = question.Id,
@@ -124,7 +124,7 @@ public sealed class QuestionsUpdateQuestionCommandHandler(
 
         question.Activities.Add(activity);
         question.LastActivityAtUtc = activity.OccurredAtUtc;
-        dbContext.ThreadActivities.Add(activity);
+        dbContext.Activities.Add(activity);
     }
 
     private static void Apply(QuestionEntity entity, QuestionUpdateRequestDto request, string userId)

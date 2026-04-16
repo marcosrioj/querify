@@ -120,7 +120,7 @@ public class Question : BaseEntity, IMustHaveTenant
     /// <summary>
     /// Space that owns the question.
     /// </summary>
-    public QuestionSpace Space { get; set; } = null!;
+    public Space Space { get; set; } = null!;
 
     /// <summary>
     /// Id of the answer accepted as the primary answer for the question.
@@ -185,7 +185,7 @@ public class Question : BaseEntity, IMustHaveTenant
     /// <summary>
     /// History of thread events and changes.
     /// </summary>
-    public ICollection<ThreadActivity> Activities { get; set; } = [];
+    public ICollection<Activity> Activities { get; set; } = [];
 
     /// <summary>
     /// Tenant that owns the question.

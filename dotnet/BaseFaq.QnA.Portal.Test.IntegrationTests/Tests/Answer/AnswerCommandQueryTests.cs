@@ -13,7 +13,7 @@ public class AnswerCommandQueryTests
     public async Task CreateAnswer_PersistsEntityAndReturnsDto()
     {
         using var context = TestContext.Create();
-        var space = await TestDataFactory.SeedQuestionSpaceAsync(context.DbContext, context.SessionService.TenantId);
+        var space = await TestDataFactory.SeedSpaceAsync(context.DbContext, context.SessionService.TenantId);
         var question =
             await TestDataFactory.SeedQuestionAsync(context.DbContext, context.SessionService.TenantId, space.Id);
 

@@ -4,7 +4,7 @@ public sealed class Tag : DomainEntity
 {
     public const int MaxNameLength = 100;
 
-    private readonly List<QuestionSpace> spaces = [];
+    private readonly List<Space> spaces = [];
     private readonly List<Question> questions = [];
 
     private Tag()
@@ -22,7 +22,7 @@ public sealed class Tag : DomainEntity
     /// </summary>
     public string Name { get; private set; } = null!;
 
-    public IReadOnlyCollection<QuestionSpace> Spaces => spaces;
+    public IReadOnlyCollection<Space> Spaces => spaces;
     public IReadOnlyCollection<Question> Questions => questions;
 
     public void UpdateMetadata(string name, string? updatedBy = null, DateTime? updatedAtUtc = null)
@@ -31,10 +31,10 @@ public sealed class Tag : DomainEntity
         Touch(updatedBy, updatedAtUtc);
     }
 
-    internal void AttachToSpace(QuestionSpace space)
+    internal void AttachToSpace(Space space)
     {
         ArgumentNullException.ThrowIfNull(space);
-        EnsureSameTenant(space, "tag to question space");
+        EnsureSameTenant(space, "tag to space");
 
         if (spaces.Any(existing => existing.Id == space.Id))
         {

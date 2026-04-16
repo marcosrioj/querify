@@ -43,10 +43,10 @@ stateDiagram-v2
 
 | Entity | Role in the flow | Important members |
 | --- | --- | --- |
-| [QuestionSpace](../Domain/QuestionSpace.cs) | Defines whether review is needed before exposure. | `ModerationPolicy`, `RequiresQuestionReview`, `RequiresAnswerReview` |
+| [Space](../Domain/Space.cs) | Defines whether review is needed before exposure. | `ModerationPolicy`, `RequiresQuestionReview`, `RequiresAnswerReview` |
 | [Question](../Domain/Question.cs) | Carries thread-level workflow state. | `Status`, `AnsweredAtUtc`, `ValidatedAtUtc`, `ResolvedAtUtc`, `DuplicateOfQuestionId` |
 | [Answer](../Domain/Answer.cs) | Carries answer-level workflow state. | `Status`, `PublishedAtUtc`, `ValidatedAtUtc`, `AcceptedAtUtc`, `RetiredAtUtc`, `IsAccepted` |
-| [ThreadActivity](../Domain/ThreadActivity.cs) | Audits each workflow event. | `Kind`, `ActorKind`, `Notes`, `SnapshotJson`, `OccurredAtUtc` |
+| [Activity](../Domain/Activity.cs) | Audits each workflow event. | `Kind`, `ActorKind`, `Notes`, `SnapshotJson`, `OccurredAtUtc` |
 
 ## Enums involved
 
@@ -60,6 +60,6 @@ stateDiagram-v2
 
 ## Interaction notes
 
-- `QuestionStatus` intentionally has no explicit rejected value. Question rejection is captured in `ThreadActivity` and the thread typically returns to `Draft` or exits the visible surface.
+- `QuestionStatus` intentionally has no explicit rejected value. Question rejection is captured in `Activity` and the thread typically returns to `Draft` or exits the visible surface.
 - `AnswerStatus.Rejected` exists because answer candidates are expected to compete more directly inside the same thread.
 - `ModerationPolicy.TrustedContributors` is a branching rule, not a separate state. The trusted path usually bypasses `PendingReview`, while the untrusted path does not.

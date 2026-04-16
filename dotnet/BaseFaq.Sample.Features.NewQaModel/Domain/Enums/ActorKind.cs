@@ -1,7 +1,7 @@
 namespace BaseFaq.Sample.Features.NewQaModel.Domain.Enums;
 
 /// <summary>
-///     Identifies who or what caused a thread activity event.
+///     Identifies who or what caused a activity event.
 /// </summary>
 public enum ActorKind
 {

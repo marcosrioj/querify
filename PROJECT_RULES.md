@@ -69,7 +69,7 @@ Apply these rules to:
 - Keep DTOs in real feature folders such as `Dtos/Question/QuestionDto.cs` or `Dtos/Answer/AnswerCreateRequestDto.cs`.
 - Do not keep aggregate files such as `Dtos/QuestionDtos.cs` or any other `*Dtos.cs` catch-all file in `BaseFaq.Models.QnA`.
 - Keep namespaces and file ownership coherent with the folder that owns the DTO.
-- Do not introduce pseudo-entity folders such as `Dtos/Link`; link DTOs belong to the owning feature folders like `Dtos/Answer`, `Dtos/Question`, or `Dtos/QuestionSpace`.
+- Do not introduce pseudo-entity folders such as `Dtos/Link`; link DTOs belong to the owning feature folders like `Dtos/Answer`, `Dtos/Question`, or `Dtos/Space`.
 - QnA write-side `*RequestDto` types must be flat and must not inherit from other request DTO types.
 - QnA query request DTOs for paged or sorted list reads may inherit the shared pagination base used by the project pattern.
 - Each QnA write-side request DTO must declare its own properties explicitly.

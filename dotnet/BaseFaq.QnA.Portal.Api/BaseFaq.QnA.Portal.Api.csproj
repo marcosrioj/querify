@@ -29,10 +29,10 @@
         <ProjectReference Include="..\BaseFaq.Common.EntityFramework.Tenant\BaseFaq.Common.EntityFramework.Tenant.csproj"/>
         <ProjectReference Include="..\BaseFaq.Models.Tenant\BaseFaq.Models.Tenant.csproj"/>
         <ProjectReference Include="..\BaseFaq.QnA.Portal.Business.Answer\BaseFaq.QnA.Portal.Business.Answer.csproj"/>
-        <ProjectReference Include="..\BaseFaq.QnA.Portal.Business.KnowledgeSource\BaseFaq.QnA.Portal.Business.KnowledgeSource.csproj"/>
+        <ProjectReference Include="..\BaseFaq.QnA.Portal.Business.Source\BaseFaq.QnA.Portal.Business.Source.csproj"/>
         <ProjectReference Include="..\BaseFaq.QnA.Portal.Business.Question\BaseFaq.QnA.Portal.Business.Question.csproj"/>
-        <ProjectReference Include="..\BaseFaq.QnA.Portal.Business.QuestionSpace\BaseFaq.QnA.Portal.Business.QuestionSpace.csproj"/>
-        <ProjectReference Include="..\BaseFaq.QnA.Portal.Business.ThreadActivity\BaseFaq.QnA.Portal.Business.ThreadActivity.csproj"/>
+        <ProjectReference Include="..\BaseFaq.QnA.Portal.Business.Space\BaseFaq.QnA.Portal.Business.Space.csproj"/>
+        <ProjectReference Include="..\BaseFaq.QnA.Portal.Business.Activity\BaseFaq.QnA.Portal.Business.Activity.csproj"/>
         <ProjectReference Include="..\BaseFaq.QnA.Portal.Business.Tag\BaseFaq.QnA.Portal.Business.Tag.csproj"/>
     </ItemGroup>
 

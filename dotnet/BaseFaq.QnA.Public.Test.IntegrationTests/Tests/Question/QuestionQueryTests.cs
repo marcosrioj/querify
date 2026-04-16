@@ -12,7 +12,7 @@ public class QuestionQueryTests
     public async Task GetQuestionById_ReturnsOnlyPublicAnswersAndAcceptedAnswer()
     {
         using var context = TestContext.Create();
-        var space = await TestDataFactory.SeedQuestionSpaceAsync(context.DbContext, context.TenantId);
+        var space = await TestDataFactory.SeedSpaceAsync(context.DbContext, context.TenantId);
         var question = await TestDataFactory.SeedQuestionAsync(context.DbContext, context.TenantId, space.Id);
         var accepted = await TestDataFactory.SeedAnswerAsync(
             context.DbContext,

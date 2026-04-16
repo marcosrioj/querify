@@ -6,7 +6,7 @@ using BaseFaq.QnA.Common.Persistence.QnADb;
 using BaseFaq.QnA.Common.Persistence.QnADb.Projections;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using ThreadActivityEntity = BaseFaq.QnA.Common.Persistence.QnADb.Entities.ThreadActivity;
+using ActivityEntity = BaseFaq.QnA.Common.Persistence.QnADb.Entities.Activity;
 
 namespace BaseFaq.QnA.Portal.Business.Answer.Queries.GetAnswerList;
 
@@ -62,7 +62,7 @@ public sealed class AnswersGetAnswerListQueryHandler(
             totalCount,
             items.Select(answer =>
             {
-                IEnumerable<ThreadActivityEntity> questionActivity = answer.Question?.Activities ?? [];
+                IEnumerable<ActivityEntity> questionActivity = answer.Question?.Activities ?? [];
                 return answer.ToPortalAnswerDto(questionActivity, answer.Question?.AcceptedAnswerId);
             }).ToList());
     }

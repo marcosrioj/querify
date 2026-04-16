@@ -27,7 +27,7 @@ public sealed class VotesCreateVoteCommandHandler(
         var httpContext = httpContextAccessor.HttpContext ?? throw new ApiErrorException(
             "HttpContext is missing from the current request.",
             (int)HttpStatusCode.Unauthorized);
-        var identity = ThreadActivityUserPrint.ResolveCurrent(httpContext, claimService, sessionService);
+        var identity = ActivityUserPrint.ResolveCurrent(httpContext, claimService, sessionService);
         var tenantId = await ResolveTenantIdAndSetContextAsync(cancellationToken);
         var answer = await dbContext.Answers
             .Include(entity => entity.Question)
@@ -54,12 +54,12 @@ public sealed class VotesCreateVoteCommandHandler(
                 activity.Kind == ActivityKind.VoteReceived && activity.AnswerId == request.Request.AnswerId)
             .Select(activity =>
             {
-                var metadata = ThreadActivitySignals.ParseVote(activity.MetadataJson);
+                var metadata = ActivitySignals.ParseVote(activity.MetadataJson);
                 return new
                 {
                     Activity = activity,
                     Metadata = metadata,
-                    UserPrint = ThreadActivityUserPrint.ResolveStored(activity.UserPrint, metadata?.UserPrint)
+                    UserPrint = ActivityUserPrint.ResolveStored(activity.UserPrint, metadata?.UserPrint)
                 };
             })
             .Where(item => item.Metadata is not null && item.UserPrint == identity.UserPrint)
@@ -70,7 +70,7 @@ public sealed class VotesCreateVoteCommandHandler(
         var effectiveValue = latest?.Metadata?.VoteValue;
         var storedValue = effectiveValue == requestedValue ? 0 : requestedValue;
 
-        var activity = new ThreadActivity
+        var activity = new Activity
         {
             TenantId = answer.TenantId,
             QuestionId = answer.QuestionId,
@@ -82,7 +82,7 @@ public sealed class VotesCreateVoteCommandHandler(
             ActorLabel = identity.UserPrint,
             UserPrint = identity.UserPrint,
             Notes = request.Request.Notes,
-            MetadataJson = ThreadActivitySignals.CreateVoteMetadata(
+            MetadataJson = ActivitySignals.CreateVoteMetadata(
                 identity.UserPrint,
                 identity.Ip,
                 identity.UserAgent,
@@ -94,7 +94,7 @@ public sealed class VotesCreateVoteCommandHandler(
 
         answer.Question.Activities.Add(activity);
         answer.Question.LastActivityAtUtc = activity.OccurredAtUtc;
-        dbContext.ThreadActivities.Add(activity);
+        dbContext.Activities.Add(activity);
 
         await dbContext.SaveChangesAsync(cancellationToken);
         return storedValue == 0 ? Guid.Empty : activity.Id;

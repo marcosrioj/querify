@@ -14,7 +14,7 @@ public sealed class Answer : DomainEntity
     public const int MaxAuthorLabelLength = 200;
 
     private readonly List<AnswerSourceLink> sources = [];
-    private readonly List<ThreadActivity> activity = [];
+    private readonly List<Activity> activity = [];
 
     private Answer()
     {
@@ -93,7 +93,7 @@ public sealed class Answer : DomainEntity
     public DateTime? RetiredAtUtc { get; private set; }
 
     public IReadOnlyCollection<AnswerSourceLink> Sources => sources;
-    public IReadOnlyCollection<ThreadActivity> Activity => activity;
+    public IReadOnlyCollection<Activity> Activity => activity;
 
     public void UpdateContent(string headline, string? body = null, string? authorLabel = null, string? updatedBy = null, DateTime? updatedAtUtc = null)
     {
@@ -227,7 +227,7 @@ public sealed class Answer : DomainEntity
         Touch(updatedBy, updatedAtUtc);
     }
 
-    public void AddActivity(ThreadActivity activityEntry, string? updatedBy = null, DateTime? updatedAtUtc = null)
+    public void AddActivity(Activity activityEntry, string? updatedBy = null, DateTime? updatedAtUtc = null)
     {
         ArgumentNullException.ThrowIfNull(activityEntry);
         EnsureSameTenant(activityEntry, "answer activity");

@@ -7,7 +7,7 @@ using BaseFaq.QnA.Common.Persistence.QnADb;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using QuestionEntity = BaseFaq.QnA.Common.Persistence.QnADb.Entities.Question;
-using ThreadActivityEntity = BaseFaq.QnA.Common.Persistence.QnADb.Entities.ThreadActivity;
+using ActivityEntity = BaseFaq.QnA.Common.Persistence.QnADb.Entities.Activity;
 
 namespace BaseFaq.QnA.Portal.Business.Question.Commands.ApproveQuestion;
 
@@ -30,14 +30,14 @@ public sealed class QuestionsApproveQuestionCommandHandler(
 
         entity.Status = QuestionStatus.Open;
 
-        AddThreadActivity(entity, ActivityKind.QuestionApproved, userId);
+        AddActivity(entity, ActivityKind.QuestionApproved, userId);
         await dbContext.SaveChangesAsync(cancellationToken);
         return request.Id;
     }
 
-    private void AddThreadActivity(QuestionEntity question, ActivityKind kind, string userId)
+    private void AddActivity(QuestionEntity question, ActivityKind kind, string userId)
     {
-        var activity = new ThreadActivityEntity
+        var activity = new ActivityEntity
         {
             TenantId = question.TenantId,
             QuestionId = question.Id,
@@ -52,6 +52,6 @@ public sealed class QuestionsApproveQuestionCommandHandler(
 
         question.Activities.Add(activity);
         question.LastActivityAtUtc = activity.OccurredAtUtc;
-        dbContext.ThreadActivities.Add(activity);
+        dbContext.Activities.Add(activity);
     }
 }

@@ -33,7 +33,7 @@ Recommended split of responsibilities:
 | Concern | Keep from current solution | Add or preserve for the Q&A migration |
 | --- | --- | --- |
 | Tenant isolation | `IMustHaveTenant`, `BaseDbContext` tenant query filters, tenant indexes | Reject cross-tenant relationships on the write side before `SaveChanges` |
-| Audit and soft delete | `AuditableEntity`, `BaseDbContext` audit stamping, soft-delete filters | Keep `ThreadActivity` append-only by workflow policy and persistence rules |
+| Audit and soft delete | `AuditableEntity`, `BaseDbContext` audit stamping, soft-delete filters | Keep `Activity` append-only by workflow policy and persistence rules |
 | Public exposure | Existing auth and endpoint boundaries | Add fail-closed publish, validate, accept, and cite rules for Q&A lifecycle transitions |
 | Provenance | Existing persistence and DTO validation patterns | Add explicit source visibility, citation, and excerpt controls |
 | Flexible metadata | Existing command/DTO validation approach | Validate JSON, URLs, and other free-form payloads before persistence |
@@ -45,20 +45,20 @@ Recommended split of responsibilities:
 | Type | File | Role |
 | --- | --- | --- |
 | `DomainEntity` | [Domain/DomainEntity.cs](./Domain/DomainEntity.cs) | Conceptual shared audit and tenancy base class for the sample. In production, these responsibilities should usually map onto `BaseEntity` + `AuditableEntity` + `IMustHaveTenant`. |
-| `QuestionSpace` | [Domain/QuestionSpace.cs](./Domain/QuestionSpace.cs) | Top-level container that groups questions and defines governance defaults. |
+| `Space` | [Domain/Space.cs](./Domain/Space.cs) | Top-level container that groups questions and defines governance defaults. |
 | `Question` | [Domain/Question.cs](./Domain/Question.cs) | Main thread aggregate for a single user-facing question. |
 | `Answer` | [Domain/Answer.cs](./Domain/Answer.cs) | Candidate or canonical response attached to a question. |
-| `KnowledgeSource` | [Domain/KnowledgeSource.cs](./Domain/KnowledgeSource.cs) | Reference record for evidence, origin, and trust inputs. |
+| `Source` | [Domain/Source.cs](./Domain/Source.cs) | Reference record for evidence, origin, and trust inputs. |
 | `Tag` | [Domain/Tag.cs](./Domain/Tag.cs) | Lightweight taxonomy that classifies spaces and questions. |
 | `QuestionSourceLink` | [Domain/QuestionSourceLink.cs](./Domain/QuestionSourceLink.cs) | Context-specific link from a question to a source. |
 | `AnswerSourceLink` | [Domain/AnswerSourceLink.cs](./Domain/AnswerSourceLink.cs) | Context-specific link from an answer to a source. |
-| `ThreadActivity` | [Domain/ThreadActivity.cs](./Domain/ThreadActivity.cs) | Append-only journal for workflow, moderation, trust, and audit events. |
+| `Activity` | [Domain/Activity.cs](./Domain/Activity.cs) | Append-only journal for workflow, moderation, trust, and audit events. |
 
 ### Enums
 
 | Type | File | Role |
 | --- | --- | --- |
-| `SpaceKind` | [Domain/Enums/SpaceKind.cs](./Domain/Enums/SpaceKind.cs) | Defines the operating model of a question space. |
+| `SpaceKind` | [Domain/Enums/SpaceKind.cs](./Domain/Enums/SpaceKind.cs) | Defines the operating model of a space. |
 | `VisibilityScope` | [Domain/Enums/VisibilityScope.cs](./Domain/Enums/VisibilityScope.cs) | Defines who can see a space, question, or answer. |
 | `ModerationPolicy` | [Domain/Enums/ModerationPolicy.cs](./Domain/Enums/ModerationPolicy.cs) | Defines how review gates behave. |
 | `SearchMarkupMode` | [Domain/Enums/SearchMarkupMode.cs](./Domain/Enums/SearchMarkupMode.cs) | Defines how the space behaves for search-facing rendering. |
@@ -76,14 +76,14 @@ Recommended split of responsibilities:
 
 ```mermaid
 flowchart LR
-    Space[QuestionSpace]
+    Space[Space]
     Tag[Tag]
     Question[Question]
     Answer[Answer]
-    Source[KnowledgeSource]
+    Source[Source]
     QLink[QuestionSourceLink]
     ALink[AnswerSourceLink]
-    Activity[ThreadActivity]
+    Activity[Activity]
 
     Space -->|contains| Question
     Space -->|classified by| Tag
@@ -123,12 +123,12 @@ Key fields:
 
 Design note:
 
-- this class is intentionally small because lifecycle detail for question threads lives in `ThreadActivity`, not in the base entity
+- this class is intentionally small because lifecycle detail for question threads lives in `Activity`, not in the base entity
 - during migration, this responsibility should usually be represented by the repository-standard `BaseEntity`, `AuditableEntity`, and `IMustHaveTenant` instead of a second parallel base type
 
-### `QuestionSpace`
+### `Space`
 
-Source: [Domain/QuestionSpace.cs](./Domain/QuestionSpace.cs)
+Source: [Domain/Space.cs](./Domain/Space.cs)
 
 Business role:
 
@@ -162,7 +162,7 @@ Relationships:
 
 Design note:
 
-- `QuestionSpace` is the primary grouping unit of the model; `Tag` classifies, but does not replace it
+- `Space` is the primary grouping unit of the model; `Tag` classifies, but does not replace it
 - production implementation should keep space exposure fail-closed even if the persistence entity continues to use repository-standard base types and public setters
 
 ### `Question`
@@ -200,7 +200,7 @@ Relationships:
 
 | Relationship | Meaning |
 | --- | --- |
-| `SpaceId` and `Space` | Each question belongs to one `QuestionSpace`. |
+| `SpaceId` and `Space` | Each question belongs to one `Space`. |
 | `AcceptedAnswerId` and `AcceptedAnswer` | Points to the chosen resolution when one exists. |
 | `DuplicateOfQuestionId` and `DuplicateOfQuestion` | Redirects this question to a canonical thread. |
 | `DuplicateQuestions` | Reverse navigation from a canonical question to its duplicates. |
@@ -274,9 +274,9 @@ Design note:
 - the model allows many answers per question because a serious Q&A platform cannot assume one static response forever
 - public exposure must stay fail-closed for answers, especially AI drafts and unreviewed candidates, regardless of whether the final EF entity keeps public setters
 
-### `KnowledgeSource`
+### `Source`
 
-Source: [Domain/KnowledgeSource.cs](./Domain/KnowledgeSource.cs)
+Source: [Domain/Source.cs](./Domain/Source.cs)
 
 Business role:
 
@@ -313,7 +313,7 @@ Relationships:
 
 Design note:
 
-- `KnowledgeSource` stores the artifact itself; link entities store why the artifact matters in a specific context
+- `Source` stores the artifact itself; link entities store why the artifact matters in a specific context
 - public citation now requires explicit source verification and explicit public citation or excerpt permission
 - in production, that policy can live in handlers, validators, or domain services; it does not require abandoning the current EF base abstractions
 
@@ -348,7 +348,7 @@ Source: [Domain/QuestionSourceLink.cs](./Domain/QuestionSourceLink.cs)
 
 Business role:
 
-- explains why a `KnowledgeSource` is attached to a specific question
+- explains why a `Source` is attached to a specific question
 - stores question-level provenance and context
 - distinguishes question origin from supporting context
 
@@ -377,7 +377,7 @@ Source: [Domain/AnswerSourceLink.cs](./Domain/AnswerSourceLink.cs)
 
 Business role:
 
-- explains why a `KnowledgeSource` is attached to a specific answer
+- explains why a `Source` is attached to a specific answer
 - carries answer-level evidence, citations, and canonical references
 - supports explicit trust modeling for public or moderated answers
 
@@ -400,9 +400,9 @@ Design note:
 - separating `QuestionSourceLink` from `AnswerSourceLink` keeps origin and evidence concerns distinct
 - public citations and excerpts are now blocked unless the reusable source explicitly allows them
 
-### `ThreadActivity`
+### `Activity`
 
-Source: [Domain/ThreadActivity.cs](./Domain/ThreadActivity.cs)
+Source: [Domain/Activity.cs](./Domain/Activity.cs)
 
 Business role:
 
@@ -614,9 +614,9 @@ Source: [Domain/Enums/ActorKind.cs](./Domain/Enums/ActorKind.cs)
 
 Use this order when onboarding into the sample:
 
-1. Read `QuestionSpace`, `Question`, and `Answer` first.
-2. Then read `KnowledgeSource`, `QuestionSourceLink`, and `AnswerSourceLink`.
-3. Then read `ThreadActivity`.
+1. Read `Space`, `Question`, and `Answer` first.
+2. Then read `Source`, `QuestionSourceLink`, and `AnswerSourceLink`.
+3. Then read `Activity`.
 4. Finally read the enums as the policy layer of the model.
 
 For operational scenarios, continue with the visual flow catalog in [Flows/README.md](./Flows/README.md).

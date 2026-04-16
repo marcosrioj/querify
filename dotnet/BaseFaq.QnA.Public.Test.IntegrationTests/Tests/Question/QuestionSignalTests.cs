@@ -24,9 +24,9 @@ public class QuestionSignalTests
         httpContext.Request.Headers.UserAgent = "QnAPublicReport/1.0";
 
         using var context = TestContext.Create(httpContext: httpContext);
-        var space = await TestDataFactory.SeedQuestionSpaceAsync(context.DbContext, context.TenantId);
+        var space = await TestDataFactory.SeedSpaceAsync(context.DbContext, context.TenantId);
         var question = await TestDataFactory.SeedQuestionAsync(context.DbContext, context.TenantId, space.Id);
-        var expectedIdentity = ThreadActivityUserPrint.ResolveCurrent(
+        var expectedIdentity = ActivityUserPrint.ResolveCurrent(
             context.HttpContextAccessor.HttpContext!,
             new ClaimService(context.HttpContextAccessor),
             context.SessionService);
@@ -60,14 +60,14 @@ public class QuestionSignalTests
         var reportActivity = Assert.Single(result.Activity, item => item.Id == reportId);
         Assert.Equal(ActivityKind.ReportReceived, reportActivity.Kind);
         Assert.Equal(expectedIdentity.UserPrint, reportActivity.UserPrint);
-        Assert.Equal(expectedIdentity.UserPrint, ThreadActivitySignals.ParseReport(reportActivity.MetadataJson)?.UserPrint);
+        Assert.Equal(expectedIdentity.UserPrint, ActivitySignals.ParseReport(reportActivity.MetadataJson)?.UserPrint);
     }
 
     [Fact]
     public async Task GetQuestion_DeduplicatesVoteAndFeedbackByExplicitUserPrint()
     {
         using var context = TestContext.Create();
-        var space = await TestDataFactory.SeedQuestionSpaceAsync(context.DbContext, context.TenantId);
+        var space = await TestDataFactory.SeedSpaceAsync(context.DbContext, context.TenantId);
         var seededQuestion = await TestDataFactory.SeedQuestionAsync(context.DbContext, context.TenantId, space.Id);
         var seededAnswer = await TestDataFactory.SeedAnswerAsync(
             context.DbContext,
@@ -85,7 +85,7 @@ public class QuestionSignalTests
             .SingleAsync(entity => entity.Id == seededAnswer.Id);
         var baseTime = DateTime.UtcNow;
 
-        var feedbackUp = new ThreadActivity
+        var feedbackUp = new Activity
         {
             TenantId = question.TenantId,
             QuestionId = question.Id,
@@ -94,7 +94,7 @@ public class QuestionSignalTests
             ActorKind = ActorKind.Customer,
             ActorLabel = "legacy-feedback-a",
             UserPrint = "canonical-user",
-            MetadataJson = ThreadActivitySignals.CreateFeedbackMetadata(
+            MetadataJson = ActivitySignals.CreateFeedbackMetadata(
                 "legacy-feedback-a",
                 "192.0.2.60",
                 "QnAFeedbackLegacy/1.0",
@@ -105,7 +105,7 @@ public class QuestionSignalTests
             UpdatedBy = "test"
         };
 
-        var feedbackDown = new ThreadActivity
+        var feedbackDown = new Activity
         {
             TenantId = question.TenantId,
             QuestionId = question.Id,
@@ -114,7 +114,7 @@ public class QuestionSignalTests
             ActorKind = ActorKind.Customer,
             ActorLabel = "legacy-feedback-b",
             UserPrint = "canonical-user",
-            MetadataJson = ThreadActivitySignals.CreateFeedbackMetadata(
+            MetadataJson = ActivitySignals.CreateFeedbackMetadata(
                 "legacy-feedback-b",
                 "192.0.2.60",
                 "QnAFeedbackLegacy/1.1",
@@ -125,7 +125,7 @@ public class QuestionSignalTests
             UpdatedBy = "test"
         };
 
-        var voteUp = new ThreadActivity
+        var voteUp = new Activity
         {
             TenantId = question.TenantId,
             QuestionId = question.Id,
@@ -136,7 +136,7 @@ public class QuestionSignalTests
             ActorKind = ActorKind.Customer,
             ActorLabel = "legacy-vote-a",
             UserPrint = "canonical-user",
-            MetadataJson = ThreadActivitySignals.CreateVoteMetadata(
+            MetadataJson = ActivitySignals.CreateVoteMetadata(
                 "legacy-vote-a",
                 "192.0.2.61",
                 "QnAVoteLegacy/1.0",
@@ -146,7 +146,7 @@ public class QuestionSignalTests
             UpdatedBy = "test"
         };
 
-        var voteDown = new ThreadActivity
+        var voteDown = new Activity
         {
             TenantId = question.TenantId,
             QuestionId = question.Id,
@@ -157,7 +157,7 @@ public class QuestionSignalTests
             ActorKind = ActorKind.Customer,
             ActorLabel = "legacy-vote-b",
             UserPrint = "canonical-user",
-            MetadataJson = ThreadActivitySignals.CreateVoteMetadata(
+            MetadataJson = ActivitySignals.CreateVoteMetadata(
                 "legacy-vote-b",
                 "192.0.2.61",
                 "QnAVoteLegacy/1.1",
@@ -172,7 +172,7 @@ public class QuestionSignalTests
         question.Activities.Add(voteUp);
         question.Activities.Add(voteDown);
         question.LastActivityAtUtc = voteDown.OccurredAtUtc;
-        context.DbContext.ThreadActivities.AddRange(feedbackUp, feedbackDown, voteUp, voteDown);
+        context.DbContext.Activities.AddRange(feedbackUp, feedbackDown, voteUp, voteDown);
         await context.DbContext.SaveChangesAsync();
 
         var result = await new QuestionsGetQuestionQueryHandler(

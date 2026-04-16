@@ -18,10 +18,10 @@ public class RelationshipMappingTests
     {
         using var context = TestContext.Create();
         var tenantId = context.SessionService.TenantId;
-        var space = await TestDataFactory.SeedQuestionSpaceAsync(context.DbContext, tenantId);
+        var space = await TestDataFactory.SeedSpaceAsync(context.DbContext, tenantId);
         var question = await TestDataFactory.SeedQuestionAsync(context.DbContext, tenantId, space.Id);
         var tag = await TestDataFactory.SeedTagAsync(context.DbContext, tenantId, "billing");
-        var source = await TestDataFactory.SeedKnowledgeSourceAsync(context.DbContext, tenantId);
+        var source = await TestDataFactory.SeedSourceAsync(context.DbContext, tenantId);
 
         var addTagHandler = new QuestionsAddTagCommandHandler(context.DbContext, context.SessionService);
         await addTagHandler.Handle(new QuestionsAddTagCommand
@@ -61,10 +61,10 @@ public class RelationshipMappingTests
     {
         using var context = TestContext.Create();
         var tenantId = context.SessionService.TenantId;
-        var space = await TestDataFactory.SeedQuestionSpaceAsync(context.DbContext, tenantId);
+        var space = await TestDataFactory.SeedSpaceAsync(context.DbContext, tenantId);
         var question = await TestDataFactory.SeedQuestionAsync(context.DbContext, tenantId, space.Id);
         var answer = await TestDataFactory.SeedAnswerAsync(context.DbContext, tenantId, question.Id);
-        var source = await TestDataFactory.SeedKnowledgeSourceAsync(context.DbContext, tenantId);
+        var source = await TestDataFactory.SeedSourceAsync(context.DbContext, tenantId);
 
         var addSourceHandler = new AnswersAddSourceCommandHandler(context.DbContext, context.SessionService);
         await addSourceHandler.Handle(new AnswersAddSourceCommand

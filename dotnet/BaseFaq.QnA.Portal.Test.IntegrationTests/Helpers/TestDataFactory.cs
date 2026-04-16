@@ -7,7 +7,7 @@ namespace BaseFaq.QnA.Portal.Test.IntegrationTests.Helpers;
 
 public static class TestDataFactory
 {
-    public static async Task<QuestionSpace> SeedQuestionSpaceAsync(
+    public static async Task<Space> SeedSpaceAsync(
         QnADbContext dbContext,
         Guid tenantId,
         string? name = null,
@@ -17,7 +17,7 @@ public static class TestDataFactory
         bool acceptsQuestions = true,
         bool acceptsAnswers = true)
     {
-        var entity = new QuestionSpace
+        var entity = new Space
         {
             TenantId = tenantId,
             Name = name ?? "Support Questions",
@@ -39,7 +39,7 @@ public static class TestDataFactory
             UpdatedBy = "test"
         };
 
-        dbContext.QuestionSpaces.Add(entity);
+        dbContext.Spaces.Add(entity);
         await dbContext.SaveChangesAsync();
         return entity;
     }
@@ -53,7 +53,7 @@ public static class TestDataFactory
         QuestionStatus status = QuestionStatus.Open,
         VisibilityScope visibility = VisibilityScope.Internal)
     {
-        var space = await dbContext.QuestionSpaces
+        var space = await dbContext.Spaces
             .Include(entity => entity.Questions)
             .SingleAsync(entity => entity.Id == spaceId);
 
@@ -83,7 +83,7 @@ public static class TestDataFactory
             UpdatedBy = "test"
         };
         space.Questions.Add(entity);
-        entity.Activities.Add(new ThreadActivity
+        entity.Activities.Add(new Activity
         {
             TenantId = tenantId,
             Question = entity,
@@ -156,7 +156,7 @@ public static class TestDataFactory
 
         entity.Visibility = visibility;
         question.Answers.Add(entity);
-        var createdActivity = new ThreadActivity
+        var createdActivity = new Activity
         {
             TenantId = tenantId,
             QuestionId = question.Id,
@@ -172,7 +172,7 @@ public static class TestDataFactory
         };
         question.Activities.Add(createdActivity);
         question.LastActivityAtUtc = createdActivity.OccurredAtUtc;
-        dbContext.ThreadActivities.Add(createdActivity);
+        dbContext.Activities.Add(createdActivity);
 
         if (accept)
         {
@@ -185,7 +185,7 @@ public static class TestDataFactory
             question.Status = question.Status == QuestionStatus.Validated
                 ? QuestionStatus.Validated
                 : QuestionStatus.Answered;
-            var acceptedActivity = new ThreadActivity
+            var acceptedActivity = new Activity
             {
                 TenantId = tenantId,
                 QuestionId = question.Id,
@@ -201,7 +201,7 @@ public static class TestDataFactory
             };
             question.Activities.Add(acceptedActivity);
             question.LastActivityAtUtc = acceptedActivity.OccurredAtUtc;
-            dbContext.ThreadActivities.Add(acceptedActivity);
+            dbContext.Activities.Add(acceptedActivity);
         }
 
         dbContext.Answers.Add(entity);
@@ -224,13 +224,13 @@ public static class TestDataFactory
         return entity;
     }
 
-    public static async Task<KnowledgeSource> SeedKnowledgeSourceAsync(
+    public static async Task<Source> SeedSourceAsync(
         QnADbContext dbContext,
         Guid tenantId,
         string? locator = null,
         VisibilityScope visibility = VisibilityScope.Internal)
     {
-        var entity = new KnowledgeSource
+        var entity = new Source
         {
             TenantId = tenantId,
             Kind = SourceKind.Article,
@@ -250,7 +250,7 @@ public static class TestDataFactory
             CreatedBy = "test",
             UpdatedBy = "test"
         };
-        dbContext.KnowledgeSources.Add(entity);
+        dbContext.Sources.Add(entity);
         await dbContext.SaveChangesAsync();
         return entity;
     }

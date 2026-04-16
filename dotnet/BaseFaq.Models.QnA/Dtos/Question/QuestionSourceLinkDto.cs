@@ -9,5 +9,5 @@ public class QuestionSourceLinkDto
     public Guid SourceId { get; set; }
     public SourceRole Role { get; set; }
     public int Order { get; set; }
-    public BaseFaq.Models.QnA.Dtos.KnowledgeSource.KnowledgeSourceDto? Source { get; set; }
+    public BaseFaq.Models.QnA.Dtos.Source.SourceDto? Source { get; set; }
 }

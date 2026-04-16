@@ -8,7 +8,7 @@ using BaseFaq.QnA.Common.Persistence.QnADb;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using QuestionEntity = BaseFaq.QnA.Common.Persistence.QnADb.Entities.Question;
-using ThreadActivityEntity = BaseFaq.QnA.Common.Persistence.QnADb.Entities.ThreadActivity;
+using ActivityEntity = BaseFaq.QnA.Common.Persistence.QnADb.Entities.Activity;
 
 namespace BaseFaq.QnA.Portal.Business.Question.Commands.CreateQuestion;
 
@@ -21,13 +21,13 @@ public sealed class QuestionsCreateQuestionCommandHandler(
     {
         var tenantId = sessionService.GetTenantId(AppEnum.QnA);
         var userId = sessionService.GetUserId().ToString();
-        var space = await dbContext.QuestionSpaces
+        var space = await dbContext.Spaces
             .Include(entity => entity.Questions)
             .SingleOrDefaultAsync(entity => entity.TenantId == tenantId && entity.Id == request.Request.SpaceId,
                 cancellationToken);
 
         if (space is null)
-            throw new ApiErrorException($"Question space '{request.Request.SpaceId}' was not found.",
+            throw new ApiErrorException($"Space '{request.Request.SpaceId}' was not found.",
                 (int)HttpStatusCode.NotFound);
 
         var entity = new QuestionEntity
@@ -47,15 +47,15 @@ public sealed class QuestionsCreateQuestionCommandHandler(
         dbContext.Questions.Add(entity);
 
         Apply(entity, request.Request, userId);
-        AddThreadActivity(entity, ActivityKind.QuestionCreated, userId);
+        AddActivity(entity, ActivityKind.QuestionCreated, userId);
 
         await dbContext.SaveChangesAsync(cancellationToken);
         return entity.Id;
     }
 
-    private void AddThreadActivity(QuestionEntity question, ActivityKind kind, string userId)
+    private void AddActivity(QuestionEntity question, ActivityKind kind, string userId)
     {
-        var activity = new ThreadActivityEntity
+        var activity = new ActivityEntity
         {
             TenantId = question.TenantId,
             QuestionId = question.Id,
@@ -70,7 +70,7 @@ public sealed class QuestionsCreateQuestionCommandHandler(
 
         question.Activities.Add(activity);
         question.LastActivityAtUtc = activity.OccurredAtUtc;
-        dbContext.ThreadActivities.Add(activity);
+        dbContext.Activities.Add(activity);
     }
 
     private static void Apply(QuestionEntity entity, QuestionCreateRequestDto request, string userId)

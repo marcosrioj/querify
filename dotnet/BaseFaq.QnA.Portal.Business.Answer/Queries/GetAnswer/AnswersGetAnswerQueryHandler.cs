@@ -7,7 +7,7 @@ using BaseFaq.QnA.Common.Persistence.QnADb;
 using BaseFaq.QnA.Common.Persistence.QnADb.Projections;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using ThreadActivityEntity = BaseFaq.QnA.Common.Persistence.QnADb.Entities.ThreadActivity;
+using ActivityEntity = BaseFaq.QnA.Common.Persistence.QnADb.Entities.Activity;
 
 namespace BaseFaq.QnA.Portal.Business.Answer.Queries.GetAnswer;
 
@@ -30,7 +30,7 @@ public sealed class AnswersGetAnswerQueryHandler(
         if (entity is null)
             throw new ApiErrorException($"Answer '{request.Id}' was not found.", (int)HttpStatusCode.NotFound);
 
-        IEnumerable<ThreadActivityEntity> questionActivity = entity.Question?.Activities ?? [];
+        IEnumerable<ActivityEntity> questionActivity = entity.Question?.Activities ?? [];
         return entity.ToPortalAnswerDto(questionActivity, entity.Question?.AcceptedAnswerId);
     }
 }

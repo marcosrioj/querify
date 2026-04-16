@@ -5,7 +5,7 @@ using BaseFaq.Models.QnA.Enums;
 namespace BaseFaq.QnA.Common.Persistence.QnADb.Entities;
 
 /// <summary>
-/// Connects an answer to a knowledge source used as evidence,
+/// Connects an answer to a source used as evidence,
 /// citation, or reference.
 /// </summary>
 public class AnswerSourceLink : BaseEntity, IMustHaveTenant
@@ -28,7 +28,7 @@ public class AnswerSourceLink : BaseEntity, IMustHaveTenant
     /// <summary>
     /// Source associated with the answer.
     /// </summary>
-    public KnowledgeSource Source { get; set; } = null!;
+    public Source Source { get; set; } = null!;
 
     /// <summary>
     /// Role of the source for the answer, such as evidence or canonical reference.

@@ -12,7 +12,7 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "KnowledgeSources",
+                name: "Sources",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -43,11 +43,11 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_KnowledgeSources", x => x.Id);
+                    table.PrimaryKey("PK_Sources", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
-                name: "QuestionSpaces",
+                name: "Spaces",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -78,7 +78,7 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_QuestionSpaces", x => x.Id);
+                    table.PrimaryKey("PK_Spaces", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -102,13 +102,13 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "QuestionSpaceSources",
+                name: "SpaceSources",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     TenantId = table.Column<Guid>(type: "uuid", nullable: false),
-                    QuestionSpaceId = table.Column<Guid>(type: "uuid", nullable: false),
-                    KnowledgeSourceId = table.Column<Guid>(type: "uuid", nullable: false),
+                    SpaceId = table.Column<Guid>(type: "uuid", nullable: false),
+                    SourceId = table.Column<Guid>(type: "uuid", nullable: false),
                     CreatedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     CreatedBy = table.Column<string>(type: "text", nullable: true),
                     UpdatedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
@@ -119,28 +119,28 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_QuestionSpaceSources", x => x.Id);
+                    table.PrimaryKey("PK_SpaceSources", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_QuestionSpaceSources_KnowledgeSources_KnowledgeSourceId",
-                        column: x => x.KnowledgeSourceId,
-                        principalTable: "KnowledgeSources",
+                        name: "FK_SpaceSources_Sources_SourceId",
+                        column: x => x.SourceId,
+                        principalTable: "Sources",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_QuestionSpaceSources_QuestionSpaces_QuestionSpaceId",
-                        column: x => x.QuestionSpaceId,
-                        principalTable: "QuestionSpaces",
+                        name: "FK_SpaceSources_Spaces_SpaceId",
+                        column: x => x.SpaceId,
+                        principalTable: "Spaces",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
-                name: "QuestionSpaceTags",
+                name: "SpaceTags",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     TenantId = table.Column<Guid>(type: "uuid", nullable: false),
-                    QuestionSpaceId = table.Column<Guid>(type: "uuid", nullable: false),
+                    SpaceId = table.Column<Guid>(type: "uuid", nullable: false),
                     TagId = table.Column<Guid>(type: "uuid", nullable: false),
                     CreatedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     CreatedBy = table.Column<string>(type: "text", nullable: true),
@@ -152,15 +152,15 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_QuestionSpaceTags", x => x.Id);
+                    table.PrimaryKey("PK_SpaceTags", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_QuestionSpaceTags_QuestionSpaces_QuestionSpaceId",
-                        column: x => x.QuestionSpaceId,
-                        principalTable: "QuestionSpaces",
+                        name: "FK_SpaceTags_Spaces_SpaceId",
+                        column: x => x.SpaceId,
+                        principalTable: "Spaces",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_QuestionSpaceTags_Tags_TagId",
+                        name: "FK_SpaceTags_Tags_TagId",
                         column: x => x.TagId,
                         principalTable: "Tags",
                         principalColumn: "Id",
@@ -233,9 +233,9 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_AnswerSourceLinks_KnowledgeSources_SourceId",
+                        name: "FK_AnswerSourceLinks_Sources_SourceId",
                         column: x => x.SourceId,
-                        principalTable: "KnowledgeSources",
+                        principalTable: "Sources",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -289,9 +289,9 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.SetNull);
                     table.ForeignKey(
-                        name: "FK_Questions_QuestionSpaces_SpaceId",
+                        name: "FK_Questions_Spaces_SpaceId",
                         column: x => x.SpaceId,
-                        principalTable: "QuestionSpaces",
+                        principalTable: "Spaces",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
@@ -324,9 +324,9 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
                 {
                     table.PrimaryKey("PK_QuestionSourceLinks", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_QuestionSourceLinks_KnowledgeSources_SourceId",
+                        name: "FK_QuestionSourceLinks_Sources_SourceId",
                         column: x => x.SourceId,
-                        principalTable: "KnowledgeSources",
+                        principalTable: "Sources",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
@@ -371,7 +371,7 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "ThreadActivities",
+                name: "Activities",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -394,14 +394,14 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ThreadActivities", x => x.Id);
+                    table.PrimaryKey("PK_Activities", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_ThreadActivities_Answers_AnswerId",
+                        name: "FK_Activities_Answers_AnswerId",
                         column: x => x.AnswerId,
                         principalTable: "Answers",
                         principalColumn: "Id");
                     table.ForeignKey(
-                        name: "FK_ThreadActivities_Questions_QuestionId",
+                        name: "FK_Activities_Questions_QuestionId",
                         column: x => x.QuestionId,
                         principalTable: "Questions",
                         principalColumn: "Id",
@@ -445,13 +445,13 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
                 column: "SourceId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_KnowledgeSource_IsDeleted",
-                table: "KnowledgeSources",
+                name: "IX_Source_IsDeleted",
+                table: "Sources",
                 column: "IsDeleted");
 
             migrationBuilder.CreateIndex(
-                name: "IX_KnowledgeSource_TenantId",
-                table: "KnowledgeSources",
+                name: "IX_Source_TenantId",
+                table: "Sources",
                 column: "TenantId");
 
             migrationBuilder.CreateIndex(
@@ -507,61 +507,61 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
                 column: "SourceId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_QuestionSpace_IsDeleted",
-                table: "QuestionSpaces",
+                name: "IX_Space_IsDeleted",
+                table: "Spaces",
                 column: "IsDeleted");
 
             migrationBuilder.CreateIndex(
-                name: "IX_QuestionSpace_TenantId",
-                table: "QuestionSpaces",
+                name: "IX_Space_TenantId",
+                table: "Spaces",
                 column: "TenantId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_QuestionSpace_TenantId_Key",
-                table: "QuestionSpaces",
+                name: "IX_Space_TenantId_Key",
+                table: "Spaces",
                 columns: new[] { "TenantId", "Key" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_QuestionSpaceSource_IsDeleted",
-                table: "QuestionSpaceSources",
+                name: "IX_SpaceSource_IsDeleted",
+                table: "SpaceSources",
                 column: "IsDeleted");
 
             migrationBuilder.CreateIndex(
-                name: "IX_QuestionSpaceSource_QuestionSpaceId_KnowledgeSourceId",
-                table: "QuestionSpaceSources",
-                columns: new[] { "QuestionSpaceId", "KnowledgeSourceId" },
+                name: "IX_SpaceSource_SpaceId_SourceId",
+                table: "SpaceSources",
+                columns: new[] { "SpaceId", "SourceId" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_QuestionSpaceSource_TenantId",
-                table: "QuestionSpaceSources",
+                name: "IX_SpaceSource_TenantId",
+                table: "SpaceSources",
                 column: "TenantId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_QuestionSpaceSources_KnowledgeSourceId",
-                table: "QuestionSpaceSources",
-                column: "KnowledgeSourceId");
+                name: "IX_SpaceSources_SourceId",
+                table: "SpaceSources",
+                column: "SourceId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_QuestionSpaceTag_IsDeleted",
-                table: "QuestionSpaceTags",
+                name: "IX_SpaceTag_IsDeleted",
+                table: "SpaceTags",
                 column: "IsDeleted");
 
             migrationBuilder.CreateIndex(
-                name: "IX_QuestionSpaceTag_QuestionSpaceId_TagId",
-                table: "QuestionSpaceTags",
-                columns: new[] { "QuestionSpaceId", "TagId" },
+                name: "IX_SpaceTag_SpaceId_TagId",
+                table: "SpaceTags",
+                columns: new[] { "SpaceId", "TagId" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_QuestionSpaceTag_TenantId",
-                table: "QuestionSpaceTags",
+                name: "IX_SpaceTag_TenantId",
+                table: "SpaceTags",
                 column: "TenantId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_QuestionSpaceTags_TagId",
-                table: "QuestionSpaceTags",
+                name: "IX_SpaceTags_TagId",
+                table: "SpaceTags",
                 column: "TagId");
 
             migrationBuilder.CreateIndex(
@@ -586,23 +586,23 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
                 column: "TagId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ThreadActivities_AnswerId",
-                table: "ThreadActivities",
+                name: "IX_Activities_AnswerId",
+                table: "Activities",
                 column: "AnswerId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ThreadActivity_IsDeleted",
-                table: "ThreadActivities",
+                name: "IX_Activity_IsDeleted",
+                table: "Activities",
                 column: "IsDeleted");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ThreadActivity_QuestionId_OccurredAtUtc",
-                table: "ThreadActivities",
+                name: "IX_Activity_QuestionId_OccurredAtUtc",
+                table: "Activities",
                 columns: new[] { "QuestionId", "OccurredAtUtc" });
 
             migrationBuilder.CreateIndex(
-                name: "IX_ThreadActivity_TenantId",
-                table: "ThreadActivities",
+                name: "IX_Activity_TenantId",
+                table: "Activities",
                 column: "TenantId");
 
             migrationBuilder.CreateIndex(
@@ -643,19 +643,19 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
                 name: "QuestionSourceLinks");
 
             migrationBuilder.DropTable(
-                name: "QuestionSpaceSources");
+                name: "SpaceSources");
 
             migrationBuilder.DropTable(
-                name: "QuestionSpaceTags");
+                name: "SpaceTags");
 
             migrationBuilder.DropTable(
                 name: "QuestionTags");
 
             migrationBuilder.DropTable(
-                name: "ThreadActivities");
+                name: "Activities");
 
             migrationBuilder.DropTable(
-                name: "KnowledgeSources");
+                name: "Sources");
 
             migrationBuilder.DropTable(
                 name: "Tags");
@@ -667,7 +667,7 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
                 name: "Answers");
 
             migrationBuilder.DropTable(
-                name: "QuestionSpaces");
+                name: "Spaces");
         }
     }
 }

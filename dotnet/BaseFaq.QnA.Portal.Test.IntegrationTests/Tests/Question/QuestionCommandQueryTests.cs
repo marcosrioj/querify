@@ -13,7 +13,7 @@ public class QuestionCommandQueryTests
     public async Task UpdateQuestion_AcceptsAnswerAndWritesActivity()
     {
         using var context = TestContext.Create();
-        var space = await TestDataFactory.SeedQuestionSpaceAsync(context.DbContext, context.SessionService.TenantId);
+        var space = await TestDataFactory.SeedSpaceAsync(context.DbContext, context.SessionService.TenantId);
         var question = await TestDataFactory.SeedQuestionAsync(
             context.DbContext,
             context.SessionService.TenantId,

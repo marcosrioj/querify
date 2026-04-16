@@ -9,7 +9,7 @@ using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using QuestionEntity = BaseFaq.QnA.Common.Persistence.QnADb.Entities.Question;
-using ThreadActivityEntity = BaseFaq.QnA.Common.Persistence.QnADb.Entities.ThreadActivity;
+using ActivityEntity = BaseFaq.QnA.Common.Persistence.QnADb.Entities.Activity;
 
 namespace BaseFaq.QnA.Public.Business.Question.Commands.CreateQuestion;
 
@@ -27,9 +27,9 @@ public sealed class QuestionsCreateQuestionCommandHandler(
         var httpContext = httpContextAccessor.HttpContext ?? throw new ApiErrorException(
             "HttpContext is missing from the current request.",
             (int)HttpStatusCode.Unauthorized);
-        var identity = ThreadActivityUserPrint.ResolveCurrent(httpContext, claimService, sessionService);
+        var identity = ActivityUserPrint.ResolveCurrent(httpContext, claimService, sessionService);
         var tenantId = await ResolveTenantIdAndSetContextAsync(cancellationToken);
-        var space = await dbContext.QuestionSpaces
+        var space = await dbContext.Spaces
             .Include(entity => entity.Questions)
             .SingleOrDefaultAsync(
                 entity =>
@@ -40,12 +40,12 @@ public sealed class QuestionsCreateQuestionCommandHandler(
 
         if (space is null)
             throw new ApiErrorException(
-                $"Question space '{request.Request.SpaceId}' was not found.",
+                $"Space '{request.Request.SpaceId}' was not found.",
                 (int)HttpStatusCode.NotFound);
 
         if (!space.AcceptsQuestions)
             throw new ApiErrorException(
-                "This question space is not accepting questions.",
+                "This space is not accepting questions.",
                 (int)HttpStatusCode.UnprocessableEntity);
 
         var entity = new QuestionEntity
@@ -78,7 +78,7 @@ public sealed class QuestionsCreateQuestionCommandHandler(
         space.Questions.Add(entity);
         dbContext.Questions.Add(entity);
 
-        var createdActivity = new ThreadActivityEntity
+        var createdActivity = new ActivityEntity
         {
             TenantId = entity.TenantId,
             QuestionId = entity.Id,
@@ -93,9 +93,9 @@ public sealed class QuestionsCreateQuestionCommandHandler(
         };
         entity.Activities.Add(createdActivity);
         entity.LastActivityAtUtc = createdActivity.OccurredAtUtc;
-        dbContext.ThreadActivities.Add(createdActivity);
+        dbContext.Activities.Add(createdActivity);
 
-        var submittedActivity = new ThreadActivityEntity
+        var submittedActivity = new ActivityEntity
         {
             TenantId = entity.TenantId,
             QuestionId = entity.Id,
@@ -110,7 +110,7 @@ public sealed class QuestionsCreateQuestionCommandHandler(
         };
         entity.Activities.Add(submittedActivity);
         entity.LastActivityAtUtc = submittedActivity.OccurredAtUtc;
-        dbContext.ThreadActivities.Add(submittedActivity);
+        dbContext.Activities.Add(submittedActivity);
 
         await dbContext.SaveChangesAsync(cancellationToken);
         return entity.Id;

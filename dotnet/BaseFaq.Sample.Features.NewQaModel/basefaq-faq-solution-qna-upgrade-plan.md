@@ -40,7 +40,7 @@ Required updates:
 - rename transport concepts over time from FAQ wording to question-and-answer wording
 - expose question status, moderation, visibility, channel, context, duplicate, and accepted-answer fields
 - expose answer kind, answer status, context applicability, evidence summary, and trust fields
-- add contracts for source links and thread activity
+- add contracts for source links and activity
 - keep compatibility shims while old APIs still exist
 
 ### 3. Portal business layer
@@ -54,7 +54,7 @@ Required updates:
 - replace FAQ-first workflows with question-thread workflows
 - add question review, answer review, accept answer, validate answer, mark duplicate, and escalate flows
 - update projections and ranking to prefer accepted or validated answers
-- write thread activity on every relevant workflow transition
+- write activity on every relevant workflow transition
 - validate cross-tenant relationships before persistence when commands attach questions, answers, sources, or activity records
 - support directional voting if community ranking is required
 
@@ -191,8 +191,8 @@ Required updates:
 - define how AI drafts are labeled and approved
 - define which source kinds may be cited publicly, which may be excerpted publicly, and which remain internal-only by default
 - define validation rules for flexible metadata such as source metadata JSON, snapshots, and external locators
-- define retention policy for thread activity and evidence history
-- define append-only handling for thread activity so normal workflows never edit or soft-delete journal entries
+- define retention policy for activity and evidence history
+- define append-only handling for activity so normal workflows never edit or soft-delete journal entries
 
 ### 12. Tooling
 
@@ -226,7 +226,7 @@ Required updates:
 - cover public question-page behavior
 - cover cross-tenant attachment rejection on writes
 - cover public citation and excerpt restrictions for internal or unverified sources
-- cover append-only handling of thread activity
+- cover append-only handling of activity
 - cover compatibility with old FAQ-oriented flows during transition
 
 ## Recommended order

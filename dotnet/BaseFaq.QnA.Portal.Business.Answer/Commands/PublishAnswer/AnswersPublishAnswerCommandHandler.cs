@@ -6,7 +6,7 @@ using BaseFaq.Models.QnA.Enums;
 using BaseFaq.QnA.Common.Persistence.QnADb;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using ThreadActivityEntity = BaseFaq.QnA.Common.Persistence.QnADb.Entities.ThreadActivity;
+using ActivityEntity = BaseFaq.QnA.Common.Persistence.QnADb.Entities.Activity;
 
 namespace BaseFaq.QnA.Portal.Business.Answer.Commands.PublishAnswer;
 
@@ -31,7 +31,7 @@ public sealed class AnswersPublishAnswerCommandHandler(
         entity.PublishedAtUtc = DateTime.UtcNow;
         entity.RevisionNumber++;
 
-        var activity = new ThreadActivityEntity
+        var activity = new ActivityEntity
         {
             TenantId = entity.TenantId,
             QuestionId = entity.QuestionId,
@@ -48,7 +48,7 @@ public sealed class AnswersPublishAnswerCommandHandler(
 
         entity.Question.Activities.Add(activity);
         entity.Question.LastActivityAtUtc = activity.OccurredAtUtc;
-        dbContext.ThreadActivities.Add(activity);
+        dbContext.Activities.Add(activity);
 
         await dbContext.SaveChangesAsync(cancellationToken);
         return request.Id;

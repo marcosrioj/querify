@@ -9,7 +9,7 @@ using BaseFaq.QnA.Common.Persistence.QnADb.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using AnswerEntity = BaseFaq.QnA.Common.Persistence.QnADb.Entities.Answer;
-using ThreadActivityEntity = BaseFaq.QnA.Common.Persistence.QnADb.Entities.ThreadActivity;
+using ActivityEntity = BaseFaq.QnA.Common.Persistence.QnADb.Entities.Activity;
 
 namespace BaseFaq.QnA.Portal.Business.Answer.Commands.CreateAnswer;
 
@@ -49,19 +49,19 @@ public sealed class AnswersCreateAnswerCommandHandler(
         dbContext.Answers.Add(entity);
 
         Apply(entity, request.Request, userId);
-        AddThreadActivity(question, entity, ActivityKind.AnswerCreated, userId);
+        AddActivity(question, entity, ActivityKind.AnswerCreated, userId);
 
         await dbContext.SaveChangesAsync(cancellationToken);
         return entity.Id;
     }
 
-    private void AddThreadActivity(
+    private void AddActivity(
         Question question,
         AnswerEntity answer,
         ActivityKind kind,
         string userId)
     {
-        var activity = new ThreadActivityEntity
+        var activity = new ActivityEntity
         {
             TenantId = question.TenantId,
             QuestionId = question.Id,
@@ -78,7 +78,7 @@ public sealed class AnswersCreateAnswerCommandHandler(
 
         question.Activities.Add(activity);
         question.LastActivityAtUtc = activity.OccurredAtUtc;
-        dbContext.ThreadActivities.Add(activity);
+        dbContext.Activities.Add(activity);
     }
 
     private static void Apply(AnswerEntity entity, AnswerCreateRequestDto request, string userId)

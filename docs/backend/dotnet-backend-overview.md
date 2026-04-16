@@ -13,7 +13,7 @@ This guide explains how the backend is organized under `dotnet/`, which APIs exi
 | `BaseFaq.Tenant.Public.Api` | public tenant ingress endpoints such as Stripe webhooks | public surface | none | `5004` |
 | `BaseFaq.Faq.Portal.Api` | authenticated FAQ management, content references, tags, answer variants, votes, feedbacks, generation request entrypoint | Auth0 JWT | `X-Tenant-Id` | `5010` |
 | `BaseFaq.Faq.Public.Api` | public FAQ access and public FAQ item creation flow | public surface | `X-Client-Key` | `5020` |
-| `BaseFaq.QnA.Portal.Api` | authenticated QnA management for spaces, questions, answers, tags, sources, and thread activity | Auth0 JWT | `X-Tenant-Id` | `config-defined` |
+| `BaseFaq.QnA.Portal.Api` | authenticated QnA management for spaces, questions, answers, tags, sources, and activity | Auth0 JWT | `X-Tenant-Id` | `config-defined` |
 | `BaseFaq.QnA.Public.Api` | public QnA access plus vote and feedback signaling | public surface | `X-Client-Key` | `config-defined` |
 | `BaseFaq.AI.Api` | AI worker host and health endpoint | no user-facing auth flow | tenant inferred from message payload | `5030` |
 
@@ -60,14 +60,14 @@ Each service area is split into feature projects:
   - `BaseFaq.Faq.Public.Business.Vote`
   - `BaseFaq.Faq.Public.Business.Feedback`
 - QnA Portal:
-  - `BaseFaq.QnA.Portal.Business.QuestionSpace`
+  - `BaseFaq.QnA.Portal.Business.Space`
   - `BaseFaq.QnA.Portal.Business.Question`
   - `BaseFaq.QnA.Portal.Business.Answer`
   - `BaseFaq.QnA.Portal.Business.Tag`
-  - `BaseFaq.QnA.Portal.Business.KnowledgeSource`
-  - `BaseFaq.QnA.Portal.Business.ThreadActivity`
+  - `BaseFaq.QnA.Portal.Business.Source`
+  - `BaseFaq.QnA.Portal.Business.Activity`
 - QnA Public:
-  - `BaseFaq.QnA.Public.Business.QuestionSpace`
+  - `BaseFaq.QnA.Public.Business.Space`
   - `BaseFaq.QnA.Public.Business.Question`
   - `BaseFaq.QnA.Public.Business.Vote`
   - `BaseFaq.QnA.Public.Business.Feedback`
@@ -196,12 +196,12 @@ Each tenant can point to its own FAQ database connection, which is why migration
 
 `QnADbContext` stores tenant product data for the QnA model:
 
-- question spaces
+- spaces
 - questions
 - answers
 - tags and question-tag links
-- knowledge sources and answer-source links
-- thread activity
+- sources and answer-source links
+- activity
 - public votes and feedbacks
 
 Each tenant can point to its own QnA database connection, which is why QnA migration and seed tooling must resolve tenant metadata first.

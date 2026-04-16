@@ -14,7 +14,7 @@ public sealed class QuestionSourceLink : DomainEntity
 
     public QuestionSourceLink(
         Question question,
-        KnowledgeSource source,
+        Source source,
         SourceRole role = SourceRole.QuestionOrigin,
         string? label = null,
         string? scope = null,
@@ -28,7 +28,7 @@ public sealed class QuestionSourceLink : DomainEntity
         ArgumentNullException.ThrowIfNull(question);
         ArgumentNullException.ThrowIfNull(source);
 
-        EnsureSameTenant(question, source, "question to knowledge source");
+        EnsureSameTenant(question, source, "question to source");
 
         QuestionId = question.Id;
         Question = question;
@@ -49,7 +49,7 @@ public sealed class QuestionSourceLink : DomainEntity
     public Question Question { get; private set; } = null!;
 
     public Guid SourceId { get; private set; }
-    public KnowledgeSource Source { get; private set; } = null!;
+    public Source Source { get; private set; } = null!;
 
     /// <summary>
     /// Explains why the source is attached to the question.

@@ -30,7 +30,7 @@
         <ProjectReference Include="..\BaseFaq.Models.Tenant\BaseFaq.Models.Tenant.csproj"/>
         <ProjectReference Include="..\BaseFaq.QnA.Public.Business.Feedback\BaseFaq.QnA.Public.Business.Feedback.csproj"/>
         <ProjectReference Include="..\BaseFaq.QnA.Public.Business.Question\BaseFaq.QnA.Public.Business.Question.csproj"/>
-        <ProjectReference Include="..\BaseFaq.QnA.Public.Business.QuestionSpace\BaseFaq.QnA.Public.Business.QuestionSpace.csproj"/>
+        <ProjectReference Include="..\BaseFaq.QnA.Public.Business.Space\BaseFaq.QnA.Public.Business.Space.csproj"/>
         <ProjectReference Include="..\BaseFaq.QnA.Public.Business.Vote\BaseFaq.QnA.Public.Business.Vote.csproj"/>
     </ItemGroup>
 

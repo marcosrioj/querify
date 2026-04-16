@@ -24,16 +24,16 @@ public class QnADbContext(
         tenantConnectionStringProvider,
         httpContextAccessor)
 {
-    public DbSet<QuestionSpace> QuestionSpaces { get; set; }
+    public DbSet<Space> Spaces { get; set; }
     public DbSet<Question> Questions { get; set; }
     public DbSet<Answer> Answers { get; set; }
-    public DbSet<KnowledgeSource> KnowledgeSources { get; set; }
+    public DbSet<Source> Sources { get; set; }
     public DbSet<Tag> Tags { get; set; }
     public DbSet<QuestionSourceLink> QuestionSourceLinks { get; set; }
     public DbSet<AnswerSourceLink> AnswerSourceLinks { get; set; }
-    public DbSet<ThreadActivity> ThreadActivities { get; set; }
-    public DbSet<QuestionSpaceTag> QuestionSpaceTags { get; set; }
-    public DbSet<QuestionSpaceSource> QuestionSpaceSources { get; set; }
+    public DbSet<Activity> Activities { get; set; }
+    public DbSet<SpaceTag> SpaceTags { get; set; }
+    public DbSet<SpaceSource> SpaceSources { get; set; }
     public DbSet<QuestionTag> QuestionTags { get; set; }
 
     protected override IEnumerable<string> ConfigurationNamespaces =>
@@ -69,12 +69,12 @@ public class QnADbContext(
 
         ValidateQuestions(cache);
         ValidateAnswers(cache);
-        ValidateKnowledgeSources();
+        ValidateSources();
         ValidateQuestionSourceLinks(cache);
         ValidateAnswerSourceLinks(cache);
-        ValidateThreadActivities(cache);
-        ValidateQuestionSpaceTags(cache);
-        ValidateQuestionSpaceSources(cache);
+        ValidateActivities(cache);
+        ValidateSpaceTags(cache);
+        ValidateSpaceSources(cache);
         ValidateQuestionTags(cache);
     }
 
@@ -85,7 +85,7 @@ public class QnADbContext(
         {
             var question = entry.Entity;
 
-            EnsureTenantMatch(question.TenantId, cache.GetQuestionSpaceTenant(question.SpaceId),
+            EnsureTenantMatch(question.TenantId, cache.GetSpaceTenant(question.SpaceId),
                 nameof(Question.SpaceId));
 
             if (question.Visibility.IsPubliclyVisible() &&
@@ -148,9 +148,9 @@ public class QnADbContext(
         }
     }
 
-    private void ValidateKnowledgeSources()
+    private void ValidateSources()
     {
-        foreach (var entry in ChangeTracker.Entries<KnowledgeSource>()
+        foreach (var entry in ChangeTracker.Entries<Source>()
                      .Where(entry => entry.State is EntityState.Added or EntityState.Modified))
         {
             var source = entry.Entity;
@@ -159,18 +159,18 @@ public class QnADbContext(
             {
                 if (source.AllowsPublicCitation || source.AllowsPublicExcerpt)
                     throw new InvalidOperationException(
-                        $"Knowledge source '{source.Id}' cannot allow public citation or excerpt reuse while not publicly visible.");
+                        $"Source '{source.Id}' cannot allow public citation or excerpt reuse while not publicly visible.");
 
                 continue;
             }
 
             if (source.Kind == SourceKind.InternalNote)
                 throw new InvalidOperationException(
-                    $"Knowledge source '{source.Id}' cannot expose internal notes publicly.");
+                    $"Source '{source.Id}' cannot expose internal notes publicly.");
 
             if (source.LastVerifiedAtUtc is null)
                 throw new InvalidOperationException(
-                    $"Knowledge source '{source.Id}' must be verified before public exposure.");
+                    $"Source '{source.Id}' must be verified before public exposure.");
         }
     }
 
@@ -182,7 +182,7 @@ public class QnADbContext(
             var link = entry.Entity;
             EnsureTenantMatch(link.TenantId, cache.GetQuestionTenant(link.QuestionId),
                 nameof(QuestionSourceLink.QuestionId));
-            EnsureTenantMatch(link.TenantId, cache.GetKnowledgeSourceTenant(link.SourceId),
+            EnsureTenantMatch(link.TenantId, cache.GetSourceTenant(link.SourceId),
                 nameof(QuestionSourceLink.SourceId));
         }
     }
@@ -195,57 +195,57 @@ public class QnADbContext(
             var link = entry.Entity;
             EnsureTenantMatch(link.TenantId, cache.GetAnswer(link.AnswerId).TenantId,
                 nameof(AnswerSourceLink.AnswerId));
-            EnsureTenantMatch(link.TenantId, cache.GetKnowledgeSourceTenant(link.SourceId),
+            EnsureTenantMatch(link.TenantId, cache.GetSourceTenant(link.SourceId),
                 nameof(AnswerSourceLink.SourceId));
         }
     }
 
-    private void ValidateThreadActivities(IntegrityLookupCache cache)
+    private void ValidateActivities(IntegrityLookupCache cache)
     {
-        foreach (var entry in ChangeTracker.Entries<ThreadActivity>()
+        foreach (var entry in ChangeTracker.Entries<Activity>()
                      .Where(entry => entry.State != EntityState.Unchanged))
         {
             if (entry.State is EntityState.Modified or EntityState.Deleted)
                 throw new InvalidOperationException(
-                    $"Thread activity '{entry.Entity.Id}' is append-only and cannot be modified or deleted.");
+                    $"Activity '{entry.Entity.Id}' is append-only and cannot be modified or deleted.");
 
             var activity = entry.Entity;
             EnsureTenantMatch(activity.TenantId, cache.GetQuestionTenant(activity.QuestionId),
-                nameof(ThreadActivity.QuestionId));
+                nameof(Activity.QuestionId));
 
             if (activity.AnswerId is not Guid answerId) continue;
 
             var answer = cache.GetAnswer(answerId);
-            EnsureTenantMatch(activity.TenantId, answer.TenantId, nameof(ThreadActivity.AnswerId));
+            EnsureTenantMatch(activity.TenantId, answer.TenantId, nameof(Activity.AnswerId));
 
             if (answer.QuestionId != activity.QuestionId)
                 throw new InvalidOperationException(
-                    $"Thread activity '{activity.Id}' references answer '{answerId}' from a different question.");
+                    $"Activity '{activity.Id}' references answer '{answerId}' from a different question.");
         }
     }
 
-    private void ValidateQuestionSpaceTags(IntegrityLookupCache cache)
+    private void ValidateSpaceTags(IntegrityLookupCache cache)
     {
-        foreach (var entry in ChangeTracker.Entries<QuestionSpaceTag>()
+        foreach (var entry in ChangeTracker.Entries<SpaceTag>()
                      .Where(entry => entry.State is EntityState.Added or EntityState.Modified))
         {
             var link = entry.Entity;
-            EnsureTenantMatch(link.TenantId, cache.GetQuestionSpaceTenant(link.QuestionSpaceId),
-                nameof(QuestionSpaceTag.QuestionSpaceId));
-            EnsureTenantMatch(link.TenantId, cache.GetTagTenant(link.TagId), nameof(QuestionSpaceTag.TagId));
+            EnsureTenantMatch(link.TenantId, cache.GetSpaceTenant(link.SpaceId),
+                nameof(SpaceTag.SpaceId));
+            EnsureTenantMatch(link.TenantId, cache.GetTagTenant(link.TagId), nameof(SpaceTag.TagId));
         }
     }
 
-    private void ValidateQuestionSpaceSources(IntegrityLookupCache cache)
+    private void ValidateSpaceSources(IntegrityLookupCache cache)
     {
-        foreach (var entry in ChangeTracker.Entries<QuestionSpaceSource>()
+        foreach (var entry in ChangeTracker.Entries<SpaceSource>()
                      .Where(entry => entry.State is EntityState.Added or EntityState.Modified))
         {
             var link = entry.Entity;
-            EnsureTenantMatch(link.TenantId, cache.GetQuestionSpaceTenant(link.QuestionSpaceId),
-                nameof(QuestionSpaceSource.QuestionSpaceId));
-            EnsureTenantMatch(link.TenantId, cache.GetKnowledgeSourceTenant(link.KnowledgeSourceId),
-                nameof(QuestionSpaceSource.KnowledgeSourceId));
+            EnsureTenantMatch(link.TenantId, cache.GetSpaceTenant(link.SpaceId),
+                nameof(SpaceSource.SpaceId));
+            EnsureTenantMatch(link.TenantId, cache.GetSourceTenant(link.SourceId),
+                nameof(SpaceSource.SourceId));
         }
     }
 
@@ -271,14 +271,14 @@ public class QnADbContext(
     private sealed class IntegrityLookupCache(QnADbContext dbContext)
     {
         private Dictionary<Guid, AnswerLookup>? _answers;
-        private Dictionary<Guid, Guid>? _knowledgeSourceTenants;
-        private Dictionary<Guid, Guid>? _questionSpaceTenants;
+        private Dictionary<Guid, Guid>? _sourceTenants;
+        private Dictionary<Guid, Guid>? _spaceTenants;
         private Dictionary<Guid, Guid>? _questionTenants;
         private Dictionary<Guid, Guid>? _tagTenants;
 
-        public Guid GetQuestionSpaceTenant(Guid id)
+        public Guid GetSpaceTenant(Guid id)
         {
-            return GetTenant<QuestionSpace>(id, nameof(QuestionSpace), ref _questionSpaceTenants);
+            return GetTenant<Space>(id, nameof(Space), ref _spaceTenants);
         }
 
         public Guid GetQuestionTenant(Guid id)
@@ -311,9 +311,9 @@ public class QnADbContext(
             return databaseLookup;
         }
 
-        public Guid GetKnowledgeSourceTenant(Guid id)
+        public Guid GetSourceTenant(Guid id)
         {
-            return GetTenant<KnowledgeSource>(id, nameof(KnowledgeSource), ref _knowledgeSourceTenants);
+            return GetTenant<Source>(id, nameof(Source), ref _sourceTenants);
         }
 
         public Guid GetTagTenant(Guid id)

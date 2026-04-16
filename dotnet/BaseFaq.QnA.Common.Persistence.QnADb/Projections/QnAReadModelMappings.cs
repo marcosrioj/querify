@@ -1,8 +1,8 @@
 using BaseFaq.Models.QnA.Dtos.Answer;
-using BaseFaq.Models.QnA.Dtos.KnowledgeSource;
+using BaseFaq.Models.QnA.Dtos.Source;
 using BaseFaq.Models.QnA.Dtos.Question;
-using BaseFaq.Models.QnA.Dtos.QuestionSpace;
-using BaseFaq.Models.QnA.Dtos.ThreadActivity;
+using BaseFaq.Models.QnA.Dtos.Space;
+using BaseFaq.Models.QnA.Dtos.Activity;
 using BaseFaq.Models.QnA.Dtos.Tag;
 using BaseFaq.Models.QnA.Enums;
 using BaseFaq.QnA.Common.Persistence.QnADb.Entities;
@@ -43,7 +43,7 @@ public static class QnAReadModelMappings
             ResolvedAtUtc = entity.ResolvedAtUtc,
             ValidatedAtUtc = entity.ValidatedAtUtc,
             LastActivityAtUtc = entity.LastActivityAtUtc,
-            FeedbackScore = ThreadActivitySignals.ComputeFeedbackScore(entity.Activities)
+            FeedbackScore = ActivitySignals.ComputeFeedbackScore(entity.Activities)
         };
     }
 
@@ -79,7 +79,7 @@ public static class QnAReadModelMappings
             ResolvedAtUtc = entity.ResolvedAtUtc,
             ValidatedAtUtc = entity.ValidatedAtUtc,
             LastActivityAtUtc = entity.LastActivityAtUtc,
-            FeedbackScore = ThreadActivitySignals.ComputeFeedbackScore(entity.Activities),
+            FeedbackScore = ActivitySignals.ComputeFeedbackScore(entity.Activities),
             AcceptedAnswer = entity.AcceptedAnswer?.ToPortalAnswerDto(entity.Activities, entity.AcceptedAnswerId),
             Answers = entity.Answers
                 .OrderByDescending(answer => answer.Id == entity.AcceptedAnswerId)
@@ -94,7 +94,7 @@ public static class QnAReadModelMappings
                 .ToList(),
             Activity = entity.Activities
                 .OrderByDescending(activity => activity.OccurredAtUtc)
-                .Select(activity => activity.ToThreadActivityDto())
+                .Select(activity => activity.ToActivityDto())
                 .ToList()
         };
     }
@@ -151,7 +151,7 @@ public static class QnAReadModelMappings
             ResolvedAtUtc = entity.ResolvedAtUtc,
             ValidatedAtUtc = entity.ValidatedAtUtc,
             LastActivityAtUtc = entity.LastActivityAtUtc,
-            FeedbackScore = ThreadActivitySignals.ComputeFeedbackScore(entity.Activities),
+            FeedbackScore = ActivitySignals.ComputeFeedbackScore(entity.Activities),
             AcceptedAnswer = request.IncludeAnswers ? acceptedAnswer : null,
             Answers = request.IncludeAnswers ? publicAnswers : [],
             Tags = request.IncludeTags
@@ -161,7 +161,7 @@ public static class QnAReadModelMappings
             Activity = request.IncludeActivity
                 ? entity.Activities
                     .OrderByDescending(activity => activity.OccurredAtUtc)
-                    .Select(activity => activity.ToThreadActivityDto())
+                    .Select(activity => activity.ToActivityDto())
                     .ToList()
                 : []
         };
@@ -169,7 +169,7 @@ public static class QnAReadModelMappings
 
     public static AnswerDto ToPortalAnswerDto(
         this Answer entity,
-        IEnumerable<ThreadActivity> questionActivity,
+        IEnumerable<Activity> questionActivity,
         Guid? acceptedAnswerId)
     {
         return ToAnswerDto(entity, questionActivity, acceptedAnswerId, false);
@@ -177,15 +177,15 @@ public static class QnAReadModelMappings
 
     public static AnswerDto ToPublicAnswerDto(
         this Answer entity,
-        IEnumerable<ThreadActivity> questionActivity,
+        IEnumerable<Activity> questionActivity,
         Guid? acceptedAnswerId)
     {
         return ToAnswerDto(entity, questionActivity, acceptedAnswerId, true);
     }
 
-    public static QuestionSpaceDto ToQuestionSpaceDto(this QuestionSpace entity)
+    public static SpaceDto ToSpaceDto(this Space entity)
     {
-        return new QuestionSpaceDto
+        return new SpaceDto
         {
             Id = entity.Id,
             TenantId = entity.TenantId,
@@ -219,9 +219,9 @@ public static class QnAReadModelMappings
         };
     }
 
-    public static KnowledgeSourceDto ToKnowledgeSourceDto(this KnowledgeSource entity)
+    public static SourceDto ToSourceDto(this Source entity)
     {
-        return new KnowledgeSourceDto
+        return new SourceDto
         {
             Id = entity.Id,
             TenantId = entity.TenantId,
@@ -253,7 +253,7 @@ public static class QnAReadModelMappings
             SourceId = entity.SourceId,
             Role = entity.Role,
             Order = entity.Order,
-            Source = entity.Source?.ToKnowledgeSourceDto()
+            Source = entity.Source?.ToSourceDto()
         };
     }
 
@@ -266,13 +266,13 @@ public static class QnAReadModelMappings
             SourceId = entity.SourceId,
             Role = entity.Role,
             Order = entity.Order,
-            Source = entity.Source?.ToKnowledgeSourceDto()
+            Source = entity.Source?.ToSourceDto()
         };
     }
 
-    public static ThreadActivityDto ToThreadActivityDto(this ThreadActivity entity)
+    public static ActivityDto ToActivityDto(this Activity entity)
     {
-        return new ThreadActivityDto
+        return new ActivityDto
         {
             Id = entity.Id,
             TenantId = entity.TenantId,
@@ -290,7 +290,7 @@ public static class QnAReadModelMappings
 
     private static AnswerDto ToAnswerDto(
         Answer entity,
-        IEnumerable<ThreadActivity> questionActivity,
+        IEnumerable<Activity> questionActivity,
         Guid? acceptedAnswerId,
         bool publicOnly)
     {
@@ -325,7 +325,7 @@ public static class QnAReadModelMappings
             ValidatedAtUtc = entity.ValidatedAtUtc,
             AcceptedAtUtc = entity.AcceptedAtUtc,
             RetiredAtUtc = entity.RetiredAtUtc,
-            VoteScore = ThreadActivitySignals.ComputeVoteScore(questionActivity, entity.Id),
+            VoteScore = ActivitySignals.ComputeVoteScore(questionActivity, entity.Id),
             Sources = sources
                 .OrderBy(source => source.Order)
                 .Select(source => source.ToAnswerSourceLinkDto())

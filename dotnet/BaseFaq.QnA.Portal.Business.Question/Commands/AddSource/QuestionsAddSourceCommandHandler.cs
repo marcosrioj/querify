@@ -24,7 +24,7 @@ public sealed class QuestionsAddSourceCommandHandler(
             .ThenInclude(link => link.Source)
             .SingleOrDefaultAsync(entity => entity.TenantId == tenantId && entity.Id == request.Request.QuestionId,
                 cancellationToken);
-        var source = await dbContext.KnowledgeSources
+        var source = await dbContext.Sources
             .SingleOrDefaultAsync(entity => entity.TenantId == tenantId && entity.Id == request.Request.SourceId,
                 cancellationToken);
 
@@ -33,7 +33,7 @@ public sealed class QuestionsAddSourceCommandHandler(
                 (int)HttpStatusCode.NotFound);
 
         if (source is null)
-            throw new ApiErrorException($"Knowledge source '{request.Request.SourceId}' was not found.",
+            throw new ApiErrorException($"Source '{request.Request.SourceId}' was not found.",
                 (int)HttpStatusCode.NotFound);
 
         EnsureSourceSupportsVisibility(question.Visibility, source, request.Request.Role);
@@ -60,7 +60,7 @@ public sealed class QuestionsAddSourceCommandHandler(
 
     private static void EnsureSourceSupportsVisibility(
         VisibilityScope questionVisibility,
-        KnowledgeSource source,
+        Source source,
         SourceRole role)
     {
         if (questionVisibility is not VisibilityScope.Public and not VisibilityScope.PublicIndexed) return;

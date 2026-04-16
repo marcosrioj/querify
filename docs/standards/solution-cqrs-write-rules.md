@@ -118,7 +118,7 @@ When the work belongs to `BaseFaq.Models.QnA`:
 - keep DTOs in real feature folders rather than aggregate `*Dtos.cs` files
 - do not place catch-all DTO files directly under `dotnet/BaseFaq.Models.QnA/Dtos`
 - do not create pseudo-entity folders such as `dotnet/BaseFaq.Models.QnA/Dtos/Link`
-- place link DTOs under the owning feature folders like `Dtos/Answer`, `Dtos/Question`, and `Dtos/QuestionSpace`
+- place link DTOs under the owning feature folders like `Dtos/Answer`, `Dtos/Question`, and `Dtos/Space`
 - keep write-side handler request DTOs flat
 - do not inherit one write-side `*RequestDto` from another `*RequestDto`
 - let paged or sorted query request DTOs inherit the shared pagination base used by the project pattern

@@ -194,7 +194,7 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
                     b.ToTable("AnswerSourceLinks", (string)null);
                 });
 
-            modelBuilder.Entity("BaseFaq.QnA.Common.Persistence.QnADb.Entities.KnowledgeSource", b =>
+            modelBuilder.Entity("BaseFaq.QnA.Common.Persistence.QnADb.Entities.Source", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -285,12 +285,12 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("IsDeleted")
-                        .HasDatabaseName("IX_KnowledgeSource_IsDeleted");
+                        .HasDatabaseName("IX_Source_IsDeleted");
 
                     b.HasIndex("TenantId")
-                        .HasDatabaseName("IX_KnowledgeSource_TenantId");
+                        .HasDatabaseName("IX_Source_TenantId");
 
-                    b.ToTable("KnowledgeSources", (string)null);
+                    b.ToTable("Sources", (string)null);
                 });
 
             modelBuilder.Entity("BaseFaq.QnA.Common.Persistence.QnADb.Entities.Question", b =>
@@ -492,7 +492,7 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
                     b.ToTable("QuestionSourceLinks", (string)null);
                 });
 
-            modelBuilder.Entity("BaseFaq.QnA.Common.Persistence.QnADb.Entities.QuestionSpace", b =>
+            modelBuilder.Entity("BaseFaq.QnA.Common.Persistence.QnADb.Entities.Space", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -582,19 +582,19 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("IsDeleted")
-                        .HasDatabaseName("IX_QuestionSpace_IsDeleted");
+                        .HasDatabaseName("IX_Space_IsDeleted");
 
                     b.HasIndex("TenantId")
-                        .HasDatabaseName("IX_QuestionSpace_TenantId");
+                        .HasDatabaseName("IX_Space_TenantId");
 
                     b.HasIndex("TenantId", "Key")
                         .IsUnique()
-                        .HasDatabaseName("IX_QuestionSpace_TenantId_Key");
+                        .HasDatabaseName("IX_Space_TenantId_Key");
 
-                    b.ToTable("QuestionSpaces", (string)null);
+                    b.ToTable("Spaces", (string)null);
                 });
 
-            modelBuilder.Entity("BaseFaq.QnA.Common.Persistence.QnADb.Entities.QuestionSpaceSource", b =>
+            modelBuilder.Entity("BaseFaq.QnA.Common.Persistence.QnADb.Entities.SpaceSource", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -615,10 +615,10 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 
-                    b.Property<Guid>("KnowledgeSourceId")
+                    b.Property<Guid>("SourceId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("QuestionSpaceId")
+                    b.Property<Guid>("SpaceId")
                         .HasColumnType("uuid");
 
                     b.Property<Guid>("TenantId")
@@ -633,21 +633,21 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("IsDeleted")
-                        .HasDatabaseName("IX_QuestionSpaceSource_IsDeleted");
+                        .HasDatabaseName("IX_SpaceSource_IsDeleted");
 
-                    b.HasIndex("KnowledgeSourceId");
+                    b.HasIndex("SourceId");
 
                     b.HasIndex("TenantId")
-                        .HasDatabaseName("IX_QuestionSpaceSource_TenantId");
+                        .HasDatabaseName("IX_SpaceSource_TenantId");
 
-                    b.HasIndex("QuestionSpaceId", "KnowledgeSourceId")
+                    b.HasIndex("SpaceId", "SourceId")
                         .IsUnique()
-                        .HasDatabaseName("IX_QuestionSpaceSource_QuestionSpaceId_KnowledgeSourceId");
+                        .HasDatabaseName("IX_SpaceSource_SpaceId_SourceId");
 
-                    b.ToTable("QuestionSpaceSources", (string)null);
+                    b.ToTable("SpaceSources", (string)null);
                 });
 
-            modelBuilder.Entity("BaseFaq.QnA.Common.Persistence.QnADb.Entities.QuestionSpaceTag", b =>
+            modelBuilder.Entity("BaseFaq.QnA.Common.Persistence.QnADb.Entities.SpaceTag", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -668,7 +668,7 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 
-                    b.Property<Guid>("QuestionSpaceId")
+                    b.Property<Guid>("SpaceId")
                         .HasColumnType("uuid");
 
                     b.Property<Guid>("TenantId")
@@ -686,18 +686,18 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("IsDeleted")
-                        .HasDatabaseName("IX_QuestionSpaceTag_IsDeleted");
+                        .HasDatabaseName("IX_SpaceTag_IsDeleted");
 
                     b.HasIndex("TenantId")
-                        .HasDatabaseName("IX_QuestionSpaceTag_TenantId");
+                        .HasDatabaseName("IX_SpaceTag_TenantId");
 
                     b.HasIndex("TagId");
 
-                    b.HasIndex("QuestionSpaceId", "TagId")
+                    b.HasIndex("SpaceId", "TagId")
                         .IsUnique()
-                        .HasDatabaseName("IX_QuestionSpaceTag_QuestionSpaceId_TagId");
+                        .HasDatabaseName("IX_SpaceTag_SpaceId_TagId");
 
-                    b.ToTable("QuestionSpaceTags", (string)null);
+                    b.ToTable("SpaceTags", (string)null);
                 });
 
             modelBuilder.Entity("BaseFaq.QnA.Common.Persistence.QnADb.Entities.QuestionTag", b =>
@@ -753,7 +753,7 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
                     b.ToTable("QuestionTags", (string)null);
                 });
 
-            modelBuilder.Entity("BaseFaq.QnA.Common.Persistence.QnADb.Entities.ThreadActivity", b =>
+            modelBuilder.Entity("BaseFaq.QnA.Common.Persistence.QnADb.Entities.Activity", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -815,15 +815,15 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
                     b.HasIndex("AnswerId");
 
                     b.HasIndex("IsDeleted")
-                        .HasDatabaseName("IX_ThreadActivity_IsDeleted");
+                        .HasDatabaseName("IX_Activity_IsDeleted");
 
                     b.HasIndex("TenantId")
-                        .HasDatabaseName("IX_ThreadActivity_TenantId");
+                        .HasDatabaseName("IX_Activity_TenantId");
 
                     b.HasIndex("QuestionId", "OccurredAtUtc")
-                        .HasDatabaseName("IX_ThreadActivity_QuestionId_OccurredAtUtc");
+                        .HasDatabaseName("IX_Activity_QuestionId_OccurredAtUtc");
 
-                    b.ToTable("ThreadActivities", (string)null);
+                    b.ToTable("Activities", (string)null);
                 });
 
             modelBuilder.Entity("BaseFaq.QnA.Common.Persistence.QnADb.Entities.Tag", b =>
@@ -894,7 +894,7 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("BaseFaq.QnA.Common.Persistence.QnADb.Entities.KnowledgeSource", "Source")
+                    b.HasOne("BaseFaq.QnA.Common.Persistence.QnADb.Entities.Source", "Source")
                         .WithMany("Answers")
                         .HasForeignKey("SourceId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -917,7 +917,7 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
                         .HasForeignKey("DuplicateOfQuestionId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("BaseFaq.QnA.Common.Persistence.QnADb.Entities.QuestionSpace", "Space")
+                    b.HasOne("BaseFaq.QnA.Common.Persistence.QnADb.Entities.Space", "Space")
                         .WithMany("Questions")
                         .HasForeignKey("SpaceId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -938,7 +938,7 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("BaseFaq.QnA.Common.Persistence.QnADb.Entities.KnowledgeSource", "Source")
+                    b.HasOne("BaseFaq.QnA.Common.Persistence.QnADb.Entities.Source", "Source")
                         .WithMany("Questions")
                         .HasForeignKey("SourceId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -949,30 +949,30 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
                     b.Navigation("Source");
                 });
 
-            modelBuilder.Entity("BaseFaq.QnA.Common.Persistence.QnADb.Entities.QuestionSpaceSource", b =>
+            modelBuilder.Entity("BaseFaq.QnA.Common.Persistence.QnADb.Entities.SpaceSource", b =>
                 {
-                    b.HasOne("BaseFaq.QnA.Common.Persistence.QnADb.Entities.KnowledgeSource", "KnowledgeSource")
+                    b.HasOne("BaseFaq.QnA.Common.Persistence.QnADb.Entities.Source", "Source")
                         .WithMany("Spaces")
-                        .HasForeignKey("KnowledgeSourceId")
+                        .HasForeignKey("SourceId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("BaseFaq.QnA.Common.Persistence.QnADb.Entities.QuestionSpace", "QuestionSpace")
+                    b.HasOne("BaseFaq.QnA.Common.Persistence.QnADb.Entities.Space", "Space")
                         .WithMany("Sources")
-                        .HasForeignKey("QuestionSpaceId")
+                        .HasForeignKey("SpaceId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("KnowledgeSource");
+                    b.Navigation("Source");
 
-                    b.Navigation("QuestionSpace");
+                    b.Navigation("Space");
                 });
 
-            modelBuilder.Entity("BaseFaq.QnA.Common.Persistence.QnADb.Entities.QuestionSpaceTag", b =>
+            modelBuilder.Entity("BaseFaq.QnA.Common.Persistence.QnADb.Entities.SpaceTag", b =>
                 {
-                    b.HasOne("BaseFaq.QnA.Common.Persistence.QnADb.Entities.QuestionSpace", "QuestionSpace")
+                    b.HasOne("BaseFaq.QnA.Common.Persistence.QnADb.Entities.Space", "Space")
                         .WithMany("Tags")
-                        .HasForeignKey("QuestionSpaceId")
+                        .HasForeignKey("SpaceId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -982,7 +982,7 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("QuestionSpace");
+                    b.Navigation("Space");
 
                     b.Navigation("Tag");
                 });
@@ -1006,7 +1006,7 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
                     b.Navigation("Tag");
                 });
 
-            modelBuilder.Entity("BaseFaq.QnA.Common.Persistence.QnADb.Entities.ThreadActivity", b =>
+            modelBuilder.Entity("BaseFaq.QnA.Common.Persistence.QnADb.Entities.Activity", b =>
                 {
                     b.HasOne("BaseFaq.QnA.Common.Persistence.QnADb.Entities.Answer", "Answer")
                         .WithMany()
@@ -1028,7 +1028,7 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
                     b.Navigation("Sources");
                 });
 
-            modelBuilder.Entity("BaseFaq.QnA.Common.Persistence.QnADb.Entities.KnowledgeSource", b =>
+            modelBuilder.Entity("BaseFaq.QnA.Common.Persistence.QnADb.Entities.Source", b =>
                 {
                     b.Navigation("Answers");
 
@@ -1050,7 +1050,7 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
                     b.Navigation("Sources");
                 });
 
-            modelBuilder.Entity("BaseFaq.QnA.Common.Persistence.QnADb.Entities.QuestionSpace", b =>
+            modelBuilder.Entity("BaseFaq.QnA.Common.Persistence.QnADb.Entities.Space", b =>
                 {
                     b.Navigation("Sources");
 

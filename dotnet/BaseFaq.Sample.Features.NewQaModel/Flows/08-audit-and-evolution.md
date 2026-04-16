@@ -8,7 +8,7 @@ This flow shows how the sample model preserves operational history without intro
 flowchart TD
     Change[Question or Answer changes] --> Update[Update current entity fields]
     Update --> Revision[Increment RevisionNumber when applicable]
-    Revision --> Journal[Append ThreadActivity]
+    Revision --> Journal[Append Activity]
     Journal --> Actor[Set ActorKind and ActorLabel]
     Journal --> Event[Set ActivityKind]
     Journal --> Meta[Store MetadataJson when needed]
@@ -27,7 +27,7 @@ flowchart TD
 | [DomainEntity](../Domain/DomainEntity.cs) | Shared audit shell for the model. | `TenantId`, `CreatedAtUtc`, `CreatedBy`, `UpdatedAtUtc`, `UpdatedBy`, `ArchivedAtUtc`, `ArchivedBy`, `IsArchived` |
 | [Question](../Domain/Question.cs) | Carries the current thread revision pointer. | `RevisionNumber`, `LastActivityAtUtc`, `Status` |
 | [Answer](../Domain/Answer.cs) | Carries the current answer revision pointer. | `RevisionNumber`, `Status`, `RetiredAtUtc` |
-| [ThreadActivity](../Domain/ThreadActivity.cs) | Append-only journal used for audit and replay. | `Kind`, `ActorKind`, `Notes`, `MetadataJson`, `SnapshotJson`, `RevisionNumber`, `OccurredAtUtc` |
+| [Activity](../Domain/Activity.cs) | Append-only journal used for audit and replay. | `Kind`, `ActorKind`, `Notes`, `MetadataJson`, `SnapshotJson`, `RevisionNumber`, `OccurredAtUtc` |
 
 ## Enums involved
 
@@ -40,7 +40,7 @@ flowchart TD
 
 ## Interaction notes
 
-- The sample deliberately uses `ThreadActivity` instead of separate revision, moderation-history, and feedback-history entities.
-- `RevisionNumber` on `Question` and `Answer` is the current pointer. The historical detail belongs in `ThreadActivity.SnapshotJson`.
-- The implementation now enforces append-only behavior by constructing `ThreadActivity` through factories, validating JSON payloads, and rejecting archival of journal entries.
-- `DomainEntity` provides cross-cutting audit fields, while `ThreadActivity` provides event-level narrative.
+- The sample deliberately uses `Activity` instead of separate revision, moderation-history, and feedback-history entities.
+- `RevisionNumber` on `Question` and `Answer` is the current pointer. The historical detail belongs in `Activity.SnapshotJson`.
+- The implementation now enforces append-only behavior by constructing `Activity` through factories, validating JSON payloads, and rejecting archival of journal entries.
+- `DomainEntity` provides cross-cutting audit fields, while `Activity` provides event-level narrative.

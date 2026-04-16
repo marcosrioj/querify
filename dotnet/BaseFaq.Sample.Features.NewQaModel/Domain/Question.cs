@@ -20,7 +20,7 @@ public sealed class Question : DomainEntity
     private readonly List<Answer> answers = [];
     private readonly List<QuestionSourceLink> sources = [];
     private readonly List<Tag> tags = [];
-    private readonly List<ThreadActivity> activity = [];
+    private readonly List<Activity> activity = [];
     private readonly List<Question> duplicateQuestions = [];
 
     private Question()
@@ -29,7 +29,7 @@ public sealed class Question : DomainEntity
 
     public Question(
         Guid tenantId,
-        QuestionSpace space,
+        Space space,
         string title,
         string key,
         QuestionKind kind,
@@ -38,7 +38,7 @@ public sealed class Question : DomainEntity
         : base(tenantId, createdBy)
     {
         ArgumentNullException.ThrowIfNull(space);
-        EnsureSameTenant(space, "question to question space");
+        EnsureSameTenant(space, "question to space");
 
         Title = DomainGuards.Required(title, MaxTitleLength, nameof(title));
         Key = DomainGuards.Required(key, MaxKeyLength, nameof(key));
@@ -106,7 +106,7 @@ public sealed class Question : DomainEntity
     public int RevisionNumber { get; private set; }
 
     public Guid SpaceId { get; private set; }
-    public QuestionSpace Space { get; private set; } = null!;
+    public Space Space { get; private set; } = null!;
 
     public Guid? AcceptedAnswerId { get; private set; }
     public Answer? AcceptedAnswer { get; private set; }
@@ -123,7 +123,7 @@ public sealed class Question : DomainEntity
     public IReadOnlyCollection<Answer> Answers => answers;
     public IReadOnlyCollection<QuestionSourceLink> Sources => sources;
     public IReadOnlyCollection<Tag> Tags => tags;
-    public IReadOnlyCollection<ThreadActivity> Activity => activity;
+    public IReadOnlyCollection<Activity> Activity => activity;
 
     public void UpdateContent(
         string title,
@@ -302,7 +302,7 @@ public sealed class Question : DomainEntity
         Touch(updatedBy, updatedAtUtc);
     }
 
-    public void AddActivity(ThreadActivity activityEntry, string? updatedBy = null, DateTime? updatedAtUtc = null)
+    public void AddActivity(Activity activityEntry, string? updatedBy = null, DateTime? updatedAtUtc = null)
     {
         ArgumentNullException.ThrowIfNull(activityEntry);
         EnsureSameTenant(activityEntry, "question activity");

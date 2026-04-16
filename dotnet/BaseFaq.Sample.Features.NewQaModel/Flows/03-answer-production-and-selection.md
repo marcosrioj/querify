@@ -18,7 +18,7 @@ flowchart TD
     AiDraft --> Evidence
     AiAssisted --> Evidence
     Imported --> Evidence
-    Evidence[Attach KnowledgeSource records through AnswerSourceLink] --> Review{Review required?}
+    Evidence[Attach Source records through AnswerSourceLink] --> Review{Review required?}
     Review -->|yes| Pending[AnswerStatus.PendingReview]
     Review -->|no| Published[AnswerStatus.Published]
     Pending --> Decision{approve?}
@@ -42,9 +42,9 @@ flowchart TD
 | --- | --- | --- |
 | [Question](../Domain/Question.cs) | Hosts the answer candidates and points to the accepted answer. | `AcceptedAnswerId`, `Answers`, `Status`, `AnsweredAtUtc`, `ValidatedAtUtc`, `ResolvedAtUtc` |
 | [Answer](../Domain/Answer.cs) | Represents each answer candidate or variant. | `Headline`, `Body`, `Kind`, `Status`, `Visibility`, `ContextKey`, `ApplicabilityRulesJson`, `ConfidenceScore`, `Rank`, `IsAccepted`, `IsCanonical`, `IsOfficial`, `PublishedAtUtc`, `ValidatedAtUtc`, `AcceptedAtUtc`, `RetiredAtUtc` |
-| [KnowledgeSource](../Domain/KnowledgeSource.cs) | Stores the actual evidentiary artifact used to support the answer. | `Kind`, `Locator`, `IsAuthoritative`, `LastVerifiedAtUtc` |
+| [Source](../Domain/Source.cs) | Stores the actual evidentiary artifact used to support the answer. | `Kind`, `Locator`, `IsAuthoritative`, `LastVerifiedAtUtc` |
 | [AnswerSourceLink](../Domain/AnswerSourceLink.cs) | Connects the answer to evidence, citations, or canonical references. | `Role`, `Scope`, `Excerpt`, `ConfidenceScore`, `IsPrimary` |
-| [ThreadActivity](../Domain/ThreadActivity.cs) | Records answer creation, approval, rejection, publication, acceptance, and validation. | `Kind`, `AnswerId`, `ActorKind`, `SnapshotJson`, `RevisionNumber` |
+| [Activity](../Domain/Activity.cs) | Records answer creation, approval, rejection, publication, acceptance, and validation. | `Kind`, `AnswerId`, `ActorKind`, `SnapshotJson`, `RevisionNumber` |
 
 ## Enums involved
 

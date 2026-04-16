@@ -40,14 +40,14 @@ The future production migration should preserve these controls even if the final
 - public exposure should stay fail-closed for questions, answers, sources, and citations
 - source citation and excerpt reuse should require explicit source-level approval, not only a link role
 - AI drafts should not become public or official without the expected review and validation path
-- thread activity should be treated as append-only operational history, even if the persistence layer still inherits from `AuditableEntity`
+- activity should be treated as append-only operational history, even if the persistence layer still inherits from `AuditableEntity`
 - JSON, URL, and similar flexible fields should be validated before persistence, even if that validation lives in handlers or validators rather than entity setters
 
 ## Entity overview
 
-### `QuestionSpace`
+### `Space`
 
-`QuestionSpace` is the top-level surface where questions live.
+`Space` is the top-level surface where questions live.
 
 Business role:
 
@@ -95,9 +95,9 @@ Why it exists:
 - a serious Q&A platform cannot assume one question always has one static answer
 - accepted answer and canonical answer are related but not always identical concepts
 
-### `KnowledgeSource`
+### `Source`
 
-`KnowledgeSource` is the reference record for the materials that feed the system.
+`Source` is the reference record for the materials that feed the system.
 
 Business role:
 
@@ -154,9 +154,9 @@ Why it exists:
 
 - answer trust cannot be left implicit, especially once AI-assisted content enters the workflow
 
-### `ThreadActivity`
+### `Activity`
 
-`ThreadActivity` is the append-only operational journal for the question thread.
+`Activity` is the append-only operational journal for the question thread.
 
 Business role:
 
@@ -176,7 +176,7 @@ The sample does not create dedicated entities for every possible future concern.
 
 What was intentionally simplified:
 
-- revision history is handled through `ThreadActivity` snapshots
+- revision history is handled through `Activity` snapshots
 - tag assignment uses direct collections instead of explicit join entities in the sample
 - community reputation, moderation queues, and analytics are not modeled as standalone entities yet
 - collection-level source metadata is kept simple through direct `CuratedSources`
@@ -219,11 +219,11 @@ The solution-wide transition backlog that uses this sample as the target now als
 - [domain-model-reference.md](./domain-model-reference.md)
 - [Flows/README.md](./Flows/README.md)
 - [basefaq-faq-solution-qna-upgrade-plan.md](./basefaq-faq-solution-qna-upgrade-plan.md)
-- [Domain/QuestionSpace.cs](./Domain/QuestionSpace.cs)
+- [Domain/Space.cs](./Domain/Space.cs)
 - [Domain/Question.cs](./Domain/Question.cs)
 - [Domain/Answer.cs](./Domain/Answer.cs)
-- [Domain/KnowledgeSource.cs](./Domain/KnowledgeSource.cs)
+- [Domain/Source.cs](./Domain/Source.cs)
 - [Domain/Tag.cs](./Domain/Tag.cs)
 - [Domain/QuestionSourceLink.cs](./Domain/QuestionSourceLink.cs)
 - [Domain/AnswerSourceLink.cs](./Domain/AnswerSourceLink.cs)
-- [Domain/ThreadActivity.cs](./Domain/ThreadActivity.cs)
+- [Domain/Activity.cs](./Domain/Activity.cs)

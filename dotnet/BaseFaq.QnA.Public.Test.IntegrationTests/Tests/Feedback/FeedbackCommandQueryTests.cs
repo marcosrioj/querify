@@ -23,7 +23,7 @@ public class FeedbackCommandQueryTests
             externalUserId: "external-auth-user");
 
         using var context = TestContext.Create(httpContext: httpContext);
-        var space = await TestDataFactory.SeedQuestionSpaceAsync(context.DbContext, context.TenantId);
+        var space = await TestDataFactory.SeedSpaceAsync(context.DbContext, context.TenantId);
         var question = await TestDataFactory.SeedQuestionAsync(context.DbContext, context.TenantId, space.Id);
         var feedbackHandler = CreateFeedbackHandler(context);
 
@@ -36,7 +36,7 @@ public class FeedbackCommandQueryTests
             }
         }, CancellationToken.None);
 
-        var activity = await context.DbContext.ThreadActivities.FindAsync(feedbackId);
+        var activity = await context.DbContext.Activities.FindAsync(feedbackId);
         var result = await CreateQuestionHandler(context).Handle(new QuestionsGetQuestionQuery
         {
             Id = question.Id,
@@ -45,7 +45,7 @@ public class FeedbackCommandQueryTests
 
         Assert.NotNull(activity);
         Assert.Equal(context.UserId.ToString("D"), activity!.UserPrint);
-        Assert.Equal(context.UserId.ToString("D"), ThreadActivitySignals.ParseFeedback(activity.MetadataJson)?.UserPrint);
+        Assert.Equal(context.UserId.ToString("D"), ActivitySignals.ParseFeedback(activity.MetadataJson)?.UserPrint);
         Assert.Equal(1, result.FeedbackScore);
     }
 
@@ -55,9 +55,9 @@ public class FeedbackCommandQueryTests
         var httpContext = CreateHttpContext("192.0.2.47", "QnAPublicFeedback/2.0");
 
         using var context = TestContext.Create(httpContext: httpContext);
-        var space = await TestDataFactory.SeedQuestionSpaceAsync(context.DbContext, context.TenantId);
+        var space = await TestDataFactory.SeedSpaceAsync(context.DbContext, context.TenantId);
         var question = await TestDataFactory.SeedQuestionAsync(context.DbContext, context.TenantId, space.Id);
-        var expectedIdentity = ThreadActivityUserPrint.ResolveCurrent(
+        var expectedIdentity = ActivityUserPrint.ResolveCurrent(
             context.HttpContextAccessor.HttpContext!,
             new ClaimService(context.HttpContextAccessor),
             context.SessionService);
@@ -72,11 +72,11 @@ public class FeedbackCommandQueryTests
             }
         }, CancellationToken.None);
 
-        var activity = await context.DbContext.ThreadActivities.FindAsync(feedbackId);
+        var activity = await context.DbContext.Activities.FindAsync(feedbackId);
 
         Assert.NotNull(activity);
         Assert.Equal(expectedIdentity.UserPrint, activity!.UserPrint);
-        Assert.Equal(expectedIdentity.UserPrint, ThreadActivitySignals.ParseFeedback(activity.MetadataJson)?.UserPrint);
+        Assert.Equal(expectedIdentity.UserPrint, ActivitySignals.ParseFeedback(activity.MetadataJson)?.UserPrint);
     }
 
     private static FeedbacksCreateFeedbackCommandHandler CreateFeedbackHandler(TestContext context)

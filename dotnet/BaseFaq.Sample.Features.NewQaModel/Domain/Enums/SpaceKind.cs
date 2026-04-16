@@ -1,7 +1,7 @@
 namespace BaseFaq.Sample.Features.NewQaModel.Domain.Enums;
 
 /// <summary>
-///     Defines the operating model of a question space.
+///     Defines the operating model of a space.
 ///     This controls whether the space behaves as a curated knowledge surface,
 ///     a community-driven area, or a mix of both.
 /// </summary>

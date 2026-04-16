@@ -18,7 +18,7 @@ public class Tag : BaseEntity, IMustHaveTenant
     /// <summary>
     /// Relationships between the tag and the spaces where it appears.
     /// </summary>
-    public ICollection<QuestionSpaceTag> Spaces { get; set; } = [];
+    public ICollection<SpaceTag> Spaces { get; set; } = [];
 
     /// <summary>
     /// Relationships between the tag and the questions classified by it.

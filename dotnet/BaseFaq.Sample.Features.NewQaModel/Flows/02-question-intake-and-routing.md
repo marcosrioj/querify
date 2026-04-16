@@ -27,8 +27,8 @@ flowchart TD
     Chat --> Create
     Import --> Create
     Other --> Create
-    Create[Create Question inside QuestionSpace] --> Classify[Set QuestionKind, Visibility, ProductScope, JourneyScope, AudienceScope, ContextKey]
-    Classify --> Capture[Register origin as KnowledgeSource + QuestionSourceLink]
+    Create[Create Question inside Space] --> Classify[Set QuestionKind, Visibility, ProductScope, JourneyScope, AudienceScope, ContextKey]
+    Classify --> Capture[Register origin as Source + QuestionSourceLink]
     Capture --> Tags[Attach Tag values]
     Tags --> Policy{Space moderation and review gates}
     Policy -->|direct flow| OpenThread[QuestionStatus.Open]
@@ -36,19 +36,19 @@ flowchart TD
     Pending --> Review{moderator or system review}
     Review -->|approve| OpenThread
     Review -->|reject or hold| Hidden[Return to Draft or archive outside the visible surface]
-    OpenThread --> Activity[Append ThreadActivity events]
+    OpenThread --> Activity[Append Activity events]
 ```
 
 ## Entities involved
 
 | Entity | Role in the flow | Important members |
 | --- | --- | --- |
-| [QuestionSpace](../Domain/QuestionSpace.cs) | Supplies the operating rules for incoming threads. | `ModerationPolicy`, `AcceptsQuestions`, `RequiresQuestionReview`, `Visibility` |
+| [Space](../Domain/Space.cs) | Supplies the operating rules for incoming threads. | `ModerationPolicy`, `AcceptsQuestions`, `RequiresQuestionReview`, `Visibility` |
 | [Question](../Domain/Question.cs) | Main thread record created by intake. | `Title`, `Key`, `Kind`, `Status`, `Visibility`, `OriginChannel`, `Language`, `ProductScope`, `JourneyScope`, `AudienceScope`, `ContextKey`, `OriginUrl`, `OriginReference`, `LastActivityAtUtc` |
-| [KnowledgeSource](../Domain/KnowledgeSource.cs) | Raw source record for imports, tickets, chats, pages, and other origins. | `Kind`, `Locator`, `SystemName`, `ExternalId`, `MetadataJson`, `CapturedAtUtc` |
+| [Source](../Domain/Source.cs) | Raw source record for imports, tickets, chats, pages, and other origins. | `Kind`, `Locator`, `SystemName`, `ExternalId`, `MetadataJson`, `CapturedAtUtc` |
 | [QuestionSourceLink](../Domain/QuestionSourceLink.cs) | Connects the new question to the source that originated or contextualized it. | `Role`, `Scope`, `Excerpt`, `ConfidenceScore`, `IsPrimary` |
 | [Tag](../Domain/Tag.cs) | Adds reusable routing and grouping labels. | `Name` |
-| [ThreadActivity](../Domain/ThreadActivity.cs) | Stores the audit events for creation, submission, approval, rejection, or escalation. | `Kind`, `ActorKind`, `ActorLabel`, `Notes`, `MetadataJson`, `OccurredAtUtc` |
+| [Activity](../Domain/Activity.cs) | Stores the audit events for creation, submission, approval, rejection, or escalation. | `Kind`, `ActorKind`, `ActorLabel`, `Notes`, `MetadataJson`, `OccurredAtUtc` |
 
 ## Enums involved
 
@@ -65,7 +65,7 @@ flowchart TD
 
 ## Interaction notes
 
-- `QuestionSpace` owns the rules, but `Question` carries the operational state.
-- The intake channel is stored directly on `Question.OriginChannel`, while raw provenance lives in `KnowledgeSource` plus `QuestionSourceLink`.
-- Rejection is modeled through `ThreadActivity`, not through a dedicated `QuestionStatus.Rejected` enum value.
-- `Question.Tags` is classification after creation; it is not the primary container. The primary container is still `QuestionSpace`.
+- `Space` owns the rules, but `Question` carries the operational state.
+- The intake channel is stored directly on `Question.OriginChannel`, while raw provenance lives in `Source` plus `QuestionSourceLink`.
+- Rejection is modeled through `Activity`, not through a dedicated `QuestionStatus.Rejected` enum value.
+- `Question.Tags` is classification after creation; it is not the primary container. The primary container is still `Space`.

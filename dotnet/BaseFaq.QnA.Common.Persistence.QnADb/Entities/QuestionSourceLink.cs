@@ -5,7 +5,7 @@ using BaseFaq.Models.QnA.Enums;
 namespace BaseFaq.QnA.Common.Persistence.QnADb.Entities;
 
 /// <summary>
-/// Connects a question to a knowledge source, describing the role of that source
+/// Connects a question to a source, describing the role of that source
 /// in the thread.
 /// </summary>
 public class QuestionSourceLink : BaseEntity, IMustHaveTenant
@@ -28,7 +28,7 @@ public class QuestionSourceLink : BaseEntity, IMustHaveTenant
     /// <summary>
     /// Source associated with the question.
     /// </summary>
-    public KnowledgeSource Source { get; set; } = null!;
+    public Source Source { get; set; } = null!;
 
     /// <summary>
     /// Role of the source for the question, such as origin, evidence, or reference.

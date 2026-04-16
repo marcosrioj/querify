@@ -296,13 +296,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Business", "Business", "{15
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BaseFaq.QnA.Portal.Business.Answer", "dotnet\BaseFaq.QnA.Portal.Business.Answer\BaseFaq.QnA.Portal.Business.Answer.csproj", "{F75C5085-97F2-4256-906D-72A2A21C7F69}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BaseFaq.QnA.Portal.Business.KnowledgeSource", "dotnet\BaseFaq.QnA.Portal.Business.KnowledgeSource\BaseFaq.QnA.Portal.Business.KnowledgeSource.csproj", "{61CBAAC2-897D-4B55-B07A-4A70B312CD2C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BaseFaq.QnA.Portal.Business.Source", "dotnet\BaseFaq.QnA.Portal.Business.Source\BaseFaq.QnA.Portal.Business.Source.csproj", "{61CBAAC2-897D-4B55-B07A-4A70B312CD2C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BaseFaq.QnA.Portal.Business.Question", "dotnet\BaseFaq.QnA.Portal.Business.Question\BaseFaq.QnA.Portal.Business.Question.csproj", "{478039BC-3831-4EE1-A410-31A52A7E38C2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BaseFaq.QnA.Portal.Business.QuestionSpace", "dotnet\BaseFaq.QnA.Portal.Business.QuestionSpace\BaseFaq.QnA.Portal.Business.QuestionSpace.csproj", "{6038AF9E-1B58-4899-865D-683808D6C32B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BaseFaq.QnA.Portal.Business.Space", "dotnet\BaseFaq.QnA.Portal.Business.Space\BaseFaq.QnA.Portal.Business.Space.csproj", "{6038AF9E-1B58-4899-865D-683808D6C32B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BaseFaq.QnA.Portal.Business.ThreadActivity", "dotnet\BaseFaq.QnA.Portal.Business.ThreadActivity\BaseFaq.QnA.Portal.Business.ThreadActivity.csproj", "{6FB52111-460D-46D7-B419-833D5ED57FDB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BaseFaq.QnA.Portal.Business.Activity", "dotnet\BaseFaq.QnA.Portal.Business.Activity\BaseFaq.QnA.Portal.Business.Activity.csproj", "{6FB52111-460D-46D7-B419-833D5ED57FDB}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BaseFaq.QnA.Portal.Business.Tag", "dotnet\BaseFaq.QnA.Portal.Business.Tag\BaseFaq.QnA.Portal.Business.Tag.csproj", "{BE826F11-4844-4590-A791-D1733BABDDF9}"
 EndProject
@@ -312,7 +312,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BaseFaq.QnA.Public.Business
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BaseFaq.QnA.Public.Business.Question", "dotnet\BaseFaq.QnA.Public.Business.Question\BaseFaq.QnA.Public.Business.Question.csproj", "{18CEF586-6D95-425B-92CB-E84D55DE523F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BaseFaq.QnA.Public.Business.QuestionSpace", "dotnet\BaseFaq.QnA.Public.Business.QuestionSpace\BaseFaq.QnA.Public.Business.QuestionSpace.csproj", "{82A3162E-1A03-4A7A-A841-CFF33DE453F3}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BaseFaq.QnA.Public.Business.Space", "dotnet\BaseFaq.QnA.Public.Business.Space\BaseFaq.QnA.Public.Business.Space.csproj", "{82A3162E-1A03-4A7A-A841-CFF33DE453F3}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BaseFaq.QnA.Public.Business.Vote", "dotnet\BaseFaq.QnA.Public.Business.Vote\BaseFaq.QnA.Public.Business.Vote.csproj", "{7D81C381-5591-4967-B3B1-6146A6767158}"
 EndProject

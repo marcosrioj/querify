@@ -6,7 +6,7 @@ using BaseFaq.Models.QnA.Enums;
 using BaseFaq.QnA.Common.Persistence.QnADb;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using ThreadActivityEntity = BaseFaq.QnA.Common.Persistence.QnADb.Entities.ThreadActivity;
+using ActivityEntity = BaseFaq.QnA.Common.Persistence.QnADb.Entities.Activity;
 
 namespace BaseFaq.QnA.Portal.Business.Answer.Commands.RejectAnswer;
 
@@ -30,7 +30,7 @@ public sealed class AnswersRejectAnswerCommandHandler(
         entity.Status = AnswerStatus.Rejected;
         entity.Visibility = VisibilityScope.Internal;
 
-        var activity = new ThreadActivityEntity
+        var activity = new ActivityEntity
         {
             TenantId = entity.TenantId,
             QuestionId = entity.QuestionId,
@@ -47,7 +47,7 @@ public sealed class AnswersRejectAnswerCommandHandler(
 
         entity.Question.Activities.Add(activity);
         entity.Question.LastActivityAtUtc = activity.OccurredAtUtc;
-        dbContext.ThreadActivities.Add(activity);
+        dbContext.Activities.Add(activity);
 
         await dbContext.SaveChangesAsync(cancellationToken);
         return request.Id;

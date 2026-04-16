@@ -39,24 +39,24 @@ public class ProjectRulesComplianceTests
     private static readonly string[] RequiredQnAFeatureProjects =
     [
         "dotnet/BaseFaq.QnA.Portal.Business.Answer/BaseFaq.QnA.Portal.Business.Answer.csproj",
-        "dotnet/BaseFaq.QnA.Portal.Business.KnowledgeSource/BaseFaq.QnA.Portal.Business.KnowledgeSource.csproj",
+        "dotnet/BaseFaq.QnA.Portal.Business.Source/BaseFaq.QnA.Portal.Business.Source.csproj",
         "dotnet/BaseFaq.QnA.Portal.Business.Question/BaseFaq.QnA.Portal.Business.Question.csproj",
-        "dotnet/BaseFaq.QnA.Portal.Business.QuestionSpace/BaseFaq.QnA.Portal.Business.QuestionSpace.csproj",
-        "dotnet/BaseFaq.QnA.Portal.Business.ThreadActivity/BaseFaq.QnA.Portal.Business.ThreadActivity.csproj",
+        "dotnet/BaseFaq.QnA.Portal.Business.Space/BaseFaq.QnA.Portal.Business.Space.csproj",
+        "dotnet/BaseFaq.QnA.Portal.Business.Activity/BaseFaq.QnA.Portal.Business.Activity.csproj",
         "dotnet/BaseFaq.QnA.Portal.Business.Tag/BaseFaq.QnA.Portal.Business.Tag.csproj",
         "dotnet/BaseFaq.QnA.Public.Business.Feedback/BaseFaq.QnA.Public.Business.Feedback.csproj",
         "dotnet/BaseFaq.QnA.Public.Business.Question/BaseFaq.QnA.Public.Business.Question.csproj",
-        "dotnet/BaseFaq.QnA.Public.Business.QuestionSpace/BaseFaq.QnA.Public.Business.QuestionSpace.csproj",
+        "dotnet/BaseFaq.QnA.Public.Business.Space/BaseFaq.QnA.Public.Business.Space.csproj",
         "dotnet/BaseFaq.QnA.Public.Business.Vote/BaseFaq.QnA.Public.Business.Vote.csproj"
     ];
 
     private static readonly string[] RequiredQnAModelDtoDirectories =
     [
         "dotnet/BaseFaq.Models.QnA/Dtos/Answer",
-        "dotnet/BaseFaq.Models.QnA/Dtos/KnowledgeSource",
+        "dotnet/BaseFaq.Models.QnA/Dtos/Source",
         "dotnet/BaseFaq.Models.QnA/Dtos/Question",
-        "dotnet/BaseFaq.Models.QnA/Dtos/QuestionSpace",
-        "dotnet/BaseFaq.Models.QnA/Dtos/ThreadActivity",
+        "dotnet/BaseFaq.Models.QnA/Dtos/Space",
+        "dotnet/BaseFaq.Models.QnA/Dtos/Activity",
         "dotnet/BaseFaq.Models.QnA/Dtos/Tag"
     ];
 
@@ -69,14 +69,14 @@ public class ProjectRulesComplianceTests
     [
         "dotnet/BaseFaq.Models.QnA/Dtos/Answer/AnswerDto.cs",
         "dotnet/BaseFaq.Models.QnA/Dtos/Answer/AnswerSourceLinkDto.cs",
-        "dotnet/BaseFaq.Models.QnA/Dtos/KnowledgeSource/KnowledgeSourceDto.cs",
+        "dotnet/BaseFaq.Models.QnA/Dtos/Source/SourceDto.cs",
         "dotnet/BaseFaq.Models.QnA/Dtos/Question/QuestionDto.cs",
         "dotnet/BaseFaq.Models.QnA/Dtos/Question/QuestionSourceLinkDto.cs",
         "dotnet/BaseFaq.Models.QnA/Dtos/Question/QuestionTagDto.cs",
-        "dotnet/BaseFaq.Models.QnA/Dtos/QuestionSpace/QuestionSpaceDto.cs",
-        "dotnet/BaseFaq.Models.QnA/Dtos/QuestionSpace/QuestionSpaceSourceDto.cs",
-        "dotnet/BaseFaq.Models.QnA/Dtos/QuestionSpace/QuestionSpaceTagDto.cs",
-        "dotnet/BaseFaq.Models.QnA/Dtos/ThreadActivity/ThreadActivityDto.cs",
+        "dotnet/BaseFaq.Models.QnA/Dtos/Space/SpaceDto.cs",
+        "dotnet/BaseFaq.Models.QnA/Dtos/Space/SpaceSourceDto.cs",
+        "dotnet/BaseFaq.Models.QnA/Dtos/Space/SpaceTagDto.cs",
+        "dotnet/BaseFaq.Models.QnA/Dtos/Activity/ActivityDto.cs",
         "dotnet/BaseFaq.Models.QnA/Dtos/Tag/TagDto.cs"
     ];
 

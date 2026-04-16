@@ -27,7 +27,7 @@ public sealed class FeedbacksCreateFeedbackCommandHandler(
         var httpContext = httpContextAccessor.HttpContext ?? throw new ApiErrorException(
             "HttpContext is missing from the current request.",
             (int)HttpStatusCode.Unauthorized);
-        var identity = ThreadActivityUserPrint.ResolveCurrent(httpContext, claimService, sessionService);
+        var identity = ActivityUserPrint.ResolveCurrent(httpContext, claimService, sessionService);
         var tenantId = await ResolveTenantIdAndSetContextAsync(cancellationToken);
         var question = await dbContext.Questions
             .Include(entity => entity.Activities)
@@ -50,12 +50,12 @@ public sealed class FeedbacksCreateFeedbackCommandHandler(
             .Where(activity => activity.Kind == ActivityKind.FeedbackReceived)
             .Select(activity =>
             {
-                var metadata = ThreadActivitySignals.ParseFeedback(activity.MetadataJson);
+                var metadata = ActivitySignals.ParseFeedback(activity.MetadataJson);
                 return new
                 {
                     Activity = activity,
                     Metadata = metadata,
-                    UserPrint = ThreadActivityUserPrint.ResolveStored(activity.UserPrint, metadata?.UserPrint)
+                    UserPrint = ActivityUserPrint.ResolveStored(activity.UserPrint, metadata?.UserPrint)
                 };
             })
             .Where(item => item.Metadata is not null && item.UserPrint == identity.UserPrint)
@@ -67,7 +67,7 @@ public sealed class FeedbacksCreateFeedbackCommandHandler(
             latest.Metadata.Reason == request.Request.Reason)
             return latest.Activity.Id;
 
-        var activity = new ThreadActivity
+        var activity = new Activity
         {
             TenantId = question.TenantId,
             QuestionId = question.Id,
@@ -77,7 +77,7 @@ public sealed class FeedbacksCreateFeedbackCommandHandler(
             ActorLabel = identity.UserPrint,
             UserPrint = identity.UserPrint,
             Notes = request.Request.Notes,
-            MetadataJson = ThreadActivitySignals.CreateFeedbackMetadata(
+            MetadataJson = ActivitySignals.CreateFeedbackMetadata(
                 identity.UserPrint,
                 identity.Ip,
                 identity.UserAgent,
@@ -90,7 +90,7 @@ public sealed class FeedbacksCreateFeedbackCommandHandler(
 
         question.Activities.Add(activity);
         question.LastActivityAtUtc = activity.OccurredAtUtc;
-        dbContext.ThreadActivities.Add(activity);
+        dbContext.Activities.Add(activity);
 
         await dbContext.SaveChangesAsync(cancellationToken);
         return activity.Id;

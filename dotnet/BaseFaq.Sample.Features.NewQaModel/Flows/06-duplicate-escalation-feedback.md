@@ -29,7 +29,7 @@ flowchart TD
 | --- | --- | --- |
 | [Question](../Domain/Question.cs) | Carries duplicate and escalation semantics. | `Status`, `DuplicateOfQuestionId`, `AcceptedAnswerId`, `ConfidenceScore`, `ThreadSummary` |
 | [Answer](../Domain/Answer.cs) | Receives votes and can be replaced as the accepted answer. | `Rank`, `IsAccepted`, `AcceptedAtUtc`, `ConfidenceScore` |
-| [ThreadActivity](../Domain/ThreadActivity.cs) | Stores duplicate, escalation, feedback, and vote events. | `Kind`, `ActorKind`, `MetadataJson`, `Notes`, `OccurredAtUtc` |
+| [Activity](../Domain/Activity.cs) | Stores duplicate, escalation, feedback, and vote events. | `Kind`, `ActorKind`, `MetadataJson`, `Notes`, `OccurredAtUtc` |
 
 ## Enums involved
 
@@ -44,4 +44,4 @@ flowchart TD
 
 - `DuplicateOfQuestionId` keeps knowledge consolidated by redirecting similar questions to one canonical thread instead of cloning answers.
 - `QuestionStatus.Escalated` is the branch for cases that require action outside the Q&A model, such as incidents, compliance review, or account-specific operations.
-- `ThreadActivity.MetadataJson` is the extensibility slot for vote payloads, feedback reason codes, or external escalation references.
+- `Activity.MetadataJson` is the extensibility slot for vote payloads, feedback reason codes, or external escalation references.

@@ -2,7 +2,7 @@ using BaseFaq.Models.QnA.Enums;
 using BaseFaq.QnA.Portal.Test.IntegrationTests.Helpers;
 using Xunit;
 using AnswerEntity = BaseFaq.QnA.Common.Persistence.QnADb.Entities.Answer;
-using KnowledgeSourceEntity = BaseFaq.QnA.Common.Persistence.QnADb.Entities.KnowledgeSource;
+using SourceEntity = BaseFaq.QnA.Common.Persistence.QnADb.Entities.Source;
 using QuestionEntity = BaseFaq.QnA.Common.Persistence.QnADb.Entities.Question;
 
 namespace BaseFaq.QnA.Portal.Test.IntegrationTests.Tests.BusinessRules;
@@ -14,7 +14,7 @@ public class EntityConstraintsTests
     {
         using var context = TestContext.Create();
         var otherTenantId = Guid.NewGuid();
-        var space = await TestDataFactory.SeedQuestionSpaceAsync(context.DbContext, otherTenantId);
+        var space = await TestDataFactory.SeedSpaceAsync(context.DbContext, otherTenantId);
 
         var question = new QuestionEntity
         {
@@ -45,7 +45,7 @@ public class EntityConstraintsTests
     public async Task Answer_ThrowsWhenPublicVisibilityUsesDraftStatus()
     {
         using var context = TestContext.Create();
-        var space = await TestDataFactory.SeedQuestionSpaceAsync(context.DbContext, context.SessionService.TenantId);
+        var space = await TestDataFactory.SeedSpaceAsync(context.DbContext, context.SessionService.TenantId);
         var question = await TestDataFactory.SeedQuestionAsync(
             context.DbContext,
             context.SessionService.TenantId,
@@ -75,11 +75,11 @@ public class EntityConstraintsTests
     }
 
     [Fact]
-    public async Task KnowledgeSource_ThrowsWhenInternalNoteIsPublic()
+    public async Task Source_ThrowsWhenInternalNoteIsPublic()
     {
         using var context = TestContext.Create();
 
-        var source = new KnowledgeSourceEntity
+        var source = new SourceEntity
         {
             TenantId = context.SessionService.TenantId,
             Kind = SourceKind.InternalNote,
@@ -93,16 +93,16 @@ public class EntityConstraintsTests
             UpdatedBy = "test"
         };
 
-        context.DbContext.KnowledgeSources.Add(source);
+        context.DbContext.Sources.Add(source);
 
         await Assert.ThrowsAsync<InvalidOperationException>(() => context.DbContext.SaveChangesAsync());
     }
 
     [Fact]
-    public async Task ThreadActivity_ThrowsWhenExistingActivityIsModified()
+    public async Task Activity_ThrowsWhenExistingActivityIsModified()
     {
         using var context = TestContext.Create();
-        var space = await TestDataFactory.SeedQuestionSpaceAsync(context.DbContext, context.SessionService.TenantId);
+        var space = await TestDataFactory.SeedSpaceAsync(context.DbContext, context.SessionService.TenantId);
         var question =
             await TestDataFactory.SeedQuestionAsync(context.DbContext, context.SessionService.TenantId, space.Id);
 

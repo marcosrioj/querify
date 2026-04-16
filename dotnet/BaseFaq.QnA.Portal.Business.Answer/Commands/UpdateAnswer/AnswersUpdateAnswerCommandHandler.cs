@@ -8,7 +8,7 @@ using BaseFaq.QnA.Common.Persistence.QnADb;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using AnswerEntity = BaseFaq.QnA.Common.Persistence.QnADb.Entities.Answer;
-using ThreadActivityEntity = BaseFaq.QnA.Common.Persistence.QnADb.Entities.ThreadActivity;
+using ActivityEntity = BaseFaq.QnA.Common.Persistence.QnADb.Entities.Activity;
 
 namespace BaseFaq.QnA.Portal.Business.Answer.Commands.UpdateAnswer;
 
@@ -32,7 +32,7 @@ public sealed class AnswersUpdateAnswerCommandHandler(
             throw new ApiErrorException($"Answer '{request.Id}' was not found.", (int)HttpStatusCode.NotFound);
 
         Apply(entity, request.Request, userId);
-        var activity = new ThreadActivityEntity
+        var activity = new ActivityEntity
         {
             TenantId = entity.TenantId,
             QuestionId = entity.QuestionId,
@@ -48,7 +48,7 @@ public sealed class AnswersUpdateAnswerCommandHandler(
         };
         entity.Question.Activities.Add(activity);
         entity.Question.LastActivityAtUtc = activity.OccurredAtUtc;
-        dbContext.ThreadActivities.Add(activity);
+        dbContext.Activities.Add(activity);
 
         await dbContext.SaveChangesAsync(cancellationToken);
         return request.Id;
