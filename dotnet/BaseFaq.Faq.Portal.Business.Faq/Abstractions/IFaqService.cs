@@ -9,6 +9,5 @@ public interface IFaqService
     Task Delete(Guid id, CancellationToken token);
     Task<PagedResultDto<FaqDto>> GetAll(FaqGetAllRequestDto requestDto, CancellationToken token);
     Task<FaqDto> GetById(Guid id, CancellationToken token);
-    Task<Guid> RequestGeneration(Guid faqId, CancellationToken token);
     Task<Guid> Update(Guid id, FaqUpdateRequestDto dto, CancellationToken token);
 }

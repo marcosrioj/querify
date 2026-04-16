@@ -90,14 +90,14 @@ public class FaqItemsSearchFaqItemQueryHandler(
                 .OrderBy(item => item.FaqId)
                 .ThenBy(item => item.Sort)
                 .ThenByDescending(item => item.FeedbackScore)
-                .ThenByDescending(item => item.AiConfidenceScore)
+                .ThenByDescending(item => item.ConfidenceScore)
                 .ThenByDescending(item => item.UpdatedDate ?? DateTime.MinValue);
         }
 
         return query
             .OrderBy(item => item.Sort)
             .ThenByDescending(item => item.FeedbackScore)
-            .ThenByDescending(item => item.AiConfidenceScore)
+            .ThenByDescending(item => item.ConfidenceScore)
             .ThenByDescending(item => item.UpdatedDate ?? DateTime.MinValue);
     }
 }

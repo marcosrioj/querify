@@ -15,7 +15,6 @@ This folder is the canonical knowledge base for the repository. The root `README
 ### Architecture
 
 - [`architecture/solution-architecture.md`](architecture/solution-architecture.md): overall solution shape, service boundaries, data ownership, and architectural patterns.
-- [`architecture/basefaq-ai-generation-matching-architecture.md`](architecture/basefaq-ai-generation-matching-architecture.md): current AI runtime, message flow, and implementation status.
 - [`architecture/basefaq-integrations-architecture.md`](architecture/basefaq-integrations-architecture.md): planned `/integrations` scope for external renderers, SDKs, CMS and commerce plugins, packaging, release discipline, and ecosystem expansion.
 
 ### Agents
@@ -45,7 +44,6 @@ This folder is the canonical knowledge base for the repository. The root `README
 
 ### Operations and Quality
 
-- [`operations/secret-manager-key-rotation.md`](operations/secret-manager-key-rotation.md): tenant AI provider credential storage and rotation runbook.
 - [`testing/integration-testing-strategy.md`](testing/integration-testing-strategy.md): test strategy, execution tiers, and coverage priorities.
 - [`standards/solution-cqrs-write-rules.md`](standards/solution-cqrs-write-rules.md): solution-wide CQRS write-side rules.
 

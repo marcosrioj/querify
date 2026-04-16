@@ -448,8 +448,8 @@
     .bf-faq__vote-btn:disabled { opacity: 0.6; cursor: wait; }
     .bf-faq__vote-score { font-weight: var(--bf-font-weight-semibold); min-width: 1.5rem; text-align: center; }
 
-    /* ── AI confidence badge ───────────────────────────────────────────── */
-    .bf-faq__ai-confidence { display: inline-flex; align-items: center; gap: var(--bf-space-1); padding: var(--bf-space-1) var(--bf-space-2); background: var(--bf-color-surface-overlay); border-radius: var(--bf-radius-sm); font-size: var(--bf-font-size-xs); color: var(--bf-color-text-muted); margin-top: var(--bf-space-3); margin-bottom: var(--bf-space-1); }
+    /* ── Confidence badge ──────────────────────────────────────────────── */
+    .bf-faq__confidence { display: inline-flex; align-items: center; gap: var(--bf-space-1); padding: var(--bf-space-1) var(--bf-space-2); background: var(--bf-color-surface-overlay); border-radius: var(--bf-radius-sm); font-size: var(--bf-font-size-xs); color: var(--bf-color-text-muted); margin-top: var(--bf-space-3); margin-bottom: var(--bf-space-1); }
 
     @media (max-width: 640px) {
       .bf-faq__question { padding: var(--bf-space-3) var(--bf-space-4); }
@@ -537,7 +537,7 @@
         <label class="page-config__check-row" title="Call-to-action button"><input id="showCtaCheck" type="checkbox" checked /> CTA</label>
         <label class="page-config__check-row" title="AdditionalInfo callout"><input id="showAddlInfoCheck" type="checkbox" checked /> Notes</label>
         <label class="page-config__check-row" title="Content-ref source links"><input id="showSourcesCheck" type="checkbox" checked /> Sources</label>
-        <label class="page-config__check-row" title="AI confidence score badge"><input id="showAiConfidenceCheck" type="checkbox" /> AI score</label>
+        <label class="page-config__check-row" title="Confidence score badge"><input id="showConfidenceCheck" type="checkbox" /> Confidence</label>
         <label class="page-config__check-row" title="Answer variants list (answers[])"><input id="showAnswerVariantsCheck" type="checkbox" checked /> Variants</label>
         <label class="page-config__check-row" title="Vote button per answer variant"><input id="showVotesCheck" type="checkbox" checked /> Votes</label>
         <label class="page-config__check-row" title="Vote count on vote button"><input id="showVoteScoreCheck" type="checkbox" checked /> Vote count</label>
@@ -609,7 +609,7 @@
     showCta:            true,
     showAdditionalInfo: true,
     showSources:        true,
-    showAiConfidence:   false,
+    showConfidence:     false,
     showAnswerVariants: true,
     showVotes:          true,
     showVoteScore:      true,
@@ -622,7 +622,7 @@
     cfg.showCta            = document.getElementById('showCtaCheck').checked;
     cfg.showAdditionalInfo = document.getElementById('showAddlInfoCheck').checked;
     cfg.showSources        = document.getElementById('showSourcesCheck').checked;
-    cfg.showAiConfidence   = document.getElementById('showAiConfidenceCheck').checked;
+    cfg.showConfidence     = document.getElementById('showConfidenceCheck').checked;
     cfg.showAnswerVariants = document.getElementById('showAnswerVariantsCheck').checked;
     cfg.showVotes          = document.getElementById('showVotesCheck').checked;
     cfg.showVoteScore      = document.getElementById('showVoteScoreCheck').checked;
@@ -845,13 +845,13 @@
       ? renderAnswerVariants(answers)
       : `<div class="bf-faq__answer-body">${item.answer || `<p>${escHtml(item.shortAnswer)}</p>`}</div>`;
 
-    // AI confidence badge (optional)
-    const aiHtml = (cfg.showAiConfidence && item.aiConfidenceScore > 0)
-      ? `<div class="bf-faq__ai-confidence" aria-label="AI confidence: ${item.aiConfidenceScore}%">
+    // Confidence badge (optional)
+    const confidenceHtml = (cfg.showConfidence && item.confidenceScore > 0)
+      ? `<div class="bf-faq__confidence" aria-label="Confidence: ${item.confidenceScore}%">
            <svg aria-hidden="true" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
              <circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>
            </svg>
-           AI ${item.aiConfidenceScore}%
+           Confidence ${item.confidenceScore}%
          </div>`
       : '';
 
@@ -926,7 +926,7 @@
           </svg>
         </summary>
         <div class="bf-faq__answer">
-          ${aiHtml}
+          ${confidenceHtml}
           ${primaryHtml}
           ${additionalInfoHtml}
           ${ctaHtml}

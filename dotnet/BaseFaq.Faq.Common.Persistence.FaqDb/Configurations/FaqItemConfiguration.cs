@@ -32,7 +32,7 @@ public class FaqItemConfiguration : BaseConfiguration<FaqItem>
         builder.Property(p => p.FeedbackScore)
             .IsRequired();
 
-        builder.Property(p => p.AiConfidenceScore)
+        builder.Property(p => p.ConfidenceScore)
             .IsRequired();
 
         builder.Property(p => p.IsActive)

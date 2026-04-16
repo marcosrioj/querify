@@ -42,7 +42,7 @@
     "faq.pagination.info":          "Showing {from}–{to} of {total}",
     "faq.search.placeholder":       "Search FAQs…",
     "faq.search.clear":             "Clear search",
-    "faq.confidence.label":         "AI confidence",
+    "faq.confidence.label":         "Confidence",
     "config.title":                 "BaseFAQ Configuration",
     "config.client_key.label":      "X-Client-Key",
     "config.client_key.placeholder":"Enter your public client key",

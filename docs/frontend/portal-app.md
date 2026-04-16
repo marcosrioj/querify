@@ -12,7 +12,6 @@ This document is the main frontend guide for `apps/portal`. It explains what the
 - FAQ management screens
 - tenant settings and profile flows
 - member-management flows
-- tenant-side AI/provider settings where the backend already supports them
 
 It is not the BackOffice UI and it does not own BackOffice API concerns.
 
@@ -113,8 +112,7 @@ At minimum, run:
 
 Depending on the flow, you may also need:
 
-- `BaseFaq.Tenant.BackOffice.Api` to manage tenant metadata or AI provider setup
-- `BaseFaq.AI.Api` if you are testing async AI-related workflows
+- `BaseFaq.Tenant.BackOffice.Api` to manage tenant metadata in administrative scenarios
 
 ## Auth0 local configuration
 
@@ -180,7 +178,6 @@ The repository README for the portal already calls out important product gaps th
 
 - member creation requires an already-existing BaseFAQ user email
 - billing and invoice flows remain placeholder areas where the backend surface is missing
-- AI job/progress listing is not yet fully exposed
 - some FAQ search/filter behavior is still client-side because backend list contracts do not yet expose search parameters
 
 ## UI implementation rules

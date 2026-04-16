@@ -3,11 +3,7 @@ import {
   requireAccessToken,
   requireTenantId,
 } from '@/platform/api/http-client';
-import type {
-  TenantAiProviderDto,
-  TenantCreateOrUpdateRequestDto,
-  TenantSetAiProviderCredentialsRequestDto,
-} from '@/domains/tenants/types';
+import type { TenantCreateOrUpdateRequestDto } from '@/domains/tenants/types';
 
 export function getTenantClientKey(accessToken?: string, tenantId?: string) {
   return portalRequest<string | null | undefined>({
@@ -22,14 +18,6 @@ export function generateTenantClientKey(accessToken?: string, tenantId?: string)
     service: 'tenant',
     path: `/api/tenant/tenants/generate-new-client-key?tenantId=${requireTenantId(tenantId)}`,
     method: 'POST',
-    accessToken: requireAccessToken(accessToken),
-  });
-}
-
-export function getConfiguredAiProviders(accessToken?: string, tenantId?: string) {
-  return portalRequest<TenantAiProviderDto[]>({
-    service: 'tenant',
-    path: `/api/tenant/tenants/get-configured-ai-providers?tenantId=${requireTenantId(tenantId)}`,
     accessToken: requireAccessToken(accessToken),
   });
 }
@@ -57,22 +45,5 @@ export function refreshAllowedTenantCache(accessToken: string | undefined) {
     path: '/api/tenant/tenants/refresh-allowed-tenant-cache',
     method: 'POST',
     accessToken: requireAccessToken(accessToken),
-  });
-}
-
-export function setAiProviderCredentials(
-  accessToken: string | undefined,
-  tenantId: string | undefined,
-  body: TenantSetAiProviderCredentialsRequestDto,
-) {
-  return portalRequest<boolean>({
-    service: 'tenant',
-    path: '/api/tenant/tenants/set-ai-provider-credentials',
-    method: 'POST',
-    accessToken: requireAccessToken(accessToken),
-    body: {
-      ...body,
-      tenantId: requireTenantId(tenantId),
-    },
   });
 }

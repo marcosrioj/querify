@@ -55,7 +55,7 @@ flowchart TD
 | --- | --- |
 | [SourceKind](../Domain/Enums/SourceKind.cs) | What kind of artifact is being tracked. |
 | [SourceRole](../Domain/Enums/SourceRole.cs) | Why the source is attached to the question or answer. |
-| [QuestionKind](../Domain/Enums/QuestionKind.cs) | Helps interpret whether provenance started from curated, community, imported, or AI-suggested intake. |
+| [QuestionKind](../Domain/Enums/QuestionKind.cs) | Helps interpret whether provenance started from curated, community, or imported intake. |
 | [AnswerKind](../Domain/Enums/AnswerKind.cs) | Helps interpret how much trust should exist before review. |
 
 ## Interaction notes

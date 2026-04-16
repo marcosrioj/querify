@@ -203,7 +203,7 @@ namespace BaseFaq.Faq.Common.Persistence.FaqDb.Migrations
                         .HasMaxLength(2000)
                         .HasColumnType("character varying(2000)");
 
-                    b.Property<int>("AiConfidenceScore")
+                    b.Property<int>("ConfidenceScore")
                         .HasColumnType("integer");
 
                     b.Property<Guid?>("ContentRefId")

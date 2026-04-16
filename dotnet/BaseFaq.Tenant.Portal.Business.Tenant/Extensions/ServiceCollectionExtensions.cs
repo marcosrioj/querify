@@ -11,7 +11,6 @@ public static class ServiceCollectionExtensions
     {
         services.AddScoped<ITenantPortalAccessService, TenantPortalAccessService>();
         services.AddScoped<ITenantService, TenantService>();
-        services.AddScoped<ITenantAiProviderService, TenantAiProviderService>();
         services.AddScoped<ITenantUserService, TenantUserService>();
         services.AddMediatR(config =>
             config.RegisterServicesFromAssemblyContaining<TenantsCreateOrUpdateTenantsCommandHandler>());

@@ -3,9 +3,6 @@ using BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception;
 using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Common.Infrastructure.Core.Constants;
 using BaseFaq.Faq.Common.Persistence.FaqDb;
-using BaseFaq.Models.Ai.Contracts.Matching;
-using BaseFaq.Models.Tenant.Enums;
-using MassTransit;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -16,21 +13,14 @@ public class FaqItemsCreateFaqItemCommandHandler(
     FaqDbContext dbContext,
     IClientKeyContextService clientKeyContextService,
     ITenantClientKeyResolver tenantClientKeyResolver,
-    ITenantAiProviderResolver tenantAiProviderResolver,
-    IHttpContextAccessor httpContextAccessor,
-    IPublishEndpoint publishEndpoint)
+    IHttpContextAccessor httpContextAccessor)
     : IRequestHandler<FaqItemsCreateFaqItemCommand, Guid>
 {
-    private const int MaxQueryLength = 2000;
-    private const int MaxLanguageLength = 16;
-
     public async Task<Guid> Handle(FaqItemsCreateFaqItemCommand request, CancellationToken cancellationToken)
     {
         var tenantId = await ResolveTenantIdAndSetContextAsync(cancellationToken);
-        var faq = await GetFaqOrThrowAsync(request.FaqId, tenantId, cancellationToken);
+        await GetFaqOrThrowAsync(request.FaqId, tenantId, cancellationToken);
         var faqItem = await CreateFaqItemAsync(request, tenantId, cancellationToken);
-        ValidateMatchingInputs(request.Question, faq.Language);
-        await PublishMatchingRequestedAsync(request, faqItem, faq.Language, tenantId, cancellationToken);
         return faqItem.Id;
     }
 
@@ -82,51 +72,5 @@ public class FaqItemsCreateFaqItemCommandHandler(
         await dbContext.FaqItems.AddAsync(faqItem, cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);
         return faqItem;
-    }
-
-    private async Task PublishMatchingRequestedAsync(
-        FaqItemsCreateFaqItemCommand request,
-        Common.Persistence.FaqDb.Entities.FaqItem faqItem,
-        string language,
-        Guid tenantId,
-        CancellationToken cancellationToken)
-    {
-        var shouldPublish = await tenantAiProviderResolver.HasProviderForCommandAsync(
-            tenantId,
-            AiCommandType.Matching,
-            cancellationToken);
-        if (!shouldPublish)
-        {
-            return;
-        }
-
-        await publishEndpoint.Publish(new FaqMatchingRequestedV1
-        {
-            CorrelationId = Guid.NewGuid(),
-            TenantId = tenantId,
-            FaqItemId = faqItem.Id,
-            RequestedByUserId = Guid.Empty,
-            Query = request.Question,
-            Language = language,
-            IdempotencyKey = $"faqitem-create-{faqItem.Id:N}",
-            RequestedUtc = DateTime.UtcNow
-        }, cancellationToken);
-    }
-
-    private static void ValidateMatchingInputs(string query, string language)
-    {
-        if (string.IsNullOrWhiteSpace(query) || query.Length > MaxQueryLength)
-        {
-            throw new ApiErrorException(
-                $"Question is required and must have at most {MaxQueryLength} characters to request matching.",
-                errorCode: (int)HttpStatusCode.BadRequest);
-        }
-
-        if (string.IsNullOrWhiteSpace(language) || language.Length > MaxLanguageLength)
-        {
-            throw new ApiErrorException(
-                $"FAQ language is required and must have at most {MaxLanguageLength} characters to request matching.",
-                errorCode: (int)HttpStatusCode.BadRequest);
-        }
     }
 }

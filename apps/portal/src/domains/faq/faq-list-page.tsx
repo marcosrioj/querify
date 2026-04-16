@@ -7,14 +7,12 @@ import {
   Plus,
   Sparkles,
   Trash2,
-  WandSparkles,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { usePortalTimeZone } from "@/domains/settings/settings-hooks";
 import {
   useDeleteFaq,
   useFaqList,
-  useRequestFaqGeneration,
 } from "@/domains/faq/hooks";
 import { FaqDto } from "@/domains/faq/types";
 import { faqStatusLabels, FaqStatus } from "@/shared/constants/backend-enums";
@@ -98,7 +96,6 @@ export function FaqListPage() {
   }, [faqQuery.data?.totalCount, page, pageSize, setPage]);
 
   const deleteFaq = useDeleteFaq();
-  const requestGeneration = useRequestFaqGeneration();
   const faqRows = faqQuery.data?.items ?? [];
   const publishedCount = faqRows.filter(
     (faq) => faq.status === FaqStatus.Published,
@@ -161,21 +158,6 @@ export function FaqListPage() {
               <Pencil className="size-4" />
             </Link>
           </Button>
-          <ConfirmAction
-            title={translateText('Run AI generation for "{name}"?', {
-              name: faq.name,
-            })}
-            description="This queues generation for the FAQ and uses the configured AI provider setup for the current workspace."
-            confirmLabel="Run generation"
-            variant="primary"
-            isPending={requestGeneration.isPending}
-            onConfirm={() => requestGeneration.mutateAsync(faq.id)}
-            trigger={
-              <Button variant="ghost" mode="icon">
-                <WandSparkles className="size-4" />
-              </Button>
-            }
-          />
           <ConfirmAction
             title={translateText('Delete FAQ "{name}"?', {
               name: faq.name,

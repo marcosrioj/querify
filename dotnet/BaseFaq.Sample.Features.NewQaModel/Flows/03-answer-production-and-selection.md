@@ -10,13 +10,9 @@ flowchart TD
     Candidate --> Kind{AnswerKind}
     Kind --> Official[Official]
     Kind --> Community[Community]
-    Kind --> AiDraft[AiDraft]
-    Kind --> AiAssisted[AiAssisted]
     Kind --> Imported[Imported]
     Official --> Evidence
     Community --> Evidence
-    AiDraft --> Evidence
-    AiAssisted --> Evidence
     Imported --> Evidence
     Evidence[Attach Source records through AnswerSourceLink] --> Review{Review required?}
     Review -->|yes| Pending[AnswerStatus.PendingReview]
@@ -50,12 +46,12 @@ flowchart TD
 
 | Enum | What it decides |
 | --- | --- |
-| [AnswerKind](../Domain/Enums/AnswerKind.cs) | Whether the candidate is official, community-provided, AI draft, AI-assisted, or imported. |
+| [AnswerKind](../Domain/Enums/AnswerKind.cs) | Whether the candidate is official, community-provided, or imported. |
 | [AnswerStatus](../Domain/Enums/AnswerStatus.cs) | Whether the candidate is draft, pending review, published, validated, rejected, obsolete, or archived. |
 | [VisibilityScope](../Domain/Enums/VisibilityScope.cs) | Whether a published answer can be internal-only, authenticated, or public-facing. |
 | [SourceRole](../Domain/Enums/SourceRole.cs) | Whether a source is evidence, citation, supporting context, or the canonical reference for the answer. |
 | [ActivityKind](../Domain/Enums/ActivityKind.cs) | Typical events are `AnswerCreated`, `AnswerUpdated`, `AnswerPublished`, `AnswerAccepted`, `AnswerValidated`, and `AnswerRejected`. |
-| [ActorKind](../Domain/Enums/ActorKind.cs) | Identifies whether the answer change came from a contributor, moderator, AI agent, system, or integration. |
+| [ActorKind](../Domain/Enums/ActorKind.cs) | Identifies whether the answer change came from a contributor, moderator, system, or integration. |
 
 ## Interaction notes
 

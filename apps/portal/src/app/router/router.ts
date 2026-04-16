@@ -7,7 +7,6 @@ import {
 } from '@/app/router/router-pages';
 import { RequirePortalAuth } from '@/domains/auth/require-portal-auth';
 import { AuthRoutes } from '@/domains/auth/routes';
-import { AiRoutes } from '@/domains/ai/routes';
 import { BillingRoutes } from '@/domains/billing/routes';
 import { ContentRefRoutes } from '@/domains/content-refs/routes';
 import { DashboardRoutes } from '@/domains/dashboard/routes';
@@ -25,7 +24,6 @@ const protectedChildren: RouteObject[] = [
   ...MembersRoutes,
   ...BillingRoutes,
   ...SettingsRoutes,
-  ...AiRoutes,
 ];
 
 export const AppRouter = createBrowserRouter(

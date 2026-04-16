@@ -1,10 +1,7 @@
 using BaseFaq.Faq.Public.Business.FaqItem.Commands.CreateFaqItem;
 using BaseFaq.Faq.Public.Business.FaqItem.Queries.SearchFaqItem;
 using BaseFaq.Faq.Public.Test.IntegrationTests.Helpers;
-using BaseFaq.Models.Ai.Contracts.Matching;
 using BaseFaq.Models.Faq.Dtos.FaqItem;
-using MassTransit;
-using Moq;
 using Xunit;
 
 namespace BaseFaq.Faq.Public.Test.IntegrationTests.Tests.FaqItem;
@@ -20,15 +17,11 @@ public class FaqItemCommandQueryTests
         var clientKeyContextService = new TestClientKeyContextService(context.ClientKey);
         var tenantClientKeyResolver =
             new TestTenantClientKeyResolver(context.TenantId, context.ClientKey);
-        var tenantAiProviderResolver = new TestTenantAiProviderResolver();
-        var publishEndpoint = new Mock<IPublishEndpoint>().Object;
         var handler = new FaqItemsCreateFaqItemCommandHandler(
             context.DbContext,
             clientKeyContextService,
             tenantClientKeyResolver,
-            tenantAiProviderResolver,
-            context.HttpContextAccessor,
-            publishEndpoint);
+            context.HttpContextAccessor);
         var request = new FaqItemsCreateFaqItemCommand
         {
             Question = "How to sign in?",
@@ -51,78 +44,6 @@ public class FaqItemCommandQueryTests
     }
 
     [Fact]
-    public async Task CreateFaqItem_PublishesMatchingEvent_WhenTenantHasMatchingProvider()
-    {
-        using var context = TestContext.Create();
-        var faq = await TestDataFactory.SeedFaqAsync(context.DbContext, context.TenantId);
-
-        var clientKeyContextService = new TestClientKeyContextService(context.ClientKey);
-        var tenantClientKeyResolver = new TestTenantClientKeyResolver(context.TenantId, context.ClientKey);
-        var tenantAiProviderResolver = new TestTenantAiProviderResolver(hasProvider: true);
-        var publishEndpoint = new Mock<IPublishEndpoint>();
-        var handler = new FaqItemsCreateFaqItemCommandHandler(
-            context.DbContext,
-            clientKeyContextService,
-            tenantClientKeyResolver,
-            tenantAiProviderResolver,
-            context.HttpContextAccessor,
-            publishEndpoint.Object);
-
-        await handler.Handle(new FaqItemsCreateFaqItemCommand
-        {
-            Question = "How to reset password?",
-            AdditionalInfo = "N/A",
-            CtaTitle = "Reset",
-            CtaUrl = "https://example.test/reset",
-            Sort = 1,
-            IsActive = true,
-            FaqId = faq.Id
-        }, CancellationToken.None);
-
-        publishEndpoint.Verify(
-            x => x.Publish(
-                It.IsAny<FaqMatchingRequestedV1>(),
-                It.IsAny<CancellationToken>()),
-            Times.Once);
-    }
-
-    [Fact]
-    public async Task CreateFaqItem_DoesNotPublishMatchingEvent_WhenTenantHasNoMatchingProvider()
-    {
-        using var context = TestContext.Create();
-        var faq = await TestDataFactory.SeedFaqAsync(context.DbContext, context.TenantId);
-
-        var clientKeyContextService = new TestClientKeyContextService(context.ClientKey);
-        var tenantClientKeyResolver = new TestTenantClientKeyResolver(context.TenantId, context.ClientKey);
-        var tenantAiProviderResolver = new TestTenantAiProviderResolver(hasProvider: false);
-        var publishEndpoint = new Mock<IPublishEndpoint>();
-        var handler = new FaqItemsCreateFaqItemCommandHandler(
-            context.DbContext,
-            clientKeyContextService,
-            tenantClientKeyResolver,
-            tenantAiProviderResolver,
-            context.HttpContextAccessor,
-            publishEndpoint.Object);
-
-        await handler.Handle(new FaqItemsCreateFaqItemCommand
-        {
-            Question = "How to update email?",
-            AdditionalInfo = "N/A",
-            CtaTitle = "Profile",
-            CtaUrl = "https://example.test/profile",
-            Sort = 1,
-            IsActive = true,
-            FaqId = faq.Id
-        }, CancellationToken.None);
-
-        publishEndpoint.Verify(
-            x => x.Publish(
-                It.IsAny<FaqMatchingRequestedV1>(),
-                It.IsAny<CancellationToken>()),
-            Times.Never);
-    }
-
-    [Fact]
     public async Task SearchFaqItems_OrdersByDefaultSort()
     {
         using var context = TestContext.Create();
@@ -139,7 +60,7 @@ public class FaqItemCommandQueryTests
             ctaUrl: "https://example.test/first",
             sort: 1,
             feedbackScore: 5,
-            aiConfidenceScore: 10);
+            confidenceScore: 10);
         var second = TestDataFactory.CreateFaqItem(
             context.TenantId,
             faq.Id,
@@ -151,7 +72,7 @@ public class FaqItemCommandQueryTests
             ctaUrl: "https://example.test/second",
             sort: 2,
             feedbackScore: 20,
-            aiConfidenceScore: 50);
+            confidenceScore: 50);
 
         context.DbContext.FaqItems.AddRange(first, second);
         await context.DbContext.SaveChangesAsync();
@@ -232,7 +153,7 @@ public class FaqItemCommandQueryTests
                 ctaUrl: "https://example.test/security",
                 sort: 1,
                 feedbackScore: 0,
-                aiConfidenceScore: 0),
+                confidenceScore: 0),
             TestDataFactory.CreateFaqItem(
                 context.TenantId,
                 faq.Id,
@@ -244,7 +165,7 @@ public class FaqItemCommandQueryTests
                 ctaUrl: "https://example.test/billing",
                 sort: 2,
                 feedbackScore: 0,
-                aiConfidenceScore: 0));
+                confidenceScore: 0));
         await context.DbContext.SaveChangesAsync();
 
         var clientKeyContextService = new TestClientKeyContextService(context.ClientKey);
@@ -291,7 +212,7 @@ public class FaqItemCommandQueryTests
                 ctaUrl: "https://example.test/1",
                 sort: 1,
                 feedbackScore: 0,
-                aiConfidenceScore: 0),
+                confidenceScore: 0),
             TestDataFactory.CreateFaqItem(
                 context.TenantId,
                 faq.Id,
@@ -303,7 +224,7 @@ public class FaqItemCommandQueryTests
                 ctaUrl: "https://example.test/2",
                 sort: 2,
                 feedbackScore: 0,
-                aiConfidenceScore: 0),
+                confidenceScore: 0),
             TestDataFactory.CreateFaqItem(
                 context.TenantId,
                 faq.Id,
@@ -315,7 +236,7 @@ public class FaqItemCommandQueryTests
                 ctaUrl: "https://example.test/3",
                 sort: 3,
                 feedbackScore: 0,
-                aiConfidenceScore: 0));
+                confidenceScore: 0));
         await context.DbContext.SaveChangesAsync();
 
         var clientKeyContextService = new TestClientKeyContextService(context.ClientKey);
@@ -361,7 +282,7 @@ public class FaqItemCommandQueryTests
                 ctaUrl: "https://example.test/general",
                 sort: 1,
                 feedbackScore: 0,
-                aiConfidenceScore: 0),
+                confidenceScore: 0),
             TestDataFactory.CreateFaqItem(
                 context.TenantId,
                 faq.Id,
@@ -373,7 +294,7 @@ public class FaqItemCommandQueryTests
                 ctaUrl: "https://example.test/another",
                 sort: 2,
                 feedbackScore: 0,
-                aiConfidenceScore: 0));
+                confidenceScore: 0));
         await context.DbContext.SaveChangesAsync();
 
         var clientKeyContextService = new TestClientKeyContextService(context.ClientKey);

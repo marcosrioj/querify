@@ -6,14 +6,12 @@ import {
   Plus,
   ShieldCheck,
   Trash2,
-  WandSparkles,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   useDeleteFaq,
   useFaq,
-  useRequestFaqGeneration,
 } from "@/domains/faq/hooks";
 import { useFaqItemList } from "@/domains/faq-items/hooks";
 import { useContentRefList } from "@/domains/content-refs/hooks";
@@ -67,7 +65,6 @@ export function FaqDetailPage() {
     faqId: id,
   });
   const deleteFaq = useDeleteFaq();
-  const requestGeneration = useRequestFaqGeneration();
   const [faqItemSearch, setFaqItemSearch] = useState("");
   const [contentRefSearch, setContentRefSearch] = useState("");
 
@@ -119,7 +116,7 @@ export function FaqDetailPage() {
   }, [contentRefSearch, relatedContentRefs]);
 
   const activeItemCount = relatedItems.filter((item) => item.isActive).length;
-  const generationReady =
+  const contentReady =
     relatedItems.length > 0 && relatedContentRefs.length > 0;
   const relatedItemsPagination = useLocalPagination({
     items: filteredRelatedItems,
@@ -239,22 +236,6 @@ export function FaqDetailPage() {
                   {translateText("Edit")}
                 </Link>
               </Button>
-              <ConfirmAction
-                title={translateText('Run AI generation for "{name}"?', {
-                  name: faqQuery.data?.name ?? translateText("this FAQ"),
-                })}
-                description="This queues generation for the FAQ and uses the configured AI provider setup for the current workspace."
-                confirmLabel="Run generation"
-                variant="primary"
-                isPending={requestGeneration.isPending}
-                onConfirm={() => requestGeneration.mutateAsync(id)}
-                trigger={
-                  <Button variant="outline" size="sm" className="w-full justify-start">
-                    <WandSparkles className="size-4" />
-                    {translateText("AI generation")}
-                  </Button>
-                }
-              />
               <div className="col-span-2 h-px bg-border/50" />
               <ConfirmAction
                 title={translateText('Delete FAQ "{name}"?', {
@@ -315,7 +296,7 @@ export function FaqDetailPage() {
                     <CardTitle className="flex flex-wrap items-center gap-2">
                       <span>{translateText("Status")}</span>
                       <ContextHint
-                        content="Monitor readiness before you publish or request generation."
+                        content="Monitor readiness before you publish."
                         label="Status details"
                       />
                     </CardTitle>
@@ -324,10 +305,10 @@ export function FaqDetailPage() {
                 <CardContent className="space-y-4">
                   <div className="flex flex-wrap gap-2">
                     <FaqStatusBadge status={faqQuery.data.status} />
-                    <Badge variant={generationReady ? "success" : "warning"}>
+                    <Badge variant={contentReady ? "success" : "warning"}>
                       {translateText(
-                        generationReady
-                          ? "Ready for generation request"
+                        contentReady
+                          ? "Ready to publish"
                           : "Needs content and Q&A coverage",
                       )}
                     </Badge>
@@ -342,14 +323,10 @@ export function FaqDetailPage() {
                             : "Internal or draft",
                       },
                       {
-                        label: "Generation",
-                        value: generationReady
-                          ? "Ready to request"
+                        label: "Readiness",
+                        value: contentReady
+                          ? "Ready to publish"
                           : "Waiting on setup",
-                      },
-                      {
-                        label: "Request tracking",
-                        value: "Correlation id only",
                       },
                     ]}
                   />
@@ -402,11 +379,11 @@ export function FaqDetailPage() {
               },
               {
                 title: "Ready",
-                value: generationReady ? "Ready" : "Needs setup",
-                description: generationReady
+                value: contentReady ? "Ready" : "Needs setup",
+                description: contentReady
                   ? "Q&A items and sources are ready"
                   : "Add Q&A items and sources first",
-                icon: WandSparkles,
+                icon: ShieldCheck,
               },
             ]}
           />
@@ -455,7 +432,7 @@ export function FaqDetailPage() {
                             <div className="mt-3 flex flex-wrap gap-2 text-xs text-muted-foreground">
                               <span>{translateText("Sort {value}", { value: item.sort })}</span>
                               <span>{translateText("Feedback {value}", { value: item.feedbackScore })}</span>
-                              <span>{translateText("AI {value}", { value: item.aiConfidenceScore })}</span>
+                              <span>{translateText("Confidence {value}", { value: item.confidenceScore })}</span>
                               {item.contentRefId ? (
                                 <span>
                                   {translateText("Linked to")}{" "}
@@ -610,11 +587,11 @@ export function FaqDetailPage() {
                   />
                 )
               ) : (
-                <EmptyState
-                  title="No sources yet"
-                  description="Link sources to your Q&A items so generation has real content to use."
-                  action={{ label: "New source", to: createContentRefPath }}
-                />
+                  <EmptyState
+                    title="No sources yet"
+                    description="Link sources to your Q&A items so answers stay grounded in real content."
+                    action={{ label: "New source", to: createContentRefPath }}
+                  />
               )}
             </CardContent>
           </Card>

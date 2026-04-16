@@ -128,7 +128,7 @@ public class EntityConstraintsTests
             CtaUrl = "https://example.test/cta",
             Sort = 1,
             FeedbackScore = 0,
-            AiConfidenceScore = 0,
+            ConfidenceScore = 0,
             IsActive = true,
             FaqId = faq.Id,
             TenantId = context.SessionService.TenantId

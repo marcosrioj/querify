@@ -18,7 +18,7 @@ public static class TestDataFactory
         string? ctaUrl = null,
         int sort = 1,
         int feedbackScore = 10,
-        int aiConfidenceScore = 80,
+        int confidenceScore = 80,
         bool isActive = true,
         int answerSort = 1,
         int voteScore = 0,
@@ -34,7 +34,7 @@ public static class TestDataFactory
             CtaUrl = ctaUrl ?? "https://example.test/reset",
             Sort = sort,
             FeedbackScore = feedbackScore,
-            AiConfidenceScore = aiConfidenceScore,
+            ConfidenceScore = confidenceScore,
             IsActive = isActive,
             FaqId = faqId,
             ContentRefId = contentRefId,
@@ -124,7 +124,7 @@ public static class TestDataFactory
         string? ctaUrl = null,
         int sort = 1,
         int feedbackScore = 10,
-        int aiConfidenceScore = 80,
+        int confidenceScore = 80,
         bool isActive = true)
     {
         var faqItem = CreateFaqItem(
@@ -139,7 +139,7 @@ public static class TestDataFactory
             ctaUrl,
             sort,
             feedbackScore,
-            aiConfidenceScore,
+            confidenceScore,
             isActive);
 
         dbContext.FaqItems.Add(faqItem);

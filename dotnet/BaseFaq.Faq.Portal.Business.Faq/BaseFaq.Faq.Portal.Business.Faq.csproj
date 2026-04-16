@@ -17,10 +17,8 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\BaseFaq.Common.Infrastructure.MassTransit\BaseFaq.Common.Infrastructure.MassTransit.csproj"/>
         <ProjectReference Include="..\BaseFaq.Common.Infrastructure.MediatR\BaseFaq.Common.Infrastructure.MediatR.csproj"/>
         <ProjectReference Include="..\BaseFaq.Faq.Common.Persistence.FaqDb\BaseFaq.Faq.Common.Persistence.FaqDb.csproj"/>
-        <ProjectReference Include="..\BaseFaq.Models.Ai\BaseFaq.Models.Ai.csproj"/>
         <ProjectReference Include="..\BaseFaq.Models.Faq\BaseFaq.Models.Faq.csproj"/>
     </ItemGroup>
 

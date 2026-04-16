@@ -50,12 +50,10 @@ validate_config() {
         SWAGGER_AUTH_AUDIENCE \
         SWAGGER_AUTH_AUTHORIZE_ENDPOINT \
         SWAGGER_AUTH_TOKEN_ENDPOINT \
-        AI_USER_ID \
         FAQ_PORTAL_DOMAIN \
         FAQ_PUBLIC_DOMAIN \
         TENANT_BACKOFFICE_DOMAIN \
-        TENANT_PORTAL_DOMAIN \
-        AI_DOMAIN
+        TENANT_PORTAL_DOMAIN
 
     if [[ "${BASEFAQ_STAGE:-${STAGE}}" != "${STAGE}" ]]; then
         fail "BASEFAQ_STAGE in env does not match --stage ${STAGE}"
@@ -70,8 +68,7 @@ validate_config() {
             "${FAQ_PORTAL_DOMAIN}" \
             "${FAQ_PUBLIC_DOMAIN}" \
             "${TENANT_BACKOFFICE_DOMAIN}" \
-            "${TENANT_PORTAL_DOMAIN}" \
-            "${AI_DOMAIN}")"
+            "${TENANT_PORTAL_DOMAIN}")"
         upsert_env "${ENV_FILE}" "CORS_ALLOWED_ORIGINS" "${CORS_ALLOWED_ORIGINS}"
         log_info "CORS_ALLOWED_ORIGINS was empty and has been auto-generated."
     fi
@@ -229,20 +226,17 @@ main() {
     tenant_backoffice_image="$(build_image "basefaq-tenant-backoffice-api" "dotnet/BaseFaq.Tenant.BackOffice.Api/Dockerfile")"
     tenant_portal_image="$(build_image "basefaq-tenant-portal-api" "dotnet/BaseFaq.Tenant.Portal.Api/Dockerfile")"
     faq_public_image="$(build_image "basefaq-faq-public-api" "dotnet/BaseFaq.Faq.Public.Api/Dockerfile")"
-    ai_image="$(build_image "basefaq-ai-api" "dotnet/BaseFaq.AI.Api/Dockerfile")"
 
     faq_portal_app="${CONTAINERAPP_PREFIX}-faq-portal-api"
     tenant_backoffice_app="${CONTAINERAPP_PREFIX}-tenant-backoffice-api"
     tenant_portal_app="${CONTAINERAPP_PREFIX}-tenant-portal-api"
     faq_public_app="${CONTAINERAPP_PREFIX}-faq-public-api"
-    ai_app="${CONTAINERAPP_PREFIX}-ai-api"
 
     shared_domains_env=(
         "BaseFaq__Domains__FaqPortal=https://${FAQ_PORTAL_DOMAIN}"
         "BaseFaq__Domains__FaqPublic=https://${FAQ_PUBLIC_DOMAIN}"
         "BaseFaq__Domains__TenantBackOffice=https://${TENANT_BACKOFFICE_DOMAIN}"
         "BaseFaq__Domains__TenantPortal=https://${TENANT_PORTAL_DOMAIN}"
-        "BaseFaq__Domains__Ai=https://${AI_DOMAIN}"
     )
 
     common_session_env=(
@@ -300,31 +294,10 @@ main() {
         "RabbitMQ__Password=secretref:rabbit-password"
     )
 
-    ai_env=(
-        "ASPNETCORE_ENVIRONMENT=${BASEFAQ_ENVIRONMENT}"
-        "ASPNETCORE_URLS=http://+:5030"
-        "ConnectionStrings__TenantDb=secretref:tenant-db-conn"
-        "Ai__UserId=${AI_USER_ID}"
-        "${shared_domains_env[@]}"
-        "RabbitMQ__Generation__Hostname=${RABBITMQ_HOST}"
-        "RabbitMQ__Generation__Port=${RABBITMQ_PORT}"
-        "RabbitMQ__Generation__Username=${RABBITMQ_USERNAME}"
-        "RabbitMQ__Generation__Password=secretref:rabbit-password"
-        "RabbitMQ__Matching__Hostname=${RABBITMQ_HOST}"
-        "RabbitMQ__Matching__Port=${RABBITMQ_PORT}"
-        "RabbitMQ__Matching__Username=${RABBITMQ_USERNAME}"
-        "RabbitMQ__Matching__Password=secretref:rabbit-password"
-    )
-
-    if [[ -n "${OTLP_ENDPOINT:-}" ]]; then
-        ai_env+=("OpenTelemetry__Otlp__Endpoint=${OTLP_ENDPOINT}")
-    fi
-
     deploy_service "${faq_portal_app}" "${faq_portal_image}" "5010" "external" "0.5" "1Gi" "${faq_portal_env[@]}"
     deploy_service "${tenant_backoffice_app}" "${tenant_backoffice_image}" "5000" "external" "0.5" "1Gi" "${tenant_backoffice_env[@]}"
     deploy_service "${tenant_portal_app}" "${tenant_portal_image}" "5002" "external" "0.5" "1Gi" "${tenant_portal_env[@]}"
     deploy_service "${faq_public_app}" "${faq_public_image}" "5020" "external" "0.5" "1Gi" "${faq_public_env[@]}"
-    deploy_service "${ai_app}" "${ai_image}" "5030" "external" "1.0" "2Gi" "${ai_env[@]}"
 
     log_info ""
     log_info "Deployment completed for stage: ${STAGE}"
@@ -333,7 +306,6 @@ main() {
     print_service_result "${tenant_backoffice_app}" "${TENANT_BACKOFFICE_DOMAIN}"
     print_service_result "${tenant_portal_app}" "${TENANT_PORTAL_DOMAIN}"
     print_service_result "${faq_public_app}" "${FAQ_PUBLIC_DOMAIN}"
-    print_service_result "${ai_app}" "${AI_DOMAIN}"
 }
 
 main "$@"

@@ -27,13 +27,7 @@ public enum ActorKind
     Moderator = 4,
 
     /// <summary>
-    ///     An AI system or assistant caused the event.
-    ///     Useful for draft creation and automated suggestions.
-    /// </summary>
-    AiAgent = 5,
-
-    /// <summary>
     ///     An external integration or connector caused the event.
     /// </summary>
-    Integration = 6
+    Integration = 5
 }

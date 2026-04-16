@@ -122,7 +122,7 @@ namespace BaseFaq.Faq.Common.Persistence.FaqDb.Migrations
                     CtaUrl = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: true),
                     Sort = table.Column<int>(type: "integer", nullable: false),
                     FeedbackScore = table.Column<int>(type: "integer", nullable: false),
-                    AiConfidenceScore = table.Column<int>(type: "integer", nullable: false),
+                    ConfidenceScore = table.Column<int>(type: "integer", nullable: false),
                     IsActive = table.Column<bool>(type: "boolean", nullable: false),
                     TenantId = table.Column<Guid>(type: "uuid", nullable: false),
                     FaqId = table.Column<Guid>(type: "uuid", nullable: false),

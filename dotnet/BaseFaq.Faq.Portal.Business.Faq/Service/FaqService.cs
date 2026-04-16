@@ -6,7 +6,6 @@ using MediatR;
 using BaseFaq.Faq.Portal.Business.Faq.Abstractions;
 using BaseFaq.Faq.Portal.Business.Faq.Commands.CreateFaq;
 using BaseFaq.Faq.Portal.Business.Faq.Commands.DeleteFaq;
-using BaseFaq.Faq.Portal.Business.Faq.Commands.RequestGeneration;
 using BaseFaq.Faq.Portal.Business.Faq.Commands.UpdateFaq;
 using BaseFaq.Faq.Portal.Business.Faq.Queries.GetFaq;
 using BaseFaq.Faq.Portal.Business.Faq.Queries.GetFaqList;
@@ -39,11 +38,6 @@ public class FaqService(IMediator mediator) : IFaqService
     public Task Delete(Guid id, CancellationToken token)
     {
         return mediator.Send(new FaqsDeleteFaqCommand { Id = id }, token);
-    }
-
-    public async Task<Guid> RequestGeneration(Guid faqId, CancellationToken token)
-    {
-        return await mediator.Send(new FaqsRequestGenerationCommand { FaqId = faqId }, token);
     }
 
     public async Task<FaqDto> GetById(Guid id, CancellationToken token)

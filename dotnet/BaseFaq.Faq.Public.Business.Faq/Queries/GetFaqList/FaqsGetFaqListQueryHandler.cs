@@ -144,7 +144,7 @@ public class FaqsGetFaqListQueryHandler(
                         CtaUrl = item.CtaUrl,
                         Sort = item.Sort,
                         FeedbackScore = item.FeedbackScore,
-                        AiConfidenceScore = item.AiConfidenceScore,
+                        ConfidenceScore = item.ConfidenceScore,
                         IsActive = item.IsActive,
                         FaqId = item.FaqId,
                         ContentRefId = item.ContentRefId

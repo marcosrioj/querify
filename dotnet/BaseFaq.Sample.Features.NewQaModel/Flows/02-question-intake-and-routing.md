@@ -54,14 +54,14 @@ flowchart TD
 
 | Enum | What it decides |
 | --- | --- |
-| [QuestionKind](../Domain/Enums/QuestionKind.cs) | Whether the thread is curated, community-originated, imported, or AI-suggested. |
+| [QuestionKind](../Domain/Enums/QuestionKind.cs) | Whether the thread is curated, community-originated, or imported. |
 | [QuestionStatus](../Domain/Enums/QuestionStatus.cs) | Whether the thread is still draft, pending review, open, duplicate, escalated, or archived. |
 | [ChannelKind](../Domain/Enums/ChannelKind.cs) | Which entry channel created the thread. |
 | [ModerationPolicy](../Domain/Enums/ModerationPolicy.cs) | Whether the thread opens directly or waits for review. |
 | [VisibilityScope](../Domain/Enums/VisibilityScope.cs) | Whether the incoming thread is internal, authenticated, or public-facing. |
 | [SourceRole](../Domain/Enums/SourceRole.cs) | Why the origin source is attached to the thread. Intake usually starts with `QuestionOrigin`. |
 | [ActivityKind](../Domain/Enums/ActivityKind.cs) | Typical events are `QuestionCreated`, `QuestionSubmitted`, `QuestionApproved`, `QuestionRejected`, and `QuestionEscalated`. |
-| [ActorKind](../Domain/Enums/ActorKind.cs) | Identifies whether the action came from a customer, contributor, moderator, AI agent, system, or integration. |
+| [ActorKind](../Domain/Enums/ActorKind.cs) | Identifies whether the action came from a customer, contributor, moderator, system, or integration. |
 
 ## Interaction notes
 

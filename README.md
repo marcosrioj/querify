@@ -1,6 +1,6 @@
 # BaseFAQ
 
-BaseFAQ is a multi-tenant FAQ platform built from a React portal, multiple `.NET 10` APIs, tenant-aware PostgreSQL databases, and an AI runtime for FAQ generation and similarity matching.
+BaseFAQ is a multi-tenant knowledge platform built from a React portal, multiple `.NET 10` APIs, tenant-aware PostgreSQL databases, and background worker services.
 
 This `README` is intentionally short. It explains what the repository is and how to bootstrap the essential local stack. Deep technical guidance lives in [`docs/README.md`](docs/README.md).
 
@@ -53,10 +53,8 @@ dotnet run --project dotnet/BaseFaq.Tools.Seed
 
 Recommended choices:
 
-- `2`: essential data only, when you just need AI providers and the AI Agent user
+- `2`: essential data only, when you just need the base tenant metadata
 - `3`: clean databases and seed essential plus sample FAQ data
-
-If the seed prints a new AI Agent user id, copy it to `Ai:UserId` in `dotnet/BaseFaq.AI.Api/appsettings.json`.
 
 ### 4. Run the services you need
 
@@ -68,7 +66,6 @@ dotnet run --project dotnet/BaseFaq.Tenant.Portal.Api
 dotnet run --project dotnet/BaseFaq.Tenant.Public.Api
 dotnet run --project dotnet/BaseFaq.Faq.Portal.Api
 dotnet run --project dotnet/BaseFaq.Faq.Public.Api
-dotnet run --project dotnet/BaseFaq.AI.Api
 ```
 
 Frontend:
@@ -112,7 +109,6 @@ Use this after the tenant metadata already exists, or when you need to apply FAQ
 | Tenant Public API | `http://localhost:5004` |
 | FAQ Portal API | `http://localhost:5010` |
 | FAQ Public API | `http://localhost:5020` |
-| AI API health | `http://localhost:5030/health` |
 | PostgreSQL | `localhost:5432` |
 | RabbitMQ UI | `http://localhost:15672` |
 | Jaeger | `http://localhost:16686` |

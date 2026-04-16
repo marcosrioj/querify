@@ -228,7 +228,7 @@ Source: [Domain/Answer.cs](./Domain/Answer.cs)
 Business role:
 
 - stores an answer candidate or answer variant
-- supports official, community, imported, and AI-assisted response models
+- supports official, community, and imported response models
 - separates answer origin from answer lifecycle
 - allows accepted, canonical, official, validated, and retired states to coexist cleanly
 
@@ -246,7 +246,7 @@ Core fields:
 | `ApplicabilityRulesJson` | Serialized matching rules for contextual fit. |
 | `TrustNote` | Human-readable explanation of why the answer can be trusted. |
 | `EvidenceSummary` | Cached moderation and public trust summary. |
-| `AuthorLabel` | Display origin label such as Support, Engineering, or AI draft. |
+| `AuthorLabel` | Display origin label such as Support, Engineering, or Operations. |
 | `ConfidenceScore` | Trust level for the answer itself. |
 | `Rank` | Ordering signal among answer candidates. |
 | `RevisionNumber` | Current revision pointer of the answer. |
@@ -272,7 +272,7 @@ Important timestamps:
 Design note:
 
 - the model allows many answers per question because a serious Q&A platform cannot assume one static response forever
-- public exposure must stay fail-closed for answers, especially AI drafts and unreviewed candidates, regardless of whether the final EF entity keeps public setters
+- public exposure must stay fail-closed for answers, especially unreviewed candidates, regardless of whether the final EF entity keeps public setters
 
 ### `Source`
 
@@ -484,7 +484,6 @@ Source: [Domain/Enums/QuestionKind.cs](./Domain/Enums/QuestionKind.cs)
 | `Curated` | Intentionally authored by internal teams. |
 | `Community` | Created by community participation. |
 | `Imported` | Brought from another system. |
-| `AiSuggested` | Proposed by AI from observed gaps or clustered signals. |
 
 ### `QuestionStatus`
 
@@ -509,8 +508,6 @@ Source: [Domain/Enums/AnswerKind.cs](./Domain/Enums/AnswerKind.cs)
 | --- | --- |
 | `Official` | Official answer owned by the product or support operation. |
 | `Community` | Answer provided by a community participant. |
-| `AiDraft` | AI-generated draft that still requires review. |
-| `AiAssisted` | Human-authored or human-edited answer with AI help. |
 | `Imported` | Answer imported from another system or knowledge base. |
 
 ### `AnswerStatus`
@@ -607,7 +604,6 @@ Source: [Domain/Enums/ActorKind.cs](./Domain/Enums/ActorKind.cs)
 | `Customer` | End customer or external user caused the event. |
 | `Contributor` | General contributor caused the event. |
 | `Moderator` | Moderator or editor caused the event. |
-| `AiAgent` | AI assistant or automated reasoning flow caused the event. |
 | `Integration` | External integration or connector caused the event. |
 
 ## Reading map

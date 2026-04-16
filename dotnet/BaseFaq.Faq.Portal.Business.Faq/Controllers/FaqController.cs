@@ -44,14 +44,6 @@ public class FaqController(IFaqService faqService) : ControllerBase
         return Ok(result);
     }
 
-    [HttpPost("{id:guid}/generation-request")]
-    [ProducesResponseType(typeof(Guid), StatusCodes.Status202Accepted)]
-    public async Task<IActionResult> RequestGeneration(Guid id, CancellationToken token)
-    {
-        var correlationId = await faqService.RequestGeneration(id, token);
-        return Accepted(correlationId);
-    }
-
     [HttpDelete("{id:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> Delete(Guid id, CancellationToken token)

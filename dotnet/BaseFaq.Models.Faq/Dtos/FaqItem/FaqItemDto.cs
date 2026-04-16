@@ -15,7 +15,7 @@ public class FaqItemDto
     public string? CtaUrl { get; set; }
     public required int Sort { get; set; }
     public required int FeedbackScore { get; set; }
-    public required int AiConfidenceScore { get; set; }
+    public required int ConfidenceScore { get; set; }
     public required bool IsActive { get; set; }
     public required Guid FaqId { get; set; }
     public Guid? ContentRefId { get; set; }

@@ -213,13 +213,13 @@ public class FaqItemsGetFaqItemListQueryHandler(FaqDbContext dbContext)
                         item.FeedbackScore)),
             "aiconfidencescore" => isFirst
                 ? (desc
-                    ? query.OrderByDescending(item => item.AiConfidenceScore)
-                    : query.OrderBy(item => item.AiConfidenceScore))
+                    ? query.OrderByDescending(item => item.ConfidenceScore)
+                    : query.OrderBy(item => item.ConfidenceScore))
                 : (desc
                     ? ((IOrderedQueryable<Common.Persistence.FaqDb.Entities.FaqItem>)query)
-                    .ThenByDescending(item => item.AiConfidenceScore)
+                    .ThenByDescending(item => item.ConfidenceScore)
                     : ((IOrderedQueryable<Common.Persistence.FaqDb.Entities.FaqItem>)query)
-                    .ThenBy(item => item.AiConfidenceScore)),
+                    .ThenBy(item => item.ConfidenceScore)),
             "isactive" => isFirst
                 ? (desc ? query.OrderByDescending(item => item.IsActive) : query.OrderBy(item => item.IsActive))
                 : (desc

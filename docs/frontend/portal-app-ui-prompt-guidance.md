@@ -58,7 +58,7 @@ If a shared primitive already matches the use case, do not replace it with ad ho
 ## Confirmation standards
 
 - destructive actions should use `ConfirmAction`
-- AI generation or other meaningful run actions should also use an explicit confirmation step
+- long-running or other meaningful run actions should also use an explicit confirmation step
 - do not fire irreversible or expensive actions immediately on click
 
 ## Domain-specific UI rules

@@ -21,7 +21,7 @@ public class EntityFkIntegrityTests
             CtaUrl = "https://example.test/cta",
             Sort = 1,
             FeedbackScore = 0,
-            AiConfidenceScore = 0,
+            ConfidenceScore = 0,
             IsActive = true,
             FaqId = Guid.NewGuid(),
             TenantId = context.SessionService.TenantId
@@ -46,7 +46,7 @@ public class EntityFkIntegrityTests
             CtaUrl = "https://example.test/cta",
             Sort = 1,
             FeedbackScore = 0,
-            AiConfidenceScore = 0,
+            ConfidenceScore = 0,
             IsActive = true,
             FaqId = faq.Id,
             ContentRefId = Guid.NewGuid(),

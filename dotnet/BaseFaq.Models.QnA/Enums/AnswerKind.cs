@@ -18,20 +18,8 @@ public enum AnswerKind
     Community = 2,
 
     /// <summary>
-    /// An AI-generated draft that should not be treated as trusted until reviewed.
-    /// It is useful for acceleration, not direct publication.
-    /// </summary>
-    AiDraft = 3,
-
-    /// <summary>
-    /// An answer created or edited by a human with AI assistance.
-    /// This normally carries more trust than a raw draft but still benefits from review.
-    /// </summary>
-    AiAssisted = 4,
-
-    /// <summary>
     /// An answer imported from another system or knowledge base.
     /// It may need normalization or revalidation in the local domain.
     /// </summary>
-    Imported = 5
+    Imported = 3
 }

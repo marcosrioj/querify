@@ -166,12 +166,6 @@ public class QnADbContext : BaseDbContext<QnADbContext>
                 answer.Status is not AnswerStatus.Published and not AnswerStatus.Validated)
                 throw new InvalidOperationException(
                     $"Answer '{answer.Id}' cannot be public while in status '{answer.Status}'.");
-
-            if (answer.Visibility.IsPubliclyVisible() &&
-                answer.Kind == AnswerKind.AiDraft &&
-                answer.Status != AnswerStatus.Validated)
-                throw new InvalidOperationException(
-                    $"AI draft answer '{answer.Id}' must be validated before public exposure.");
         }
     }
 

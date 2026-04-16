@@ -20,5 +20,4 @@ public class Tenant : BaseEntity
     public string? ClientKey { get; set; }
     public bool IsActive { get; set; } = true;
     public ICollection<TenantUser> TenantUsers { get; set; } = [];
-    public ICollection<TenantAiProvider> AiProviders { get; set; } = [];
 }

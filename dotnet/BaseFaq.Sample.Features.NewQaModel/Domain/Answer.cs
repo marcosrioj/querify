@@ -72,7 +72,7 @@ public sealed class Answer : DomainEntity
     public string? EvidenceSummary { get; private set; }
 
     /// <summary>
-    /// Public author or origin label, such as "Support", "Engineering", or "AI draft".
+    /// Public author or origin label, such as "Support" or "Engineering".
     /// </summary>
     public string? AuthorLabel { get; private set; }
 
@@ -196,9 +196,6 @@ public sealed class Answer : DomainEntity
             DomainGuards.Ensure(
                 Status is AnswerStatus.Published or AnswerStatus.Validated,
                 "Only published or validated answers can be exposed publicly.");
-            DomainGuards.Ensure(
-                Kind != AnswerKind.AiDraft || Status == AnswerStatus.Validated,
-                "AI draft answers must be validated before public exposure.");
 
             foreach (var sourceLink in sources)
             {

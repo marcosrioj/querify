@@ -26,8 +26,7 @@ public class ProjectRulesComplianceTests
         "BaseFaq.Models.QnA",
         "BaseFaq.Models.Tenant",
         "BaseFaq.Models.User",
-        "BaseFaq.Tools.",
-        "BaseFaq.AI."
+        "BaseFaq.Tools."
     ];
 
     private static readonly string[] ProhibitedQnAMonolithProjects =

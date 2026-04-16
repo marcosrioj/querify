@@ -284,7 +284,7 @@ export function ContentRefListPage() {
         emptyState={
           <EmptyState
             title="No sources in view"
-            description="Create sources to support Q&A items and AI output."
+            description="Create sources to support Q&A items and published content."
             action={{
               label: "New source",
               to: "/app/content-refs/new",

@@ -5,7 +5,6 @@ import {
   deleteFaq,
   getFaq,
   listFaqs,
-  requestFaqGeneration,
   updateFaq,
 } from '@/domains/faq/api';
 import type { FaqCreateRequestDto, FaqUpdateRequestDto } from '@/domains/faq/types';
@@ -108,24 +107,6 @@ export function useDeleteFaq() {
     onSuccess: async () => {
       toast.success(translateText('FAQ deleted.'));
       await queryClient.invalidateQueries({ queryKey: faqKeys.all });
-    },
-  });
-}
-
-export function useRequestFaqGeneration() {
-  const { session } = useAuth();
-  const { currentTenantId } = useTenant();
-
-  return useMutation({
-    mutationKey: [...faqKeys.all, 'generation-request'],
-    mutationFn: (id: string) =>
-      requestFaqGeneration(session?.accessToken, currentTenantId, id),
-    onSuccess: (correlationId) => {
-      toast.success(
-        translateText('Generation requested. Correlation ID: {correlationId}', {
-          correlationId,
-        }),
-      );
     },
   });
 }

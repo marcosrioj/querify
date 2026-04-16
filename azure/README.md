@@ -16,7 +16,7 @@ Auth0 is manual by design (you fill it in the stage env file).
 
 - `lib/common.sh`: shared helpers (validation, env loading, required vars, Azure checks).
 - `provision.sh`: infra only.
-- `bootstrap-data.sh`: DB bootstrap + essential seed (`AI_USER_ID` sync).
+- `bootstrap-data.sh`: DB bootstrap + seed orchestration.
 - `deploy.sh`: image build/push + Container Apps deploy.
 - `run-migrations.sh`: applies tenant + FAQ migrations in non-interactive mode.
 - `setup.sh`: full flow (`provision -> bootstrap-data -> deploy`).
@@ -51,19 +51,16 @@ Configured in templates using `basefaq.com`:
     - `faq-public.dev.basefaq.com`
     - `tenant.dev.basefaq.com`
     - `tenant-portal.dev.basefaq.com`
-    - `ai.dev.basefaq.com`
 - QA:
     - `faq.qa.basefaq.com`
     - `faq-public.qa.basefaq.com`
     - `tenant.qa.basefaq.com`
     - `tenant-portal.qa.basefaq.com`
-    - `ai.qa.basefaq.com`
 - Prod:
     - `faq.basefaq.com`
     - `faq-public.basefaq.com`
     - `tenant.basefaq.com`
     - `tenant-portal.basefaq.com`
-    - `ai.basefaq.com`
 
 ## Full setup (simple path)
 
@@ -122,17 +119,15 @@ You can override env file path in any script:
 - PostgreSQL Flexible Server + DBs
 - Azure Cache for Redis
 - RabbitMQ on Azure Container Instances
-- 5 Container Apps:
+- 4 Container Apps:
     - FAQ Portal API
     - FAQ Public API
     - Tenant BackOffice API
     - Tenant Portal API
-    - AI API
 
 ## Important notes
 
 - `provision.sh` updates generated values in the stage env file (DB/Redis/RabbitMQ endpoints and secrets).
-- `bootstrap-data.sh` updates `AI_USER_ID` in the stage env file.
 - `run-migrations.sh` is recommended for CI/CD deployments where you only need DB migration and no seed reset.
 - `deploy.sh` uses those values directly as app secrets/env vars.
 - Custom domain DNS/CERT binding is still an Azure DNS/SSL operation outside this script.
@@ -160,7 +155,6 @@ Required GitHub `secrets`:
 - `TENANT_DB_CONNECTION_STRING`
 - `REDIS_PASSWORD`
 - `RABBITMQ_PASSWORD`
-- `AI_USER_ID`
 
 Required GitHub `vars` (or keep value in `azure/env/dev.env.example`):
 
@@ -173,4 +167,4 @@ Required GitHub `vars` (or keep value in `azure/env/dev.env.example`):
 - `CONTAINERAPP_PREFIX`
 - Auth vars (`AUTHORITY_URL`, `AUTH_AUDIENCE`, Swagger auth vars)
 - Domain vars (`FAQ_PORTAL_DOMAIN`, `FAQ_PUBLIC_DOMAIN`, `TENANT_BACKOFFICE_DOMAIN`, `TENANT_PORTAL_DOMAIN`,
-  `AI_DOMAIN`)
+  no AI-specific domain)

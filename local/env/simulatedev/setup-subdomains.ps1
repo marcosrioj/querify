@@ -7,7 +7,6 @@ param(
     [int]$PortalAppPort = 5500,
     [int]$FaqPortalPort = 5010,
     [int]$FaqPublicPort = 5020,
-    [int]$AiPort = 5030,
     [int]$TestPort = 5999
 )
 
@@ -209,25 +208,6 @@ server {
 server {
     listen 80;
     listen 443 ssl;
-    server_name dev.ai.basefaq.com;
-    ssl_certificate /etc/nginx/certs/dev.basefaq.com.crt;
-    ssl_certificate_key /etc/nginx/certs/dev.basefaq.com.key;
-
-    location / {
-        proxy_pass http://__UPSTREAM_HOST__:__AI_PORT__;
-        proxy_http_version 1.1;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection $connection_upgrade;
-    }
-}
-
-server {
-    listen 80;
-    listen 443 ssl;
     server_name dev.test.basefaq.com *.test.basefaq.com;
     ssl_certificate /etc/nginx/certs/dev.basefaq.com.crt;
     ssl_certificate_key /etc/nginx/certs/dev.basefaq.com.key;
@@ -253,7 +233,6 @@ $nginxConfig = $nginxTemplate.
     Replace("__PORTAL_APP_PORT__", $PortalAppPort.ToString()).
     Replace("__FAQ_PORTAL_PORT__", $FaqPortalPort.ToString()).
     Replace("__FAQ_PUBLIC_PORT__", $FaqPublicPort.ToString()).
-    Replace("__AI_PORT__", $AiPort.ToString()).
     Replace("__TEST_PORT__", $TestPort.ToString())
 
 Set-Content -Path $nginxConfFile -Encoding ascii -Value $nginxConfig
@@ -280,7 +259,6 @@ $null = $cleanHosts.Add("$HostIp dev.tenant.backoffice.basefaq.com")
 $null = $cleanHosts.Add("$HostIp dev.tenant.portal.basefaq.com")
 $null = $cleanHosts.Add("$HostIp dev.faq.portal.basefaq.com")
 $null = $cleanHosts.Add("$HostIp dev.faq.public.basefaq.com")
-$null = $cleanHosts.Add("$HostIp dev.ai.basefaq.com")
 $null = $cleanHosts.Add("$HostIp dev.test.basefaq.com")
 $null = $cleanHosts.Add($markerEnd)
 
@@ -305,7 +283,6 @@ Write-Host "  dev.tenant.backoffice.basefaq.com -> $UpstreamHost`:$TenantBackOff
 Write-Host "  dev.tenant.portal.basefaq.com     -> $UpstreamHost`:$TenantPortalPort"
 Write-Host "  dev.faq.portal.basefaq.com        -> $UpstreamHost`:$FaqPortalPort"
 Write-Host "  dev.faq.public.basefaq.com        -> $UpstreamHost`:$FaqPublicPort"
-Write-Host "  dev.ai.basefaq.com                -> $UpstreamHost`:$AiPort"
 Write-Host "  dev.test.basefaq.com              -> $UpstreamHost`:$TestPort"
 Write-Host ""
 Write-Host "Generated Nginx config:"

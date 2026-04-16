@@ -122,13 +122,13 @@ Required updates:
 - support individual question pages as first-class SEO objects
 - suppress duplicate markup across embeds and integrations
 
-### 8. AI generation and matching
+### 8. Answer suggestion and matching
 
 Targets:
 
-- AI generation
-- AI matching
-- AI shared contracts
+- answer suggestion
+- duplicate matching
+- shared async contracts
 
 Required updates:
 
@@ -136,8 +136,8 @@ Required updates:
 - attach evidence and confidence to every draft
 - cluster duplicate questions
 - propose accepted-answer candidates, not only generated text
-- route AI output through moderation before it becomes official
-- prevent AI draft output from becoming public or official until the expected review and validation path has completed
+- route generated output through moderation before it becomes official
+- prevent draft output from becoming public or official until the expected review and validation path has completed
 
 ### 9. Analytics and reporting
 
@@ -155,7 +155,7 @@ Required updates:
 - track duplicate rate
 - track stale answers
 - track moderation backlog
-- track source coverage and AI draft approval rate
+- track source coverage and draft approval rate
 
 ### 10. Integrations and connectors
 
@@ -188,7 +188,7 @@ Required updates:
 - define who can publish official answers
 - define who can accept answers
 - define who can validate answers
-- define how AI drafts are labeled and approved
+- define how generated drafts are labeled and approved
 - define which source kinds may be cited publicly, which may be excerpted publicly, and which remain internal-only by default
 - define validation rules for flexible metadata such as source metadata JSON, snapshots, and external locators
 - define retention policy for activity and evidence history
@@ -235,7 +235,7 @@ Required updates:
 2. portal write-side workflows
 3. public read-side behavior
 4. portal UI
-5. AI and connector alignment
+5. workflow and connector alignment
 6. analytics and governance hardening
 7. seed and test expansion
 

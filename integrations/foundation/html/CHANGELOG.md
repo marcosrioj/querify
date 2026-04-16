@@ -16,11 +16,11 @@ All notable changes to the BaseFAQ HTML Foundation integration are documented he
   - `voteScore` displayed on each vote button (configurable)
 - **Display configuration** — all sections are independently show/hide controllable:
   - `showTags`, `showFeedback`, `showFeedbackScore`, `showCta`, `showAdditionalInfo`
-  - `showSources`, `showAiConfidence`, `showAnswerVariants`, `showVotes`, `showVoteScore`
+  - `showSources`, `showConfidence`, `showAnswerVariants`, `showVotes`, `showVoteScore`
   - In the public-page playground: live checkboxes in the config panel
   - In the copy-paste snippet: `data-show-*` attributes on the container div
-- **AI confidence badge** — optional `aiConfidenceScore` display per FAQ item
-  (off by default; enable with `showAiConfidence: true` / `data-show-ai-confidence="true"`)
+- **Confidence badge** — optional `confidenceScore` display per FAQ item
+  (off by default; enable with `showConfidence: true` / `data-show-confidence="true"`)
 - **Copy-paste snippet v2** — fully rewritten as a Google-Analytics-style embed:
   - Single IIFE script, auto-initialises all `[data-basefaq]` containers on the page
   - Full CSS injected into `<head>` once per page (scoped to `.bfq` namespace)

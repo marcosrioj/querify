@@ -64,7 +64,7 @@ export interface FaqItemDto {
   ctaUrl:            string | null;
   sort:              number;
   feedbackScore:         number;
-  aiConfidenceScore: number;
+  confidenceScore:   number;
   isActive:          boolean;
   faqId:             string;
   contentRefId:      string | null;

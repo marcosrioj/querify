@@ -37,7 +37,7 @@ flowchart TD
 | --- | --- |
 | [QuestionStatus](../Domain/Enums/QuestionStatus.cs) | Whether the thread stays active, becomes duplicate, escalated, or archived. |
 | [ActivityKind](../Domain/Enums/ActivityKind.cs) | Typical events are `QuestionMarkedDuplicate`, `QuestionEscalated`, `FeedbackReceived`, and `VoteReceived`. |
-| [ActorKind](../Domain/Enums/ActorKind.cs) | Records whether the signal came from customer, contributor, moderator, system, AI, or integration. |
+| [ActorKind](../Domain/Enums/ActorKind.cs) | Records whether the signal came from customer, contributor, moderator, system, or integration. |
 | [ChannelKind](../Domain/Enums/ChannelKind.cs) | Helps interpret where the original question or later signals came from, even when the feedback payload is stored in activity metadata. |
 
 ## Interaction notes

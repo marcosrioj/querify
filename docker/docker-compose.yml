@@ -89,20 +89,6 @@ services:
       - "host.docker.internal:host-gateway"
     networks:
       - bf-network
-  basefaq.ai.api:
-    image: basefaq.ai.api
-    build:
-      context: ..
-      dockerfile: dotnet/BaseFaq.AI.Api/Dockerfile
-    ports:
-      - "5030:5030"
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_URLS=http://+:5030
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    networks:
-      - bf-network
   basefaq.tenant.worker.api:
     image: basefaq.tenant.worker.api
     build:

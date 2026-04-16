@@ -27,7 +27,6 @@ TENANT_PORTAL_PORT="${TENANT_PORTAL_PORT:-5002}"
 PORTAL_APP_PORT="${PORTAL_APP_PORT:-5500}"
 FAQ_PORTAL_PORT="${FAQ_PORTAL_PORT:-5010}"
 FAQ_PUBLIC_PORT="${FAQ_PUBLIC_PORT:-5020}"
-AI_PORT="${AI_PORT:-5030}"
 TEST_PORT="${TEST_PORT:-5999}"
 
 check_dependencies() {
@@ -198,25 +197,6 @@ server {
 server {
     listen 80;
     listen 443 ssl;
-    server_name dev.ai.basefaq.com;
-    ssl_certificate /etc/nginx/certs/dev.basefaq.com.crt;
-    ssl_certificate_key /etc/nginx/certs/dev.basefaq.com.key;
-
-    location / {
-        proxy_pass http://$UPSTREAM_HOST:$AI_PORT;
-        proxy_http_version 1.1;
-        proxy_set_header Host \$host;
-        proxy_set_header X-Real-IP \$remote_addr;
-        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto \$scheme;
-        proxy_set_header Upgrade \$http_upgrade;
-        proxy_set_header Connection \$connection_upgrade;
-    }
-}
-
-server {
-    listen 80;
-    listen 443 ssl;
     server_name dev.test.basefaq.com *.test.basefaq.com;
     ssl_certificate /etc/nginx/certs/dev.basefaq.com.crt;
     ssl_certificate_key /etc/nginx/certs/dev.basefaq.com.key;
@@ -261,7 +241,6 @@ update_hosts_file() {
     printf "%s dev.tenant.portal.basefaq.com\n" "$HOST_IP"
     printf "%s dev.faq.portal.basefaq.com\n" "$HOST_IP"
     printf "%s dev.faq.public.basefaq.com\n" "$HOST_IP"
-    printf "%s dev.ai.basefaq.com\n" "$HOST_IP"
     printf "%s dev.test.basefaq.com\n" "$HOST_IP"
     printf "%s\n" "$HOSTS_MARKER_END"
   } >> "$tmp_file"
@@ -321,7 +300,6 @@ print_summary() {
   echo "  dev.tenant.portal.basefaq.com     -> $UPSTREAM_HOST:$TENANT_PORTAL_PORT"
   echo "  dev.faq.portal.basefaq.com        -> $UPSTREAM_HOST:$FAQ_PORTAL_PORT"
   echo "  dev.faq.public.basefaq.com        -> $UPSTREAM_HOST:$FAQ_PUBLIC_PORT"
-  echo "  dev.ai.basefaq.com                -> $UPSTREAM_HOST:$AI_PORT"
   echo "  dev.test.basefaq.com              -> $UPSTREAM_HOST:$TEST_PORT"
   echo
   echo "Generated Nginx config:"

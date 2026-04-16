@@ -65,7 +65,7 @@ dotnet run --project dotnet/BaseFaq.Tools.Seed
 
 Common choices:
 
-- `2`: seed essential tenant metadata, AI provider data, and the AI Agent user
+- `2`: seed essential tenant metadata only
 - `3`: clean databases and seed essential plus sample FAQ data
 
 On a clean machine, this is the fastest way to create the tenant schema and the seed-target FAQ schema because the seed application runs EF Core migrations before inserting data.
@@ -101,7 +101,6 @@ dotnet run --project dotnet/BaseFaq.Tenant.BackOffice.Api
 dotnet run --project dotnet/BaseFaq.Tenant.Portal.Api
 dotnet run --project dotnet/BaseFaq.Faq.Portal.Api
 dotnet run --project dotnet/BaseFaq.Faq.Public.Api
-dotnet run --project dotnet/BaseFaq.AI.Api
 dotnet run --project dotnet/BaseFaq.Tenant.Worker.Api
 ```
 
@@ -143,7 +142,6 @@ Notes:
 | Tenant Portal API | `http://localhost:5002` |
 | FAQ Portal API | `http://localhost:5010` |
 | FAQ Public API | `http://localhost:5020` |
-| AI API health | `http://localhost:5030/health` |
 | Tenant Worker API | no HTTP surface; background host only |
 | PostgreSQL | `localhost:5432` |
 | Redis | `localhost:6379` |

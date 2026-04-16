@@ -8,7 +8,6 @@ This folder contains a self-contained helper to expose local APIs behind these s
 - `dev.tenant.portal.basefaq.com`
 - `dev.faq.public.basefaq.com`
 - `dev.faq.portal.basefaq.com`
-- `dev.ai.basefaq.com`
 - `dev.test.basefaq.com`
 
 The approach is intentionally decoupled from host machine Nginx:
@@ -27,7 +26,6 @@ The approach is intentionally decoupled from host machine Nginx:
 - `dev.tenant.portal.basefaq.com` -> `http://<upstream-host>:5002`
 - `dev.faq.portal.basefaq.com` -> `http://<upstream-host>:5010`
 - `dev.faq.public.basefaq.com` -> `http://<upstream-host>:5020`
-- `dev.ai.basefaq.com` -> `http://<upstream-host>:5030`
 - `dev.test.basefaq.com` -> `http://<upstream-host>:5999`
 
 `<upstream-host>` defaults:
@@ -89,7 +87,6 @@ You can override defaults through environment variables (Linux) or parameters (P
   - `TENANT_PORTAL_PORT` / `-TenantPortalPort`
   - `FAQ_PORTAL_PORT` / `-FaqPortalPort`
   - `FAQ_PUBLIC_PORT` / `-FaqPublicPort`
-  - `AI_PORT` / `-AiPort`
   - `TEST_PORT` / `-TestPort`
 
 Linux example:

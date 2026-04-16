@@ -53,7 +53,7 @@ export function AuthLayout() {
                 </h1>
                 <p className="text-base font-medium text-secondary-foreground">
                   {t(
-                    'Sign in to manage FAQs, Q&A items, sources, billing, and AI settings.',
+                    'Sign in to manage FAQs, Q&A items, sources, billing, and workspace settings.',
                   )}
                 </p>
               </div>

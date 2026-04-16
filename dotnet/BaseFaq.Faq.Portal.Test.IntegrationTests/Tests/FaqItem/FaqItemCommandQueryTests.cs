@@ -195,7 +195,7 @@ public class FaqItemCommandQueryTests
             ctaUrl: "https://example.test/b",
             sort: 1,
             feedbackScore: 0,
-            aiConfidenceScore: 0);
+            confidenceScore: 0);
         var second = TestDataFactory.CreateFaqItem(
             context.SessionService.TenantId,
             faq.Id,
@@ -207,7 +207,7 @@ public class FaqItemCommandQueryTests
             ctaUrl: "https://example.test/a",
             sort: 5,
             feedbackScore: 0,
-            aiConfidenceScore: 0);
+            confidenceScore: 0);
 
         context.DbContext.FaqItems.AddRange(first, second);
         await context.DbContext.SaveChangesAsync();
@@ -247,7 +247,7 @@ public class FaqItemCommandQueryTests
             ctaUrl: "https://example.test/bravo",
             sort: 1,
             feedbackScore: 0,
-            aiConfidenceScore: 0);
+            confidenceScore: 0);
         var second = TestDataFactory.CreateFaqItem(
             context.SessionService.TenantId,
             faq.Id,
@@ -259,7 +259,7 @@ public class FaqItemCommandQueryTests
             ctaUrl: "https://example.test/alpha",
             sort: 1,
             feedbackScore: 0,
-            aiConfidenceScore: 0);
+            confidenceScore: 0);
 
         context.DbContext.FaqItems.AddRange(first, second);
         await context.DbContext.SaveChangesAsync();
@@ -300,7 +300,7 @@ public class FaqItemCommandQueryTests
             ctaUrl: "https://example.test/bravo",
             sort: 1,
             feedbackScore: 0,
-            aiConfidenceScore: 0);
+            confidenceScore: 0);
         var second = TestDataFactory.CreateFaqItem(
             context.SessionService.TenantId,
             faq.Id,
@@ -312,7 +312,7 @@ public class FaqItemCommandQueryTests
             ctaUrl: "https://example.test/alpha",
             sort: 1,
             feedbackScore: 0,
-            aiConfidenceScore: 0);
+            confidenceScore: 0);
         var third = TestDataFactory.CreateFaqItem(
             context.SessionService.TenantId,
             faq.Id,
@@ -324,7 +324,7 @@ public class FaqItemCommandQueryTests
             ctaUrl: "https://example.test/zulu",
             sort: 1,
             feedbackScore: 0,
-            aiConfidenceScore: 0,
+            confidenceScore: 0,
             isActive: false);
 
         context.DbContext.FaqItems.AddRange(first, second, third);
@@ -366,7 +366,7 @@ public class FaqItemCommandQueryTests
                 ctaUrl: "https://example.test/c",
                 sort: 1,
                 feedbackScore: 0,
-                aiConfidenceScore: 0),
+                confidenceScore: 0),
             TestDataFactory.CreateFaqItem(
                 context.SessionService.TenantId,
                 faq.Id,
@@ -378,7 +378,7 @@ public class FaqItemCommandQueryTests
                 ctaUrl: "https://example.test/a",
                 sort: 1,
                 feedbackScore: 0,
-                aiConfidenceScore: 0),
+                confidenceScore: 0),
             TestDataFactory.CreateFaqItem(
                 context.SessionService.TenantId,
                 faq.Id,
@@ -390,7 +390,7 @@ public class FaqItemCommandQueryTests
                 ctaUrl: "https://example.test/b",
                 sort: 1,
                 feedbackScore: 0,
-                aiConfidenceScore: 0));
+                confidenceScore: 0));
         await context.DbContext.SaveChangesAsync();
 
         var handler = new FaqItemsGetFaqItemListQueryHandler(context.DbContext);
@@ -436,7 +436,7 @@ public class FaqItemCommandQueryTests
             ctaUrl: "https://example.test/billing",
             sort: 1,
             feedbackScore: 10,
-            aiConfidenceScore: 90,
+            confidenceScore: 90,
             isActive: true);
         var nonMatching = TestDataFactory.CreateFaqItem(
             context.SessionService.TenantId,
@@ -450,7 +450,7 @@ public class FaqItemCommandQueryTests
             ctaUrl: "https://example.test/support",
             sort: 2,
             feedbackScore: 5,
-            aiConfidenceScore: 20,
+            confidenceScore: 20,
             isActive: false);
 
         context.DbContext.FaqItems.AddRange(matching, nonMatching);

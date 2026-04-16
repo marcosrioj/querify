@@ -21,9 +21,6 @@ export function PortalFooter() {
             <Link to="/app/billing" className="hover:text-primary">
               {t('Billing')}
             </Link>
-            <Link to="/app/ai" className="hover:text-primary">
-              {t('AI')}
-            </Link>
           </nav>
         </div>
       </Container>

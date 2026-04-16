@@ -118,9 +118,6 @@ public sealed class AnswersUpdateAnswerCommandHandler(
         if (entity.Status is not AnswerStatus.Published and not AnswerStatus.Validated)
             throw new InvalidOperationException("Only published or validated answers can be exposed publicly.");
 
-        if (entity.Kind == AnswerKind.AiDraft && entity.Status != AnswerStatus.Validated)
-            throw new InvalidOperationException("AI draft answers must be validated before public exposure.");
-
         foreach (var sourceLink in entity.Sources)
             if (sourceLink.Role is SourceRole.Citation or SourceRole.CanonicalReference &&
                 (sourceLink.Source.Visibility is not VisibilityScope.Public and not VisibilityScope.PublicIndexed ||

@@ -294,8 +294,8 @@ export function FaqItemDetailPage() {
                       value: String(itemQuery.data.feedbackScore),
                     },
                     {
-                      label: "AI confidence",
-                      value: String(itemQuery.data.aiConfidenceScore),
+                      label: "Confidence",
+                      value: String(itemQuery.data.confidenceScore),
                     },
                   ]}
                 />

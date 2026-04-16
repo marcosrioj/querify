@@ -41,7 +41,7 @@ const sortingOptions = [
   { value: "UpdatedDate DESC", label: "Last updated" },
   { value: "Question ASC", label: "Question A-Z" },
   { value: "FeedbackScore DESC", label: "Feedback score" },
-  { value: "AiConfidenceScore DESC", label: "AI confidence" },
+  { value: "ConfidenceScore DESC", label: "Confidence" },
 ];
 
 const FAQ_ITEM_FILTER_DEFAULTS = {

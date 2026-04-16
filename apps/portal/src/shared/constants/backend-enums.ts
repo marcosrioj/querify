@@ -60,11 +60,6 @@ export enum TenantSubscriptionStatus {
   Paused = 8,
 }
 
-export enum AiCommandType {
-  Generation = 10,
-  Matching = 20,
-}
-
 export enum FaqStatus {
   Draft = 0,
   Published = 1,

@@ -13,7 +13,7 @@ public enum ModerationPolicy
 
     /// <summary>
     /// New submissions must be reviewed before they become visible.
-    /// This is the safest default for external or AI-generated input.
+    /// This is the safest default for external or automated input.
     /// </summary>
     PreModeration = 1,
 

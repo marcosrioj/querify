@@ -39,7 +39,7 @@ The future production migration should preserve these controls even if the final
 - tenant query filters are necessary but not sufficient; cross-tenant attachments must also be rejected on the write side
 - public exposure should stay fail-closed for questions, answers, sources, and citations
 - source citation and excerpt reuse should require explicit source-level approval, not only a link role
-- AI drafts should not become public or official without the expected review and validation path
+- draft answers should not become public or official without the expected review and validation path
 - activity should be treated as append-only operational history, even if the persistence layer still inherits from `AuditableEntity`
 - JSON, URL, and similar flexible fields should be validated before persistence, even if that validation lives in handlers or validators rather than entity setters
 
@@ -86,7 +86,7 @@ Business role:
 
 - stores short and long answer forms
 - separates origin from lifecycle through `AnswerKind` and `AnswerStatus`
-- supports official answers, community answers, imported answers, AI drafts, and AI-assisted answers
+- supports official answers, community answers, and imported answers
 - supports contextual variants through `ContextKey` and `ApplicabilityRulesJson`
 - tracks whether the answer is accepted, canonical, official, published, validated, or retired
 
@@ -108,7 +108,7 @@ Business role:
 
 Why it exists:
 
-- provenance is central to trust, moderation, AI safety, and future enterprise features
+- provenance is central to trust, moderation, and future enterprise features
 
 ### `Tag`
 
@@ -152,7 +152,7 @@ Business role:
 
 Why it exists:
 
-- answer trust cannot be left implicit, especially once AI-assisted content enters the workflow
+- answer trust cannot be left implicit, especially once multiple draft sources enter the workflow
 
 ### `Activity`
 
@@ -197,7 +197,7 @@ Even with a small set of entities, the model already supports:
 - explicit source verification and public citation/excerpt controls
 - duplicate question handling
 - append-only workflow history
-- future connector and AI expansion without renaming the core domain
+- future connector and workflow expansion without renaming the core domain
 
 ## Project-local documentation
 

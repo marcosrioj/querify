@@ -48,13 +48,6 @@ run_seed_action() {
         dotnet run --project "${REPO_ROOT}/dotnet/BaseFaq.Tools.Seed/BaseFaq.Tools.Seed.csproj"
 }
 
-extract_ai_user_id() {
-    local output="$1"
-    printf "%s\n" "${output}" |
-        sed -n 's/.*AI Agent user id: \([0-9a-fA-F-]\{36\}\).*/\1/p' |
-        tail -n1
-}
-
 validate_config() {
     require_vars TENANT_DB_CONNECTION_STRING FAQ_DB_CONNECTION_STRING
 
@@ -83,24 +76,8 @@ main() {
     selected_output="$(run_seed_action "${selected_action}")"
     printf "%s\n" "${selected_output}"
 
-    # Guarantee AI_USER_ID is available after any mode.
-    if [[ "${MODE}" == "essential" ]]; then
-        essential_output="${selected_output}"
-    else
-        essential_output="$(run_seed_action "2")"
-        printf "%s\n" "${essential_output}"
-    fi
-
-    ai_user_id="$(extract_ai_user_id "${essential_output}")"
-    if [[ -z "${ai_user_id}" ]]; then
-        fail "Could not parse AI Agent user id from seed output."
-    fi
-
-    upsert_env "${ENV_FILE}" "AI_USER_ID" "${ai_user_id}"
-
     log_info ""
     log_info "Bootstrap completed for stage: ${STAGE}"
-    log_info "AI_USER_ID saved to ${ENV_FILE}: ${ai_user_id}"
 }
 
 main "$@"

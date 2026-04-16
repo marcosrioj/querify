@@ -79,10 +79,10 @@ This catalog is the human-readable reference for every orchestrator, subagent, s
 
 | Worker | Path | Use When | Recommended Skills |
 |---|---|---|---|
-| `backend-feature-worker` | `.agents/subagents/backend-feature-worker.toml` | The parent agent already framed a bounded backend change. | Backend and AI implementation skills. |
+| `backend-feature-worker` | `.agents/subagents/backend-feature-worker.toml` | The parent agent already framed a bounded backend change. | Backend implementation skills. |
 | `portal-frontend-worker` | `.agents/subagents/portal-frontend-worker.toml` | The parent agent already framed a bounded Portal change. | Frontend implementation skills. |
 | `data-integrity-worker` | `.agents/subagents/data-integrity-worker.toml` | The parent agent already framed migration, persistence, worker, or integration-test work. | Data, migration, and architecture-rule skills. |
-| `ai-workflow-worker` | `.agents/subagents/ai-workflow-worker.toml` | The parent agent already framed an async AI workflow change. | AI workflow and worker-processing skills. |
+| `ai-workflow-worker` | `.agents/subagents/ai-workflow-worker.toml` | The parent agent already framed an async workflow change. | Workflow and worker-processing skills. |
 | `domain-model-worker` | `.agents/subagents/domain-model-worker.toml` | The parent agent already framed bounded domain modeling or roadmap work. | Domain and provenance skills. |
 | `distribution-worker` | `.agents/subagents/distribution-worker.toml` | The parent agent already framed bounded integration or distribution planning work. | Distribution and trust skills. |
 | `quality-review-worker` | `.agents/subagents/quality-review-worker.toml` | The parent agent already framed a review or verification pass. | Review and verification-oriented skills. |

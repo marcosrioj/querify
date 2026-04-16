@@ -196,7 +196,7 @@ Use dsar.skill for this request flow.
 
 - Ask for the result you want, not the implementation path.
 - Include the relevant code, diff, file, or business scenario when possible.
-- Mention the boundary when you know it: Portal, backend, AI workflow, privacy, data, or integrations.
+- Mention the boundary when you know it: Portal, backend, background workflow, privacy, data, or integrations.
 - State restrictions early, such as "docs only", "no code changes", or "minimal fix".
 
 ### Weak Vs Strong Requests

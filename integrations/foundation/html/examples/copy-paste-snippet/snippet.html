@@ -19,7 +19,7 @@
     data-show-answer-variants   — multiple answer variants (answers[])
     data-show-votes             — vote button per answer variant
     data-show-vote-score        — vote count on the vote button
-    data-show-ai-confidence     — AI confidence badge   (default: "false")
+    data-show-confidence        — confidence badge      (default: "false")
 
   Other options:
     data-base-url    — override API base URL
@@ -54,7 +54,7 @@
   data-show-answer-variants="true"
   data-show-votes="true"
   data-show-vote-score="true"
-  data-show-ai-confidence="false"
+  data-show-confidence="false"
 
   data-schema-mode="canonical"
   data-single-open="true"
@@ -117,7 +117,7 @@
       showAnswerVariants: bool('showAnswerVariants',  true),
       showVotes:          bool('showVotes',           true),
       showVoteScore:      bool('showVoteScore',       true),
-      showAiConfidence:   bool('showAiConfidence',    false),
+      showConfidence:     bool('showConfidence',      false),
       schemaMode:  el.dataset.schemaMode  || 'canonical',
       singleOpen:  bool('singleOpen',  true),
       theme:       el.dataset.theme    || 'light',
@@ -233,16 +233,16 @@
         '</div>';
     }
 
-    /* AI confidence badge (optional) */
-    var aiHtml = '';
-    if (cfg.showAiConfidence && item.aiConfidenceScore != null && item.aiConfidenceScore > 0) {
-      aiHtml =
-        '<div class="bfq__ai-badge" aria-label="AI confidence: ' + item.aiConfidenceScore + '%">' +
+    /* Confidence badge (optional) */
+    var confidenceHtml = '';
+    if (cfg.showConfidence && item.confidenceScore != null && item.confidenceScore > 0) {
+      confidenceHtml =
+        '<div class="bfq__confidence-badge" aria-label="Confidence: ' + item.confidenceScore + '%">' +
           '<svg aria-hidden="true" width="11" height="11" viewBox="0 0 24 24" fill="none"' +
                ' stroke="currentColor" stroke-width="2.5">' +
             '<circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>' +
           '</svg>' +
-          ' AI ' + item.aiConfidenceScore + '%' +
+          ' Confidence ' + item.confidenceScore + '%' +
         '</div>';
     }
 
@@ -337,7 +337,7 @@
           '</svg>' +
         '</summary>' +
         '<div class="bfq__answer">' +
-          aiHtml +
+          confidenceHtml +
           primaryHtml +
           addlHtml +
           ctaHtml +
@@ -815,8 +815,8 @@
       '.bfq__answer-body a{color:var(--bfq-brand);text-decoration:underline}',
       '.bfq__answer-body strong{font-weight:600}',
 
-      /* ── AI confidence badge ────────────────────────────────────────── */
-      '.bfq__ai-badge{display:inline-flex;align-items:center;gap:0.25rem;padding:0.2rem 0.5rem;' +
+      /* ── Confidence badge ───────────────────────────────────────────── */
+      '.bfq__confidence-badge{display:inline-flex;align-items:center;gap:0.25rem;padding:0.2rem 0.5rem;' +
                      'background:var(--bfq-surf-o);border-radius:0.25rem;' +
                      'font-size:0.75rem;color:var(--bfq-text-m);margin-top:0.75rem;margin-bottom:0}',
 

@@ -10,7 +10,7 @@ public sealed class CleanupService : ICleanupService
     public void CleanTenantDb(TenantDbContext dbContext)
     {
         dbContext.Database.ExecuteSqlRaw(
-            "TRUNCATE TABLE \"BillingWebhookInboxes\", \"EmailOutboxes\", \"AiProviders\", \"TenantConnections\", \"TenantUsers\", \"Tenants\", \"Users\" RESTART IDENTITY CASCADE;");
+            "TRUNCATE TABLE \"BillingWebhookInboxes\", \"EmailOutboxes\", \"TenantConnections\", \"TenantUsers\", \"Tenants\", \"Users\" RESTART IDENTITY CASCADE;");
     }
 
     public void CleanFaqDb(FaqDbContext dbContext)

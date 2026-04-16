@@ -61,12 +61,10 @@ jobs:
           FAQ_PUBLIC_DOMAIN: ${{ vars.FAQ_PUBLIC_DOMAIN }}
           TENANT_BACKOFFICE_DOMAIN: ${{ vars.TENANT_BACKOFFICE_DOMAIN }}
           TENANT_PORTAL_DOMAIN: ${{ vars.TENANT_PORTAL_DOMAIN }}
-          AI_DOMAIN: ${{ vars.AI_DOMAIN }}
           OTLP_ENDPOINT: ${{ vars.OTLP_ENDPOINT }}
           TENANT_DB_CONNECTION_STRING: ${{ secrets.TENANT_DB_CONNECTION_STRING }}
           REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
           RABBITMQ_PASSWORD: ${{ secrets.RABBITMQ_PASSWORD }}
-          AI_USER_ID: ${{ secrets.AI_USER_ID }}
         run: |
           set -euo pipefail
           ./azure/init-env.sh --stage dev
@@ -111,9 +109,7 @@ jobs:
           upsert_if_set "FAQ_PUBLIC_DOMAIN" "${FAQ_PUBLIC_DOMAIN}"
           upsert_if_set "TENANT_BACKOFFICE_DOMAIN" "${TENANT_BACKOFFICE_DOMAIN}"
           upsert_if_set "TENANT_PORTAL_DOMAIN" "${TENANT_PORTAL_DOMAIN}"
-          upsert_if_set "AI_DOMAIN" "${AI_DOMAIN}"
           upsert_if_set "OTLP_ENDPOINT" "${OTLP_ENDPOINT}"
-          upsert_if_set "AI_USER_ID" "${AI_USER_ID}"
 
       - name: Restore solution
         run: dotnet restore BaseFaq.sln

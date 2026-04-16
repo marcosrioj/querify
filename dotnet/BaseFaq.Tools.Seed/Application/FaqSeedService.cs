@@ -133,7 +133,7 @@ public sealed class FaqSeedService : IFaqSeedService
                     CtaUrl = itemDefinition.SourceUrl,
                     Sort = itemIndex + 1,
                     FeedbackScore = feedbackBatch.FeedbackScore,
-                    AiConfidenceScore = Math.Clamp(itemDefinition.AiConfidenceScore, 0, 100),
+                    ConfidenceScore = Math.Clamp(itemDefinition.ConfidenceScore, 0, 100),
                     IsActive = true,
                     ContentRefId = contentRefId
                 });

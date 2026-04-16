@@ -23,7 +23,6 @@
 
     <ItemGroup>
         <ProjectReference Include="..\BaseFaq.Common.Infrastructure.Mvc\BaseFaq.Common.Infrastructure.Mvc.csproj"/>
-        <ProjectReference Include="..\BaseFaq.Common.Infrastructure.MassTransit\BaseFaq.Common.Infrastructure.MassTransit.csproj"/>
         <ProjectReference Include="..\BaseFaq.Common.Infrastructure.Sentry\BaseFaq.Common.Infrastructure.Sentry.csproj"/>
         <ProjectReference Include="..\BaseFaq.Common.Infrastructure.Swagger\BaseFaq.Common.Infrastructure.Swagger.csproj"/>
         <ProjectReference Include="..\BaseFaq.Common.EntityFramework.Tenant\BaseFaq.Common.EntityFramework.Tenant.csproj"/>

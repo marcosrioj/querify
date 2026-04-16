@@ -6,7 +6,7 @@ This document explains how the repository is organized, how the runtime is split
 
 ## Solution shape
 
-The repository root contains one primary `.NET` solution file, `BaseFaq.sln`. It currently includes 54 `.NET` projects under `dotnet/`, while `apps/portal` remains a separate frontend app outside the `.sln`. Two AI scaffold projects also exist under `dotnet/` but are not currently included in the solution: `BaseFaq.AI.Common.Contracts` and `BaseFaq.AI.Common.VectorStore`.
+The repository root contains one primary `.NET` solution file, `BaseFaq.sln`. It includes the active backend, persistence, worker, tooling, and sample projects under `dotnet/`, while `apps/portal` remains a separate frontend app outside the `.sln`.
 
 | Delivery root | Responsibility |
 |---|---|
@@ -27,7 +27,6 @@ The repository root contains one primary `.NET` solution file, `BaseFaq.sln`. It
 | `BaseFaq.Tenant.Public.Api` | public tenant ingress APIs such as Stripe webhooks | `5004` |
 | `BaseFaq.Faq.Portal.Api` | authenticated FAQ management APIs | `5010` |
 | `BaseFaq.Faq.Public.Api` | public FAQ access and public FAQ item creation | `5020` |
-| `BaseFaq.AI.Api` | AI worker host for generation and matching plus health endpoint | `5030` |
 | `BaseFaq.Tenant.Worker.Api` | control-plane worker for billing webhooks, email outbox, and future tenant operations | n/a |
 
 ## Core architectural patterns
@@ -53,7 +52,7 @@ The repository follows a consistent naming model:
 
 - `BaseFaq.Faq.*`
 - `BaseFaq.Tenant.*`
-- `BaseFaq.AI.*`
+- `BaseFaq.QnA.*`
 
 Inside each area, business modules are further split by feature, for example:
 
@@ -94,7 +93,7 @@ BaseFAQ uses two main EF Core contexts:
 
 | Context | Responsibility |
 |---|---|
-| `TenantDbContext` | global tenant metadata, users, tenant memberships, AI provider credentials, tenant-to-database mapping, and control-plane background-processing state |
+| `TenantDbContext` | global tenant metadata, users, tenant memberships, tenant-to-database mapping, and control-plane background-processing state |
 | `FaqDbContext` | tenant-specific FAQ product data such as FAQs, FAQ items, content references, tags, and feedback |
 
 The split matters operationally:
@@ -115,27 +114,16 @@ The solution uses different request contexts depending on the surface:
 
 Tenant resolution is not an optional add-on; it is part of the backend contract.
 
-### 7. AI integration is event-driven
-
-Generation and matching are not implemented as direct synchronous controller-to-provider calls. Instead:
-
-- FAQ services publish RabbitMQ events
-- the AI worker host consumes those events
-- the AI worker publishes completion or failure callbacks
-
-This keeps provider latency and retries out of the main request path and allows AI work to evolve independently of the CRUD APIs.
-
-### 8. Control-plane background work is isolated from AI work
+### 7. Control-plane background work is isolated from request APIs
 
 Control-plane background processing is hosted separately in `BaseFaq.Tenant.Worker.Api`.
 
 That separation is intentional:
 
-- AI generation and matching belong to `BaseFaq.AI.Api`
 - billing webhooks, email outbox delivery, entitlements, and recurring tenant operational jobs belong to `BaseFaq.Tenant.Worker.Api`
 - the worker should operate against `TenantDbContext` and should not take ownership of FAQ product-data workflows
 
-### 9. Cross-cutting concerns are centralized in shared libraries
+### 8. Cross-cutting concerns are centralized in shared libraries
 
 The `BaseFaq.Common.Infrastructure.*` and `BaseFaq.Common.EntityFramework.*` projects encapsulate recurring concerns:
 
@@ -150,7 +138,7 @@ The `BaseFaq.Common.Infrastructure.*` and `BaseFaq.Common.EntityFramework.*` pro
 
 Feature projects should consume these shared building blocks rather than re-implementing their own versions.
 
-### 10. Integration tests prefer real infrastructure
+### 9. Integration tests prefer real infrastructure
 
 The solution already contains integration test projects per major service area. The testing style favors:
 
@@ -184,15 +172,6 @@ The testing strategy is documented in [`../testing/integration-testing-strategy.
 2. The API reads the exact raw request body and validates the Stripe signature.
 3. The API persists a `BillingWebhookInbox` record in `TenantDbContext`.
 4. `BaseFaq.Tenant.Worker.Api` claims and processes the inbox item asynchronously.
-
-### AI flow
-
-1. A FAQ feature publishes an event to RabbitMQ.
-2. The AI worker host consumes the event.
-3. The AI worker calls the configured provider for that tenant and AI command type.
-4. The worker publishes a callback event back into the system.
-
-The current AI implementation details are documented in [`basefaq-ai-generation-matching-architecture.md`](basefaq-ai-generation-matching-architecture.md).
 
 ## Practical guidance for contributors
 

@@ -11,7 +11,6 @@ These rules apply to:
 - `BaseFaq.Faq.*`
 - `BaseFaq.QnA.*`
 - `BaseFaq.Tenant.*`
-- `BaseFaq.AI.*`
 - any future module using ASP.NET Core controllers plus MediatR
 
 ## Rule 1: commands return simple values
@@ -70,7 +69,6 @@ Good examples:
 - `Task<Guid> Create(...)`
 - `Task<Guid> Update(...)`
 - `Task<bool> Delete(...)`
-- `Task<Guid> RequestGeneration(...)`
 
 ## Rule 5: tests adapt to production behavior
 

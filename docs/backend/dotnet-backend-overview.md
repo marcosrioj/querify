@@ -8,14 +8,13 @@ This guide explains how the backend is organized under `dotnet/`, which APIs exi
 
 | API | Responsibility | Auth | Tenant context | Local port |
 |---|---|---|---|---:|
-| `BaseFaq.Tenant.BackOffice.Api` | global administration of tenants, tenant users, AI providers, and tenant metadata | Auth0 JWT | none by default | `5000` |
+| `BaseFaq.Tenant.BackOffice.Api` | global administration of tenants, tenant users, billing, and tenant metadata | Auth0 JWT | none by default | `5000` |
 | `BaseFaq.Tenant.Portal.Api` | tenant workspace settings and tenant-member operations | Auth0 JWT | `X-Tenant-Id` for tenant-scoped operations | `5002` |
 | `BaseFaq.Tenant.Public.Api` | public tenant ingress endpoints such as Stripe webhooks | public surface | none | `5004` |
-| `BaseFaq.Faq.Portal.Api` | authenticated FAQ management, content references, tags, answer variants, votes, feedbacks, generation request entrypoint | Auth0 JWT | `X-Tenant-Id` | `5010` |
+| `BaseFaq.Faq.Portal.Api` | authenticated FAQ management, content references, tags, answer variants, votes, and feedbacks | Auth0 JWT | `X-Tenant-Id` | `5010` |
 | `BaseFaq.Faq.Public.Api` | public FAQ access and public FAQ item creation flow | public surface | `X-Client-Key` | `5020` |
 | `BaseFaq.QnA.Portal.Api` | authenticated QnA management for spaces, questions, answers, tags, sources, and activity | Auth0 JWT | `X-Tenant-Id` | `config-defined` |
 | `BaseFaq.QnA.Public.Api` | public QnA access plus vote and feedback signaling | public surface | `X-Client-Key` | `config-defined` |
-| `BaseFaq.AI.Api` | AI worker host and health endpoint | no user-facing auth flow | tenant inferred from message payload | `5030` |
 
 | Worker | Responsibility | Data boundary | Local port |
 |---|---|---|---:|
@@ -36,7 +35,6 @@ These projects contain ASP.NET Core startup, middleware, and DI registration:
 - `BaseFaq.Tenant.BackOffice.Api`
 - `BaseFaq.Tenant.Portal.Api`
 - `BaseFaq.Tenant.Public.Api`
-- `BaseFaq.AI.Api`
 
 ### Worker hosts
 
@@ -74,21 +72,15 @@ Each service area is split into feature projects:
 - Tenant BackOffice:
   - `BaseFaq.Tenant.BackOffice.Business.Tenant`
   - `BaseFaq.Tenant.BackOffice.Business.User`
-  - `BaseFaq.Tenant.BackOffice.Business.AiProvider`
   - `BaseFaq.Tenant.BackOffice.Business.Billing`
 - Tenant Portal:
   - `BaseFaq.Tenant.Portal.Business.Tenant`
   - `BaseFaq.Tenant.Portal.Business.User`
-  - `BaseFaq.Tenant.Portal.Business.AiProvider`
 - Tenant Public:
   - `BaseFaq.Tenant.Public.Business.Billing`
 - Tenant Worker:
   - `BaseFaq.Tenant.Worker.Business.Billing`
   - `BaseFaq.Tenant.Worker.Business.Email`
-- AI:
-  - `BaseFaq.AI.Business.Common`
-  - `BaseFaq.AI.Business.Generation`
-  - `BaseFaq.AI.Business.Matching`
 
 ### Shared infrastructure and persistence
 
@@ -109,7 +101,6 @@ Each service area is split into feature projects:
 - `BaseFaq.Models.QnA`: QnA-facing contracts
 - `BaseFaq.Models.Tenant`: tenant-facing contracts
 - `BaseFaq.Models.User`: user and profile contracts
-- `BaseFaq.Models.Ai`: AI-facing contracts currently used by the active solution code
 
 ### Tests, tools, and samples
 
@@ -119,18 +110,9 @@ Each service area is split into feature projects:
 - `BaseFaq.QnA.Public.Test.IntegrationTests`
 - `BaseFaq.Tenant.BackOffice.Test.IntegrationTests`
 - `BaseFaq.Tenant.Portal.Test.IntegrationTests`
-- `BaseFaq.AI.Test.IntegrationTest`
 - `BaseFaq.Common.Architecture.Test.IntegrationTest`
 - `BaseFaq.Tools.Migration`
 - `BaseFaq.Tools.Seed`
-- `BaseFaq.Sample.Ai.Generation`
-
-### Repo-only AI scaffolds outside `BaseFaq.sln`
-
-The repository also contains these AI projects under `dotnet/`, but they are not currently included in `BaseFaq.sln`:
-
-- `BaseFaq.AI.Common.Contracts`: parallel contracts project with generation and matching message types
-- `BaseFaq.AI.Common.VectorStore`: scaffold project reserved for future vector-store integrations
 
 ## Standard request flow
 
@@ -165,7 +147,6 @@ The write-side rules are formalized in [`../standards/solution-cqrs-write-rules.
 - tenant memberships
 - tenant-to-FAQ and tenant-to-QnA database connection strings
 - client keys
-- tenant AI provider credentials
 - control-plane background-processing state such as billing webhook inbox records and email outbox records
 - normalized billing state such as billing customers, subscriptions, invoices, payments, and entitlement snapshots
 
@@ -221,11 +202,6 @@ Each tenant can point to its own QnA database connection, which is why QnA migra
 - Tenant Public billing webhooks are anonymous ingress endpoints and do not rely on `X-Tenant-Id` or `X-Client-Key`.
 - Tenant identity for billing may be resolved later by the worker from provider metadata and normalized billing records.
 
-### AI flows
-
-- AI workers do not resolve tenants from HTTP headers.
-- They receive `TenantId` inside message contracts and use that to resolve provider context and product-database access.
-
 ## Local backend startup
 
 The usual backend bootstrap sequence is:
@@ -245,7 +221,6 @@ dotnet run --project dotnet/BaseFaq.Faq.Portal.Api
 dotnet run --project dotnet/BaseFaq.Faq.Public.Api
 dotnet run --project dotnet/BaseFaq.QnA.Portal.Api
 dotnet run --project dotnet/BaseFaq.QnA.Public.Api
-dotnet run --project dotnet/BaseFaq.AI.Api
 dotnet run --project dotnet/BaseFaq.Tenant.Worker.Api
 ```
 

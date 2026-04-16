@@ -1,5 +1,4 @@
 import {
-  Bot,
   CircleDollarSign,
   FileQuestion,
   Gauge,
@@ -50,12 +49,5 @@ export const portalNavigation: NavigationItem[] = [
     description: 'Appearance, profile, and workspace',
     path: '/app/settings/general',
     icon: Settings,
-  },
-  {
-    key: 'ai',
-    label: 'AI',
-    description: 'Providers and generation tools',
-    path: '/app/ai',
-    icon: Bot,
   },
 ];

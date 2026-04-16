@@ -149,8 +149,5 @@ public sealed class AnswersCreateAnswerCommandHandler(
 
         if (entity.Status is not AnswerStatus.Published and not AnswerStatus.Validated)
             throw new InvalidOperationException("Only published or validated answers can be exposed publicly.");
-
-        if (entity.Kind == AnswerKind.AiDraft && entity.Status != AnswerStatus.Validated)
-            throw new InvalidOperationException("AI draft answers must be validated before public exposure.");
     }
 }

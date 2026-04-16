@@ -86,17 +86,3 @@ export function deleteFaq(accessToken: string | undefined, tenantId: string | un
     tenantId: requireTenantId(tenantId),
   });
 }
-
-export function requestFaqGeneration(
-  accessToken: string | undefined,
-  tenantId: string | undefined,
-  id: string,
-) {
-  return portalRequest<string>({
-    service: 'faq',
-    path: `/api/faqs/faq/${id}/generation-request`,
-    method: 'POST',
-    accessToken: requireAccessToken(accessToken),
-    tenantId: requireTenantId(tenantId),
-  });
-}

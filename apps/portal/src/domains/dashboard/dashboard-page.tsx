@@ -3,8 +3,6 @@ import {
   ArrowRight,
   ArrowUpRight,
   BookOpen,
-  Bot,
-  BrainCircuit,
   CircleAlert,
   Files,
   Gauge,
@@ -13,7 +11,6 @@ import {
   ShieldCheck,
   SlidersHorizontal,
   Sparkles,
-  WandSparkles,
   type LucideIcon,
 } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -59,7 +56,6 @@ import {
   ProgressChecklistCard,
 } from "@/shared/ui";
 import {
-  AiCommandType,
   FaqStatus,
   tenantUserRoleTypeLabels,
   tenantEditionLabels,
@@ -77,12 +73,6 @@ function toPercent(value: number, total: number) {
 
 function formatNumber(value: number) {
   return new Intl.NumberFormat(getCurrentPortalLanguage()).format(value);
-}
-
-function commandLabel(value: AiCommandType) {
-  return value === AiCommandType.Generation
-    ? translateText("Generation")
-    : translateText("Matching");
 }
 
 function MetricCard({
@@ -198,7 +188,7 @@ function AnswerRow({ item }: { item: FaqItemDto }) {
           {translateText("Feedback {value}", { value: item.feedbackScore })}
         </div>
         <div className="font-semibold text-mono">
-          {translateText("AI {value}", { value: item.aiConfidenceScore })}
+          {translateText("Confidence {value}", { value: item.confidenceScore })}
         </div>
       </div>
     </div>
@@ -252,7 +242,7 @@ export function DashboardPage() {
   const { currentTenantId } = useTenant();
   const currentWorkspace = useCurrentWorkspace();
   const refreshedTenantIdRef = useRef<string | undefined>(undefined);
-  const { aiProvidersQuery, clientKeyQuery } = useTenantWorkspace();
+  const { clientKeyQuery } = useTenantWorkspace();
   const faqOverviewQuery = useFaqList({
     page: 1,
     pageSize: 4,
@@ -339,24 +329,15 @@ export function DashboardPage() {
   const activeFaqItems = faqItemActiveQuery.data?.totalCount ?? 0;
   const inactiveFaqItems = Math.max(totalFaqItems - activeFaqItems, 0);
   const totalContentRefs = contentRefOverviewQuery.data?.totalCount ?? 0;
-  const aiProviders = aiProvidersQuery.data ?? [];
-  const configuredAiProviders = aiProviders.filter(
-    (provider) => provider.isAiProviderKeyConfigured,
-  ).length;
   const clientKeyReady = Boolean(clientKeyQuery.data);
   const primaryFaqId = faqOverviewQuery.data?.items[0]?.id;
   const publishedFaqPercent = toPercent(publishedFaqs, totalFaqs);
   const activeAnswerPercent = toPercent(activeFaqItems, totalFaqItems);
-  const providerCoveragePercent = toPercent(
-    configuredAiProviders,
-    aiProviders.length,
-  );
   const readinessScore = Math.round(
     (publishedFaqPercent +
       activeAnswerPercent +
-      providerCoveragePercent +
       (clientKeyReady ? 100 : 0)) /
-      4,
+      3,
   );
 
   const assetMixData = [
@@ -408,12 +389,11 @@ export function DashboardPage() {
       description: "Q&A items still inactive",
     },
     {
-      label: "AI keys",
-      value: `${providerCoveragePercent}%`,
-      description: translateText("{configured} of {total} providers ready", {
-        configured: configuredAiProviders,
-        total: aiProviders.length,
-      }),
+      label: "Client key",
+      value: clientKeyReady ? "Ready" : "Missing",
+      description: clientKeyReady
+        ? "Public previews can use the current key"
+        : "Generate a public key before exposing tenant previews",
     },
   ];
   const onboardingSteps = [
@@ -484,16 +464,16 @@ export function DashboardPage() {
   const heroPrimaryAction = onboardingSteps.every((step) => step.complete)
     ? { label: "Open FAQs", to: "/app/faq" }
     : { label: "Start here", to: nextOnboardingAction.to };
-  const heroSecondaryAction =
-    !clientKeyReady || configuredAiProviders === 0
-      ? { label: "AI settings", to: "/app/settings/tenant" }
-      : { label: "Workspace settings", to: "/app/settings/tenant" };
+  const heroSecondaryAction = {
+    label: "Workspace settings",
+    to: "/app/settings/tenant",
+  };
 
   return (
     <PageSurface className="space-y-5 lg:space-y-7.5">
       <PageHeader
         title="Dashboard"
-        description="Quick view of FAQs, Q&A items, sources, and AI setup."
+        description="Quick view of FAQs, Q&A items, sources, and workspace readiness."
         descriptionMode="inline"
         actions={
           <>
@@ -562,7 +542,7 @@ export function DashboardPage() {
               </div>
               <p className="max-w-2xl text-sm leading-6 text-white/78">
                 {translateText(
-                  "Track FAQ coverage, Q&A item health, source links, and AI readiness for the current workspace.",
+                  "Track FAQ coverage, Q&A item health, source links, and public readiness for the current workspace.",
                 )}
               </p>
             </div>
@@ -630,7 +610,7 @@ export function DashboardPage() {
               <CardTitle className="flex flex-wrap items-center gap-2">
                 <span>{translateText("Readiness")}</span>
                 <ContextHint
-                  content="Readiness is weighted across published FAQs, active Q&A items, AI provider keys, and public client key availability."
+                  content="Readiness is weighted across published FAQs, active Q&A items, and public client key availability."
                   label="Readiness details"
                 />
               </CardTitle>
@@ -666,24 +646,14 @@ export function DashboardPage() {
                     "This score uses live Portal data instead of placeholder growth metrics.",
                   )}
                 </p>
-                <div className="flex flex-wrap gap-2">
-                  <Badge
+                <Badge
                   variant={clientKeyReady ? "success" : "warning"}
                   appearance="light"
                 >
-                    {translateText(
-                      clientKeyReady ? "Client key live" : "Client key missing",
-                    )}
-                  </Badge>
-                  <Badge
-                    variant={configuredAiProviders > 0 ? "primary" : "outline"}
-                    appearance="light"
-                  >
-                    {translateText("{count} secured providers", {
-                      count: configuredAiProviders,
-                    })}
-                  </Badge>
-                </div>
+                  {translateText(
+                    clientKeyReady ? "Client key live" : "Client key missing",
+                  )}
+                </Badge>
               </div>
             </div>
 
@@ -711,22 +681,14 @@ export function DashboardPage() {
                 indicatorClassName="bg-blue-500"
               />
               <ReadinessRow
-                label="AI keys"
-                value={providerCoveragePercent}
-                helper={translateText("{count} providers secured for tenant use", {
-                  count: configuredAiProviders,
-                })}
-                indicatorClassName="bg-cyan-500"
-              />
-              <ReadinessRow
                 label="Client key"
                 value={clientKeyReady ? 100 : 0}
                 helper={
                   clientKeyReady
                     ? "Public client key is available for Portal integrations"
-                    : "Generate a client key before embedding tenant AI features"
+                    : "Generate a client key before exposing public previews"
                 }
-                indicatorClassName="bg-amber-500"
+                indicatorClassName="bg-cyan-500"
               />
             </div>
           </CardContent>
@@ -1001,7 +963,7 @@ export function DashboardPage() {
               <CardTitle className="flex flex-wrap items-center gap-2">
                 <span>{translateText("Recent sources")}</span>
                 <ContextHint
-                  content="Recent sources available to support generation quality."
+                  content="Recent sources available to support answer quality."
                   label="Recent source details"
                 />
               </CardTitle>
@@ -1027,50 +989,49 @@ export function DashboardPage() {
           <CardHeader>
             <CardHeading>
               <CardTitle className="flex flex-wrap items-center gap-2">
-                <span>{translateText("AI providers")}</span>
+                <span>{translateText("Workspace access")}</span>
                 <ContextHint
-                  content="Provider credentials currently configured for this workspace."
-                  label="AI provider details"
+                  content="Public access and workspace metadata available from the current tenant configuration."
+                  label="Workspace access details"
                 />
               </CardTitle>
             </CardHeading>
           </CardHeader>
           <CardContent className="space-y-3">
-            {aiProviders.length ? (
-              aiProviders.map((provider) => (
-                <div
-                  key={provider.id}
-                  className="flex flex-col gap-4 rounded-2xl border border-border/70 px-4 py-3 sm:flex-row sm:items-start sm:justify-between"
-                >
-                  <div className="min-w-0 space-y-1.5">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <p className="text-sm font-medium text-mono">
-                        {provider.provider}
-                      </p>
-                      <Badge variant="outline" appearance="light">
-                        {commandLabel(provider.command)}
-                      </Badge>
-                    </div>
-                    <p className="break-words text-sm text-muted-foreground lg:truncate">
-                      {provider.model}
-                    </p>
-                  </div>
-                  <Badge
-                    variant={
-                      provider.isAiProviderKeyConfigured ? "success" : "warning"
-                    }
-                    appearance="light"
-                  >
-                    {provider.isAiProviderKeyConfigured
-                      ? translateText("Secured")
-                      : translateText("Needs key")}
-                  </Badge>
-                </div>
-              ))
+            <div className="flex flex-col gap-4 rounded-2xl border border-border/70 px-4 py-3 sm:flex-row sm:items-start sm:justify-between">
+              <div className="min-w-0 space-y-1.5">
+                <p className="text-sm font-medium text-mono">
+                  {translateText("Public client key")}
+                </p>
+                <p className="break-words text-sm text-muted-foreground">
+                  {clientKeyQuery.data ?? translateText("No client key has been generated yet.")}
+                </p>
+              </div>
+              <Badge
+                variant={clientKeyReady ? "success" : "warning"}
+                appearance="light"
+              >
+                {translateText(clientKeyReady ? "Ready" : "Missing")}
+              </Badge>
+            </div>
+            {currentWorkspace ? (
+              <div className="rounded-2xl border border-border/70 px-4 py-3">
+                <p className="text-sm font-medium text-mono">
+                  {translateText("Workspace summary")}
+                </p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {translateText("{name} · {edition}", {
+                    name: currentWorkspace.name,
+                    edition: translateText(
+                      tenantEditionLabels[currentWorkspace.edition],
+                    ),
+                  })}
+                </p>
+              </div>
             ) : (
               <EmptyMiniState
-                title="No AI providers"
-                description="Connect at least one provider in tenant settings before enabling AI workflows."
+                title="No active workspace"
+                description="Select a workspace to review public access configuration."
               />
             )}
           </CardContent>
@@ -1115,27 +1076,14 @@ export function DashboardPage() {
                   </p>
                 </div>
               </div>
-              <div className="flex gap-3 rounded-2xl border border-border/70 px-4 py-3">
-                <BrainCircuit className="mt-0.5 size-4 shrink-0 text-cyan-500" />
-                <div>
-                  <p className="text-sm font-medium text-mono">
-                    {translateText("AI jobs have no history endpoint")}
-                  </p>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    {translateText(
-                      "Generation requests can be triggered, but job listings and status dashboards are not exposed.",
-                    )}
-                  </p>
-                </div>
-              </div>
               <div className="rounded-2xl border border-dashed border-border px-4 py-3">
                 <div className="flex items-center gap-2 text-sm font-medium text-mono">
-                  <Bot className="size-4 text-primary" />
+                  <Gauge className="size-4 text-primary" />
                   {translateText("Next steps")}
                 </div>
                 <p className="mt-2 text-sm text-muted-foreground">
                   {translateText(
-                    "Publish key FAQs, activate answers, attach source refs, then secure tenant AI providers.",
+                    "Publish key FAQs, activate answers, attach source refs, then review workspace access settings.",
                   )}
                 </p>
               </div>

@@ -23,10 +23,9 @@ The repository currently contains these backend-facing automated test projects:
 - `BaseFaq.Faq.Public.Test.IntegrationTests`
 - `BaseFaq.Tenant.BackOffice.Test.IntegrationTests`
 - `BaseFaq.Tenant.Portal.Test.IntegrationTests`
-- `BaseFaq.AI.Test.IntegrationTest`
 - `BaseFaq.Common.Architecture.Test.IntegrationTest`
 
-The first five focus on service behavior. The architecture test project enforces repository rules such as the write-side contract expectations from `PROJECT_RULES.md`.
+The first four focus on service behavior. The architecture test project enforces repository rules such as the write-side contract expectations from `PROJECT_RULES.md`.
 
 ## What counts as an integration test here
 
@@ -50,7 +49,7 @@ The current test suite is strongest on:
 - command and query correctness
 - tenant-aware persistence rules
 - soft-delete and filter behavior
-- AI request and worker-path integration coverage
+- background worker and platform-flow integration coverage
 - repository rule-compliance checks for command/write conventions
 
 ## Current weaker areas
@@ -71,7 +70,7 @@ The weaker areas are still:
 | auth and claim mapping | protected APIs can silently fail open or fail closed |
 | migrations | schema drift blocks releases and breaks runtime startup |
 | public client-key resolution | public FAQ traffic depends on correct tenant resolution |
-| event-driven AI flows | message loss or duplicate handling changes system behavior |
+| background processing flows | retries, leases, or duplicate handling can change system behavior |
 
 ## Execution tiers
 
@@ -130,23 +129,12 @@ dotnet test dotnet/BaseFaq.Faq.Portal.Test.IntegrationTests/BaseFaq.Faq.Portal.T
 dotnet test dotnet/BaseFaq.Faq.Public.Test.IntegrationTests/BaseFaq.Faq.Public.Test.IntegrationTests.csproj
 dotnet test dotnet/BaseFaq.Tenant.BackOffice.Test.IntegrationTests/BaseFaq.Tenant.BackOffice.Test.IntegrationTests.csproj
 dotnet test dotnet/BaseFaq.Tenant.Portal.Test.IntegrationTests/BaseFaq.Tenant.Portal.Test.IntegrationTests.csproj
-dotnet test dotnet/BaseFaq.AI.Test.IntegrationTest/BaseFaq.AI.Test.IntegrationTest.csproj
 ```
 
 Run the architecture rules suite:
 
 ```bash
 dotnet test dotnet/BaseFaq.Common.Architecture.Test.IntegrationTest/BaseFaq.Common.Architecture.Test.IntegrationTest.csproj
-```
-
-Optional OpenAI-backed integration coverage:
-
-```bash
-export BASEFAQ_RUN_OPENAI_INTEGRATION_TESTS=true
-export OPENAI_API_KEY=<your-openai-api-key>
-
-dotnet test dotnet/BaseFaq.AI.Test.IntegrationTest/BaseFaq.AI.Test.IntegrationTest.csproj \
-  --filter FullyQualifiedName~OpenAiGenerationMatchingFlowTests
 ```
 
 ## Current priorities
@@ -161,7 +149,7 @@ dotnet test dotnet/BaseFaq.AI.Test.IntegrationTest/BaseFaq.AI.Test.IntegrationTe
 ### Should be expanded next
 
 - API-level auth coverage across protected endpoints
-- queue-driven AI callback scenarios
+- queue-driven platform worker scenarios
 - Redis-backed tenant access behavior
 - failure-path testing for provider or infrastructure outages
 
@@ -176,6 +164,5 @@ dotnet test dotnet/BaseFaq.AI.Test.IntegrationTest/BaseFaq.AI.Test.IntegrationTe
 ## Related documents
 
 - [`../backend/dotnet-backend-overview.md`](../backend/dotnet-backend-overview.md)
-- [`../architecture/basefaq-ai-generation-matching-architecture.md`](../architecture/basefaq-ai-generation-matching-architecture.md)
 - [`../standards/solution-cqrs-write-rules.md`](../standards/solution-cqrs-write-rules.md)
 - [`../../PROJECT_RULES.md`](../../PROJECT_RULES.md)

@@ -20,11 +20,5 @@ public enum QuestionKind
     /// <summary>
     /// A question imported from an external system such as a ticket queue or community platform.
     /// </summary>
-    Imported = 3,
-
-    /// <summary>
-    /// A question proposed by AI from observed gaps, repeated signals, or source clustering.
-    /// It still needs governance before being treated as canonical knowledge.
-    /// </summary>
-    AiSuggested = 4
+    Imported = 3
 }

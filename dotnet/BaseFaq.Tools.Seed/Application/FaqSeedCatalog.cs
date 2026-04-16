@@ -28,7 +28,7 @@ internal static partial class FaqSeedCatalog
         string answer,
         SeedSource source,
         int helpfulFeedbackPercent,
-        int aiConfidenceScore)
+        int confidenceScore)
     {
         return new SeedFaqItemDefinition(
             question,
@@ -38,7 +38,7 @@ internal static partial class FaqSeedCatalog
             source.SourceLabel,
             source.SourceUrl,
             helpfulFeedbackPercent,
-            aiConfidenceScore);
+            confidenceScore);
     }
 
     private static SeedSource Source(string sourceName, string sourceLabel, string sourceUrl)
@@ -65,4 +65,4 @@ internal sealed record SeedFaqItemDefinition(
     string SourceLabel,
     string SourceUrl,
     int HelpfulFeedbackPercent,
-    int AiConfidenceScore);
+    int ConfidenceScore);
