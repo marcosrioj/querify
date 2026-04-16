@@ -32,12 +32,11 @@ public sealed class QuestionsGetQuestionQueryHandler(
             .ThenInclude(link => link.Topic)
             .Include(question => question.Activity)
             .AsNoTracking()
-            .SingleOrDefaultAsync(question => question.TenantId == tenantId && question.Id == request.Id, cancellationToken);
+            .SingleOrDefaultAsync(question => question.TenantId == tenantId && question.Id == request.Id,
+                cancellationToken);
 
         if (entity is null)
-        {
-            throw new ApiErrorException($"Question '{request.Id}' was not found.", errorCode: (int)HttpStatusCode.NotFound);
-        }
+            throw new ApiErrorException($"Question '{request.Id}' was not found.", (int)HttpStatusCode.NotFound);
 
         return entity.ToPortalQuestionDetailDto();
     }

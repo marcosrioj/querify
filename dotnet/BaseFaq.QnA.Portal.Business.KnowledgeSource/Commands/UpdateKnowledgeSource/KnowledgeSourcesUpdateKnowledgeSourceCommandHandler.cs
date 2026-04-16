@@ -3,16 +3,20 @@ using BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception;
 using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.QnA.Dtos.KnowledgeSource;
+using BaseFaq.Models.QnA.Enums;
 using BaseFaq.QnA.Common.Persistence.QnADb;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 namespace BaseFaq.QnA.Portal.Business.KnowledgeSource.Commands.UpdateKnowledgeSource;
 
-public sealed class KnowledgeSourcesUpdateKnowledgeSourceCommandHandler(QnADbContext dbContext, ISessionService sessionService)
+public sealed class KnowledgeSourcesUpdateKnowledgeSourceCommandHandler(
+    QnADbContext dbContext,
+    ISessionService sessionService)
     : IRequestHandler<KnowledgeSourcesUpdateKnowledgeSourceCommand, Guid>
 {
-    public async Task<Guid> Handle(KnowledgeSourcesUpdateKnowledgeSourceCommand request, CancellationToken cancellationToken)
+    public async Task<Guid> Handle(KnowledgeSourcesUpdateKnowledgeSourceCommand request,
+        CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(request.Request);
@@ -23,11 +27,9 @@ public sealed class KnowledgeSourcesUpdateKnowledgeSourceCommandHandler(QnADbCon
             .SingleOrDefaultAsync(source => source.TenantId == tenantId && source.Id == request.Id, cancellationToken);
 
         if (entity is null)
-        {
             throw new ApiErrorException(
                 $"Knowledge source '{request.Id}' was not found.",
-                errorCode: (int)HttpStatusCode.NotFound);
-        }
+                (int)HttpStatusCode.NotFound);
 
         Apply(entity, request.Request, userId);
         await dbContext.SaveChangesAsync(cancellationToken);
@@ -52,10 +54,10 @@ public sealed class KnowledgeSourcesUpdateKnowledgeSourceCommandHandler(QnADbCon
         entity.CapturedAtUtc = request.CapturedAtUtc ?? entity.CapturedAtUtc;
         entity.Visibility = request.Visibility;
         entity.AllowsPublicCitation =
-            request.Visibility is BaseFaq.Models.QnA.Enums.VisibilityScope.Public or BaseFaq.Models.QnA.Enums.VisibilityScope.PublicIndexed &&
+            request.Visibility is VisibilityScope.Public or VisibilityScope.PublicIndexed &&
             request.AllowsPublicCitation;
         entity.AllowsPublicExcerpt =
-            request.Visibility is BaseFaq.Models.QnA.Enums.VisibilityScope.Public or BaseFaq.Models.QnA.Enums.VisibilityScope.PublicIndexed &&
+            request.Visibility is VisibilityScope.Public or VisibilityScope.PublicIndexed &&
             request.AllowsPublicExcerpt;
 
         if (request.MarkVerified)

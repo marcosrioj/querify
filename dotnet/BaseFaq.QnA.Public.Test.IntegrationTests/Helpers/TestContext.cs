@@ -9,9 +9,9 @@ namespace BaseFaq.QnA.Public.Test.IntegrationTests.Helpers;
 
 public sealed class TestContext : IDisposable
 {
-    private readonly bool _ownsDatabase;
-    private readonly string? _databaseName;
     private readonly string? _adminConnectionString;
+    private readonly string? _databaseName;
+    private readonly bool _ownsDatabase;
 
     private TestContext(
         QnADbContext dbContext,
@@ -39,6 +39,14 @@ public sealed class TestContext : IDisposable
     public Guid UserId { get; }
     public string ClientKey { get; }
 
+    public void Dispose()
+    {
+        DbContext.Dispose();
+
+        if (_ownsDatabase && _databaseName is not null && _adminConnectionString is not null)
+            TestDatabase.DropDatabase(_adminConnectionString, _databaseName);
+    }
+
     public static TestContext Create(
         Guid? tenantId = null,
         Guid? userId = null,
@@ -54,7 +62,7 @@ public sealed class TestContext : IDisposable
             userId,
             clientKey,
             httpContext,
-            ownsDatabase: true);
+            true);
     }
 
     public static TestContext CreateForDatabase(
@@ -101,15 +109,5 @@ public sealed class TestContext : IDisposable
             ownsDatabase,
             databaseName,
             adminConnectionString);
-    }
-
-    public void Dispose()
-    {
-        DbContext.Dispose();
-
-        if (_ownsDatabase && _databaseName is not null && _adminConnectionString is not null)
-        {
-            TestDatabase.DropDatabase(_adminConnectionString, _databaseName);
-        }
     }
 }

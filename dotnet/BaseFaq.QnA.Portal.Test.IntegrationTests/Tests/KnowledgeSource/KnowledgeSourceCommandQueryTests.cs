@@ -1,10 +1,7 @@
 using BaseFaq.Models.QnA.Dtos.KnowledgeSource;
 using BaseFaq.Models.QnA.Enums;
 using BaseFaq.QnA.Portal.Business.KnowledgeSource.Commands.CreateKnowledgeSource;
-using BaseFaq.QnA.Portal.Business.KnowledgeSource.Commands.DeleteKnowledgeSource;
-using BaseFaq.QnA.Portal.Business.KnowledgeSource.Commands.UpdateKnowledgeSource;
 using BaseFaq.QnA.Portal.Business.KnowledgeSource.Queries.GetKnowledgeSource;
-using BaseFaq.QnA.Portal.Business.KnowledgeSource.Queries.GetKnowledgeSourceList;
 using BaseFaq.QnA.Portal.Test.IntegrationTests.Helpers;
 using Xunit;
 
@@ -17,7 +14,8 @@ public class KnowledgeSourceCommandQueryTests
     {
         using var context = TestContext.Create();
 
-        var createHandler = new KnowledgeSourcesCreateKnowledgeSourceCommandHandler(context.DbContext, context.SessionService);
+        var createHandler =
+            new KnowledgeSourcesCreateKnowledgeSourceCommandHandler(context.DbContext, context.SessionService);
         var id = await createHandler.Handle(new KnowledgeSourcesCreateKnowledgeSourceCommand
         {
             Request = new KnowledgeSourceCreateRequestDto
@@ -40,7 +38,8 @@ public class KnowledgeSourceCommandQueryTests
         }, CancellationToken.None);
 
         var getHandler = new KnowledgeSourcesGetKnowledgeSourceQueryHandler(context.DbContext, context.SessionService);
-        var result = await getHandler.Handle(new KnowledgeSourcesGetKnowledgeSourceQuery { Id = id }, CancellationToken.None);
+        var result = await getHandler.Handle(new KnowledgeSourcesGetKnowledgeSourceQuery { Id = id },
+            CancellationToken.None);
 
         Assert.Equal("https://docs.example.test/qna/reset-password", result.Locator);
         Assert.Equal("Reset password guide", result.Label);

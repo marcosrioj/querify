@@ -2,7 +2,6 @@ using System.Net;
 using BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception;
 using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Common.Infrastructure.Core.Constants;
-using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.QnA.Dtos.QuestionSpace;
 using BaseFaq.Models.QnA.Enums;
 using BaseFaq.QnA.Common.Persistence.QnADb;
@@ -20,7 +19,8 @@ public sealed class QuestionSpacesGetQuestionSpaceByKeyQueryHandler(
     IHttpContextAccessor httpContextAccessor)
     : IRequestHandler<QuestionSpacesGetQuestionSpaceByKeyQuery, QuestionSpaceDto>
 {
-    public async Task<QuestionSpaceDto> Handle(QuestionSpacesGetQuestionSpaceByKeyQuery request, CancellationToken cancellationToken)
+    public async Task<QuestionSpaceDto> Handle(QuestionSpacesGetQuestionSpaceByKeyQuery request,
+        CancellationToken cancellationToken)
     {
         var tenantId = await ResolveTenantIdAndSetContextAsync(cancellationToken);
         var entity = await dbContext.QuestionSpaces
@@ -34,7 +34,8 @@ public sealed class QuestionSpacesGetQuestionSpaceByKeyQueryHandler(
                 cancellationToken);
 
         return entity is null
-            ? throw new ApiErrorException($"Question space '{request.Key}' was not found.", errorCode: (int)HttpStatusCode.NotFound)
+            ? throw new ApiErrorException($"Question space '{request.Key}' was not found.",
+                (int)HttpStatusCode.NotFound)
             : entity.ToQuestionSpaceDto();
     }
 

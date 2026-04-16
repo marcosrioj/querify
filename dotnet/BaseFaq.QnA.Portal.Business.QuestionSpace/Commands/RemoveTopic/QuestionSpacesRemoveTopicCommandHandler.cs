@@ -25,11 +25,9 @@ public sealed class QuestionSpacesRemoveTopicCommandHandler(
                 cancellationToken);
 
         if (link is null)
-        {
             throw new ApiErrorException(
                 $"Question space topic link '{request.QuestionSpaceId}:{request.TopicId}' was not found.",
-                errorCode: (int)HttpStatusCode.NotFound);
-        }
+                (int)HttpStatusCode.NotFound);
 
         dbContext.QuestionSpaceTopics.Remove(link);
         await dbContext.SaveChangesAsync(cancellationToken);

@@ -2,10 +2,9 @@ using System.Net;
 using BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception;
 using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Common.Infrastructure.Core.Constants;
-using BaseFaq.Models.Common.Enums;
-using BaseFaq.Models.QnA.Dtos.Answer;
 using BaseFaq.Models.QnA.Enums;
 using BaseFaq.QnA.Common.Persistence.QnADb;
+using BaseFaq.QnA.Common.Persistence.QnADb.Entities;
 using BaseFaq.QnA.Common.Persistence.QnADb.Projections;
 using BaseFaq.QnA.Public.Business.Vote.Helpers;
 using MediatR;
@@ -33,21 +32,21 @@ public sealed class VotesCreateVoteCommandHandler(
                     entity.TenantId == tenantId &&
                     entity.Id == request.Request.AnswerId &&
                     entity.QuestionId == request.Request.QuestionId &&
-                    (entity.Visibility == VisibilityScope.Public || entity.Visibility == VisibilityScope.PublicIndexed) &&
+                    (entity.Visibility == VisibilityScope.Public ||
+                     entity.Visibility == VisibilityScope.PublicIndexed) &&
                     (entity.Status == AnswerStatus.Published || entity.Status == AnswerStatus.Validated),
                 cancellationToken);
 
         if (answer is null ||
             answer.Question.TenantId != tenantId ||
             answer.Question.Visibility is not (VisibilityScope.Public or VisibilityScope.PublicIndexed))
-        {
             throw new ApiErrorException(
                 $"Answer '{request.Request.AnswerId}' was not found.",
-                errorCode: (int)HttpStatusCode.NotFound);
-        }
+                (int)HttpStatusCode.NotFound);
 
         var latest = answer.Question.Activity
-            .Where(activity => activity.Kind == ActivityKind.VoteReceived && activity.AnswerId == request.Request.AnswerId)
+            .Where(activity =>
+                activity.Kind == ActivityKind.VoteReceived && activity.AnswerId == request.Request.AnswerId)
             .Select(activity => new { activity, metadata = ThreadActivitySignals.ParseVote(activity.MetadataJson) })
             .Where(item => item.metadata?.UserPrint == identity.UserPrint)
             .OrderByDescending(item => item.activity.OccurredAtUtc)
@@ -57,7 +56,7 @@ public sealed class VotesCreateVoteCommandHandler(
         var effectiveValue = latest?.metadata?.VoteValue;
         var storedValue = effectiveValue == requestedValue ? 0 : requestedValue;
 
-        var activity = new Common.Persistence.QnADb.Entities.ThreadActivity
+        var activity = new ThreadActivity
         {
             TenantId = answer.TenantId,
             QuestionId = answer.QuestionId,

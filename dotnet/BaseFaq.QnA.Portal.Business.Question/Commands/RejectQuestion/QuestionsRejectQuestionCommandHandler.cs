@@ -22,12 +22,11 @@ public sealed class QuestionsRejectQuestionCommandHandler(
         var userId = sessionService.GetUserId().ToString();
         var entity = await dbContext.Questions
             .Include(question => question.Activity)
-            .SingleOrDefaultAsync(question => question.TenantId == tenantId && question.Id == request.Id, cancellationToken);
+            .SingleOrDefaultAsync(question => question.TenantId == tenantId && question.Id == request.Id,
+                cancellationToken);
 
         if (entity is null)
-        {
-            throw new ApiErrorException($"Question '{request.Id}' was not found.", errorCode: (int)HttpStatusCode.NotFound);
-        }
+            throw new ApiErrorException($"Question '{request.Id}' was not found.", (int)HttpStatusCode.NotFound);
 
         entity.Status = QuestionStatus.Draft;
         entity.Visibility = VisibilityScope.Internal;

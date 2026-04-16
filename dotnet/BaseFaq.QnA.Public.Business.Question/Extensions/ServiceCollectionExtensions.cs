@@ -10,7 +10,8 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddQuestionBusiness(this IServiceCollection services)
     {
         services.AddScoped<IQuestionService, QuestionService>();
-        services.AddMediatR(config => config.RegisterServicesFromAssemblyContaining<QuestionsCreateQuestionCommandHandler>());
+        services.AddMediatR(config =>
+            config.RegisterServicesFromAssemblyContaining<QuestionsCreateQuestionCommandHandler>());
 
         return services;
     }

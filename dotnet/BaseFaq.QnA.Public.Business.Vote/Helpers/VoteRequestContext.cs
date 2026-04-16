@@ -13,11 +13,9 @@ public static class VoteRequestContext
     {
         var httpContext = httpContextAccessor.HttpContext;
         if (httpContext is null)
-        {
             throw new ApiErrorException(
                 "HttpContext is missing from the current request.",
-                errorCode: (int)HttpStatusCode.Unauthorized);
-        }
+                (int)HttpStatusCode.Unauthorized);
 
         var forwardedFor = httpContext.Request.Headers["X-Forwarded-For"].FirstOrDefault();
         var ip = string.IsNullOrWhiteSpace(forwardedFor)
@@ -37,10 +35,7 @@ public static class VoteRequestContext
         var payload = $"{ip}|{userAgent}";
         var hash = sha.ComputeHash(Encoding.UTF8.GetBytes(payload));
         var builder = new StringBuilder(hash.Length * 2);
-        foreach (var item in hash)
-        {
-            builder.Append(item.ToString("x2"));
-        }
+        foreach (var item in hash) builder.Append(item.ToString("x2"));
 
         return builder.ToString();
     }

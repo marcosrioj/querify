@@ -1,7 +1,5 @@
 using BaseFaq.QnA.Portal.Business.Topic.Abstractions;
 using BaseFaq.QnA.Portal.Business.Topic.Commands.CreateTopic;
-using BaseFaq.QnA.Portal.Business.Topic.Commands.DeleteTopic;
-using BaseFaq.QnA.Portal.Business.Topic.Commands.UpdateTopic;
 using BaseFaq.QnA.Portal.Business.Topic.Service;
 using Microsoft.Extensions.DependencyInjection;
 

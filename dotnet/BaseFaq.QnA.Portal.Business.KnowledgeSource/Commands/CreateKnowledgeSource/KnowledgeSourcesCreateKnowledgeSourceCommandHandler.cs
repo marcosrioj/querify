@@ -1,17 +1,19 @@
-using System.Net;
-using BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception;
 using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.QnA.Dtos.KnowledgeSource;
+using BaseFaq.Models.QnA.Enums;
 using BaseFaq.QnA.Common.Persistence.QnADb;
 using MediatR;
 
 namespace BaseFaq.QnA.Portal.Business.KnowledgeSource.Commands.CreateKnowledgeSource;
 
-public sealed class KnowledgeSourcesCreateKnowledgeSourceCommandHandler(QnADbContext dbContext, ISessionService sessionService)
+public sealed class KnowledgeSourcesCreateKnowledgeSourceCommandHandler(
+    QnADbContext dbContext,
+    ISessionService sessionService)
     : IRequestHandler<KnowledgeSourcesCreateKnowledgeSourceCommand, Guid>
 {
-    public async Task<Guid> Handle(KnowledgeSourcesCreateKnowledgeSourceCommand request, CancellationToken cancellationToken)
+    public async Task<Guid> Handle(KnowledgeSourcesCreateKnowledgeSourceCommand request,
+        CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(request.Request);
@@ -51,10 +53,10 @@ public sealed class KnowledgeSourcesCreateKnowledgeSourceCommandHandler(QnADbCon
         entity.CapturedAtUtc = request.CapturedAtUtc ?? entity.CapturedAtUtc;
         entity.Visibility = request.Visibility;
         entity.AllowsPublicCitation =
-            request.Visibility is BaseFaq.Models.QnA.Enums.VisibilityScope.Public or BaseFaq.Models.QnA.Enums.VisibilityScope.PublicIndexed &&
+            request.Visibility is VisibilityScope.Public or VisibilityScope.PublicIndexed &&
             request.AllowsPublicCitation;
         entity.AllowsPublicExcerpt =
-            request.Visibility is BaseFaq.Models.QnA.Enums.VisibilityScope.Public or BaseFaq.Models.QnA.Enums.VisibilityScope.PublicIndexed &&
+            request.Visibility is VisibilityScope.Public or VisibilityScope.PublicIndexed &&
             request.AllowsPublicExcerpt;
 
         if (request.MarkVerified)

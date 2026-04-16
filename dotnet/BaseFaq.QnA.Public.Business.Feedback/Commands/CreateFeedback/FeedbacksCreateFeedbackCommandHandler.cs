@@ -2,10 +2,9 @@ using System.Net;
 using BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception;
 using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Common.Infrastructure.Core.Constants;
-using BaseFaq.Models.Common.Enums;
-using BaseFaq.Models.QnA.Dtos.Question;
 using BaseFaq.Models.QnA.Enums;
 using BaseFaq.QnA.Common.Persistence.QnADb;
+using BaseFaq.QnA.Common.Persistence.QnADb.Entities;
 using BaseFaq.QnA.Common.Persistence.QnADb.Projections;
 using BaseFaq.QnA.Public.Business.Feedback.Helpers;
 using MediatR;
@@ -31,16 +30,16 @@ public sealed class FeedbacksCreateFeedbackCommandHandler(
                 entity =>
                     entity.TenantId == tenantId &&
                     entity.Id == request.Request.QuestionId &&
-                    (entity.Visibility == VisibilityScope.Public || entity.Visibility == VisibilityScope.PublicIndexed) &&
-                    (entity.Status == QuestionStatus.Open || entity.Status == QuestionStatus.Answered || entity.Status == QuestionStatus.Validated),
+                    (entity.Visibility == VisibilityScope.Public ||
+                     entity.Visibility == VisibilityScope.PublicIndexed) &&
+                    (entity.Status == QuestionStatus.Open || entity.Status == QuestionStatus.Answered ||
+                     entity.Status == QuestionStatus.Validated),
                 cancellationToken);
 
         if (question is null)
-        {
             throw new ApiErrorException(
                 $"Question '{request.Request.QuestionId}' was not found.",
-                errorCode: (int)HttpStatusCode.NotFound);
-        }
+                (int)HttpStatusCode.NotFound);
 
         var latest = question.Activity
             .Where(activity => activity.Kind == ActivityKind.FeedbackReceived)
@@ -52,11 +51,9 @@ public sealed class FeedbacksCreateFeedbackCommandHandler(
         if (latest?.metadata is not null &&
             latest.metadata.Like == request.Request.Like &&
             latest.metadata.Reason == request.Request.Reason)
-        {
             return latest.activity.Id;
-        }
 
-        var activity = new Common.Persistence.QnADb.Entities.ThreadActivity
+        var activity = new ThreadActivity
         {
             TenantId = question.TenantId,
             QuestionId = question.Id,

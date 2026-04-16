@@ -25,11 +25,9 @@ public sealed class QuestionSpacesRemoveCuratedSourceCommandHandler(
                 cancellationToken);
 
         if (link is null)
-        {
             throw new ApiErrorException(
                 $"Question space source link '{request.QuestionSpaceId}:{request.KnowledgeSourceId}' was not found.",
-                errorCode: (int)HttpStatusCode.NotFound);
-        }
+                (int)HttpStatusCode.NotFound);
 
         dbContext.QuestionSpaceSources.Remove(link);
         await dbContext.SaveChangesAsync(cancellationToken);

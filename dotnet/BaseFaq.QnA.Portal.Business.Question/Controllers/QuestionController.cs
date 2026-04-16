@@ -78,7 +78,8 @@ public class QuestionController(IQuestionService questionService) : ControllerBa
 
     [HttpPost("{id:guid}/topic")]
     [ProducesResponseType(typeof(Guid), StatusCodes.Status201Created)]
-    public async Task<IActionResult> AddTopic(Guid id, [FromBody] QuestionTopicCreateRequestDto dto, CancellationToken token)
+    public async Task<IActionResult> AddTopic(Guid id, [FromBody] QuestionTopicCreateRequestDto dto,
+        CancellationToken token)
     {
         dto.QuestionId = id;
         return StatusCode(StatusCodes.Status201Created, await questionService.AddTopic(dto, token));
@@ -94,7 +95,8 @@ public class QuestionController(IQuestionService questionService) : ControllerBa
 
     [HttpPost("{id:guid}/source")]
     [ProducesResponseType(typeof(Guid), StatusCodes.Status201Created)]
-    public async Task<IActionResult> AddSource(Guid id, [FromBody] QuestionSourceLinkCreateRequestDto dto, CancellationToken token)
+    public async Task<IActionResult> AddSource(Guid id, [FromBody] QuestionSourceLinkCreateRequestDto dto,
+        CancellationToken token)
     {
         dto.QuestionId = id;
         return StatusCode(StatusCodes.Status201Created, await questionService.AddSource(dto, token));

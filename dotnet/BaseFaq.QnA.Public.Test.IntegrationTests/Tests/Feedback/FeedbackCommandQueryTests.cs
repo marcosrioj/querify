@@ -2,8 +2,6 @@ using System.Net;
 using BaseFaq.Models.QnA.Dtos.Question;
 using BaseFaq.QnA.Public.Business.Feedback.Commands.CreateFeedback;
 using BaseFaq.QnA.Public.Business.Question.Queries.GetQuestion;
-using BaseFaq.QnA.Public.Business.Question.Queries.GetQuestionByKey;
-using BaseFaq.QnA.Public.Business.Question.Queries.GetQuestionList;
 using BaseFaq.QnA.Public.Test.IntegrationTests.Helpers;
 using Microsoft.AspNetCore.Http;
 using Xunit;

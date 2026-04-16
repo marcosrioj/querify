@@ -2,8 +2,6 @@ using System.Net;
 using BaseFaq.Models.QnA.Dtos.Answer;
 using BaseFaq.Models.QnA.Dtos.Question;
 using BaseFaq.QnA.Public.Business.Question.Queries.GetQuestion;
-using BaseFaq.QnA.Public.Business.Question.Queries.GetQuestionByKey;
-using BaseFaq.QnA.Public.Business.Question.Queries.GetQuestionList;
 using BaseFaq.QnA.Public.Business.Vote.Commands.CreateVote;
 using BaseFaq.QnA.Public.Test.IntegrationTests.Helpers;
 using Microsoft.AspNetCore.Http;
@@ -27,7 +25,7 @@ public class VoteCommandQueryTests
             context.DbContext,
             context.TenantId,
             question.Id,
-            headline: "Public accepted answer",
+            "Public accepted answer",
             accept: true);
         var voteHandler = new VotesCreateVoteCommandHandler(
             context.DbContext,

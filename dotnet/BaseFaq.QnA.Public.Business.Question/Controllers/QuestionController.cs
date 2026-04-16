@@ -14,14 +14,16 @@ public class QuestionController(IQuestionService questionService) : ControllerBa
 {
     [HttpGet("{id:guid}")]
     [ProducesResponseType(typeof(QuestionDetailDto), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetById(Guid id, [FromQuery] QuestionGetRequestDto requestDto, CancellationToken token)
+    public async Task<IActionResult> GetById(Guid id, [FromQuery] QuestionGetRequestDto requestDto,
+        CancellationToken token)
     {
         return Ok(await questionService.GetById(id, requestDto, token));
     }
 
     [HttpGet("by-key/{key}")]
     [ProducesResponseType(typeof(QuestionDetailDto), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetByKey(string key, [FromQuery] QuestionGetRequestDto requestDto, CancellationToken token)
+    public async Task<IActionResult> GetByKey(string key, [FromQuery] QuestionGetRequestDto requestDto,
+        CancellationToken token)
     {
         return Ok(await questionService.GetByKey(key, requestDto, token));
     }

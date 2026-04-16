@@ -49,7 +49,8 @@ public class RelationshipMappingTests
         }, CancellationToken.None);
 
         var queryHandler = new QuestionsGetQuestionQueryHandler(context.DbContext, context.SessionService);
-        var result = await queryHandler.Handle(new QuestionsGetQuestionQuery { Id = question.Id }, CancellationToken.None);
+        var result =
+            await queryHandler.Handle(new QuestionsGetQuestionQuery { Id = question.Id }, CancellationToken.None);
 
         Assert.Single(result.Topics);
         Assert.Equal(topic.Id, result.Topics[0].Id);

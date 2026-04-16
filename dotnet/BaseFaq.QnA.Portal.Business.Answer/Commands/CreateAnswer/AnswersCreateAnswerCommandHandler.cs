@@ -5,6 +5,7 @@ using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.QnA.Dtos.Answer;
 using BaseFaq.Models.QnA.Enums;
 using BaseFaq.QnA.Common.Persistence.QnADb;
+using BaseFaq.QnA.Common.Persistence.QnADb.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using AnswerEntity = BaseFaq.QnA.Common.Persistence.QnADb.Entities.Answer;
@@ -24,14 +25,13 @@ public sealed class AnswersCreateAnswerCommandHandler(
         var question = await dbContext.Questions
             .Include(entity => entity.Answers)
             .Include(entity => entity.Activity)
-            .SingleOrDefaultAsync(entity => entity.TenantId == tenantId && entity.Id == request.Request.QuestionId, cancellationToken);
+            .SingleOrDefaultAsync(entity => entity.TenantId == tenantId && entity.Id == request.Request.QuestionId,
+                cancellationToken);
 
         if (question is null)
-        {
             throw new ApiErrorException(
                 $"Question '{request.Request.QuestionId}' was not found.",
-                errorCode: (int)HttpStatusCode.NotFound);
-        }
+                (int)HttpStatusCode.NotFound);
 
         var entity = new AnswerEntity
         {
@@ -56,7 +56,7 @@ public sealed class AnswersCreateAnswerCommandHandler(
     }
 
     private void AddThreadActivity(
-        Common.Persistence.QnADb.Entities.Question question,
+        Question question,
         AnswerEntity answer,
         ActivityKind kind,
         string userId)
@@ -125,19 +125,12 @@ public sealed class AnswersCreateAnswerCommandHandler(
 
     private static void EnsureVisibilityAllowed(AnswerEntity entity, VisibilityScope visibility)
     {
-        if (visibility is not VisibilityScope.Public and not VisibilityScope.PublicIndexed)
-        {
-            return;
-        }
+        if (visibility is not VisibilityScope.Public and not VisibilityScope.PublicIndexed) return;
 
         if (entity.Status is not AnswerStatus.Published and not AnswerStatus.Validated)
-        {
             throw new InvalidOperationException("Only published or validated answers can be exposed publicly.");
-        }
 
         if (entity.Kind == AnswerKind.AiDraft && entity.Status != AnswerStatus.Validated)
-        {
             throw new InvalidOperationException("AI draft answers must be validated before public exposure.");
-        }
     }
 }

@@ -6,7 +6,6 @@ using BaseFaq.QnA.Common.Persistence.QnADb;
 using BaseFaq.QnA.Common.Persistence.QnADb.Projections;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using AnswerEntity = BaseFaq.QnA.Common.Persistence.QnADb.Entities.Answer;
 using ThreadActivityEntity = BaseFaq.QnA.Common.Persistence.QnADb.Entities.ThreadActivity;
 
 namespace BaseFaq.QnA.Portal.Business.Answer.Queries.GetAnswerList;
@@ -16,10 +15,11 @@ public sealed class AnswersGetAnswerListQueryHandler(
     ISessionService sessionService)
     : IRequestHandler<AnswersGetAnswerListQuery, PagedResultDto<AnswerDto>>
 {
-    public async Task<PagedResultDto<AnswerDto>> Handle(AnswersGetAnswerListQuery request, CancellationToken cancellationToken)
+    public async Task<PagedResultDto<AnswerDto>> Handle(AnswersGetAnswerListQuery request,
+        CancellationToken cancellationToken)
     {
         var tenantId = sessionService.GetTenantId(AppEnum.QnA);
-        IQueryable<AnswerEntity> query = dbContext.Answers
+        var query = dbContext.Answers
             .Include(answer => answer.Question)
             .ThenInclude(question => question.Activity)
             .Include(answer => answer.Sources)
@@ -27,34 +27,21 @@ public sealed class AnswersGetAnswerListQueryHandler(
             .Where(answer => answer.TenantId == tenantId);
 
         if (request.Request.QuestionId is not null)
-        {
             query = query.Where(answer => answer.QuestionId == request.Request.QuestionId);
-        }
 
-        if (request.Request.Status is not null)
-        {
-            query = query.Where(answer => answer.Status == request.Request.Status);
-        }
+        if (request.Request.Status is not null) query = query.Where(answer => answer.Status == request.Request.Status);
 
         if (request.Request.Visibility is not null)
-        {
             query = query.Where(answer => answer.Visibility == request.Request.Visibility);
-        }
 
         if (!string.IsNullOrWhiteSpace(request.Request.ContextKey))
-        {
             query = query.Where(answer => answer.ContextKey == request.Request.ContextKey);
-        }
 
         if (request.Request.IsAccepted is not null)
-        {
             query = query.Where(answer => answer.IsAccepted == request.Request.IsAccepted);
-        }
 
         if (request.Request.IsCanonical is not null)
-        {
             query = query.Where(answer => answer.IsCanonical == request.Request.IsCanonical);
-        }
 
         query = request.Request.Sorting?.Trim().ToLowerInvariant() switch
         {

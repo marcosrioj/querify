@@ -2,7 +2,6 @@ using System.Net;
 using BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception;
 using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Common.Infrastructure.Core.Constants;
-using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.QnA.Dtos.Question;
 using BaseFaq.Models.QnA.Enums;
 using BaseFaq.QnA.Common.Persistence.QnADb;
@@ -32,7 +31,7 @@ public sealed class QuestionsGetQuestionQueryHandler(
             .SingleOrDefaultAsync(question => question.Id == request.Id, cancellationToken);
 
         return entity is null
-            ? throw new ApiErrorException($"Question '{request.Id}' was not found.", errorCode: (int)HttpStatusCode.NotFound)
+            ? throw new ApiErrorException($"Question '{request.Id}' was not found.", (int)HttpStatusCode.NotFound)
             : entity.ToPublicQuestionDetailDto(request.Request);
     }
 
@@ -61,7 +60,9 @@ public sealed class QuestionsGetQuestionQueryHandler(
             .Include(question => question.Activity)
             .Where(question =>
                 question.TenantId == tenantId &&
-                (question.Visibility == VisibilityScope.Public || question.Visibility == VisibilityScope.PublicIndexed) &&
-                (question.Status == QuestionStatus.Open || question.Status == QuestionStatus.Answered || question.Status == QuestionStatus.Validated));
+                (question.Visibility == VisibilityScope.Public ||
+                 question.Visibility == VisibilityScope.PublicIndexed) &&
+                (question.Status == QuestionStatus.Open || question.Status == QuestionStatus.Answered ||
+                 question.Status == QuestionStatus.Validated));
     }
 }

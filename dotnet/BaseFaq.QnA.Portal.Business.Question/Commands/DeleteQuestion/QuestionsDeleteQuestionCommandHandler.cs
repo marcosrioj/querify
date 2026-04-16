@@ -17,12 +17,11 @@ public sealed class QuestionsDeleteQuestionCommandHandler(
     {
         var tenantId = sessionService.GetTenantId(AppEnum.QnA);
         var entity = await dbContext.Questions
-            .SingleOrDefaultAsync(question => question.TenantId == tenantId && question.Id == request.Id, cancellationToken);
+            .SingleOrDefaultAsync(question => question.TenantId == tenantId && question.Id == request.Id,
+                cancellationToken);
 
         if (entity is null)
-        {
-            throw new ApiErrorException($"Question '{request.Id}' was not found.", errorCode: (int)HttpStatusCode.NotFound);
-        }
+            throw new ApiErrorException($"Question '{request.Id}' was not found.", (int)HttpStatusCode.NotFound);
 
         dbContext.Questions.Remove(entity);
         await dbContext.SaveChangesAsync(cancellationToken);

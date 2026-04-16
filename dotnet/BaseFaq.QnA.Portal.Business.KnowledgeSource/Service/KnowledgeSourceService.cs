@@ -18,7 +18,8 @@ public sealed class KnowledgeSourceService(IMediator mediator) : IKnowledgeSourc
         return mediator.Send(new KnowledgeSourcesCreateKnowledgeSourceCommand { Request = dto }, token);
     }
 
-    public Task<PagedResultDto<KnowledgeSourceDto>> GetAll(KnowledgeSourceGetAllRequestDto requestDto, CancellationToken token)
+    public Task<PagedResultDto<KnowledgeSourceDto>> GetAll(KnowledgeSourceGetAllRequestDto requestDto,
+        CancellationToken token)
     {
         ArgumentNullException.ThrowIfNull(requestDto);
         return mediator.Send(new KnowledgeSourcesGetKnowledgeSourceListQuery { Request = requestDto }, token);

@@ -32,7 +32,9 @@ public static class TestDataFactory
             RequiresAnswerReview = true,
             Visibility = visibility,
             SearchMarkupMode = searchMarkupMode,
-            PublishedAtUtc = visibility is VisibilityScope.Public or VisibilityScope.PublicIndexed ? DateTime.UtcNow : null,
+            PublishedAtUtc = visibility is VisibilityScope.Public or VisibilityScope.PublicIndexed
+                ? DateTime.UtcNow
+                : null,
             CreatedBy = "test",
             UpdatedBy = "test"
         };
@@ -183,7 +185,9 @@ public static class TestDataFactory
             question.AcceptedAnswer = entity;
             question.AnsweredAtUtc = acceptedAtUtc;
             question.ResolvedAtUtc = acceptedAtUtc;
-            question.Status = question.Status == QuestionStatus.Validated ? QuestionStatus.Validated : QuestionStatus.Answered;
+            question.Status = question.Status == QuestionStatus.Validated
+                ? QuestionStatus.Validated
+                : QuestionStatus.Answered;
             var acceptedActivity = new ThreadActivity
             {
                 TenantId = tenantId,

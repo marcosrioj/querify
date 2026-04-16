@@ -1,7 +1,6 @@
 using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Common.Infrastructure.Core.Constants;
 using BaseFaq.Models.Common.Dtos;
-using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.QnA.Dtos.QuestionSpace;
 using BaseFaq.Models.QnA.Enums;
 using BaseFaq.QnA.Common.Persistence.QnADb;
@@ -9,7 +8,6 @@ using BaseFaq.QnA.Common.Persistence.QnADb.Projections;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using QuestionSpaceEntity = BaseFaq.QnA.Common.Persistence.QnADb.Entities.QuestionSpace;
 
 namespace BaseFaq.QnA.Public.Business.QuestionSpace.Queries.GetQuestionSpaceList;
 
@@ -20,34 +18,29 @@ public sealed class QuestionSpacesGetQuestionSpaceListQueryHandler(
     IHttpContextAccessor httpContextAccessor)
     : IRequestHandler<QuestionSpacesGetQuestionSpaceListQuery, PagedResultDto<QuestionSpaceDto>>
 {
-    public async Task<PagedResultDto<QuestionSpaceDto>> Handle(QuestionSpacesGetQuestionSpaceListQuery request, CancellationToken cancellationToken)
+    public async Task<PagedResultDto<QuestionSpaceDto>> Handle(QuestionSpacesGetQuestionSpaceListQuery request,
+        CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(request.Request);
 
         var tenantId = await ResolveTenantIdAndSetContextAsync(cancellationToken);
-        IQueryable<QuestionSpaceEntity> query = dbContext.QuestionSpaces
+        var query = dbContext.QuestionSpaces
             .Include(space => space.Questions)
             .Where(space =>
                 space.TenantId == tenantId &&
                 (space.Visibility == VisibilityScope.Public || space.Visibility == VisibilityScope.PublicIndexed));
 
         if (!string.IsNullOrWhiteSpace(request.Request.SearchText))
-        {
             query = query.Where(space =>
                 EF.Functions.ILike(space.Name, $"%{request.Request.SearchText}%") ||
                 EF.Functions.ILike(space.Key, $"%{request.Request.SearchText}%"));
-        }
 
         if (!string.IsNullOrWhiteSpace(request.Request.ProductScope))
-        {
             query = query.Where(space => space.ProductScope == request.Request.ProductScope);
-        }
 
         if (!string.IsNullOrWhiteSpace(request.Request.JourneyScope))
-        {
             query = query.Where(space => space.JourneyScope == request.Request.JourneyScope);
-        }
 
         query = request.Request.Sorting?.Trim().ToLowerInvariant() switch
         {

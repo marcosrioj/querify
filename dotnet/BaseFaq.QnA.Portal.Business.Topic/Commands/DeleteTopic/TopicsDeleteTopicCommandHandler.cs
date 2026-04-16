@@ -18,9 +18,7 @@ public sealed class TopicsDeleteTopicCommandHandler(QnADbContext dbContext, ISes
             .SingleOrDefaultAsync(topic => topic.TenantId == tenantId && topic.Id == request.Id, cancellationToken);
 
         if (entity is null)
-        {
-            throw new ApiErrorException($"Topic '{request.Id}' was not found.", errorCode: (int)HttpStatusCode.NotFound);
-        }
+            throw new ApiErrorException($"Topic '{request.Id}' was not found.", (int)HttpStatusCode.NotFound);
 
         dbContext.Topics.Remove(entity);
         await dbContext.SaveChangesAsync(cancellationToken);

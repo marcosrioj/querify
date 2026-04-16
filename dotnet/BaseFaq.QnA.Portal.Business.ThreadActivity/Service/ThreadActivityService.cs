@@ -9,7 +9,8 @@ namespace BaseFaq.QnA.Portal.Business.ThreadActivity.Service;
 
 public sealed class ThreadActivityService(IMediator mediator) : IThreadActivityService
 {
-    public Task<PagedResultDto<ThreadActivityDto>> GetAll(ThreadActivityGetAllRequestDto requestDto, CancellationToken token)
+    public Task<PagedResultDto<ThreadActivityDto>> GetAll(ThreadActivityGetAllRequestDto requestDto,
+        CancellationToken token)
     {
         ArgumentNullException.ThrowIfNull(requestDto);
         return mediator.Send(new ThreadActivitiesGetThreadActivityListQuery { Request = requestDto }, token);

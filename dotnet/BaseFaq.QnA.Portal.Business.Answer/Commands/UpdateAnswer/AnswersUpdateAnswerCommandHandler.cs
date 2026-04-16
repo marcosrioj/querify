@@ -29,9 +29,7 @@ public sealed class AnswersUpdateAnswerCommandHandler(
             .SingleOrDefaultAsync(answer => answer.TenantId == tenantId && answer.Id == request.Id, cancellationToken);
 
         if (entity is null)
-        {
-            throw new ApiErrorException($"Answer '{request.Id}' was not found.", errorCode: (int)HttpStatusCode.NotFound);
-        }
+            throw new ApiErrorException($"Answer '{request.Id}' was not found.", (int)HttpStatusCode.NotFound);
 
         Apply(entity, request.Request, userId);
         var activity = new ThreadActivityEntity
@@ -100,38 +98,27 @@ public sealed class AnswersUpdateAnswerCommandHandler(
 
     private static void EnsureVisibilityAllowed(AnswerEntity entity, VisibilityScope visibility)
     {
-        if (visibility is not VisibilityScope.Public and not VisibilityScope.PublicIndexed)
-        {
-            return;
-        }
+        if (visibility is not VisibilityScope.Public and not VisibilityScope.PublicIndexed) return;
 
         if (entity.Status is not AnswerStatus.Published and not AnswerStatus.Validated)
-        {
             throw new InvalidOperationException("Only published or validated answers can be exposed publicly.");
-        }
 
         if (entity.Kind == AnswerKind.AiDraft && entity.Status != AnswerStatus.Validated)
-        {
             throw new InvalidOperationException("AI draft answers must be validated before public exposure.");
-        }
 
         foreach (var sourceLink in entity.Sources)
         {
             if (sourceLink.Role is SourceRole.Citation or SourceRole.CanonicalReference &&
                 (sourceLink.Source.Visibility is not VisibilityScope.Public and not VisibilityScope.PublicIndexed ||
                  !sourceLink.Source.AllowsPublicCitation))
-            {
                 throw new InvalidOperationException(
                     "Public citations require a publicly visible source that explicitly allows citation.");
-            }
 
             if (!string.IsNullOrWhiteSpace(sourceLink.Excerpt) &&
                 (sourceLink.Source.Visibility is not VisibilityScope.Public and not VisibilityScope.PublicIndexed ||
                  !sourceLink.Source.AllowsPublicExcerpt))
-            {
                 throw new InvalidOperationException(
                     "Public excerpts require a publicly visible source that explicitly allows excerpt reuse.");
-            }
         }
     }
 }

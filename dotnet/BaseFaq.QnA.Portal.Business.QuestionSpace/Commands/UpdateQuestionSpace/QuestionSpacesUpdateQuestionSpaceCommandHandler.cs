@@ -3,6 +3,7 @@ using BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception;
 using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.QnA.Dtos.QuestionSpace;
+using BaseFaq.Models.QnA.Enums;
 using BaseFaq.QnA.Common.Persistence.QnADb;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -15,7 +16,8 @@ public sealed class QuestionSpacesUpdateQuestionSpaceCommandHandler(
     ISessionService sessionService)
     : IRequestHandler<QuestionSpacesUpdateQuestionSpaceCommand, Guid>
 {
-    public async Task<Guid> Handle(QuestionSpacesUpdateQuestionSpaceCommand request, CancellationToken cancellationToken)
+    public async Task<Guid> Handle(QuestionSpacesUpdateQuestionSpaceCommand request,
+        CancellationToken cancellationToken)
     {
         var tenantId = sessionService.GetTenantId(AppEnum.QnA);
         var userId = sessionService.GetUserId().ToString();
@@ -27,9 +29,7 @@ public sealed class QuestionSpacesUpdateQuestionSpaceCommandHandler(
             .SingleOrDefaultAsync(space => space.TenantId == tenantId && space.Id == request.Id, cancellationToken);
 
         if (entity is null)
-        {
-            throw new ApiErrorException($"Question space '{request.Id}' was not found.", errorCode: (int)HttpStatusCode.NotFound);
-        }
+            throw new ApiErrorException($"Question space '{request.Id}' was not found.", (int)HttpStatusCode.NotFound);
 
         Apply(entity, request.Request, userId);
         await dbContext.SaveChangesAsync(cancellationToken);
@@ -56,14 +56,11 @@ public sealed class QuestionSpacesUpdateQuestionSpaceCommandHandler(
         entity.Visibility = request.Visibility;
         entity.SearchMarkupMode = request.SearchMarkupMode;
         entity.PublishedAtUtc =
-            request.Visibility is BaseFaq.Models.QnA.Enums.VisibilityScope.Public or BaseFaq.Models.QnA.Enums.VisibilityScope.PublicIndexed
+            request.Visibility is VisibilityScope.Public or VisibilityScope.PublicIndexed
                 ? entity.PublishedAtUtc ?? DateTime.UtcNow
                 : null;
 
-        if (request.MarkValidated)
-        {
-            entity.LastValidatedAtUtc = DateTime.UtcNow;
-        }
+        if (request.MarkValidated) entity.LastValidatedAtUtc = DateTime.UtcNow;
 
         entity.UpdatedBy = userId;
     }

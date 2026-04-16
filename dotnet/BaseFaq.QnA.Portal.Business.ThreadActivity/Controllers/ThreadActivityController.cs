@@ -21,7 +21,8 @@ public class ThreadActivityController(IThreadActivityService threadActivityServi
 
     [HttpGet]
     [ProducesResponseType(typeof(PagedResultDto<ThreadActivityDto>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetAll([FromQuery] ThreadActivityGetAllRequestDto requestDto, CancellationToken token)
+    public async Task<IActionResult> GetAll([FromQuery] ThreadActivityGetAllRequestDto requestDto,
+        CancellationToken token)
     {
         return Ok(await threadActivityService.GetAll(requestDto, token));
     }

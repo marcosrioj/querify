@@ -28,7 +28,8 @@ public class QuestionSpaceController(IQuestionSpaceService questionSpaceService)
 
     [HttpGet]
     [ProducesResponseType(typeof(PagedResultDto<QuestionSpaceDto>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetAll([FromQuery] QuestionSpaceGetAllRequestDto requestDto, CancellationToken token)
+    public async Task<IActionResult> GetAll([FromQuery] QuestionSpaceGetAllRequestDto requestDto,
+        CancellationToken token)
     {
         return Ok(await questionSpaceService.GetAll(requestDto, token));
     }

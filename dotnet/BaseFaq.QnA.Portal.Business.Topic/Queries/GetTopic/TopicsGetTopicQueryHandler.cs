@@ -19,7 +19,7 @@ public sealed class TopicsGetTopicQueryHandler(QnADbContext dbContext, ISessionS
             .SingleOrDefaultAsync(topic => topic.TenantId == tenantId && topic.Id == request.Id, cancellationToken);
 
         return entity is null
-            ? throw new ApiErrorException($"Topic '{request.Id}' was not found.", errorCode: (int)HttpStatusCode.NotFound)
+            ? throw new ApiErrorException($"Topic '{request.Id}' was not found.", (int)HttpStatusCode.NotFound)
             : new TopicDto
             {
                 Id = entity.Id,

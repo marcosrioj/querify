@@ -171,14 +171,14 @@ public static class QnAReadModelMappings
         this Answer entity,
         IEnumerable<ThreadActivity> questionActivity)
     {
-        return ToAnswerDto(entity, questionActivity, publicOnly: false);
+        return ToAnswerDto(entity, questionActivity, false);
     }
 
     public static AnswerDto ToPublicAnswerDto(
         this Answer entity,
         IEnumerable<ThreadActivity> questionActivity)
     {
-        return ToAnswerDto(entity, questionActivity, publicOnly: true);
+        return ToAnswerDto(entity, questionActivity, true);
     }
 
     public static QuestionSpaceDto ToQuestionSpaceDto(this QuestionSpace entity)
@@ -306,11 +306,9 @@ public static class QnAReadModelMappings
     {
         IEnumerable<AnswerSourceLink> sources = entity.Sources;
         if (publicOnly)
-        {
             sources = sources.Where(link =>
                 link.Source is not null &&
                 link.Source.Visibility is VisibilityScope.Public or VisibilityScope.PublicIndexed);
-        }
 
         return new AnswerDto
         {

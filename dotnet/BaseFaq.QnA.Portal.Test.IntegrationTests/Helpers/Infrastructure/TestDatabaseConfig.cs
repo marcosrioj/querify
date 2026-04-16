@@ -23,7 +23,7 @@ public sealed class TestDatabaseConfig
     {
         var configuration = new ConfigurationBuilder()
             .SetBasePath(AppContext.BaseDirectory)
-            .AddJsonFile("appsettings.json", optional: true)
+            .AddJsonFile("appsettings.json", true)
             .AddEnvironmentVariables()
             .Build();
 
@@ -34,9 +34,7 @@ public sealed class TestDatabaseConfig
         var adminDatabase = configuration["BaseFaqTestDb:AdminDatabase"] ?? "postgres";
 
         if (!int.TryParse(portRaw, out var port))
-        {
             throw new InvalidOperationException("BaseFaqTestDb:Port must be a valid integer.");
-        }
 
         return new TestDatabaseConfig(host, port, username, password, adminDatabase);
     }

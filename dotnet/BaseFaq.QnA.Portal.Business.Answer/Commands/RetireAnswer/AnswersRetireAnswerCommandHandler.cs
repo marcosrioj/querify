@@ -25,9 +25,7 @@ public sealed class AnswersRetireAnswerCommandHandler(
             .SingleOrDefaultAsync(answer => answer.TenantId == tenantId && answer.Id == request.Id, cancellationToken);
 
         if (entity is null)
-        {
-            throw new ApiErrorException($"Answer '{request.Id}' was not found.", errorCode: (int)HttpStatusCode.NotFound);
-        }
+            throw new ApiErrorException($"Answer '{request.Id}' was not found.", (int)HttpStatusCode.NotFound);
 
         entity.Status = AnswerStatus.Archived;
         entity.Visibility = VisibilityScope.Internal;

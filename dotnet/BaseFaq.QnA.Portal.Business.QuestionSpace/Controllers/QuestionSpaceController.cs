@@ -21,7 +21,8 @@ public class QuestionSpaceController(IQuestionSpaceService questionSpaceService)
 
     [HttpGet]
     [ProducesResponseType(typeof(PagedResultDto<QuestionSpaceDto>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetAll([FromQuery] QuestionSpaceGetAllRequestDto requestDto, CancellationToken token)
+    public async Task<IActionResult> GetAll([FromQuery] QuestionSpaceGetAllRequestDto requestDto,
+        CancellationToken token)
     {
         return Ok(await questionSpaceService.GetAll(requestDto, token));
     }
@@ -35,7 +36,8 @@ public class QuestionSpaceController(IQuestionSpaceService questionSpaceService)
 
     [HttpPut("{id:guid}")]
     [ProducesResponseType(typeof(Guid), StatusCodes.Status200OK)]
-    public async Task<IActionResult> Update(Guid id, [FromBody] QuestionSpaceUpdateRequestDto dto, CancellationToken token)
+    public async Task<IActionResult> Update(Guid id, [FromBody] QuestionSpaceUpdateRequestDto dto,
+        CancellationToken token)
     {
         return Ok(await questionSpaceService.Update(id, dto, token));
     }
@@ -50,7 +52,8 @@ public class QuestionSpaceController(IQuestionSpaceService questionSpaceService)
 
     [HttpPost("{id:guid}/topic")]
     [ProducesResponseType(typeof(Guid), StatusCodes.Status201Created)]
-    public async Task<IActionResult> AddTopic(Guid id, [FromBody] QuestionSpaceTopicCreateRequestDto dto, CancellationToken token)
+    public async Task<IActionResult> AddTopic(Guid id, [FromBody] QuestionSpaceTopicCreateRequestDto dto,
+        CancellationToken token)
     {
         dto.QuestionSpaceId = id;
         return StatusCode(StatusCodes.Status201Created, await questionSpaceService.AddTopic(dto, token));
@@ -66,7 +69,8 @@ public class QuestionSpaceController(IQuestionSpaceService questionSpaceService)
 
     [HttpPost("{id:guid}/source")]
     [ProducesResponseType(typeof(Guid), StatusCodes.Status201Created)]
-    public async Task<IActionResult> AddSource(Guid id, [FromBody] QuestionSpaceSourceCreateRequestDto dto, CancellationToken token)
+    public async Task<IActionResult> AddSource(Guid id, [FromBody] QuestionSpaceSourceCreateRequestDto dto,
+        CancellationToken token)
     {
         dto.QuestionSpaceId = id;
         return StatusCode(StatusCodes.Status201Created, await questionSpaceService.AddCuratedSource(dto, token));

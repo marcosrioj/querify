@@ -14,8 +14,6 @@ public class Answer : BaseEntity, IMustHaveTenant
     public const int MaxTrustNoteLength = 2000;
     public const int MaxEvidenceSummaryLength = 4000;
     public const int MaxAuthorLabelLength = 200;
-
-    public required Guid TenantId { get; set; }
     public required string Headline { get; set; } = null!;
     public string? Body { get; set; }
     public AnswerKind Kind { get; set; } = AnswerKind.Official;
@@ -41,4 +39,6 @@ public class Answer : BaseEntity, IMustHaveTenant
     public DateTime? RetiredAtUtc { get; set; }
     public ICollection<AnswerSourceLink> Sources { get; set; } = [];
     public ICollection<ThreadActivity> Activity { get; set; } = [];
+
+    public required Guid TenantId { get; set; }
 }

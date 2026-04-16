@@ -1,6 +1,4 @@
-using BaseFaq.QnA.Public.Business.QuestionSpace.Queries.GetQuestionSpace;
 using BaseFaq.QnA.Public.Business.QuestionSpace.Queries.GetQuestionSpaceByKey;
-using BaseFaq.QnA.Public.Business.QuestionSpace.Queries.GetQuestionSpaceList;
 using BaseFaq.QnA.Public.Test.IntegrationTests.Helpers;
 using Xunit;
 
@@ -15,8 +13,8 @@ public class QuestionSpaceQueryTests
         var space = await TestDataFactory.SeedQuestionSpaceAsync(
             context.DbContext,
             context.TenantId,
-            name: "Public Portal",
-            key: "public-portal");
+            "Public Portal",
+            "public-portal");
         var handler = new QuestionSpacesGetQuestionSpaceByKeyQueryHandler(
             context.DbContext,
             new TestClientKeyContextService(context.ClientKey),

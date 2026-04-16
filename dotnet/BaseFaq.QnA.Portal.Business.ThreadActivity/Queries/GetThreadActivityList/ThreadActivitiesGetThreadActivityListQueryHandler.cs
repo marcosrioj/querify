@@ -8,7 +8,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BaseFaq.QnA.Portal.Business.ThreadActivity.Queries.GetThreadActivityList;
 
-public sealed class ThreadActivitiesGetThreadActivityListQueryHandler(QnADbContext dbContext, ISessionService sessionService)
+public sealed class ThreadActivitiesGetThreadActivityListQueryHandler(
+    QnADbContext dbContext,
+    ISessionService sessionService)
     : IRequestHandler<ThreadActivitiesGetThreadActivityListQuery, PagedResultDto<ThreadActivityDto>>
 {
     public Task<PagedResultDto<ThreadActivityDto>> Handle(
@@ -19,28 +21,19 @@ public sealed class ThreadActivitiesGetThreadActivityListQueryHandler(QnADbConte
         ArgumentNullException.ThrowIfNull(request.Request);
 
         var tenantId = sessionService.GetTenantId(AppEnum.QnA);
-        IQueryable<Common.Persistence.QnADb.Entities.ThreadActivity> query = dbContext.ThreadActivities
+        var query = dbContext.ThreadActivities
             .Where(activity => activity.TenantId == tenantId);
 
         if (request.Request.QuestionId is not null)
-        {
             query = query.Where(activity => activity.QuestionId == request.Request.QuestionId);
-        }
 
         if (request.Request.AnswerId is not null)
-        {
             query = query.Where(activity => activity.AnswerId == request.Request.AnswerId);
-        }
 
-        if (request.Request.Kind is not null)
-        {
-            query = query.Where(activity => activity.Kind == request.Request.Kind);
-        }
+        if (request.Request.Kind is not null) query = query.Where(activity => activity.Kind == request.Request.Kind);
 
         if (request.Request.ActorKind is not null)
-        {
             query = query.Where(activity => activity.ActorKind == request.Request.ActorKind);
-        }
 
         query = request.Request.Sorting?.Trim().ToLowerInvariant() switch
         {
@@ -64,22 +57,21 @@ public sealed class ThreadActivitiesGetThreadActivityListQueryHandler(QnADbConte
 
         return new PagedResultDto<ThreadActivityDto>(
             totalCount,
-            items.Select(
-                    activity => new ThreadActivityDto
-                    {
-                        Id = activity.Id,
-                        TenantId = activity.TenantId,
-                        QuestionId = activity.QuestionId,
-                        AnswerId = activity.AnswerId,
-                        Kind = activity.Kind,
-                        ActorKind = activity.ActorKind,
-                        ActorLabel = activity.ActorLabel,
-                        Notes = activity.Notes,
-                        MetadataJson = activity.MetadataJson,
-                        SnapshotJson = activity.SnapshotJson,
-                        RevisionNumber = activity.RevisionNumber,
-                        OccurredAtUtc = activity.OccurredAtUtc
-                    })
+            items.Select(activity => new ThreadActivityDto
+                {
+                    Id = activity.Id,
+                    TenantId = activity.TenantId,
+                    QuestionId = activity.QuestionId,
+                    AnswerId = activity.AnswerId,
+                    Kind = activity.Kind,
+                    ActorKind = activity.ActorKind,
+                    ActorLabel = activity.ActorLabel,
+                    Notes = activity.Notes,
+                    MetadataJson = activity.MetadataJson,
+                    SnapshotJson = activity.SnapshotJson,
+                    RevisionNumber = activity.RevisionNumber,
+                    OccurredAtUtc = activity.OccurredAtUtc
+                })
                 .ToList());
     }
 }

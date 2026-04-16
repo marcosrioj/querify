@@ -3,8 +3,8 @@ using BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception;
 using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.QnA.Enums;
-using BaseFaq.Models.QnA.Dtos.Answer;
 using BaseFaq.QnA.Common.Persistence.QnADb;
+using BaseFaq.QnA.Common.Persistence.QnADb.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using AnswerSourceLinkEntity = BaseFaq.QnA.Common.Persistence.QnADb.Entities.AnswerSourceLink;
@@ -24,21 +24,20 @@ public sealed class AnswersAddSourceCommandHandler(
             .Include(entity => entity.Question)
             .Include(entity => entity.Sources)
             .ThenInclude(link => link.Source)
-            .SingleOrDefaultAsync(entity => entity.TenantId == tenantId && entity.Id == request.Request.AnswerId, cancellationToken);
+            .SingleOrDefaultAsync(entity => entity.TenantId == tenantId && entity.Id == request.Request.AnswerId,
+                cancellationToken);
         var source = await dbContext.KnowledgeSources
-            .SingleOrDefaultAsync(entity => entity.TenantId == tenantId && entity.Id == request.Request.SourceId, cancellationToken);
+            .SingleOrDefaultAsync(entity => entity.TenantId == tenantId && entity.Id == request.Request.SourceId,
+                cancellationToken);
 
         if (answer is null)
-        {
-            throw new ApiErrorException($"Answer '{request.Request.AnswerId}' was not found.", errorCode: (int)HttpStatusCode.NotFound);
-        }
+            throw new ApiErrorException($"Answer '{request.Request.AnswerId}' was not found.",
+                (int)HttpStatusCode.NotFound);
 
         if (source is null)
-        {
             throw new ApiErrorException(
                 $"Knowledge source '{request.Request.SourceId}' was not found.",
-                errorCode: (int)HttpStatusCode.NotFound);
-        }
+                (int)HttpStatusCode.NotFound);
 
         EnsureSourceSupportsVisibility(answer.Visibility, source, request.Request.Role, request.Request.Excerpt);
 
@@ -69,29 +68,22 @@ public sealed class AnswersAddSourceCommandHandler(
 
     private static void EnsureSourceSupportsVisibility(
         VisibilityScope answerVisibility,
-        Common.Persistence.QnADb.Entities.KnowledgeSource source,
+        KnowledgeSource source,
         SourceRole role,
         string? excerpt)
     {
-        if (answerVisibility is not VisibilityScope.Public and not VisibilityScope.PublicIndexed)
-        {
-            return;
-        }
+        if (answerVisibility is not VisibilityScope.Public and not VisibilityScope.PublicIndexed) return;
 
         if (role is SourceRole.Citation or SourceRole.CanonicalReference &&
             (source.Visibility is not VisibilityScope.Public and not VisibilityScope.PublicIndexed ||
              !source.AllowsPublicCitation))
-        {
             throw new InvalidOperationException(
                 "Public citations require a publicly visible source that explicitly allows citation.");
-        }
 
         if (!string.IsNullOrWhiteSpace(excerpt) &&
             (source.Visibility is not VisibilityScope.Public and not VisibilityScope.PublicIndexed ||
              !source.AllowsPublicExcerpt))
-        {
             throw new InvalidOperationException(
                 "Public excerpts require a publicly visible source that explicitly allows excerpt reuse.");
-        }
     }
 }

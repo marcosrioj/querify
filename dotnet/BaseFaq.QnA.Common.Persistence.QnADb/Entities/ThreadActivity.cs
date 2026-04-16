@@ -10,8 +10,6 @@ public class ThreadActivity : BaseEntity, IMustHaveTenant
     public const int MaxNotesLength = 4000;
     public const int MaxMetadataLength = 4000;
     public const int MaxSnapshotLength = 12000;
-
-    public required Guid TenantId { get; set; }
     public required Guid QuestionId { get; set; }
     public Question Question { get; set; } = null!;
     public Guid? AnswerId { get; set; }
@@ -24,4 +22,6 @@ public class ThreadActivity : BaseEntity, IMustHaveTenant
     public string? SnapshotJson { get; set; }
     public int? RevisionNumber { get; set; }
     public DateTime OccurredAtUtc { get; set; } = DateTime.UtcNow;
+
+    public required Guid TenantId { get; set; }
 }

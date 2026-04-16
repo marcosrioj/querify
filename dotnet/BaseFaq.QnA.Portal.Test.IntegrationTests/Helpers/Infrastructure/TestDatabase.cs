@@ -15,6 +15,11 @@ public sealed class TestDatabase : IDisposable
     public string AdminConnectionString { get; }
     public string ConnectionString { get; }
 
+    public void Dispose()
+    {
+        DropDatabase(AdminConnectionString, DatabaseName);
+    }
+
     public static TestDatabase Create()
     {
         var config = TestDatabaseConfig.Load();
@@ -51,10 +56,5 @@ public sealed class TestDatabase : IDisposable
             drop.CommandText = $"DROP DATABASE IF EXISTS \"{databaseName}\"";
             drop.ExecuteNonQuery();
         }
-    }
-
-    public void Dispose()
-    {
-        DropDatabase(AdminConnectionString, DatabaseName);
     }
 }

@@ -17,19 +17,15 @@ public sealed class TopicsGetTopicListQueryHandler(QnADbContext dbContext, ISess
         ArgumentNullException.ThrowIfNull(request.Request);
 
         var tenantId = sessionService.GetTenantId(AppEnum.QnA);
-        IQueryable<Common.Persistence.QnADb.Entities.Topic> query = dbContext.Topics.Where(topic => topic.TenantId == tenantId);
+        var query = dbContext.Topics.Where(topic => topic.TenantId == tenantId);
 
         if (!string.IsNullOrWhiteSpace(request.Request.SearchText))
-        {
             query = query.Where(topic =>
                 EF.Functions.ILike(topic.Name, $"%{request.Request.SearchText}%") ||
                 EF.Functions.ILike(topic.Category ?? string.Empty, $"%{request.Request.SearchText}%"));
-        }
 
         if (!string.IsNullOrWhiteSpace(request.Request.Category))
-        {
             query = query.Where(topic => topic.Category == request.Request.Category);
-        }
 
         query = request.Request.Sorting?.Trim().ToLowerInvariant() switch
         {
@@ -55,15 +51,14 @@ public sealed class TopicsGetTopicListQueryHandler(QnADbContext dbContext, ISess
 
         return new PagedResultDto<TopicDto>(
             totalCount,
-            items.Select(
-                    topic => new TopicDto
-                    {
-                        Id = topic.Id,
-                        TenantId = topic.TenantId,
-                        Name = topic.Name,
-                        Category = topic.Category,
-                        Description = topic.Description
-                    })
+            items.Select(topic => new TopicDto
+                {
+                    Id = topic.Id,
+                    TenantId = topic.TenantId,
+                    Name = topic.Name,
+                    Category = topic.Category,
+                    Description = topic.Description
+                })
                 .ToList());
     }
 }

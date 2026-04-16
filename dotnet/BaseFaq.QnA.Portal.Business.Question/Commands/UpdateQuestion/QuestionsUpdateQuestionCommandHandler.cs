@@ -5,6 +5,7 @@ using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.QnA.Dtos.Question;
 using BaseFaq.Models.QnA.Enums;
 using BaseFaq.QnA.Common.Persistence.QnADb;
+using BaseFaq.QnA.Common.Persistence.QnADb.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using QuestionEntity = BaseFaq.QnA.Common.Persistence.QnADb.Entities.Question;
@@ -24,33 +25,29 @@ public sealed class QuestionsUpdateQuestionCommandHandler(
         var entity = await dbContext.Questions
             .Include(question => question.Answers)
             .Include(question => question.Activity)
-            .SingleOrDefaultAsync(question => question.TenantId == tenantId && question.Id == request.Id, cancellationToken);
+            .SingleOrDefaultAsync(question => question.TenantId == tenantId && question.Id == request.Id,
+                cancellationToken);
 
         if (entity is null)
-        {
-            throw new ApiErrorException($"Question '{request.Id}' was not found.", errorCode: (int)HttpStatusCode.NotFound);
-        }
+            throw new ApiErrorException($"Question '{request.Id}' was not found.", (int)HttpStatusCode.NotFound);
 
         Apply(entity, request.Request, userId);
 
         if (request.Request.DuplicateOfQuestionId is Guid duplicateId && duplicateId != entity.DuplicateOfQuestionId)
         {
             var canonical = await dbContext.Questions
-                .SingleOrDefaultAsync(question => question.TenantId == tenantId && question.Id == duplicateId, cancellationToken);
+                .SingleOrDefaultAsync(question => question.TenantId == tenantId && question.Id == duplicateId,
+                    cancellationToken);
 
             if (canonical is null)
-            {
-                throw new ApiErrorException($"Question '{duplicateId}' was not found.", errorCode: (int)HttpStatusCode.NotFound);
-            }
+                throw new ApiErrorException($"Question '{duplicateId}' was not found.", (int)HttpStatusCode.NotFound);
 
             entity.DuplicateOfQuestionId = canonical.Id;
             entity.DuplicateOfQuestion = canonical;
             entity.Status = QuestionStatus.Duplicate;
 
             if (canonical.DuplicateQuestions.All(existing => existing.Id != entity.Id))
-            {
                 canonical.DuplicateQuestions.Add(entity);
-            }
 
             AddThreadActivity(
                 entity,
@@ -63,36 +60,33 @@ public sealed class QuestionsUpdateQuestionCommandHandler(
             var answer = entity.Answers.SingleOrDefault(candidate => candidate.Id == acceptedAnswerId)
                          ?? await dbContext.Answers
                              .Include(candidate => candidate.Question)
-                             .SingleOrDefaultAsync(candidate => candidate.TenantId == tenantId && candidate.Id == acceptedAnswerId, cancellationToken);
+                             .SingleOrDefaultAsync(
+                                 candidate => candidate.TenantId == tenantId && candidate.Id == acceptedAnswerId,
+                                 cancellationToken);
 
             if (answer is null)
-            {
-                throw new ApiErrorException($"Answer '{acceptedAnswerId}' was not found.", errorCode: (int)HttpStatusCode.NotFound);
-            }
+                throw new ApiErrorException($"Answer '{acceptedAnswerId}' was not found.",
+                    (int)HttpStatusCode.NotFound);
 
             if (answer.QuestionId != entity.Id)
-            {
                 throw new InvalidOperationException(
                     $"Accepted answer '{acceptedAnswerId}' belongs to a different question.");
-            }
 
             if (answer.Status is not AnswerStatus.Published and not AnswerStatus.Validated)
-            {
                 throw new InvalidOperationException("Only published or validated answers can be accepted.");
-            }
 
             if (entity.Visibility is VisibilityScope.Public or VisibilityScope.PublicIndexed &&
                 answer.Visibility is not VisibilityScope.Public and not VisibilityScope.PublicIndexed)
-            {
                 throw new InvalidOperationException("Public questions cannot accept internal-only answers.");
-            }
 
             var acceptedAtUtc = DateTime.UtcNow;
             entity.AcceptedAnswerId = answer.Id;
             entity.AcceptedAnswer = answer;
             entity.AnsweredAtUtc ??= acceptedAtUtc;
             entity.ResolvedAtUtc = acceptedAtUtc;
-            entity.Status = entity.Status == QuestionStatus.Validated ? QuestionStatus.Validated : QuestionStatus.Answered;
+            entity.Status = entity.Status == QuestionStatus.Validated
+                ? QuestionStatus.Validated
+                : QuestionStatus.Answered;
             answer.IsAccepted = true;
             answer.AcceptedAtUtc = acceptedAtUtc;
 
@@ -108,7 +102,7 @@ public sealed class QuestionsUpdateQuestionCommandHandler(
         QuestionEntity question,
         ActivityKind kind,
         string userId,
-        Common.Persistence.QnADb.Entities.Answer? answer = null)
+        Answer? answer = null)
     {
         var activity = new ThreadActivityEntity
         {
@@ -125,10 +119,9 @@ public sealed class QuestionsUpdateQuestionCommandHandler(
             UpdatedBy = userId
         };
 
-        if (kind == ActivityKind.QuestionMarkedDuplicate && question.DuplicateOfQuestionId is Guid duplicateOfQuestionId)
-        {
+        if (kind == ActivityKind.QuestionMarkedDuplicate &&
+            question.DuplicateOfQuestionId is Guid duplicateOfQuestionId)
             activity.MetadataJson = $"{{\"duplicateOfQuestionId\":\"{duplicateOfQuestionId}\"}}";
-        }
 
         question.Activity.Add(activity);
         question.LastActivityAtUtc = activity.OccurredAtUtc;
@@ -153,10 +146,7 @@ public sealed class QuestionsUpdateQuestionCommandHandler(
         entity.RevisionNumber++;
         entity.Status = request.Status;
 
-        if (request.Status == QuestionStatus.Validated)
-        {
-            entity.ValidatedAtUtc = DateTime.UtcNow;
-        }
+        if (request.Status == QuestionStatus.Validated) entity.ValidatedAtUtc = DateTime.UtcNow;
 
         EnsureVisibilityAllowed(entity, request.Visibility);
         entity.Visibility = request.Visibility;
@@ -165,40 +155,29 @@ public sealed class QuestionsUpdateQuestionCommandHandler(
 
     private static void EnsureVisibilityAllowed(QuestionEntity entity, VisibilityScope visibility)
     {
-        if (visibility is not VisibilityScope.Public and not VisibilityScope.PublicIndexed)
-        {
-            return;
-        }
+        if (visibility is not VisibilityScope.Public and not VisibilityScope.PublicIndexed) return;
 
         if (entity.Status is not QuestionStatus.Open and not QuestionStatus.Answered and not QuestionStatus.Validated)
-        {
             throw new InvalidOperationException(
                 "Only open, answered, or validated questions can be exposed publicly.");
-        }
 
         foreach (var sourceLink in entity.Sources)
         {
             if (sourceLink.Role is SourceRole.Citation or SourceRole.CanonicalReference &&
                 (sourceLink.Source.Visibility is not VisibilityScope.Public and not VisibilityScope.PublicIndexed ||
                  !sourceLink.Source.AllowsPublicCitation))
-            {
                 throw new InvalidOperationException(
                     "Public citations require a publicly visible source that explicitly allows citation.");
-            }
 
             if (!string.IsNullOrWhiteSpace(sourceLink.Excerpt) &&
                 (sourceLink.Source.Visibility is not VisibilityScope.Public and not VisibilityScope.PublicIndexed ||
                  !sourceLink.Source.AllowsPublicExcerpt))
-            {
                 throw new InvalidOperationException(
                     "Public excerpts require a publicly visible source that explicitly allows excerpt reuse.");
-            }
         }
 
         if (entity.AcceptedAnswer is not null &&
             entity.AcceptedAnswer.Visibility is not VisibilityScope.Public and not VisibilityScope.PublicIndexed)
-        {
             throw new InvalidOperationException("Public questions require a publicly visible accepted answer.");
-        }
     }
 }

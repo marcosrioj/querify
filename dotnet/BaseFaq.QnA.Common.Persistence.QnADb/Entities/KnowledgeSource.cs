@@ -15,8 +15,6 @@ public class KnowledgeSource : BaseEntity, IMustHaveTenant
     public const int MaxMediaTypeLength = 100;
     public const int MaxChecksumLength = 128;
     public const int MaxMetadataLength = 8000;
-
-    public required Guid TenantId { get; set; }
     public SourceKind Kind { get; set; } = SourceKind.Other;
     public required string Locator { get; set; } = null!;
     public string? Label { get; set; }
@@ -36,4 +34,6 @@ public class KnowledgeSource : BaseEntity, IMustHaveTenant
     public ICollection<QuestionSpaceSource> QuestionSpaceSources { get; set; } = [];
     public ICollection<QuestionSourceLink> Questions { get; set; } = [];
     public ICollection<AnswerSourceLink> Answers { get; set; } = [];
+
+    public required Guid TenantId { get; set; }
 }

@@ -28,9 +28,7 @@ public sealed class AnswersGetAnswerQueryHandler(
             .SingleOrDefaultAsync(answer => answer.TenantId == tenantId && answer.Id == request.Id, cancellationToken);
 
         if (entity is null)
-        {
-            throw new ApiErrorException($"Answer '{request.Id}' was not found.", errorCode: (int)HttpStatusCode.NotFound);
-        }
+            throw new ApiErrorException($"Answer '{request.Id}' was not found.", (int)HttpStatusCode.NotFound);
 
         IEnumerable<ThreadActivityEntity> questionActivity = entity.Question?.Activity ?? [];
         return entity.ToPortalAnswerDto(questionActivity);

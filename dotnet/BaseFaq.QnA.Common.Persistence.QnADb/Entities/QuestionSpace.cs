@@ -12,8 +12,6 @@ public class QuestionSpace : BaseEntity, IMustHaveTenant
     public const int MaxLanguageLength = 50;
     public const int MaxProductScopeLength = 200;
     public const int MaxJourneyScopeLength = 200;
-
-    public required Guid TenantId { get; set; }
     public required string Name { get; set; } = null!;
     public required string Key { get; set; } = null!;
     public string? Summary { get; set; }
@@ -33,4 +31,6 @@ public class QuestionSpace : BaseEntity, IMustHaveTenant
     public ICollection<Question> Questions { get; set; } = [];
     public ICollection<QuestionSpaceTopic> QuestionSpaceTopics { get; set; } = [];
     public ICollection<QuestionSpaceSource> QuestionSpaceSources { get; set; } = [];
+
+    public required Guid TenantId { get; set; }
 }

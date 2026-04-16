@@ -25,11 +25,9 @@ public sealed class QuestionsRemoveTopicCommandHandler(
                 cancellationToken);
 
         if (link is null)
-        {
             throw new ApiErrorException(
                 $"Question topic link '{request.QuestionId}:{request.TopicId}' was not found.",
-                errorCode: (int)HttpStatusCode.NotFound);
-        }
+                (int)HttpStatusCode.NotFound);
 
         dbContext.QuestionTopics.Remove(link);
         await dbContext.SaveChangesAsync(cancellationToken);

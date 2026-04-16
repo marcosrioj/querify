@@ -8,7 +8,13 @@ public sealed class TestSessionService(Guid tenantId, Guid userId) : ISessionSer
     public Guid TenantId { get; } = tenantId;
     public Guid UserId { get; } = userId;
 
-    public Guid GetTenantId(AppEnum app) => TenantId;
+    public Guid GetTenantId(AppEnum app)
+    {
+        return TenantId;
+    }
 
-    public Guid GetUserId() => UserId;
+    public Guid GetUserId()
+    {
+        return UserId;
+    }
 }

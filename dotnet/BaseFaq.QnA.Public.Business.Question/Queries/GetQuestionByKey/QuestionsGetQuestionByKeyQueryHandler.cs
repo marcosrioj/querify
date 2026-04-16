@@ -2,7 +2,6 @@ using System.Net;
 using BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception;
 using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Common.Infrastructure.Core.Constants;
-using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.QnA.Dtos.Question;
 using BaseFaq.Models.QnA.Enums;
 using BaseFaq.QnA.Common.Persistence.QnADb;
@@ -21,7 +20,8 @@ public sealed class QuestionsGetQuestionByKeyQueryHandler(
     IHttpContextAccessor httpContextAccessor)
     : IRequestHandler<QuestionsGetQuestionByKeyQuery, QuestionDetailDto>
 {
-    public async Task<QuestionDetailDto> Handle(QuestionsGetQuestionByKeyQuery request, CancellationToken cancellationToken)
+    public async Task<QuestionDetailDto> Handle(QuestionsGetQuestionByKeyQuery request,
+        CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(request.Request);
@@ -32,7 +32,7 @@ public sealed class QuestionsGetQuestionByKeyQueryHandler(
             .SingleOrDefaultAsync(question => question.Key == request.Key, cancellationToken);
 
         return entity is null
-            ? throw new ApiErrorException($"Question '{request.Key}' was not found.", errorCode: (int)HttpStatusCode.NotFound)
+            ? throw new ApiErrorException($"Question '{request.Key}' was not found.", (int)HttpStatusCode.NotFound)
             : entity.ToPublicQuestionDetailDto(request.Request);
     }
 
@@ -61,7 +61,9 @@ public sealed class QuestionsGetQuestionByKeyQueryHandler(
             .Include(question => question.Activity)
             .Where(question =>
                 question.TenantId == tenantId &&
-                (question.Visibility == VisibilityScope.Public || question.Visibility == VisibilityScope.PublicIndexed) &&
-                (question.Status == QuestionStatus.Open || question.Status == QuestionStatus.Answered || question.Status == QuestionStatus.Validated));
+                (question.Visibility == VisibilityScope.Public ||
+                 question.Visibility == VisibilityScope.PublicIndexed) &&
+                (question.Status == QuestionStatus.Open || question.Status == QuestionStatus.Answered ||
+                 question.Status == QuestionStatus.Validated));
     }
 }

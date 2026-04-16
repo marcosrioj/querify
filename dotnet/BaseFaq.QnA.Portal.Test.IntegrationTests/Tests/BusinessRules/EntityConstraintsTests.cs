@@ -1,4 +1,3 @@
-using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.QnA.Enums;
 using BaseFaq.QnA.Portal.Test.IntegrationTests.Helpers;
 using Xunit;
@@ -104,7 +103,8 @@ public class EntityConstraintsTests
     {
         using var context = TestContext.Create();
         var space = await TestDataFactory.SeedQuestionSpaceAsync(context.DbContext, context.SessionService.TenantId);
-        var question = await TestDataFactory.SeedQuestionAsync(context.DbContext, context.SessionService.TenantId, space.Id);
+        var question =
+            await TestDataFactory.SeedQuestionAsync(context.DbContext, context.SessionService.TenantId, space.Id);
 
         var activity = question.Activity.Single();
         activity.Notes = "Edited after creation";

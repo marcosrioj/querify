@@ -2,7 +2,6 @@ using System.Net;
 using BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception;
 using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Common.Infrastructure.Core.Constants;
-using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.QnA.Enums;
 using BaseFaq.QnA.Common.Persistence.QnADb;
 using MediatR;
@@ -33,18 +32,14 @@ public sealed class QuestionsCreateQuestionCommandHandler(
                 cancellationToken);
 
         if (space is null)
-        {
             throw new ApiErrorException(
                 $"Question space '{request.Request.SpaceId}' was not found.",
-                errorCode: (int)HttpStatusCode.NotFound);
-        }
+                (int)HttpStatusCode.NotFound);
 
         if (!space.AcceptsQuestions)
-        {
             throw new ApiErrorException(
                 "This question space is not accepting questions.",
-                errorCode: (int)HttpStatusCode.UnprocessableEntity);
-        }
+                (int)HttpStatusCode.UnprocessableEntity);
 
         var entity = new QuestionEntity
         {

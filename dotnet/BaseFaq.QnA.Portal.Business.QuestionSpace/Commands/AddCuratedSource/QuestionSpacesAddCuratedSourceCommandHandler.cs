@@ -2,8 +2,8 @@ using System.Net;
 using BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception;
 using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Models.Common.Enums;
-using BaseFaq.Models.QnA.Dtos.QuestionSpace;
 using BaseFaq.QnA.Common.Persistence.QnADb;
+using BaseFaq.QnA.Common.Persistence.QnADb.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -20,27 +20,25 @@ public sealed class QuestionSpacesAddCuratedSourceCommandHandler(
         var userId = sessionService.GetUserId().ToString();
         var space = await dbContext.QuestionSpaces
             .Include(entity => entity.QuestionSpaceSources)
-            .SingleOrDefaultAsync(entity => entity.TenantId == tenantId && entity.Id == request.Request.QuestionSpaceId, cancellationToken);
+            .SingleOrDefaultAsync(entity => entity.TenantId == tenantId && entity.Id == request.Request.QuestionSpaceId,
+                cancellationToken);
         var source = await dbContext.KnowledgeSources
-            .SingleOrDefaultAsync(entity => entity.TenantId == tenantId && entity.Id == request.Request.KnowledgeSourceId, cancellationToken);
+            .SingleOrDefaultAsync(
+                entity => entity.TenantId == tenantId && entity.Id == request.Request.KnowledgeSourceId,
+                cancellationToken);
 
         if (space is null)
-        {
             throw new ApiErrorException(
                 $"Question space '{request.Request.QuestionSpaceId}' was not found.",
-                errorCode: (int)HttpStatusCode.NotFound);
-        }
+                (int)HttpStatusCode.NotFound);
 
         if (source is null)
-        {
             throw new ApiErrorException(
                 $"Knowledge source '{request.Request.KnowledgeSourceId}' was not found.",
-                errorCode: (int)HttpStatusCode.NotFound);
-        }
+                (int)HttpStatusCode.NotFound);
 
         if (space.QuestionSpaceSources.All(link => link.KnowledgeSourceId != source.Id))
-        {
-            space.QuestionSpaceSources.Add(new Common.Persistence.QnADb.Entities.QuestionSpaceSource
+            space.QuestionSpaceSources.Add(new QuestionSpaceSource
             {
                 TenantId = tenantId,
                 QuestionSpaceId = space.Id,
@@ -50,7 +48,6 @@ public sealed class QuestionSpacesAddCuratedSourceCommandHandler(
                 CreatedBy = userId,
                 UpdatedBy = userId
             });
-        }
 
         await dbContext.SaveChangesAsync(cancellationToken);
 

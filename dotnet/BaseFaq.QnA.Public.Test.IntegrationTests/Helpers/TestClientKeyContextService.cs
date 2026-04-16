@@ -4,5 +4,8 @@ namespace BaseFaq.QnA.Public.Test.IntegrationTests.Helpers;
 
 public sealed class TestClientKeyContextService(string clientKey) : IClientKeyContextService
 {
-    public string GetRequiredClientKey() => clientKey;
+    public string GetRequiredClientKey()
+    {
+        return clientKey;
+    }
 }

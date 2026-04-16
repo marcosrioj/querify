@@ -23,12 +23,11 @@ public sealed class QuestionsSubmitQuestionCommandHandler(
         var entity = await dbContext.Questions
             .Include(question => question.Space)
             .Include(question => question.Activity)
-            .SingleOrDefaultAsync(question => question.TenantId == tenantId && question.Id == request.Id, cancellationToken);
+            .SingleOrDefaultAsync(question => question.TenantId == tenantId && question.Id == request.Id,
+                cancellationToken);
 
         if (entity is null)
-        {
-            throw new ApiErrorException($"Question '{request.Id}' was not found.", errorCode: (int)HttpStatusCode.NotFound);
-        }
+            throw new ApiErrorException($"Question '{request.Id}' was not found.", (int)HttpStatusCode.NotFound);
 
         var targetStatus = entity.Space.RequiresQuestionReview ? QuestionStatus.PendingReview : QuestionStatus.Open;
         entity.Status = targetStatus;

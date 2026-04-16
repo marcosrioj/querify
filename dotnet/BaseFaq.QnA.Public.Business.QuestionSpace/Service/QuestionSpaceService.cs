@@ -10,7 +10,8 @@ namespace BaseFaq.QnA.Public.Business.QuestionSpace.Service;
 
 public sealed class QuestionSpaceService(IMediator mediator) : IQuestionSpaceService
 {
-    public Task<PagedResultDto<QuestionSpaceDto>> GetAll(QuestionSpaceGetAllRequestDto requestDto, CancellationToken token)
+    public Task<PagedResultDto<QuestionSpaceDto>> GetAll(QuestionSpaceGetAllRequestDto requestDto,
+        CancellationToken token)
     {
         ArgumentNullException.ThrowIfNull(requestDto);
         return mediator.Send(new QuestionSpacesGetQuestionSpaceListQuery { Request = requestDto }, token);

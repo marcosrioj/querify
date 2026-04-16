@@ -47,10 +47,7 @@ public static class ThreadActivitySignals
 
     public static FeedbackSignalMetadata? ParseFeedback(string? metadataJson)
     {
-        if (string.IsNullOrWhiteSpace(metadataJson))
-        {
-            return null;
-        }
+        if (string.IsNullOrWhiteSpace(metadataJson)) return null;
 
         try
         {
@@ -79,10 +76,7 @@ public static class ThreadActivitySignals
 
     public static VoteSignalMetadata? ParseVote(string? metadataJson)
     {
-        if (string.IsNullOrWhiteSpace(metadataJson))
-        {
-            return null;
-        }
+        if (string.IsNullOrWhiteSpace(metadataJson)) return null;
 
         try
         {

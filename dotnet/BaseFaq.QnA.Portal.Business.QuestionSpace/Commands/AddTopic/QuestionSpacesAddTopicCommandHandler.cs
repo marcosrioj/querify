@@ -2,8 +2,8 @@ using System.Net;
 using BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception;
 using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Models.Common.Enums;
-using BaseFaq.Models.QnA.Dtos.QuestionSpace;
 using BaseFaq.QnA.Common.Persistence.QnADb;
+using BaseFaq.QnA.Common.Persistence.QnADb.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -20,25 +20,23 @@ public sealed class QuestionSpacesAddTopicCommandHandler(
         var userId = sessionService.GetUserId().ToString();
         var space = await dbContext.QuestionSpaces
             .Include(entity => entity.QuestionSpaceTopics)
-            .SingleOrDefaultAsync(entity => entity.TenantId == tenantId && entity.Id == request.Request.QuestionSpaceId, cancellationToken);
+            .SingleOrDefaultAsync(entity => entity.TenantId == tenantId && entity.Id == request.Request.QuestionSpaceId,
+                cancellationToken);
         var topic = await dbContext.Topics
-            .SingleOrDefaultAsync(entity => entity.TenantId == tenantId && entity.Id == request.Request.TopicId, cancellationToken);
+            .SingleOrDefaultAsync(entity => entity.TenantId == tenantId && entity.Id == request.Request.TopicId,
+                cancellationToken);
 
         if (space is null)
-        {
             throw new ApiErrorException(
                 $"Question space '{request.Request.QuestionSpaceId}' was not found.",
-                errorCode: (int)HttpStatusCode.NotFound);
-        }
+                (int)HttpStatusCode.NotFound);
 
         if (topic is null)
-        {
-            throw new ApiErrorException($"Topic '{request.Request.TopicId}' was not found.", errorCode: (int)HttpStatusCode.NotFound);
-        }
+            throw new ApiErrorException($"Topic '{request.Request.TopicId}' was not found.",
+                (int)HttpStatusCode.NotFound);
 
         if (space.QuestionSpaceTopics.All(link => link.TopicId != topic.Id))
-        {
-            space.QuestionSpaceTopics.Add(new Common.Persistence.QnADb.Entities.QuestionSpaceTopic
+            space.QuestionSpaceTopics.Add(new QuestionSpaceTopic
             {
                 TenantId = tenantId,
                 QuestionSpaceId = space.Id,
@@ -48,7 +46,6 @@ public sealed class QuestionSpacesAddTopicCommandHandler(
                 CreatedBy = userId,
                 UpdatedBy = userId
             });
-        }
 
         await dbContext.SaveChangesAsync(cancellationToken);
 

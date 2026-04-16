@@ -10,7 +10,8 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddFeedbackBusiness(this IServiceCollection services)
     {
         services.AddScoped<IFeedbackService, FeedbackService>();
-        services.AddMediatR(config => config.RegisterServicesFromAssemblyContaining<FeedbacksCreateFeedbackCommandHandler>());
+        services.AddMediatR(config =>
+            config.RegisterServicesFromAssemblyContaining<FeedbacksCreateFeedbackCommandHandler>());
 
         return services;
     }

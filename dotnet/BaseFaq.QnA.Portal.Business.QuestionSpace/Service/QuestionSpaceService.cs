@@ -22,7 +22,8 @@ public sealed class QuestionSpaceService(IMediator mediator) : IQuestionSpaceSer
         return mediator.Send(new QuestionSpacesCreateQuestionSpaceCommand { Request = dto }, token);
     }
 
-    public Task<PagedResultDto<QuestionSpaceDto>> GetAll(QuestionSpaceGetAllRequestDto requestDto, CancellationToken token)
+    public Task<PagedResultDto<QuestionSpaceDto>> GetAll(QuestionSpaceGetAllRequestDto requestDto,
+        CancellationToken token)
     {
         ArgumentNullException.ThrowIfNull(requestDto);
         return mediator.Send(new QuestionSpacesGetQuestionSpaceListQuery { Request = requestDto }, token);

@@ -1,8 +1,6 @@
 using BaseFaq.Models.QnA.Dtos.Question;
 using BaseFaq.Models.QnA.Enums;
 using BaseFaq.QnA.Public.Business.Question.Queries.GetQuestion;
-using BaseFaq.QnA.Public.Business.Question.Queries.GetQuestionByKey;
-using BaseFaq.QnA.Public.Business.Question.Queries.GetQuestionList;
 using BaseFaq.QnA.Public.Test.IntegrationTests.Helpers;
 using Xunit;
 
@@ -20,15 +18,15 @@ public class QuestionQueryTests
             context.DbContext,
             context.TenantId,
             question.Id,
-            headline: "Public accepted answer",
+            "Public accepted answer",
             accept: true);
         await TestDataFactory.SeedAnswerAsync(
             context.DbContext,
             context.TenantId,
             question.Id,
-            headline: "Internal draft answer",
-            status: AnswerStatus.Draft,
-            visibility: VisibilityScope.Internal,
+            "Internal draft answer",
+            AnswerStatus.Draft,
+            VisibilityScope.Internal,
             rank: 10);
 
         var handler = new QuestionsGetQuestionQueryHandler(

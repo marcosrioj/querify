@@ -16,7 +16,8 @@ public sealed class QuestionSpacesGetQuestionSpaceQueryHandler(
     ISessionService sessionService)
     : IRequestHandler<QuestionSpacesGetQuestionSpaceQuery, QuestionSpaceDetailDto>
 {
-    public async Task<QuestionSpaceDetailDto> Handle(QuestionSpacesGetQuestionSpaceQuery request, CancellationToken cancellationToken)
+    public async Task<QuestionSpaceDetailDto> Handle(QuestionSpacesGetQuestionSpaceQuery request,
+        CancellationToken cancellationToken)
     {
         var tenantId = sessionService.GetTenantId(AppEnum.QnA);
         var entity = await dbContext.QuestionSpaces
@@ -29,9 +30,7 @@ public sealed class QuestionSpacesGetQuestionSpaceQueryHandler(
             .SingleOrDefaultAsync(space => space.TenantId == tenantId && space.Id == request.Id, cancellationToken);
 
         if (entity is null)
-        {
-            throw new ApiErrorException($"Question space '{request.Id}' was not found.", errorCode: (int)HttpStatusCode.NotFound);
-        }
+            throw new ApiErrorException($"Question space '{request.Id}' was not found.", (int)HttpStatusCode.NotFound);
 
         return new QuestionSpaceDetailDto
         {

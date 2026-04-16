@@ -18,8 +18,6 @@ public class Question : BaseEntity, IMustHaveTenant
     public const int MaxOriginUrlLength = 1000;
     public const int MaxOriginReferenceLength = 250;
     public const int MaxThreadSummaryLength = 4000;
-
-    public required Guid TenantId { get; set; }
     public required string Title { get; set; } = null!;
     public required string Key { get; set; } = null!;
     public string? Summary { get; set; }
@@ -53,4 +51,6 @@ public class Question : BaseEntity, IMustHaveTenant
     public ICollection<QuestionSourceLink> Sources { get; set; } = [];
     public ICollection<QuestionTopic> QuestionTopics { get; set; } = [];
     public ICollection<ThreadActivity> Activity { get; set; } = [];
+
+    public required Guid TenantId { get; set; }
 }

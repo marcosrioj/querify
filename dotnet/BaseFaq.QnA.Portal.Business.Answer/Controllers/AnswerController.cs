@@ -78,7 +78,8 @@ public class AnswerController(IAnswerService answerService) : ControllerBase
 
     [HttpPost("{id:guid}/source")]
     [ProducesResponseType(typeof(Guid), StatusCodes.Status201Created)]
-    public async Task<IActionResult> AddSource(Guid id, [FromBody] AnswerSourceLinkCreateRequestDto dto, CancellationToken token)
+    public async Task<IActionResult> AddSource(Guid id, [FromBody] AnswerSourceLinkCreateRequestDto dto,
+        CancellationToken token)
     {
         dto.AnswerId = id;
         return StatusCode(StatusCodes.Status201Created, await answerService.AddSource(dto, token));

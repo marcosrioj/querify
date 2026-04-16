@@ -25,11 +25,9 @@ public sealed class AnswersRemoveSourceCommandHandler(
                 cancellationToken);
 
         if (link is null)
-        {
             throw new ApiErrorException(
                 $"Answer source link '{request.SourceLinkId}' was not found.",
-                errorCode: (int)HttpStatusCode.NotFound);
-        }
+                (int)HttpStatusCode.NotFound);
 
         dbContext.AnswerSourceLinks.Remove(link);
         await dbContext.SaveChangesAsync(cancellationToken);

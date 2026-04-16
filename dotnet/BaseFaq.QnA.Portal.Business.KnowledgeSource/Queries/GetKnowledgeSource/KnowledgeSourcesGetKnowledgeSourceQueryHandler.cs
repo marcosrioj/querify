@@ -9,10 +9,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BaseFaq.QnA.Portal.Business.KnowledgeSource.Queries.GetKnowledgeSource;
 
-public sealed class KnowledgeSourcesGetKnowledgeSourceQueryHandler(QnADbContext dbContext, ISessionService sessionService)
+public sealed class KnowledgeSourcesGetKnowledgeSourceQueryHandler(
+    QnADbContext dbContext,
+    ISessionService sessionService)
     : IRequestHandler<KnowledgeSourcesGetKnowledgeSourceQuery, KnowledgeSourceDto>
 {
-    public async Task<KnowledgeSourceDto> Handle(KnowledgeSourcesGetKnowledgeSourceQuery request, CancellationToken cancellationToken)
+    public async Task<KnowledgeSourceDto> Handle(KnowledgeSourcesGetKnowledgeSourceQuery request,
+        CancellationToken cancellationToken)
     {
         var tenantId = sessionService.GetTenantId(AppEnum.QnA);
         var entity = await dbContext.KnowledgeSources.AsNoTracking()
@@ -21,7 +24,7 @@ public sealed class KnowledgeSourcesGetKnowledgeSourceQueryHandler(QnADbContext 
         return entity is null
             ? throw new ApiErrorException(
                 $"Knowledge source '{request.Id}' was not found.",
-                errorCode: (int)HttpStatusCode.NotFound)
+                (int)HttpStatusCode.NotFound)
             : new KnowledgeSourceDto
             {
                 Id = entity.Id,

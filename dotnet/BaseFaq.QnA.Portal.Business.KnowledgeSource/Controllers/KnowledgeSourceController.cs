@@ -21,7 +21,8 @@ public class KnowledgeSourceController(IKnowledgeSourceService knowledgeSourceSe
 
     [HttpGet]
     [ProducesResponseType(typeof(PagedResultDto<KnowledgeSourceDto>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetAll([FromQuery] KnowledgeSourceGetAllRequestDto requestDto, CancellationToken token)
+    public async Task<IActionResult> GetAll([FromQuery] KnowledgeSourceGetAllRequestDto requestDto,
+        CancellationToken token)
     {
         return Ok(await knowledgeSourceService.GetAll(requestDto, token));
     }
@@ -35,7 +36,8 @@ public class KnowledgeSourceController(IKnowledgeSourceService knowledgeSourceSe
 
     [HttpPut("{id:guid}")]
     [ProducesResponseType(typeof(Guid), StatusCodes.Status200OK)]
-    public async Task<IActionResult> Update(Guid id, [FromBody] KnowledgeSourceUpdateRequestDto dto, CancellationToken token)
+    public async Task<IActionResult> Update(Guid id, [FromBody] KnowledgeSourceUpdateRequestDto dto,
+        CancellationToken token)
     {
         return Ok(await knowledgeSourceService.Update(id, dto, token));
     }

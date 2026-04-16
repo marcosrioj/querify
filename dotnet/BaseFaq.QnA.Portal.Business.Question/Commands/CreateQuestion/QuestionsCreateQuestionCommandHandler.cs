@@ -23,12 +23,12 @@ public sealed class QuestionsCreateQuestionCommandHandler(
         var userId = sessionService.GetUserId().ToString();
         var space = await dbContext.QuestionSpaces
             .Include(entity => entity.Questions)
-            .SingleOrDefaultAsync(entity => entity.TenantId == tenantId && entity.Id == request.Request.SpaceId, cancellationToken);
+            .SingleOrDefaultAsync(entity => entity.TenantId == tenantId && entity.Id == request.Request.SpaceId,
+                cancellationToken);
 
         if (space is null)
-        {
-            throw new ApiErrorException($"Question space '{request.Request.SpaceId}' was not found.", errorCode: (int)HttpStatusCode.NotFound);
-        }
+            throw new ApiErrorException($"Question space '{request.Request.SpaceId}' was not found.",
+                (int)HttpStatusCode.NotFound);
 
         var entity = new QuestionEntity
         {
@@ -91,10 +91,7 @@ public sealed class QuestionsCreateQuestionCommandHandler(
         entity.RevisionNumber++;
         entity.Status = request.Status;
 
-        if (request.Status == QuestionStatus.Validated)
-        {
-            entity.ValidatedAtUtc = DateTime.UtcNow;
-        }
+        if (request.Status == QuestionStatus.Validated) entity.ValidatedAtUtc = DateTime.UtcNow;
 
         EnsureVisibilityAllowed(entity, request.Visibility);
         entity.Visibility = request.Visibility;
@@ -103,15 +100,10 @@ public sealed class QuestionsCreateQuestionCommandHandler(
 
     private static void EnsureVisibilityAllowed(QuestionEntity entity, VisibilityScope visibility)
     {
-        if (visibility is not VisibilityScope.Public and not VisibilityScope.PublicIndexed)
-        {
-            return;
-        }
+        if (visibility is not VisibilityScope.Public and not VisibilityScope.PublicIndexed) return;
 
         if (entity.Status is not QuestionStatus.Open and not QuestionStatus.Answered and not QuestionStatus.Validated)
-        {
             throw new InvalidOperationException(
                 "Only open, answered, or validated questions can be exposed publicly.");
-        }
     }
 }

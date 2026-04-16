@@ -1,18 +1,7 @@
 using BaseFaq.Models.QnA.Dtos.Question;
 using BaseFaq.Models.QnA.Enums;
-using BaseFaq.QnA.Portal.Business.Question.Commands.AddSource;
-using BaseFaq.QnA.Portal.Business.Question.Commands.AddTopic;
-using BaseFaq.QnA.Portal.Business.Question.Commands.ApproveQuestion;
-using BaseFaq.QnA.Portal.Business.Question.Commands.CreateQuestion;
-using BaseFaq.QnA.Portal.Business.Question.Commands.DeleteQuestion;
-using BaseFaq.QnA.Portal.Business.Question.Commands.EscalateQuestion;
-using BaseFaq.QnA.Portal.Business.Question.Commands.RejectQuestion;
-using BaseFaq.QnA.Portal.Business.Question.Commands.RemoveSource;
-using BaseFaq.QnA.Portal.Business.Question.Commands.RemoveTopic;
-using BaseFaq.QnA.Portal.Business.Question.Commands.SubmitQuestion;
 using BaseFaq.QnA.Portal.Business.Question.Commands.UpdateQuestion;
 using BaseFaq.QnA.Portal.Business.Question.Queries.GetQuestion;
-using BaseFaq.QnA.Portal.Business.Question.Queries.GetQuestionList;
 using BaseFaq.QnA.Portal.Test.IntegrationTests.Helpers;
 using Xunit;
 
@@ -65,7 +54,8 @@ public class QuestionCommandQueryTests
         }, CancellationToken.None);
 
         var getHandler = new QuestionsGetQuestionQueryHandler(context.DbContext, context.SessionService);
-        var result = await getHandler.Handle(new QuestionsGetQuestionQuery { Id = question.Id }, CancellationToken.None);
+        var result =
+            await getHandler.Handle(new QuestionsGetQuestionQuery { Id = question.Id }, CancellationToken.None);
 
         Assert.Equal(acceptedAnswer.Id, result.AcceptedAnswerId);
         Assert.Equal(QuestionStatus.Answered, result.Status);

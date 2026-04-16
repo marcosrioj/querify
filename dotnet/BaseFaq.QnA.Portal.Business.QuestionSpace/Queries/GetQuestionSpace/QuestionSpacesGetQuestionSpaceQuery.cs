@@ -1,4 +1,3 @@
-using BaseFaq.Models.Common.Dtos;
 using BaseFaq.Models.QnA.Dtos.QuestionSpace;
 using MediatR;
 

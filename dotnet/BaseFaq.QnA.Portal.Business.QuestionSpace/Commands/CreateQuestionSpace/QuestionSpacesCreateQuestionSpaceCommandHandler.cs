@@ -1,6 +1,7 @@
 using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.QnA.Dtos.QuestionSpace;
+using BaseFaq.Models.QnA.Enums;
 using BaseFaq.QnA.Common.Persistence.QnADb;
 using MediatR;
 using QuestionSpaceEntity = BaseFaq.QnA.Common.Persistence.QnADb.Entities.QuestionSpace;
@@ -12,7 +13,8 @@ public sealed class QuestionSpacesCreateQuestionSpaceCommandHandler(
     ISessionService sessionService)
     : IRequestHandler<QuestionSpacesCreateQuestionSpaceCommand, Guid>
 {
-    public async Task<Guid> Handle(QuestionSpacesCreateQuestionSpaceCommand request, CancellationToken cancellationToken)
+    public async Task<Guid> Handle(QuestionSpacesCreateQuestionSpaceCommand request,
+        CancellationToken cancellationToken)
     {
         var tenantId = sessionService.GetTenantId(AppEnum.QnA);
         var userId = sessionService.GetUserId().ToString();
@@ -54,14 +56,11 @@ public sealed class QuestionSpacesCreateQuestionSpaceCommandHandler(
         entity.Visibility = request.Visibility;
         entity.SearchMarkupMode = request.SearchMarkupMode;
         entity.PublishedAtUtc =
-            request.Visibility is BaseFaq.Models.QnA.Enums.VisibilityScope.Public or BaseFaq.Models.QnA.Enums.VisibilityScope.PublicIndexed
+            request.Visibility is VisibilityScope.Public or VisibilityScope.PublicIndexed
                 ? DateTime.UtcNow
                 : null;
 
-        if (request.MarkValidated)
-        {
-            entity.LastValidatedAtUtc = DateTime.UtcNow;
-        }
+        if (request.MarkValidated) entity.LastValidatedAtUtc = DateTime.UtcNow;
 
         entity.UpdatedBy = userId;
     }

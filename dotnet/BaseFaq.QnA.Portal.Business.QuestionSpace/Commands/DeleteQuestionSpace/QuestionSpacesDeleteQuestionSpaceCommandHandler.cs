@@ -20,9 +20,7 @@ public sealed class QuestionSpacesDeleteQuestionSpaceCommandHandler(
             .SingleOrDefaultAsync(space => space.TenantId == tenantId && space.Id == request.Id, cancellationToken);
 
         if (entity is null)
-        {
-            throw new ApiErrorException($"Question space '{request.Id}' was not found.", errorCode: (int)HttpStatusCode.NotFound);
-        }
+            throw new ApiErrorException($"Question space '{request.Id}' was not found.", (int)HttpStatusCode.NotFound);
 
         dbContext.QuestionSpaces.Remove(entity);
         await dbContext.SaveChangesAsync(cancellationToken);
