@@ -8,6 +8,7 @@ using BaseFaq.Tools.Migration.Utilities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
+using Microsoft.Extensions.Configuration;
 
 namespace BaseFaq.Tools.Migration.Factories;
 
@@ -24,6 +25,7 @@ public sealed class QnADbContextFactory : IDesignTimeDbContextFactory<QnADbConte
         }
 
         var tenantDbConnectionString = MigrationsConfiguration.GetTenantDbConnectionString(configuration);
+        var designTimeConnectionString = ResolveDesignTimeConnectionString(configuration, tenantDbConnectionString);
         var sessionService = new MigrationsSessionService();
         var tenantConnectionProvider = new NoopTenantConnectionStringProvider();
         var httpContextAccessor = new HttpContextAccessor();
@@ -42,11 +44,21 @@ public sealed class QnADbContextFactory : IDesignTimeDbContextFactory<QnADbConte
 
             tenantConnection = ResolveCurrentConnection(tenantDbContext);
         }
+        catch when (!string.IsNullOrWhiteSpace(designTimeConnectionString))
+        {
+            tenantConnection = new TenantConnection
+            {
+                ConnectionString = designTimeConnectionString,
+                App = app,
+                IsCurrent = true
+            };
+        }
         catch (Exception ex)
         {
             throw new InvalidOperationException(
                 "Failed to connect to the tenant database while creating the QnA DbContext. " +
-                "Make sure the database is running and ConnectionStrings:TenantDb is set correctly.",
+                "Make sure the database is running and ConnectionStrings:TenantDb is set correctly, " +
+                "or provide ConnectionStrings:QnADb for offline design-time scaffolding.",
                 ex);
         }
 
@@ -60,6 +72,19 @@ public sealed class QnADbContextFactory : IDesignTimeDbContextFactory<QnADbConte
             configuration,
             tenantConnectionProvider,
             httpContextAccessor);
+    }
+
+    private static string ResolveDesignTimeConnectionString(
+        IConfiguration configuration,
+        string tenantDbConnectionString)
+    {
+        var qnaDbConnectionString = configuration.GetConnectionString("QnADb");
+        if (!string.IsNullOrWhiteSpace(qnaDbConnectionString))
+        {
+            return qnaDbConnectionString;
+        }
+
+        return tenantDbConnectionString;
     }
 
     private static TenantConnection ResolveCurrentConnection(TenantDbContext tenantDbContext)

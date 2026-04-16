@@ -98,6 +98,15 @@ Repository-owned skills keep the existing BaseFAQ implementation-guide shape:
 4. Use workers only when the parent agent has already chosen strategy and the owned-path boundary is clear.
 5. Update the catalog and the relevant `.agents/` indexes when a reusable capability, naming rule, or boundary changes.
 
+## BaseFAQ Backend Boundary Note
+
+For backend repository work, prefer the same physical project boundaries already established in the solution.
+
+- FAQ and QnA backend modules are feature-owned.
+- QnA Portal and Public work must mirror FAQ's one-business-project-per-entity or per-surface pattern.
+- Do not introduce monolithic `BaseFaq.QnA.Portal.Business` or `BaseFaq.QnA.Public.Business` projects.
+- Keep QnA source files real inside the owning feature project directory; do not use linked compile items.
+
 ## How Users Ask For Work
 
 Users normally ask in natural language in the chat. They do not need to know the agent names in advance.

@@ -14,10 +14,12 @@ If this file conflicts with those sources, those sources win.
 ## Scope
 Apply these rules to:
 - `BaseFaq.Faq.*`
+- `BaseFaq.QnA.*`
 - `BaseFaq.Tenant.*`
 - `BaseFaq.Common.*`
 - `BaseFaq.Models.Common`
 - `BaseFaq.Models.Faq`
+- `BaseFaq.Models.QnA`
 - `BaseFaq.Models.Tenant`
 - `BaseFaq.Models.User`
 - `BaseFaq.Tools.*`
@@ -45,6 +47,28 @@ Apply these rules to:
 - If dependencies change, update unit test doubles and integration fixtures.
 - Keep integration-first behavior (real DB + real migrations where defined).
 
+### 5) QnA Physical Module Boundary
+- QnA backend modules must mirror the FAQ physical decomposition style.
+- Each QnA entity or surface concern gets its own business project, for example `BaseFaq.QnA.Portal.Business.Question` or `BaseFaq.QnA.Public.Business.Vote`.
+- Do not introduce monolithic aggregation projects such as `BaseFaq.QnA.Portal.Business` or `BaseFaq.QnA.Public.Business`.
+- Keep QnA source files physically inside the owning feature project directory.
+- Do not use linked source items such as `<Compile Include="..\\..." Link="...">` for QnA business feature projects.
+- API hosts compose QnA modules through feature-level `Add*Business()` registrations.
+- Integration tests reference the owning feature projects directly and follow FAQ-style feature folders such as `Tests/Question/QuestionCommandQueryTests.cs`.
+- QnA command handlers and query handlers own the use-case logic directly, matching the FAQ physical pattern.
+- Do not introduce generic QnA helper files such as `*Operations.cs`, `PagedQuery.cs`, `QnAProjectionMapper.cs`, `QnAActivityMetadata.cs`, or `SignalRequestContext.cs`.
+- The only allowed QnA helper exception is a feature-specific request-context helper that mirrors FAQ naming, currently `FeedbackRequestContext.cs` and `VoteRequestContext.cs`.
+- QnA persistence entities in `QnADb/Entities` must stay anemic.
+- Do not add command-like methods, factory methods, behavior methods, or convenience projection properties to QnA persistence entities.
+- Keep QnA state transitions, relation management, validation, and projection shaping inside commands, queries, and feature-local private methods.
+
+### 6) QnA Model Contract Boundary
+- `BaseFaq.Models.QnA` must mirror the physical DTO layout style already used by `BaseFaq.Models.Faq`.
+- Keep DTOs in real feature folders such as `Dtos/Question/QuestionDto.cs` or `Dtos/Answer/AnswerCreateRequestDto.cs`.
+- Do not keep aggregate files such as `Dtos/QuestionDtos.cs` or any other `*Dtos.cs` catch-all file in `BaseFaq.Models.QnA`.
+- Keep namespaces and file ownership coherent with the folder that owns the DTO.
+- Do not introduce pseudo-entity folders such as `Dtos/Link`; link DTOs belong to the owning feature folders like `Dtos/Answer`, `Dtos/Question`, or `Dtos/QuestionSpace`.
+
 ## Folder Ownership Rules (Do Not Mix Responsibilities)
 
 | Location | Allowed | Not Allowed |
@@ -68,7 +92,8 @@ Hard rule: do not place new behavior in folders that already exist for a differe
 
 2. Handler is orchestration, not business engine.
    - `Handle(...)` coordinates phases and delegates behavior.
-   - Domain rules live in domain entities/value objects/domain services, not inline in controller/service handler code.
+   - Keep behavior in the owning action boundary and feature-local collaborators.
+   - Do not move use-case behavior into controllers, generic helpers, transport services, or persistence entities.
 
 3. Slice by explicit phases.
    - Use this order as default: validate -> authorize -> load -> apply domain behavior -> persist -> publish/integrate.
@@ -113,7 +138,7 @@ Never solve "big command" by moving behavior to unrelated folders.
 - [ ] Write endpoints/services do not return read DTOs.
 - [ ] `Handle(...)` is bounded; oversized logic was decomposed using the slicing rules.
 - [ ] Every extracted class has a single responsibility and clear name.
-- [ ] Domain rules stay in domain layer collaborators, not controllers or transport code.
+- [ ] Behavior stays in the owning command/query flow or feature-local collaborators, not controllers, generic helpers, or QnA persistence entities.
 - [ ] Action structure follows the standard slicing pattern for Commands/Queries.
 - [ ] New behavior was added only to the correct folder ownership boundary.
 - [ ] Tests were updated for dependency/contract changes.

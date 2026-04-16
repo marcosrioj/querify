@@ -1,0 +1,9 @@
+using BaseFaq.Models.QnA.Dtos.QuestionSpace;
+using MediatR;
+
+namespace BaseFaq.QnA.Portal.Business.QuestionSpace.Commands;
+
+public sealed class QuestionSpacesDeleteQuestionSpaceCommand : IRequest
+{
+    public Guid Id { get; set; }
+}
