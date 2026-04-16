@@ -76,6 +76,69 @@ public class QnADbContext : BaseDbContext<QnADbContext>
         return base.SaveChangesAsync(cancellationToken);
     }
 
+    public ActivityUserIdentity ResolveActivityIdentity(
+        string? explicitUserPrint = null,
+        string? explicitIp = null,
+        string? explicitUserAgent = null,
+        params string?[] fallbackLabels)
+    {
+        return ActivityUserPrint.ResolveForPersistence(
+            _httpContextAccessor.HttpContext,
+            _sessionService,
+            explicitUserPrint,
+            explicitIp,
+            explicitUserAgent,
+            fallbackLabels);
+    }
+
+    public Activity CreateActivity(
+        Guid tenantId,
+        Question question,
+        ActivityKind kind,
+        ActorKind actorKind,
+        string actorLabel,
+        DateTime occurredAtUtc,
+        Guid? answerId = null,
+        Answer? answer = null,
+        string? notes = null,
+        string? metadataJson = null,
+        string? createdBy = null,
+        string? updatedBy = null,
+        string? explicitUserPrint = null,
+        string? explicitIp = null,
+        string? explicitUserAgent = null)
+    {
+        var resolvedCreatedBy = string.IsNullOrWhiteSpace(createdBy) ? actorLabel : createdBy;
+        var resolvedUpdatedBy = string.IsNullOrWhiteSpace(updatedBy) ? resolvedCreatedBy : updatedBy;
+        var identity = ResolveActivityIdentity(
+            explicitUserPrint,
+            explicitIp,
+            explicitUserAgent,
+            actorLabel,
+            resolvedCreatedBy,
+            resolvedUpdatedBy);
+
+        return new Activity
+        {
+            TenantId = tenantId,
+            QuestionId = question.Id,
+            Question = question,
+            AnswerId = answerId,
+            Answer = answer,
+            Kind = kind,
+            ActorKind = actorKind,
+            ActorLabel = actorLabel,
+            UserPrint = identity.UserPrint,
+            Ip = identity.Ip,
+            UserAgent = identity.UserAgent,
+            Notes = notes,
+            MetadataJson = metadataJson,
+            OccurredAtUtc = occurredAtUtc,
+            CreatedBy = resolvedCreatedBy,
+            UpdatedBy = resolvedUpdatedBy
+        };
+    }
+
     private void PopulateActivityIdentity()
     {
         foreach (var entry in ChangeTracker.Entries<Activity>()

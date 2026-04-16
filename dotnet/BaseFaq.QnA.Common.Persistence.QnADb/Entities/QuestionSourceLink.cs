@@ -33,7 +33,7 @@ public class QuestionSourceLink : BaseEntity, IMustHaveTenant
     /// <summary>
     /// Role of the source for the question, such as origin, evidence, or reference.
     /// </summary>
-    public required SourceRole Role { get; set; } = SourceRole.QuestionOrigin;
+    public required SourceRole Role { get; set; }
 
     /// <summary>
     /// Display order or priority of the source in the set.

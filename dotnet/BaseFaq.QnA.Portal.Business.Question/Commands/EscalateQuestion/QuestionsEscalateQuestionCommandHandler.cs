@@ -36,6 +36,7 @@ public sealed class QuestionsEscalateQuestionCommandHandler(
 
     private void AddActivity(QuestionEntity question, ActivityKind kind, string userId, string? notes = null)
     {
+        var activityIdentity = dbContext.ResolveActivityIdentity(userId, null, null, userId);
         var activity = new ActivityEntity
         {
             TenantId = question.TenantId,
@@ -44,9 +45,9 @@ public sealed class QuestionsEscalateQuestionCommandHandler(
             Kind = kind,
             ActorKind = ActorKind.Moderator,
             ActorLabel = userId,
-            UserPrint = string.Empty,
-            Ip = string.Empty,
-            UserAgent = string.Empty,
+            UserPrint = activityIdentity.UserPrint,
+            Ip = activityIdentity.Ip,
+            UserAgent = activityIdentity.UserAgent,
             Notes = notes,
             OccurredAtUtc = DateTime.UtcNow,
             CreatedBy = userId,

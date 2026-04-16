@@ -18,7 +18,7 @@ public static class QnAReadModelMappings
             Id = entity.Id,
             TenantId = entity.TenantId,
             SpaceId = entity.SpaceId,
-            SpaceKey = entity.Space?.Key ?? string.Empty,
+            SpaceKey = GetRequiredSpaceKey(entity),
             Title = entity.Title,
             Key = entity.Key,
             Summary = entity.Summary,
@@ -54,7 +54,7 @@ public static class QnAReadModelMappings
             Id = entity.Id,
             TenantId = entity.TenantId,
             SpaceId = entity.SpaceId,
-            SpaceKey = entity.Space?.Key ?? string.Empty,
+            SpaceKey = GetRequiredSpaceKey(entity),
             Title = entity.Title,
             Key = entity.Key,
             Summary = entity.Summary,
@@ -126,7 +126,7 @@ public static class QnAReadModelMappings
             Id = entity.Id,
             TenantId = entity.TenantId,
             SpaceId = entity.SpaceId,
-            SpaceKey = entity.Space?.Key ?? string.Empty,
+            SpaceKey = GetRequiredSpaceKey(entity),
             Title = entity.Title,
             Key = entity.Key,
             Summary = entity.Summary,
@@ -333,5 +333,12 @@ public static class QnAReadModelMappings
                 .Select(source => source.ToAnswerSourceLinkDto())
                 .ToList()
         };
+    }
+
+    private static string GetRequiredSpaceKey(Question entity)
+    {
+        return !string.IsNullOrWhiteSpace(entity.Space?.Key)
+            ? entity.Space.Key
+            : throw new InvalidOperationException($"Question '{entity.Id}' is missing the required space key.");
     }
 }

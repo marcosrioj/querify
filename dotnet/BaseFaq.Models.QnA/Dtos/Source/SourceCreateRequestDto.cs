@@ -4,8 +4,8 @@ namespace BaseFaq.Models.QnA.Dtos.Source;
 
 public class SourceCreateRequestDto
 {
-    public required SourceKind Kind { get; set; } = SourceKind.Other;
-    public required string Locator { get; set; } = string.Empty;
+    public required SourceKind Kind { get; set; }
+    public required string Locator { get; set; }
     public string? Label { get; set; }
     public string? Scope { get; set; }
     public string? SystemName { get; set; }
@@ -14,7 +14,7 @@ public class SourceCreateRequestDto
     public string? MediaType { get; set; }
     public string? Checksum { get; set; }
     public string? MetadataJson { get; set; }
-    public required VisibilityScope Visibility { get; set; } = VisibilityScope.Internal;
+    public required VisibilityScope Visibility { get; set; }
     public required bool AllowsPublicCitation { get; set; }
     public required bool AllowsPublicExcerpt { get; set; }
     public required bool IsAuthoritative { get; set; }

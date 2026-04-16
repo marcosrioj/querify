@@ -7,9 +7,9 @@ public class QuestionDto
     public required Guid Id { get; set; }
     public required Guid TenantId { get; set; }
     public required Guid SpaceId { get; set; }
-    public required string SpaceKey { get; set; } = string.Empty;
-    public required string Title { get; set; } = string.Empty;
-    public required string Key { get; set; } = string.Empty;
+    public required string SpaceKey { get; set; }
+    public required string Title { get; set; }
+    public required string Key { get; set; }
     public string? Summary { get; set; }
     public string? ContextNote { get; set; }
     public required QuestionKind Kind { get; set; }

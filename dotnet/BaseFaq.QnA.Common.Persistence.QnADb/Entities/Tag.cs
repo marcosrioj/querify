@@ -13,7 +13,7 @@ public class Tag : BaseEntity, IMustHaveTenant
     /// <summary>
     /// Normalized tag name.
     /// </summary>
-    public required string Name { get; set; } = null!;
+    public required string Name { get; set; }
 
     /// <summary>
     /// Relationships between the tag and the spaces where it appears.

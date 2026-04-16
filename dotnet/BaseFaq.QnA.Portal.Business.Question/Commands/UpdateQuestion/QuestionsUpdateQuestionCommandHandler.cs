@@ -103,6 +103,7 @@ public sealed class QuestionsUpdateQuestionCommandHandler(
         string userId,
         Answer? answer = null)
     {
+        var activityIdentity = dbContext.ResolveActivityIdentity(userId, null, null, userId);
         var activity = new ActivityEntity
         {
             TenantId = question.TenantId,
@@ -113,9 +114,9 @@ public sealed class QuestionsUpdateQuestionCommandHandler(
             Kind = kind,
             ActorKind = ActorKind.Moderator,
             ActorLabel = userId,
-            UserPrint = string.Empty,
-            Ip = string.Empty,
-            UserAgent = string.Empty,
+            UserPrint = activityIdentity.UserPrint,
+            Ip = activityIdentity.Ip,
+            UserAgent = activityIdentity.UserAgent,
             OccurredAtUtc = DateTime.UtcNow,
             CreatedBy = userId,
             UpdatedBy = userId

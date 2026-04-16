@@ -20,12 +20,12 @@ public class Space : BaseEntity, IMustHaveTenant
     /// <summary>
     /// Display name for the space.
     /// </summary>
-    public required string Name { get; set; } = null!;
+    public required string Name { get; set; }
 
     /// <summary>
     /// Stable key used in routes, APIs, and integrations.
     /// </summary>
-    public required string Key { get; set; } = null!;
+    public required string Key { get; set; }
 
     /// <summary>
     /// Description of the type of question and context expected in the space.
@@ -35,27 +35,27 @@ public class Space : BaseEntity, IMustHaveTenant
     /// <summary>
     /// Default language used for curation, search, and rendering.
     /// </summary>
-    public required string DefaultLanguage { get; set; } = null!;
+    public required string DefaultLanguage { get; set; }
 
     /// <summary>
     /// Functional kind of the space, such as curated knowledge or community.
     /// </summary>
-    public required SpaceKind Kind { get; set; } = SpaceKind.CuratedKnowledge;
+    public required SpaceKind Kind { get; set; }
 
     /// <summary>
     /// Visibility scope for the space.
     /// </summary>
-    public required VisibilityScope Visibility { get; set; } = VisibilityScope.Internal;
+    public required VisibilityScope Visibility { get; set; }
 
     /// <summary>
     /// Moderation policy applied to the space workflow.
     /// </summary>
-    public required ModerationPolicy ModerationPolicy { get; set; } = ModerationPolicy.PreModeration;
+    public required ModerationPolicy ModerationPolicy { get; set; }
 
     /// <summary>
     /// Controls markup behavior for search and indexable surfaces.
     /// </summary>
-    public required SearchMarkupMode SearchMarkupMode { get; set; } = SearchMarkupMode.Off;
+    public required SearchMarkupMode SearchMarkupMode { get; set; }
 
     /// <summary>
     /// Optional product scope covered by the space.
@@ -80,12 +80,12 @@ public class Space : BaseEntity, IMustHaveTenant
     /// <summary>
     /// Defines whether new questions require review before moving through the workflow.
     /// </summary>
-    public required bool RequiresQuestionReview { get; set; } = true;
+    public required bool RequiresQuestionReview { get; set; }
 
     /// <summary>
     /// Defines whether new answers require review before exposure.
     /// </summary>
-    public required bool RequiresAnswerReview { get; set; } = true;
+    public required bool RequiresAnswerReview { get; set; }
 
     /// <summary>
     /// Timestamp when the space was published for consumption.

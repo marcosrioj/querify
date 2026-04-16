@@ -9,6 +9,8 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Identity;
 public static class ActivityUserPrint
 {
     private const string ExternalUserIdClaimType = "sub";
+    private const string UnknownIp = "unknown";
+    private const string UnknownUserAgent = "unknown";
 
     public static ActivityUserIdentity ResolveCurrent(
         HttpContext httpContext,
@@ -53,8 +55,8 @@ public static class ActivityUserPrint
 
         return new ActivityUserIdentity(
             fallbackUserPrint,
-            explicitIp ?? string.Empty,
-            explicitUserAgent ?? string.Empty,
+            FirstNonEmpty(explicitIp, [UnknownIp])!,
+            FirstNonEmpty(explicitUserAgent, [UnknownUserAgent])!,
             authenticatedUserId);
     }
 
@@ -70,9 +72,10 @@ public static class ActivityUserPrint
         var ip = string.IsNullOrWhiteSpace(forwardedFor)
             ? httpContext.Connection.RemoteIpAddress?.ToString()
             : forwardedFor.Split(',')[0].Trim();
-        ip ??= string.Empty;
+        ip = string.IsNullOrWhiteSpace(ip) ? UnknownIp : ip;
 
         var userAgent = httpContext.Request.Headers.UserAgent.ToString();
+        userAgent = string.IsNullOrWhiteSpace(userAgent) ? UnknownUserAgent : userAgent;
         var authenticatedUserId = ResolveAuthenticatedUserId(externalUserId, sessionService);
         var userPrint = authenticatedUserId?.ToString("D") ?? ComputeAnonymousUserPrint(ip, userAgent);
 

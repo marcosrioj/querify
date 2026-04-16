@@ -7,7 +7,7 @@ public class AnswerDto
     public required Guid Id { get; set; }
     public required Guid TenantId { get; set; }
     public required Guid QuestionId { get; set; }
-    public required string Headline { get; set; } = string.Empty;
+    public required string Headline { get; set; }
     public string? Body { get; set; }
     public required AnswerKind Kind { get; set; }
     public required AnswerStatus Status { get; set; }

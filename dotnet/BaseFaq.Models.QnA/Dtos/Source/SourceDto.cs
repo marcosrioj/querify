@@ -7,7 +7,7 @@ public class SourceDto
     public required Guid Id { get; set; }
     public required Guid TenantId { get; set; }
     public required SourceKind Kind { get; set; }
-    public required string Locator { get; set; } = string.Empty;
+    public required string Locator { get; set; }
     public string? Label { get; set; }
     public string? Scope { get; set; }
     public string? SystemName { get; set; }

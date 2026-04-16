@@ -11,9 +11,9 @@ public class ActivityDto
     public required ActivityKind Kind { get; set; }
     public required ActorKind ActorKind { get; set; }
     public string? ActorLabel { get; set; }
-    public required string UserPrint { get; set; } = string.Empty;
-    public required string Ip { get; set; } = string.Empty;
-    public required string UserAgent { get; set; } = string.Empty;
+    public required string UserPrint { get; set; }
+    public required string Ip { get; set; }
+    public required string UserAgent { get; set; }
     public string? Notes { get; set; }
     public string? MetadataJson { get; set; }
     public required DateTime OccurredAtUtc { get; set; }

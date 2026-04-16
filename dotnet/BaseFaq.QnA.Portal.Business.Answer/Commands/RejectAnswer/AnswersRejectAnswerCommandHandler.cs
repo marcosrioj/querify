@@ -30,6 +30,7 @@ public sealed class AnswersRejectAnswerCommandHandler(
         entity.Status = AnswerStatus.Rejected;
         entity.Visibility = VisibilityScope.Internal;
 
+        var activityIdentity = dbContext.ResolveActivityIdentity(userId, null, null, userId);
         var activity = new ActivityEntity
         {
             TenantId = entity.TenantId,
@@ -40,9 +41,9 @@ public sealed class AnswersRejectAnswerCommandHandler(
             Kind = ActivityKind.AnswerRejected,
             ActorKind = ActorKind.Moderator,
             ActorLabel = userId,
-            UserPrint = string.Empty,
-            Ip = string.Empty,
-            UserAgent = string.Empty,
+            UserPrint = activityIdentity.UserPrint,
+            Ip = activityIdentity.Ip,
+            UserAgent = activityIdentity.UserAgent,
             OccurredAtUtc = DateTime.UtcNow,
             CreatedBy = userId,
             UpdatedBy = userId

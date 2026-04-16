@@ -25,12 +25,12 @@ public class Question : BaseEntity, IMustHaveTenant
     /// <summary>
     /// Main question shown to the user.
     /// </summary>
-    public required string Title { get; set; } = null!;
+    public required string Title { get; set; }
 
     /// <summary>
     /// Stable question key for pages, APIs, and integrations.
     /// </summary>
-    public required string Key { get; set; } = null!;
+    public required string Key { get; set; }
 
     /// <summary>
     /// Short question summary for lists, search, and suggestions.
@@ -45,22 +45,22 @@ public class Question : BaseEntity, IMustHaveTenant
     /// <summary>
     /// Functional classification of the question.
     /// </summary>
-    public required QuestionKind Kind { get; set; } = QuestionKind.Curated;
+    public required QuestionKind Kind { get; set; }
 
     /// <summary>
     /// Current workflow state of the question.
     /// </summary>
-    public required QuestionStatus Status { get; set; } = QuestionStatus.Draft;
+    public required QuestionStatus Status { get; set; }
 
     /// <summary>
     /// Visibility scope of the question.
     /// </summary>
-    public required VisibilityScope Visibility { get; set; } = VisibilityScope.Internal;
+    public required VisibilityScope Visibility { get; set; }
 
     /// <summary>
     /// Channel where the question originated.
     /// </summary>
-    public required ChannelKind OriginChannel { get; set; } = ChannelKind.Manual;
+    public required ChannelKind OriginChannel { get; set; }
 
     /// <summary>
     /// Language captured for the question.

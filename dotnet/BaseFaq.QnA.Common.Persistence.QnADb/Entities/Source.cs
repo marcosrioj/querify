@@ -23,12 +23,12 @@ public class Source : BaseEntity, IMustHaveTenant
     /// <summary>
     /// Source kind, such as document, ticket, chat, page, or internal note.
     /// </summary>
-    public required SourceKind Kind { get; set; } = SourceKind.Other;
+    public required SourceKind Kind { get; set; }
 
     /// <summary>
     /// Stable pointer to the source, such as a URL, external id, or path.
     /// </summary>
-    public required string Locator { get; set; } = null!;
+    public required string Locator { get; set; }
 
     /// <summary>
     /// Human-readable label for the source.
@@ -73,7 +73,7 @@ public class Source : BaseEntity, IMustHaveTenant
     /// <summary>
     /// Allowed visibility scope for the source.
     /// </summary>
-    public required VisibilityScope Visibility { get; set; } = VisibilityScope.Internal;
+    public required VisibilityScope Visibility { get; set; }
 
     /// <summary>
     /// Indicates whether the source can be cited publicly.

@@ -21,7 +21,7 @@ public class Answer : BaseEntity, IMustHaveTenant
     /// <summary>
     /// Short answer title for previews and quick reading.
     /// </summary>
-    public required string Headline { get; set; } = null!;
+    public required string Headline { get; set; }
 
     /// <summary>
     /// Detailed answer body.
@@ -31,17 +31,17 @@ public class Answer : BaseEntity, IMustHaveTenant
     /// <summary>
     /// Functional classification of the answer.
     /// </summary>
-    public required AnswerKind Kind { get; set; } = AnswerKind.Official;
+    public required AnswerKind Kind { get; set; }
 
     /// <summary>
     /// Current workflow state of the answer.
     /// </summary>
-    public required AnswerStatus Status { get; set; } = AnswerStatus.Draft;
+    public required AnswerStatus Status { get; set; }
 
     /// <summary>
     /// Visibility scope of the answer.
     /// </summary>
-    public required VisibilityScope Visibility { get; set; } = VisibilityScope.Internal;
+    public required VisibilityScope Visibility { get; set; }
 
     /// <summary>
     /// Language of the answer variant.

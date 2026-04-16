@@ -6,10 +6,10 @@ public class SpaceDto
 {
     public required Guid Id { get; set; }
     public required Guid TenantId { get; set; }
-    public required string Name { get; set; } = string.Empty;
-    public required string Key { get; set; } = string.Empty;
+    public required string Name { get; set; }
+    public required string Key { get; set; }
     public string? Summary { get; set; }
-    public required string DefaultLanguage { get; set; } = string.Empty;
+    public required string DefaultLanguage { get; set; }
     public required SpaceKind Kind { get; set; }
     public required VisibilityScope Visibility { get; set; }
     public required ModerationPolicy ModerationPolicy { get; set; }

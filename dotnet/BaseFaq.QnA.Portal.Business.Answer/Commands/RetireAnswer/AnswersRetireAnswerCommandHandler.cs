@@ -31,6 +31,7 @@ public sealed class AnswersRetireAnswerCommandHandler(
         entity.Visibility = VisibilityScope.Internal;
         entity.RetiredAtUtc = DateTime.UtcNow;
 
+        var activityIdentity = dbContext.ResolveActivityIdentity(userId, null, null, userId);
         var activity = new ActivityEntity
         {
             TenantId = entity.TenantId,
@@ -41,9 +42,9 @@ public sealed class AnswersRetireAnswerCommandHandler(
             Kind = ActivityKind.AnswerRetired,
             ActorKind = ActorKind.Moderator,
             ActorLabel = userId,
-            UserPrint = string.Empty,
-            Ip = string.Empty,
-            UserAgent = string.Empty,
+            UserPrint = activityIdentity.UserPrint,
+            Ip = activityIdentity.Ip,
+            UserAgent = activityIdentity.UserAgent,
             OccurredAtUtc = DateTime.UtcNow,
             CreatedBy = userId,
             UpdatedBy = userId
