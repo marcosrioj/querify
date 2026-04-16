@@ -41,7 +41,6 @@ public class RelationshipMappingTests
                 QuestionId = question.Id,
                 SourceId = source.Id,
                 Role = SourceRole.SupportingContext,
-                Label = "Primary source",
                 Order = 1,
                 ConfidenceScore = 95,
                 IsPrimary = true
@@ -56,7 +55,7 @@ public class RelationshipMappingTests
         Assert.Equal(topic.Id, result.Topics[0].Id);
         Assert.Single(result.Sources);
         Assert.Equal(source.Id, result.Sources[0].SourceId);
-        Assert.Equal("Primary source", result.Sources[0].Label);
+        Assert.Equal(SourceRole.SupportingContext, result.Sources[0].Role);
     }
 
     [Fact]
@@ -77,7 +76,6 @@ public class RelationshipMappingTests
                 AnswerId = answer.Id,
                 SourceId = source.Id,
                 Role = SourceRole.Evidence,
-                Label = "Evidence source",
                 Order = 1,
                 ConfidenceScore = 90,
                 IsPrimary = true
@@ -89,6 +87,6 @@ public class RelationshipMappingTests
 
         Assert.Single(result.Sources);
         Assert.Equal(source.Id, result.Sources[0].SourceId);
-        Assert.Equal("Evidence source", result.Sources[0].Label);
+        Assert.Equal(SourceRole.Evidence, result.Sources[0].Role);
     }
 }

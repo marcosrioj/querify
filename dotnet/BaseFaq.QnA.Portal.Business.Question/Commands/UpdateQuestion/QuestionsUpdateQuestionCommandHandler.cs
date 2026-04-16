@@ -168,12 +168,6 @@ public sealed class QuestionsUpdateQuestionCommandHandler(
                  !sourceLink.Source.AllowsPublicCitation))
                 throw new InvalidOperationException(
                     "Public citations require a publicly visible source that explicitly allows citation.");
-
-            if (!string.IsNullOrWhiteSpace(sourceLink.Excerpt) &&
-                (sourceLink.Source.Visibility is not VisibilityScope.Public and not VisibilityScope.PublicIndexed ||
-                 !sourceLink.Source.AllowsPublicExcerpt))
-                throw new InvalidOperationException(
-                    "Public excerpts require a publicly visible source that explicitly allows excerpt reuse.");
         }
 
         if (entity.AcceptedAnswer is not null &&

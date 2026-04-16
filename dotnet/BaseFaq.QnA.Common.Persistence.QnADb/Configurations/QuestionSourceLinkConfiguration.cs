@@ -22,15 +22,6 @@ public class QuestionSourceLinkConfiguration : BaseConfiguration<QuestionSourceL
         builder.Property(link => link.SourceId)
             .IsRequired();
 
-        builder.Property(link => link.Label)
-            .HasMaxLength(QuestionSourceLink.MaxLabelLength);
-
-        builder.Property(link => link.Scope)
-            .HasMaxLength(QuestionSourceLink.MaxScopeLength);
-
-        builder.Property(link => link.Excerpt)
-            .HasMaxLength(QuestionSourceLink.MaxExcerptLength);
-
         builder.HasIndex(link => new { link.QuestionId, link.SourceId, link.Role, link.Order })
             .HasDatabaseName("IX_QuestionSourceLink_QuestionId_SourceId_Role_Order")
             .IsUnique();

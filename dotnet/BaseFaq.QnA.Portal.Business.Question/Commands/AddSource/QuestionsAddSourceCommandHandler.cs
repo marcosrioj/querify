@@ -36,7 +36,7 @@ public sealed class QuestionsAddSourceCommandHandler(
             throw new ApiErrorException($"Knowledge source '{request.Request.SourceId}' was not found.",
                 (int)HttpStatusCode.NotFound);
 
-        EnsureSourceSupportsVisibility(question.Visibility, source, request.Request.Role, request.Request.Excerpt);
+        EnsureSourceSupportsVisibility(question.Visibility, source, request.Request.Role);
 
         var link = new QuestionSourceLink
         {
@@ -46,9 +46,6 @@ public sealed class QuestionsAddSourceCommandHandler(
             SourceId = source.Id,
             Source = source,
             Role = request.Request.Role,
-            Label = request.Request.Label,
-            Scope = request.Request.Scope,
-            Excerpt = request.Request.Excerpt,
             Order = request.Request.Order,
             ConfidenceScore = request.Request.ConfidenceScore,
             IsPrimary = request.Request.IsPrimary,
@@ -66,8 +63,7 @@ public sealed class QuestionsAddSourceCommandHandler(
     private static void EnsureSourceSupportsVisibility(
         VisibilityScope questionVisibility,
         KnowledgeSource source,
-        SourceRole role,
-        string? excerpt)
+        SourceRole role)
     {
         if (questionVisibility is not VisibilityScope.Public and not VisibilityScope.PublicIndexed) return;
 
@@ -76,11 +72,5 @@ public sealed class QuestionsAddSourceCommandHandler(
              !source.AllowsPublicCitation))
             throw new InvalidOperationException(
                 "Public citations require a publicly visible source that explicitly allows citation.");
-
-        if (!string.IsNullOrWhiteSpace(excerpt) &&
-            (source.Visibility is not VisibilityScope.Public and not VisibilityScope.PublicIndexed ||
-             !source.AllowsPublicExcerpt))
-            throw new InvalidOperationException(
-                "Public excerpts require a publicly visible source that explicitly allows excerpt reuse.");
     }
 }

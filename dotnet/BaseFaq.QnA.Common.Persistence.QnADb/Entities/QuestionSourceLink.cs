@@ -10,10 +10,6 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Entities;
 /// </summary>
 public class QuestionSourceLink : BaseEntity, IMustHaveTenant
 {
-    public const int MaxLabelLength = 200;
-    public const int MaxScopeLength = 1000;
-    public const int MaxExcerptLength = 4000;
-
     /// <summary>
     /// Id of the question linked to the source.
     /// </summary>
@@ -38,21 +34,6 @@ public class QuestionSourceLink : BaseEntity, IMustHaveTenant
     /// Role of the source for the question, such as origin, evidence, or reference.
     /// </summary>
     public SourceRole Role { get; set; } = SourceRole.QuestionOrigin;
-
-    /// <summary>
-    /// Human-readable label for the link.
-    /// </summary>
-    public string? Label { get; set; }
-
-    /// <summary>
-    /// Relevant source segment or scope for this link.
-    /// </summary>
-    public string? Scope { get; set; }
-
-    /// <summary>
-    /// Literal or summarized excerpt from the source linked to the question.
-    /// </summary>
-    public string? Excerpt { get; set; }
 
     /// <summary>
     /// Display order or priority of the source in the set.

@@ -168,29 +168,17 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
                     b.Property<DateTime?>("DeletedDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("Excerpt")
-                        .HasMaxLength(4000)
-                        .HasColumnType("character varying(4000)");
-
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 
                     b.Property<bool>("IsPrimary")
                         .HasColumnType("boolean");
 
-                    b.Property<string>("Label")
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
                     b.Property<int>("Order")
                         .HasColumnType("integer");
 
                     b.Property<int>("Role")
                         .HasColumnType("integer");
-
-                    b.Property<string>("Scope")
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)");
 
                     b.Property<Guid>("SourceId")
                         .HasColumnType("uuid");
@@ -481,19 +469,11 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
                     b.Property<DateTime?>("DeletedDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("Excerpt")
-                        .HasMaxLength(4000)
-                        .HasColumnType("character varying(4000)");
-
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 
                     b.Property<bool>("IsPrimary")
                         .HasColumnType("boolean");
-
-                    b.Property<string>("Label")
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
 
                     b.Property<int>("Order")
                         .HasColumnType("integer");
@@ -503,10 +483,6 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
 
                     b.Property<int>("Role")
                         .HasColumnType("integer");
-
-                    b.Property<string>("Scope")
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)");
 
                     b.Property<Guid>("SourceId")
                         .HasColumnType("uuid");

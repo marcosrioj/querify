@@ -22,15 +22,6 @@ public class AnswerSourceLinkConfiguration : BaseConfiguration<AnswerSourceLink>
         builder.Property(link => link.SourceId)
             .IsRequired();
 
-        builder.Property(link => link.Label)
-            .HasMaxLength(AnswerSourceLink.MaxLabelLength);
-
-        builder.Property(link => link.Scope)
-            .HasMaxLength(AnswerSourceLink.MaxScopeLength);
-
-        builder.Property(link => link.Excerpt)
-            .HasMaxLength(AnswerSourceLink.MaxExcerptLength);
-
         builder.HasIndex(link => new { link.AnswerId, link.SourceId, link.Role, link.Order })
             .HasDatabaseName("IX_AnswerSourceLink_AnswerId_SourceId_Role_Order")
             .IsUnique();
