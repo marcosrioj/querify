@@ -6,11 +6,11 @@ This project is the focused question-and-answer domain sample for BaseFAQ.
 
 It is intentionally not a mirror of the legacy implementation. It models the new product posture directly as a question-and-answer platform, with English domain names and a small, focused entity set.
 
-## Migration posture
+## Production posture
 
 This sample is the domain target, not a prescription to replace the repository-wide EF Core infrastructure.
 
-When this model replaces the current FAQ persistence, the preferred production posture is:
+When this model is mapped onto the production QnA persistence, the preferred posture is:
 
 - keep `BaseEntity`, `AuditableEntity`, and `IMustHaveTenant`
 - keep `BaseDbContext` tenant filters, soft-delete rules, audit stamping, and tenant indexes
@@ -210,7 +210,7 @@ Those documents explain the full domain model and the operating flows for space 
 
 The solution-wide transition backlog that uses this sample as the target now also lives inside the project:
 
-- [basefaq-faq-solution-qna-upgrade-plan.md](./basefaq-faq-solution-qna-upgrade-plan.md)
+- [basefaq-solution-qna-upgrade-plan.md](./basefaq-solution-qna-upgrade-plan.md)
 
 ## Files
 
@@ -218,7 +218,7 @@ The solution-wide transition backlog that uses this sample as the target now als
 - `Domain/Enums/` contains one file per enum used by the sample domain.
 - [domain-model-reference.md](./domain-model-reference.md)
 - [Flows/README.md](./Flows/README.md)
-- [basefaq-faq-solution-qna-upgrade-plan.md](./basefaq-faq-solution-qna-upgrade-plan.md)
+- [basefaq-solution-qna-upgrade-plan.md](./basefaq-solution-qna-upgrade-plan.md)
 - [Domain/Space.cs](./Domain/Space.cs)
 - [Domain/Question.cs](./Domain/Question.cs)
 - [Domain/Answer.cs](./Domain/Answer.cs)

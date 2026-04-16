@@ -11,22 +11,22 @@ export function SidebarHeader({ onNavigate }: { onNavigate?: () => void }) {
           <img
             src={toAbsoluteUrl("/media/app/default-logo.svg")}
             className="default-logo h-[28px] dark:hidden"
-            alt="BaseFAQ Portal"
+            alt="BaseFAQ QnA Portal"
           />
           <img
             src={toAbsoluteUrl("/media/app/default-logo-dark.svg")}
             className="default-logo hidden h-[28px] dark:inline-block"
-            alt="BaseFAQ Portal"
+            alt="BaseFAQ QnA Portal"
           />
           <img
             src={toAbsoluteUrl("/media/app/mini-logo-circle-primary.svg")}
             className="small-logo hidden h-[32px] dark:hidden"
-            alt="BaseFAQ Portal"
+            alt="BaseFAQ QnA Portal"
           />
           <img
             src={toAbsoluteUrl("/media/app/mini-logo-circle-primary-dark.svg")}
             className="small-logo hidden h-[32px] dark:inline-block"
-            alt="BaseFAQ Portal"
+            alt="BaseFAQ QnA Portal"
           />
         </Link>
       </div>

@@ -102,8 +102,8 @@ Repository-owned skills keep the existing BaseFAQ implementation-guide shape:
 
 For backend repository work, prefer the same physical project boundaries already established in the solution.
 
-- FAQ and QnA backend modules are feature-owned.
-- QnA Portal and Public work must mirror FAQ's one-business-project-per-entity or per-surface pattern.
+- Backend modules are feature-owned.
+- QnA Portal and Public work must keep the same one-business-project-per-entity or per-surface pattern already established in the solution.
 - Do not introduce monolithic `BaseFaq.QnA.Portal.Business` or `BaseFaq.QnA.Public.Business` projects.
 - Keep QnA source files real inside the owning feature project directory; do not use linked compile items.
 

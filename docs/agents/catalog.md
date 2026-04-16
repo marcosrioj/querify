@@ -57,7 +57,7 @@ This catalog is the human-readable reference for every orchestrator, subagent, s
 
 | Skill | Path | Use When | Common Pairings |
 |---|---|---|---|
-| `build-cqrs-feature-module` | `.agents/skills/backend/build-cqrs-feature-module/SKILL.md` | Adding or refactoring a `.NET` backend feature in BaseFAQ CQRS shape, including FAQ-style feature-project decomposition and real-file ownership for QnA. | `write-real-database-integration-tests`, `enforce-cqrs-architecture-rules` |
+| `build-cqrs-feature-module` | `.agents/skills/backend/build-cqrs-feature-module/SKILL.md` | Adding or refactoring a `.NET` backend feature in BaseFAQ CQRS shape, including feature-project decomposition and real-file ownership for QnA. | `write-real-database-integration-tests`, `enforce-cqrs-architecture-rules` |
 | `implement-tenant-aware-public-query` | `.agents/skills/backend/implement-tenant-aware-public-query/SKILL.md` | Building safe tenant-aware public reads. | `write-real-database-integration-tests` |
 | `build-portal-domain-data-flow` | `.agents/skills/frontend/build-portal-domain-data-flow/SKILL.md` | Adding or extending Portal domain APIs, hooks, and routes. | `compose-portal-page-layouts`, `design-confirmed-actions-and-stateful-feedback`, `implement-portal-localization` |
 | `compose-portal-page-layouts` | `.agents/skills/frontend/compose-portal-page-layouts/SKILL.md` | Structuring Portal pages with shared layout patterns. | `build-portal-domain-data-flow`, `design-confirmed-actions-and-stateful-feedback` |
@@ -70,8 +70,6 @@ This catalog is the human-readable reference for every orchestrator, subagent, s
 | `write-real-database-integration-tests` | `.agents/skills/data/write-real-database-integration-tests/SKILL.md` | Verifying backend behavior with real PostgreSQL-backed integration coverage. | Backend, data, and worker skills |
 | `model-question-thread-domain` | `.agents/skills/domain/model-question-thread-domain/SKILL.md` | Modeling the question-thread domain and core aggregates. | `design-provenance-and-trust` |
 | `design-provenance-and-trust` | `.agents/skills/domain/design-provenance-and-trust/SKILL.md` | Designing evidence, citations, confidence, and trust semantics. | `model-question-thread-domain` |
-| `plan-faq-to-qna-upgrade` | `.agents/skills/domain/plan-faq-to-qna-upgrade/SKILL.md` | Sequencing additive product and engineering changes from FAQ toward Q&A. | `model-question-thread-domain`, `design-provenance-and-trust` |
-| `migrate-faqdb-to-qnadb` | `.agents/skills/domain/migrate-faqdb-to-qnadb/SKILL.md` | Carrying FAQ behavior and parity forward onto QnA persistence and app surfaces while preserving FAQ-style QnA backend project boundaries and real-file ownership. | `plan-faq-to-qna-upgrade`, `apply-seed-and-migrations-safely`, `write-real-database-integration-tests` |
 | `publish-asynchronous-ai-request` | `.agents/skills/ai/publish-asynchronous-ai-request/SKILL.md` | Starting generation or matching through async events and correlation ids. | `process-control-plane-work-items`, `write-real-database-integration-tests` |
 | `prioritize-integration-rollout` | `.agents/skills/distribution/prioritize-integration-rollout/SKILL.md` | Planning integration and distribution rollout for embeds, SDKs, and plugins. | `design-provenance-and-trust` |
 

@@ -4,7 +4,7 @@
 
 `BaseFaq.Tenant.Worker.Api` is the dedicated control-plane background-processing host for BaseFAQ.
 
-It runs against `TenantDbContext` only. It must not own FAQ/product data processing.
+It runs against `TenantDbContext` only. It must not own product-data processing.
 
 Current responsibilities:
 
@@ -62,9 +62,8 @@ Fully self-contained email processing module:
 ## Architectural boundaries
 
 - `TenantDbContext` is the global control-plane database
-- `FaqDbContext` remains the tenant product-data database
 - billing, entitlements, platform email, webhook inboxes, and operational jobs belong to `TenantDbContext`
-- FAQ creation, answers, feedback, tagging, and similar tenant product features stay in `FaqDbContext`
+- QnA creation, workflow, public signals, and similar tenant product features stay outside the worker in the QnA APIs plus feature modules
 
 The worker intentionally uses a non-request session implementation because these jobs are not triggered by HTTP request context.
 

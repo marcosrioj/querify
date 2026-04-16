@@ -1,10 +1,10 @@
 using BaseFaq.Common.EntityFramework.Tenant;
-using BaseFaq.Faq.Common.Persistence.FaqDb;
+using BaseFaq.QnA.Common.Persistence.QnADb;
 
 namespace BaseFaq.Tools.Seed.Abstractions;
 
 public interface ICleanupService
 {
     void CleanTenantDb(TenantDbContext dbContext);
-    void CleanFaqDb(FaqDbContext dbContext);
+    void CleanQnADb(QnADbContext dbContext);
 }

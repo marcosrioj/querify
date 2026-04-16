@@ -35,6 +35,18 @@ internal static class MigrationsConfiguration
         if (!string.IsNullOrWhiteSpace(solutionRoot))
         {
             builder.AddJsonFile(
+                Path.Combine(solutionRoot, "dotnet", "BaseFaq.Tools.Seed", "appsettings.json"),
+                optional: true);
+
+            if (!string.IsNullOrWhiteSpace(environmentName))
+            {
+                builder.AddJsonFile(
+                    Path.Combine(solutionRoot, "dotnet", "BaseFaq.Tools.Seed",
+                        $"appsettings.{environmentName}.json"),
+                    optional: true);
+            }
+
+            builder.AddJsonFile(
                 Path.Combine(solutionRoot, "dotnet", "BaseFaq.Tenant.BackOffice.Api", "appsettings.json"),
                 optional: true);
 

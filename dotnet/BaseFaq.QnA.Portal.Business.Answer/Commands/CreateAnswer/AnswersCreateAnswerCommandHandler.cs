@@ -28,6 +28,7 @@ public sealed class AnswersCreateAnswerCommandHandler(
         var question = await dbContext.Questions
             .Include(entity => entity.Answers)
             .Include(entity => entity.Activities)
+            .Include(entity => entity.Space)
             .SingleOrDefaultAsync(entity => entity.TenantId == tenantId && entity.Id == request.Request.QuestionId,
                 cancellationToken);
 
@@ -35,6 +36,11 @@ public sealed class AnswersCreateAnswerCommandHandler(
             throw new ApiErrorException(
                 $"Question '{request.Request.QuestionId}' was not found.",
                 (int)HttpStatusCode.NotFound);
+
+        if (!question.Space.AcceptsAnswers)
+            throw new ApiErrorException(
+                "This space is not accepting answers.",
+                (int)HttpStatusCode.UnprocessableEntity);
 
         var entity = new AnswerEntity
         {

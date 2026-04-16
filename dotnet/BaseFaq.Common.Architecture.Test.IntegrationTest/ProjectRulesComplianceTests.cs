@@ -17,12 +17,10 @@ public class ProjectRulesComplianceTests
 
     private static readonly string[] ScopedProjectPrefixes =
     [
-        "BaseFaq.Faq.",
         "BaseFaq.QnA.",
         "BaseFaq.Tenant.",
         "BaseFaq.Common.",
         "BaseFaq.Models.Common",
-        "BaseFaq.Models.Faq",
         "BaseFaq.Models.QnA",
         "BaseFaq.Models.Tenant",
         "BaseFaq.Models.User",
@@ -283,7 +281,7 @@ public class ProjectRulesComplianceTests
     }
 
     [Fact]
-    public void QnABusinessProjects_MustMirrorFaqFeatureBoundaries()
+    public void QnABusinessProjects_MustMirrorFeatureBoundaries()
     {
         var failures = new List<string>();
 
@@ -347,7 +345,7 @@ public class ProjectRulesComplianceTests
     }
 
     [Fact]
-    public void QnAModels_MustMirrorFaqDtoFoldersAndFiles()
+    public void QnAModels_MustMirrorDtoFoldersAndFiles()
     {
         var failures = new List<string>();
 
@@ -386,7 +384,7 @@ public class ProjectRulesComplianceTests
         {
             foreach (var filePath in Directory.EnumerateFiles(qnaDtosRoot, "*.cs", SearchOption.TopDirectoryOnly))
             {
-                failures.Add($"{ToRelativePath(filePath)}: DTO files must live in FAQ-style feature folders, not directly under Dtos.");
+                failures.Add($"{ToRelativePath(filePath)}: DTO files must live in feature folders, not directly under Dtos.");
             }
 
             foreach (var filePath in Directory.EnumerateFiles(qnaDtosRoot, "*Dtos.cs", SearchOption.AllDirectories))
@@ -458,7 +456,7 @@ public class ProjectRulesComplianceTests
                     continue;
                 }
 
-                failures.Add($"{relativeHelperPath}: generic QnA helper files are not allowed; move logic into commands/queries or use FAQ-style request-context helpers only.");
+                failures.Add($"{relativeHelperPath}: generic QnA helper files are not allowed; move logic into commands/queries or use feature-scoped request-context helpers only.");
             }
         }
 

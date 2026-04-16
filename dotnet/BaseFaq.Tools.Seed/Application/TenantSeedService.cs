@@ -42,8 +42,8 @@ public sealed class TenantSeedService : ITenantSeedService
         if (seedTenant is null ||
             seedTenant.IsDeleted ||
             !seedTenant.IsActive ||
-            seedTenant.App != AppEnum.Faq ||
-            !string.Equals(seedTenant.ConnectionString, request.FaqConnectionString, StringComparison.Ordinal))
+            seedTenant.App != AppEnum.QnA ||
+            !string.Equals(seedTenant.ConnectionString, request.QnAConnectionString, StringComparison.Ordinal))
         {
             return false;
         }
@@ -78,16 +78,16 @@ public sealed class TenantSeedService : ITenantSeedService
             .AsNoTracking()
             .Any(connection =>
                 !connection.IsDeleted &&
-                connection.App == AppEnum.Faq &&
+                connection.App == AppEnum.QnA &&
                 connection.IsCurrent &&
-                connection.ConnectionString == request.FaqConnectionString);
+                connection.ConnectionString == request.QnAConnectionString);
     }
 
     public EssentialSeedResult EnsureEssentialData(TenantDbContext dbContext, TenantSeedRequest request, SeedCounts counts)
     {
         var seedUsers = EnsureSeedUsers(dbContext, counts.UserCount);
         var seedTenant = EnsureSeedTenant(dbContext, request, seedUsers);
-        EnsureCurrentFaqConnection(dbContext, request);
+        EnsureCurrentQnAConnection(dbContext, request);
 
         dbContext.SaveChanges();
 
@@ -154,8 +154,8 @@ public sealed class TenantSeedService : ITenantSeedService
                 Slug = SeedTenantSlug,
                 Name = Tenant.DefaultTenantName,
                 Edition = TenantEdition.Free,
-                App = AppEnum.Faq,
-                ConnectionString = request.FaqConnectionString
+                App = AppEnum.QnA,
+                ConnectionString = request.QnAConnectionString
             };
 
             dbContext.Tenants.Add(tenant);
@@ -165,8 +165,8 @@ public sealed class TenantSeedService : ITenantSeedService
         tenant.Slug = SeedTenantSlug;
         tenant.Name = Tenant.DefaultTenantName;
         tenant.Edition = TenantEdition.Free;
-        tenant.App = AppEnum.Faq;
-        tenant.ConnectionString = request.FaqConnectionString;
+        tenant.App = AppEnum.QnA;
+        tenant.ConnectionString = request.QnAConnectionString;
         tenant.IsActive = true;
 
         if (ownerUser is not null)
@@ -199,22 +199,22 @@ public sealed class TenantSeedService : ITenantSeedService
         return tenant;
     }
 
-    private static void EnsureCurrentFaqConnection(TenantDbContext dbContext, TenantSeedRequest request)
+    private static void EnsureCurrentQnAConnection(TenantDbContext dbContext, TenantSeedRequest request)
     {
         var connection = dbContext.TenantConnections
             .IgnoreQueryFilters()
             .ToList()
             .FirstOrDefault(item =>
-                item.App == AppEnum.Faq &&
-                (item.IsCurrent || item.ConnectionString == request.FaqConnectionString));
+                item.App == AppEnum.QnA &&
+                (item.IsCurrent || item.ConnectionString == request.QnAConnectionString));
 
         if (connection is null)
         {
             connection = new TenantConnection
             {
                 Id = Guid.NewGuid(),
-                App = AppEnum.Faq,
-                ConnectionString = request.FaqConnectionString,
+                App = AppEnum.QnA,
+                ConnectionString = request.QnAConnectionString,
                 IsCurrent = true
             };
 
@@ -223,8 +223,8 @@ public sealed class TenantSeedService : ITenantSeedService
         }
 
         RestoreEntity(connection);
-        connection.ConnectionString = request.FaqConnectionString;
-        connection.App = AppEnum.Faq;
+        connection.ConnectionString = request.QnAConnectionString;
+        connection.App = AppEnum.QnA;
         connection.IsCurrent = true;
     }
 

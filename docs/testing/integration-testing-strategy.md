@@ -19,8 +19,8 @@ That means preferring:
 
 The repository currently contains these backend-facing automated test projects:
 
-- `BaseFaq.Faq.Portal.Test.IntegrationTests`
-- `BaseFaq.Faq.Public.Test.IntegrationTests`
+- `BaseFaq.QnA.Portal.Test.IntegrationTests`
+- `BaseFaq.QnA.Public.Test.IntegrationTests`
 - `BaseFaq.Tenant.BackOffice.Test.IntegrationTests`
 - `BaseFaq.Tenant.Portal.Test.IntegrationTests`
 - `BaseFaq.Common.Architecture.Test.IntegrationTest`
@@ -69,7 +69,7 @@ The weaker areas are still:
 | tenant isolation | a regression here becomes a cross-tenant data leak |
 | auth and claim mapping | protected APIs can silently fail open or fail closed |
 | migrations | schema drift blocks releases and breaks runtime startup |
-| public client-key resolution | public FAQ traffic depends on correct tenant resolution |
+| public client-key resolution | public QnA traffic depends on correct tenant resolution |
 | background processing flows | retries, leases, or duplicate handling can change system behavior |
 
 ## Execution tiers
@@ -125,8 +125,8 @@ Focus:
 Run the current service integration suites individually:
 
 ```bash
-dotnet test dotnet/BaseFaq.Faq.Portal.Test.IntegrationTests/BaseFaq.Faq.Portal.Test.IntegrationTests.csproj
-dotnet test dotnet/BaseFaq.Faq.Public.Test.IntegrationTests/BaseFaq.Faq.Public.Test.IntegrationTests.csproj
+dotnet test dotnet/BaseFaq.QnA.Portal.Test.IntegrationTests/BaseFaq.QnA.Portal.Test.IntegrationTests.csproj
+dotnet test dotnet/BaseFaq.QnA.Public.Test.IntegrationTests/BaseFaq.QnA.Public.Test.IntegrationTests.csproj
 dotnet test dotnet/BaseFaq.Tenant.BackOffice.Test.IntegrationTests/BaseFaq.Tenant.BackOffice.Test.IntegrationTests.csproj
 dotnet test dotnet/BaseFaq.Tenant.Portal.Test.IntegrationTests/BaseFaq.Tenant.Portal.Test.IntegrationTests.csproj
 ```
@@ -142,7 +142,7 @@ dotnet test dotnet/BaseFaq.Common.Architecture.Test.IntegrationTest/BaseFaq.Comm
 ### Must stay strong
 
 - tenant-aware DB behavior
-- CRUD and business-rule flows in the FAQ and tenant domains
+- CRUD and business-rule flows in the QnA and tenant domains
 - migration application from a clean database
 - architecture compliance around command and write contracts
 

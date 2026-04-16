@@ -16,7 +16,7 @@ function useRouteTitle() {
     useMatches()
       .map((match) => match.handle as AppRouteHandle | undefined)
       .filter((handle): handle is AppRouteHandle => Boolean(handle?.title))
-      .at(-1)?.title ?? 'BaseFAQ Portal'
+      .at(-1)?.title ?? 'BaseFAQ QnA Portal'
   );
 }
 
@@ -35,7 +35,7 @@ export function PortalLayout() {
   return (
     <>
       <Helmet>
-        <title>{title} | {t('BaseFAQ Portal')}</title>
+        <title>{title} | {t('BaseFAQ QnA Portal')}</title>
       </Helmet>
 
       <div className="flex grow">

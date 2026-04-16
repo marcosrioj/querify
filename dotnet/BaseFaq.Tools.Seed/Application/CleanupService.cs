@@ -1,5 +1,5 @@
 using BaseFaq.Common.EntityFramework.Tenant;
-using BaseFaq.Faq.Common.Persistence.FaqDb;
+using BaseFaq.QnA.Common.Persistence.QnADb;
 using BaseFaq.Tools.Seed.Abstractions;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,9 +13,9 @@ public sealed class CleanupService : ICleanupService
             "TRUNCATE TABLE \"BillingWebhookInboxes\", \"EmailOutboxes\", \"TenantConnections\", \"TenantUsers\", \"Tenants\", \"Users\" RESTART IDENTITY CASCADE;");
     }
 
-    public void CleanFaqDb(FaqDbContext dbContext)
+    public void CleanQnADb(QnADbContext dbContext)
     {
         dbContext.Database.ExecuteSqlRaw(
-            "TRUNCATE TABLE \"Votes\", \"Feedbacks\", \"FaqItemAnswers\", \"FaqContentRefs\", \"FaqTags\", \"FaqItems\", \"ContentRefs\", \"Tags\", \"Faqs\" RESTART IDENTITY CASCADE;");
+            "TRUNCATE TABLE \"Activities\", \"AnswerSourceLinks\", \"QuestionSourceLinks\", \"QuestionTags\", \"SpaceSources\", \"SpaceTags\", \"Answers\", \"Questions\", \"Sources\", \"Tags\", \"Spaces\" RESTART IDENTITY CASCADE;");
     }
 }

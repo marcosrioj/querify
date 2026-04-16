@@ -8,22 +8,22 @@ services:
       - "5500:5500"
     environment:
       - VITE_PORTAL_TENANT_API_URL=https://dev.tenant.portal.basefaq.com
-      - VITE_PORTAL_FAQ_API_URL=https://dev.faq.portal.basefaq.com
+      - VITE_PORTAL_QNA_API_URL=https://dev.qna.portal.basefaq.com
       - VITE_AUTH0_DOMAIN=basefaq.us.auth0.com
       - VITE_AUTH0_AUDIENCE=https://basefaq.com
       - VITE_AUTH0_CLIENT_ID=fDJib60pSRhbtNRPhqYfZR9J8JqBCpz5
       - VITE_AUTH0_PASSWORD_RESET_URL=
       - VITE_AUTH0_LOGOUT_URI=https://dev.portal.basefaq.com/logout
     depends_on:
-      - basefaq.faq.portal.api
+      - basefaq.qna.portal.api
       - basefaq.tenant.portal.api
     networks:
       - bf-network
-  basefaq.faq.portal.api:
-    image: basefaq.faq.portal.api
+  basefaq.qna.portal.api:
+    image: basefaq.qna.portal.api
     build:
       context: ..
-      dockerfile: dotnet/BaseFaq.Faq.Portal.Api/Dockerfile
+      dockerfile: dotnet/BaseFaq.QnA.Portal.Api/Dockerfile
     ports:
       - "5010:5010"
     environment:
@@ -75,11 +75,11 @@ services:
       - "host.docker.internal:host-gateway"
     networks:
       - bf-network
-  basefaq.faq.public.api:
-    image: basefaq.faq.public.api
+  basefaq.qna.public.api:
+    image: basefaq.qna.public.api
     build:
       context: ..
-      dockerfile: dotnet/BaseFaq.Faq.Public.Api/Dockerfile
+      dockerfile: dotnet/BaseFaq.QnA.Public.Api/Dockerfile
     ports:
       - "5020:5020"
     environment:

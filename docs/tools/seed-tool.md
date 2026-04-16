@@ -2,9 +2,9 @@
 
 ## Purpose
 
-`BaseFaq.Tools.Seed` prepares the local or target databases with either essential platform data or realistic sample FAQ data.
+`BaseFaq.Tools.Seed` prepares the local or target databases with either essential platform data or realistic sample QnA data.
 
-It is designed to work across both the tenant database and a FAQ database, which is why it is the standard entrypoint instead of ad hoc SQL or hand-written scripts.
+It is designed to work across both the tenant database and a QnA database, which is why it is the standard entrypoint instead of ad hoc SQL or hand-written scripts.
 
 ## What it seeds
 
@@ -13,14 +13,14 @@ It is designed to work across both the tenant database and a FAQ database, which
 Essential seed creates or ensures:
 
 - the seed tenant users in `TenantDb`
-- the default FAQ tenant metadata in `TenantDb`
-- tenant-user membership and the FAQ tenant connection
+- the default QnA tenant metadata in `TenantDb`
+- tenant-user membership and the QnA tenant connection
 
-This is the minimum required tenant-side data for tenant configuration and FAQ database routing to work correctly.
+This is the minimum required tenant-side data for tenant configuration and QnA database routing to work correctly.
 
 ### Sample data
 
-Sample seed creates realistic FAQ-style data in the FAQ database for the essential seed tenant.
+Sample seed creates realistic QnA data in the QnA database for the essential seed tenant.
 
 It also seeds billing sample scenarios in `TenantDb` covering five tenants with varied states:
 
@@ -39,7 +39,7 @@ Billing seed also includes five `BillingWebhookInbox` rows (Completed, Completed
 The tool reads:
 
 - `ConnectionStrings:TenantDb`
-- `ConnectionStrings:FaqDb`
+- `ConnectionStrings:QnADb`
 
 from `dotnet/BaseFaq.Tools.Seed/appsettings.json`.
 
@@ -53,11 +53,11 @@ dotnet run --project dotnet/BaseFaq.Tools.Seed
 
 At startup the tool offers these actions:
 
-1. seed realistic sample FAQ data
+1. seed realistic sample QnA data
 2. seed essential data
 3. clean databases and seed essential plus sample data
 4. clean `TenantDb` only
-5. clean `FaqDb` only
+5. clean `QnADb` only
 0. exit
 
 ## Recommended choices
@@ -68,7 +68,7 @@ Choose `3` if you want a clean environment with sample content.
 
 ### Essential-only setup
 
-Choose `2` if you want all required `TenantDb` seed data without the FAQ sample content.
+Choose `2` if you want all required `TenantDb` seed data without the QnA sample content.
 
 ### Sample-only setup
 
@@ -78,11 +78,11 @@ Choose `1` only when essential data already exists. On a clean environment, opti
 
 Choose `4` when you want to clear only `TenantDb`.
 
-Choose `5` when you want to clear only `FaqDb`.
+Choose `5` when you want to clear only `QnADb`.
 
 ## Safety behavior
 
-- the tool logs the tenant and FAQ connection info it is using
+- the tool logs the tenant and QnA connection info it is using
 - it applies EF Core migrations before seeding
 - it asks for confirmation before appending data into non-empty databases
 
@@ -90,7 +90,7 @@ Choose `5` when you want to clear only `FaqDb`.
 
 1. start infrastructure
 2. on a clean environment, run the seed tool or manually migrate `TenantDbContext`
-3. use the migration tool later when you need to apply FAQ schema updates across tenant FAQ databases
+3. use the migration tool later when you need to apply QnA schema updates across tenant QnA databases
 4. run the APIs and frontend
 
 ## Related documents

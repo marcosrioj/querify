@@ -2,7 +2,7 @@
 
 This document is the single reference for the domain model in `BaseFaq.Sample.Features.NewQaModel`.
 
-It explains every class and every enum that exists in the sample today, without mixing in legacy FAQ terminology.
+It explains every class and every enum that exists in the sample today, without mixing in legacy content-block terminology.
 
 ## Scope
 

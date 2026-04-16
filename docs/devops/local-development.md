@@ -66,11 +66,11 @@ dotnet run --project dotnet/BaseFaq.Tools.Seed
 Common choices:
 
 - `2`: seed essential tenant metadata only
-- `3`: clean databases and seed essential plus sample FAQ data
+- `3`: clean databases and seed essential plus sample QnA data
 
-On a clean machine, this is the fastest way to create the tenant schema and the seed-target FAQ schema because the seed application runs EF Core migrations before inserting data.
+On a clean machine, this is the fastest way to create the tenant schema and the seed-target QnA schema because the seed application runs EF Core migrations before inserting data.
 
-### 4. Use the migration tool when you change FAQ schema
+### 4. Use the migration tool when you change QnA schema
 
 Use the migration tool after tenant metadata already exists:
 
@@ -78,13 +78,13 @@ Use the migration tool after tenant metadata already exists:
 dotnet run --project dotnet/BaseFaq.Tools.Migration
 ```
 
-Or run the FAQ database update non-interactively:
+Or run the QnA database update non-interactively:
 
 ```bash
-dotnet run --project dotnet/BaseFaq.Tools.Migration -- --app Faq --command database-update
+dotnet run --project dotnet/BaseFaq.Tools.Migration -- --app QnA --command database-update
 ```
 
-If you want full manual schema control from scratch, first migrate `TenantDbContext`, then use `BaseFaq.Tools.Migration` for tenant FAQ databases.
+If you want full manual schema control from scratch, first migrate `TenantDbContext`, then use `BaseFaq.Tools.Migration` for tenant QnA databases.
 
 Manual tenant database migration:
 
@@ -99,8 +99,8 @@ dotnet ef database update \
 ```bash
 dotnet run --project dotnet/BaseFaq.Tenant.BackOffice.Api
 dotnet run --project dotnet/BaseFaq.Tenant.Portal.Api
-dotnet run --project dotnet/BaseFaq.Faq.Portal.Api
-dotnet run --project dotnet/BaseFaq.Faq.Public.Api
+dotnet run --project dotnet/BaseFaq.QnA.Portal.Api
+dotnet run --project dotnet/BaseFaq.QnA.Public.Api
 dotnet run --project dotnet/BaseFaq.Tenant.Worker.Api
 ```
 
@@ -132,6 +132,7 @@ Notes:
 - the app/API stack expects the external Docker network `bf-network`, which is created by the base-services stack
 - the application images use the repository root as the Docker build context
 - the default appsettings values use `host.docker.internal`, which keeps host and container networking aligned
+- `docker/docker-compose.yml` now boots `BaseFaq.QnA.Portal.Api` and `BaseFaq.QnA.Public.Api` as the primary product APIs
 
 ## Service endpoints
 
@@ -140,8 +141,8 @@ Notes:
 | Portal app | `http://localhost:5500` |
 | Tenant BackOffice API | `http://localhost:5000` |
 | Tenant Portal API | `http://localhost:5002` |
-| FAQ Portal API | `http://localhost:5010` |
-| FAQ Public API | `http://localhost:5020` |
+| QnA Portal API | `http://localhost:5010` |
+| QnA Public API | `http://localhost:5020` |
 | Tenant Worker API | no HTTP surface; background host only |
 | PostgreSQL | `localhost:5432` |
 | Redis | `localhost:6379` |
@@ -176,7 +177,7 @@ echo "127.0.0.1 host.docker.internal" | sudo tee -a /etc/hosts
 
 ## Local subdomains with the `simulatedev` helper
 
-If you want local hostnames such as `dev.portal.basefaq.com`, use the helper in `local/env/simulatedev`.
+If you want local hostnames such as `dev.portal.basefaq.com`, `dev.qna.portal.basefaq.com`, and `dev.qna.public.basefaq.com`, use the helper in `local/env/simulatedev`.
 
 Linux:
 
@@ -203,7 +204,7 @@ or
 .\local\env\simulatedev\teardown-subdomains.ps1
 ```
 
-The helper runs an Nginx reverse proxy in Docker and updates the hosts file with managed entries. Use elevated privileges because hosts-file updates are mandatory.
+The helper runs an Nginx reverse proxy in Docker and updates the hosts file with managed entries. QnA hostnames are the product URLs. Use elevated privileges because hosts-file updates are mandatory.
 
 ## Auth0 and local login
 

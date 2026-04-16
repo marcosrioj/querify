@@ -15,7 +15,6 @@ This folder is the canonical knowledge base for the repository. The root `README
 ### Architecture
 
 - [`architecture/solution-architecture.md`](architecture/solution-architecture.md): overall solution shape, service boundaries, data ownership, and architectural patterns.
-- [`architecture/basefaq-integrations-architecture.md`](architecture/basefaq-integrations-architecture.md): planned `/integrations` scope for external renderers, SDKs, CMS and commerce plugins, packaging, release discipline, and ecosystem expansion.
 
 ### Agents
 
@@ -39,7 +38,7 @@ This folder is the canonical knowledge base for the repository. The root `README
 
 ### Tools
 
-- [`tools/migration-tool.md`](tools/migration-tool.md): tenant-aware migration workflow for FAQ databases.
+- [`tools/migration-tool.md`](tools/migration-tool.md): tenant-aware migration workflow for QnA databases.
 - [`tools/seed-tool.md`](tools/seed-tool.md): essential and sample-data seeding workflow.
 
 ### Operations and Quality

@@ -18,7 +18,7 @@ Auth0 is manual by design (you fill it in the stage env file).
 - `provision.sh`: infra only.
 - `bootstrap-data.sh`: DB bootstrap + seed orchestration.
 - `deploy.sh`: image build/push + Container Apps deploy.
-- `run-migrations.sh`: applies tenant + FAQ migrations in non-interactive mode.
+- `run-migrations.sh`: applies tenant + QnA migrations in non-interactive mode.
 - `setup.sh`: full flow (`provision -> bootstrap-data -> deploy`).
 - `init-env.sh`: creates `env/<stage>.env` from `env/<stage>.env.example`.
 - `check-rg.sh`: checks if the stage Resource Group already exists.
@@ -47,18 +47,18 @@ Each stage has its own Resource Group (`AZURE_RESOURCE_GROUP` in each stage env)
 Configured in templates using `basefaq.com`:
 
 - Dev:
-    - `faq.dev.basefaq.com`
-    - `faq-public.dev.basefaq.com`
+    - `qna.dev.basefaq.com`
+    - `qna-public.dev.basefaq.com`
     - `tenant.dev.basefaq.com`
     - `tenant-portal.dev.basefaq.com`
 - QA:
-    - `faq.qa.basefaq.com`
-    - `faq-public.qa.basefaq.com`
+    - `qna.qa.basefaq.com`
+    - `qna-public.qa.basefaq.com`
     - `tenant.qa.basefaq.com`
     - `tenant-portal.qa.basefaq.com`
 - Prod:
-    - `faq.basefaq.com`
-    - `faq-public.basefaq.com`
+    - `qna.basefaq.com`
+    - `qna-public.basefaq.com`
     - `tenant.basefaq.com`
     - `tenant-portal.basefaq.com`
 
@@ -120,8 +120,8 @@ You can override env file path in any script:
 - Azure Cache for Redis
 - RabbitMQ on Azure Container Instances
 - 4 Container Apps:
-    - FAQ Portal API
-    - FAQ Public API
+    - QnA Portal API
+    - QnA Public API
     - Tenant BackOffice API
     - Tenant Portal API
 
@@ -166,5 +166,5 @@ Required GitHub `vars` (or keep value in `azure/env/dev.env.example`):
 - `BASEFAQ_ENVIRONMENT`
 - `CONTAINERAPP_PREFIX`
 - Auth vars (`AUTHORITY_URL`, `AUTH_AUDIENCE`, Swagger auth vars)
-- Domain vars (`FAQ_PORTAL_DOMAIN`, `FAQ_PUBLIC_DOMAIN`, `TENANT_BACKOFFICE_DOMAIN`, `TENANT_PORTAL_DOMAIN`,
+- Domain vars (`QNA_PORTAL_DOMAIN`, `QNA_PUBLIC_DOMAIN`, `TENANT_BACKOFFICE_DOMAIN`, `TENANT_PORTAL_DOMAIN`,
   no AI-specific domain)

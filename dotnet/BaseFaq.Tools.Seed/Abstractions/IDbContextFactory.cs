@@ -1,6 +1,6 @@
 using BaseFaq.Common.EntityFramework.Tenant;
 using BaseFaq.Common.Infrastructure.Core.Abstractions;
-using BaseFaq.Faq.Common.Persistence.FaqDb;
+using BaseFaq.QnA.Common.Persistence.QnADb;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 
@@ -15,7 +15,7 @@ public interface IDbContextFactory
         ITenantConnectionStringProvider tenantConnectionStringProvider,
         IHttpContextAccessor httpContextAccessor);
 
-    FaqDbContext CreateFaqDbContext(
+    QnADbContext CreateQnADbContext(
         string connectionString,
         IConfiguration configuration,
         ISessionService sessionService,

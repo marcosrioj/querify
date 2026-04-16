@@ -1,26 +1,29 @@
 import { createBrowserRouter } from 'react-router-dom';
 import type { RouteObject } from 'react-router-dom';
 import { PortalLayout } from '@/app/layouts/portal-layout';
-import {
-  RootRedirectPage,
-  RouterNotFoundPage,
-} from '@/app/router/router-pages';
+import { RootRedirectPage, RouterNotFoundPage } from '@/app/router/router-pages';
+import { ActivityRoutes } from '@/domains/activity/routes';
+import { AnswerRoutes } from '@/domains/answers/routes';
 import { RequirePortalAuth } from '@/domains/auth/require-portal-auth';
 import { AuthRoutes } from '@/domains/auth/routes';
 import { BillingRoutes } from '@/domains/billing/routes';
-import { ContentRefRoutes } from '@/domains/content-refs/routes';
 import { DashboardRoutes } from '@/domains/dashboard/routes';
-import { FaqItemRoutes } from '@/domains/faq-items/routes';
-import { FaqRoutes } from '@/domains/faq/routes';
 import { MembersRoutes } from '@/domains/members/routes';
+import { QuestionRoutes } from '@/domains/questions/routes';
 import { SettingsRoutes } from '@/domains/settings/routes';
+import { SourceRoutes } from '@/domains/sources/routes';
+import { SpaceRoutes } from '@/domains/spaces/routes';
+import { TagRoutes } from '@/domains/tags/routes';
 import { RuntimeEnv } from '@/platform/runtime/env';
 
 const protectedChildren: RouteObject[] = [
   ...DashboardRoutes,
-  ...FaqRoutes,
-  ...FaqItemRoutes,
-  ...ContentRefRoutes,
+  ...SpaceRoutes,
+  ...QuestionRoutes,
+  ...AnswerRoutes,
+  ...SourceRoutes,
+  ...TagRoutes,
+  ...ActivityRoutes,
   ...MembersRoutes,
   ...BillingRoutes,
   ...SettingsRoutes,

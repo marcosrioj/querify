@@ -6,8 +6,8 @@ This folder contains a self-contained helper to expose local APIs behind these s
 - `dev.tenant.backoffice.basefaq.com`
 - `dev.tenant.public.basefaq.com`
 - `dev.tenant.portal.basefaq.com`
-- `dev.faq.public.basefaq.com`
-- `dev.faq.portal.basefaq.com`
+- `dev.qna.public.basefaq.com`
+- `dev.qna.portal.basefaq.com`
 - `dev.test.basefaq.com`
 
 The approach is intentionally decoupled from host machine Nginx:
@@ -24,8 +24,8 @@ The approach is intentionally decoupled from host machine Nginx:
 - `dev.tenant.backoffice.basefaq.com` -> `http://<upstream-host>:5000`
 - `dev.tenant.public.basefaq.com` -> `http://<upstream-host>:5004`
 - `dev.tenant.portal.basefaq.com` -> `http://<upstream-host>:5002`
-- `dev.faq.portal.basefaq.com` -> `http://<upstream-host>:5010`
-- `dev.faq.public.basefaq.com` -> `http://<upstream-host>:5020`
+- `dev.qna.portal.basefaq.com` -> `http://<upstream-host>:5010`
+- `dev.qna.public.basefaq.com` -> `http://<upstream-host>:5020`
 - `dev.test.basefaq.com` -> `http://<upstream-host>:5999`
 
 `<upstream-host>` defaults:
@@ -85,8 +85,8 @@ You can override defaults through environment variables (Linux) or parameters (P
   - `TENANT_BACKOFFICE_PORT` / `-TenantBackOfficePort`
   - `TENANT_PUBLIC_PORT` / `-TenantPublicPort`
   - `TENANT_PORTAL_PORT` / `-TenantPortalPort`
-  - `FAQ_PORTAL_PORT` / `-FaqPortalPort`
-  - `FAQ_PUBLIC_PORT` / `-FaqPublicPort`
+  - `QNA_PORTAL_PORT` / `-QnaPortalPort`
+  - `QNA_PUBLIC_PORT` / `-QnaPublicPort`
   - `TEST_PORT` / `-TestPort`
 
 Linux example:
@@ -119,7 +119,7 @@ HTTPS uses a dev self-signed certificate, so browsers may show a certificate war
 - Router/NAT forwarding required: `TCP 80 -> <machine_lan_ip>:80` (nginx entrypoint).
 - Router/NAT forwarding required: `TCP 443 -> <machine_lan_ip>:443` (HTTPS entrypoint).
 - Router/NAT forwarding required: `TCP 5000-5999 -> <machine_lan_ip>:5000-5999` (direct backend ports, optional for diagnostics).
-- Do not use `:5000`, `:5002`, `:5010`, `:5020`, `:5030`, `:5999` in public URLs; those are backend API ports.
+- Do not use `:5000`, `:5002`, `:5010`, `:5020`, `:5999` in public URLs; those are backend API ports.
 - Use `https://...` in public URLs when testing TLS; use `http://...` if you want to avoid certificate warnings.
 - Ensure APIs are running on the mapped local ports.
 - Docker compose project used by scripts: `bf_baseservices`.

@@ -59,18 +59,12 @@ internal sealed class MigrationCliArguments
     private static AppEnum ParseApp(string value)
     {
         if (string.Equals(value, "1", StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(value, AppEnum.Faq.ToString(), StringComparison.OrdinalIgnoreCase))
-        {
-            return AppEnum.Faq;
-        }
-
-        if (string.Equals(value, "2", StringComparison.OrdinalIgnoreCase) ||
             string.Equals(value, AppEnum.QnA.ToString(), StringComparison.OrdinalIgnoreCase))
         {
             return AppEnum.QnA;
         }
 
-        throw new ArgumentException($"Unsupported app '{value}'. Supported: {AppEnum.Faq}, {AppEnum.QnA}.");
+        throw new ArgumentException($"Unsupported app '{value}'. Supported: {AppEnum.QnA}.");
     }
 
     private static MigrationCommand ParseCommand(string value)

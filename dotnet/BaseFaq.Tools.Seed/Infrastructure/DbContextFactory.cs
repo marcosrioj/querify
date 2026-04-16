@@ -1,6 +1,6 @@
 using BaseFaq.Common.EntityFramework.Tenant;
 using BaseFaq.Common.Infrastructure.Core.Abstractions;
-using BaseFaq.Faq.Common.Persistence.FaqDb;
+using BaseFaq.QnA.Common.Persistence.QnADb;
 using BaseFaq.Tools.Seed.Abstractions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -29,18 +29,18 @@ public sealed class DbContextFactory : IDbContextFactory
             httpContextAccessor);
     }
 
-    public FaqDbContext CreateFaqDbContext(
+    public QnADbContext CreateQnADbContext(
         string connectionString,
         IConfiguration configuration,
         ISessionService sessionService,
         ITenantConnectionStringProvider tenantConnectionStringProvider,
         IHttpContextAccessor httpContextAccessor)
     {
-        var options = new DbContextOptionsBuilder<FaqDbContext>()
+        var options = new DbContextOptionsBuilder<QnADbContext>()
             .UseNpgsql(connectionString)
             .Options;
 
-        return new FaqDbContext(
+        return new QnADbContext(
             options,
             sessionService,
             configuration,

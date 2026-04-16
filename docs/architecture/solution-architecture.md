@@ -25,8 +25,8 @@ The repository root contains one primary `.NET` solution file, `BaseFaq.sln`. It
 | `BaseFaq.Tenant.BackOffice.Api` | back-office tenant and user administration | `5000` |
 | `BaseFaq.Tenant.Portal.Api` | tenant workspace management APIs | `5002` |
 | `BaseFaq.Tenant.Public.Api` | public tenant ingress APIs such as Stripe webhooks | `5004` |
-| `BaseFaq.Faq.Portal.Api` | authenticated FAQ management APIs | `5010` |
-| `BaseFaq.Faq.Public.Api` | public FAQ access and public FAQ item creation | `5020` |
+| `BaseFaq.QnA.Portal.Api` | authenticated QnA management APIs | `5010` |
+| `BaseFaq.QnA.Public.Api` | public QnA access and public signaling APIs | `5020` |
 | `BaseFaq.Tenant.Worker.Api` | control-plane worker for billing webhooks, email outbox, and future tenant operations | n/a |
 
 ## Core architectural patterns
@@ -50,20 +50,24 @@ Business logic does not live in the host; the host wires the feature modules and
 
 The repository follows a consistent naming model:
 
-- `BaseFaq.Faq.*`
 - `BaseFaq.Tenant.*`
 - `BaseFaq.QnA.*`
 
 Inside each area, business modules are further split by feature, for example:
 
-- `BaseFaq.Faq.Portal.Business.Faq`
-- `BaseFaq.Faq.Portal.Business.FaqItem`
+- `BaseFaq.QnA.Portal.Business.Space`
+- `BaseFaq.QnA.Portal.Business.Question`
+- `BaseFaq.QnA.Portal.Business.Answer`
+- `BaseFaq.QnA.Portal.Business.Source`
+- `BaseFaq.QnA.Portal.Business.Activity`
+- `BaseFaq.QnA.Public.Business.Space`
+- `BaseFaq.QnA.Public.Business.Question`
 - `BaseFaq.Tenant.Portal.Business.Tenant`
 - `BaseFaq.Tenant.BackOffice.Business.User`
 - `BaseFaq.Tenant.Public.Business.Billing`
 - `BaseFaq.Tenant.BackOffice.Business.Billing`
 
-This keeps controller, service, command, and query code grouped by domain capability instead of by technical layer alone.
+This keeps controller, service, command, and query code grouped by domain capability instead of by technical layer alone. QnA follows a one-feature-per-project physical layout and is the primary product model for backend work.
 
 ### 3. CQRS with MediatR is the standard application pattern
 
@@ -89,26 +93,26 @@ They should not contain read-after-write orchestration, persistence logic, or cr
 
 ### 5. Persistence is explicitly split by database responsibility
 
-BaseFAQ uses two main EF Core contexts:
+BaseFAQ uses three important EF Core contexts:
 
 | Context | Responsibility |
 |---|---|
 | `TenantDbContext` | global tenant metadata, users, tenant memberships, tenant-to-database mapping, and control-plane background-processing state |
-| `FaqDbContext` | tenant-specific FAQ product data such as FAQs, FAQ items, content references, tags, and feedback |
+| `QnADbContext` | tenant-specific QnA product data such as spaces, questions, answers, source links, tag links, workflow state, and activity |
 
 The split matters operationally:
 
 - tenant metadata is centralized
 - control-plane operational workloads belong with tenant metadata
-- FAQ data lives in tenant databases
-- migration and seed tooling must coordinate both stores
+- QnA data lives in tenant databases and is the primary product path
+- migration and seed tooling must coordinate tenant metadata plus the active product store
 
 ### 6. Multitenancy is part of the request model
 
 The solution uses different request contexts depending on the surface:
 
 - authenticated portal flows use `X-Tenant-Id`
-- public FAQ flows use `X-Client-Key`
+- public QnA flows use `X-Client-Key`
 - public tenant billing ingress uses anonymous webhook routes with provider signature validation instead of tenant headers
 - shared services resolve the tenant context before hitting tenant-scoped data
 
@@ -121,7 +125,7 @@ Control-plane background processing is hosted separately in `BaseFaq.Tenant.Work
 That separation is intentional:
 
 - billing webhooks, email outbox delivery, entitlements, and recurring tenant operational jobs belong to `BaseFaq.Tenant.Worker.Api`
-- the worker should operate against `TenantDbContext` and should not take ownership of FAQ product-data workflows
+- the worker should operate against `TenantDbContext` and should not take ownership of QnA product-data workflows
 
 ### 8. Cross-cutting concerns are centralized in shared libraries
 
@@ -159,12 +163,12 @@ The testing strategy is documented in [`../testing/integration-testing-strategy.
 4. The API host resolves session and tenant context.
 5. A business module executes the command or query against the correct DbContext.
 
-### Public FAQ flow
+### Public QnA flow
 
-1. A public client calls the FAQ Public API.
+1. A public client calls the QnA Public API.
 2. The request includes `X-Client-Key`.
 3. The API resolves the tenant behind that client key.
-4. Public FAQ data is served from the tenant's FAQ database.
+4. Public QnA data is served from the tenant's QnA database, and public feedback or vote signals are recorded through QnA activity.
 
 ### Public billing webhook flow
 
@@ -178,6 +182,6 @@ The testing strategy is documented in [`../testing/integration-testing-strategy.
 - Preserve the existing composition-root pattern in API hosts.
 - Add new business features under the appropriate bounded-context module instead of enlarging unrelated projects.
 - Keep write flows simple and aligned with the CQRS rules.
-- Treat `TenantDbContext` and `FaqDbContext` as separate ownership boundaries.
+- Treat `TenantDbContext` and `QnADbContext` as separate ownership boundaries.
 - Put public tenant ingress endpoints such as billing webhooks in `BaseFaq.Tenant.Public.Api`, not in authenticated portal hosts.
 - Update the specific docs in `docs/` when boundaries, startup steps, or operational assumptions change.

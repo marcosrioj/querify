@@ -33,6 +33,11 @@ public sealed class QuestionsCreateQuestionCommandHandler(
             throw new ApiErrorException($"Space '{request.Request.SpaceId}' was not found.",
                 (int)HttpStatusCode.NotFound);
 
+        if (!space.AcceptsQuestions)
+            throw new ApiErrorException(
+                "This space is not accepting questions.",
+                (int)HttpStatusCode.UnprocessableEntity);
+
         var entity = new QuestionEntity
         {
             TenantId = tenantId,

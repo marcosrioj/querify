@@ -89,20 +89,10 @@ public sealed class QnADbContextFactory : IDesignTimeDbContextFactory<QnADbConte
 
     private static TenantConnection ResolveCurrentConnection(TenantDbContext tenantDbContext)
     {
-        try
-        {
-            return tenantDbContext
-                .GetCurrentTenantConnection(AppEnum.QnA)
-                .GetAwaiter()
-                .GetResult();
-        }
-        catch
-        {
-            return tenantDbContext
-                .GetCurrentTenantConnection(AppEnum.Faq)
-                .GetAwaiter()
-                .GetResult();
-        }
+        return tenantDbContext
+            .GetCurrentTenantConnection(AppEnum.QnA)
+            .GetAwaiter()
+            .GetResult();
     }
 
     private static AppEnum ResolveAppEnum(string[] args)

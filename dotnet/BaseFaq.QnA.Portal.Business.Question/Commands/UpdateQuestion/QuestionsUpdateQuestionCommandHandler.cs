@@ -27,7 +27,10 @@ public sealed class QuestionsUpdateQuestionCommandHandler(
         var userId = sessionService.GetUserId().ToString();
         var entity = await dbContext.Questions
             .Include(question => question.Answers)
+            .Include(question => question.AcceptedAnswer)
             .Include(question => question.Activities)
+            .Include(question => question.Sources)
+            .ThenInclude(link => link.Source)
             .SingleOrDefaultAsync(question => question.TenantId == tenantId && question.Id == request.Id,
                 cancellationToken);
 

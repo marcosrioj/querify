@@ -391,8 +391,6 @@ function StepperContent({ value, forceMount, children, className }: StepperConte
 }
 
 export {
-  useStepper,
-  useStepItem,
   Stepper,
   StepperItem,
   StepperTrigger,

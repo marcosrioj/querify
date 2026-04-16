@@ -79,29 +79,22 @@ internal static class EfMigrationsRunner
 
     private static string ResolveProjectPath(string solutionRoot, AppEnum app)
     {
-        return app switch
+        if (app != AppEnum.QnA)
         {
-            AppEnum.Faq => Path.Combine(
-                solutionRoot,
-                "dotnet",
-                "BaseFaq.Faq.Common.Persistence.FaqDb",
-                "BaseFaq.Faq.Common.Persistence.FaqDb.csproj"),
-            AppEnum.QnA => Path.Combine(
-                solutionRoot,
-                "dotnet",
-                "BaseFaq.QnA.Common.Persistence.QnADb",
-                "BaseFaq.QnA.Common.Persistence.QnADb.csproj"),
-            _ => throw new InvalidOperationException($"Migrations are not supported for {app}.")
-        };
+            throw new InvalidOperationException($"Migrations are not supported for {app}.");
+        }
+
+        return Path.Combine(
+            solutionRoot,
+            "dotnet",
+            "BaseFaq.QnA.Common.Persistence.QnADb",
+            "BaseFaq.QnA.Common.Persistence.QnADb.csproj");
     }
 
     private static string ResolveContextName(AppEnum app)
     {
-        return app switch
-        {
-            AppEnum.Faq => "FaqDbContext",
-            AppEnum.QnA => "QnADbContext",
-            _ => throw new InvalidOperationException($"Migrations are not supported for {app}.")
-        };
+        return app == AppEnum.QnA
+            ? "QnADbContext"
+            : throw new InvalidOperationException($"Migrations are not supported for {app}.");
     }
 }

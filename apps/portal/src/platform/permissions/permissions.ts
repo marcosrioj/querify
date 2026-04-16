@@ -2,24 +2,24 @@ import type { PortalRole } from '@/platform/auth/types';
 import { TenantUserRoleType } from '@/shared/constants/backend-enums';
 
 export type PortalPermission =
-  | 'faq.read'
-  | 'faq.write'
-  | 'faq-item.read'
-  | 'faq-item.write'
-  | 'content-ref.read'
-  | 'content-ref.write'
+  | 'space.read'
+  | 'space.write'
+  | 'question.read'
+  | 'question.write'
+  | 'source.read'
+  | 'source.write'
   | 'ai.request'
   | 'tenant.manage'
   | 'members.manage'
   | 'billing.manage';
 
 const baseWorkspacePermissions: PortalPermission[] = [
-  'faq.read',
-  'faq.write',
-  'faq-item.read',
-  'faq-item.write',
-  'content-ref.read',
-  'content-ref.write',
+  'space.read',
+  'space.write',
+  'question.read',
+  'question.write',
+  'source.read',
+  'source.write',
   'ai.request',
 ];
 

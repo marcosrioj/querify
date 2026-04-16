@@ -56,7 +56,7 @@ function ToolbarHeading() {
   const { t } = usePortalI18n();
   const handles = useRouteHandles();
   const current = handles.at(-1);
-  const title = t(current?.title ?? "BaseFAQ Portal");
+  const title = t(current?.title ?? "BaseFAQ QnA Portal");
 
   return (
     <div className="flex flex-col flex-wrap gap-1 md:flex-row md:items-center lg:gap-5">

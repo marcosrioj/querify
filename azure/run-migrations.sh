@@ -43,13 +43,12 @@ run_tenant_migration() {
         --startup-project "${REPO_ROOT}/dotnet/BaseFaq.Tenant.BackOffice.Api/BaseFaq.Tenant.BackOffice.Api.csproj"
 }
 
-run_faq_migrations_for_tenants() {
-    log_info "Applying FAQ DB migrations for all tenant connections..."
+run_qna_migrations_for_tenants() {
+    log_info "Applying QnA DB migrations for all tenant connections..."
     ConnectionStrings__TenantDb="${TENANT_DB_CONNECTION_STRING}" \
         dotnet run \
         --project "${REPO_ROOT}/dotnet/BaseFaq.Tools.Migration/BaseFaq.Tools.Migration.csproj" \
         -- \
-        --app faq \
         --command database-update
 }
 
@@ -73,7 +72,7 @@ main() {
     ensure_dotnet_ef
 
     run_tenant_migration
-    run_faq_migrations_for_tenants
+    run_qna_migrations_for_tenants
 
     log_info "Migrations completed for stage: ${STAGE}"
 }

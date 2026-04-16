@@ -44,12 +44,12 @@ run_seed_action() {
     local action_number="$1"
     printf "%s\n" "${action_number}" | \
         ConnectionStrings__TenantDb="${TENANT_DB_CONNECTION_STRING}" \
-        ConnectionStrings__FaqDb="${FAQ_DB_CONNECTION_STRING}" \
+        ConnectionStrings__QnADb="${QNA_DB_CONNECTION_STRING}" \
         dotnet run --project "${REPO_ROOT}/dotnet/BaseFaq.Tools.Seed/BaseFaq.Tools.Seed.csproj"
 }
 
 validate_config() {
-    require_vars TENANT_DB_CONNECTION_STRING FAQ_DB_CONNECTION_STRING
+    require_vars TENANT_DB_CONNECTION_STRING QNA_DB_CONNECTION_STRING
 
     if [[ "${BASEFAQ_STAGE:-${STAGE}}" != "${STAGE}" ]]; then
         fail "BASEFAQ_STAGE in env does not match --stage ${STAGE}"

@@ -13,12 +13,10 @@ If this file conflicts with those sources, those sources win.
 
 ## Scope
 Apply these rules to:
-- `BaseFaq.Faq.*`
 - `BaseFaq.QnA.*`
 - `BaseFaq.Tenant.*`
 - `BaseFaq.Common.*`
 - `BaseFaq.Models.Common`
-- `BaseFaq.Models.Faq`
 - `BaseFaq.Models.QnA`
 - `BaseFaq.Models.Tenant`
 - `BaseFaq.Models.User`
@@ -50,22 +48,22 @@ Apply these rules to:
 - Keep integration-first behavior (real DB + real migrations where defined).
 
 ### 5) QnA Physical Module Boundary
-- QnA backend modules must mirror the FAQ physical decomposition style.
+- QnA backend modules must keep the established feature-scoped physical decomposition style already used in the solution.
 - Each QnA entity or surface concern gets its own business project, for example `BaseFaq.QnA.Portal.Business.Question` or `BaseFaq.QnA.Public.Business.Vote`.
 - Do not introduce monolithic aggregation projects such as `BaseFaq.QnA.Portal.Business` or `BaseFaq.QnA.Public.Business`.
 - Keep QnA source files physically inside the owning feature project directory.
 - Do not use linked source items such as `<Compile Include="..\\..." Link="...">` for QnA business feature projects.
 - API hosts compose QnA modules through feature-level `Add*Business()` registrations.
-- Integration tests reference the owning feature projects directly and follow FAQ-style feature folders such as `Tests/Question/QuestionCommandQueryTests.cs`.
-- QnA command handlers and query handlers own the use-case logic directly, matching the FAQ physical pattern.
+- Integration tests reference the owning feature projects directly and follow feature folders such as `Tests/Question/QuestionCommandQueryTests.cs`.
+- QnA command handlers and query handlers own the use-case logic directly, matching the solution's physical project pattern.
 - Do not introduce generic QnA helper files such as `*Operations.cs`, `PagedQuery.cs`, `QnAProjectionMapper.cs`, `QnAActivityMetadata.cs`, or `SignalRequestContext.cs`.
-- The only allowed QnA helper exception is a feature-specific request-context helper that mirrors FAQ naming, currently `FeedbackRequestContext.cs` and `VoteRequestContext.cs`.
+- The only allowed QnA helper exception is a feature-specific request-context helper such as `FeedbackRequestContext.cs` and `VoteRequestContext.cs`.
 - QnA persistence entities in `QnADb/Entities` must stay anemic.
 - Do not add command-like methods, factory methods, behavior methods, or convenience projection properties to QnA persistence entities.
 - Keep QnA state transitions, relation management, validation, and projection shaping inside commands, queries, and feature-local private methods.
 
 ### 6) QnA Model Contract Boundary
-- `BaseFaq.Models.QnA` must mirror the physical DTO layout style already used by `BaseFaq.Models.Faq`.
+- `BaseFaq.Models.QnA` must keep the same feature-folder DTO layout used across the solution.
 - Keep DTOs in real feature folders such as `Dtos/Question/QuestionDto.cs` or `Dtos/Answer/AnswerCreateRequestDto.cs`.
 - Do not keep aggregate files such as `Dtos/QuestionDtos.cs` or any other `*Dtos.cs` catch-all file in `BaseFaq.Models.QnA`.
 - Keep namespaces and file ownership coherent with the folder that owns the DTO.

@@ -8,11 +8,11 @@ This file is the project-local readme beside the app source. For the broader fro
 
 Confirmed backend integrations:
 - `dotnet/BaseFaq.Tenant.Portal.Api`
-- `dotnet/BaseFaq.Faq.Portal.Api`
+- `dotnet/BaseFaq.QnA.Portal.Api`
 
 Confirmed backend constraints reflected in the frontend:
 - Auth uses Auth0 JWTs
-- FAQ and tenant-scoped Tenant Portal endpoints require `X-Tenant-Id`
+- QnA and tenant-scoped Tenant Portal endpoints require `X-Tenant-Id`
 - Pagination contract is `SkipCount`, `MaxResultCount`, `Sorting`
 - API error contract is `{ errorCode, messageError, data }`
 
@@ -35,7 +35,7 @@ src/
 ```
 
 Notes:
-- `domains/faq`, `domains/faq-items`, and `domains/content-refs` use the real CRUD APIs
+- `domains/spaces`, `domains/questions`, `domains/answers`, `domains/sources`, `domains/tags`, and `domains/activity` use the real QnA Portal APIs
 - `domains/tenants` and `domains/settings/profile` use the real Tenant Portal APIs
 - `domains/members` uses the isolated TenantUser API in Tenant Portal
 - `shared/lib/language.ts` defines the built-in Portal language options and text direction metadata
@@ -103,7 +103,7 @@ npm run build
 ## Current gaps
 
 - Member adds require an already-existing BaseFAQ user email; invitation acceptance is not exposed yet
-- FAQ, FAQ Item, and Content Ref text search/filtering are client-side on the loaded page because the backend list contracts do not expose search parameters yet
+- Billing and invoice flows remain placeholder areas where the backend surface is still limited
 
 ## Localization
 
@@ -128,7 +128,7 @@ Portal UI translation is frontend-owned. Keep UI copy in the frontend and route 
 
 Localization catalogs now live in `src/shared/lib/i18n/locales/`, one JSON file per supported locale. Keep keys aligned across the 20 supported Portal languages and let `en-US` remain the fallback base.
 
-Dynamic UI strings should prefer placeholder keys such as `Delete FAQ "{name}"?` or `Search: {value}` so `shared/lib/i18n-core.ts` can resolve runtime values without hardcoding every rendered variation.
+Dynamic UI strings should prefer placeholder keys such as `Delete space "{name}"?` or `Search: {value}` so `shared/lib/i18n-core.ts` can resolve runtime values without hardcoding every rendered variation.
 
 ## Useful validation commands
 

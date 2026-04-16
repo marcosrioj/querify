@@ -4,23 +4,23 @@ public sealed record SeedCounts(
     int UserCount,
     int TenantCount,
     int TenantConnectionsPerApp,
-    int FaqCount,
-    int ItemsPerFaq,
+    int SpaceCount,
+    int QuestionsPerSpace,
     int TagCount,
-    int ContentRefCount,
-    int TagsPerFaq,
-    int ContentRefsPerFaq,
-    int FeedbacksPerItem)
+    int SourceCount,
+    int TagsPerSpace,
+    int SourcesPerSpace,
+    int SignalsPerQuestion)
 {
     public static SeedCounts Default => new(
         UserCount: 1,
         TenantCount: 1,
         TenantConnectionsPerApp: 1,
-        FaqCount: 16,
-        ItemsPerFaq: 10,
+        SpaceCount: 16,
+        QuestionsPerSpace: 10,
         TagCount: 64,
-        ContentRefCount: 128,
-        TagsPerFaq: 4,
-        ContentRefsPerFaq: 8,
-        FeedbacksPerItem: 6);
+        SourceCount: 128,
+        TagsPerSpace: 4,
+        SourcesPerSpace: 8,
+        SignalsPerQuestion: 6);
 }

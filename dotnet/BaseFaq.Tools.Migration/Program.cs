@@ -28,13 +28,11 @@ public static class Program
 
         var cliMode = args.Length > 0;
 
-        AppEnum app;
+        var app = AppEnum.QnA;
         MigrationCommand command;
 
         if (cliMode)
         {
-            app = cliArguments.App ?? AppEnum.Faq;
-
             if (cliArguments.Command is null)
             {
                 Console.Error.WriteLine("Missing --command in CLI mode.");
@@ -45,7 +43,6 @@ public static class Program
         }
         else
         {
-            app = MigrationPrompt.SelectApp();
             command = MigrationPrompt.SelectCommand();
         }
 
@@ -65,7 +62,7 @@ public static class Program
 
         if (command == MigrationCommand.DatabaseUpdate)
         {
-            FaqTenantMigrationUpdater.ApplyAll(configuration, tenantDbConnectionString, app);
+            TenantMigrationUpdater.ApplyAll(configuration, tenantDbConnectionString, app);
             return 0;
         }
 
