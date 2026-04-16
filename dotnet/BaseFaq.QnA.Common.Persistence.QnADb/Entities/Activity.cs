@@ -12,6 +12,8 @@ public class Activity : BaseEntity, IMustHaveTenant
 {
     public const int MaxActorLabelLength = 200;
     public const int MaxUserPrintLength = 200;
+    public const int MaxIpLength = 100;
+    public const int MaxUserAgentLength = 1000;
     public const int MaxNotesLength = 4000;
     public const int MaxMetadataLength = 4000;
     /// <summary>
@@ -50,9 +52,19 @@ public class Activity : BaseEntity, IMustHaveTenant
     public string? ActorLabel { get; set; }
 
     /// <summary>
-    /// Canonical identity of the effective actor for public and authenticated activity flows.
+    /// Calculated canonical identity of the effective actor for public and authenticated activity flows.
     /// </summary>
-    public string? UserPrint { get; set; }
+    public string UserPrint { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Calculated originating IP address for the activity.
+    /// </summary>
+    public string Ip { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Calculated originating user agent for the activity.
+    /// </summary>
+    public string UserAgent { get; set; } = string.Empty;
 
     /// <summary>
     /// Free-form notes about the event.

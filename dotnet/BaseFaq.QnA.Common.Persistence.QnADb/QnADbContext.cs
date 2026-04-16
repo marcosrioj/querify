@@ -5,25 +5,35 @@ using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.QnA.Enums;
 using BaseFaq.QnA.Common.Persistence.QnADb.Entities;
+using BaseFaq.QnA.Common.Persistence.QnADb.Identity;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 
 namespace BaseFaq.QnA.Common.Persistence.QnADb;
 
-public class QnADbContext(
-    DbContextOptions<QnADbContext> options,
-    ISessionService sessionService,
-    IConfiguration configuration,
-    ITenantConnectionStringProvider tenantConnectionStringProvider,
-    IHttpContextAccessor httpContextAccessor)
-    : BaseDbContext<QnADbContext>(
-        options,
-        sessionService,
-        configuration,
-        tenantConnectionStringProvider,
-        httpContextAccessor)
+public class QnADbContext : BaseDbContext<QnADbContext>
 {
+    private readonly ISessionService _sessionService;
+    private readonly IHttpContextAccessor _httpContextAccessor;
+
+    public QnADbContext(
+        DbContextOptions<QnADbContext> options,
+        ISessionService sessionService,
+        IConfiguration configuration,
+        ITenantConnectionStringProvider tenantConnectionStringProvider,
+        IHttpContextAccessor httpContextAccessor)
+        : base(
+            options,
+            sessionService,
+            configuration,
+            tenantConnectionStringProvider,
+            httpContextAccessor)
+    {
+        _sessionService = sessionService;
+        _httpContextAccessor = httpContextAccessor;
+    }
+
     public DbSet<Space> Spaces { get; set; }
     public DbSet<Question> Questions { get; set; }
     public DbSet<Answer> Answers { get; set; }
@@ -45,6 +55,7 @@ public class QnADbContext(
 
     public override int SaveChanges(bool acceptAllChangesOnSuccess)
     {
+        PopulateActivityIdentity();
         EnsureTenantIntegrity();
         return base.SaveChanges(acceptAllChangesOnSuccess);
     }
@@ -53,14 +64,38 @@ public class QnADbContext(
         bool acceptAllChangesOnSuccess,
         CancellationToken cancellationToken = default)
     {
+        PopulateActivityIdentity();
         EnsureTenantIntegrity();
         return base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
     }
 
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
+        PopulateActivityIdentity();
         EnsureTenantIntegrity();
         return base.SaveChangesAsync(cancellationToken);
+    }
+
+    private void PopulateActivityIdentity()
+    {
+        foreach (var entry in ChangeTracker.Entries<Activity>()
+                     .Where(entry => entry.State == EntityState.Added))
+        {
+            var activity = entry.Entity;
+            var identity = ActivityUserPrint.ResolveForPersistence(
+                _httpContextAccessor.HttpContext,
+                _sessionService,
+                activity.UserPrint,
+                activity.Ip,
+                activity.UserAgent,
+                activity.ActorLabel,
+                activity.CreatedBy,
+                activity.UpdatedBy);
+
+            activity.UserPrint = identity.UserPrint;
+            activity.Ip = identity.Ip;
+            activity.UserAgent = identity.UserAgent;
+        }
     }
 
     private void EnsureTenantIntegrity()

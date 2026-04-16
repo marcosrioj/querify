@@ -282,6 +282,8 @@ public static class QnAReadModelMappings
             ActorKind = entity.ActorKind,
             ActorLabel = entity.ActorLabel,
             UserPrint = entity.UserPrint,
+            Ip = entity.Ip,
+            UserAgent = entity.UserAgent,
             Notes = entity.Notes,
             MetadataJson = entity.MetadataJson,
             OccurredAtUtc = entity.OccurredAtUtc

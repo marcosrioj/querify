@@ -45,6 +45,8 @@ public class FeedbackCommandQueryTests
 
         Assert.NotNull(activity);
         Assert.Equal(context.UserId.ToString("D"), activity!.UserPrint);
+        Assert.Equal("192.0.2.44", activity.Ip);
+        Assert.Equal("QnAPublicFeedback/1.0", activity.UserAgent);
         Assert.Equal(context.UserId.ToString("D"), ActivitySignals.ParseFeedback(activity.MetadataJson)?.UserPrint);
         Assert.Equal(1, result.FeedbackScore);
     }
@@ -76,6 +78,8 @@ public class FeedbackCommandQueryTests
 
         Assert.NotNull(activity);
         Assert.Equal(expectedIdentity.UserPrint, activity!.UserPrint);
+        Assert.Equal(expectedIdentity.Ip, activity.Ip);
+        Assert.Equal(expectedIdentity.UserAgent, activity.UserAgent);
         Assert.Equal(expectedIdentity.UserPrint, ActivitySignals.ParseFeedback(activity.MetadataJson)?.UserPrint);
     }
 

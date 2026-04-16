@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using BaseFaq.Common.Infrastructure.Core.Abstractions;
@@ -7,13 +8,62 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Identity;
 
 public static class ActivityUserPrint
 {
+    private const string ExternalUserIdClaimType = "sub";
+
     public static ActivityUserIdentity ResolveCurrent(
         HttpContext httpContext,
         IClaimService claimService,
         ISessionService sessionService)
     {
-        ArgumentNullException.ThrowIfNull(httpContext);
         ArgumentNullException.ThrowIfNull(claimService);
+        return ResolveCurrent(httpContext, sessionService, claimService.GetExternalUserId());
+    }
+
+    public static ActivityUserIdentity ResolveCurrent(
+        HttpContext httpContext,
+        ISessionService sessionService)
+    {
+        return ResolveCurrent(httpContext, sessionService, ResolveExternalUserId(httpContext.User));
+    }
+
+    public static ActivityUserIdentity ResolveForPersistence(
+        HttpContext? httpContext,
+        ISessionService sessionService,
+        string? explicitUserPrint,
+        string? explicitIp,
+        string? explicitUserAgent,
+        params string?[] fallbackLabels)
+    {
+        ArgumentNullException.ThrowIfNull(sessionService);
+
+        if (httpContext is not null)
+        {
+            var current = ResolveCurrent(httpContext, sessionService);
+            return new ActivityUserIdentity(
+                string.IsNullOrWhiteSpace(explicitUserPrint) ? current.UserPrint : explicitUserPrint,
+                string.IsNullOrWhiteSpace(explicitIp) ? current.Ip : explicitIp,
+                string.IsNullOrWhiteSpace(explicitUserAgent) ? current.UserAgent : explicitUserAgent,
+                current.AuthenticatedUserId);
+        }
+
+        var fallbackUserPrint = FirstNonEmpty(explicitUserPrint, fallbackLabels) ?? "system";
+        Guid? authenticatedUserId = Guid.TryParse(fallbackUserPrint, out var parsedUserId)
+            ? parsedUserId
+            : null;
+
+        return new ActivityUserIdentity(
+            fallbackUserPrint,
+            explicitIp ?? string.Empty,
+            explicitUserAgent ?? string.Empty,
+            authenticatedUserId);
+    }
+
+    private static ActivityUserIdentity ResolveCurrent(
+        HttpContext httpContext,
+        ISessionService sessionService,
+        string? externalUserId)
+    {
+        ArgumentNullException.ThrowIfNull(httpContext);
         ArgumentNullException.ThrowIfNull(sessionService);
 
         var forwardedFor = httpContext.Request.Headers["X-Forwarded-For"].FirstOrDefault();
@@ -23,7 +73,7 @@ public static class ActivityUserPrint
         ip ??= string.Empty;
 
         var userAgent = httpContext.Request.Headers.UserAgent.ToString();
-        var authenticatedUserId = ResolveAuthenticatedUserId(claimService, sessionService);
+        var authenticatedUserId = ResolveAuthenticatedUserId(externalUserId, sessionService);
         var userPrint = authenticatedUserId?.ToString("D") ?? ComputeAnonymousUserPrint(ip, userAgent);
 
         return new ActivityUserIdentity(userPrint, ip, userAgent, authenticatedUserId);
@@ -38,15 +88,33 @@ public static class ActivityUserPrint
     }
 
     private static Guid? ResolveAuthenticatedUserId(
-        IClaimService claimService,
+        string? externalUserId,
         ISessionService sessionService)
     {
-        var externalUserId = claimService.GetExternalUserId();
         if (string.IsNullOrWhiteSpace(externalUserId))
             return null;
 
         var userId = sessionService.GetUserId();
         return userId == Guid.Empty ? null : userId;
+    }
+
+    private static string? ResolveExternalUserId(ClaimsPrincipal? user)
+    {
+        return user?.FindFirstValue(ExternalUserIdClaimType);
+    }
+
+    private static string? FirstNonEmpty(string? first, IEnumerable<string?> rest)
+    {
+        if (!string.IsNullOrWhiteSpace(first))
+            return first;
+
+        foreach (var value in rest)
+        {
+            if (!string.IsNullOrWhiteSpace(value))
+                return value;
+        }
+
+        return null;
     }
 
     private static string ComputeAnonymousUserPrint(string ip, string userAgent)

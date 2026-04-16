@@ -80,7 +80,6 @@ public sealed class VotesCreateVoteCommandHandler(
             Kind = ActivityKind.VoteReceived,
             ActorKind = ActorKind.Customer,
             ActorLabel = identity.UserPrint,
-            UserPrint = identity.UserPrint,
             Notes = request.Request.Notes,
             MetadataJson = ActivitySignals.CreateVoteMetadata(
                 identity.UserPrint,

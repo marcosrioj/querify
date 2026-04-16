@@ -23,7 +23,16 @@ public class ActivityConfiguration : BaseConfiguration<Activity>
             .HasMaxLength(Activity.MaxActorLabelLength);
 
         builder.Property(activity => activity.UserPrint)
-            .HasMaxLength(Activity.MaxUserPrintLength);
+            .HasMaxLength(Activity.MaxUserPrintLength)
+            .IsRequired();
+
+        builder.Property(activity => activity.Ip)
+            .HasMaxLength(Activity.MaxIpLength)
+            .IsRequired();
+
+        builder.Property(activity => activity.UserAgent)
+            .HasMaxLength(Activity.MaxUserAgentLength)
+            .IsRequired();
 
         builder.Property(activity => activity.Notes)
             .HasMaxLength(Activity.MaxNotesLength);

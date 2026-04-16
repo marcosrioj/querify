@@ -53,6 +53,8 @@ public class VoteCommandQueryTests
 
         Assert.NotNull(activity);
         Assert.Equal(context.UserId.ToString("D"), activity!.UserPrint);
+        Assert.Equal("192.0.2.45", activity.Ip);
+        Assert.Equal("QnAPublicVote/1.0", activity.UserAgent);
         Assert.Equal(context.UserId.ToString("D"), ActivitySignals.ParseVote(activity.MetadataJson)?.UserPrint);
         Assert.Equal(1, result.AcceptedAnswer!.VoteScore);
     }
@@ -90,6 +92,8 @@ public class VoteCommandQueryTests
 
         Assert.NotNull(activity);
         Assert.Equal(expectedIdentity.UserPrint, activity!.UserPrint);
+        Assert.Equal(expectedIdentity.Ip, activity.Ip);
+        Assert.Equal(expectedIdentity.UserAgent, activity.UserAgent);
         Assert.Equal(expectedIdentity.UserPrint, ActivitySignals.ParseVote(activity.MetadataJson)?.UserPrint);
     }
 

@@ -60,6 +60,8 @@ public class QuestionSignalTests
         var reportActivity = Assert.Single(result.Activity, item => item.Id == reportId);
         Assert.Equal(ActivityKind.ReportReceived, reportActivity.Kind);
         Assert.Equal(expectedIdentity.UserPrint, reportActivity.UserPrint);
+        Assert.Equal(expectedIdentity.Ip, reportActivity.Ip);
+        Assert.Equal(expectedIdentity.UserAgent, reportActivity.UserAgent);
         Assert.Equal(expectedIdentity.UserPrint, ActivitySignals.ParseReport(reportActivity.MetadataJson)?.UserPrint);
     }
 
