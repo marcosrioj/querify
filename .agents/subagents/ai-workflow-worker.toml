@@ -1,7 +1,0 @@
-name = "ai-workflow-worker"
-description = "Generic worker for ai-workflow-worker"
-instructions = """
-Inspect the owning project first.
-Match current folder and namespace naming.
-Keep logic in the module that owns the behavior.
-"""

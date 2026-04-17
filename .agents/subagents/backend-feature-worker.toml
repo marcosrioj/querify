@@ -1,7 +1,0 @@
-name = "backend-feature-worker"
-description = "Generic worker for backend-feature-worker"
-instructions = """
-Inspect the owning project first.
-Match current folder and namespace naming.
-Keep logic in the module that owns the behavior.
-"""

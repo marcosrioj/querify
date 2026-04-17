@@ -1,7 +1,0 @@
-name = "portal-frontend-worker"
-description = "Generic worker for portal-frontend-worker"
-instructions = """
-Inspect the owning project first.
-Match current folder and namespace naming.
-Keep logic in the module that owns the behavior.
-"""
