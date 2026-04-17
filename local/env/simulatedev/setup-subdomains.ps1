@@ -5,9 +5,8 @@ param(
     [int]$TenantPublicPort = 5004,
     [int]$TenantPortalPort = 5002,
     [int]$PortalAppPort = 5500,
-    [int]$FaqPortalPort = 5010,
-    [int]$FaqPublicPort = 5020,
-    [int]$AiPort = 5030,
+    [int]$QnaPortalPort = 5010,
+    [int]$QnaPublicPort = 5020,
     [int]$TestPort = 5999
 )
 
@@ -171,12 +170,12 @@ server {
 server {
     listen 80;
     listen 443 ssl;
-    server_name dev.faq.portal.basefaq.com;
+    server_name dev.qna.portal.basefaq.com;
     ssl_certificate /etc/nginx/certs/dev.basefaq.com.crt;
     ssl_certificate_key /etc/nginx/certs/dev.basefaq.com.key;
 
     location / {
-        proxy_pass http://__UPSTREAM_HOST__:__FAQ_PORTAL_PORT__;
+        proxy_pass http://__UPSTREAM_HOST__:__QNA_PORTAL_PORT__;
         proxy_http_version 1.1;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
@@ -190,31 +189,12 @@ server {
 server {
     listen 80;
     listen 443 ssl;
-    server_name dev.faq.public.basefaq.com;
+    server_name dev.qna.public.basefaq.com;
     ssl_certificate /etc/nginx/certs/dev.basefaq.com.crt;
     ssl_certificate_key /etc/nginx/certs/dev.basefaq.com.key;
 
     location / {
-        proxy_pass http://__UPSTREAM_HOST__:__FAQ_PUBLIC_PORT__;
-        proxy_http_version 1.1;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection $connection_upgrade;
-    }
-}
-
-server {
-    listen 80;
-    listen 443 ssl;
-    server_name dev.ai.basefaq.com;
-    ssl_certificate /etc/nginx/certs/dev.basefaq.com.crt;
-    ssl_certificate_key /etc/nginx/certs/dev.basefaq.com.key;
-
-    location / {
-        proxy_pass http://__UPSTREAM_HOST__:__AI_PORT__;
+        proxy_pass http://__UPSTREAM_HOST__:__QNA_PUBLIC_PORT__;
         proxy_http_version 1.1;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
@@ -251,9 +231,8 @@ $nginxConfig = $nginxTemplate.
     Replace("__TENANT_PUBLIC_PORT__", $TenantPublicPort.ToString()).
     Replace("__TENANT_PORTAL_PORT__", $TenantPortalPort.ToString()).
     Replace("__PORTAL_APP_PORT__", $PortalAppPort.ToString()).
-    Replace("__FAQ_PORTAL_PORT__", $FaqPortalPort.ToString()).
-    Replace("__FAQ_PUBLIC_PORT__", $FaqPublicPort.ToString()).
-    Replace("__AI_PORT__", $AiPort.ToString()).
+    Replace("__QNA_PORTAL_PORT__", $QnaPortalPort.ToString()).
+    Replace("__QNA_PUBLIC_PORT__", $QnaPublicPort.ToString()).
     Replace("__TEST_PORT__", $TestPort.ToString())
 
 Set-Content -Path $nginxConfFile -Encoding ascii -Value $nginxConfig
@@ -278,9 +257,8 @@ $null = $cleanHosts.Add($markerBegin)
 $null = $cleanHosts.Add("$HostIp dev.portal.basefaq.com")
 $null = $cleanHosts.Add("$HostIp dev.tenant.backoffice.basefaq.com")
 $null = $cleanHosts.Add("$HostIp dev.tenant.portal.basefaq.com")
-$null = $cleanHosts.Add("$HostIp dev.faq.portal.basefaq.com")
-$null = $cleanHosts.Add("$HostIp dev.faq.public.basefaq.com")
-$null = $cleanHosts.Add("$HostIp dev.ai.basefaq.com")
+$null = $cleanHosts.Add("$HostIp dev.qna.portal.basefaq.com")
+$null = $cleanHosts.Add("$HostIp dev.qna.public.basefaq.com")
 $null = $cleanHosts.Add("$HostIp dev.test.basefaq.com")
 $null = $cleanHosts.Add($markerEnd)
 
@@ -303,9 +281,8 @@ Write-Host "Domain mappings:"
 Write-Host "  dev.portal.basefaq.com            -> $UpstreamHost`:$PortalAppPort"
 Write-Host "  dev.tenant.backoffice.basefaq.com -> $UpstreamHost`:$TenantBackOfficePort"
 Write-Host "  dev.tenant.portal.basefaq.com     -> $UpstreamHost`:$TenantPortalPort"
-Write-Host "  dev.faq.portal.basefaq.com        -> $UpstreamHost`:$FaqPortalPort"
-Write-Host "  dev.faq.public.basefaq.com        -> $UpstreamHost`:$FaqPublicPort"
-Write-Host "  dev.ai.basefaq.com                -> $UpstreamHost`:$AiPort"
+Write-Host "  dev.qna.portal.basefaq.com        -> $UpstreamHost`:$QnaPortalPort"
+Write-Host "  dev.qna.public.basefaq.com        -> $UpstreamHost`:$QnaPublicPort"
 Write-Host "  dev.test.basefaq.com              -> $UpstreamHost`:$TestPort"
 Write-Host ""
 Write-Host "Generated Nginx config:"

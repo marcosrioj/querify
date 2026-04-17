@@ -87,7 +87,7 @@ The current Azure flow creates or reuses:
 - PostgreSQL Flexible Server and databases
 - Azure Cache for Redis
 - RabbitMQ on Azure Container Instances
-- Container Apps for the public-facing APIs and AI worker host
+- Container Apps for the public-facing APIs and background worker host
 
 ## Stage domains
 
@@ -102,7 +102,6 @@ DNS and certificate binding remain an Azure-side operation outside the shell scr
 ## Operational notes
 
 - `provision.sh` may update generated values inside the stage env file.
-- `bootstrap-data.sh` also updates `AI_USER_ID` after essential data is created.
 - `run-migrations.sh` is the safest script to reuse in deployment flows when only schema changes are needed.
 - Auth0 configuration is intentionally manual and stage-specific.
 

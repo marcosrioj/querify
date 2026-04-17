@@ -39,7 +39,7 @@ public class TenantConnectionCommandQueryTests
     public async Task UpdateTenantConnection_UpdatesExistingConnection()
     {
         using var context = TestContext.Create();
-        var connection = await TestDataFactory.SeedTenantConnectionAsync(context.DbContext, app: AppEnum.Faq);
+        var connection = await TestDataFactory.SeedTenantConnectionAsync(context.DbContext, app: AppEnum.QnA);
 
         var handler = new TenantConnectionsUpdateTenantConnectionCommandHandler(context.DbContext);
         var request = new TenantConnectionsUpdateTenantConnectionCommand
@@ -67,7 +67,7 @@ public class TenantConnectionCommandQueryTests
         var request = new TenantConnectionsUpdateTenantConnectionCommand
         {
             Id = Guid.NewGuid(),
-            App = AppEnum.Faq,
+            App = AppEnum.QnA,
             ConnectionString = "Host=host.docker.internal;Database=missing;Username=tenant;Password=tenant;",
             IsCurrent = true
         };
@@ -98,7 +98,7 @@ public class TenantConnectionCommandQueryTests
     public async Task GetTenantConnection_ReturnsDto()
     {
         using var context = TestContext.Create();
-        var connection = await TestDataFactory.SeedTenantConnectionAsync(context.DbContext, app: AppEnum.Faq);
+        var connection = await TestDataFactory.SeedTenantConnectionAsync(context.DbContext, app: AppEnum.QnA);
 
         var handler = new TenantConnectionsGetTenantConnectionQueryHandler(context.DbContext);
         var result =
@@ -129,7 +129,7 @@ public class TenantConnectionCommandQueryTests
     public async Task GetTenantConnectionList_ReturnsPagedItems()
     {
         using var context = TestContext.Create();
-        await TestDataFactory.SeedTenantConnectionAsync(context.DbContext, app: AppEnum.Faq);
+        await TestDataFactory.SeedTenantConnectionAsync(context.DbContext, app: AppEnum.QnA);
         await TestDataFactory.SeedTenantConnectionAsync(context.DbContext, app: AppEnum.Tenant);
 
         var handler = new TenantConnectionsGetTenantConnectionListQueryHandler(context.DbContext);
@@ -148,7 +148,7 @@ public class TenantConnectionCommandQueryTests
     public async Task GetTenantConnectionList_SortsByExplicitField()
     {
         using var context = TestContext.Create();
-        await TestDataFactory.SeedTenantConnectionAsync(context.DbContext, app: AppEnum.Faq, isCurrent: false);
+        await TestDataFactory.SeedTenantConnectionAsync(context.DbContext, app: AppEnum.QnA, isCurrent: false);
         await TestDataFactory.SeedTenantConnectionAsync(context.DbContext, app: AppEnum.Tenant, isCurrent: true);
 
         var handler = new TenantConnectionsGetTenantConnectionListQueryHandler(context.DbContext);
@@ -173,7 +173,7 @@ public class TenantConnectionCommandQueryTests
     {
         using var context = TestContext.Create();
         var first = await TestDataFactory.SeedTenantConnectionAsync(context.DbContext, app: AppEnum.Tenant);
-        await TestDataFactory.SeedTenantConnectionAsync(context.DbContext, app: AppEnum.Faq);
+        await TestDataFactory.SeedTenantConnectionAsync(context.DbContext, app: AppEnum.QnA);
         first.IsCurrent = !first.IsCurrent;
         await context.DbContext.SaveChangesAsync();
 
@@ -191,7 +191,7 @@ public class TenantConnectionCommandQueryTests
         var result = await handler.Handle(request, CancellationToken.None);
 
         Assert.Equal(AppEnum.Tenant, result.Items[0].App);
-        Assert.Equal(AppEnum.Faq, result.Items[1].App);
+        Assert.Equal(AppEnum.QnA, result.Items[1].App);
     }
 
     [Fact]
@@ -202,14 +202,14 @@ public class TenantConnectionCommandQueryTests
         var connectionA = new BaseFaq.Common.EntityFramework.Tenant.Entities.TenantConnection
         {
             Id = Guid.Parse("00000000-0000-0000-0000-000000000021"),
-            App = AppEnum.Faq,
+            App = AppEnum.QnA,
             ConnectionString = "Host=host.docker.internal;Database=a;Username=tenant;Password=tenant;",
             IsCurrent = false
         };
         var connectionB = new BaseFaq.Common.EntityFramework.Tenant.Entities.TenantConnection
         {
             Id = Guid.Parse("00000000-0000-0000-0000-000000000022"),
-            App = AppEnum.Faq,
+            App = AppEnum.QnA,
             ConnectionString = "Host=host.docker.internal;Database=b;Username=tenant;Password=tenant;",
             IsCurrent = true
         };
@@ -238,9 +238,9 @@ public class TenantConnectionCommandQueryTests
     public async Task GetTenantConnectionList_AppliesPaginationWindow()
     {
         using var context = TestContext.Create();
-        await TestDataFactory.SeedTenantConnectionAsync(context.DbContext, app: AppEnum.Faq, isCurrent: false);
+        await TestDataFactory.SeedTenantConnectionAsync(context.DbContext, app: AppEnum.QnA, isCurrent: false);
         await TestDataFactory.SeedTenantConnectionAsync(context.DbContext, app: AppEnum.Tenant, isCurrent: true);
-        await TestDataFactory.SeedTenantConnectionAsync(context.DbContext, app: AppEnum.Faq, isCurrent: true);
+        await TestDataFactory.SeedTenantConnectionAsync(context.DbContext, app: AppEnum.QnA, isCurrent: true);
 
         var handler = new TenantConnectionsGetTenantConnectionListQueryHandler(context.DbContext);
         var request = new TenantConnectionsGetTenantConnectionListQuery

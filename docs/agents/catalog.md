@@ -24,14 +24,14 @@ This catalog is the human-readable reference for every orchestrator, subagent, s
 
 | Artifact | Path | Use When | Called By |
 |---|---|---|---|
-| `readability-reviewer` | `.subagents/code-review/readability-reviewer.subagent.md` | Code review needs clarity, naming, duplication, or scanability findings. | `code-review-orchestrator` |
-| `architecture-reviewer` | `.subagents/code-review/architecture-reviewer.subagent.md` | Code review needs separation-of-concerns or architectural anti-pattern findings. | `code-review-orchestrator` |
-| `performance-reviewer` | `.subagents/code-review/performance-reviewer.subagent.md` | Code review needs visible hot-path, loop, or repeated-I/O analysis. | `code-review-orchestrator` |
-| `best-practices-reviewer` | `.subagents/code-review/best-practices-reviewer.subagent.md` | Code review needs missing error handling, async misuse, or framework misuse findings. | `code-review-orchestrator` |
-| `injection-detector` | `.subagents/security/injection-detector.subagent.md` | Security analysis needs command injection, SQL injection, eval, or path traversal detection. | `security-orchestrator` |
-| `xss-detector` | `.subagents/security/xss-detector.subagent.md` | Security analysis needs HTML or DOM sink review for XSS risk. | `security-orchestrator` |
-| `deserialization-detector` | `.subagents/security/deserialization-detector.subagent.md` | Security analysis needs unsafe deserialization review. | `security-orchestrator` |
-| `secrets-detector` | `.subagents/security/secrets-detector.subagent.md` | Security analysis needs hardcoded-secret detection. | `security-orchestrator` |
+| `readability-reviewer` | `.agents/subagents/code-review/readability-reviewer.subagent.md` | Code review needs clarity, naming, duplication, or scanability findings. | `code-review-orchestrator` |
+| `architecture-reviewer` | `.agents/subagents/code-review/architecture-reviewer.subagent.md` | Code review needs separation-of-concerns or architectural anti-pattern findings. | `code-review-orchestrator` |
+| `performance-reviewer` | `.agents/subagents/code-review/performance-reviewer.subagent.md` | Code review needs visible hot-path, loop, or repeated-I/O analysis. | `code-review-orchestrator` |
+| `best-practices-reviewer` | `.agents/subagents/code-review/best-practices-reviewer.subagent.md` | Code review needs missing error handling, async misuse, or framework misuse findings. | `code-review-orchestrator` |
+| `injection-detector` | `.agents/subagents/security/injection-detector.subagent.md` | Security analysis needs command injection, SQL injection, eval, or path traversal detection. | `security-orchestrator` |
+| `xss-detector` | `.agents/subagents/security/xss-detector.subagent.md` | Security analysis needs HTML or DOM sink review for XSS risk. | `security-orchestrator` |
+| `deserialization-detector` | `.agents/subagents/security/deserialization-detector.subagent.md` | Security analysis needs unsafe deserialization review. | `security-orchestrator` |
+| `secrets-detector` | `.agents/subagents/security/secrets-detector.subagent.md` | Security analysis needs hardcoded-secret detection. | `security-orchestrator` |
 
 ## Flat Operational Skills
 
@@ -57,7 +57,7 @@ This catalog is the human-readable reference for every orchestrator, subagent, s
 
 | Skill | Path | Use When | Common Pairings |
 |---|---|---|---|
-| `build-cqrs-feature-module` | `.agents/skills/backend/build-cqrs-feature-module/SKILL.md` | Adding or refactoring a `.NET` backend feature in BaseFAQ CQRS shape. | `write-real-database-integration-tests`, `enforce-cqrs-architecture-rules` |
+| `build-cqrs-feature-module` | `.agents/skills/backend/build-cqrs-feature-module/SKILL.md` | Adding or refactoring a `.NET` backend feature in BaseFAQ CQRS shape, including feature-project decomposition and real-file ownership for QnA. | `write-real-database-integration-tests`, `enforce-cqrs-architecture-rules` |
 | `implement-tenant-aware-public-query` | `.agents/skills/backend/implement-tenant-aware-public-query/SKILL.md` | Building safe tenant-aware public reads. | `write-real-database-integration-tests` |
 | `build-portal-domain-data-flow` | `.agents/skills/frontend/build-portal-domain-data-flow/SKILL.md` | Adding or extending Portal domain APIs, hooks, and routes. | `compose-portal-page-layouts`, `design-confirmed-actions-and-stateful-feedback`, `implement-portal-localization` |
 | `compose-portal-page-layouts` | `.agents/skills/frontend/compose-portal-page-layouts/SKILL.md` | Structuring Portal pages with shared layout patterns. | `build-portal-domain-data-flow`, `design-confirmed-actions-and-stateful-feedback` |
@@ -77,10 +77,10 @@ This catalog is the human-readable reference for every orchestrator, subagent, s
 
 | Worker | Path | Use When | Recommended Skills |
 |---|---|---|---|
-| `backend-feature-worker` | `.agents/subagents/backend-feature-worker.toml` | The parent agent already framed a bounded backend change. | Backend and AI implementation skills. |
+| `backend-feature-worker` | `.agents/subagents/backend-feature-worker.toml` | The parent agent already framed a bounded backend change. | Backend implementation skills. |
 | `portal-frontend-worker` | `.agents/subagents/portal-frontend-worker.toml` | The parent agent already framed a bounded Portal change. | Frontend implementation skills. |
 | `data-integrity-worker` | `.agents/subagents/data-integrity-worker.toml` | The parent agent already framed migration, persistence, worker, or integration-test work. | Data, migration, and architecture-rule skills. |
-| `ai-workflow-worker` | `.agents/subagents/ai-workflow-worker.toml` | The parent agent already framed an async AI workflow change. | AI workflow and worker-processing skills. |
+| `ai-workflow-worker` | `.agents/subagents/ai-workflow-worker.toml` | The parent agent already framed an async workflow change. | Workflow and worker-processing skills. |
 | `domain-model-worker` | `.agents/subagents/domain-model-worker.toml` | The parent agent already framed bounded domain modeling or roadmap work. | Domain and provenance skills. |
 | `distribution-worker` | `.agents/subagents/distribution-worker.toml` | The parent agent already framed bounded integration or distribution planning work. | Distribution and trust skills. |
 | `quality-review-worker` | `.agents/subagents/quality-review-worker.toml` | The parent agent already framed a review or verification pass. | Review and verification-oriented skills. |

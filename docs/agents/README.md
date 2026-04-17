@@ -10,7 +10,7 @@ The ecosystem is standardized into five artifact families:
    - Path: `.agents/*.agent.md` and `.agents/privacy/*.agent.md`
    - Purpose: high-level coordination, routing, aggregation, and final response composition.
 2. Markdown subagents
-   - Path: `.agents/privacy/*.subagent.md` and `.subagents/**/*.subagent.md`
+   - Path: `.agents/privacy/*.subagent.md` and `.agents/subagents/**/*.subagent.md`
    - Purpose: narrow decision logic, jurisdiction interpretation, or generic analysis.
 3. Flat operational skills
    - Path: `.agents/shared/*.skill.md` and `.agents/privacy/*.skill.md`
@@ -97,6 +97,15 @@ Repository-owned skills keep the existing BaseFAQ implementation-guide shape:
 3. Call markdown subagents only after the task is framed.
 4. Use workers only when the parent agent has already chosen strategy and the owned-path boundary is clear.
 5. Update the catalog and the relevant `.agents/` indexes when a reusable capability, naming rule, or boundary changes.
+
+## BaseFAQ Backend Boundary Note
+
+For backend repository work, prefer the same physical project boundaries already established in the solution.
+
+- Backend modules are feature-owned.
+- QnA Portal and Public work must keep the same one-business-project-per-entity or per-surface pattern already established in the solution.
+- Do not introduce monolithic `BaseFaq.QnA.Portal.Business` or `BaseFaq.QnA.Public.Business` projects.
+- Keep QnA source files real inside the owning feature project directory; do not use linked compile items.
 
 ## How Users Ask For Work
 
@@ -187,7 +196,7 @@ Use dsar.skill for this request flow.
 
 - Ask for the result you want, not the implementation path.
 - Include the relevant code, diff, file, or business scenario when possible.
-- Mention the boundary when you know it: Portal, backend, AI workflow, privacy, data, or integrations.
+- Mention the boundary when you know it: Portal, backend, background workflow, privacy, data, or integrations.
 - State restrictions early, such as "docs only", "no code changes", or "minimal fix".
 
 ### Weak Vs Strong Requests

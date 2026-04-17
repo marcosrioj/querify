@@ -9,5 +9,4 @@ public interface ITenantService
     Task<bool> RefreshAllowedTenantCache(CancellationToken token);
     Task<string?> GetClientKey(Guid tenantId, CancellationToken token);
     Task<string> GenerateNewClientKey(Guid tenantId, CancellationToken token);
-    Task<bool> SetAiProviderCredentials(TenantSetAiProviderCredentialsRequestDto requestDto, CancellationToken token);
 }

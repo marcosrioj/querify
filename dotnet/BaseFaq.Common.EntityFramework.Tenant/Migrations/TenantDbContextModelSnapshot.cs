@@ -18,67 +18,10 @@ namespace BaseFaq.Common.EntityFramework.Tenant.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .UseCollation("Latin1_General_100_CI_AS_SC_UTF8")
-                .HasAnnotation("ProductVersion", "10.0.0")
+                .HasAnnotation("ProductVersion", "10.0.6")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
-
-            modelBuilder.Entity("BaseFaq.Common.EntityFramework.Tenant.Entities.AiProvider", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<int>("Command")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("text");
-
-                    b.Property<DateTime?>("CreatedDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("DeletedBy")
-                        .HasColumnType("text");
-
-                    b.Property<DateTime?>("DeletedDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("Model")
-                        .IsRequired()
-                        .HasMaxLength(128)
-                        .HasColumnType("character varying(128)");
-
-                    b.Property<string>("Prompt")
-                        .IsRequired()
-                        .HasMaxLength(5000)
-                        .HasColumnType("character varying(5000)");
-
-                    b.Property<string>("Provider")
-                        .IsRequired()
-                        .HasMaxLength(128)
-                        .HasColumnType("character varying(128)");
-
-                    b.Property<string>("UpdatedBy")
-                        .HasColumnType("text");
-
-                    b.Property<DateTime?>("UpdatedDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("IsDeleted")
-                        .HasDatabaseName("IX_AiProvider_IsDeleted");
-
-                    b.HasIndex("Command", "Provider", "Model")
-                        .IsUnique()
-                        .HasDatabaseName("IX_AiProvider_Command_Provider_Model");
-
-                    b.ToTable("AiProviders", (string)null);
-                });
 
             modelBuilder.Entity("BaseFaq.Common.EntityFramework.Tenant.Entities.BillingCustomer", b =>
                 {
@@ -703,58 +646,6 @@ namespace BaseFaq.Common.EntityFramework.Tenant.Migrations
                     b.ToTable("Tenants", (string)null);
                 });
 
-            modelBuilder.Entity("BaseFaq.Common.EntityFramework.Tenant.Entities.TenantAiProvider", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("AiProviderId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("AiProviderKey")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)");
-
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("text");
-
-                    b.Property<DateTime?>("CreatedDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("DeletedBy")
-                        .HasColumnType("text");
-
-                    b.Property<DateTime?>("DeletedDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
-
-                    b.Property<Guid>("TenantId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("UpdatedBy")
-                        .HasColumnType("text");
-
-                    b.Property<DateTime?>("UpdatedDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AiProviderId");
-
-                    b.HasIndex("IsDeleted")
-                        .HasDatabaseName("IX_TenantAiProvider_IsDeleted");
-
-                    b.HasIndex("TenantId", "AiProviderId")
-                        .IsUnique()
-                        .HasDatabaseName("IX_TenantAiProvider_TenantId_AiProviderId");
-
-                    b.ToTable("TenantAiProviders", (string)null);
-                });
-
             modelBuilder.Entity("BaseFaq.Common.EntityFramework.Tenant.Entities.TenantConnection", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1118,25 +1009,6 @@ namespace BaseFaq.Common.EntityFramework.Tenant.Migrations
                     b.Navigation("TenantSubscription");
                 });
 
-            modelBuilder.Entity("BaseFaq.Common.EntityFramework.Tenant.Entities.TenantAiProvider", b =>
-                {
-                    b.HasOne("BaseFaq.Common.EntityFramework.Tenant.Entities.AiProvider", "AiProvider")
-                        .WithMany()
-                        .HasForeignKey("AiProviderId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("BaseFaq.Common.EntityFramework.Tenant.Entities.Tenant", "Tenant")
-                        .WithMany("AiProviders")
-                        .HasForeignKey("TenantId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("AiProvider");
-
-                    b.Navigation("Tenant");
-                });
-
             modelBuilder.Entity("BaseFaq.Common.EntityFramework.Tenant.Entities.TenantUser", b =>
                 {
                     b.HasOne("BaseFaq.Common.EntityFramework.Tenant.Entities.Tenant", "Tenant")
@@ -1163,8 +1035,6 @@ namespace BaseFaq.Common.EntityFramework.Tenant.Migrations
 
             modelBuilder.Entity("BaseFaq.Common.EntityFramework.Tenant.Entities.Tenant", b =>
                 {
-                    b.Navigation("AiProviders");
-
                     b.Navigation("TenantUsers");
                 });
 

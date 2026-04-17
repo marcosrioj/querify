@@ -3,7 +3,6 @@ using BaseFaq.Tenant.Portal.Business.Tenant.Abstractions;
 using BaseFaq.Tenant.Portal.Business.Tenant.Commands.CreateOrUpdateTenants;
 using BaseFaq.Tenant.Portal.Business.Tenant.Commands.GenerateNewClientKey;
 using BaseFaq.Tenant.Portal.Business.Tenant.Commands.RefreshAllowedTenantCache;
-using BaseFaq.Tenant.Portal.Business.Tenant.Commands.SetAiProviderCredentials;
 using BaseFaq.Tenant.Portal.Business.Tenant.Queries.GetAllTenants;
 using BaseFaq.Tenant.Portal.Business.Tenant.Queries.GetClientKey;
 using MediatR;
@@ -45,18 +44,5 @@ public class TenantService(IMediator mediator) : ITenantService
     public Task<string> GenerateNewClientKey(Guid tenantId, CancellationToken token)
     {
         return mediator.Send(new TenantsGenerateNewClientKeyCommand { TenantId = tenantId }, token);
-    }
-
-    public Task<bool> SetAiProviderCredentials(TenantSetAiProviderCredentialsRequestDto requestDto,
-        CancellationToken token)
-    {
-        ArgumentNullException.ThrowIfNull(requestDto);
-
-        return mediator.Send(new TenantsSetAiProviderCredentialsCommand
-        {
-            TenantId = requestDto.TenantId,
-            AiProviderId = requestDto.AiProviderId,
-            AiProviderKey = requestDto.AiProviderKey
-        }, token);
     }
 }

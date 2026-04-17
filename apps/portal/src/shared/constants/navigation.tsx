@@ -1,10 +1,14 @@
 import {
-  Bot,
+  Activity,
   CircleDollarSign,
-  FileQuestion,
   Gauge,
+  MessageSquareText,
+  MessagesSquare,
+  PanelsTopLeft,
   Settings,
+  Tags,
   Users,
+  Waypoints,
 } from 'lucide-react';
 
 export type NavigationItem = {
@@ -24,11 +28,46 @@ export const portalNavigation: NavigationItem[] = [
     icon: Gauge,
   },
   {
-    key: 'faq',
-    label: 'FAQs',
-    description: 'FAQs, Q&A items, and sources',
-    path: '/app/faq',
-    icon: FileQuestion,
+    key: 'spaces',
+    label: 'Spaces',
+    description: 'Space exposure, moderation, and curated knowledge',
+    path: '/app/spaces',
+    icon: PanelsTopLeft,
+  },
+  {
+    key: 'questions',
+    label: 'Questions',
+    description: 'Threads, workflow, duplicates, and accepted answers',
+    path: '/app/questions',
+    icon: MessagesSquare,
+  },
+  {
+    key: 'answers',
+    label: 'Answers',
+    description: 'Publication, validation, ranking, and retirement',
+    path: '/app/answers',
+    icon: MessageSquareText,
+  },
+  {
+    key: 'sources',
+    label: 'Sources',
+    description: 'Reusable evidence, citations, and curated references',
+    path: '/app/sources',
+    icon: Waypoints,
+  },
+  {
+    key: 'tags',
+    label: 'Tags',
+    description: 'Reusable taxonomy for spaces and questions',
+    path: '/app/tags',
+    icon: Tags,
+  },
+  {
+    key: 'activity',
+    label: 'Activity',
+    description: 'Operational audit trail and public signals',
+    path: '/app/activity',
+    icon: Activity,
   },
   {
     key: 'members',
@@ -50,12 +89,5 @@ export const portalNavigation: NavigationItem[] = [
     description: 'Appearance, profile, and workspace',
     path: '/app/settings/general',
     icon: Settings,
-  },
-  {
-    key: 'ai',
-    label: 'AI',
-    description: 'Providers and generation tools',
-    path: '/app/ai',
-    icon: Bot,
   },
 ];

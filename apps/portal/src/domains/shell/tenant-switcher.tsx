@@ -30,7 +30,13 @@ import {
 
 const GUID_PATH_SEGMENT_PATTERN =
   /(?:^|\/)[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}(?=\/|$)/i;
-const tenantScopedQueryRoots = new Set(["faq", "faq-items", "content-refs"]);
+const tenantScopedQueryRoots = new Set([
+  "qna",
+  "members",
+  "billing",
+  "settings",
+  "tenant-domain",
+]);
 
 function hasGuidPathSegment(pathname: string) {
   return GUID_PATH_SEGMENT_PATTERN.test(pathname);

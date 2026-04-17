@@ -21,12 +21,12 @@ export function MobileHeader() {
           <img
             src={toAbsoluteUrl('/media/app/mini-logo-gray.svg')}
             className="min-h-[30px] dark:hidden"
-            alt="BaseFAQ Portal"
+            alt="BaseFAQ QnA Portal"
           />
           <img
             src={toAbsoluteUrl('/media/app/mini-logo-gray-dark.svg')}
             className="hidden min-h-[30px] dark:block"
-            alt="BaseFAQ Portal"
+            alt="BaseFAQ QnA Portal"
           />
         </Link>
 

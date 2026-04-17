@@ -37,30 +37,30 @@ export function AuthLayout() {
               <img
                 src={toAbsoluteUrl('/media/app/default-logo.svg')}
                 className="h-[28px] dark:hidden"
-                alt={t('BaseFAQ Portal')}
+                alt={t('BaseFAQ QnA Portal')}
               />
               <img
                 src={toAbsoluteUrl('/media/app/default-logo-dark.svg')}
                 className="hidden h-[28px] dark:block"
-                alt={t('BaseFAQ Portal')}
+                alt={t('BaseFAQ QnA Portal')}
               />
             </Link>
 
             <div className="max-w-xl space-y-5">
               <div className="space-y-3">
                 <h1 className="text-2xl font-semibold text-mono">
-                  {t('Manage your BaseFAQ workspace')}
+                  {t('Manage your BaseFAQ QnA workspace')}
                 </h1>
                 <p className="text-base font-medium text-secondary-foreground">
                   {t(
-                    'Sign in to manage FAQs, Q&A items, sources, billing, and AI settings.',
+                    'Sign in to manage spaces, questions, answers, sources, activity, billing, and workspace settings.',
                   )}
                 </p>
               </div>
 
               <img
                 src={toAbsoluteUrl('/media/app/auth-screen.png')}
-                alt={t('BaseFAQ Portal')}
+                alt={t('BaseFAQ QnA Portal')}
                 className="w-full rounded-xl border border-border shadow-xs"
               />
             </div>

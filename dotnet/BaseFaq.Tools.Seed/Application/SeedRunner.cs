@@ -1,6 +1,7 @@
 using BaseFaq.Tools.Seed.Abstractions;
 using BaseFaq.Tools.Seed.Configuration;
 using BaseFaq.Tools.Seed.Infrastructure;
+using BaseFaq.Common.EntityFramework.Core;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -14,7 +15,7 @@ public sealed class SeedRunner(
     IConsoleAdapter console,
     IDbContextFactory dbContextFactory,
     ITenantSeedService tenantSeeder,
-    IFaqSeedService faqSeeder,
+    IQnASeedService qnaSeeder,
     IBillingSeedService billingSeeder,
     ICleanupService cleanupService,
     SeedCounts counts)
@@ -24,13 +25,13 @@ public sealed class SeedRunner(
     {
         var settings = SeedSettings.From(configuration);
         var tenantBuilder = new NpgsqlConnectionStringBuilder(settings.TenantConnectionString);
-        var faqBuilder = new NpgsqlConnectionStringBuilder(settings.FaqConnectionString);
-        var tenantSeedRequest = new TenantSeedRequest(tenantBuilder.ToString(), faqBuilder.ToString());
+        var qnaBuilder = new NpgsqlConnectionStringBuilder(settings.QnAConnectionString);
+        var tenantSeedRequest = new TenantSeedRequest(tenantBuilder.ToString(), qnaBuilder.ToString());
 
         console.WriteLine(
             $"Using TenantDb from appsettings.json: {FormatConnectionInfo(tenantBuilder)}");
         console.WriteLine(
-            $"Using FaqDb from appsettings.json: {FormatConnectionInfo(faqBuilder)}");
+            $"Using QnADb from appsettings.json: {FormatConnectionInfo(qnaBuilder)}");
 
         var action = PromptAction(console);
         if (action == SeedAction.Exit)
@@ -42,7 +43,7 @@ public sealed class SeedRunner(
         var httpContextAccessor = new HttpContextAccessor();
 
         var tenantSessionService = new SeedSessionService(seedUserId, Guid.Empty);
-        var dummyTenantProvider = new StaticTenantConnectionStringProvider(faqBuilder.ToString());
+        var dummyTenantProvider = new StaticTenantConnectionStringProvider(qnaBuilder.ToString());
 
         using var tenantDb = dbContextFactory.CreateTenantDbContext(
             tenantBuilder.ToString(),
@@ -51,6 +52,7 @@ public sealed class SeedRunner(
             dummyTenantProvider,
             httpContextAccessor);
 
+        PostgresDatabaseProvisioner.EnsureDatabaseExists(tenantBuilder.ToString());
         tenantDb.Database.Migrate();
 
         if (action is SeedAction.CleanTenantOnly or SeedAction.CleanAndSeed)
@@ -68,10 +70,7 @@ public sealed class SeedRunner(
             var essentialSeed = tenantSeeder.EnsureEssentialData(tenantDb, tenantSeedRequest, counts);
             console.WriteLine("Essential seed complete.");
             console.WriteLine("Tenant metadata ensured.");
-            console.WriteLine("AI providers ensured.");
             console.WriteLine($"Seed tenant id: {essentialSeed.TenantId}");
-            console.WriteLine($"AI Agent user id: {essentialSeed.AiAgentUserId}");
-            console.WriteLine("Set this value in AI API appsettings: Ai:UserId");
             return 0;
         }
 
@@ -86,7 +85,7 @@ public sealed class SeedRunner(
             else if (!tenantSeeder.HasEssentialData(tenantDb, tenantSeedRequest, counts))
             {
                 console.WriteLine(
-                    "Essential data is missing. Run 'Seed essential data (AI providers + AI Agent user + tenant metadata)' first.");
+                    "Essential data is missing. Run 'Seed essential data (tenant metadata)' first.");
                 return 1;
             }
             else
@@ -96,32 +95,33 @@ public sealed class SeedRunner(
 
             var seedTenantId = essentialSeed.TenantId;
 
-            var faqSessionService = new SeedSessionService(seedUserId, seedTenantId);
-            var faqTenantProvider = new StaticTenantConnectionStringProvider(faqBuilder.ToString());
+            var qnaSessionService = new SeedSessionService(seedUserId, seedTenantId);
+            var qnaTenantProvider = new StaticTenantConnectionStringProvider(qnaBuilder.ToString());
 
-            using var faqDb = dbContextFactory.CreateFaqDbContext(
-                faqBuilder.ToString(),
+            using var qnaDb = dbContextFactory.CreateQnADbContext(
+                qnaBuilder.ToString(),
                 configuration,
-                faqSessionService,
-                faqTenantProvider,
+                qnaSessionService,
+                qnaTenantProvider,
                 httpContextAccessor);
 
-            faqDb.Database.Migrate();
-            faqDb.TenantFiltersEnabled = false;
-            faqDb.SoftDeleteFiltersEnabled = false;
+            PostgresDatabaseProvisioner.EnsureDatabaseExists(qnaBuilder.ToString());
+            qnaDb.Database.Migrate();
+            qnaDb.TenantFiltersEnabled = false;
+            qnaDb.SoftDeleteFiltersEnabled = false;
 
             if (action is SeedAction.CleanAndSeed)
             {
-                cleanupService.CleanFaqDb(faqDb);
+                cleanupService.CleanQnADb(qnaDb);
             }
 
-            if (faqSeeder.HasData(faqDb) &&
-                !Confirm(console, "FAQ database already has data. Append seed data?"))
+            if (qnaSeeder.HasData(qnaDb) &&
+                !Confirm(console, "QnA database already has data. Append seed data?"))
             {
                 return 0;
             }
 
-            faqSeeder.Seed(faqDb, seedTenantId, counts);
+            qnaSeeder.Seed(qnaDb, seedTenantId, counts);
 
             if (billingSeeder.HasBillingData(tenantDb, seedTenantId) &&
                 !Confirm(console, "Billing sample data already exists. Re-seed billing scenarios?"))
@@ -129,26 +129,27 @@ public sealed class SeedRunner(
                 return 0;
             }
 
-            billingSeeder.SeedBillingData(tenantDb, seedTenantId, tenantSeedRequest.FaqConnectionString);
+            billingSeeder.SeedBillingData(tenantDb, seedTenantId, tenantSeedRequest.QnAConnectionString);
             console.WriteLine("Billing sample data seeded for tenant-001 plus 5 demo billing scenarios.");
             return 0;
         }
 
-        var cleanFaqSessionService = new SeedSessionService(seedUserId, Guid.Empty);
-        var cleanFaqTenantProvider = new StaticTenantConnectionStringProvider(faqBuilder.ToString());
+        var cleanQnaSessionService = new SeedSessionService(seedUserId, Guid.Empty);
+        var cleanQnaTenantProvider = new StaticTenantConnectionStringProvider(qnaBuilder.ToString());
 
-        using var cleanFaqDb = dbContextFactory.CreateFaqDbContext(
-            faqBuilder.ToString(),
+        using var cleanQnaDb = dbContextFactory.CreateQnADbContext(
+            qnaBuilder.ToString(),
             configuration,
-            cleanFaqSessionService,
-            cleanFaqTenantProvider,
+            cleanQnaSessionService,
+            cleanQnaTenantProvider,
             httpContextAccessor);
 
-        cleanFaqDb.Database.Migrate();
-        cleanFaqDb.TenantFiltersEnabled = false;
-        cleanFaqDb.SoftDeleteFiltersEnabled = false;
+        PostgresDatabaseProvisioner.EnsureDatabaseExists(qnaBuilder.ToString());
+        cleanQnaDb.Database.Migrate();
+        cleanQnaDb.TenantFiltersEnabled = false;
+        cleanQnaDb.SoftDeleteFiltersEnabled = false;
 
-        cleanupService.CleanFaqDb(cleanFaqDb);
+        cleanupService.CleanQnADb(cleanQnaDb);
         return 0;
     }
 
@@ -168,11 +169,11 @@ public sealed class SeedRunner(
     private static SeedAction PromptAction(IConsoleAdapter console)
     {
         console.WriteLine("Select action:");
-        console.WriteLine("1) Seed realistic sample FAQ data (default)");
-        console.WriteLine("2) Seed essential data (AI providers + AI Agent user + tenant metadata)");
-        console.WriteLine("3) Clean databases and seed essential + sample FAQ data");
+        console.WriteLine("1) Seed realistic sample QnA data (default)");
+        console.WriteLine("2) Seed essential data (tenant metadata)");
+        console.WriteLine("3) Clean databases and seed essential + sample QnA data");
         console.WriteLine("4) Clean TenantDb only");
-        console.WriteLine("5) Clean FaqDb only");
+        console.WriteLine("5) Clean QnADb only");
         console.WriteLine("0) Exit");
         console.Write("Choice: ");
         var input = console.ReadLine();
@@ -181,7 +182,7 @@ public sealed class SeedRunner(
             "2" => SeedAction.SeedEssentialOnly,
             "3" => SeedAction.CleanAndSeed,
             "4" => SeedAction.CleanTenantOnly,
-            "5" => SeedAction.CleanFaqOnly,
+            "5" => SeedAction.CleanQnAOnly,
             "0" => SeedAction.Exit,
             _ => SeedAction.SeedSampleOnly
         };
@@ -193,7 +194,7 @@ public sealed class SeedRunner(
         SeedEssentialOnly,
         CleanAndSeed,
         CleanTenantOnly,
-        CleanFaqOnly,
+        CleanQnAOnly,
         Exit
     }
 }

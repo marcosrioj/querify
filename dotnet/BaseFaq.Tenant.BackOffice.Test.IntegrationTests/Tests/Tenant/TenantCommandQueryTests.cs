@@ -28,7 +28,7 @@ public class TenantCommandQueryTests
             Slug = "tenant-one",
             Name = "Tenant One",
             Edition = TenantEdition.Free,
-            App = AppEnum.Faq,
+            App = AppEnum.QnA,
             ConnectionString = "Host=host.docker.internal;Database=tenant;Username=tenant;Password=tenant;",
             IsActive = true,
             UserId = userId
@@ -43,7 +43,7 @@ public class TenantCommandQueryTests
         Assert.Equal("tenant-one", tenant!.Slug);
         Assert.Equal("Tenant One", tenant.Name);
         Assert.Equal(TenantEdition.Free, tenant.Edition);
-        Assert.Equal(AppEnum.Faq, tenant.App);
+        Assert.Equal(AppEnum.QnA, tenant.App);
         Assert.Equal(request.ConnectionString, tenant.ConnectionString);
         Assert.True(tenant.IsActive);
         Assert.Contains(
@@ -276,7 +276,7 @@ public class TenantCommandQueryTests
             Slug = "dup",
             Name = "Duplicate",
             Edition = TenantEdition.Free,
-            App = AppEnum.Faq,
+            App = AppEnum.QnA,
             ConnectionString = "Host=host.docker.internal;Database=dup;Username=tenant;Password=tenant;",
             IsActive = true,
             UserId = userId

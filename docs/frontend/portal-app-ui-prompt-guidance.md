@@ -58,19 +58,19 @@ If a shared primitive already matches the use case, do not replace it with ad ho
 ## Confirmation standards
 
 - destructive actions should use `ConfirmAction`
-- AI generation or other meaningful run actions should also use an explicit confirmation step
+- long-running or other meaningful run actions should also use an explicit confirmation step
 - do not fire irreversible or expensive actions immediately on click
 
 ## Domain-specific UI rules
 
-### FAQ item CTA inheritance
+### Question CTA inheritance
 
-- FAQ item CTA fields inherit from the parent FAQ CTA setting
-- if the FAQ-level CTA is disabled, FAQ item CTA controls should be visibly disabled and explained
+- question-level CTA fields inherit from the parent space CTA setting when the flow uses shared CTAs
+- if the space-level CTA is disabled, question CTA controls should be visibly disabled and explained
 
 ### Progress checklist placement
 
-- FAQ, FAQ item, and source pages should keep progress guidance in the main content column
+- space, question, answer, and source pages should keep progress guidance in the main content column
 - the sidebar should not become the primary onboarding surface
 
 ## Visual hierarchy rules

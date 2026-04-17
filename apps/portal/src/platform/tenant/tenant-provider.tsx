@@ -29,7 +29,7 @@ export function PortalTenantProvider({ children }: PropsWithChildren) {
 
   const tenantOptions = useMemo(
     () =>
-      (tenantsQuery.data ?? []).filter((tenant) => tenant.app === PortalApp.Faq),
+      (tenantsQuery.data ?? []).filter((tenant) => tenant.app === PortalApp.QnA),
     [tenantsQuery.data],
   );
 

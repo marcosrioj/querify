@@ -25,7 +25,7 @@ export function LoginPage() {
       <div className="space-y-4">
         <div className="flex items-center justify-between gap-3">
           <Badge variant="outline" className="h-8 w-fit px-3 text-sm">
-            {t('BaseFAQ Portal')}
+            {t('BaseFAQ QnA Portal')}
           </Badge>
           <LanguageSelectorControl
             language={language}
@@ -39,7 +39,7 @@ export function LoginPage() {
             {t('Sign in')}
           </h2>
           <p className="text-sm leading-6 text-muted-foreground">
-            {t('Manage your BaseFAQ workspace')}
+            {t('Manage your BaseFAQ QnA workspace')}
           </p>
         </div>
       </div>

@@ -10,6 +10,11 @@ public static class Program
 {
     public static int Main(string[] args)
     {
+        if (IsEfDesignTimeInvocation(args))
+        {
+            return 0;
+        }
+
         MigrationCliArguments cliArguments;
         try
         {
@@ -23,13 +28,11 @@ public static class Program
 
         var cliMode = args.Length > 0;
 
-        AppEnum app;
+        var app = AppEnum.QnA;
         MigrationCommand command;
 
         if (cliMode)
         {
-            app = cliArguments.App ?? AppEnum.Faq;
-
             if (cliArguments.Command is null)
             {
                 Console.Error.WriteLine("Missing --command in CLI mode.");
@@ -40,7 +43,6 @@ public static class Program
         }
         else
         {
-            app = MigrationPrompt.SelectApp();
             command = MigrationPrompt.SelectCommand();
         }
 
@@ -60,7 +62,7 @@ public static class Program
 
         if (command == MigrationCommand.DatabaseUpdate)
         {
-            FaqTenantMigrationUpdater.ApplyAll(configuration, tenantDbConnectionString, app);
+            TenantMigrationUpdater.ApplyAll(configuration, tenantDbConnectionString, app);
             return 0;
         }
 
@@ -80,6 +82,14 @@ public static class Program
             return 1;
         }
 
-        return EfMigrationsRunner.AddFaqMigration(solutionRoot, migrationName, app);
+        return EfMigrationsRunner.AddMigration(solutionRoot, migrationName, app);
+    }
+
+    private static bool IsEfDesignTimeInvocation(string[] args)
+    {
+        return args.Any(arg =>
+            string.Equals(arg, "--applicationName", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(arg, "--projectDir", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(arg, "--rootnamespace", StringComparison.OrdinalIgnoreCase));
     }
 }

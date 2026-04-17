@@ -26,7 +26,7 @@ export class AppErrorBoundary extends Component<PropsWithChildren, State> {
         <div className="flex min-h-screen items-center justify-center bg-muted px-4">
           <div className="w-full max-w-xl rounded-2xl border border-border bg-background p-8 shadow-sm">
             <p className="text-sm font-medium uppercase tracking-[0.24em] text-primary">
-              {translateText('BaseFAQ Portal')}
+              {translateText('BaseFAQ QnA Portal')}
             </p>
             <h1 className="mt-4 text-3xl font-semibold text-mono">
               {translateText('An unexpected error interrupted the workspace.')}

@@ -2,13 +2,13 @@ using Microsoft.Extensions.Configuration;
 
 namespace BaseFaq.Tools.Seed.Configuration;
 
-public sealed record SeedSettings(string TenantConnectionString, string FaqConnectionString)
+public sealed record SeedSettings(string TenantConnectionString, string QnAConnectionString)
 {
     public static SeedSettings From(IConfiguration configuration)
     {
         var tenant = GetRequiredConnectionString(configuration, "TenantDb");
-        var faq = GetRequiredConnectionString(configuration, "FaqDb");
-        return new SeedSettings(tenant, faq);
+        var qna = GetRequiredConnectionString(configuration, "QnADb");
+        return new SeedSettings(tenant, qna);
     }
 
     private static string GetRequiredConnectionString(IConfiguration configuration, string name)

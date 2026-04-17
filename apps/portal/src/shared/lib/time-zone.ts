@@ -16,6 +16,18 @@ export function formatNumericDateTimeInTimeZone(
   }).format(new Date(input));
 }
 
+export function formatOptionalDateTimeInTimeZone(
+  input: Date | string | number | null | undefined,
+  timeZone: string,
+  fallback: string,
+) {
+  if (!input) {
+    return fallback;
+  }
+
+  return formatNumericDateTimeInTimeZone(input, timeZone);
+}
+
 export function getTimeZoneOptions() {
   const supportedTimeZones =
     typeof Intl.supportedValuesOf === "function"

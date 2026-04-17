@@ -1,0 +1,43 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <IsTestProject>true</IsTestProject>
+        <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Content Include="appsettings.json">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </Content>
+    </ItemGroup>
+
+    <ItemGroup>
+        <FrameworkReference Include="Microsoft.AspNetCore.App"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1"/>
+        <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.1"/>
+        <PackageReference Include="xunit" Version="2.9.2"/>
+        <PackageReference Include="xunit.runner.visualstudio" Version="3.1.3">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\BaseFaq.Common.Infrastructure.Core\BaseFaq.Common.Infrastructure.Core.csproj"/>
+        <ProjectReference Include="..\BaseFaq.QnA.Portal.Business.Answer\BaseFaq.QnA.Portal.Business.Answer.csproj"/>
+        <ProjectReference Include="..\BaseFaq.QnA.Portal.Business.Source\BaseFaq.QnA.Portal.Business.Source.csproj"/>
+        <ProjectReference Include="..\BaseFaq.QnA.Portal.Business.Question\BaseFaq.QnA.Portal.Business.Question.csproj"/>
+        <ProjectReference Include="..\BaseFaq.QnA.Portal.Business.Space\BaseFaq.QnA.Portal.Business.Space.csproj"/>
+        <ProjectReference Include="..\BaseFaq.QnA.Portal.Business.Activity\BaseFaq.QnA.Portal.Business.Activity.csproj"/>
+        <ProjectReference Include="..\BaseFaq.QnA.Portal.Business.Tag\BaseFaq.QnA.Portal.Business.Tag.csproj"/>
+        <ProjectReference Include="..\BaseFaq.QnA.Common.Persistence.QnADb\BaseFaq.QnA.Common.Persistence.QnADb.csproj"/>
+        <ProjectReference Include="..\BaseFaq.Models.QnA\BaseFaq.Models.QnA.csproj"/>
+    </ItemGroup>
+
+</Project>

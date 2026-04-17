@@ -1,6 +1,6 @@
 export enum PortalApp {
   Tenant = 0,
-  Faq = 1,
+  QnA = 2,
 }
 
 export enum TenantEdition {
@@ -60,27 +60,128 @@ export enum TenantSubscriptionStatus {
   Paused = 8,
 }
 
-export enum AiCommandType {
-  Generation = 10,
-  Matching = 20,
+export enum SpaceKind {
+  CuratedKnowledge = 1,
+  Community = 2,
+  Hybrid = 3,
 }
 
-export enum FaqStatus {
+export enum VisibilityScope {
+  Internal = 1,
+  Authenticated = 2,
+  Public = 3,
+  PublicIndexed = 4,
+}
+
+export enum ModerationPolicy {
+  None = 0,
+  PreModeration = 1,
+  PostModeration = 2,
+  TrustedContributors = 3,
+}
+
+export enum SearchMarkupMode {
+  CuratedList = 1,
+  QuestionPage = 2,
+  Hybrid = 3,
+  Off = 4,
+}
+
+export enum QuestionKind {
+  Curated = 1,
+  Community = 2,
+  Imported = 3,
+}
+
+export enum QuestionStatus {
   Draft = 0,
-  Published = 1,
-  Archived = 2,
+  PendingReview = 1,
+  Open = 2,
+  Answered = 3,
+  Validated = 4,
+  Escalated = 5,
+  Duplicate = 6,
+  Archived = 7,
 }
 
-export enum ContentRefKind {
+export enum ChannelKind {
   Manual = 1,
-  Web = 2,
-  Pdf = 3,
-  Document = 4,
-  Video = 5,
-  Repository = 6,
-  Faq = 7,
-  FaqItem = 8,
+  Widget = 2,
+  Api = 3,
+  HelpCenter = 4,
+  Ticket = 5,
+  Community = 6,
+  Social = 7,
+  Chat = 8,
+  Import = 9,
   Other = 99,
+}
+
+export enum AnswerKind {
+  Official = 1,
+  Community = 2,
+  Imported = 3,
+}
+
+export enum AnswerStatus {
+  Draft = 0,
+  PendingReview = 1,
+  Published = 2,
+  Validated = 3,
+  Rejected = 4,
+  Obsolete = 5,
+  Archived = 6,
+}
+
+export enum SourceKind {
+  Article = 1,
+  WebPage = 2,
+  Pdf = 3,
+  Video = 4,
+  Repository = 5,
+  Ticket = 6,
+  CommunityThread = 7,
+  SocialComment = 8,
+  ChatTranscript = 9,
+  ProductNote = 10,
+  InternalNote = 11,
+  Other = 99,
+}
+
+export enum SourceRole {
+  QuestionOrigin = 1,
+  SupportingContext = 2,
+  Evidence = 3,
+  Citation = 4,
+  CanonicalReference = 5,
+}
+
+export enum ActivityKind {
+  QuestionCreated = 1,
+  QuestionUpdated = 2,
+  QuestionSubmitted = 3,
+  QuestionApproved = 4,
+  QuestionRejected = 5,
+  QuestionMarkedDuplicate = 6,
+  QuestionEscalated = 7,
+  AnswerCreated = 8,
+  AnswerUpdated = 9,
+  AnswerPublished = 10,
+  AnswerAccepted = 11,
+  AnswerValidated = 12,
+  AnswerRejected = 13,
+  FeedbackReceived = 14,
+  VoteReceived = 15,
+  AnswerRetired = 16,
+  ReportReceived = 17,
+}
+
+export enum ActorKind {
+  System = 1,
+  Customer = 2,
+  Contributor = 3,
+  Moderator = 4,
+  Integration = 5,
 }
 
 export const tenantEditionLabels: Record<TenantEdition, string> = {
@@ -141,20 +242,126 @@ export const tenantSubscriptionStatusLabels: Record<TenantSubscriptionStatus, st
     [TenantSubscriptionStatus.Paused]: 'Paused',
   };
 
-export const faqStatusLabels: Record<FaqStatus, string> = {
-  [FaqStatus.Draft]: 'Draft',
-  [FaqStatus.Published]: 'Published',
-  [FaqStatus.Archived]: 'Archived',
+export const spaceKindLabels: Record<SpaceKind, string> = {
+  [SpaceKind.CuratedKnowledge]: 'Curated knowledge',
+  [SpaceKind.Community]: 'Community',
+  [SpaceKind.Hybrid]: 'Hybrid',
 };
 
-export const contentRefKindLabels: Record<ContentRefKind, string> = {
-  [ContentRefKind.Manual]: 'Manual',
-  [ContentRefKind.Web]: 'Web',
-  [ContentRefKind.Pdf]: 'PDF',
-  [ContentRefKind.Document]: 'Document',
-  [ContentRefKind.Video]: 'Video',
-  [ContentRefKind.Repository]: 'Repository',
-  [ContentRefKind.Faq]: 'FAQ',
-  [ContentRefKind.FaqItem]: 'FAQ Item',
-  [ContentRefKind.Other]: 'Other',
+export const visibilityScopeLabels: Record<VisibilityScope, string> = {
+  [VisibilityScope.Internal]: 'Internal',
+  [VisibilityScope.Authenticated]: 'Authenticated',
+  [VisibilityScope.Public]: 'Public',
+  [VisibilityScope.PublicIndexed]: 'Public indexed',
+};
+
+export const moderationPolicyLabels: Record<ModerationPolicy, string> = {
+  [ModerationPolicy.None]: 'None',
+  [ModerationPolicy.PreModeration]: 'Pre-moderation',
+  [ModerationPolicy.PostModeration]: 'Post-moderation',
+  [ModerationPolicy.TrustedContributors]: 'Trusted contributors',
+};
+
+export const searchMarkupModeLabels: Record<SearchMarkupMode, string> = {
+  [SearchMarkupMode.CuratedList]: 'Curated list',
+  [SearchMarkupMode.QuestionPage]: 'Question page',
+  [SearchMarkupMode.Hybrid]: 'Hybrid',
+  [SearchMarkupMode.Off]: 'Off',
+};
+
+export const questionKindLabels: Record<QuestionKind, string> = {
+  [QuestionKind.Curated]: 'Curated',
+  [QuestionKind.Community]: 'Community',
+  [QuestionKind.Imported]: 'Imported',
+};
+
+export const questionStatusLabels: Record<QuestionStatus, string> = {
+  [QuestionStatus.Draft]: 'Draft',
+  [QuestionStatus.PendingReview]: 'Pending review',
+  [QuestionStatus.Open]: 'Open',
+  [QuestionStatus.Answered]: 'Answered',
+  [QuestionStatus.Validated]: 'Validated',
+  [QuestionStatus.Escalated]: 'Escalated',
+  [QuestionStatus.Duplicate]: 'Duplicate',
+  [QuestionStatus.Archived]: 'Archived',
+};
+
+export const channelKindLabels: Record<ChannelKind, string> = {
+  [ChannelKind.Manual]: 'Manual',
+  [ChannelKind.Widget]: 'Widget',
+  [ChannelKind.Api]: 'API',
+  [ChannelKind.HelpCenter]: 'Help center',
+  [ChannelKind.Ticket]: 'Ticket',
+  [ChannelKind.Community]: 'Community',
+  [ChannelKind.Social]: 'Social',
+  [ChannelKind.Chat]: 'Chat',
+  [ChannelKind.Import]: 'Import',
+  [ChannelKind.Other]: 'Other',
+};
+
+export const answerKindLabels: Record<AnswerKind, string> = {
+  [AnswerKind.Official]: 'Official',
+  [AnswerKind.Community]: 'Community',
+  [AnswerKind.Imported]: 'Imported',
+};
+
+export const answerStatusLabels: Record<AnswerStatus, string> = {
+  [AnswerStatus.Draft]: 'Draft',
+  [AnswerStatus.PendingReview]: 'Pending review',
+  [AnswerStatus.Published]: 'Published',
+  [AnswerStatus.Validated]: 'Validated',
+  [AnswerStatus.Rejected]: 'Rejected',
+  [AnswerStatus.Obsolete]: 'Obsolete',
+  [AnswerStatus.Archived]: 'Archived',
+};
+
+export const sourceKindLabels: Record<SourceKind, string> = {
+  [SourceKind.Article]: 'Article',
+  [SourceKind.WebPage]: 'Web page',
+  [SourceKind.Pdf]: 'PDF',
+  [SourceKind.Video]: 'Video',
+  [SourceKind.Repository]: 'Repository',
+  [SourceKind.Ticket]: 'Ticket',
+  [SourceKind.CommunityThread]: 'Community thread',
+  [SourceKind.SocialComment]: 'Social comment',
+  [SourceKind.ChatTranscript]: 'Chat transcript',
+  [SourceKind.ProductNote]: 'Product note',
+  [SourceKind.InternalNote]: 'Internal note',
+  [SourceKind.Other]: 'Other',
+};
+
+export const sourceRoleLabels: Record<SourceRole, string> = {
+  [SourceRole.QuestionOrigin]: 'Question origin',
+  [SourceRole.SupportingContext]: 'Supporting context',
+  [SourceRole.Evidence]: 'Evidence',
+  [SourceRole.Citation]: 'Citation',
+  [SourceRole.CanonicalReference]: 'Canonical reference',
+};
+
+export const activityKindLabels: Record<ActivityKind, string> = {
+  [ActivityKind.QuestionCreated]: 'Question created',
+  [ActivityKind.QuestionUpdated]: 'Question updated',
+  [ActivityKind.QuestionSubmitted]: 'Question submitted',
+  [ActivityKind.QuestionApproved]: 'Question approved',
+  [ActivityKind.QuestionRejected]: 'Question rejected',
+  [ActivityKind.QuestionMarkedDuplicate]: 'Question marked duplicate',
+  [ActivityKind.QuestionEscalated]: 'Question escalated',
+  [ActivityKind.AnswerCreated]: 'Answer created',
+  [ActivityKind.AnswerUpdated]: 'Answer updated',
+  [ActivityKind.AnswerPublished]: 'Answer published',
+  [ActivityKind.AnswerAccepted]: 'Answer accepted',
+  [ActivityKind.AnswerValidated]: 'Answer validated',
+  [ActivityKind.AnswerRejected]: 'Answer rejected',
+  [ActivityKind.FeedbackReceived]: 'Feedback received',
+  [ActivityKind.VoteReceived]: 'Vote received',
+  [ActivityKind.AnswerRetired]: 'Answer retired',
+  [ActivityKind.ReportReceived]: 'Report received',
+};
+
+export const actorKindLabels: Record<ActorKind, string> = {
+  [ActorKind.System]: 'System',
+  [ActorKind.Customer]: 'Customer',
+  [ActorKind.Contributor]: 'Contributor',
+  [ActorKind.Moderator]: 'Moderator',
+  [ActorKind.Integration]: 'Integration',
 };

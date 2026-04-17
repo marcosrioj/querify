@@ -2,7 +2,7 @@ import { ApiError, isAbortError, toApiError } from '@/platform/api/api-error';
 import { RuntimeEnv } from '@/platform/runtime/env';
 import { translateText } from '@/shared/lib/i18n-core';
 
-export type PortalService = 'tenant' | 'faq';
+export type PortalService = 'tenant' | 'qna';
 
 export type RequestOptions = {
   service: PortalService;
@@ -17,11 +17,15 @@ export type RequestOptions = {
 
 const serviceBaseUrl: Record<PortalService, string> = {
   tenant: RuntimeEnv.tenantPortalApiUrl,
-  faq: RuntimeEnv.faqPortalApiUrl,
+  qna: RuntimeEnv.qnaPortalApiUrl,
 };
 
 function getServiceLabel(service: PortalService) {
-  return translateText(service === 'tenant' ? 'Tenant API' : 'FAQ API');
+  if (service === 'tenant') {
+    return translateText('Tenant API');
+  }
+
+  return translateText('QnA API');
 }
 
 function buildHttpErrorFallback(service: PortalService, status: number) {

@@ -13,8 +13,9 @@ import {
 
 const shortcuts = [
   { label: 'Go to dashboard', to: '/app/dashboard' },
-  { label: 'Open FAQ workspace', to: '/app/faq' },
-  { label: 'Create FAQ', to: '/app/faq/new' },
+  { label: 'Open spaces', to: '/app/spaces' },
+  { label: 'Open questions', to: '/app/questions' },
+  { label: 'Create question', to: '/app/questions/new' },
   { label: 'Open billing', to: '/app/billing' },
 ];
 

@@ -2,22 +2,22 @@
 
 ## Purpose
 
-`BaseFaq.Tools.Migration` is the tenant-aware migration runner for BaseFAQ. It exists because FAQ data is not stored in a single global database; the tool must read tenant metadata first and then apply FAQ migrations to the correct tenant databases.
+`BaseFaq.Tools.Migration` is the tenant-aware migration runner for BaseFAQ. It exists because QnA data is not stored in a single global database; the tool must read tenant metadata first and then apply QnA migrations to the correct tenant databases.
 
 ## What it manages
 
-The tool is focused on FAQ application databases. Its current CLI parsing supports `AppEnum.Faq`.
+The tool manages QnA application databases only.
 
-It uses the tenant database to discover which FAQ database connection strings exist for the selected app and then applies migrations across those databases.
+It uses the tenant database to discover which QnA database connection strings exist and then applies migrations across those databases.
 
 ## How it works
 
 1. Load the solution root.
 2. Read the tenant database connection string.
-3. Choose an app and a command.
+3. Choose a command.
 4. Either:
    - add a new EF Core migration, or
-   - run `Database update` across all tenant FAQ databases for that app.
+   - run `Database update` across all tenant QnA databases.
 
 ## Interactive usage
 
@@ -27,22 +27,21 @@ dotnet run --project dotnet/BaseFaq.Tools.Migration
 
 The tool prompts for:
 
-- target app
 - migration command
 - migration name when you choose `migrations-add`
 
 ## CLI usage
 
-### Apply FAQ database updates
+### Apply QnA database updates
 
 ```bash
-dotnet run --project dotnet/BaseFaq.Tools.Migration -- --app Faq --command database-update
+dotnet run --project dotnet/BaseFaq.Tools.Migration -- --app QnA --command database-update
 ```
 
-### Add a new FAQ migration
+### Add a new QnA migration
 
 ```bash
-dotnet run --project dotnet/BaseFaq.Tools.Migration -- --app Faq --command migrations-add --migration-name AddExampleChange
+dotnet run --project dotnet/BaseFaq.Tools.Migration -- --app QnA --command migrations-add --migration-name AddExampleChange
 ```
 
 ## Configuration source
@@ -52,7 +51,7 @@ The tool reads the tenant database connection through the repository configurati
 Operationally, that means:
 
 - the tenant database must already be reachable
-- tenant records must contain the relevant FAQ database connection strings
+- tenant records must contain the relevant QnA database connection strings
 
 ## Recommended workflow
 
@@ -79,7 +78,7 @@ dotnet ef database update \
 ## Common failure cases
 
 - tenant database is not reachable
-- a tenant record does not have the expected FAQ database connection string
+- a tenant record does not have the expected QnA database connection string
 - the solution root cannot be located
 - `migrations-add` is used without `--migration-name` in CLI mode
 

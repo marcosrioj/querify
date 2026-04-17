@@ -1,1147 +1,652 @@
-import { useEffect, useRef } from "react";
 import {
+  Activity,
   ArrowRight,
-  ArrowUpRight,
-  BookOpen,
-  Bot,
-  BrainCircuit,
-  CircleAlert,
-  Files,
-  Gauge,
-  MessageSquare,
+  CheckCircle2,
+  Clock3,
+  ExternalLink,
+  FolderKanban,
+  MessageSquareText,
+  MessagesSquare,
   Plus,
   ShieldCheck,
-  SlidersHorizontal,
-  Sparkles,
-  WandSparkles,
-  type LucideIcon,
-} from "lucide-react";
-import { Link } from "react-router-dom";
+  Waypoints,
+} from 'lucide-react';
+import type { ReactNode } from 'react';
+import { Link } from 'react-router-dom';
+import { useActivityList } from '@/domains/activity/hooks';
+import type { ActivityDto } from '@/domains/activity/types';
+import { useAnswerList } from '@/domains/answers/hooks';
+import type { AnswerDto } from '@/domains/answers/types';
+import { usePortalTimeZone } from '@/domains/settings/settings-hooks';
+import { useQuestionList } from '@/domains/questions/hooks';
+import type { QuestionDto } from '@/domains/questions/types';
+import { useSourceList } from '@/domains/sources/hooks';
+import type { SourceDto } from '@/domains/sources/types';
+import { useSpaceList } from '@/domains/spaces/hooks';
+import type { SpaceDto } from '@/domains/spaces/types';
+import { useCurrentWorkspace, useTenantWorkspace } from '@/domains/tenants/hooks';
+import { Button, Card, CardContent, CardDescription, CardHeader, CardHeading, CardTitle } from '@/shared/ui';
+import { PageHeader, PageSurface, SectionGrid } from '@/shared/layout/page-layouts';
+import { EmptyState, ErrorState } from '@/shared/ui/placeholder-state';
+import { formatNumericDateTimeInTimeZone } from '@/shared/lib/time-zone';
+import { translateText } from '@/shared/lib/i18n-core';
 import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Cell,
-  Pie,
-  PieChart,
-  XAxis,
-  YAxis,
-} from "recharts";
+  ActivityKindBadge,
+  ActorKindBadge,
+  AnswerStatusBadge,
+  QuestionStatusBadge,
+  SourceKindBadge,
+  SpaceKindBadge,
+  VisibilityBadge,
+} from '@/shared/ui/status-badges';
 import {
-  useCurrentWorkspace,
-  useTenantWorkspace,
-} from "@/domains/tenants/hooks";
-import { useContentRefList } from "@/domains/content-refs/hooks";
-import { type ContentRefDto } from "@/domains/content-refs/types";
-import { useFaqItemList } from "@/domains/faq-items/hooks";
-import { type FaqItemDto } from "@/domains/faq-items/types";
-import { useFaqList } from "@/domains/faq/hooks";
-import { type FaqDto } from "@/domains/faq/types";
-import { useAuth } from "@/platform/auth/use-auth";
-import { useTenant } from "@/platform/tenant/use-tenant";
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@/components/ui/chart";
-import { Progress, ProgressRadial } from "@/components/ui/progress";
-import { PageHeader, PageSurface } from "@/shared/layout/page-layouts";
-import {
-  Badge,
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  CardHeading,
-  CardTitle,
-  CardToolbar,
-  ContextHint,
-  ProgressChecklistCard,
-} from "@/shared/ui";
-import {
-  AiCommandType,
-  FaqStatus,
-  tenantUserRoleTypeLabels,
-  tenantEditionLabels,
-} from "@/shared/constants/backend-enums";
-import { ContentRefKindBadge, FaqStatusBadge } from "@/shared/ui/status-badges";
-import { getCurrentPortalLanguage, translateText } from "@/shared/lib/i18n-core";
+  AnswerStatus,
+  QuestionStatus,
+  VisibilityScope,
+} from '@/shared/constants/backend-enums';
 
-function toPercent(value: number, total: number) {
-  if (total <= 0) {
-    return 0;
-  }
-
-  return Math.round((value / total) * 100);
-}
-
-function formatNumber(value: number) {
-  return new Intl.NumberFormat(getCurrentPortalLanguage()).format(value);
-}
-
-function commandLabel(value: AiCommandType) {
-  return value === AiCommandType.Generation
-    ? translateText("Generation")
-    : translateText("Matching");
-}
-
-function MetricCard({
-  icon: Icon,
+function DashboardSection({
   title,
-  value,
   description,
-  toneClassName,
+  action,
+  children,
 }: {
-  icon: LucideIcon;
   title: string;
-  value: string;
   description: string;
-  toneClassName: string;
+  action?: { label: string; to: string };
+  children: ReactNode;
 }) {
   return (
-    <Card>
-      <CardContent className="relative p-5">
-        <div className="min-w-0 space-y-2">
-          <p className="text-sm text-muted-foreground">{translateText(title)}</p>
-          <p className="break-words text-3xl font-semibold tracking-tight text-mono">
-            {value}
-          </p>
-          <p className="text-sm text-muted-foreground">
-            {translateText(description)}
-          </p>
+    <Card className="min-h-full">
+      <CardHeader className="gap-4">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <CardHeading>
+            <CardTitle>{translateText(title)}</CardTitle>
+            <CardDescription>{translateText(description)}</CardDescription>
+          </CardHeading>
+          {action ? (
+            <Button asChild variant="ghost" size="sm">
+              <Link to={action.to}>
+                {translateText(action.label)}
+                <ArrowRight className="size-4" />
+              </Link>
+            </Button>
+          ) : null}
         </div>
-        <div
-          className={`pointer-events-none absolute right-5 top-5 flex size-5 items-center justify-center rounded-2xl ${toneClassName}`}
-        >
-          <Icon className="size-5" />
-        </div>
-      </CardContent>
+      </CardHeader>
+      <CardContent className="space-y-3">{children}</CardContent>
     </Card>
   );
 }
 
-function ReadinessRow({
-  label,
-  value,
-  helper,
-  indicatorClassName,
-}: {
-  label: string;
-  value: number;
-  helper: string;
-  indicatorClassName: string;
-}) {
-  return (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between gap-3">
-        <span className="text-sm font-medium text-foreground">
-          {translateText(label)}
-        </span>
-        <span className="text-sm font-semibold text-mono">{value}%</span>
-      </div>
-      <Progress
-        value={value}
-        className="h-2"
-        indicatorClassName={indicatorClassName}
-      />
-      <p className="text-xs leading-5 text-muted-foreground">
-        {translateText(helper)}
-      </p>
-    </div>
-  );
-}
-
-function EmptyMiniState({
-  title,
-  description,
-}: {
-  title: string;
-  description: string;
-}) {
-  return (
-    <div className="rounded-2xl border border-dashed border-border px-4 py-5">
-      <p className="font-medium text-mono">{translateText(title)}</p>
-      <p className="mt-1 text-sm text-muted-foreground">
-        {translateText(description)}
-      </p>
-    </div>
-  );
-}
-
-function AnswerRow({ item }: { item: FaqItemDto }) {
-  return (
-    <div className="flex flex-col gap-4 rounded-2xl border border-border/70 px-4 py-3 sm:flex-row sm:items-start sm:justify-between">
-      <div className="min-w-0 space-y-2">
-        <Link
-          to={`/app/faq/${item.faqId}/items/${item.id}`}
-          className="line-clamp-2 text-sm font-medium text-mono hover:text-primary"
-        >
-          {item.question}
-        </Link>
-        <div className="flex flex-wrap items-center gap-2">
-          <Badge
-            variant={item.isActive ? "success" : "warning"}
-            appearance="light"
-          >
-            {translateText(item.isActive ? "Active" : "Inactive")}
-          </Badge>
-          <Badge
-            variant={item.contentRefId ? "primary" : "outline"}
-            appearance="light"
-          >
-            {translateText(item.contentRefId ? "Source linked" : "No source")}
-          </Badge>
-        </div>
-      </div>
-      <div className="space-y-1 text-left text-xs text-muted-foreground sm:text-right">
-        <div className="font-semibold text-mono">
-          {translateText("Feedback {value}", { value: item.feedbackScore })}
-        </div>
-        <div className="font-semibold text-mono">
-          {translateText("AI {value}", { value: item.aiConfidenceScore })}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function FaqRow({ faq }: { faq: FaqDto }) {
-  return (
-    <div className="flex flex-col gap-3 rounded-2xl border border-border/70 px-4 py-3 sm:flex-row sm:items-start sm:justify-between">
-      <div className="min-w-0 space-y-1.5">
-        <Link
-          to={`/app/faq/${faq.id}`}
-          className="block truncate text-sm font-medium text-mono hover:text-primary"
-        >
-          {faq.name}
-        </Link>
-        <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-          {faq.language}
-        </p>
-      </div>
-      <div className="shrink-0">
-        <FaqStatusBadge status={faq.status} />
-      </div>
-    </div>
-  );
-}
-
-function SourceRow({ contentRef }: { contentRef: ContentRefDto }) {
+function SpaceRow({ space, timeZone }: { space: SpaceDto; timeZone: string }) {
   return (
     <div className="rounded-2xl border border-border/70 px-4 py-3">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+      <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0 space-y-1.5">
-          <p className="truncate text-sm font-medium text-mono">
-            {contentRef.label || translateText("Untitled source")}
+          <Link
+            to={`/app/spaces/${space.id}`}
+            className="block truncate text-sm font-medium text-mono hover:text-primary"
+          >
+            {space.name}
+          </Link>
+          <p className="text-sm text-muted-foreground">
+            {space.key} • {space.defaultLanguage}
           </p>
-          <p className="break-all text-sm text-muted-foreground sm:break-words lg:truncate">
-            {contentRef.locator}
-          </p>
+          {space.summary ? (
+            <p className="line-clamp-2 text-sm text-muted-foreground">{space.summary}</p>
+          ) : null}
         </div>
-        <ContentRefKindBadge kind={contentRef.kind} />
+        <div className="space-y-2 text-right">
+          <SpaceKindBadge kind={space.kind} />
+          <VisibilityBadge visibility={space.visibility} />
+        </div>
       </div>
-      <p className="mt-2 text-xs text-muted-foreground">
-        {contentRef.scope || translateText("No scope assigned")}
+      <p className="mt-3 text-xs text-muted-foreground">
+        {translateText('Questions {count} • Last validated {value}', {
+          count: space.questionCount,
+          value: formatNumericDateTimeInTimeZone(space.lastValidatedAtUtc, timeZone),
+        })}
+      </p>
+    </div>
+  );
+}
+
+function QuestionRow({
+  question,
+  timeZone,
+}: {
+  question: QuestionDto;
+  timeZone: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-border/70 px-4 py-3">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0 space-y-1.5">
+          <Link
+            to={`/app/questions/${question.id}`}
+            className="block text-sm font-medium text-mono hover:text-primary"
+          >
+            {question.title}
+          </Link>
+          <p className="text-sm text-muted-foreground">
+            {question.spaceKey} • {question.key}
+          </p>
+          {question.summary ? (
+            <p className="line-clamp-2 text-sm text-muted-foreground">{question.summary}</p>
+          ) : null}
+        </div>
+        <div className="space-y-2 text-right">
+          <QuestionStatusBadge status={question.status} />
+          <VisibilityBadge visibility={question.visibility} />
+        </div>
+      </div>
+      <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+        <span>
+          {translateText('Feedback {value}', { value: question.feedbackScore })}
+        </span>
+        <span>
+          {translateText('Confidence {value}', { value: question.confidenceScore })}
+        </span>
+        {question.acceptedAnswerId ? (
+          <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-emerald-700">
+            {translateText('Accepted')}
+          </span>
+        ) : null}
+        {question.duplicateOfQuestionId ? (
+          <span className="rounded-full border border-border bg-muted px-2 py-0.5">
+            {translateText('Duplicate')}
+          </span>
+        ) : null}
+        <span>
+          {translateText('Last activity {value}', {
+            value: formatNumericDateTimeInTimeZone(question.lastActivityAtUtc, timeZone),
+          })}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function AnswerRow({ answer, timeZone }: { answer: AnswerDto; timeZone: string }) {
+  return (
+    <div className="rounded-2xl border border-border/70 px-4 py-3">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0 space-y-1.5">
+          <Link
+            to={`/app/answers/${answer.id}`}
+            className="block text-sm font-medium text-mono hover:text-primary"
+          >
+            {answer.headline}
+          </Link>
+          {answer.body ? (
+            <p className="line-clamp-2 text-sm text-muted-foreground">{answer.body}</p>
+          ) : null}
+        </div>
+        <div className="space-y-2 text-right">
+          <AnswerStatusBadge status={answer.status} />
+          <VisibilityBadge visibility={answer.visibility} />
+        </div>
+      </div>
+      <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+        <span>{translateText('Rank {value}', { value: answer.rank })}</span>
+        <span>{translateText('Vote score {value}', { value: answer.voteScore })}</span>
+        <span>{translateText('Confidence {value}', { value: answer.confidenceScore })}</span>
+        {answer.isAccepted ? (
+          <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-emerald-700">
+            {translateText('Accepted')}
+          </span>
+        ) : null}
+        <span>
+          {translateText('Published {value}', {
+            value: formatNumericDateTimeInTimeZone(answer.publishedAtUtc, timeZone),
+          })}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function SourceRow({ source, timeZone }: { source: SourceDto; timeZone: string }) {
+  return (
+    <div className="rounded-2xl border border-border/70 px-4 py-3">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0 space-y-1.5">
+          <Link
+            to={`/app/sources/${source.id}`}
+            className="block truncate text-sm font-medium text-mono hover:text-primary"
+          >
+            {source.label || source.locator}
+          </Link>
+          <p className="truncate text-sm text-muted-foreground">{source.locator}</p>
+        </div>
+        <div className="space-y-2 text-right">
+          <SourceKindBadge kind={source.kind} />
+          <VisibilityBadge visibility={source.visibility} />
+        </div>
+      </div>
+      <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+        {source.isAuthoritative ? (
+          <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-emerald-700">
+            {translateText('Authoritative')}
+          </span>
+        ) : null}
+        {source.allowsPublicCitation ? (
+          <span className="rounded-full border border-border bg-muted px-2 py-0.5">
+            {translateText('Public citation')}
+          </span>
+        ) : null}
+        <span>
+          {translateText('Verified {value}', {
+            value: formatNumericDateTimeInTimeZone(source.lastVerifiedAtUtc, timeZone),
+          })}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function ActivityRow({ entry, timeZone }: { entry: ActivityDto; timeZone: string }) {
+  return (
+    <div className="rounded-2xl border border-border/70 px-4 py-3">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0 space-y-1.5">
+          <Link
+            to={`/app/activity/${entry.id}`}
+            className="block text-sm font-medium text-mono hover:text-primary"
+          >
+            {entry.userPrint}
+          </Link>
+          <p className="text-sm text-muted-foreground">
+            {entry.actorLabel || translateText('Unlabeled actor')}
+          </p>
+          {entry.notes ? (
+            <p className="line-clamp-2 text-sm text-muted-foreground">{entry.notes}</p>
+          ) : null}
+        </div>
+        <div className="space-y-2 text-right">
+          <ActivityKindBadge kind={entry.kind} />
+          <ActorKindBadge kind={entry.actorKind} />
+        </div>
+      </div>
+      <p className="mt-3 text-xs text-muted-foreground">
+        {formatNumericDateTimeInTimeZone(entry.occurredAtUtc, timeZone)}
       </p>
     </div>
   );
 }
 
 export function DashboardPage() {
-  const { user } = useAuth();
-  const { currentTenantId } = useTenant();
-  const currentWorkspace = useCurrentWorkspace();
-  const refreshedTenantIdRef = useRef<string | undefined>(undefined);
-  const { aiProvidersQuery, clientKeyQuery } = useTenantWorkspace();
-  const faqOverviewQuery = useFaqList({
+  const timeZone = usePortalTimeZone();
+  const workspace = useCurrentWorkspace();
+  const { clientKeyQuery } = useTenantWorkspace();
+
+  const spacesQuery = useSpaceList({
     page: 1,
     pageSize: 4,
-    sorting: "UpdatedDate DESC",
+    sorting: 'PublishedAtUtc DESC',
   });
-  const faqPublishedQuery = useFaqList({
+  const publicSpacesQuery = useSpaceList({
     page: 1,
     pageSize: 1,
-    sorting: "UpdatedDate DESC",
-    status: FaqStatus.Published,
+    visibility: VisibilityScope.Public,
+    sorting: 'PublishedAtUtc DESC',
   });
-  const faqDraftQuery = useFaqList({
-    page: 1,
-    pageSize: 1,
-    sorting: "UpdatedDate DESC",
-    status: FaqStatus.Draft,
-  });
-  const faqArchivedQuery = useFaqList({
-    page: 1,
-    pageSize: 1,
-    sorting: "UpdatedDate DESC",
-    status: FaqStatus.Archived,
-  });
-  const faqItemTopQuery = useFaqItemList({
+  const questionsQuery = useQuestionList({
     page: 1,
     pageSize: 5,
-    sorting: "FeedbackScore DESC",
+    sorting: 'LastActivityAtUtc DESC',
+    includeAnswers: true,
   });
-  const faqItemActiveQuery = useFaqItemList({
+  const pendingQuestionsQuery = useQuestionList({
     page: 1,
     pageSize: 1,
-    sorting: "UpdatedDate DESC",
-    isActive: true,
+    sorting: 'LastActivityAtUtc DESC',
+    status: QuestionStatus.PendingReview,
   });
-  const contentRefOverviewQuery = useContentRefList({
+  const openQuestionsQuery = useQuestionList({
+    page: 1,
+    pageSize: 1,
+    sorting: 'LastActivityAtUtc DESC',
+    status: QuestionStatus.Open,
+  });
+  const answersQuery = useAnswerList({
     page: 1,
     pageSize: 5,
-    sorting: "UpdatedDate DESC",
+    sorting: 'PublishedAtUtc DESC',
+  });
+  const publishedAnswersQuery = useAnswerList({
+    page: 1,
+    pageSize: 1,
+    sorting: 'PublishedAtUtc DESC',
+    status: AnswerStatus.Published,
+  });
+  const validatedAnswersQuery = useAnswerList({
+    page: 1,
+    pageSize: 1,
+    sorting: 'ValidatedAtUtc DESC',
+    status: AnswerStatus.Validated,
+  });
+  const sourcesQuery = useSourceList({
+    page: 1,
+    pageSize: 5,
+    sorting: 'LastVerifiedAtUtc DESC',
+  });
+  const activityQuery = useActivityList({
+    page: 1,
+    pageSize: 6,
+    sorting: 'OccurredAtUtc DESC',
   });
 
-  useEffect(() => {
-    if (!currentTenantId) {
-      refreshedTenantIdRef.current = undefined;
-      return;
-    }
+  const hasCriticalError =
+    spacesQuery.isError ||
+    questionsQuery.isError ||
+    answersQuery.isError ||
+    sourcesQuery.isError ||
+    activityQuery.isError;
 
-    if (refreshedTenantIdRef.current === currentTenantId) {
-      return;
-    }
+  if (hasCriticalError) {
+    const error =
+      spacesQuery.error ??
+      questionsQuery.error ??
+      answersQuery.error ??
+      sourcesQuery.error ??
+      activityQuery.error;
 
-    refreshedTenantIdRef.current = currentTenantId;
-
-    const tenantScopedDashboardQueries = [
-      faqOverviewQuery,
-      faqPublishedQuery,
-      faqDraftQuery,
-      faqArchivedQuery,
-      faqItemTopQuery,
-      faqItemActiveQuery,
-      contentRefOverviewQuery,
-    ];
-
-    void Promise.all(
-      tenantScopedDashboardQueries
-        .filter((query) => query.fetchStatus === "idle")
-        .map((query) => query.refetch()),
+    return (
+      <PageSurface>
+        <PageHeader
+          title="QnA dashboard"
+          description="Track spaces, questions, answers, sources, and activity for the current workspace."
+        />
+        <ErrorState
+          title="Unable to load the QnA dashboard"
+          error={error}
+          retry={() => {
+            void spacesQuery.refetch();
+            void questionsQuery.refetch();
+            void answersQuery.refetch();
+            void sourcesQuery.refetch();
+            void activityQuery.refetch();
+          }}
+        />
+      </PageSurface>
     );
-  }, [
-    contentRefOverviewQuery,
-    currentTenantId,
-    faqArchivedQuery,
-    faqDraftQuery,
-    faqItemActiveQuery,
-    faqItemTopQuery,
-    faqOverviewQuery,
-    faqPublishedQuery,
-  ]);
+  }
 
-  const totalFaqs = faqOverviewQuery.data?.totalCount ?? 0;
-  const publishedFaqs = faqPublishedQuery.data?.totalCount ?? 0;
-  const draftFaqs = faqDraftQuery.data?.totalCount ?? 0;
-  const archivedFaqs = faqArchivedQuery.data?.totalCount ?? 0;
-  const totalFaqItems = faqItemTopQuery.data?.totalCount ?? 0;
-  const activeFaqItems = faqItemActiveQuery.data?.totalCount ?? 0;
-  const inactiveFaqItems = Math.max(totalFaqItems - activeFaqItems, 0);
-  const totalContentRefs = contentRefOverviewQuery.data?.totalCount ?? 0;
-  const aiProviders = aiProvidersQuery.data ?? [];
-  const configuredAiProviders = aiProviders.filter(
-    (provider) => provider.isAiProviderKeyConfigured,
-  ).length;
-  const clientKeyReady = Boolean(clientKeyQuery.data);
-  const primaryFaqId = faqOverviewQuery.data?.items[0]?.id;
-  const publishedFaqPercent = toPercent(publishedFaqs, totalFaqs);
-  const activeAnswerPercent = toPercent(activeFaqItems, totalFaqItems);
-  const providerCoveragePercent = toPercent(
-    configuredAiProviders,
-    aiProviders.length,
-  );
-  const readinessScore = Math.round(
-    (publishedFaqPercent +
-      activeAnswerPercent +
-      providerCoveragePercent +
-      (clientKeyReady ? 100 : 0)) /
-      4,
-  );
-
-  const assetMixData = [
-    {
-      name: translateText("FAQs"),
-      total: totalFaqs,
-      fill: "var(--chart-1)",
-    },
-    {
-      name: translateText("Q&A items"),
-      total: totalFaqItems,
-      fill: "var(--chart-2)",
-    },
-    {
-      name: translateText("Sources"),
-      total: totalContentRefs,
-      fill: "var(--chart-3)",
-    },
-  ];
-  const faqLifecycleData = [
-    {
-      name: translateText("Published"),
-      total: publishedFaqs,
-      fill: "var(--chart-2)",
-    },
-    {
-      name: translateText("Draft"),
-      total: draftFaqs,
-      fill: "var(--chart-3)",
-    },
-    {
-      name: translateText("Archived"),
-      total: archivedFaqs,
-      fill: "var(--chart-4)",
-    },
-  ];
-  const heroHighlights = [
-    {
-      label: "Published",
-      value: `${publishedFaqPercent}%`,
-      description: translateText("{published} of {total} FAQs are live", {
-        published: publishedFaqs,
-        total: totalFaqs,
-      }),
-    },
-    {
-      label: "Inactive",
-      value: formatNumber(inactiveFaqItems),
-      description: "Q&A items still inactive",
-    },
-    {
-      label: "AI keys",
-      value: `${providerCoveragePercent}%`,
-      description: translateText("{configured} of {total} providers ready", {
-        configured: configuredAiProviders,
-        total: aiProviders.length,
-      }),
-    },
-  ];
-  const onboardingSteps = [
-    {
-      id: "faq",
-      label: "Create your first FAQ",
-      description: totalFaqs
-        ? translateText("{count} FAQ records already exist in this workspace.", {
-            count: formatNumber(totalFaqs),
-          })
-        : "Define the first FAQ so the workspace has a customer-facing destination.",
-      complete: totalFaqs > 0,
-    },
-    {
-      id: "item",
-      label: "Add a Q&A item",
-      description: totalFaqItems
-        ? translateText(
-            "{count} Q&A items are already filling out the knowledge base.",
-            { count: formatNumber(totalFaqItems) },
-          )
-        : "Write the first answer so visitors can actually resolve a question.",
-      complete: totalFaqItems > 0,
-    },
-    {
-      id: "source",
-      label: "Connect a source",
-      description: totalContentRefs
-        ? translateText("{count} reusable sources are already linked.", {
-            count: formatNumber(totalContentRefs),
-          })
-        : "Attach source material so answers stay traceable and reusable.",
-      complete: totalContentRefs > 0,
-    },
-    {
-      id: "publish",
-      label: "Publish a FAQ",
-      description: publishedFaqs
-        ? translateText("{count} FAQs are already live for customers.", {
-            count: formatNumber(publishedFaqs),
-          })
-        : "Move one FAQ out of draft so the workflow reaches a visible outcome.",
-      complete: publishedFaqs > 0,
-    },
-  ];
-  const nextOnboardingAction =
-    totalFaqs === 0
-      ? { label: "Create first FAQ", to: "/app/faq/new" }
-      : totalFaqItems === 0 && primaryFaqId
-        ? {
-            label: "Add first Q&A item",
-            to: `/app/faq/${primaryFaqId}/items/new`,
-          }
-        : totalContentRefs === 0 && primaryFaqId
-          ? {
-              label: "Add first source",
-              to: `/app/faq/${primaryFaqId}/content-refs/new`,
-            }
-          : publishedFaqs === 0 && primaryFaqId
-            ? {
-                label: "Review publish settings",
-                to: `/app/faq/${primaryFaqId}/edit`,
-              }
-            : {
-                label: "Open FAQs",
-                to: "/app/faq",
-              };
-  const heroPrimaryAction = onboardingSteps.every((step) => step.complete)
-    ? { label: "Open FAQs", to: "/app/faq" }
-    : { label: "Start here", to: nextOnboardingAction.to };
-  const heroSecondaryAction =
-    !clientKeyReady || configuredAiProviders === 0
-      ? { label: "AI settings", to: "/app/settings/tenant" }
-      : { label: "Workspace settings", to: "/app/settings/tenant" };
+  const recentSpaces = spacesQuery.data?.items ?? [];
+  const recentQuestions = questionsQuery.data?.items ?? [];
+  const recentAnswers = answersQuery.data?.items ?? [];
+  const recentSources = sourcesQuery.data?.items ?? [];
+  const recentActivity = activityQuery.data?.items ?? [];
 
   return (
     <PageSurface className="space-y-5 lg:space-y-7.5">
       <PageHeader
-        title="Dashboard"
-        description="Quick view of FAQs, Q&A items, sources, and AI setup."
-        descriptionMode="inline"
+        title="QnA dashboard"
+        description="Operate the workspace around spaces, question workflow, answer publication, curated sources, and activity signals."
         actions={
           <>
-            <Button asChild>
-              <Link to="/app/faq/new">
+            <Button asChild variant="outline">
+              <Link to="/app/spaces/new">
                 <Plus className="size-4" />
-                {translateText("New FAQ")}
+                {translateText('New space')}
               </Link>
             </Button>
             <Button asChild variant="outline">
-              <Link to="/app/settings/tenant">
-                <SlidersHorizontal className="size-4" />
-                {translateText("Settings")}
+              <Link to="/app/questions/new">
+                <Plus className="size-4" />
+                {translateText('New question')}
+              </Link>
+            </Button>
+            <Button asChild>
+              <Link to="/app/answers/new">
+                <Plus className="size-4" />
+                {translateText('New answer')}
               </Link>
             </Button>
           </>
         }
       />
 
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,1.5fr)_380px] lg:gap-7.5">
-        <Card
-          className="relative overflow-hidden border-none text-white shadow-xl shadow-slate-950/10"
-          style={{
-            backgroundImage:
-              "linear-gradient(135deg, hsl(205 92% 47%) 0%, hsl(221 83% 29%) 55%, hsl(224 64% 18%) 100%)",
-          }}
-        >
-          <div className="pointer-events-none absolute inset-0 overflow-hidden">
-            <div className="absolute -top-12 right-0 h-48 w-48 rounded-full bg-white/10 blur-3xl" />
-            <div className="absolute bottom-0 left-12 h-40 w-40 rounded-full bg-cyan-200/15 blur-3xl" />
-          </div>
-          <CardContent className="relative space-y-8 p-6 lg:p-7.5">
-            <div className="flex flex-wrap items-center gap-2 text-xs font-medium uppercase tracking-[0.24em] text-white/70">
-              <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[0.6875rem] tracking-[0.2em] text-white">
-                {currentWorkspace?.slug ?? translateText("workspace-pending")}
-              </span>
-              {currentWorkspace ? (
-                <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[0.6875rem] tracking-[0.2em] text-white">
-                  {currentWorkspace.isActive
-                    ? translateText("Active workspace")
-                    : translateText("Inactive workspace")}
-                </span>
-              ) : null}
-              <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[0.6875rem] tracking-[0.2em] text-white">
-                {translateText("{role} access", {
-                  role: translateText(
-                    currentWorkspace
-                      ? tenantUserRoleTypeLabels[currentWorkspace.currentUserRole]
-                      : user?.role ?? "Member",
-                  ),
-                })}
-              </span>
-            </div>
-
-            <div className="max-w-3xl space-y-3">
-              <div className="flex flex-wrap items-center gap-3">
-                <h2 className="text-2xl font-semibold tracking-tight lg:text-3xl">
-                  {currentWorkspace?.name ??
-                    translateText("Set up your tenant workspace")}
-                </h2>
-                {currentWorkspace ? (
-                  <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-medium text-white">
-                    {translateText(tenantEditionLabels[currentWorkspace.edition])}
-                  </span>
-                ) : null}
-              </div>
-              <p className="max-w-2xl text-sm leading-6 text-white/78">
-                {translateText(
-                  "Track FAQ coverage, Q&A item health, source links, and AI readiness for the current workspace.",
-                )}
-              </p>
-            </div>
-
-            <div className="flex flex-wrap gap-3">
-              <Button
-                asChild
-                className="border-white/20 bg-white text-slate-950 shadow-none hover:bg-white/90"
-              >
-                <Link to={heroPrimaryAction.to}>
-                  {translateText(heroPrimaryAction.label)}
-                  <ArrowUpRight className="size-4" />
-                </Link>
-              </Button>
-              <Button
-                asChild
-                variant="outline"
-                className="border-white/20 bg-white/10 text-white hover:bg-white/15"
-              >
-                <Link to={heroSecondaryAction.to}>
-                  <SlidersHorizontal className="size-4" />
-                  {translateText(heroSecondaryAction.label)}
-                </Link>
-              </Button>
-            </div>
-
-            <div className="rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur-xs">
-              <p className="text-xs font-medium uppercase tracking-[0.22em] text-white/70">
-                {translateText("Next recommended step")}
-              </p>
-              <p className="mt-2 text-lg font-semibold tracking-tight text-white">
-                {translateText(nextOnboardingAction.label)}
-              </p>
-              <p className="mt-1 text-sm text-white/72">
-                {translateText(
-                  "Keep the workspace moving toward a published FAQ with traceable answers.",
-                )}
-              </p>
-            </div>
-
-            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-              {heroHighlights.map((highlight) => (
-                <div
-                  key={highlight.label}
-                  className="rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur-xs"
-                >
-                  <p className="text-xs uppercase tracking-[0.22em] text-white/65">
-                    {translateText(highlight.label)}
-                  </p>
-                  <p className="mt-2 text-2xl font-semibold tracking-tight">
-                    {highlight.value}
-                  </p>
-                  <p className="mt-1 text-sm text-white/70">
-                    {translateText(highlight.description)}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardHeading>
-              <CardTitle className="flex flex-wrap items-center gap-2">
-                <span>{translateText("Readiness")}</span>
-                <ContextHint
-                  content="Readiness is weighted across published FAQs, active Q&A items, AI provider keys, and public client key availability."
-                  label="Readiness details"
-                />
-              </CardTitle>
-            </CardHeading>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
-              <ProgressRadial
-                value={readinessScore}
-                size={148}
-                strokeWidth={10}
-                indicatorClassName="text-primary"
-                trackClassName="text-secondary"
-                showLabel
-              >
-                <div className="space-y-1 text-center">
-                  <div className="text-3xl font-semibold tracking-tight text-mono">
-                    {readinessScore}%
-                  </div>
-                  <div className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-                    {translateText("Ready")}
-                  </div>
-                </div>
-              </ProgressRadial>
-
-              <div className="space-y-3">
-                <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-                  <Gauge className="size-11 text-primary" />
-                  {translateText("Workspace health at a glance.")}
-                </div>
-                <p className="text-sm leading-6 text-muted-foreground">
-                  {translateText(
-                    "This score uses live Portal data instead of placeholder growth metrics.",
-                  )}
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  <Badge
-                  variant={clientKeyReady ? "success" : "warning"}
-                  appearance="light"
-                >
-                    {translateText(
-                      clientKeyReady ? "Client key live" : "Client key missing",
-                    )}
-                  </Badge>
-                  <Badge
-                    variant={configuredAiProviders > 0 ? "primary" : "outline"}
-                    appearance="light"
-                  >
-                    {translateText("{count} secured providers", {
-                      count: configuredAiProviders,
-                    })}
-                  </Badge>
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <ReadinessRow
-                label="Published"
-                value={publishedFaqPercent}
-                helper={translateText(
-                  "{published} published, {draft} draft, {archived} archived",
-                  {
-                    published: publishedFaqs,
-                    draft: draftFaqs,
-                    archived: archivedFaqs,
-                  },
-                )}
-                indicatorClassName="bg-emerald-500"
-              />
-              <ReadinessRow
-                label="Active Q&A items"
-                value={activeAnswerPercent}
-                helper={translateText("{active} active, {inactive} inactive", {
-                  active: activeFaqItems,
-                  inactive: inactiveFaqItems,
-                })}
-                indicatorClassName="bg-blue-500"
-              />
-              <ReadinessRow
-                label="AI keys"
-                value={providerCoveragePercent}
-                helper={translateText("{count} providers secured for tenant use", {
-                  count: configuredAiProviders,
-                })}
-                indicatorClassName="bg-cyan-500"
-              />
-              <ReadinessRow
-                label="Client key"
-                value={clientKeyReady ? 100 : 0}
-                helper={
-                  clientKeyReady
-                    ? "Public client key is available for Portal integrations"
-                    : "Generate a client key before embedding tenant AI features"
-                }
-                indicatorClassName="bg-amber-500"
-              />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <ProgressChecklistCard
-        title="Launch a usable FAQ in four steps"
-        description="This replaces a lecture-style setup flow with a simple sequence that shows what to do next and how much is already complete."
-        steps={onboardingSteps}
-        action={nextOnboardingAction}
-        secondaryAction={{ label: "Open dashboard settings", to: "/app/settings/tenant" }}
+      <SectionGrid
+        items={[
+          {
+            title: 'Spaces',
+            value: spacesQuery.data?.totalCount ?? 0,
+            description: 'Configured knowledge surfaces for this workspace',
+            icon: FolderKanban,
+          },
+          {
+            title: 'Questions in review',
+            value: pendingQuestionsQuery.data?.totalCount ?? 0,
+            description: 'Threads waiting for moderation or approval',
+            icon: Clock3,
+          },
+          {
+            title: 'Published answers',
+            value: publishedAnswersQuery.data?.totalCount ?? 0,
+            description: 'Answers already live in the operational flow',
+            icon: MessageSquareText,
+          },
+          {
+            title: 'Activity events',
+            value: activityQuery.data?.totalCount ?? 0,
+            description: 'Audit trail and public interaction signals',
+            icon: Activity,
+          },
+        ]}
       />
 
-      <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4 lg:gap-7.5">
-        <MetricCard
-          icon={BookOpen}
-          title="FAQs"
-          value={formatNumber(totalFaqs)}
-          description={translateText("{count} currently published", {
-            count: formatNumber(publishedFaqs),
-          })}
-          toneClassName="bg-blue-500/10 text-blue-600 dark:bg-blue-500/15 dark:text-blue-300"
-        />
-        <MetricCard
-          icon={Sparkles}
-          title="Published"
-          value={formatNumber(publishedFaqs)}
-          description={translateText("{count} still waiting in draft", {
-            count: formatNumber(draftFaqs),
-          })}
-          toneClassName="bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-300"
-        />
-        <MetricCard
-          icon={MessageSquare}
-          title="Q&A items"
-          value={formatNumber(activeFaqItems)}
-          description={translateText("{count} inactive items need attention", {
-            count: formatNumber(inactiveFaqItems),
-          })}
-          toneClassName="bg-cyan-500/10 text-cyan-600 dark:bg-cyan-500/15 dark:text-cyan-300"
-        />
-        <MetricCard
-          icon={Files}
-          title="Sources"
-          value={formatNumber(totalContentRefs)}
-          description={translateText("{count} recent sources loaded on this page", {
-            count: contentRefOverviewQuery.data?.items.length ?? 0,
-          })}
-          toneClassName="bg-amber-500/10 text-amber-600 dark:bg-amber-500/15 dark:text-amber-300"
-        />
-      </div>
+      <SectionGrid
+        items={[
+          {
+            title: 'Public spaces',
+            value: publicSpacesQuery.data?.totalCount ?? 0,
+            description: 'Spaces exposed beyond internal operations',
+            icon: ExternalLink,
+          },
+          {
+            title: 'Open questions',
+            value: openQuestionsQuery.data?.totalCount ?? 0,
+            description: 'Threads still awaiting a resolved answer',
+            icon: MessagesSquare,
+          },
+          {
+            title: 'Validated answers',
+            value: validatedAnswersQuery.data?.totalCount ?? 0,
+            description: 'Answers that passed validation workflow',
+            icon: CheckCircle2,
+          },
+          {
+            title: 'Sources',
+            value: sourcesQuery.data?.totalCount ?? 0,
+            description: 'Reusable evidence, citations, and references',
+            icon: Waypoints,
+          },
+        ]}
+      />
 
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)] lg:gap-7.5">
-        <Card>
-          <CardHeader>
-            <CardHeading>
-              <CardTitle className="flex flex-wrap items-center gap-2">
-                <span>{translateText("Assets")}</span>
-                <ContextHint
-                  content="The current tenant footprint across FAQs, Q&A items, and reusable sources."
-                  label="Asset details"
-                />
-              </CardTitle>
-            </CardHeading>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <ChartContainer
-              config={{
-                total: {
-                  label: translateText("Records"),
-                  color: "var(--chart-1)",
-                },
-              }}
-              className="h-[220px] w-full min-w-0 aspect-auto sm:h-[290px]"
-            >
-              <BarChart
-                data={assetMixData}
-                margin={{ top: 10, right: 12, left: -10, bottom: 0 }}
-              >
-                <CartesianGrid vertical={false} />
-                <XAxis
-                  dataKey="name"
-                  axisLine={false}
-                  tickLine={false}
-                  tickMargin={10}
-                />
-                <YAxis
-                  allowDecimals={false}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <ChartTooltip
-                  cursor={false}
-                  content={<ChartTooltipContent indicator="dot" />}
-                />
-                <Bar dataKey="total" radius={[12, 12, 0, 0]}>
-                  {assetMixData.map((entry) => (
-                    <Cell key={entry.name} fill={entry.fill} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ChartContainer>
-
-            <div className="grid gap-3 sm:grid-cols-3">
-              {assetMixData.map((asset) => (
-                <div
-                  key={asset.name}
-                  className="rounded-2xl border border-border/70 px-4 py-3"
-                >
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <span
-                    className="size-2 rounded-full"
-                    style={{ backgroundColor: asset.fill }}
-                  />
-                    {translateText(asset.name)}
-                  </div>
-                  <p className="mt-2 text-2xl font-semibold tracking-tight text-mono">
-                    {formatNumber(asset.total)}
-                  </p>
-                </div>
-              ))}
+      <div className="grid gap-5 xl:grid-cols-2 lg:gap-7.5">
+        <DashboardSection
+          title="Workspace readiness"
+          description="Keep the operational prerequisites aligned before exposing QnA publicly."
+          action={{ label: 'Open workspace settings', to: '/app/settings/tenant' }}
+        >
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="rounded-2xl border border-border/70 px-4 py-3">
+              <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
+                {translateText('Workspace')}
+              </p>
+              <p className="mt-2 text-lg font-semibold text-mono">
+                {workspace?.name ?? translateText('No workspace selected')}
+              </p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {workspace?.slug
+                  ? `@${workspace.slug}`
+                  : translateText('Pick a workspace to load tenant-scoped QnA data.')}
+              </p>
             </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardHeading>
-              <CardTitle className="flex flex-wrap items-center gap-2">
-                <span>{translateText("FAQ status")}</span>
-                <ContextHint
-                  content="A compact view of what is ready for users versus what is still in editorial flow."
-                  label="FAQ status details"
-                />
-              </CardTitle>
-            </CardHeading>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <ChartContainer
-              config={{
-                total: {
-                  label: translateText("FAQs"),
-                  color: "var(--chart-2)",
-                },
-              }}
-              className="mx-auto h-[220px] w-full min-w-0 max-w-[320px] aspect-auto sm:h-[280px]"
-            >
-              <PieChart>
-                <ChartTooltip
-                  content={
-                    <ChartTooltipContent
-                      hideLabel
-                      indicator="dot"
-                      nameKey="name"
-                    />
-                  }
-                />
-                <Pie
-                  data={faqLifecycleData}
-                  dataKey="total"
-                  nameKey="name"
-                  innerRadius={68}
-                  outerRadius={102}
-                  paddingAngle={3}
-                  strokeWidth={0}
-                >
-                  {faqLifecycleData.map((entry) => (
-                    <Cell key={entry.name} fill={entry.fill} />
-                  ))}
-                </Pie>
-              </PieChart>
-            </ChartContainer>
-
-            <div className="space-y-3">
-              {faqLifecycleData.map((entry) => (
-                <div
-                  key={entry.name}
-                  className="flex items-center justify-between gap-3 rounded-2xl border border-border/70 px-4 py-3"
-                >
-                  <div className="flex items-center gap-2">
-                    <span
-                      className="size-2.5 rounded-full"
-                      style={{ backgroundColor: entry.fill }}
-                    />
-                    <span className="text-sm font-medium text-foreground">
-                      {translateText(entry.name)}
-                    </span>
-                  </div>
-                  <span className="text-sm font-semibold text-mono">
-                    {formatNumber(entry.total)}
-                  </span>
-                </div>
-              ))}
+            <div className="rounded-2xl border border-border/70 px-4 py-3">
+              <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
+                {translateText('Public client key')}
+              </p>
+              <p className="mt-2 text-lg font-semibold text-mono">
+                {clientKeyQuery.data ? translateText('Live') : translateText('Missing')}
+              </p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {clientKeyQuery.data
+                  ? translateText('Public QnA previews and widgets can authenticate.')
+                  : translateText('Generate a client key before depending on public feedback or vote flows.')}
+              </p>
             </div>
-          </CardContent>
-        </Card>
+            <div className="rounded-2xl border border-border/70 px-4 py-3">
+              <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
+                {translateText('Review guardrails')}
+              </p>
+              <p className="mt-2 text-lg font-semibold text-mono">
+                {translateText('{count} waiting', {
+                  count: pendingQuestionsQuery.data?.totalCount ?? 0,
+                })}
+              </p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {translateText('Pending questions indicate where moderation pressure currently sits.')}
+              </p>
+            </div>
+            <div className="rounded-2xl border border-border/70 px-4 py-3">
+              <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
+                {translateText('Validation')}
+              </p>
+              <p className="mt-2 text-lg font-semibold text-mono">
+                {translateText('{count} validated', {
+                  count: validatedAnswersQuery.data?.totalCount ?? 0,
+                })}
+              </p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {translateText('Validated answers are the strongest candidates for trusted public visibility.')}
+              </p>
+            </div>
+          </div>
+        </DashboardSection>
+
+        <DashboardSection
+          title="Recent spaces"
+          description="Spaces drive visibility, moderation, and curated source policy."
+          action={{ label: 'Open spaces', to: '/app/spaces' }}
+        >
+          {recentSpaces.length ? (
+            recentSpaces.map((space) => (
+              <SpaceRow key={space.id} space={space} timeZone={timeZone} />
+            ))
+          ) : (
+            <EmptyState
+              title="No spaces yet"
+              description="Create a space to define exposure, moderation, and curated source rules."
+              action={{ label: 'Create first space', to: '/app/spaces/new' }}
+            />
+          )}
+        </DashboardSection>
+
+        <DashboardSection
+          title="Question workflow"
+          description="Watch pending review, duplicates, accepted answers, and customer feedback signals."
+          action={{ label: 'Open questions', to: '/app/questions' }}
+        >
+          {recentQuestions.length ? (
+            recentQuestions.map((question) => (
+              <QuestionRow key={question.id} question={question} timeZone={timeZone} />
+            ))
+          ) : (
+            <EmptyState
+              title="No questions yet"
+              description="Create the first question thread so answers, votes, and activity can accumulate around it."
+              action={{ label: 'Create first question', to: '/app/questions/new' }}
+            />
+          )}
+        </DashboardSection>
+
+        <DashboardSection
+          title="Answer publication"
+          description="Track ranking, confidence, accepted answers, and answer lifecycle."
+          action={{ label: 'Open answers', to: '/app/answers' }}
+        >
+          {recentAnswers.length ? (
+            recentAnswers.map((answer) => (
+              <AnswerRow key={answer.id} answer={answer} timeZone={timeZone} />
+            ))
+          ) : (
+            <EmptyState
+              title="No answers yet"
+              description="Add an answer candidate so the question workflow can move toward publication and validation."
+              action={{ label: 'Create first answer', to: '/app/answers/new' }}
+            />
+          )}
+        </DashboardSection>
+
+        <DashboardSection
+          title="Curated sources"
+          description="Sources feed evidence, citations, and public trust signals across spaces, questions, and answers."
+          action={{ label: 'Open sources', to: '/app/sources' }}
+        >
+          {recentSources.length ? (
+            recentSources.map((source) => (
+              <SourceRow key={source.id} source={source} timeZone={timeZone} />
+            ))
+          ) : (
+            <EmptyState
+              title="No sources yet"
+              description="Register a reusable source before attaching evidence or citations to QnA records."
+              action={{ label: 'Create first source', to: '/app/sources/new' }}
+            />
+          )}
+        </DashboardSection>
+
+        <DashboardSection
+          title="Latest activity"
+          description="This feed reflects workflow operations, public feedback, votes, and audit events."
+          action={{ label: 'Open activity', to: '/app/activity' }}
+        >
+          {recentActivity.length ? (
+            recentActivity.map((entry) => (
+              <ActivityRow key={entry.id} entry={entry} timeZone={timeZone} />
+            ))
+          ) : (
+            <EmptyState
+              title="No activity yet"
+              description="Once questions, answers, feedback, or votes start flowing, the activity timeline will appear here."
+            />
+          )}
+        </DashboardSection>
       </div>
 
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)_minmax(0,1fr)] lg:gap-7.5">
-        <Card>
-          <CardHeader className="gap-3 sm:flex-row sm:items-start sm:justify-between">
-            <CardHeading>
-              <CardTitle className="flex flex-wrap items-center gap-2">
-                <span>{translateText("Top Q&A items")}</span>
-                <ContextHint
-                  content="Highest feedback scores in the current Q&A list."
-                  label="Top Q&A item details"
-                />
-              </CardTitle>
-            </CardHeading>
-            <CardToolbar>
-              <Button asChild variant="ghost" mode="link">
-                <Link to="/app/faq">
-                  <ArrowRight className="size-4" />
-                  {translateText("Open FAQs")}
-                </Link>
-              </Button>
-            </CardToolbar>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {faqItemTopQuery.data?.items.length ? (
-              faqItemTopQuery.data.items.map((item) => (
-                <AnswerRow key={item.id} item={item} />
-              ))
-            ) : (
-              <EmptyMiniState
-                title="No Q&A items yet"
-                description="Create a Q&A item to start tracking quality and coverage."
-              />
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="gap-3 sm:flex-row sm:items-start sm:justify-between">
-            <CardHeading>
-              <CardTitle className="flex flex-wrap items-center gap-2">
-                <span>{translateText("Recent FAQs")}</span>
-                <ContextHint
-                  content="The latest FAQs loaded from the Portal API."
-                  label="Recent FAQ details"
-                />
-              </CardTitle>
-            </CardHeading>
-            <CardToolbar>
-              <Button asChild variant="ghost" mode="link">
-                <Link to="/app/faq">
-                  <ArrowRight className="size-4" />
-                  {translateText("View all")}
-                </Link>
-              </Button>
-            </CardToolbar>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {faqOverviewQuery.data?.items.length ? (
-              faqOverviewQuery.data.items.map((faq) => (
-                <FaqRow key={faq.id} faq={faq} />
-              ))
-            ) : (
-              <EmptyMiniState
-                title="No FAQs yet"
-                description="Create a FAQ to group Q&A items by topic or product."
-              />
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardHeading>
-              <CardTitle className="flex flex-wrap items-center gap-2">
-                <span>{translateText("Recent sources")}</span>
-                <ContextHint
-                  content="Recent sources available to support generation quality."
-                  label="Recent source details"
-                />
-              </CardTitle>
-            </CardHeading>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {contentRefOverviewQuery.data?.items.length ? (
-              contentRefOverviewQuery.data.items.map((contentRef) => (
-                <SourceRow key={contentRef.id} contentRef={contentRef} />
-              ))
-            ) : (
-              <EmptyMiniState
-                title="No sources yet"
-                description="Attach web pages, PDFs, docs, or repos to support your Q&A items."
-              />
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_420px] lg:gap-7.5">
-        <Card>
-          <CardHeader>
-            <CardHeading>
-              <CardTitle className="flex flex-wrap items-center gap-2">
-                <span>{translateText("AI providers")}</span>
-                <ContextHint
-                  content="Provider credentials currently configured for this workspace."
-                  label="AI provider details"
-                />
-              </CardTitle>
-            </CardHeading>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {aiProviders.length ? (
-              aiProviders.map((provider) => (
-                <div
-                  key={provider.id}
-                  className="flex flex-col gap-4 rounded-2xl border border-border/70 px-4 py-3 sm:flex-row sm:items-start sm:justify-between"
-                >
-                  <div className="min-w-0 space-y-1.5">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <p className="text-sm font-medium text-mono">
-                        {provider.provider}
-                      </p>
-                      <Badge variant="outline" appearance="light">
-                        {commandLabel(provider.command)}
-                      </Badge>
-                    </div>
-                    <p className="break-words text-sm text-muted-foreground lg:truncate">
-                      {provider.model}
-                    </p>
-                  </div>
-                  <Badge
-                    variant={
-                      provider.isAiProviderKeyConfigured ? "success" : "warning"
-                    }
-                    appearance="light"
-                  >
-                    {provider.isAiProviderKeyConfigured
-                      ? translateText("Secured")
-                      : translateText("Needs key")}
-                  </Badge>
-                </div>
-              ))
-            ) : (
-              <EmptyMiniState
-                title="No AI providers"
-                description="Connect at least one provider in tenant settings before enabling AI workflows."
-              />
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardHeading>
-              <CardTitle className="flex flex-wrap items-center gap-2">
-                <span>{translateText("Gaps")}</span>
-                <ContextHint
-                  content="Current Portal limits still visible in the backend surface."
-                  label="Gap details"
-                />
-              </CardTitle>
-            </CardHeading>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex gap-3 rounded-2xl border border-border/70 px-4 py-3">
-              <CircleAlert className="mt-0.5 size-4 shrink-0 text-amber-500" />
-                <div>
-                  <p className="text-sm font-medium text-mono">
-                    {translateText("Member adds require existing users")}
-                  </p>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    {translateText(
-                      "Workspace memberships are live, but adding someone still requires a user account that already exists in BaseFAQ.",
-                    )}
-                  </p>
-                </div>
-              </div>
-              <div className="flex gap-3 rounded-2xl border border-border/70 px-4 py-3">
-                <ShieldCheck className="mt-0.5 size-4 shrink-0 text-blue-500" />
-                <div>
-                  <p className="text-sm font-medium text-mono">
-                    {translateText("Billing is not exposed yet")}
-                  </p>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    {translateText(
-                      "Edition visibility exists, but billing and invoicing endpoints do not.",
-                    )}
-                  </p>
-                </div>
-              </div>
-              <div className="flex gap-3 rounded-2xl border border-border/70 px-4 py-3">
-                <BrainCircuit className="mt-0.5 size-4 shrink-0 text-cyan-500" />
-                <div>
-                  <p className="text-sm font-medium text-mono">
-                    {translateText("AI jobs have no history endpoint")}
-                  </p>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    {translateText(
-                      "Generation requests can be triggered, but job listings and status dashboards are not exposed.",
-                    )}
-                  </p>
-                </div>
-              </div>
-              <div className="rounded-2xl border border-dashed border-border px-4 py-3">
-                <div className="flex items-center gap-2 text-sm font-medium text-mono">
-                  <Bot className="size-4 text-primary" />
-                  {translateText("Next steps")}
-                </div>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  {translateText(
-                    "Publish key FAQs, activate answers, attach source refs, then secure tenant AI providers.",
-                  )}
-                </p>
-              </div>
-          </CardContent>
-        </Card>
-      </div>
+      <Card className="border-dashed bg-muted/20">
+        <CardContent className="flex flex-col gap-4 p-5 lg:flex-row lg:items-center lg:justify-between">
+          <div className="space-y-1">
+            <p className="text-sm font-semibold text-mono">
+              {translateText('Operate QnA end to end')}
+            </p>
+            <p className="text-sm text-muted-foreground">
+              {translateText(
+                'Spaces define the surface, questions drive workflow, answers hold publication state, sources ground evidence, and activity captures moderation plus public signals.',
+              )}
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-3">
+            <Button asChild variant="outline">
+              <Link to="/app/tags">
+                <ShieldCheck className="size-4" />
+                {translateText('Manage tags')}
+              </Link>
+            </Button>
+            <Button asChild>
+              <Link to="/app/activity">
+                <Activity className="size-4" />
+                {translateText('Review activity')}
+              </Link>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
     </PageSurface>
   );
 }

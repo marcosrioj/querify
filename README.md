@@ -1,6 +1,6 @@
 # BaseFAQ
 
-BaseFAQ is a multi-tenant FAQ platform built from a React portal, multiple `.NET 10` APIs, tenant-aware PostgreSQL databases, and an AI runtime for FAQ generation and similarity matching.
+BaseFAQ is a multi-tenant knowledge platform built from a React portal, multiple `.NET 10` APIs, tenant-aware PostgreSQL databases, and background worker services.
 
 This `README` is intentionally short. It explains what the repository is and how to bootstrap the essential local stack. Deep technical guidance lives in [`docs/README.md`](docs/README.md).
 
@@ -53,10 +53,8 @@ dotnet run --project dotnet/BaseFaq.Tools.Seed
 
 Recommended choices:
 
-- `2`: essential data only, when you just need AI providers and the AI Agent user
-- `3`: clean databases and seed essential plus sample FAQ data
-
-If the seed prints a new AI Agent user id, copy it to `Ai:UserId` in `dotnet/BaseFaq.AI.Api/appsettings.json`.
+- `2`: essential data only, when you just need the base tenant metadata
+- `3`: clean databases and seed essential plus sample QnA data
 
 ### 4. Run the services you need
 
@@ -66,9 +64,8 @@ Typical local host-based workflow:
 dotnet run --project dotnet/BaseFaq.Tenant.BackOffice.Api
 dotnet run --project dotnet/BaseFaq.Tenant.Portal.Api
 dotnet run --project dotnet/BaseFaq.Tenant.Public.Api
-dotnet run --project dotnet/BaseFaq.Faq.Portal.Api
-dotnet run --project dotnet/BaseFaq.Faq.Public.Api
-dotnet run --project dotnet/BaseFaq.AI.Api
+dotnet run --project dotnet/BaseFaq.QnA.Portal.Api
+dotnet run --project dotnet/BaseFaq.QnA.Public.Api
 ```
 
 Frontend:
@@ -86,7 +83,7 @@ Containerized app/API alternative:
 ./docker.sh
 ```
 
-### 5. Use the migration tool when FAQ schema changes
+### 5. Use the migration tool when QnA schema changes
 
 Interactive mode:
 
@@ -94,13 +91,13 @@ Interactive mode:
 dotnet run --project dotnet/BaseFaq.Tools.Migration
 ```
 
-Non-interactive FAQ database update:
+Non-interactive QnA database update:
 
 ```bash
-dotnet run --project dotnet/BaseFaq.Tools.Migration -- --app Faq --command database-update
+dotnet run --project dotnet/BaseFaq.Tools.Migration -- --command database-update
 ```
 
-Use this after the tenant metadata already exists, or when you need to apply FAQ migrations across all tenant databases.
+Use this after the tenant metadata already exists, or when you need to apply QnA migrations across all tenant databases.
 
 ## Local endpoints
 
@@ -110,9 +107,8 @@ Use this after the tenant metadata already exists, or when you need to apply FAQ
 | Tenant BackOffice API | `http://localhost:5000` |
 | Tenant Portal API | `http://localhost:5002` |
 | Tenant Public API | `http://localhost:5004` |
-| FAQ Portal API | `http://localhost:5010` |
-| FAQ Public API | `http://localhost:5020` |
-| AI API health | `http://localhost:5030/health` |
+| QnA Portal API | `http://localhost:5010` |
+| QnA Public API | `http://localhost:5020` |
 | PostgreSQL | `localhost:5432` |
 | RabbitMQ UI | `http://localhost:15672` |
 | Jaeger | `http://localhost:16686` |
@@ -123,7 +119,7 @@ Use this after the tenant metadata already exists, or when you need to apply FAQ
 
 - Protected APIs use Auth0-issued JWTs.
 - Tenant-scoped endpoints use `X-Tenant-Id`.
-- Public FAQ requests use `X-Client-Key`.
+- Public QnA requests use `X-Client-Key`.
 - Public billing webhooks use `BaseFaq.Tenant.Public.Api` and do not require JWT, `X-Tenant-Id`, or `X-Client-Key`.
 - Swagger UI auth is configured in the protected API `appsettings.json` files.
 

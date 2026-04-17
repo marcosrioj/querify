@@ -28,14 +28,12 @@ public class TenantDbContext(
         httpContextAccessor)
 {
     public DbSet<Entities.Tenant> Tenants { get; set; } = null!;
-    public DbSet<AiProvider> AiProviders { get; set; } = null!;
     public DbSet<BillingCustomer> BillingCustomers { get; set; } = null!;
     public DbSet<BillingInvoice> BillingInvoices { get; set; } = null!;
     public DbSet<BillingPayment> BillingPayments { get; set; } = null!;
     public DbSet<BillingProviderSubscription> BillingProviderSubscriptions { get; set; } = null!;
     public DbSet<BillingWebhookInbox> BillingWebhookInboxes { get; set; } = null!;
     public DbSet<EmailOutbox> EmailOutboxes { get; set; } = null!;
-    public DbSet<TenantAiProvider> TenantAiProviders { get; set; } = null!;
     public DbSet<TenantConnection> TenantConnections { get; set; } = null!;
     public DbSet<TenantEntitlementSnapshot> TenantEntitlementSnapshots { get; set; } = null!;
     public DbSet<TenantSubscription> TenantSubscriptions { get; set; } = null!;
@@ -61,14 +59,6 @@ public class TenantDbContext(
         modelBuilder.Entity<Entities.Tenant>()
             .Property(tenant => tenant.ConnectionString)
             .HasConversion(converter);
-
-        var secretConverter = new ValueConverter<string, string>(
-            value => EncryptSecret(value),
-            value => DecryptSecret(value));
-
-        modelBuilder.Entity<TenantAiProvider>()
-            .Property(entity => entity.AiProviderKey)
-            .HasConversion(secretConverter);
 
         modelBuilder.Entity<TenantConnection>()
             .Property(connection => connection.ConnectionString)
@@ -201,23 +191,4 @@ public class TenantDbContext(
                value.StartsWith("v1:", StringComparison.Ordinal);
     }
 
-    private static string EncryptSecret(string value)
-    {
-        if (string.IsNullOrWhiteSpace(value) || IsEncrypted(value))
-        {
-            return value;
-        }
-
-        return StringCipher.Instance.Encrypt(value) ?? string.Empty;
-    }
-
-    private static string DecryptSecret(string value)
-    {
-        if (string.IsNullOrWhiteSpace(value) || !IsEncrypted(value))
-        {
-            return value;
-        }
-
-        return StringCipher.Instance.Decrypt(value) ?? string.Empty;
-    }
 }

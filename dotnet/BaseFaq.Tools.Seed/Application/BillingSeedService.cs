@@ -92,14 +92,14 @@ public sealed class BillingSeedService : IBillingSeedService
                HasScenarioBillingData(dbContext);
     }
 
-    public void SeedBillingData(TenantDbContext dbContext, Guid seedTenantId, string faqConnectionString)
+    public void SeedBillingData(TenantDbContext dbContext, Guid seedTenantId, string productConnectionString)
     {
-        SeedPrimarySeedTenantScenario(dbContext, seedTenantId, faqConnectionString);
-        SeedScenarioA_NorthPeakAnalytics(dbContext, faqConnectionString);
-        SeedScenarioB_PacificTrailStudio(dbContext, faqConnectionString);
-        SeedScenarioC_MapleForgeMedia(dbContext, faqConnectionString);
-        SeedScenarioD_AuroraClinicSystems(dbContext, faqConnectionString);
-        SeedScenarioE_BlueHarborLegal(dbContext, faqConnectionString);
+        SeedPrimarySeedTenantScenario(dbContext, seedTenantId, productConnectionString);
+        SeedScenarioA_NorthPeakAnalytics(dbContext, productConnectionString);
+        SeedScenarioB_PacificTrailStudio(dbContext, productConnectionString);
+        SeedScenarioC_MapleForgeMedia(dbContext, productConnectionString);
+        SeedScenarioD_AuroraClinicSystems(dbContext, productConnectionString);
+        SeedScenarioE_BlueHarborLegal(dbContext, productConnectionString);
         SeedWebhookInboxSamples(dbContext);
         SeedEmailOutboxSamples(dbContext);
         dbContext.SaveChanges();
@@ -112,13 +112,13 @@ public sealed class BillingSeedService : IBillingSeedService
     private static void SeedPrimarySeedTenantScenario(
         TenantDbContext dbContext,
         Guid seedTenantId,
-        string faqConnectionString)
+        string productConnectionString)
     {
         EnsureTenant(dbContext, seedTenantId,
             slug: SeedTenantSlug,
             name: Tenant.DefaultTenantName,
             edition: TenantEdition.Free,
-            faqConnectionString: faqConnectionString);
+            productConnectionString: productConnectionString);
 
         EnsureBillingCustomer(dbContext, BcSeedTenantId,
             tenantId: seedTenantId,
@@ -200,20 +200,20 @@ public sealed class BillingSeedService : IBillingSeedService
             isActive: true,
             isInGracePeriod: false,
             effectiveUntil: SeedNow.AddDays(27),
-            featureJson: """{"maxFaqs":10,"maxItemsPerFaq":50,"aiGeneration":true,"analytics":false}""");
+            featureJson: """{"maxSpaces":10,"maxQuestionsPerSpace":50,"aiGeneration":true,"analytics":false}""");
     }
 
     // -------------------------------------------------------------------------
     // Scenario A — NorthPeak Analytics: Pro monthly, Active, healthy billing
     // -------------------------------------------------------------------------
 
-    private static void SeedScenarioA_NorthPeakAnalytics(TenantDbContext dbContext, string faqConnectionString)
+    private static void SeedScenarioA_NorthPeakAnalytics(TenantDbContext dbContext, string productConnectionString)
     {
         var tenant = EnsureTenant(dbContext, NorthPeakTenantId,
             slug: "northpeak-analytics",
             name: "NorthPeak Analytics",
             edition: TenantEdition.Pro,
-            faqConnectionString: faqConnectionString);
+            productConnectionString: productConnectionString);
 
         EnsureBillingCustomer(dbContext, BcNorthPeakId,
             tenantId: NorthPeakTenantId,
@@ -297,20 +297,20 @@ public sealed class BillingSeedService : IBillingSeedService
             isActive: true,
             isInGracePeriod: false,
             effectiveUntil: SeedNow.AddDays(21),
-            featureJson: """{"maxFaqs":50,"maxItemsPerFaq":200,"aiGeneration":true,"analytics":true}""");
+            featureJson: """{"maxSpaces":50,"maxQuestionsPerSpace":200,"aiGeneration":true,"analytics":true}""");
     }
 
     // -------------------------------------------------------------------------
     // Scenario B — Pacific Trail Studio: Starter monthly, Trialing
     // -------------------------------------------------------------------------
 
-    private static void SeedScenarioB_PacificTrailStudio(TenantDbContext dbContext, string faqConnectionString)
+    private static void SeedScenarioB_PacificTrailStudio(TenantDbContext dbContext, string productConnectionString)
     {
         EnsureTenant(dbContext, PacificTrailTenantId,
             slug: "pacific-trail-studio",
             name: "Pacific Trail Studio",
             edition: TenantEdition.Starter,
-            faqConnectionString: faqConnectionString);
+            productConnectionString: productConnectionString);
 
         EnsureBillingCustomer(dbContext, BcPacificId,
             tenantId: PacificTrailTenantId,
@@ -350,20 +350,20 @@ public sealed class BillingSeedService : IBillingSeedService
             isActive: true,
             isInGracePeriod: false,
             effectiveUntil: SeedNow.AddDays(35),
-            featureJson: """{"maxFaqs":10,"maxItemsPerFaq":50,"aiGeneration":true,"analytics":false}""");
+            featureJson: """{"maxSpaces":10,"maxQuestionsPerSpace":50,"aiGeneration":true,"analytics":false}""");
     }
 
     // -------------------------------------------------------------------------
     // Scenario C — MapleForge Media: Pro monthly, PastDue, grace period
     // -------------------------------------------------------------------------
 
-    private static void SeedScenarioC_MapleForgeMedia(TenantDbContext dbContext, string faqConnectionString)
+    private static void SeedScenarioC_MapleForgeMedia(TenantDbContext dbContext, string productConnectionString)
     {
         EnsureTenant(dbContext, MapleForgeId,
             slug: "mapleforge-media",
             name: "MapleForge Media",
             edition: TenantEdition.Pro,
-            faqConnectionString: faqConnectionString);
+            productConnectionString: productConnectionString);
 
         EnsureBillingCustomer(dbContext, BcMapleForgeId,
             tenantId: MapleForgeId,
@@ -450,20 +450,20 @@ public sealed class BillingSeedService : IBillingSeedService
             isActive: true,
             isInGracePeriod: true,
             effectiveUntil: SeedNow.AddDays(7),
-            featureJson: """{"maxFaqs":50,"maxItemsPerFaq":200,"aiGeneration":true,"analytics":true}""");
+            featureJson: """{"maxSpaces":50,"maxQuestionsPerSpace":200,"aiGeneration":true,"analytics":true}""");
     }
 
     // -------------------------------------------------------------------------
     // Scenario D — Aurora Clinic Systems: Pro yearly, Canceled
     // -------------------------------------------------------------------------
 
-    private static void SeedScenarioD_AuroraClinicSystems(TenantDbContext dbContext, string faqConnectionString)
+    private static void SeedScenarioD_AuroraClinicSystems(TenantDbContext dbContext, string productConnectionString)
     {
         EnsureTenant(dbContext, AuroraClinicId,
             slug: "aurora-clinic-systems",
             name: "Aurora Clinic Systems",
             edition: TenantEdition.Pro,
-            faqConnectionString: faqConnectionString);
+            productConnectionString: productConnectionString);
 
         EnsureBillingCustomer(dbContext, BcAuroraId,
             tenantId: AuroraClinicId,
@@ -525,20 +525,20 @@ public sealed class BillingSeedService : IBillingSeedService
             isActive: false,
             isInGracePeriod: false,
             effectiveUntil: SeedNow.AddDays(-9),
-            featureJson: """{"maxFaqs":50,"maxItemsPerFaq":200,"aiGeneration":true,"analytics":true}""");
+            featureJson: """{"maxSpaces":50,"maxQuestionsPerSpace":200,"aiGeneration":true,"analytics":true}""");
     }
 
     // -------------------------------------------------------------------------
     // Scenario E — BlueHarbor Legal: Business monthly, Active (webhook demo tenant)
     // -------------------------------------------------------------------------
 
-    private static void SeedScenarioE_BlueHarborLegal(TenantDbContext dbContext, string faqConnectionString)
+    private static void SeedScenarioE_BlueHarborLegal(TenantDbContext dbContext, string productConnectionString)
     {
         EnsureTenant(dbContext, BlueHarborId,
             slug: "blueharbor-legal",
             name: "BlueHarbor Legal",
             edition: TenantEdition.Business,
-            faqConnectionString: faqConnectionString);
+            productConnectionString: productConnectionString);
 
         EnsureBillingCustomer(dbContext, BcBlueHarborId,
             tenantId: BlueHarborId,
@@ -598,7 +598,7 @@ public sealed class BillingSeedService : IBillingSeedService
             isActive: true,
             isInGracePeriod: false,
             effectiveUntil: SeedNow.AddDays(28),
-            featureJson: """{"maxFaqs":200,"maxItemsPerFaq":1000,"aiGeneration":true,"analytics":true,"prioritySupport":true}""");
+            featureJson: """{"maxSpaces":200,"maxQuestionsPerSpace":1000,"aiGeneration":true,"analytics":true,"prioritySupport":true}""");
     }
 
     // -------------------------------------------------------------------------
@@ -725,7 +725,7 @@ public sealed class BillingSeedService : IBillingSeedService
         string slug,
         string name,
         TenantEdition edition,
-        string faqConnectionString)
+        string productConnectionString)
     {
         var tenant = dbContext.Tenants
             .IgnoreQueryFilters()
@@ -739,8 +739,8 @@ public sealed class BillingSeedService : IBillingSeedService
                 Slug = slug,
                 Name = name,
                 Edition = edition,
-                App = AppEnum.Faq,
-                ConnectionString = faqConnectionString,
+                App = AppEnum.QnA,
+                ConnectionString = productConnectionString,
                 IsActive = true
             };
             dbContext.Tenants.Add(tenant);
@@ -751,8 +751,8 @@ public sealed class BillingSeedService : IBillingSeedService
             tenant.Slug = slug;
             tenant.Name = name;
             tenant.Edition = edition;
-            tenant.App = AppEnum.Faq;
-            tenant.ConnectionString = faqConnectionString;
+            tenant.App = AppEnum.QnA;
+            tenant.ConnectionString = productConnectionString;
             tenant.IsActive = true;
         }
 

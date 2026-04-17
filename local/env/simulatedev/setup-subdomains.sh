@@ -25,9 +25,8 @@ TENANT_BACKOFFICE_PORT="${TENANT_BACKOFFICE_PORT:-5000}"
 TENANT_PUBLIC_PORT="${TENANT_PUBLIC_PORT:-5004}"
 TENANT_PORTAL_PORT="${TENANT_PORTAL_PORT:-5002}"
 PORTAL_APP_PORT="${PORTAL_APP_PORT:-5500}"
-FAQ_PORTAL_PORT="${FAQ_PORTAL_PORT:-5010}"
-FAQ_PUBLIC_PORT="${FAQ_PUBLIC_PORT:-5020}"
-AI_PORT="${AI_PORT:-5030}"
+QNA_PORTAL_PORT="${QNA_PORTAL_PORT:-5010}"
+QNA_PUBLIC_PORT="${QNA_PUBLIC_PORT:-5020}"
 TEST_PORT="${TEST_PORT:-5999}"
 
 check_dependencies() {
@@ -160,12 +159,12 @@ server {
 server {
     listen 80;
     listen 443 ssl;
-    server_name dev.faq.portal.basefaq.com;
+    server_name dev.qna.portal.basefaq.com;
     ssl_certificate /etc/nginx/certs/dev.basefaq.com.crt;
     ssl_certificate_key /etc/nginx/certs/dev.basefaq.com.key;
 
     location / {
-        proxy_pass http://$UPSTREAM_HOST:$FAQ_PORTAL_PORT;
+        proxy_pass http://$UPSTREAM_HOST:$QNA_PORTAL_PORT;
         proxy_http_version 1.1;
         proxy_set_header Host \$host;
         proxy_set_header X-Real-IP \$remote_addr;
@@ -179,31 +178,12 @@ server {
 server {
     listen 80;
     listen 443 ssl;
-    server_name dev.faq.public.basefaq.com;
+    server_name dev.qna.public.basefaq.com;
     ssl_certificate /etc/nginx/certs/dev.basefaq.com.crt;
     ssl_certificate_key /etc/nginx/certs/dev.basefaq.com.key;
 
     location / {
-        proxy_pass http://$UPSTREAM_HOST:$FAQ_PUBLIC_PORT;
-        proxy_http_version 1.1;
-        proxy_set_header Host \$host;
-        proxy_set_header X-Real-IP \$remote_addr;
-        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto \$scheme;
-        proxy_set_header Upgrade \$http_upgrade;
-        proxy_set_header Connection \$connection_upgrade;
-    }
-}
-
-server {
-    listen 80;
-    listen 443 ssl;
-    server_name dev.ai.basefaq.com;
-    ssl_certificate /etc/nginx/certs/dev.basefaq.com.crt;
-    ssl_certificate_key /etc/nginx/certs/dev.basefaq.com.key;
-
-    location / {
-        proxy_pass http://$UPSTREAM_HOST:$AI_PORT;
+        proxy_pass http://$UPSTREAM_HOST:$QNA_PUBLIC_PORT;
         proxy_http_version 1.1;
         proxy_set_header Host \$host;
         proxy_set_header X-Real-IP \$remote_addr;
@@ -259,9 +239,8 @@ update_hosts_file() {
     printf "%s dev.tenant.backoffice.basefaq.com\n" "$HOST_IP"
     printf "%s dev.tenant.public.basefaq.com\n" "$HOST_IP"
     printf "%s dev.tenant.portal.basefaq.com\n" "$HOST_IP"
-    printf "%s dev.faq.portal.basefaq.com\n" "$HOST_IP"
-    printf "%s dev.faq.public.basefaq.com\n" "$HOST_IP"
-    printf "%s dev.ai.basefaq.com\n" "$HOST_IP"
+    printf "%s dev.qna.portal.basefaq.com\n" "$HOST_IP"
+    printf "%s dev.qna.public.basefaq.com\n" "$HOST_IP"
     printf "%s dev.test.basefaq.com\n" "$HOST_IP"
     printf "%s\n" "$HOSTS_MARKER_END"
   } >> "$tmp_file"
@@ -281,7 +260,7 @@ start_proxy() {
 verify_proxy_reachable() {
   local status
   for _ in {1..20}; do
-    status="$(curl -sS -o /dev/null -w "%{http_code}" -H "Host: dev.faq.public.basefaq.com" http://127.0.0.1/ || true)"
+    status="$(curl -sS -o /dev/null -w "%{http_code}" -H "Host: dev.qna.public.basefaq.com" http://127.0.0.1/ || true)"
     if [[ "$status" != "000" && -n "$status" ]]; then
       return
     fi
@@ -296,7 +275,7 @@ verify_proxy_reachable() {
 verify_https_reachable() {
   local status
   for _ in {1..20}; do
-    status="$(curl -k -sS -o /dev/null -w "%{http_code}" -H "Host: dev.faq.public.basefaq.com" https://127.0.0.1/ || true)"
+    status="$(curl -k -sS -o /dev/null -w "%{http_code}" -H "Host: dev.qna.public.basefaq.com" https://127.0.0.1/ || true)"
     if [[ "$status" != "000" && -n "$status" ]]; then
       return
     fi
@@ -319,9 +298,8 @@ print_summary() {
   echo "  dev.tenant.backoffice.basefaq.com -> $UPSTREAM_HOST:$TENANT_BACKOFFICE_PORT"
   echo "  dev.tenant.public.basefaq.com     -> $UPSTREAM_HOST:$TENANT_PUBLIC_PORT"
   echo "  dev.tenant.portal.basefaq.com     -> $UPSTREAM_HOST:$TENANT_PORTAL_PORT"
-  echo "  dev.faq.portal.basefaq.com        -> $UPSTREAM_HOST:$FAQ_PORTAL_PORT"
-  echo "  dev.faq.public.basefaq.com        -> $UPSTREAM_HOST:$FAQ_PUBLIC_PORT"
-  echo "  dev.ai.basefaq.com                -> $UPSTREAM_HOST:$AI_PORT"
+  echo "  dev.qna.portal.basefaq.com        -> $UPSTREAM_HOST:$QNA_PORTAL_PORT"
+  echo "  dev.qna.public.basefaq.com        -> $UPSTREAM_HOST:$QNA_PUBLIC_PORT"
   echo "  dev.test.basefaq.com              -> $UPSTREAM_HOST:$TEST_PORT"
   echo
   echo "Generated Nginx config:"

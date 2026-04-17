@@ -13,7 +13,6 @@ import {
   FormCardSkeleton,
   KeyValueListSkeleton,
   SectionGridSkeleton,
-  TileGridSkeleton,
 } from '@/shared/ui/loading-states';
 
 export function TenantSettingsSkeleton() {
@@ -24,7 +23,7 @@ export function TenantSettingsSkeleton() {
       header={
         <PageHeader
           title="Workspace"
-          description="Update workspace info, client key, and AI providers."
+          description="Update workspace info and the public client key."
         />
       }
     >
@@ -66,24 +65,6 @@ export function TenantSettingsSkeleton() {
             <Skeleton className="h-10 w-48" />
           </CardContent>
         </Card>
-      </div>
-
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px] lg:gap-7.5">
-        <Card>
-          <CardHeader>
-            <CardHeading>
-              <CardTitle>Configured AI providers</CardTitle>
-              <CardDescription>
-                Review which providers are ready for matching and generation.
-              </CardDescription>
-            </CardHeading>
-          </CardHeader>
-          <CardContent>
-            <TileGridSkeleton items={4} />
-          </CardContent>
-        </Card>
-
-        <FormCardSkeleton fields={2} />
       </div>
     </SettingsLayout>
   );

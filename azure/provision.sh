@@ -144,9 +144,9 @@ ensure_postgres_firewall_rules() {
 ensure_postgres_databases() {
     log_info "Ensuring PostgreSQL databases..."
 
-    local db_names=("${TENANT_DB_NAME}" "${FAQ_DB_NAME}")
-    if [[ -n "${FAQ_DB_NAME_2:-}" ]]; then
-        db_names+=("${FAQ_DB_NAME_2}")
+    local db_names=("${TENANT_DB_NAME}" "${QNA_DB_NAME}")
+    if [[ -n "${QNA_DB_NAME_2:-}" ]]; then
+        db_names+=("${QNA_DB_NAME_2}")
     fi
 
     local db_name
@@ -264,11 +264,11 @@ sync_generated_values_to_env() {
     local tenant_db_connection_string
     tenant_db_connection_string="Host=${postgres_host};Port=5432;Database=${TENANT_DB_NAME};Username=${AZURE_POSTGRES_ADMIN_USER};Password=${AZURE_POSTGRES_ADMIN_PASSWORD};SslMode=Require;TrustServerCertificate=true;"
 
-    local faq_db_connection_string
-    faq_db_connection_string="Host=${postgres_host};Port=5432;Database=${FAQ_DB_NAME};Username=${AZURE_POSTGRES_ADMIN_USER};Password=${AZURE_POSTGRES_ADMIN_PASSWORD};SslMode=Require;TrustServerCertificate=true;"
+    local qna_db_connection_string
+    qna_db_connection_string="Host=${postgres_host};Port=5432;Database=${QNA_DB_NAME};Username=${AZURE_POSTGRES_ADMIN_USER};Password=${AZURE_POSTGRES_ADMIN_PASSWORD};SslMode=Require;TrustServerCertificate=true;"
 
     upsert_env "${ENV_FILE}" "TENANT_DB_CONNECTION_STRING" "${tenant_db_connection_string}"
-    upsert_env "${ENV_FILE}" "FAQ_DB_CONNECTION_STRING" "${faq_db_connection_string}"
+    upsert_env "${ENV_FILE}" "QNA_DB_CONNECTION_STRING" "${qna_db_connection_string}"
     upsert_env "${ENV_FILE}" "REDIS_HOST" "${redis_host}"
     upsert_env "${ENV_FILE}" "REDIS_PORT" "6380"
     upsert_env "${ENV_FILE}" "REDIS_PASSWORD" "${redis_password}"
@@ -288,7 +288,7 @@ validate_config() {
         AZURE_POSTGRES_ADMIN_USER \
         AZURE_POSTGRES_ADMIN_PASSWORD \
         TENANT_DB_NAME \
-        FAQ_DB_NAME \
+        QNA_DB_NAME \
         AZURE_REDIS_NAME \
         AZURE_RABBITMQ_CONTAINER_NAME \
         AZURE_RABBITMQ_DNS_LABEL \

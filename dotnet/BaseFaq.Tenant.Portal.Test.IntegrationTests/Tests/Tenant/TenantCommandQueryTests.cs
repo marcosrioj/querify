@@ -25,14 +25,14 @@ public class TenantCommandQueryTests
         await TestDataFactory.SeedTenantAsync(
             context.DbContext,
             name: "Current User Tenant",
-            app: AppEnum.Faq,
+            app: AppEnum.QnA,
             isActive: true,
             userId: currentUserId);
 
         await TestDataFactory.SeedTenantAsync(
             context.DbContext,
             name: "Other User Tenant",
-            app: AppEnum.Faq,
+            app: AppEnum.QnA,
             isActive: true,
             userId: Guid.NewGuid());
 
@@ -41,7 +41,7 @@ public class TenantCommandQueryTests
 
         Assert.Single(result);
         Assert.Equal("Current User Tenant", result[0].Name);
-        Assert.Equal(AppEnum.Faq, result[0].App);
+        Assert.Equal(AppEnum.QnA, result[0].App);
         Assert.True(result[0].IsActive);
         Assert.Equal(TenantUserRoleType.Owner, result[0].CurrentUserRole);
     }
@@ -55,8 +55,8 @@ public class TenantCommandQueryTests
         await TestDataFactory.SeedUserAsync(context.DbContext, id: currentUserId);
         await TestDataFactory.SeedTenantConnectionAsync(
             context.DbContext,
-            app: AppEnum.Faq,
-            connectionString: "Host=host.docker.internal;Database=faqdb;Username=tenant;Password=tenant;",
+            app: AppEnum.QnA,
+            connectionString: "Host=host.docker.internal;Database=qnadb;Username=tenant;Password=tenant;",
             isCurrent: true);
 
         var handler = new TenantsCreateOrUpdateTenantsCommandHandler(
@@ -82,11 +82,11 @@ public class TenantCommandQueryTests
         Assert.NotNull(tenant);
         Assert.Equal("Portal Tenant", tenant!.Name);
         Assert.Equal(TenantEdition.Free, tenant.Edition);
-        Assert.Equal(AppEnum.Faq, tenant.App);
-        Assert.Equal("Host=host.docker.internal;Database=faqdb;Username=tenant;Password=tenant;",
+        Assert.Equal(AppEnum.QnA, tenant.App);
+        Assert.Equal("Host=host.docker.internal;Database=qnadb;Username=tenant;Password=tenant;",
             tenant.ConnectionString);
         Assert.True(tenant.IsActive);
-        Assert.Equal("portaltenantfaq", tenant.Slug);
+        Assert.Equal("portaltenantqna", tenant.Slug);
     }
 
     [Fact]
@@ -100,7 +100,7 @@ public class TenantCommandQueryTests
 
         await TestDataFactory.SeedTenantConnectionAsync(
             context.DbContext,
-            app: AppEnum.Faq,
+            app: AppEnum.QnA,
             connectionString: "Host=host.docker.internal;Database=newdb;Username=tenant;Password=tenant;",
             isCurrent: true);
 
@@ -110,7 +110,7 @@ public class TenantCommandQueryTests
             slug: "old-slug",
             name: "Old Name",
             edition: TenantEdition.Free,
-            app: AppEnum.Faq,
+            app: AppEnum.QnA,
             connectionString: "Host=host.docker.internal;Database=olddb;Username=tenant;Password=tenant;",
             isActive: true,
             userId: currentUserId);
@@ -133,7 +133,7 @@ public class TenantCommandQueryTests
         var updated = await context.DbContext.Tenants.FindAsync(existing.Id);
         Assert.NotNull(updated);
         Assert.Equal(existing.Id, updated!.Id);
-        Assert.Equal("newnamefaq", updated.Slug);
+        Assert.Equal("newnameqna", updated.Slug);
         Assert.Equal("New Name", updated.Name);
         Assert.Equal(TenantEdition.Enterprise, updated.Edition);
         Assert.Equal("Host=host.docker.internal;Database=newdb;Username=tenant;Password=tenant;",
@@ -149,7 +149,7 @@ public class TenantCommandQueryTests
 
         await TestDataFactory.SeedTenantConnectionAsync(
             context.DbContext,
-            app: AppEnum.Faq,
+            app: AppEnum.QnA,
             connectionString: "Host=host.docker.internal;Database=old;Username=tenant;Password=tenant;",
             isCurrent: false);
 
@@ -180,14 +180,14 @@ public class TenantCommandQueryTests
         await TestDataFactory.SeedTenantAsync(
             context.DbContext,
             name: "Inactive Current User Tenant",
-            app: AppEnum.Faq,
+            app: AppEnum.QnA,
             isActive: false,
             userId: currentUserId);
 
         await TestDataFactory.SeedTenantAsync(
             context.DbContext,
             name: "Active Other User Tenant",
-            app: AppEnum.Faq,
+            app: AppEnum.QnA,
             isActive: true,
             userId: Guid.NewGuid());
 
@@ -205,15 +205,15 @@ public class TenantCommandQueryTests
 
         await TestDataFactory.SeedTenantConnectionAsync(
             context.DbContext,
-            app: AppEnum.Faq,
-            connectionString: "Host=host.docker.internal;Database=faqdb;Username=tenant;Password=tenant;",
+            app: AppEnum.QnA,
+            connectionString: "Host=host.docker.internal;Database=qnadb;Username=tenant;Password=tenant;",
             isCurrent: true);
 
         await TestDataFactory.SeedTenantAsync(
             context.DbContext,
-            slug: "willconflictfaq",
+            slug: "willconflictqna",
             name: "Will Conflict",
-            app: AppEnum.Faq,
+            app: AppEnum.QnA,
             isActive: false,
             userId: currentUserId);
 
@@ -239,8 +239,8 @@ public class TenantCommandQueryTests
             .ThenBy(item => item.Name)
             .ToListAsync();
         Assert.Equal(2, tenants.Count);
-        Assert.Contains(tenants, item => !item.IsActive && item.Slug == "willconflictfaq");
-        Assert.Contains(tenants, item => item.IsActive && item.Slug == "willconflictfaq2");
+        Assert.Contains(tenants, item => !item.IsActive && item.Slug == "willconflictqna");
+        Assert.Contains(tenants, item => item.IsActive && item.Slug == "willconflictqna2");
     }
 
     [Fact]
@@ -253,7 +253,7 @@ public class TenantCommandQueryTests
         await TestDataFactory.SeedTenantAsync(
             context.DbContext,
             id: tenantId,
-            app: AppEnum.Faq,
+            app: AppEnum.QnA,
             isActive: true,
             userId: currentUserId,
             clientKey: "my-client-key");
@@ -275,7 +275,7 @@ public class TenantCommandQueryTests
         var tenant = await TestDataFactory.SeedTenantAsync(
             context.DbContext,
             id: tenantId,
-            app: AppEnum.Faq,
+            app: AppEnum.QnA,
             isActive: true,
             userId: currentUserId);
 
@@ -304,14 +304,14 @@ public class TenantCommandQueryTests
         await TestDataFactory.SeedTenantAsync(
             context.DbContext,
             id: selectedTenantId,
-            name: "Selected FAQ Tenant",
-            app: AppEnum.Faq,
+            name: "Selected QnA Tenant",
+            app: AppEnum.QnA,
             isActive: true,
             userId: currentUserId);
         var secondFaqTenant = await TestDataFactory.SeedTenantAsync(
             context.DbContext,
-            name: "Second FAQ Tenant",
-            app: AppEnum.Faq,
+            name: "Second QnA Tenant",
+            app: AppEnum.QnA,
             isActive: true,
             userId: currentUserId);
         var tenantAppTenant = await TestDataFactory.SeedTenantAsync(
@@ -322,8 +322,8 @@ public class TenantCommandQueryTests
             userId: currentUserId);
         await TestDataFactory.SeedTenantAsync(
             context.DbContext,
-            name: "Other User FAQ Tenant",
-            app: AppEnum.Faq,
+            name: "Other User QnA Tenant",
+            app: AppEnum.QnA,
             isActive: true,
             userId: Guid.NewGuid());
 
@@ -332,7 +332,7 @@ public class TenantCommandQueryTests
             currentUserId,
             new Dictionary<string, IReadOnlyCollection<Guid>>
             {
-                [AppEnum.Faq.ToString()] = Array.Empty<Guid>(),
+                [AppEnum.QnA.ToString()] = Array.Empty<Guid>(),
                 [AppEnum.Tenant.ToString()] = Array.Empty<Guid>()
             },
             cancellationToken: CancellationToken.None);
@@ -351,10 +351,10 @@ public class TenantCommandQueryTests
         var cachedAllowedTenants = await allowedTenantStore.GetAllowedTenantIds(currentUserId, CancellationToken.None);
         Assert.NotNull(cachedAllowedTenants);
 
-        var faqTenantIds = cachedAllowedTenants![AppEnum.Faq.ToString()];
-        Assert.Equal(2, faqTenantIds.Count);
-        Assert.Contains(selectedTenantId, faqTenantIds);
-        Assert.Contains(secondFaqTenant.Id, faqTenantIds);
+        var qnaTenantIds = cachedAllowedTenants![AppEnum.QnA.ToString()];
+        Assert.Equal(2, qnaTenantIds.Count);
+        Assert.Contains(selectedTenantId, qnaTenantIds);
+        Assert.Contains(secondFaqTenant.Id, qnaTenantIds);
 
         var tenantAppTenantIds = cachedAllowedTenants[AppEnum.Tenant.ToString()];
         Assert.Single(tenantAppTenantIds);

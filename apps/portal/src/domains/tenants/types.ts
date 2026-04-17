@@ -1,5 +1,4 @@
 import {
-  AiCommandType,
   PortalApp,
   TenantEdition,
   TenantUserRoleType,
@@ -15,22 +14,7 @@ export type TenantSummaryDto = {
   currentUserRole: TenantUserRoleType;
 };
 
-export type TenantAiProviderDto = {
-  id: string;
-  tenantId: string;
-  aiProviderId: string;
-  provider: string;
-  model: string;
-  command: AiCommandType;
-  isAiProviderKeyConfigured: boolean;
-};
-
 export type TenantCreateOrUpdateRequestDto = {
   name: string;
   edition: TenantEdition;
-};
-
-export type TenantSetAiProviderCredentialsRequestDto = {
-  aiProviderId: string;
-  aiProviderKey: string;
 };

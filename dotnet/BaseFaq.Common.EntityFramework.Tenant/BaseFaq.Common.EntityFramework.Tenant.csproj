@@ -11,7 +11,6 @@
         <ProjectReference Include="..\BaseFaq.Models.User\BaseFaq.Models.User.csproj"/>
         <ProjectReference Include="..\\BaseFaq.Common.EntityFramework.Core\\BaseFaq.Common.EntityFramework.Core.csproj"/>
         <ProjectReference Include="..\\BaseFaq.Common.Infrastructure.Core\\BaseFaq.Common.Infrastructure.Core.csproj"/>
-        <ProjectReference Include="..\BaseFaq.Models.Faq\BaseFaq.Models.Faq.csproj"/>
     </ItemGroup>
 
     <ItemGroup>

@@ -4,30 +4,6 @@ namespace BaseFaq.Tools.Migration.Prompts;
 
 internal static class MigrationPrompt
 {
-    public static AppEnum SelectApp()
-    {
-        Console.WriteLine("Which AppEnum?");
-        Console.WriteLine($"1) {AppEnum.Faq}");
-
-        while (true)
-        {
-            Console.Write($"Select (default {AppEnum.Faq}): ");
-            var input = Console.ReadLine();
-            if (string.IsNullOrWhiteSpace(input))
-            {
-                return AppEnum.Faq;
-            }
-
-            if (string.Equals(input, "1", StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(input, AppEnum.Faq.ToString(), StringComparison.OrdinalIgnoreCase))
-            {
-                return AppEnum.Faq;
-            }
-
-            Console.WriteLine("Invalid AppEnum value.");
-        }
-    }
-
     public static MigrationCommand SelectCommand()
     {
         Console.WriteLine("Which command?");

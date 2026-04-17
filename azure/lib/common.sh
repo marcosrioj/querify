@@ -123,16 +123,14 @@ validate_bootstrap_mode() {
 }
 
 default_cors_origins() {
-    local faq_portal_domain="$1"
-    local faq_public_domain="$2"
+    local qna_portal_domain="$1"
+    local qna_public_domain="$2"
     local tenant_backoffice_domain="$3"
     local tenant_portal_domain="$4"
-    local ai_domain="$5"
 
-    printf "https://%s;https://%s;https://%s;https://%s;https://%s" \
-        "${faq_portal_domain}" \
-        "${faq_public_domain}" \
+    printf "https://%s;https://%s;https://%s;https://%s" \
+        "${qna_portal_domain}" \
+        "${qna_public_domain}" \
         "${tenant_backoffice_domain}" \
-        "${tenant_portal_domain}" \
-        "${ai_domain}"
+        "${tenant_portal_domain}"
 }

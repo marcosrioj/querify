@@ -17,7 +17,6 @@ COPY ["dotnet/BaseFaq.Common.EntityFramework.Core/BaseFaq.Common.EntityFramework
 COPY ["dotnet/BaseFaq.Models.Common/BaseFaq.Models.Common.csproj", "dotnet/BaseFaq.Models.Common/"]
 COPY ["dotnet/BaseFaq.Models.Tenant/BaseFaq.Models.Tenant.csproj", "dotnet/BaseFaq.Models.Tenant/"]
 COPY ["dotnet/BaseFaq.Models.User/BaseFaq.Models.User.csproj", "dotnet/BaseFaq.Models.User/"]
-COPY ["dotnet/BaseFaq.Models.Faq/BaseFaq.Models.Faq.csproj", "dotnet/BaseFaq.Models.Faq/"]
 RUN dotnet restore "dotnet/BaseFaq.Tenant.Worker.Api/BaseFaq.Tenant.Worker.Api.csproj"
 COPY . .
 WORKDIR "/src/dotnet/BaseFaq.Tenant.Worker.Api"
