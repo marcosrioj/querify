@@ -36,13 +36,13 @@ dotnet build BaseFaq.sln --no-restore
 macOS/Linux:
 
 ```bash
-./docker-base.sh
+./docker/base.sh
 ```
 
 Windows PowerShell:
 
 ```powershell
-.\docker-base.ps1
+.\docker\base.ps1
 ```
 
 What this starts:
@@ -108,18 +108,37 @@ dotnet run --project dotnet/BaseFaq.Tenant.Worker.Api
 
 For the Portal frontend runtime and Auth0 setup, use [`../../frontend/tools/portal-runtime.md`](../../frontend/tools/portal-runtime.md).
 
-## Full Docker alternative
+## Docker runtime alternatives
 
-If you want the app and APIs to run in containers as well:
+If you want the backend APIs and worker in containers:
 
 ```bash
-./docker.sh
+./docker/backend.sh
 ```
 
-Equivalent manual command:
+If you want the Portal frontend container only:
 
 ```bash
-docker compose -p bf_services -f docker/docker-compose.yml up -d --build
+./docker/frontend.sh
+```
+
+If you want the entire container stack with the previous single-command behavior:
+
+```bash
+./docker/docker.sh
+```
+
+PowerShell equivalents live beside these scripts under `docker/*.ps1`.
+
+Equivalent manual commands:
+
+```bash
+docker compose -p bf_services -f docker/docker-compose.backend.yml up -d --build
+docker compose -p bf_services -f docker/docker-compose.frontend.yml up -d --build
+docker compose -p bf_services \
+  -f docker/docker-compose.backend.yml \
+  -f docker/docker-compose.frontend.yml \
+  up -d --build
 ```
 
 Notes:
@@ -127,7 +146,9 @@ Notes:
 - the app/API stack expects the external Docker network `bf-network`, which is created by the base-services stack
 - the application images use the repository root as the Docker build context
 - the default appsettings values use `host.docker.internal`, which keeps host and container networking aligned
-- `docker/docker-compose.yml` boots `BaseFaq.QnA.Portal.Api` and `BaseFaq.QnA.Public.Api` as the primary product APIs
+- `docker/docker-compose.backend.yml` boots the APIs plus `BaseFaq.Tenant.Worker.Api`
+- `docker/docker-compose.frontend.yml` boots only `basefaq.portal.app`
+- `./docker/docker.sh` combines only `docker/docker-compose.backend.yml` and `docker/docker-compose.frontend.yml`
 
 ## Service endpoints
 
@@ -196,7 +217,7 @@ Start the base-services stack first.
 
 ### Redis complains that `REDIS_PASSWORD` is missing
 
-Use `./docker-base.sh` or export the variable manually before running Compose:
+Use `./docker/base.sh` or export the variable manually before running Compose:
 
 ```bash
 export REDIS_PASSWORD=RedisTempPassword
@@ -221,5 +242,10 @@ docker compose -p bf_baseservices -f docker/docker-compose.baseservices.yml down
 Stop app and API containers:
 
 ```bash
-docker compose -p bf_services -f docker/docker-compose.yml down
+docker compose -p bf_services \
+  -f docker/docker-compose.backend.yml \
+  -f docker/docker-compose.frontend.yml \
+  down
 ```
+
+That same `down` command also stops containers started through `./docker/backend.sh` and `./docker/frontend.sh`.

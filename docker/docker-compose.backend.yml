@@ -1,24 +1,4 @@
 services:
-  basefaq.portal.app:
-    image: basefaq.portal.app
-    build:
-      context: ..
-      dockerfile: apps/portal/Dockerfile
-    ports:
-      - "5500:5500"
-    environment:
-      - VITE_PORTAL_TENANT_API_URL=https://dev.tenant.portal.basefaq.com
-      - VITE_PORTAL_QNA_API_URL=https://dev.qna.portal.basefaq.com
-      - VITE_AUTH0_DOMAIN=basefaq.us.auth0.com
-      - VITE_AUTH0_AUDIENCE=https://basefaq.com
-      - VITE_AUTH0_CLIENT_ID=fDJib60pSRhbtNRPhqYfZR9J8JqBCpz5
-      - VITE_AUTH0_PASSWORD_RESET_URL=
-      - VITE_AUTH0_LOGOUT_URI=https://dev.portal.basefaq.com/logout
-    depends_on:
-      - basefaq.qna.portal.api
-      - basefaq.tenant.portal.api
-    networks:
-      - bf-network
   basefaq.qna.portal.api:
     image: basefaq.qna.portal.api
     build:

@@ -22,7 +22,7 @@ The root [`../README.md`](../README.md) remains the short bootstrap summary. Eve
 
 #### Tools
 
-- [`backend/tools/local-development.md`](backend/tools/local-development.md): local runtime model, Docker infrastructure, host-based APIs, full-container mode, and troubleshooting.
+- [`backend/tools/local-development.md`](backend/tools/local-development.md): local runtime model, Docker infrastructure, split base/backend/frontend container flows, full-container mode, and troubleshooting.
 - [`backend/tools/migration-tool.md`](backend/tools/migration-tool.md): tenant-aware QnA migration workflow.
 - [`backend/tools/seed-tool.md`](backend/tools/seed-tool.md): tenant/QnA seed workflow and sample-data behavior.
 - [`backend/tools/release-artifacts.md`](backend/tools/release-artifacts.md): where to keep release plans, rollout checklists, and evidence packages.

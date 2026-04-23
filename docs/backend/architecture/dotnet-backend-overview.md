@@ -173,7 +173,7 @@ Each tenant can point to its own QnA database connection, which is why QnA migra
 
 The usual backend bootstrap sequence is:
 
-1. Start base services with `./docker-base.sh`.
+1. Start base services with `./docker/base.sh`.
 2. On a clean environment, initialize schema and data with `BaseFaq.Tools.Seed`.
 3. Use `BaseFaq.Tools.Migration` when you need to apply QnA schema updates across tenant product databases.
 4. Run the specific APIs needed for the workflow you are testing.

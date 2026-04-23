@@ -110,10 +110,17 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "IntegrationTest", "Integrat
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docker", "Docker", "{76881929-04FA-4D0C-B312-892431E63843}"
 	ProjectSection(SolutionItems) = preProject
-		docker.ps1 = docker.ps1
-		docker.sh = docker.sh
-		docker-base.ps1 = docker-base.ps1
-		docker-base.sh = docker-base.sh
+		docker\backend.ps1 = docker\backend.ps1
+		docker\backend.sh = docker\backend.sh
+		docker\base.ps1 = docker\base.ps1
+		docker\base.sh = docker\base.sh
+		docker\docker-compose.backend.yml = docker\docker-compose.backend.yml
+		docker\docker-compose.baseservices.yml = docker\docker-compose.baseservices.yml
+		docker\docker-compose.frontend.yml = docker\docker-compose.frontend.yml
+		docker\docker.ps1 = docker\docker.ps1
+		docker\docker.sh = docker\docker.sh
+		docker\frontend.ps1 = docker\frontend.ps1
+		docker\frontend.sh = docker\frontend.sh
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Worker", "Worker", "{E8268E7B-12FB-63FB-8AA2-61D3A01309EB}"

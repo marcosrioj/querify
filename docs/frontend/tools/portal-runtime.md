@@ -127,13 +127,17 @@ If you want a host-based experience that resembles shared subdomains, use the he
 
 ## Containerized alternative
 
-If you want the frontend in Docker with the rest of the stack:
+If you want only the frontend in Docker:
 
 ```bash
-./docker.sh
+./docker/frontend.sh
 ```
 
-The Portal is included in `docker/docker-compose.yml` and is exposed on `http://localhost:5500`.
+If you also want the backend APIs and worker in containers, start `./docker/backend.sh` first or use `./docker/docker.sh` for the full stack.
+
+PowerShell equivalents live beside these scripts under `docker/*.ps1`.
+
+The Portal-only compose file is `docker/docker-compose.frontend.yml`. The full-stack helper `./docker/docker.sh` combines `docker/docker-compose.backend.yml` and `docker/docker-compose.frontend.yml`. The Portal is exposed on `http://localhost:5500`.
 
 ## Current gaps
 

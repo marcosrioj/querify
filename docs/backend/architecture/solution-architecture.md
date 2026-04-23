@@ -12,7 +12,7 @@ The repository root contains one primary `.NET` solution file, `BaseFaq.sln`. It
 |---|---|
 | `apps/portal` | tenant-facing web application for authenticated workspace flows |
 | `dotnet` | API hosts, business modules, persistence projects, shared infrastructure, tests, and console tools |
-| `docker` | local base services and containerized app/API runtime |
+| `docker` | local base services, split backend/frontend container runtime, and helper scripts that compose the full stack from those files |
 | `local` | local-only helpers such as reverse proxy and subdomain simulation |
 | `docs` | architecture, operations, developer workflows, and standards |
 

@@ -8,7 +8,7 @@ This `README` is intentionally short. It explains what the repository is and how
 
 - `apps/portal`: customer-facing portal frontend built with React, Vite, Tailwind, and Auth0.
 - `dotnet/`: API hosts, business modules, shared infrastructure libraries, persistence projects, integration tests, and console tools.
-- `docker/`: local Docker Compose stacks for base services and containerized app/API execution.
+- `docker/`: local Docker Compose stacks and helper scripts split into base, backend, frontend, and full-stack flows.
 - `local/`: local-only helpers such as the `simulatedev` reverse proxy and subdomain setup scripts.
 - `docs/`: the project knowledge base.
 
@@ -33,13 +33,13 @@ dotnet build BaseFaq.sln
 macOS/Linux:
 
 ```bash
-./docker-base.sh
+./docker/base.sh
 ```
 
 Windows PowerShell:
 
 ```powershell
-.\docker-base.ps1
+.\docker\base.ps1
 ```
 
 This brings up PostgreSQL, RabbitMQ, Redis, SMTP4Dev, Jaeger, Prometheus, Alertmanager, and Grafana.
@@ -76,11 +76,17 @@ cp .env.example .env
 npm run dev
 ```
 
-Containerized app/API alternative:
+Containerized app/API alternatives:
 
 ```bash
-./docker.sh
+./docker/backend.sh
+./docker/frontend.sh
+
+# or start the full container stack in one command
+./docker/docker.sh
 ```
+
+`./docker/docker.sh` now composes the stack only from `docker/docker-compose.backend.yml` and `docker/docker-compose.frontend.yml`. Windows PowerShell equivalents live beside these scripts under `docker/*.ps1`.
 
 ### 5. Use the migration tool when QnA schema changes
 
@@ -136,6 +142,6 @@ Use this after the tenant metadata already exists, or when you need to apply QnA
 ## Troubleshooting
 
 - `bf-network declared as external, but could not be found`: start the base services first.
-- `set REDIS_PASSWORD`: use `./docker-base.sh` or export `REDIS_PASSWORD=RedisTempPassword` before manual compose runs.
+- `set REDIS_PASSWORD`: use `./docker/base.sh` or export `REDIS_PASSWORD=RedisTempPassword` before manual compose runs.
 - HTTPS trust issues: run `dotnet dev-certs https --trust`.
 - Linux `host.docker.internal` resolution issues: see [`docs/backend/tools/local-development.md`](docs/backend/tools/local-development.md).
