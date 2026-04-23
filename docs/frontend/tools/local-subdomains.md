@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This guide documents the self-contained helper under `local/env/simulatedev` that exposes local APIs and the Portal behind shared-looking subdomains.
+This guide documents the self-contained helper under `devops/local/simulatedev` that exposes local APIs and the Portal behind shared-looking subdomains.
 
 Primary hostnames:
 
@@ -16,7 +16,7 @@ Primary hostnames:
 
 The approach is intentionally decoupled from host-machine Nginx:
 
-- Nginx runs in Docker with config generated inside `local/env/simulatedev/runtime/`
+- Nginx runs in Docker with config generated inside `devops/local/simulatedev/runtime/`
 - Nginx publishes `80:80` and `443:443`
 - HTTP and HTTPS requests are proxied to the mapped local app and API ports
 - hosts-file entries are always updated by setup and removed by teardown using marker blocks
@@ -54,14 +54,14 @@ These defaults match the ports in the current API `launchSettings.json`.
 From repo root:
 
 ```bash
-chmod +x local/env/simulatedev/setup-subdomains.sh local/env/simulatedev/teardown-subdomains.sh
-./local/env/simulatedev/setup-subdomains.sh
+chmod +x devops/local/simulatedev/setup-subdomains.sh devops/local/simulatedev/teardown-subdomains.sh
+./devops/local/simulatedev/setup-subdomains.sh
 ```
 
 Cleanup:
 
 ```bash
-./local/env/simulatedev/teardown-subdomains.sh
+./devops/local/simulatedev/teardown-subdomains.sh
 ```
 
 ## Windows usage
@@ -69,13 +69,13 @@ Cleanup:
 From repo root in PowerShell:
 
 ```powershell
-.\local\env\simulatedev\setup-subdomains.ps1
+.\devops\local\simulatedev\setup-subdomains.ps1
 ```
 
 Cleanup:
 
 ```powershell
-.\local\env\simulatedev\teardown-subdomains.ps1
+.\devops\local\simulatedev\teardown-subdomains.ps1
 ```
 
 ## Optional overrides
@@ -97,23 +97,23 @@ You can override defaults through environment variables on Linux or parameters o
 Linux example:
 
 ```bash
-PORTAL_APP_PORT=6500 TENANT_PORTAL_PORT=6002 ./local/env/simulatedev/setup-subdomains.sh
+PORTAL_APP_PORT=6500 TENANT_PORTAL_PORT=6002 ./devops/local/simulatedev/setup-subdomains.sh
 ```
 
 PowerShell example:
 
 ```powershell
-.\local\env\simulatedev\setup-subdomains.ps1 -PortalAppPort 6500 -TenantPortalPort 6002
+.\devops\local\simulatedev\setup-subdomains.ps1 -PortalAppPort 6500 -TenantPortalPort 6002
 ```
 
 ## Generated runtime files
 
 Generated artifacts are created under:
 
-- `local/env/simulatedev/runtime/nginx/conf.d/basefaq-subdomains.conf`
-- `local/env/simulatedev/runtime/hosts-backups/`
+- `devops/local/simulatedev/runtime/nginx/conf.d/basefaq-subdomains.conf`
+- `devops/local/simulatedev/runtime/hosts-backups/`
 
-This keeps all helper outputs inside `local/` while preserving host-file backups.
+This keeps all helper outputs inside `devops/local/` while preserving host-file backups.
 
 Use elevated permissions when running scripts because hosts-file updates are mandatory.
 HTTPS uses a dev self-signed certificate, so browsers may show a certificate warning.

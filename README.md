@@ -9,7 +9,7 @@ This `README` is intentionally short. It explains what the repository is and how
 - `apps/portal`: customer-facing portal frontend built with React, Vite, Tailwind, and Auth0.
 - `dotnet/`: API hosts, business modules, shared infrastructure libraries, persistence projects, integration tests, and console tools.
 - `docker/`: local Docker Compose stacks and helper scripts split into base, backend, frontend, and full-stack flows.
-- `local/`: local-only helpers such as the `simulatedev` reverse proxy and subdomain setup scripts.
+- `devops/local/`: local-only helpers such as the `simulatedev` reverse proxy and subdomain setup scripts.
 - `docs/`: the project knowledge base.
 
 ## Prerequisites
