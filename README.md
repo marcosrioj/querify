@@ -10,7 +10,6 @@ This `README` is intentionally short. It explains what the repository is and how
 - `dotnet/`: API hosts, business modules, shared infrastructure libraries, persistence projects, integration tests, and console tools.
 - `docker/`: local Docker Compose stacks for base services and containerized app/API execution.
 - `local/`: local-only helpers such as the `simulatedev` reverse proxy and subdomain setup scripts.
-- `azure/`: stage-based Azure provisioning and deployment scripts.
 - `docs/`: the project knowledge base.
 
 ## Prerequisites
@@ -130,7 +129,6 @@ Use this after the tenant metadata already exists, or when you need to apply QnA
 - Backend guide: [`docs/backend/dotnet-backend-overview.md`](docs/backend/dotnet-backend-overview.md)
 - Frontend guide: [`docs/frontend/portal-app.md`](docs/frontend/portal-app.md)
 - Local dev and Docker: [`docs/devops/local-development.md`](docs/devops/local-development.md)
-- Azure delivery: [`docs/devops/azure-delivery.md`](docs/devops/azure-delivery.md)
 - Tooling: [`docs/tools/migration-tool.md`](docs/tools/migration-tool.md), [`docs/tools/seed-tool.md`](docs/tools/seed-tool.md)
 - Testing strategy: [`docs/testing/integration-testing-strategy.md`](docs/testing/integration-testing-strategy.md)
 

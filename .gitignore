@@ -9,8 +9,6 @@ obj/
 **/appsettings.Development.json
 dotnet/BaseFaq.Sample.Ai.Generation/appsettings.json
 BaseFaq.sln.DotSettings.user
-azure/.env
-azure/env/*.env
 apps/portal/.env
 apps/portal/dist/
 .codex

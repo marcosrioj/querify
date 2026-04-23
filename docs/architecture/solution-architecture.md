@@ -14,7 +14,6 @@ The repository root contains one primary `.NET` solution file, `BaseFaq.sln`. It
 | `dotnet` | API hosts, business modules, persistence projects, shared infrastructure, tests, and console tools |
 | `docker` | Local base services and containerized app/API runtime |
 | `local` | Local-only helpers such as reverse proxy and subdomain simulation |
-| `azure` | Stage-based deployment automation for `dev`, `qa`, and `prod` |
 | `docs` | Architecture, operations, developer workflows, and standards |
 
 ## Runtime surfaces

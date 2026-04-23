@@ -34,7 +34,6 @@ This folder is the canonical knowledge base for the repository. The root `README
 ### DevOps
 
 - [`devops/local-development.md`](devops/local-development.md): Docker base services, local host execution, full Docker flow, local subdomains, troubleshooting, and shutdown.
-- [`devops/azure-delivery.md`](devops/azure-delivery.md): stage-based Azure provisioning, deployment, and CI/CD integration.
 
 ### Tools
 
@@ -54,7 +53,6 @@ This folder is the canonical knowledge base for the repository. The root `README
 
 - [`../PROJECT_RULES.md`](../PROJECT_RULES.md): repository-wide coding and architecture guardrails enforced by the architecture compliance tests.
 - [`../apps/portal/README.md`](../apps/portal/README.md): project-local Portal app readme beside the frontend source.
-- [`../azure/README.md`](../azure/README.md): script-local Azure deployment reference.
 - [`../local/env/simulatedev/README.md`](../local/env/simulatedev/README.md): local subdomain helper readme beside the helper scripts.
 
 ## Documentation rules
