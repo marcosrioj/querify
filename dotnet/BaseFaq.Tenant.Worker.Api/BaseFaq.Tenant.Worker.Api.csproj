@@ -15,10 +15,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.1"/>
-    </ItemGroup>
-
-    <ItemGroup>
         <ProjectReference Include="..\BaseFaq.Common.Infrastructure.Core\BaseFaq.Common.Infrastructure.Core.csproj"/>
         <ProjectReference Include="..\BaseFaq.Common.Infrastructure.Telemetry\BaseFaq.Common.Infrastructure.Telemetry.csproj"/>
         <ProjectReference Include="..\BaseFaq.Common.EntityFramework.Tenant\BaseFaq.Common.EntityFramework.Tenant.csproj"/>
