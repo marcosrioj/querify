@@ -89,7 +89,7 @@ dotnet run --project dotnet/BaseFaq.Tenant.Worker.Api
 Run in Docker:
 
 ```bash
-docker compose -p bf_services -f docker/docker-compose.backend.yml up -d --build basefaq.tenant.worker.api
+docker compose -p bf_services -f devops/local/docker/docker-compose.backend.yml up -d --build basefaq.tenant.worker.api
 ```
 
 ## Feature: Billing webhook inbox processor

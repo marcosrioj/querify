@@ -2,7 +2,7 @@ services:
   basefaq.portal.app:
     image: basefaq.portal.app
     build:
-      context: ..
+      context: ../../..
       dockerfile: apps/portal/Dockerfile
     ports:
       - "5500:5500"

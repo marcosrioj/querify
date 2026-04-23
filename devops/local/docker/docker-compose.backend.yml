@@ -2,7 +2,7 @@ services:
   basefaq.qna.portal.api:
     image: basefaq.qna.portal.api
     build:
-      context: ..
+      context: ../../..
       dockerfile: dotnet/BaseFaq.QnA.Portal.Api/Dockerfile
     ports:
       - "5010:5010"
@@ -16,7 +16,7 @@ services:
   basefaq.tenant.backoffice.api:
     image: basefaq.tenant.backoffice.api
     build:
-      context: ..
+      context: ../../..
       dockerfile: dotnet/BaseFaq.Tenant.BackOffice.Api/Dockerfile
     ports:
       - "5000:5000"
@@ -30,7 +30,7 @@ services:
   basefaq.tenant.portal.api:
     image: basefaq.tenant.portal.api
     build:
-      context: ..
+      context: ../../..
       dockerfile: dotnet/BaseFaq.Tenant.Portal.Api/Dockerfile
     ports:
       - "5002:5002"
@@ -44,7 +44,7 @@ services:
   basefaq.tenant.public.api:
     image: basefaq.tenant.public.api
     build:
-      context: ..
+      context: ../../..
       dockerfile: dotnet/BaseFaq.Tenant.Public.Api/Dockerfile
     ports:
       - "5004:5004"
@@ -58,7 +58,7 @@ services:
   basefaq.qna.public.api:
     image: basefaq.qna.public.api
     build:
-      context: ..
+      context: ../../..
       dockerfile: dotnet/BaseFaq.QnA.Public.Api/Dockerfile
     ports:
       - "5020:5020"
@@ -72,7 +72,7 @@ services:
   basefaq.tenant.worker.api:
     image: basefaq.tenant.worker.api
     build:
-      context: ..
+      context: ../../..
       dockerfile: dotnet/BaseFaq.Tenant.Worker.Api/Dockerfile
     environment:
       - DOTNET_ENVIRONMENT=Development

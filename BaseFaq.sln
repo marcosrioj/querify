@@ -110,17 +110,17 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "IntegrationTest", "Integrat
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docker", "Docker", "{76881929-04FA-4D0C-B312-892431E63843}"
 	ProjectSection(SolutionItems) = preProject
-		docker\backend.ps1 = docker\backend.ps1
-		docker\backend.sh = docker\backend.sh
-		docker\base.ps1 = docker\base.ps1
-		docker\base.sh = docker\base.sh
-		docker\docker-compose.backend.yml = docker\docker-compose.backend.yml
-		docker\docker-compose.baseservices.yml = docker\docker-compose.baseservices.yml
-		docker\docker-compose.frontend.yml = docker\docker-compose.frontend.yml
-		docker\docker.ps1 = docker\docker.ps1
-		docker\docker.sh = docker\docker.sh
-		docker\frontend.ps1 = docker\frontend.ps1
-		docker\frontend.sh = docker\frontend.sh
+		devops\local\docker\backend.ps1 = devops\local\docker\backend.ps1
+		devops\local\docker\backend.sh = devops\local\docker\backend.sh
+		devops\local\docker\base.ps1 = devops\local\docker\base.ps1
+		devops\local\docker\base.sh = devops\local\docker\base.sh
+		devops\local\docker\docker-compose.backend.yml = devops\local\docker\docker-compose.backend.yml
+		devops\local\docker\docker-compose.baseservices.yml = devops\local\docker\docker-compose.baseservices.yml
+		devops\local\docker\docker-compose.frontend.yml = devops\local\docker\docker-compose.frontend.yml
+		devops\local\docker\docker.ps1 = devops\local\docker\docker.ps1
+		devops\local\docker\docker.sh = devops\local\docker\docker.sh
+		devops\local\docker\frontend.ps1 = devops\local\docker\frontend.ps1
+		devops\local\docker\frontend.sh = devops\local\docker\frontend.sh
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Worker", "Worker", "{E8268E7B-12FB-63FB-8AA2-61D3A01309EB}"
