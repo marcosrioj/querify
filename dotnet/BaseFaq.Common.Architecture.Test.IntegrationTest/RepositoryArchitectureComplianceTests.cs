@@ -3,7 +3,7 @@ using Xunit;
 
 namespace BaseFaq.Common.Architecture.Test.IntegrationTest;
 
-public class ProjectRulesComplianceTests
+public class RepositoryArchitectureComplianceTests
 {
     private static readonly HashSet<string> AllowedSimpleTypes = new(StringComparer.Ordinal)
     {
@@ -543,7 +543,7 @@ public class ProjectRulesComplianceTests
             return string.Empty;
         }
 
-        return "PROJECT_RULES.md compliance failures:" + Environment.NewLine +
+        return "Repository architecture compliance failures:" + Environment.NewLine +
                string.Join(Environment.NewLine, failureList);
     }
 
@@ -562,8 +562,8 @@ public class ProjectRulesComplianceTests
         var current = new DirectoryInfo(AppContext.BaseDirectory);
         while (current is not null)
         {
-            var projectRulesPath = Path.Combine(current.FullName, "PROJECT_RULES.md");
-            if (File.Exists(projectRulesPath))
+            var solutionPath = Path.Combine(current.FullName, "BaseFaq.sln");
+            if (File.Exists(solutionPath))
             {
                 return current.FullName;
             }
@@ -571,6 +571,6 @@ public class ProjectRulesComplianceTests
             current = current.Parent;
         }
 
-        throw new InvalidOperationException("Could not locate repository root containing PROJECT_RULES.md.");
+        throw new InvalidOperationException("Could not locate repository root containing BaseFaq.sln.");
     }
 }

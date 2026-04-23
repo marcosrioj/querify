@@ -41,6 +41,7 @@ These projects contain ASP.NET Core startup, middleware, and DI registration:
 Each service area is split into feature projects.
 
 QnA is the product surface and remains split by feature project instead of monolithic business assemblies.
+
 - QnA Portal:
   - `BaseFaq.QnA.Portal.Business.Space`
   - `BaseFaq.QnA.Portal.Business.Question`
@@ -84,12 +85,14 @@ QnA is the product surface and remains split by feature project instead of monol
 - `BaseFaq.Models.Tenant`: tenant-facing contracts
 - `BaseFaq.Models.User`: user and profile contracts
 
-### Tests, tools, and samples
+### Tests and tools
 
 - `BaseFaq.QnA.Portal.Test.IntegrationTests`
 - `BaseFaq.QnA.Public.Test.IntegrationTests`
 - `BaseFaq.Tenant.BackOffice.Test.IntegrationTests`
 - `BaseFaq.Tenant.Portal.Test.IntegrationTests`
+- `BaseFaq.Tenant.Public.Test.IntegrationTests`
+- `BaseFaq.Tenant.Worker.Test.IntegrationTests`
 - `BaseFaq.Common.Architecture.Test.IntegrationTest`
 - `BaseFaq.Tools.Migration`
 - `BaseFaq.Tools.Seed`
@@ -114,7 +117,7 @@ Implications:
 - QnA integration tests should use feature folders and names such as `Tests/Answer/AnswerCommandQueryTests.cs`
 - HTTP route segments should use lowercase kebab-case for action-style paths such as `add-tenant-member` or `refresh-allowed-tenant-cache`
 
-The write-side rules are formalized in [`../standards/solution-cqrs-write-rules.md`](../standards/solution-cqrs-write-rules.md).
+The write-side rules are formalized in [`solution-cqrs-write-rules.md`](solution-cqrs-write-rules.md).
 
 ## Persistence model
 
@@ -186,7 +189,7 @@ dotnet run --project dotnet/BaseFaq.QnA.Public.Api
 dotnet run --project dotnet/BaseFaq.Tenant.Worker.Api
 ```
 
-For the full local operations model, see [`../devops/local-development.md`](../devops/local-development.md).
+For the full local operations model, see [`../tools/local-development.md`](../tools/local-development.md).
 For worker-specific configuration and feature guidance, see [`basefaq-tenant-worker.md`](basefaq-tenant-worker.md).
 
 ## Development conventions

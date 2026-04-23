@@ -17,7 +17,7 @@ It uses the tenant database to discover which QnA database connection strings ex
 3. Choose a command.
 4. Either:
    - add a new EF Core migration, or
-   - run `Database update` across all tenant QnA databases.
+   - run database update across all tenant QnA databases.
 
 ## Interactive usage
 
@@ -85,5 +85,5 @@ dotnet ef database update \
 ## Related documents
 
 - [`seed-tool.md`](seed-tool.md)
-- [`../devops/local-development.md`](../devops/local-development.md)
-- [`../backend/dotnet-backend-overview.md`](../backend/dotnet-backend-overview.md)
+- [`local-development.md`](local-development.md)
+- [`../architecture/dotnet-backend-overview.md`](../architecture/dotnet-backend-overview.md)

@@ -2,7 +2,7 @@
 
 BaseFAQ is a multi-tenant knowledge platform built from a React portal, multiple `.NET 10` APIs, tenant-aware PostgreSQL databases, and background worker services.
 
-This `README` is intentionally short. It explains what the repository is and how to bootstrap the essential local stack. Deep technical guidance lives in [`docs/README.md`](docs/README.md).
+This `README` is intentionally short. It explains what the repository is and how to bootstrap the essential local stack. All repository-owned documentation lives under [`docs/README.md`](docs/README.md).
 
 ## Repository layout
 
@@ -125,16 +125,17 @@ Use this after the tenant metadata already exists, or when you need to apply QnA
 ## Documentation
 
 - Unified docs index: [`docs/README.md`](docs/README.md)
-- Architecture overview: [`docs/architecture/solution-architecture.md`](docs/architecture/solution-architecture.md)
-- Backend guide: [`docs/backend/dotnet-backend-overview.md`](docs/backend/dotnet-backend-overview.md)
-- Frontend guide: [`docs/frontend/portal-app.md`](docs/frontend/portal-app.md)
-- Local dev and Docker: [`docs/devops/local-development.md`](docs/devops/local-development.md)
-- Tooling: [`docs/tools/migration-tool.md`](docs/tools/migration-tool.md), [`docs/tools/seed-tool.md`](docs/tools/seed-tool.md)
-- Testing strategy: [`docs/testing/integration-testing-strategy.md`](docs/testing/integration-testing-strategy.md)
+- Repository execution guide: [`docs/execution-guide.md`](docs/execution-guide.md)
+- Backend architecture: [`docs/backend/architecture/dotnet-backend-overview.md`](docs/backend/architecture/dotnet-backend-overview.md)
+- Backend runtime and tools: [`docs/backend/tools/local-development.md`](docs/backend/tools/local-development.md)
+- Backend testing: [`docs/backend/testing/integration-testing-strategy.md`](docs/backend/testing/integration-testing-strategy.md)
+- Frontend architecture: [`docs/frontend/architecture/portal-app.md`](docs/frontend/architecture/portal-app.md)
+- Frontend runtime and tools: [`docs/frontend/tools/portal-runtime.md`](docs/frontend/tools/portal-runtime.md)
+- Frontend testing: [`docs/frontend/testing/validation-guide.md`](docs/frontend/testing/validation-guide.md)
 
 ## Troubleshooting
 
 - `bf-network declared as external, but could not be found`: start the base services first.
 - `set REDIS_PASSWORD`: use `./docker-base.sh` or export `REDIS_PASSWORD=RedisTempPassword` before manual compose runs.
 - HTTPS trust issues: run `dotnet dev-certs https --trust`.
-- Linux `host.docker.internal` resolution issues: see [`docs/devops/local-development.md`](docs/devops/local-development.md).
+- Linux `host.docker.internal` resolution issues: see [`docs/backend/tools/local-development.md`](docs/backend/tools/local-development.md).

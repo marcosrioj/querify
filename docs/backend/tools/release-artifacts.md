@@ -1,4 +1,4 @@
-# Release Documentation
+# Release Artifacts
 
 Use this folder for versioned release artifacts that should live with the repository.
 

@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This guide is the operational runbook for running BaseFAQ locally. It combines the repository bootstrap flow, Docker infrastructure, optional full-container execution, and local subdomain simulation.
+This guide is the operational runbook for running the BaseFAQ backend locally. It combines the repository bootstrap flow, Docker infrastructure, optional full-container execution, and the backend-facing parts of local host and proxy setup.
 
 ## Recommended local model
 
@@ -10,7 +10,8 @@ The repository is easiest to run in this mode:
 
 1. Start infrastructure with Docker.
 2. Run the `.NET` APIs on the host.
-3. Run the Portal frontend on the host.
+3. Run the worker on the host.
+4. Run the Portal frontend on the host only when you need browser flows.
 
 This gives fast iteration without losing the production-like infrastructure components.
 
@@ -18,8 +19,8 @@ This gives fast iteration without losing the production-like infrastructure comp
 
 - Docker Engine and Docker Compose v2
 - `.NET SDK 10.0.100`
-- Node.js LTS and npm
 - `dotnet dev-certs https --trust` if you want local HTTPS without certificate issues
+- Node.js LTS and npm only if you also need the Portal frontend
 
 ## Step-by-step local bootstrap
 
@@ -99,19 +100,13 @@ dotnet ef database update \
 ```bash
 dotnet run --project dotnet/BaseFaq.Tenant.BackOffice.Api
 dotnet run --project dotnet/BaseFaq.Tenant.Portal.Api
+dotnet run --project dotnet/BaseFaq.Tenant.Public.Api
 dotnet run --project dotnet/BaseFaq.QnA.Portal.Api
 dotnet run --project dotnet/BaseFaq.QnA.Public.Api
 dotnet run --project dotnet/BaseFaq.Tenant.Worker.Api
 ```
 
-Portal frontend:
-
-```bash
-cd apps/portal
-npm install --legacy-peer-deps
-cp .env.example .env
-npm run dev
-```
+For the Portal frontend runtime and Auth0 setup, use [`../../frontend/tools/portal-runtime.md`](../../frontend/tools/portal-runtime.md).
 
 ## Full Docker alternative
 
@@ -132,15 +127,15 @@ Notes:
 - the app/API stack expects the external Docker network `bf-network`, which is created by the base-services stack
 - the application images use the repository root as the Docker build context
 - the default appsettings values use `host.docker.internal`, which keeps host and container networking aligned
-- `docker/docker-compose.yml` now boots `BaseFaq.QnA.Portal.Api` and `BaseFaq.QnA.Public.Api` as the primary product APIs
+- `docker/docker-compose.yml` boots `BaseFaq.QnA.Portal.Api` and `BaseFaq.QnA.Public.Api` as the primary product APIs
 
 ## Service endpoints
 
 | Service | URL |
 |---|---|
-| Portal app | `http://localhost:5500` |
 | Tenant BackOffice API | `http://localhost:5000` |
 | Tenant Portal API | `http://localhost:5002` |
+| Tenant Public API | `http://localhost:5004` |
 | QnA Portal API | `http://localhost:5010` |
 | QnA Public API | `http://localhost:5020` |
 | Tenant Worker API | no HTTP surface; background host only |
@@ -153,7 +148,7 @@ Notes:
 | Alertmanager | `http://localhost:9093` |
 | Grafana | `http://localhost:3000` |
 
-Grafana default local credentials are `admin` / `admin`.
+Grafana default local credentials are `admin` and `admin`.
 
 SMTP4Dev local delivery settings:
 
@@ -175,50 +170,23 @@ Windows and macOS already expose `host.docker.internal`. On Linux, add it to `/e
 echo "127.0.0.1 host.docker.internal" | sudo tee -a /etc/hosts
 ```
 
-## Local subdomains with the `simulatedev` helper
+## Local subdomains
 
-If you want local hostnames such as `dev.portal.basefaq.com`, `dev.qna.portal.basefaq.com`, and `dev.qna.public.basefaq.com`, use the helper in `local/env/simulatedev`.
+If you want local hostnames such as `dev.portal.basefaq.com`, `dev.qna.portal.basefaq.com`, and `dev.qna.public.basefaq.com`, use the helper documented in [`../../frontend/tools/local-subdomains.md`](../../frontend/tools/local-subdomains.md).
 
-Linux:
-
-```bash
-chmod +x local/env/simulatedev/setup-subdomains.sh local/env/simulatedev/teardown-subdomains.sh
-./local/env/simulatedev/setup-subdomains.sh
-```
-
-Windows PowerShell:
-
-```powershell
-.\local\env\simulatedev\setup-subdomains.ps1
-```
-
-Cleanup:
-
-```bash
-./local/env/simulatedev/teardown-subdomains.sh
-```
-
-or
-
-```powershell
-.\local\env\simulatedev\teardown-subdomains.ps1
-```
-
-The helper runs an Nginx reverse proxy in Docker and updates the hosts file with managed entries. QnA hostnames are the product URLs. Use elevated privileges because hosts-file updates are mandatory.
+The helper runs an Nginx reverse proxy in Docker and updates the hosts file with managed entries. Use elevated privileges because hosts-file updates are mandatory.
 
 ## Auth0 and local login
 
 Protected APIs and the Portal frontend expect Auth0-based JWT flows.
 
-Local callbacks commonly needed:
+Local Swagger UI callbacks commonly needed:
 
-- Swagger UI:
-  - `http://localhost:5000/swagger/oauth2-redirect.html`
-  - `http://localhost:5002/swagger/oauth2-redirect.html`
-  - `http://localhost:5010/swagger/oauth2-redirect.html`
-- Portal SPA:
-  - `http://localhost:5500/login`
-  - `http://dev.portal.basefaq.com/login` if the local subdomain helper is active
+- `http://localhost:5000/swagger/oauth2-redirect.html`
+- `http://localhost:5002/swagger/oauth2-redirect.html`
+- `http://localhost:5010/swagger/oauth2-redirect.html`
+
+For the Portal SPA callbacks and logout URLs, see [`../../frontend/tools/portal-runtime.md`](../../frontend/tools/portal-runtime.md).
 
 ## Common problems
 
@@ -250,7 +218,7 @@ Stop base services:
 docker compose -p bf_baseservices -f docker/docker-compose.baseservices.yml down
 ```
 
-Stop app/API containers:
+Stop app and API containers:
 
 ```bash
 docker compose -p bf_services -f docker/docker-compose.yml down

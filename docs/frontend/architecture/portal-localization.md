@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This document explains how `apps/portal` resolves language, applies RTL/LTR, and keeps Portal UI translations owned by the frontend.
+This document explains how `apps/portal` resolves language, applies RTL or LTR, and keeps Portal UI translations owned by the frontend.
 
 ## Language source of truth
 
@@ -11,7 +11,7 @@ The Portal language is resolved in this order:
 1. `User.Language` from the Tenant Portal profile endpoint, when available for the authenticated user
 2. the locally stored Portal language in `localStorage` under `basefaq.portal.language`
 3. browser language
-4. English (`en-US`)
+4. English `en-US`
 
 On unauthenticated routes such as `/login`, there is no profile lookup, so the login experience resolves language from local storage first, then the browser language, then English.
 
@@ -38,7 +38,7 @@ That file contains the 20 built-in language options used by the Portal UI, with:
 - `label`
 - `direction`
 
-## RTL / LTR behavior
+## RTL and LTR behavior
 
 `apps/portal/src/shared/lib/i18n-provider.tsx` applies:
 
@@ -78,7 +78,7 @@ Portal translations are frontend-owned:
 When adding new Portal UI copy:
 
 1. add the key to `en-US.json`
-2. keep the other 19 locale JSON files aligned with the same key set
+2. keep the other locale JSON files aligned with the same key set
 3. route the UI copy through the Portal translation helpers
 4. avoid moving translated presentation strings into backend DTOs
 

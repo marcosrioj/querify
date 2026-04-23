@@ -16,19 +16,19 @@ Current responsibilities:
 
 The worker follows the same pattern as the rest of the solution: a thin host wires self-contained business modules.
 
-```
-BaseFaq.Tenant.Worker.Api          — host entry point only (Program.cs, session service, wiring)
-BaseFaq.Tenant.Worker.Business.Billing  — billing webhook processing (hosted service, processor, handler, options)
-BaseFaq.Tenant.Worker.Business.Email    — email outbox processing (hosted service, processor, handler, options)
+```text
+BaseFaq.Tenant.Worker.Api               host entry point only (Program.cs, session service, wiring)
+BaseFaq.Tenant.Worker.Business.Billing  billing webhook processing (hosted service, processor, handler, options)
+BaseFaq.Tenant.Worker.Business.Email    email outbox processing (hosted service, processor, handler, options)
 ```
 
 ### Worker.Api
 
 Contains only:
 
-- `Program.cs` — generic host bootstrap, telemetry registration, `AddTenantWorkerFeatures(...)`
-- `Infrastructure/TenantWorkerSessionService.cs` — session stub (no request-bound tenant context)
-- `Extensions/ServiceCollectionExtensions.cs` — calls `AddBillingBusiness(...)` and `AddEmailBusiness(...)`
+- `Program.cs`: generic host bootstrap, telemetry registration, `AddTenantWorkerFeatures(...)`
+- `Infrastructure/TenantWorkerSessionService.cs`: session stub with no request-bound tenant context
+- `Extensions/ServiceCollectionExtensions.cs`: calls `AddBillingBusiness(...)` and `AddEmailBusiness(...)`
 
 ### Business.Billing
 
@@ -37,14 +37,14 @@ Fully self-contained billing processing module:
 - `Abstractions/IBillingWebhookInboxProcessor.cs`
 - `Abstractions/IBillingProvider.cs`, `IBillingProviderResolver.cs`, `IBillingWebhookDispatcher.cs`, `IBillingWebhookEventHandler.cs`
 - `Abstractions/WorkItemExecutionResult.cs`
-- `Commands/DispatchBillingWebhookInbox/` — MediatR command and handler
-- `EventHandlers/` — normalized billing event handlers for Stripe foundation events
+- `Commands/DispatchBillingWebhookInbox/`: MediatR command and handler
+- `EventHandlers/`: normalized billing event handlers for Stripe foundation events
 - `HostedServices/BillingWebhookInboxProcessorHostedService.cs`
-- `Infrastructure/BillingWorkerTelemetry.cs` — activity source (`BaseFaq.Tenant.Worker.Billing`)
-- `Models/` — provider-agnostic normalized billing webhook event model
+- `Infrastructure/BillingWorkerTelemetry.cs`: activity source `BaseFaq.Tenant.Worker.Billing`
+- `Models/`: provider-agnostic normalized billing webhook event model
 - `Options/BillingProcessingOptions.cs`, `StripeBillingOptions.cs`
 - `Services/BillingWebhookInboxProcessor.cs`, `BillingStateService.cs`, `BillingTenantResolver.cs`, `StripeBillingProvider.cs`, `StripeWebhookEventMapper.cs`
-- `Extensions/ServiceCollectionExtensions.cs` — `AddBillingBusiness(config)` registers everything
+- `Extensions/ServiceCollectionExtensions.cs`: `AddBillingBusiness(config)` registers everything
 
 ### Business.Email
 
@@ -52,12 +52,12 @@ Fully self-contained email processing module:
 
 - `Abstractions/IEmailOutboxProcessor.cs`
 - `Abstractions/WorkItemExecutionResult.cs`
-- `Commands/SendEmailOutbox/` — MediatR command and handler
+- `Commands/SendEmailOutbox/`: MediatR command and handler
 - `HostedServices/EmailOutboxProcessorHostedService.cs`
-- `Infrastructure/EmailWorkerTelemetry.cs` — activity source (`BaseFaq.Tenant.Worker.Email`)
+- `Infrastructure/EmailWorkerTelemetry.cs`: activity source `BaseFaq.Tenant.Worker.Email`
 - `Options/EmailProcessingOptions.cs`, `EmailDeliveryOptions.cs`
 - `Services/EmailOutboxProcessor.cs`
-- `Extensions/ServiceCollectionExtensions.cs` — `AddEmailBusiness(config)` registers everything
+- `Extensions/ServiceCollectionExtensions.cs`: `AddEmailBusiness(config)` registers everything
 
 ## Architectural boundaries
 
@@ -72,9 +72,9 @@ The worker intentionally uses a non-request session implementation because these
 Each processor follows the same optimistic-locking pattern:
 
 1. Query `Pending` records where `NextAttemptDateUtc` and `LockedUntilDateUtc` are elapsed.
-2. Claim items one-by-one with `ExecuteUpdateAsync` using a `ProcessingToken` GUID as an optimistic lock.
+2. Claim items one-by-one with `ExecuteUpdateAsync` using a `ProcessingToken` `Guid` as an optimistic lock.
 3. Send a MediatR command for each claimed item.
-4. On success → mark `Completed`. On exception → schedule retry with backoff. On terminal failure → mark `Failed`.
+4. On success, mark `Completed`. On exception, schedule retry with backoff. On terminal failure, mark `Failed`.
 
 The hosted service polls in a loop: if items were processed it immediately loops again; if the batch was empty it waits for `PollingInterval`.
 
@@ -94,11 +94,12 @@ docker compose -p bf_services -f docker/docker-compose.yml up -d --build basefaq
 
 ## Feature: Billing webhook inbox processor
 
-Hosted service: `BillingWebhookInboxProcessorHostedService` (in `Business.Billing`)
+Hosted service: `BillingWebhookInboxProcessorHostedService` in `Business.Billing`
 
 Processing flow:
+
 - polls `TenantDbContext.BillingWebhookInboxes`
-- checks that the table exists before polling (safe before migrations are applied)
+- checks that the table exists before polling, which is safe before migrations are applied
 - claims work in batches using status plus lease fields for multi-instance-safe processing
 - sends `DispatchBillingWebhookInboxCommand` via MediatR
 - resolves the billing provider and normalizes the persisted webhook payload into internal billing event kinds
@@ -141,9 +142,10 @@ Configuration:
 
 ## Feature: Email outbox processor
 
-Hosted service: `EmailOutboxProcessorHostedService` (in `Business.Email`)
+Hosted service: `EmailOutboxProcessorHostedService` in `Business.Email`
 
 Processing flow:
+
 - polls `TenantDbContext.EmailOutboxes`
 - checks that the table exists before polling
 - claims work in batches with lease-based processing markers
@@ -151,7 +153,7 @@ Processing flow:
 - records retries, failures, and completion timestamps
 - disabled by default in `appsettings.json` until the persistence model and real delivery handler are ready
 
-What is intentionally not implemented yet (handler is a placeholder):
+What is intentionally not implemented yet, because the handler is still a placeholder:
 
 - SMTP delivery implementation
 - provider failover
@@ -191,29 +193,31 @@ Relevant settings:
 
 ## Sample data
 
-The seed tool (`BaseFaq.Tools.Seed`) includes realistic billing sample data for local development, demos, QA, and integration tests.
+The seed tool, `BaseFaq.Tools.Seed`, includes realistic billing sample data for local development, demos, QA, and integration tests.
 
 Running option `1` or `3` from the seed tool menu seeds five billing scenarios in `TenantDb`:
 
-- **NorthPeak Analytics** — Pro monthly, Active. Two paid invoices. Use to validate healthy subscription flows and BackOffice billing views.
-- **Pacific Trail Studio** — Starter monthly, Trialing. No payment yet, trial active. Use to validate trial entitlement logic.
-- **MapleForge Media** — Pro monthly, PastDue. Latest payment failed (`card_declined`), in grace period. Use to validate past-due flows and failed payment screens.
-- **Aurora Clinic Systems** — Pro yearly, Canceled. Historical invoice and payment exist. Entitlement inactive. Use to validate cancellation flows.
-- **BlueHarbor Legal** — Business monthly, Active. Primary tenant for webhook and email outbox demo rows.
+- **NorthPeak Analytics**: Pro monthly, Active. Two paid invoices. Use to validate healthy subscription flows and BackOffice billing views.
+- **Pacific Trail Studio**: Starter monthly, Trialing. No payment yet, trial active. Use to validate trial entitlement logic.
+- **MapleForge Media**: Pro monthly, PastDue. Latest payment failed, in grace period. Use to validate past-due flows and failed payment screens.
+- **Aurora Clinic Systems**: Pro yearly, Canceled. Historical invoice and payment exist. Entitlement inactive. Use to validate cancellation flows.
+- **BlueHarbor Legal**: Business monthly, Active. Primary tenant for webhook and email outbox demo rows.
 
 Webhook inbox sample rows:
-- `checkout.session.completed` — Completed
-- `customer.subscription.updated` — Completed
-- `invoice.payment_failed` — Failed with error (for BackOffice troubleshooting)
-- `invoice.paid` — Pending (for worker processing demos)
-- `customer.subscription.deleted` — Completed
+
+- `checkout.session.completed`: Completed
+- `customer.subscription.updated`: Completed
+- `invoice.payment_failed`: Failed with error for BackOffice troubleshooting
+- `invoice.paid`: Pending for worker processing demos
+- `customer.subscription.deleted`: Completed
 
 Email outbox sample rows:
-- Invoice receipt for BlueHarbor — Pending
-- Payment failure notification for MapleForge — Completed
-- Trial payment method reminder for PacificTrail — Failed, retryable
 
-All billing seed IDs are deterministic (fixed GUIDs), making the data suitable for integration tests.
+- Invoice receipt for BlueHarbor: Pending
+- Payment failure notification for MapleForge: Completed
+- Trial payment method reminder for Pacific Trail: Failed and retryable
+
+All billing seed ids are deterministic fixed `Guid`s, making the data suitable for integration tests.
 
 ## Manual migration requirements
 

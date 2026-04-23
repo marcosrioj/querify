@@ -10,17 +10,17 @@ The repository root contains one primary `.NET` solution file, `BaseFaq.sln`. It
 
 | Delivery root | Responsibility |
 |---|---|
-| `apps/portal` | Tenant-facing web application for authenticated workspace flows |
+| `apps/portal` | tenant-facing web application for authenticated workspace flows |
 | `dotnet` | API hosts, business modules, persistence projects, shared infrastructure, tests, and console tools |
-| `docker` | Local base services and containerized app/API runtime |
-| `local` | Local-only helpers such as reverse proxy and subdomain simulation |
-| `docs` | Architecture, operations, developer workflows, and standards |
+| `docker` | local base services and containerized app/API runtime |
+| `local` | local-only helpers such as reverse proxy and subdomain simulation |
+| `docs` | architecture, operations, developer workflows, and standards |
 
 ## Runtime surfaces
 
 | Surface | Role | Local port |
 |---|---|---:|
-| `apps/portal` | Authenticated tenant portal frontend | `5500` |
+| `apps/portal` | authenticated tenant portal frontend | `5500` |
 | `BaseFaq.Tenant.BackOffice.Api` | back-office tenant and user administration | `5000` |
 | `BaseFaq.Tenant.Portal.Api` | tenant workspace management APIs | `5002` |
 | `BaseFaq.Tenant.Public.Api` | public tenant ingress APIs such as Stripe webhooks | `5004` |
@@ -77,7 +77,7 @@ Write and read paths are separated through commands and queries. The usual flow 
 3. The service dispatches a MediatR command or query.
 4. The handler executes validation, persistence, and event publication.
 
-The write-side rules are formalized in [`../standards/solution-cqrs-write-rules.md`](../standards/solution-cqrs-write-rules.md).
+The write-side rules are formalized in [`solution-cqrs-write-rules.md`](solution-cqrs-write-rules.md).
 
 ### 4. Controllers stay thin
 
@@ -92,7 +92,7 @@ They should not contain read-after-write orchestration, persistence logic, or cr
 
 ### 5. Persistence is explicitly split by database responsibility
 
-BaseFAQ uses three important EF Core contexts:
+BaseFAQ uses two important EF Core contexts:
 
 | Context | Responsibility |
 |---|---|
@@ -160,7 +160,7 @@ The testing strategy is documented in [`../testing/integration-testing-strategy.
 2. The frontend calls a protected API with a bearer token.
 3. Tenant-scoped requests include `X-Tenant-Id`.
 4. The API host resolves session and tenant context.
-5. A business module executes the command or query against the correct DbContext.
+5. A business module executes the command or query against the correct `DbContext`.
 
 ### Public QnA flow
 
@@ -178,6 +178,7 @@ The testing strategy is documented in [`../testing/integration-testing-strategy.
 
 ## Practical guidance for contributors
 
+- Use [`../../execution-guide.md`](../../execution-guide.md) first when you need to choose the correct workflow or owning documentation boundary.
 - Preserve the existing composition-root pattern in API hosts.
 - Add new business features under the appropriate bounded-context module instead of enlarging unrelated projects.
 - Keep write flows simple and aligned with the CQRS rules.

@@ -23,9 +23,11 @@ The repository currently contains these backend-facing automated test projects:
 - `BaseFaq.QnA.Public.Test.IntegrationTests`
 - `BaseFaq.Tenant.BackOffice.Test.IntegrationTests`
 - `BaseFaq.Tenant.Portal.Test.IntegrationTests`
+- `BaseFaq.Tenant.Public.Test.IntegrationTests`
+- `BaseFaq.Tenant.Worker.Test.IntegrationTests`
 - `BaseFaq.Common.Architecture.Test.IntegrationTest`
 
-The first four focus on service behavior. The architecture test project enforces repository rules such as the write-side contract expectations from `PROJECT_RULES.md`.
+The first six focus on service behavior. The architecture test project enforces repository rules such as the write-side contract expectations from [`../architecture/repository-rules.md`](../architecture/repository-rules.md).
 
 ## What counts as an integration test here
 
@@ -35,6 +37,7 @@ An integration test should verify at least two real components working together,
 - middleware plus auth/session context plus persistence
 - controller plus tenant resolution plus database state
 - event publication plus consumer execution
+- worker processor plus retry and lease state plus persistence
 
 What it is not:
 
@@ -50,7 +53,7 @@ The current test suite is strongest on:
 - tenant-aware persistence rules
 - soft-delete and filter behavior
 - background worker and platform-flow integration coverage
-- repository rule-compliance checks for command/write conventions
+- repository rule-compliance checks for command and write conventions
 
 ## Current weaker areas
 
@@ -74,7 +77,7 @@ The weaker areas are still:
 
 ## Execution tiers
 
-### PR / CI tier
+### PR and CI tier
 
 Use this tier for fast, deterministic checks that should block merges.
 
@@ -84,6 +87,7 @@ Focus:
 - command and query correctness
 - tenant isolation
 - critical auth and negative-path coverage
+- architecture compliance tests
 
 ### Nightly tier
 
@@ -129,6 +133,8 @@ dotnet test dotnet/BaseFaq.QnA.Portal.Test.IntegrationTests/BaseFaq.QnA.Portal.T
 dotnet test dotnet/BaseFaq.QnA.Public.Test.IntegrationTests/BaseFaq.QnA.Public.Test.IntegrationTests.csproj
 dotnet test dotnet/BaseFaq.Tenant.BackOffice.Test.IntegrationTests/BaseFaq.Tenant.BackOffice.Test.IntegrationTests.csproj
 dotnet test dotnet/BaseFaq.Tenant.Portal.Test.IntegrationTests/BaseFaq.Tenant.Portal.Test.IntegrationTests.csproj
+dotnet test dotnet/BaseFaq.Tenant.Public.Test.IntegrationTests/BaseFaq.Tenant.Public.Test.IntegrationTests.csproj
+dotnet test dotnet/BaseFaq.Tenant.Worker.Test.IntegrationTests/BaseFaq.Tenant.Worker.Test.IntegrationTests.csproj
 ```
 
 Run the architecture rules suite:
@@ -163,6 +169,6 @@ dotnet test dotnet/BaseFaq.Common.Architecture.Test.IntegrationTest/BaseFaq.Comm
 
 ## Related documents
 
-- [`../backend/dotnet-backend-overview.md`](../backend/dotnet-backend-overview.md)
-- [`../standards/solution-cqrs-write-rules.md`](../standards/solution-cqrs-write-rules.md)
-- [`../../PROJECT_RULES.md`](../../PROJECT_RULES.md)
+- [`../architecture/dotnet-backend-overview.md`](../architecture/dotnet-backend-overview.md)
+- [`../architecture/solution-cqrs-write-rules.md`](../architecture/solution-cqrs-write-rules.md)
+- [`../architecture/repository-rules.md`](../architecture/repository-rules.md)
