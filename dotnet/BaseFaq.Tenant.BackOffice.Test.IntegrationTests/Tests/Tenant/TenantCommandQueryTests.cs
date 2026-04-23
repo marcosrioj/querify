@@ -1,3 +1,4 @@
+using BaseFaq.Common.Architecture.Test.IntegrationTest.Shared.Tenancy;
 using BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception;
 using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.Tenant.Dtos.Tenant;
@@ -29,7 +30,7 @@ public class TenantCommandQueryTests
             Name = "Tenant One",
             Edition = TenantEdition.Free,
             App = AppEnum.QnA,
-            ConnectionString = "Host=host.docker.internal;Database=tenant;Username=tenant;Password=tenant;",
+            ConnectionString = IntegrationTestConnectionStrings.QnA,
             IsActive = true,
             UserId = userId
         };
@@ -66,7 +67,7 @@ public class TenantCommandQueryTests
             Slug = "new",
             Name = "New",
             Edition = TenantEdition.Enterprise,
-            ConnectionString = "Host=host.docker.internal;Database=updated;Username=tenant;Password=tenant;",
+            ConnectionString = IntegrationTestConnectionStrings.CreateNamed("updated"),
             IsActive = false,
             UserId = updatedUserId
         };
@@ -100,7 +101,7 @@ public class TenantCommandQueryTests
             Slug = "missing",
             Name = "Missing",
             Edition = TenantEdition.Free,
-            ConnectionString = "Host=host.docker.internal;Database=missing;Username=tenant;Password=tenant;",
+            ConnectionString = IntegrationTestConnectionStrings.CreateNamed("missing"),
             IsActive = true,
             UserId = userId
         };
@@ -237,13 +238,13 @@ public class TenantCommandQueryTests
             id: Guid.Parse("00000000-0000-0000-0000-000000000010"),
             slug: "b-slug",
             name: "Same",
-            connectionString: "Host=host.docker.internal;Database=a;Username=tenant;Password=tenant;");
+            connectionString: IntegrationTestConnectionStrings.CreateNamed("a"));
         var tenantB = await TestDataFactory.SeedTenantAsync(
             context.DbContext,
             id: Guid.Parse("00000000-0000-0000-0000-000000000011"),
             slug: "a-slug",
             name: "Same",
-            connectionString: "Host=host.docker.internal;Database=b;Username=tenant;Password=tenant;");
+            connectionString: IntegrationTestConnectionStrings.CreateNamed("b"));
 
         var handler = new TenantsGetTenantListQueryHandler(context.DbContext);
         var request = new TenantsGetTenantListQuery
@@ -277,7 +278,7 @@ public class TenantCommandQueryTests
             Name = "Duplicate",
             Edition = TenantEdition.Free,
             App = AppEnum.QnA,
-            ConnectionString = "Host=host.docker.internal;Database=dup;Username=tenant;Password=tenant;",
+            ConnectionString = IntegrationTestConnectionStrings.CreateNamed("dup"),
             IsActive = true,
             UserId = userId
         };

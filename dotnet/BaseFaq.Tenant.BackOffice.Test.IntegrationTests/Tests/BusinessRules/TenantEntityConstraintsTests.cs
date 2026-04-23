@@ -1,3 +1,4 @@
+using BaseFaq.Common.Architecture.Test.IntegrationTest.Shared.Tenancy;
 using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.Tenant.Enums;
 using BaseFaq.Tenant.BackOffice.Test.IntegrationTests.Helpers;
@@ -17,14 +18,14 @@ public class TenantEntityConstraintsTests
             context.DbContext,
             slug: "unique-slug",
             name: "Tenant A",
-            connectionString: "Host=host.docker.internal;Database=a;Username=tenant;Password=tenant;");
+            connectionString: IntegrationTestConnectionStrings.CreateNamed("a"));
 
         await Assert.ThrowsAsync<DbUpdateException>(() =>
             TestDataFactory.SeedTenantAsync(
                 context.DbContext,
                 slug: "unique-slug",
                 name: "Tenant B",
-                connectionString: "Host=host.docker.internal;Database=b;Username=tenant;Password=tenant;"));
+                connectionString: IntegrationTestConnectionStrings.CreateNamed("b")));
     }
 
     [Fact]

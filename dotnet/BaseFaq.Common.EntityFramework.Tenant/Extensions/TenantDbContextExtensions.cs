@@ -5,6 +5,9 @@ namespace BaseFaq.Common.EntityFramework.Tenant.Extensions;
 
 public static class TenantDbContextExtensions
 {
+    private const string SqliteProviderName = "Microsoft.EntityFrameworkCore.Sqlite";
+    private const string NpgsqlProviderName = "Npgsql.EntityFrameworkCore.PostgreSQL";
+
     public static async Task<bool> TableExistsAsync(
         this TenantDbContext dbContext,
         string tableName,
@@ -21,15 +24,46 @@ public static class TenantDbContextExtensions
         try
         {
             await using var command = connection.CreateCommand();
-            command.CommandText = "select to_regclass(@tableName) is not null";
-
+            var providerName = dbContext.Database.ProviderName;
             var parameter = command.CreateParameter();
             parameter.ParameterName = "tableName";
-            parameter.Value = $"public.\"{tableName}\"";
+
+            if (string.Equals(providerName, SqliteProviderName, StringComparison.Ordinal))
+            {
+                command.CommandText = """
+                                      select exists(
+                                          select 1
+                                          from sqlite_master
+                                          where type = 'table' and name = @tableName
+                                      )
+                                      """;
+                parameter.Value = tableName;
+            }
+            else if (string.Equals(providerName, NpgsqlProviderName, StringComparison.Ordinal))
+            {
+                command.CommandText = "select to_regclass(@tableName) is not null";
+                parameter.Value = $"public.\"{tableName}\"";
+            }
+            else
+            {
+                command.CommandText = """
+                                      select count(*)
+                                      from information_schema.tables
+                                      where table_name = @tableName
+                                      """;
+                parameter.Value = tableName;
+            }
+
             command.Parameters.Add(parameter);
 
             var result = await command.ExecuteScalarAsync(cancellationToken);
-            return result is bool exists && exists;
+            return result switch
+            {
+                bool exists => exists,
+                long count => count > 0,
+                int count => count > 0,
+                _ => false
+            };
         }
         finally
         {

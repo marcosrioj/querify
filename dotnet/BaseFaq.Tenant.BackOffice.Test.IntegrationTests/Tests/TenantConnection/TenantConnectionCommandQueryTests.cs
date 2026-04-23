@@ -1,3 +1,4 @@
+using BaseFaq.Common.Architecture.Test.IntegrationTest.Shared.Tenancy;
 using BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception;
 using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.Tenant.Dtos.TenantConnection;
@@ -22,7 +23,7 @@ public class TenantConnectionCommandQueryTests
         var request = new TenantConnectionsCreateTenantConnectionCommand
         {
             App = AppEnum.Tenant,
-            ConnectionString = "Host=host.docker.internal;Database=tenant;Username=tenant;Password=tenant;",
+            ConnectionString = IntegrationTestConnectionStrings.Tenant,
             IsCurrent = true
         };
 
@@ -46,7 +47,7 @@ public class TenantConnectionCommandQueryTests
         {
             Id = connection.Id,
             App = AppEnum.Tenant,
-            ConnectionString = "Host=host.docker.internal;Database=updated;Username=tenant;Password=tenant;",
+            ConnectionString = IntegrationTestConnectionStrings.CreateNamed("updated"),
             IsCurrent = false
         };
 
@@ -68,7 +69,7 @@ public class TenantConnectionCommandQueryTests
         {
             Id = Guid.NewGuid(),
             App = AppEnum.QnA,
-            ConnectionString = "Host=host.docker.internal;Database=missing;Username=tenant;Password=tenant;",
+            ConnectionString = IntegrationTestConnectionStrings.CreateNamed("missing"),
             IsCurrent = true
         };
 
@@ -203,14 +204,14 @@ public class TenantConnectionCommandQueryTests
         {
             Id = Guid.Parse("00000000-0000-0000-0000-000000000021"),
             App = AppEnum.QnA,
-            ConnectionString = "Host=host.docker.internal;Database=a;Username=tenant;Password=tenant;",
+            ConnectionString = IntegrationTestConnectionStrings.CreateNamed("a"),
             IsCurrent = false
         };
         var connectionB = new BaseFaq.Common.EntityFramework.Tenant.Entities.TenantConnection
         {
             Id = Guid.Parse("00000000-0000-0000-0000-000000000022"),
             App = AppEnum.QnA,
-            ConnectionString = "Host=host.docker.internal;Database=b;Username=tenant;Password=tenant;",
+            ConnectionString = IntegrationTestConnectionStrings.CreateNamed("b"),
             IsCurrent = true
         };
 

@@ -1,3 +1,4 @@
+using BaseFaq.Common.Architecture.Test.IntegrationTest.Shared.Tenancy;
 using BaseFaq.Common.EntityFramework.Tenant;
 using BaseFaq.Common.EntityFramework.Tenant.Entities;
 using BaseFaq.Common.EntityFramework.Tenant.Helpers;
@@ -32,8 +33,7 @@ public static class TestDataFactory
             Name = name ?? "Default Tenant",
             Edition = edition,
             App = app,
-            ConnectionString = connectionString ??
-                               "Host=host.docker.internal;Database=tenant;Username=tenant;Password=tenant;",
+            ConnectionString = connectionString ?? IntegrationTestConnectionStrings.QnA,
             ClientKey = clientKey,
             IsActive = isActive
         };
@@ -53,8 +53,7 @@ public static class TestDataFactory
         var tenantConnection = new TenantConnection
         {
             App = app,
-            ConnectionString = connectionString ??
-                               "Host=host.docker.internal;Database=tenant;Username=tenant;Password=tenant;",
+            ConnectionString = connectionString ?? IntegrationTestConnectionStrings.QnA,
             IsCurrent = isCurrent
         };
 

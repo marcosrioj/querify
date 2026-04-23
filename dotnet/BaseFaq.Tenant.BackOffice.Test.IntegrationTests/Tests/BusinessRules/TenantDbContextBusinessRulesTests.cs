@@ -1,3 +1,4 @@
+using BaseFaq.Common.Architecture.Test.IntegrationTest.Shared.Tenancy;
 using BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception;
 using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.User.Enums;
@@ -42,7 +43,7 @@ public class TenantDbContextBusinessRulesTests
         using var context = TestContext.Create();
         var tenant = await TestDataFactory.SeedTenantAsync(
             context.DbContext,
-            connectionString: "Host=host.docker.internal;Database=tenant;Username=tenant;Password=tenant;",
+            connectionString: IntegrationTestConnectionStrings.QnA,
             isActive: true);
 
         var result = await context.DbContext.GetTenantConnectionString(tenant.Id);

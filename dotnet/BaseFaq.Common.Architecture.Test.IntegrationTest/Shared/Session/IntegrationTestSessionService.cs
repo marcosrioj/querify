@@ -1,11 +1,12 @@
 using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Models.Common.Enums;
 
-namespace BaseFaq.QnA.Public.Test.IntegrationTests.Helpers;
+namespace BaseFaq.Common.Architecture.Test.IntegrationTest.Shared.Session;
 
-public sealed class TestSessionService(Guid tenantId, Guid userId) : ISessionService
+public sealed class IntegrationTestSessionService(Guid tenantId, Guid userId) : ISessionService
 {
     public Guid TenantId { get; } = tenantId;
+
     public Guid UserId { get; } = userId;
 
     public Guid GetTenantId(AppEnum app)

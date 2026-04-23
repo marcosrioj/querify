@@ -1,3 +1,4 @@
+using BaseFaq.Common.Architecture.Test.IntegrationTest.Shared.Tenancy;
 using BaseFaq.Common.EntityFramework.Tenant.Providers;
 using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.Tenant.Enums;
@@ -56,7 +57,7 @@ public class TenantCommandQueryTests
         await TestDataFactory.SeedTenantConnectionAsync(
             context.DbContext,
             app: AppEnum.QnA,
-            connectionString: "Host=host.docker.internal;Database=qnadb;Username=tenant;Password=tenant;",
+            connectionString: IntegrationTestConnectionStrings.QnA,
             isCurrent: true);
 
         var handler = new TenantsCreateOrUpdateTenantsCommandHandler(
@@ -83,8 +84,7 @@ public class TenantCommandQueryTests
         Assert.Equal("Portal Tenant", tenant!.Name);
         Assert.Equal(TenantEdition.Free, tenant.Edition);
         Assert.Equal(AppEnum.QnA, tenant.App);
-        Assert.Equal("Host=host.docker.internal;Database=qnadb;Username=tenant;Password=tenant;",
-            tenant.ConnectionString);
+        Assert.Equal(IntegrationTestConnectionStrings.QnA, tenant.ConnectionString);
         Assert.True(tenant.IsActive);
         Assert.Equal("portaltenantqna", tenant.Slug);
     }
@@ -101,7 +101,7 @@ public class TenantCommandQueryTests
         await TestDataFactory.SeedTenantConnectionAsync(
             context.DbContext,
             app: AppEnum.QnA,
-            connectionString: "Host=host.docker.internal;Database=newdb;Username=tenant;Password=tenant;",
+            connectionString: IntegrationTestConnectionStrings.CreateNamed("newdb"),
             isCurrent: true);
 
         var existing = await TestDataFactory.SeedTenantAsync(
@@ -111,7 +111,7 @@ public class TenantCommandQueryTests
             name: "Old Name",
             edition: TenantEdition.Free,
             app: AppEnum.QnA,
-            connectionString: "Host=host.docker.internal;Database=olddb;Username=tenant;Password=tenant;",
+            connectionString: IntegrationTestConnectionStrings.CreateNamed("olddb"),
             isActive: true,
             userId: currentUserId);
 
@@ -136,8 +136,7 @@ public class TenantCommandQueryTests
         Assert.Equal("newnameqna", updated.Slug);
         Assert.Equal("New Name", updated.Name);
         Assert.Equal(TenantEdition.Enterprise, updated.Edition);
-        Assert.Equal("Host=host.docker.internal;Database=newdb;Username=tenant;Password=tenant;",
-            updated.ConnectionString);
+        Assert.Equal(IntegrationTestConnectionStrings.CreateNamed("newdb"), updated.ConnectionString);
         Assert.True(updated.IsActive);
     }
 
@@ -150,7 +149,7 @@ public class TenantCommandQueryTests
         await TestDataFactory.SeedTenantConnectionAsync(
             context.DbContext,
             app: AppEnum.QnA,
-            connectionString: "Host=host.docker.internal;Database=old;Username=tenant;Password=tenant;",
+            connectionString: IntegrationTestConnectionStrings.CreateNamed("old"),
             isCurrent: false);
 
         var handler = new TenantsCreateOrUpdateTenantsCommandHandler(
@@ -206,7 +205,7 @@ public class TenantCommandQueryTests
         await TestDataFactory.SeedTenantConnectionAsync(
             context.DbContext,
             app: AppEnum.QnA,
-            connectionString: "Host=host.docker.internal;Database=qnadb;Username=tenant;Password=tenant;",
+            connectionString: IntegrationTestConnectionStrings.QnA,
             isCurrent: true);
 
         await TestDataFactory.SeedTenantAsync(
