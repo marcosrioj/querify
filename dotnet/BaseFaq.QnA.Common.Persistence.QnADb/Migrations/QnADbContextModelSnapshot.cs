@@ -18,7 +18,7 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .UseCollation("Latin1_General_100_CI_AS_SC_UTF8")
-                .HasAnnotation("ProductVersion", "10.0.6")
+                .HasAnnotation("ProductVersion", "10.0.7")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -332,9 +332,6 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
-
-                    b.Property<int>("Kind")
-                        .HasColumnType("integer");
 
                     b.Property<string>("Language")
                         .HasMaxLength(50)
@@ -677,9 +674,6 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
                     b.Property<DateTime?>("LastValidatedAtUtc")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("ModerationPolicy")
-                        .HasColumnType("integer");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -689,14 +683,11 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
+                    b.Property<int>("ProductSurface")
+                        .HasColumnType("integer");
+
                     b.Property<DateTime?>("PublishedAtUtc")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<bool>("RequiresAnswerReview")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("RequiresQuestionReview")
-                        .HasColumnType("boolean");
 
                     b.Property<int>("SearchMarkupMode")
                         .HasColumnType("integer");
