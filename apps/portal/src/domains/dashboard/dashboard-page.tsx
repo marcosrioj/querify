@@ -531,7 +531,7 @@ export function DashboardPage() {
 
         <DashboardSection
           title="Recent spaces"
-          description="Spaces drive visibility, moderation, and curated source policy."
+          description="Spaces drive product surface, operating mode, visibility, and curated source policy."
           action={{ label: 'Open spaces', to: '/app/spaces' }}
         >
           {recentSpaces.length ? (
@@ -541,7 +541,7 @@ export function DashboardPage() {
           ) : (
             <EmptyState
               title="No spaces yet"
-              description="Create a space to define exposure, moderation, and curated source rules."
+              description="Create a space to define product surface, operating mode, exposure, and curated source rules."
               action={{ label: 'Create first space', to: '/app/spaces/new' }}
             />
           )}
@@ -627,7 +627,7 @@ export function DashboardPage() {
             </p>
             <p className="text-sm text-muted-foreground">
               {translateText(
-                'Spaces define the surface, questions drive workflow, answers hold publication state, sources ground evidence, and activity captures moderation plus public signals.',
+                'Spaces define the product surface, questions drive workflow, answers hold publication state, sources ground evidence, and activity captures moderation plus public signals.',
               )}
             </p>
           </div>

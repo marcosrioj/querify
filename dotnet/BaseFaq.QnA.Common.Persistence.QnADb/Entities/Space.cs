@@ -38,19 +38,19 @@ public class Space : BaseEntity, IMustHaveTenant
     public required string DefaultLanguage { get; set; }
 
     /// <summary>
-    ///     Functional kind of the space, such as curated knowledge or community.
+    ///     Operating mode for controlled publication, moderated collaboration, or public validation.
     /// </summary>
     public required SpaceKind Kind { get; set; }
+
+    /// <summary>
+    ///     Product surface this space primarily supports.
+    /// </summary>
+    public required QnAProductSurface ProductSurface { get; set; }
 
     /// <summary>
     ///     Visibility scope for the space.
     /// </summary>
     public required VisibilityScope Visibility { get; set; }
-
-    /// <summary>
-    ///     Moderation policy applied to the space workflow.
-    /// </summary>
-    public required ModerationPolicy ModerationPolicy { get; set; }
 
     /// <summary>
     ///     Controls markup behavior for search and indexable surfaces.
@@ -76,16 +76,6 @@ public class Space : BaseEntity, IMustHaveTenant
     ///     Indicates whether the space accepts answers.
     /// </summary>
     public required bool AcceptsAnswers { get; set; }
-
-    /// <summary>
-    ///     Defines whether new questions require review before moving through the workflow.
-    /// </summary>
-    public required bool RequiresQuestionReview { get; set; }
-
-    /// <summary>
-    ///     Defines whether new answers require review before exposure.
-    /// </summary>
-    public required bool RequiresAnswerReview { get; set; }
 
     /// <summary>
     ///     Timestamp when the space was published for consumption.

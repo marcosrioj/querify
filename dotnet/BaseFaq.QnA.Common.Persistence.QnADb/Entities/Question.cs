@@ -43,11 +43,6 @@ public class Question : BaseEntity, IMustHaveTenant
     public string? ContextNote { get; set; }
 
     /// <summary>
-    ///     Functional classification of the question.
-    /// </summary>
-    public required QuestionKind Kind { get; set; }
-
-    /// <summary>
     ///     Current workflow state of the question.
     /// </summary>
     public required QuestionStatus Status { get; set; }

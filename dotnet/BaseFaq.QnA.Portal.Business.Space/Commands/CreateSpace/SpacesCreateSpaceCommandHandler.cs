@@ -26,13 +26,11 @@ public sealed class SpacesCreateSpaceCommandHandler(
             Key = request.Request.Key,
             DefaultLanguage = request.Request.DefaultLanguage,
             Kind = request.Request.Kind,
+            ProductSurface = request.Request.ProductSurface,
             Visibility = request.Request.Visibility,
-            ModerationPolicy = request.Request.ModerationPolicy,
             SearchMarkupMode = request.Request.SearchMarkupMode,
             AcceptsQuestions = request.Request.AcceptsQuestions,
             AcceptsAnswers = request.Request.AcceptsAnswers,
-            RequiresQuestionReview = request.Request.RequiresQuestionReview,
-            RequiresAnswerReview = request.Request.RequiresAnswerReview,
             CreatedBy = userId,
             UpdatedBy = userId
         };
@@ -55,12 +53,10 @@ public sealed class SpacesCreateSpaceCommandHandler(
         entity.Summary = request.Summary;
         entity.ProductScope = request.ProductScope;
         entity.JourneyScope = request.JourneyScope;
-        entity.ModerationPolicy = request.ModerationPolicy;
         entity.AcceptsQuestions = request.AcceptsQuestions;
         entity.AcceptsAnswers = request.AcceptsAnswers;
-        entity.RequiresQuestionReview = request.RequiresQuestionReview;
-        entity.RequiresAnswerReview = request.RequiresAnswerReview;
         entity.Kind = request.Kind;
+        entity.ProductSurface = request.ProductSurface;
         entity.Visibility = request.Visibility;
         entity.SearchMarkupMode = request.SearchMarkupMode;
         entity.PublishedAtUtc =

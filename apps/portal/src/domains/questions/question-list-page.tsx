@@ -14,7 +14,6 @@ import { useQuestionList, useDeleteQuestion } from '@/domains/questions/hooks';
 import type { QuestionDto } from '@/domains/questions/types';
 import { useSpaceList } from '@/domains/spaces/hooks';
 import {
-  questionKindLabels,
   QuestionStatus,
   questionStatusLabels,
   visibilityScopeLabels,
@@ -39,7 +38,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/shared/ui';
-import { ChannelKindBadge, QuestionKindBadge, QuestionStatusBadge, VisibilityBadge } from '@/shared/ui/status-badges';
+import { ChannelKindBadge, QuestionStatusBadge, VisibilityBadge } from '@/shared/ui/status-badges';
 
 const sortingOptions = [
   { value: 'LastActivityAtUtc DESC', label: 'Latest activity' },
@@ -52,7 +51,6 @@ const QUESTION_FILTER_DEFAULTS = {
   status: 'all',
   visibility: 'all',
   spaceId: 'all',
-  kind: 'all',
   language: '',
   contextKey: '',
 } as const;
@@ -79,14 +77,12 @@ export function QuestionListPage() {
   const statusFilter = filters.status;
   const visibilityFilter = filters.visibility;
   const spaceFilter = filters.spaceId;
-  const kindFilter = filters.kind;
   const languageFilter = filters.language;
   const contextKeyFilter = filters.contextKey;
   const apiStatus = statusFilter === 'all' ? undefined : Number(statusFilter);
   const apiVisibility =
     visibilityFilter === 'all' ? undefined : Number(visibilityFilter);
   const apiSpaceId = spaceFilter === 'all' ? undefined : spaceFilter;
-  const apiKind = kindFilter === 'all' ? undefined : Number(kindFilter);
 
   const questionQuery = useQuestionList({
     page,
@@ -96,7 +92,6 @@ export function QuestionListPage() {
     status: apiStatus,
     visibility: apiVisibility,
     spaceId: apiSpaceId,
-    kind: apiKind,
     language: languageFilter || undefined,
     contextKey: contextKeyFilter || undefined,
   });
@@ -153,7 +148,6 @@ export function QuestionListPage() {
             {spaceLookup[question.spaceId] ?? question.spaceKey} • {question.key}
           </div>
           <div className="flex flex-wrap gap-2">
-            <QuestionKindBadge kind={question.kind} />
             <ChannelKindBadge kind={question.originChannel} />
           </div>
           <div className="text-sm text-muted-foreground">
@@ -314,7 +308,7 @@ export function QuestionListPage() {
         loading={questionQuery.isLoading}
         onRowClick={(question) => navigate(`/app/questions/${question.id}`)}
         toolbar={
-          <div className="grid w-full gap-2 sm:grid-cols-2 xl:grid-cols-[minmax(240px,1fr)_220px_220px_220px_220px]">
+          <div className="grid w-full gap-2 sm:grid-cols-2 xl:grid-cols-[minmax(240px,1fr)_220px_220px_220px]">
             <div className="sm:col-span-2 xl:col-span-1">
               <Input
                 value={search}
@@ -345,20 +339,7 @@ export function QuestionListPage() {
                 ))}
               </SelectContent>
             </Select>
-              <Select value={kindFilter} onValueChange={(value) => setFilter('kind', value)}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder={translateText('Question kind')} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All kinds</SelectItem>
-                {Object.entries(questionKindLabels).map(([value, label]) => (
-                  <SelectItem key={value} value={value}>
-                    {translateText(label)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-              <Select value={statusFilter} onValueChange={(value) => setFilter('status', value)}>
+            <Select value={statusFilter} onValueChange={(value) => setFilter('status', value)}>
               <SelectTrigger className="w-full">
                 <SelectValue placeholder={translateText('Status')} />
               </SelectTrigger>
@@ -387,7 +368,7 @@ export function QuestionListPage() {
                 ))}
               </SelectContent>
             </Select>
-            <div className="sm:col-span-2 xl:col-span-5">
+            <div className="sm:col-span-2 xl:col-span-4">
               <Select value={sorting} onValueChange={setSorting}>
                 <SelectTrigger className="w-full xl:max-w-[240px]">
                   <SelectValue placeholder={translateText('Sort questions')} />

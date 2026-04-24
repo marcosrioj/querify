@@ -168,22 +168,30 @@ public sealed class QnASeedService : IQnASeedService
             Key = NormalizeKey(definition.Name, $"space-{index + 1}"),
             Summary = BuildSpaceSummary(definition),
             DefaultLanguage = SeedLanguage,
-            Kind = SpaceKind.Hybrid,
+            Kind = SpaceKind.ModeratedCollaboration,
+            ProductSurface = GetProductSurface(index),
             Visibility = VisibilityScope.PublicIndexed,
-            ModerationPolicy = ModerationPolicy.PreModeration,
             SearchMarkupMode = SearchMarkupMode.Hybrid,
             ProductScope = definition.Name,
             JourneyScope = "Self-service support",
             AcceptsQuestions = true,
             AcceptsAnswers = true,
-            RequiresQuestionReview = true,
-            RequiresAnswerReview = true,
             PublishedAtUtc = SeedBaseTimeUtc.AddDays(-(index + 30)),
             LastValidatedAtUtc = SeedBaseTimeUtc.AddDays(-(index % 7 + 1)),
             CreatedBy = "seed",
             UpdatedBy = "seed"
         };
     }
+
+    private static QnAProductSurface GetProductSurface(int index) =>
+        (index % 5) switch
+        {
+            0 => QnAProductSurface.Publish,
+            1 => QnAProductSurface.Resolve,
+            2 => QnAProductSurface.Listen,
+            3 => QnAProductSurface.Collaborate,
+            _ => QnAProductSurface.Govern
+        };
 
     private static string BuildSpaceSummary(SeedSpaceDefinition definition)
     {
@@ -282,7 +290,6 @@ public sealed class QnASeedService : IQnASeedService
                 Key = NormalizeKey($"{space.Key}-{questionIndex + 1}-{item.Question}", $"question-{spaceIndex + 1}-{questionIndex + 1}"),
                 Summary = item.ShortAnswer,
                 ContextNote = $"Imported from {item.SourceName}. Snapshot refreshed on {SeedBaseTimeUtc:yyyy-MM-dd}.",
-                Kind = QuestionKind.Imported,
                 Status = isValidated ? QuestionStatus.Validated : QuestionStatus.Answered,
                 Visibility = VisibilityScope.PublicIndexed,
                 OriginChannel = ChannelKind.Import,

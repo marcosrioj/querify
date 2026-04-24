@@ -1,7 +1,6 @@
 import { z } from 'zod';
 import {
   ChannelKind,
-  QuestionKind,
   QuestionStatus,
   VisibilityScope,
 } from '@/shared/constants/backend-enums';
@@ -17,7 +16,6 @@ export const questionFormSchema = z.object({
   summary: z.string().max(500, 'Keep the summary concise.').optional(),
   contextNote: z.string().max(2000, 'Keep the context note concise.').optional(),
   threadSummary: z.string().max(2000, 'Keep the thread summary concise.').optional(),
-  kind: numericEnumSchema(QuestionKind),
   status: numericEnumSchema(QuestionStatus),
   visibility: numericEnumSchema(VisibilityScope),
   originChannel: numericEnumSchema(ChannelKind),

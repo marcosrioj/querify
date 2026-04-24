@@ -13,8 +13,10 @@ import { usePortalTimeZone } from '@/domains/settings/settings-hooks';
 import { useDeleteSpace, useSpaceList } from '@/domains/spaces/hooks';
 import type { SpaceDto } from '@/domains/spaces/types';
 import {
+  QnAProductSurface,
   SpaceKind,
   VisibilityScope,
+  qnaProductSurfaceLabels,
   spaceKindLabels,
   visibilityScopeLabels,
 } from '@/shared/constants/backend-enums';
@@ -39,7 +41,7 @@ import {
   SelectValue,
 } from '@/shared/ui';
 import {
-  ModerationPolicyBadge,
+  QnAProductSurfaceBadge,
   SpaceKindBadge,
   VisibilityBadge,
 } from '@/shared/ui/status-badges';
@@ -54,6 +56,7 @@ const sortingOptions = [
 const SPACE_FILTER_DEFAULTS = {
   visibility: 'all',
   kind: 'all',
+  productSurface: 'all',
   acceptsQuestions: 'all',
   acceptsAnswers: 'all',
 } as const;
@@ -79,11 +82,14 @@ export function SpaceListPage() {
   });
   const visibilityFilter = filters.visibility;
   const kindFilter = filters.kind;
+  const productSurfaceFilter = filters.productSurface;
   const acceptsQuestionsFilter = filters.acceptsQuestions;
   const acceptsAnswersFilter = filters.acceptsAnswers;
   const apiVisibility =
     visibilityFilter === 'all' ? undefined : Number(visibilityFilter);
   const apiKind = kindFilter === 'all' ? undefined : Number(kindFilter);
+  const apiProductSurface =
+    productSurfaceFilter === 'all' ? undefined : Number(productSurfaceFilter);
   const apiAcceptsQuestions =
     acceptsQuestionsFilter === 'all'
       ? undefined
@@ -100,6 +106,7 @@ export function SpaceListPage() {
     searchText: debouncedSearch || undefined,
     visibility: apiVisibility,
     kind: apiKind,
+    productSurface: apiProductSurface,
     acceptsQuestions: apiAcceptsQuestions,
     acceptsAnswers: apiAcceptsAnswers,
   });
@@ -122,11 +129,13 @@ export function SpaceListPage() {
   const publicCount = spaceRows.filter(
     (space) => space.visibility >= VisibilityScope.Public,
   ).length;
-  const moderatedCount = spaceRows.filter(
-    (space) => space.requiresQuestionReview || space.requiresAnswerReview,
+  const reviewGatedCount = spaceRows.filter(
+    (space) =>
+      space.kind === SpaceKind.ControlledPublication ||
+      space.kind === SpaceKind.ModeratedCollaboration,
   ).length;
-  const communityCount = spaceRows.filter(
-    (space) => space.kind === SpaceKind.Community || space.kind === SpaceKind.Hybrid,
+  const governCount = spaceRows.filter(
+    (space) => space.productSurface === QnAProductSurface.Govern,
   ).length;
   const showMetricsLoadingState =
     spaceQuery.isLoading && spaceQuery.data === undefined;
@@ -156,7 +165,7 @@ export function SpaceListPage() {
       cell: (space) => (
         <div className="space-y-2">
           <SpaceKindBadge kind={space.kind} />
-          <ModerationPolicyBadge policy={space.moderationPolicy} />
+          <QnAProductSurfaceBadge surface={space.productSurface} />
           <div className="flex flex-wrap gap-2">
             <Badge variant={space.acceptsQuestions ? 'success' : 'mono'} appearance="outline">
               {translateText(
@@ -241,7 +250,7 @@ export function SpaceListPage() {
       header={
         <PageHeader
           title="Spaces"
-          description="Operate curated knowledge spaces, community spaces, and hybrids with the right exposure and moderation rules."
+          description="Operate QnA spaces by product surface, operating mode, visibility, and intake capability."
           descriptionMode="inline"
           actions={
             <Button asChild>
@@ -275,14 +284,14 @@ export function SpaceListPage() {
             },
             {
               title: 'Moderated',
-              value: moderatedCount,
-              description: translateText('Question or answer review is enabled'),
+              value: reviewGatedCount,
+              description: translateText('Controlled or moderated operating modes'),
               icon: ShieldCheck,
             },
             {
-              title: 'Community-ready',
-              value: communityCount,
-              description: translateText('Community or hybrid operating models'),
+              title: 'Govern',
+              value: governCount,
+              description: translateText('Spaces supporting verifiable decisions'),
               icon: MessageSquarePlus,
             },
           ]}
@@ -290,7 +299,7 @@ export function SpaceListPage() {
       )}
       <DataTable
         title="Spaces"
-        description="Open a space to review moderation, curated sources, and thread volume."
+        description="Open a space to review its product surface, operating mode, curated sources, and thread volume."
         descriptionMode="hint"
         columns={columns}
         rows={spaceRows}
@@ -298,7 +307,7 @@ export function SpaceListPage() {
         loading={spaceQuery.isLoading}
         onRowClick={(space) => navigate(`/app/spaces/${space.id}`)}
         toolbar={
-          <div className="grid w-full gap-2 sm:grid-cols-2 xl:grid-cols-[minmax(280px,1fr)_220px_220px_220px]">
+          <div className="grid w-full gap-2 sm:grid-cols-2 xl:grid-cols-[minmax(280px,1fr)_180px_190px_190px_180px]">
             <div className="sm:col-span-2 xl:col-span-1">
               <Input
                 value={search}
@@ -325,11 +334,27 @@ export function SpaceListPage() {
             </Select>
             <Select value={kindFilter} onValueChange={(value) => setFilter('kind', value)}>
               <SelectTrigger className="w-full">
-                <SelectValue placeholder={translateText('Space model')} />
+                <SelectValue placeholder={translateText('Operating mode')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All models</SelectItem>
+                <SelectItem value="all">{translateText('All modes')}</SelectItem>
                 {Object.entries(spaceKindLabels).map(([value, label]) => (
+                  <SelectItem key={value} value={value}>
+                    {translateText(label)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select
+              value={productSurfaceFilter}
+              onValueChange={(value) => setFilter('productSurface', value)}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder={translateText('Product surface')} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{translateText('All surfaces')}</SelectItem>
+                {Object.entries(qnaProductSurfaceLabels).map(([value, label]) => (
                   <SelectItem key={value} value={value}>
                     {translateText(label)}
                   </SelectItem>
@@ -379,7 +404,7 @@ export function SpaceListPage() {
         emptyState={
           <EmptyState
             title="No spaces in view"
-            description="Create the first QnA space to define exposure, moderation, and thread ownership."
+            description="Create the first QnA space to define surface, mode, exposure, and thread ownership."
             action={{ label: 'New space', to: '/app/spaces/new' }}
           />
         }

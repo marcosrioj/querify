@@ -1,6 +1,5 @@
 import {
   ChannelKind,
-  QuestionKind,
   QuestionStatus,
   SourceRole,
   VisibilityScope,
@@ -19,7 +18,6 @@ export type QuestionDto = {
   key: string;
   summary?: string | null;
   contextNote?: string | null;
-  kind: QuestionKind;
   status: QuestionStatus;
   visibility: VisibilityScope;
   originChannel: ChannelKind;
@@ -66,7 +64,6 @@ export type QuestionCreateRequestDto = {
   summary?: string | null;
   contextNote?: string | null;
   threadSummary?: string | null;
-  kind: QuestionKind;
   status: QuestionStatus;
   visibility: VisibilityScope;
   originChannel: ChannelKind;

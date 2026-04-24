@@ -62,6 +62,16 @@ public enum SourceKind
     InternalNote = 11,
 
     /// <summary>
+    /// A proposal, decision record, or governance discussion artifact.
+    /// </summary>
+    GovernanceRecord = 12,
+
+    /// <summary>
+    /// An audit record, signed payload, or external verification anchor.
+    /// </summary>
+    AuditRecord = 13,
+
+    /// <summary>
     /// Fallback for uncommon or still-uncategorized source artifacts.
     /// </summary>
     Other = 99

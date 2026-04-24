@@ -25,6 +25,7 @@ import {
   AnswerStatus,
   QuestionStatus,
   SourceRole,
+  SpaceKind,
   VisibilityScope,
   sourceRoleLabels,
 } from '@/shared/constants/backend-enums';
@@ -53,7 +54,6 @@ import {
   ActorKindBadge,
   AnswerStatusBadge,
   ChannelKindBadge,
-  QuestionKindBadge,
   QuestionStatusBadge,
   SourceRoleBadge,
   VisibilityBadge,
@@ -72,7 +72,6 @@ function buildQuestionUpdateBody(
     summary: question.summary ?? undefined,
     contextNote: question.contextNote ?? undefined,
     threadSummary: question.threadSummary ?? undefined,
-    kind: question.kind,
     status: question.status,
     visibility: question.visibility,
     originChannel: question.originChannel,
@@ -207,7 +206,8 @@ export function QuestionDetailPage() {
     questionQuery.data?.status !== QuestionStatus.Archived;
   const workflowSummary =
     questionQuery.data?.status === QuestionStatus.Draft
-      ? spaceQuery.data?.requiresQuestionReview
+      ? spaceQuery.data?.kind === SpaceKind.ControlledPublication ||
+        spaceQuery.data?.kind === SpaceKind.ModeratedCollaboration
         ? translateText('Submitting this question will move it into pending review.')
         : translateText('Submitting this question will open it immediately.')
       : translateText('Current status controls which workflow actions are available.');
@@ -381,10 +381,6 @@ export function QuestionDetailPage() {
               <KeyValueList
                 items={[
                   { label: 'Key', value: questionQuery.data.key },
-                  {
-                    label: 'Question kind',
-                    value: <QuestionKindBadge kind={questionQuery.data.kind} />,
-                  },
                   {
                     label: 'Origin channel',
                     value: <ChannelKindBadge kind={questionQuery.data.originChannel} />,

@@ -4,11 +4,11 @@ import { useForm } from 'react-hook-form';
 import { X } from 'lucide-react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
-  moderationPolicyLabels,
+  qnaProductSurfaceLabels,
   searchMarkupModeLabels,
   spaceKindLabels,
   visibilityScopeLabels,
-  ModerationPolicy,
+  QnAProductSurface,
   SearchMarkupMode,
   SpaceKind,
   VisibilityScope,
@@ -59,16 +59,14 @@ export function SpaceFormPage({ mode }: { mode: 'create' | 'edit' }) {
       key: '',
       defaultLanguage,
       summary: '',
-      kind: SpaceKind.CuratedKnowledge,
+      kind: SpaceKind.ControlledPublication,
+      productSurface: QnAProductSurface.Publish,
       visibility: VisibilityScope.Internal,
-      moderationPolicy: ModerationPolicy.PreModeration,
       searchMarkupMode: SearchMarkupMode.CuratedList,
       productScope: '',
       journeyScope: '',
       acceptsQuestions: true,
       acceptsAnswers: true,
-      requiresQuestionReview: true,
-      requiresAnswerReview: true,
       markValidated: false,
     },
   });
@@ -84,15 +82,13 @@ export function SpaceFormPage({ mode }: { mode: 'create' | 'edit' }) {
       defaultLanguage: spaceQuery.data.defaultLanguage,
       summary: spaceQuery.data.summary ?? '',
       kind: spaceQuery.data.kind,
+      productSurface: spaceQuery.data.productSurface,
       visibility: spaceQuery.data.visibility,
-      moderationPolicy: spaceQuery.data.moderationPolicy,
       searchMarkupMode: spaceQuery.data.searchMarkupMode,
       productScope: spaceQuery.data.productScope ?? '',
       journeyScope: spaceQuery.data.journeyScope ?? '',
       acceptsQuestions: spaceQuery.data.acceptsQuestions,
       acceptsAnswers: spaceQuery.data.acceptsAnswers,
-      requiresQuestionReview: spaceQuery.data.requiresQuestionReview,
-      requiresAnswerReview: spaceQuery.data.requiresAnswerReview,
       markValidated: false,
     });
   }, [form, spaceQuery.data]);
@@ -115,7 +111,7 @@ export function SpaceFormPage({ mode }: { mode: 'create' | 'edit' }) {
       header={
         <PageHeader
           title={mode === 'create' ? 'New space' : 'Edit space'}
-          description="Define the QnA surface, exposure, and moderation rules before threads start accumulating."
+          description="Define the QnA surface, operating mode, and exposure before threads start accumulating."
           descriptionMode="hint"
           backTo={backTo}
         />
@@ -131,7 +127,7 @@ export function SpaceFormPage({ mode }: { mode: 'create' | 'edit' }) {
                   <span>{translateText('Quick notes')}</span>
                   <ContextHint
                     content={translateText(
-                      'Spaces define exposure, moderation, and how questions and answers behave operationally.',
+                      'Spaces define the product surface, operating mode, exposure, and how questions and answers behave operationally.',
                     )}
                     label={translateText('Quick notes details')}
                   />
@@ -141,12 +137,9 @@ export function SpaceFormPage({ mode }: { mode: 'create' | 'edit' }) {
             <CardContent>
               <KeyValueList
                 items={[
-                  { label: 'Model', value: 'Curated, community, or hybrid' },
+                  { label: 'Mode', value: 'Controlled, moderated, or public validation' },
+                  { label: 'Surface', value: 'Publish, resolve, listen, collaborate, or govern' },
                   { label: 'Visibility', value: 'Internal to public indexed' },
-                  {
-                    label: 'Moderation',
-                    value: 'Question and answer review can be separate',
-                  },
                 ]}
               />
             </CardContent>
@@ -188,8 +181,8 @@ export function SpaceFormPage({ mode }: { mode: 'create' | 'edit' }) {
                     productScope: values.productScope || undefined,
                     journeyScope: values.journeyScope || undefined,
                     kind: Number(values.kind) as SpaceKind,
+                    productSurface: Number(values.productSurface) as QnAProductSurface,
                     visibility: Number(values.visibility) as VisibilityScope,
-                    moderationPolicy: Number(values.moderationPolicy) as ModerationPolicy,
                     searchMarkupMode:
                       Number(values.searchMarkupMode) as SearchMarkupMode,
                   };
@@ -241,7 +234,7 @@ export function SpaceFormPage({ mode }: { mode: 'create' | 'edit' }) {
                   <SelectField
                     control={form.control}
                     name="kind"
-                    label="Space model"
+                    label="Operating mode"
                     description="Pick the operating model that best matches how this space should gather and govern answers."
                     options={Object.entries(spaceKindLabels).map(([value, label]) => ({
                       value,
@@ -249,6 +242,16 @@ export function SpaceFormPage({ mode }: { mode: 'create' | 'edit' }) {
                     }))}
                   />
                 </div>
+                <SelectField
+                  control={form.control}
+                  name="productSurface"
+                  label="Product surface"
+                  description="Choose the product module that primarily owns this QnA space."
+                  options={Object.entries(qnaProductSurfaceLabels).map(([value, label]) => ({
+                    value,
+                    label,
+                  }))}
+                />
                 <TextareaField
                   control={form.control}
                   name="summary"
@@ -274,23 +277,13 @@ export function SpaceFormPage({ mode }: { mode: 'create' | 'edit' }) {
                   title="Exposure"
                   description="Decide who can see the space and how it should behave from a search-surface perspective."
                 />
-                <div className="grid gap-4 md:grid-cols-3">
+                <div className="grid gap-4 md:grid-cols-2">
                   <SelectField
                     control={form.control}
                     name="visibility"
                     label="Visibility"
                     description="Choose the strongest audience exposure the space should allow."
                     options={Object.entries(visibilityScopeLabels).map(([value, label]) => ({
-                      value,
-                      label,
-                    }))}
-                  />
-                  <SelectField
-                    control={form.control}
-                    name="moderationPolicy"
-                    label="Moderation policy"
-                    description="Control whether submissions appear before or after review."
-                    options={Object.entries(moderationPolicyLabels).map(([value, label]) => ({
                       value,
                       label,
                     }))}
@@ -308,7 +301,7 @@ export function SpaceFormPage({ mode }: { mode: 'create' | 'edit' }) {
                 </div>
                 <FormSectionHeading
                   title="Workflow rules"
-                  description="Tune whether the space accepts new threads and whether review is required."
+                  description="Tune whether the space accepts new threads. Review behavior comes from the operating mode."
                 />
                 <div className="grid gap-4 md:grid-cols-2">
                   <SwitchField
@@ -322,18 +315,6 @@ export function SpaceFormPage({ mode }: { mode: 'create' | 'edit' }) {
                     name="acceptsAnswers"
                     label="Accept answers"
                     description="Disable this if questions should route elsewhere instead of collecting answers."
-                  />
-                  <SwitchField
-                    control={form.control}
-                    name="requiresQuestionReview"
-                    label="Question review required"
-                    description="Use this when new questions must be approved before they move forward."
-                  />
-                  <SwitchField
-                    control={form.control}
-                    name="requiresAnswerReview"
-                    label="Answer review required"
-                    description="Use this when published answers must clear editorial or moderation review."
                   />
                   <SwitchField
                     control={form.control}

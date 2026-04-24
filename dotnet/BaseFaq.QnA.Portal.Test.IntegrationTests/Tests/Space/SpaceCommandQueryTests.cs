@@ -24,16 +24,14 @@ public class SpaceCommandQueryTests
                 Key = "portal-support",
                 DefaultLanguage = "en-US",
                 Summary = "Support questions for portal users.",
-                Kind = SpaceKind.CuratedKnowledge,
+                Kind = SpaceKind.PublicValidation,
+                ProductSurface = QnAProductSurface.Govern,
                 Visibility = VisibilityScope.PublicIndexed,
-                ModerationPolicy = ModerationPolicy.PostModeration,
                 SearchMarkupMode = SearchMarkupMode.Hybrid,
                 ProductScope = "Portal",
                 JourneyScope = "Support",
                 AcceptsQuestions = true,
                 AcceptsAnswers = true,
-                RequiresQuestionReview = false,
-                RequiresAnswerReview = true,
                 MarkValidated = true
             }
         }, CancellationToken.None);
@@ -46,7 +44,8 @@ public class SpaceCommandQueryTests
         Assert.Equal("portal-support", result.Key);
         Assert.Equal(VisibilityScope.PublicIndexed, result.Visibility);
         Assert.Equal(SearchMarkupMode.Hybrid, result.SearchMarkupMode);
-        Assert.Equal(ModerationPolicy.PostModeration, result.ModerationPolicy);
+        Assert.Equal(SpaceKind.PublicValidation, result.Kind);
+        Assert.Equal(QnAProductSurface.Govern, result.ProductSurface);
         Assert.True(result.AcceptsQuestions);
         Assert.NotNull(result.LastValidatedAtUtc);
     }

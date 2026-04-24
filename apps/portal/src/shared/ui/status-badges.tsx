@@ -5,8 +5,7 @@ import {
   AnswerKind,
   AnswerStatus,
   ChannelKind,
-  ModerationPolicy,
-  QuestionKind,
+  QnAProductSurface,
   QuestionStatus,
   SourceKind,
   SourceRole,
@@ -19,8 +18,7 @@ import {
   answerKindLabels,
   answerStatusLabels,
   channelKindLabels,
-  moderationPolicyLabels,
-  questionKindLabels,
+  qnaProductSurfaceLabels,
   questionStatusLabels,
   sourceKindLabels,
   sourceRoleLabels,
@@ -74,6 +72,12 @@ export function SpaceKindBadge({ kind }: { kind: SpaceKind }) {
   return <BadgeText text={spaceKindLabels[kind]} variant="primary" />;
 }
 
+export function QnAProductSurfaceBadge({ surface }: { surface: QnAProductSurface }) {
+  const variant = surface === QnAProductSurface.Govern ? 'warning' : 'secondary';
+
+  return <BadgeText text={qnaProductSurfaceLabels[surface]} variant={variant} />;
+}
+
 export function VisibilityBadge({ visibility }: { visibility: VisibilityScope }) {
   const variant =
     visibility === VisibilityScope.Internal
@@ -85,25 +89,6 @@ export function VisibilityBadge({ visibility }: { visibility: VisibilityScope })
           : 'success';
 
   return <BadgeText text={visibilityScopeLabels[visibility]} variant={variant} />;
-}
-
-export function ModerationPolicyBadge({
-  policy,
-}: {
-  policy: ModerationPolicy;
-}) {
-  const variant =
-    policy === ModerationPolicy.None
-      ? 'secondary'
-      : policy === ModerationPolicy.PostModeration
-        ? 'info'
-        : 'warning';
-
-  return <BadgeText text={moderationPolicyLabels[policy]} variant={variant} />;
-}
-
-export function QuestionKindBadge({ kind }: { kind: QuestionKind }) {
-  return <BadgeText text={questionKindLabels[kind]} variant="secondary" />;
 }
 
 export function QuestionStatusBadge({ status }: { status: QuestionStatus }) {

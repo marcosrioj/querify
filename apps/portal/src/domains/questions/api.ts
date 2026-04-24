@@ -23,7 +23,6 @@ export function listQuestions(
     duplicateOfQuestionId,
     status,
     visibility,
-    kind,
     spaceKey,
     contextKey,
     language,
@@ -41,7 +40,6 @@ export function listQuestions(
     duplicateOfQuestionId?: string;
     status?: number;
     visibility?: number;
-    kind?: number;
     spaceKey?: string;
     contextKey?: string;
     language?: string;
@@ -64,7 +62,6 @@ export function listQuestions(
       DuplicateOfQuestionId: duplicateOfQuestionId,
       Status: status,
       Visibility: visibility,
-      Kind: kind,
       SpaceKey: spaceKey,
       ContextKey: contextKey,
       Language: language,

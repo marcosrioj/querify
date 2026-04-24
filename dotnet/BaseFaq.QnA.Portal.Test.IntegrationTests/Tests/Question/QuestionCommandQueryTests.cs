@@ -40,7 +40,6 @@ public class QuestionCommandQueryTests
                 Summary = question.Summary,
                 ContextNote = question.ContextNote,
                 ThreadSummary = question.ThreadSummary,
-                Kind = question.Kind,
                 Status = question.Status,
                 Visibility = question.Visibility,
                 OriginChannel = question.OriginChannel,

@@ -1,5 +1,5 @@
 import {
-  ModerationPolicy,
+  QnAProductSurface,
   SearchMarkupMode,
   SpaceKind,
   VisibilityScope,
@@ -15,15 +15,13 @@ export type SpaceDto = {
   summary?: string | null;
   defaultLanguage: string;
   kind: SpaceKind;
+  productSurface: QnAProductSurface;
   visibility: VisibilityScope;
-  moderationPolicy: ModerationPolicy;
   searchMarkupMode: SearchMarkupMode;
   productScope?: string | null;
   journeyScope?: string | null;
   acceptsQuestions: boolean;
   acceptsAnswers: boolean;
-  requiresQuestionReview: boolean;
-  requiresAnswerReview: boolean;
   publishedAtUtc?: string | null;
   lastValidatedAtUtc?: string | null;
   questionCount: number;
@@ -40,15 +38,13 @@ export type SpaceCreateRequestDto = {
   defaultLanguage: string;
   summary?: string | null;
   kind: SpaceKind;
+  productSurface: QnAProductSurface;
   visibility: VisibilityScope;
-  moderationPolicy: ModerationPolicy;
   searchMarkupMode: SearchMarkupMode;
   productScope?: string | null;
   journeyScope?: string | null;
   acceptsQuestions: boolean;
   acceptsAnswers: boolean;
-  requiresQuestionReview: boolean;
-  requiresAnswerReview: boolean;
   markValidated: boolean;
 };
 

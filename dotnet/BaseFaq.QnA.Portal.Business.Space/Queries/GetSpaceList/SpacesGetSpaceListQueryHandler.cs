@@ -35,6 +35,9 @@ public sealed class SpacesGetSpaceListQueryHandler(
 
         if (request.Request.Kind is not null) query = query.Where(space => space.Kind == request.Request.Kind);
 
+        if (request.Request.ProductSurface is not null)
+            query = query.Where(space => space.ProductSurface == request.Request.ProductSurface);
+
         if (!string.IsNullOrWhiteSpace(request.Request.ProductScope))
             query = query.Where(space => space.ProductScope == request.Request.ProductScope);
 
@@ -73,15 +76,13 @@ public sealed class SpacesGetSpaceListQueryHandler(
                     Summary = space.Summary,
                     DefaultLanguage = space.DefaultLanguage,
                     Kind = space.Kind,
+                    ProductSurface = space.ProductSurface,
                     Visibility = space.Visibility,
-                    ModerationPolicy = space.ModerationPolicy,
                     SearchMarkupMode = space.SearchMarkupMode,
                     ProductScope = space.ProductScope,
                     JourneyScope = space.JourneyScope,
                     AcceptsQuestions = space.AcceptsQuestions,
                     AcceptsAnswers = space.AcceptsAnswers,
-                    RequiresQuestionReview = space.RequiresQuestionReview,
-                    RequiresAnswerReview = space.RequiresAnswerReview,
                     PublishedAtUtc = space.PublishedAtUtc,
                     LastValidatedAtUtc = space.LastValidatedAtUtc,
                     QuestionCount = space.Questions.Count

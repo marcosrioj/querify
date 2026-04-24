@@ -10,7 +10,6 @@ public class QuestionUpdateRequestDto
     public string? Summary { get; set; }
     public string? ContextNote { get; set; }
     public string? ThreadSummary { get; set; }
-    public required QuestionKind Kind { get; set; }
     public required QuestionStatus Status { get; set; }
     public required VisibilityScope Visibility { get; set; }
     public required ChannelKind OriginChannel { get; set; }

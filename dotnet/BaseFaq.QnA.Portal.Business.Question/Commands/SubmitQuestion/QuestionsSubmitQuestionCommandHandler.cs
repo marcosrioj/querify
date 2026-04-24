@@ -32,12 +32,15 @@ public sealed class QuestionsSubmitQuestionCommandHandler(
         if (entity is null)
             throw new ApiErrorException($"Question '{request.Id}' was not found.", (int)HttpStatusCode.NotFound);
 
-        var targetStatus = entity.Space.RequiresQuestionReview ? QuestionStatus.PendingReview : QuestionStatus.Open;
+        var targetStatus = RequiresReview(entity.Space.Kind) ? QuestionStatus.PendingReview : QuestionStatus.Open;
         entity.Status = targetStatus;
         AddActivity(entity, ActivityKind.QuestionSubmitted, userId);
         await dbContext.SaveChangesAsync(cancellationToken);
         return request.Id;
     }
+
+    private static bool RequiresReview(SpaceKind kind) =>
+        kind is SpaceKind.ControlledPublication or SpaceKind.ModeratedCollaboration;
 
     private void AddActivity(QuestionEntity question, ActivityKind kind, string userId)
     {

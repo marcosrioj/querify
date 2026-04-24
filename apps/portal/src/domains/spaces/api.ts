@@ -20,6 +20,7 @@ export function listSpaces(
     searchText,
     visibility,
     kind,
+    productSurface,
     productScope,
     journeyScope,
     acceptsQuestions,
@@ -31,6 +32,7 @@ export function listSpaces(
     searchText?: string;
     visibility?: number;
     kind?: number;
+    productSurface?: number;
     productScope?: string;
     journeyScope?: string;
     acceptsQuestions?: boolean;
@@ -47,6 +49,7 @@ export function listSpaces(
       SearchText: searchText,
       Visibility: visibility,
       Kind: kind,
+      ProductSurface: productSurface,
       ProductScope: productScope,
       JourneyScope: journeyScope,
       AcceptsQuestions: acceptsQuestions,

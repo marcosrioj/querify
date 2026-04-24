@@ -14,7 +14,7 @@ import { usePortalTimeZone } from '@/domains/settings/settings-hooks';
 import { useSourceList } from '@/domains/sources/hooks';
 import { useSpace, useAddSpaceSource, useAddSpaceTag, useDeleteSpace, useRemoveSpaceSource, useRemoveSpaceTag } from '@/domains/spaces/hooks';
 import { useTagList } from '@/domains/tags/hooks';
-import { searchMarkupModeLabels } from '@/shared/constants/backend-enums';
+import { SpaceKind, searchMarkupModeLabels } from '@/shared/constants/backend-enums';
 import { DetailLayout, KeyValueList, PageHeader, SectionGrid } from '@/shared/layout/page-layouts';
 import {
   Badge,
@@ -36,7 +36,7 @@ import {
 } from '@/shared/ui';
 import { EmptyState, ErrorState } from '@/shared/ui/placeholder-state';
 import {
-  ModerationPolicyBadge,
+  QnAProductSurfaceBadge,
   QuestionStatusBadge,
   SpaceKindBadge,
   VisibilityBadge,
@@ -100,6 +100,10 @@ export function SpaceDetailPage() {
     !spaceQuery.data &&
     (spaceQuery.isLoading || questionQuery.isLoading || sourceOptionsQuery.isLoading);
   const blocksQuestions = spaceQuery.data ? !spaceQuery.data.acceptsQuestions : false;
+  const reviewGated = spaceQuery.data
+    ? spaceQuery.data.kind === SpaceKind.ControlledPublication ||
+      spaceQuery.data.kind === SpaceKind.ModeratedCollaboration
+    : false;
 
   return (
     <DetailLayout
@@ -233,10 +237,8 @@ export function SpaceDetailPage() {
                 icon: BookOpen,
               },
               {
-                title: 'Moderation',
-                value: (
-                  <ModerationPolicyBadge policy={spaceQuery.data.moderationPolicy} />
-                ),
+                title: 'Surface',
+                value: <QnAProductSurfaceBadge surface={spaceQuery.data.productSurface} />,
                 icon: Tags,
               },
               {
@@ -278,36 +280,16 @@ export function SpaceDetailPage() {
                     ),
                   },
                   {
-                    label: 'Question review',
+                    label: 'Review gate',
                     value: (
-                      <Badge
-                        variant={
-                          spaceQuery.data.requiresQuestionReview ? 'warning' : 'secondary'
-                        }
-                      >
-                        {translateText(
-                          spaceQuery.data.requiresQuestionReview
-                            ? 'Required'
-                            : 'Not required',
-                        )}
+                      <Badge variant={reviewGated ? 'warning' : 'secondary'}>
+                        {translateText(reviewGated ? 'Required by mode' : 'Open by mode')}
                       </Badge>
                     ),
                   },
                   {
-                    label: 'Answer review',
-                    value: (
-                      <Badge
-                        variant={
-                          spaceQuery.data.requiresAnswerReview ? 'warning' : 'secondary'
-                        }
-                      >
-                        {translateText(
-                          spaceQuery.data.requiresAnswerReview
-                            ? 'Required'
-                            : 'Not required',
-                        )}
-                      </Badge>
-                    ),
+                    label: 'Product surface',
+                    value: <QnAProductSurfaceBadge surface={spaceQuery.data.productSurface} />,
                   },
                 ]}
               />

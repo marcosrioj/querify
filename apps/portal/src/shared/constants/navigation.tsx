@@ -30,7 +30,7 @@ export const portalNavigation: NavigationItem[] = [
   {
     key: 'spaces',
     label: 'Spaces',
-    description: 'Space exposure, moderation, and curated knowledge',
+    description: 'QnA surfaces, modes, and governed knowledge',
     path: '/app/spaces',
     icon: PanelsTopLeft,
   },

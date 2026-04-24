@@ -46,8 +46,6 @@ public sealed class QuestionsGetQuestionListQueryHandler(
         if (request.Request.Visibility is not null)
             query = query.Where(question => question.Visibility == request.Request.Visibility);
 
-        if (request.Request.Kind is not null) query = query.Where(question => question.Kind == request.Request.Kind);
-
         if (!string.IsNullOrWhiteSpace(request.Request.SpaceKey))
             query = query.Where(question => question.Space.Key == request.Request.SpaceKey);
 

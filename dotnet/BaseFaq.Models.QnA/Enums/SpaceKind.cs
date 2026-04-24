@@ -1,27 +1,22 @@
 namespace BaseFaq.Models.QnA.Enums;
 
 /// <summary>
-/// Defines the operating model of a space.
-/// This controls whether the space behaves as a curated knowledge surface,
-/// a community-driven area, or a mix of both.
+/// Defines the operating mode of a Q&amp;A space.
 /// </summary>
 public enum SpaceKind
 {
     /// <summary>
-    /// Questions and answers are mostly curated by the product, support, or editorial team.
-    /// Community input may exist later, but it is not the default operating assumption.
+    /// Answers are controlled by the tenant and exposed after internal approval.
     /// </summary>
-    CuratedKnowledge = 1,
+    ControlledPublication = 1,
 
     /// <summary>
-    /// The space is primarily open to community participation.
-    /// Ranking, moderation, and answer acceptance usually matter more than editorial ordering.
+    /// Participants may contribute, but publication is moderated.
     /// </summary>
-    Community = 2,
+    ModeratedCollaboration = 2,
 
     /// <summary>
-    /// The space combines official knowledge with community participation.
-    /// This is the most flexible mode for products that need both trusted answers and open discussion.
+    /// Public participation, votes, accepted answers, or decisions are visible and auditable.
     /// </summary>
-    Hybrid = 3
+    PublicValidation = 3
 }

@@ -44,7 +44,6 @@ export function useQuestionList(params: {
   duplicateOfQuestionId?: string;
   status?: number;
   visibility?: number;
-  kind?: number;
   spaceKey?: string;
   contextKey?: string;
   language?: string;

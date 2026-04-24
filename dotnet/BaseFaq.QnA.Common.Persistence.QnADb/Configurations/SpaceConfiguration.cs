@@ -28,6 +28,9 @@ public class SpaceConfiguration : BaseConfiguration<Space>
             .HasMaxLength(Space.MaxLanguageLength)
             .IsRequired();
 
+        builder.Property(space => space.ProductSurface)
+            .IsRequired();
+
         builder.Property(space => space.ProductScope)
             .HasMaxLength(Space.MaxProductScopeLength);
 

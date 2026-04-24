@@ -62,7 +62,6 @@ public sealed class QuestionsCreateQuestionCommandHandler(
             Summary = request.Request.Summary,
             ContextNote = request.Request.ContextNote,
             ThreadSummary = request.Request.ThreadSummary,
-            Kind = request.Request.Kind,
             OriginChannel = request.Request.OriginChannel,
             Language = request.Request.Language,
             ProductScope = request.Request.ProductScope,
@@ -73,7 +72,7 @@ public sealed class QuestionsCreateQuestionCommandHandler(
             OriginReference = request.Request.OriginReference,
             ConfidenceScore = request.Request.ConfidenceScore,
             RevisionNumber = 1,
-            Status = space.RequiresQuestionReview ? QuestionStatus.PendingReview : QuestionStatus.Open,
+            Status = RequiresReview(space.Kind) ? QuestionStatus.PendingReview : QuestionStatus.Open,
             Visibility = VisibilityScope.Internal,
             CreatedBy = "public",
             UpdatedBy = "public"
@@ -123,6 +122,9 @@ public sealed class QuestionsCreateQuestionCommandHandler(
         await dbContext.SaveChangesAsync(cancellationToken);
         return entity.Id;
     }
+
+    private static bool RequiresReview(SpaceKind kind) =>
+        kind is SpaceKind.ControlledPublication or SpaceKind.ModeratedCollaboration;
 
     private async Task<Guid> ResolveTenantIdAndSetContextAsync(CancellationToken cancellationToken)
     {

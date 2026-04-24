@@ -45,7 +45,6 @@ public sealed class QuestionsCreateQuestionCommandHandler(
             Space = space,
             Title = request.Request.Title,
             Key = request.Request.Key,
-            Kind = request.Request.Kind,
             Status = request.Request.Status,
             Visibility = request.Request.Visibility,
             OriginChannel = request.Request.OriginChannel,

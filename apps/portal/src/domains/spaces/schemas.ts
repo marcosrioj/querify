@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import {
-  ModerationPolicy,
+  QnAProductSurface,
   SearchMarkupMode,
   SpaceKind,
   VisibilityScope,
@@ -19,15 +19,13 @@ export const spaceFormSchema = z.object({
     .max(16, 'Keep the language code within the backend limit.'),
   summary: z.string().max(1000, 'Keep the summary concise.').optional(),
   kind: numericEnumSchema(SpaceKind),
+  productSurface: numericEnumSchema(QnAProductSurface),
   visibility: numericEnumSchema(VisibilityScope),
-  moderationPolicy: numericEnumSchema(ModerationPolicy),
   searchMarkupMode: numericEnumSchema(SearchMarkupMode),
   productScope: z.string().max(200, 'Keep the product scope concise.').optional(),
   journeyScope: z.string().max(200, 'Keep the journey scope concise.').optional(),
   acceptsQuestions: z.boolean(),
   acceptsAnswers: z.boolean(),
-  requiresQuestionReview: z.boolean(),
-  requiresAnswerReview: z.boolean(),
   markValidated: z.boolean(),
 });
 

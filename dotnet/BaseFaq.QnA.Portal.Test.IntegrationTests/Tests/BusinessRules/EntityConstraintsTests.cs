@@ -25,7 +25,6 @@ public class EntityConstraintsTests
             Summary = "Summary",
             ContextNote = "Context",
             ThreadSummary = "Thread",
-            Kind = QuestionKind.Curated,
             Status = QuestionStatus.Open,
             Visibility = VisibilityScope.Internal,
             OriginChannel = ChannelKind.Manual,

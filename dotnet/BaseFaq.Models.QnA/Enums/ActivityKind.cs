@@ -88,5 +88,20 @@ public enum ActivityKind
     /// <summary>
     /// A public report signal was received for the thread or a visible answer.
     /// </summary>
-    ReportReceived = 17
+    ReportReceived = 17,
+
+    /// <summary>
+    /// A social, messaging, support, or community signal was captured.
+    /// </summary>
+    SignalCaptured = 18,
+
+    /// <summary>
+    /// An answer was reused by another surface or channel.
+    /// </summary>
+    AnswerReused = 19,
+
+    /// <summary>
+    /// A proposal, vote, or validation process reached its final result.
+    /// </summary>
+    DecisionFinalized = 20
 }

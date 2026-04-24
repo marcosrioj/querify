@@ -28,5 +28,10 @@ public enum SourceRole
     /// <summary>
     /// The source acts as the canonical reference that should anchor the current answer.
     /// </summary>
-    CanonicalReference = 5
+    CanonicalReference = 5,
+
+    /// <summary>
+    /// The source provides audit evidence or a verification anchor.
+    /// </summary>
+    AuditProof = 6
 }

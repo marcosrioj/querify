@@ -105,6 +105,7 @@ Start in this order:
 2. The owning backend guide in [`backend/architecture`](backend/architecture).
 3. The owning frontend guide in [`frontend/architecture`](frontend/architecture).
 4. The matching testing guides in [`backend/testing`](backend/testing) and [`frontend/testing`](frontend/testing).
+5. [`behavior-change-playbook.md`](behavior-change-playbook.md) when the change also alters model contracts, seed data, tests, or translations.
 
 ### 4. Code review workflow
 
@@ -188,6 +189,19 @@ Follow:
 4. [`backend/testing/integration-testing-strategy.md`](backend/testing/integration-testing-strategy.md)
 
 Use this for new commands, queries, controllers, services, feature decomposition, and QnA project ownership changes.
+
+### Product behavior change
+
+Follow:
+
+1. [`behavior-change-playbook.md`](behavior-change-playbook.md)
+2. [`backend/architecture/repository-rules.md`](backend/architecture/repository-rules.md)
+3. [`backend/architecture/solution-cqrs-write-rules.md`](backend/architecture/solution-cqrs-write-rules.md)
+4. [`backend/testing/integration-testing-strategy.md`](backend/testing/integration-testing-strategy.md)
+5. [`frontend/architecture/portal-app.md`](frontend/architecture/portal-app.md), when the Portal is affected
+6. [`frontend/architecture/portal-localization.md`](frontend/architecture/portal-localization.md), when user-facing copy changes
+
+Use this for behavior that starts in entities or enums and must be applied through persistence, DTO contracts, CQRS flows, API surfaces, seed examples, tests, Portal screens, and locale catalogs. The first decision is whether an existing concept already represents the behavior; duplicated properties and enums should be consolidated before implementation spreads.
 
 ### Tenant-aware public query
 

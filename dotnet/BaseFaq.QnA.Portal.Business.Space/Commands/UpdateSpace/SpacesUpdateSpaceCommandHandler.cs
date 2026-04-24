@@ -47,12 +47,10 @@ public sealed class SpacesUpdateSpaceCommandHandler(
         entity.Summary = request.Summary;
         entity.ProductScope = request.ProductScope;
         entity.JourneyScope = request.JourneyScope;
-        entity.ModerationPolicy = request.ModerationPolicy;
         entity.AcceptsQuestions = request.AcceptsQuestions;
         entity.AcceptsAnswers = request.AcceptsAnswers;
-        entity.RequiresQuestionReview = request.RequiresQuestionReview;
-        entity.RequiresAnswerReview = request.RequiresAnswerReview;
         entity.Kind = request.Kind;
+        entity.ProductSurface = request.ProductSurface;
         entity.Visibility = request.Visibility;
         entity.SearchMarkupMode = request.SearchMarkupMode;
         entity.PublishedAtUtc =

@@ -5,11 +5,9 @@ import { X } from 'lucide-react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import {
   ChannelKind,
-  QuestionKind,
   QuestionStatus,
   VisibilityScope,
   channelKindLabels,
-  questionKindLabels,
   questionStatusLabels,
   visibilityScopeLabels,
 } from '@/shared/constants/backend-enums';
@@ -74,7 +72,6 @@ export function QuestionFormPage({ mode }: { mode: 'create' | 'edit' }) {
       summary: '',
       contextNote: '',
       threadSummary: '',
-      kind: QuestionKind.Curated,
       status: QuestionStatus.Draft,
       visibility: VisibilityScope.Internal,
       originChannel: ChannelKind.Manual,
@@ -101,7 +98,6 @@ export function QuestionFormPage({ mode }: { mode: 'create' | 'edit' }) {
       summary: questionQuery.data.summary ?? '',
       contextNote: questionQuery.data.contextNote ?? '',
       threadSummary: questionQuery.data.threadSummary ?? '',
-      kind: questionQuery.data.kind,
       status: questionQuery.data.status,
       visibility: questionQuery.data.visibility,
       originChannel: questionQuery.data.originChannel,
@@ -234,7 +230,6 @@ export function QuestionFormPage({ mode }: { mode: 'create' | 'edit' }) {
                     contextKey: values.contextKey || undefined,
                     originUrl: values.originUrl || undefined,
                     originReference: values.originReference || undefined,
-                    kind: Number(values.kind) as QuestionKind,
                     status: Number(values.status) as QuestionStatus,
                     visibility: Number(values.visibility) as VisibilityScope,
                     originChannel: Number(values.originChannel) as ChannelKind,
@@ -257,13 +252,13 @@ export function QuestionFormPage({ mode }: { mode: 'create' | 'edit' }) {
               >
                 <FormSectionHeading
                   title="Placement"
-                  description="Pick the owning space first so the thread inherits the right exposure and moderation rules."
+                  description="Pick the owning space first so the thread inherits the right exposure and operating mode."
                 />
                 <SearchSelectField
                   control={form.control}
                   name="spaceId"
                   label="Space"
-                  description="The space controls exposure, moderation, and how the question should be operated."
+                  description="The space controls exposure, operating mode, and how the question should be operated."
                   placeholder="Search and choose the owning space"
                   searchPlaceholder="Search spaces"
                   emptyMessage={
@@ -322,16 +317,7 @@ export function QuestionFormPage({ mode }: { mode: 'create' | 'edit' }) {
                   title="Workflow"
                   description="Set the starting lifecycle, visibility, and intake channel."
                 />
-                <div className="grid gap-4 md:grid-cols-4">
-                  <SelectField
-                    control={form.control}
-                    name="kind"
-                    label="Question kind"
-                    options={Object.entries(questionKindLabels).map(([value, label]) => ({
-                      value,
-                      label,
-                    }))}
-                  />
+                <div className="grid gap-4 md:grid-cols-3">
                   <SelectField
                     control={form.control}
                     name="status"

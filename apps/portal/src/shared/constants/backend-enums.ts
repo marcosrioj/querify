@@ -61,9 +61,17 @@ export enum TenantSubscriptionStatus {
 }
 
 export enum SpaceKind {
-  CuratedKnowledge = 1,
-  Community = 2,
-  Hybrid = 3,
+  ControlledPublication = 1,
+  ModeratedCollaboration = 2,
+  PublicValidation = 3,
+}
+
+export enum QnAProductSurface {
+  Publish = 1,
+  Resolve = 2,
+  Listen = 3,
+  Collaborate = 4,
+  Govern = 5,
 }
 
 export enum VisibilityScope {
@@ -73,24 +81,11 @@ export enum VisibilityScope {
   PublicIndexed = 4,
 }
 
-export enum ModerationPolicy {
-  None = 0,
-  PreModeration = 1,
-  PostModeration = 2,
-  TrustedContributors = 3,
-}
-
 export enum SearchMarkupMode {
   CuratedList = 1,
   QuestionPage = 2,
   Hybrid = 3,
   Off = 4,
-}
-
-export enum QuestionKind {
-  Curated = 1,
-  Community = 2,
-  Imported = 3,
 }
 
 export enum QuestionStatus {
@@ -145,6 +140,8 @@ export enum SourceKind {
   ChatTranscript = 9,
   ProductNote = 10,
   InternalNote = 11,
+  GovernanceRecord = 12,
+  AuditRecord = 13,
   Other = 99,
 }
 
@@ -154,6 +151,7 @@ export enum SourceRole {
   Evidence = 3,
   Citation = 4,
   CanonicalReference = 5,
+  AuditProof = 6,
 }
 
 export enum ActivityKind {
@@ -174,6 +172,9 @@ export enum ActivityKind {
   VoteReceived = 15,
   AnswerRetired = 16,
   ReportReceived = 17,
+  SignalCaptured = 18,
+  AnswerReused = 19,
+  DecisionFinalized = 20,
 }
 
 export enum ActorKind {
@@ -243,9 +244,17 @@ export const tenantSubscriptionStatusLabels: Record<TenantSubscriptionStatus, st
   };
 
 export const spaceKindLabels: Record<SpaceKind, string> = {
-  [SpaceKind.CuratedKnowledge]: 'Curated knowledge',
-  [SpaceKind.Community]: 'Community',
-  [SpaceKind.Hybrid]: 'Hybrid',
+  [SpaceKind.ControlledPublication]: 'Controlled publication',
+  [SpaceKind.ModeratedCollaboration]: 'Moderated collaboration',
+  [SpaceKind.PublicValidation]: 'Public validation',
+};
+
+export const qnaProductSurfaceLabels: Record<QnAProductSurface, string> = {
+  [QnAProductSurface.Publish]: 'Publish',
+  [QnAProductSurface.Resolve]: 'Resolve',
+  [QnAProductSurface.Listen]: 'Listen',
+  [QnAProductSurface.Collaborate]: 'Collaborate',
+  [QnAProductSurface.Govern]: 'Govern',
 };
 
 export const visibilityScopeLabels: Record<VisibilityScope, string> = {
@@ -255,24 +264,11 @@ export const visibilityScopeLabels: Record<VisibilityScope, string> = {
   [VisibilityScope.PublicIndexed]: 'Public indexed',
 };
 
-export const moderationPolicyLabels: Record<ModerationPolicy, string> = {
-  [ModerationPolicy.None]: 'None',
-  [ModerationPolicy.PreModeration]: 'Pre-moderation',
-  [ModerationPolicy.PostModeration]: 'Post-moderation',
-  [ModerationPolicy.TrustedContributors]: 'Trusted contributors',
-};
-
 export const searchMarkupModeLabels: Record<SearchMarkupMode, string> = {
   [SearchMarkupMode.CuratedList]: 'Curated list',
   [SearchMarkupMode.QuestionPage]: 'Question page',
   [SearchMarkupMode.Hybrid]: 'Hybrid',
   [SearchMarkupMode.Off]: 'Off',
-};
-
-export const questionKindLabels: Record<QuestionKind, string> = {
-  [QuestionKind.Curated]: 'Curated',
-  [QuestionKind.Community]: 'Community',
-  [QuestionKind.Imported]: 'Imported',
 };
 
 export const questionStatusLabels: Record<QuestionStatus, string> = {
@@ -327,6 +323,8 @@ export const sourceKindLabels: Record<SourceKind, string> = {
   [SourceKind.ChatTranscript]: 'Chat transcript',
   [SourceKind.ProductNote]: 'Product note',
   [SourceKind.InternalNote]: 'Internal note',
+  [SourceKind.GovernanceRecord]: 'Governance record',
+  [SourceKind.AuditRecord]: 'Audit record',
   [SourceKind.Other]: 'Other',
 };
 
@@ -336,6 +334,7 @@ export const sourceRoleLabels: Record<SourceRole, string> = {
   [SourceRole.Evidence]: 'Evidence',
   [SourceRole.Citation]: 'Citation',
   [SourceRole.CanonicalReference]: 'Canonical reference',
+  [SourceRole.AuditProof]: 'Audit proof',
 };
 
 export const activityKindLabels: Record<ActivityKind, string> = {
@@ -356,6 +355,9 @@ export const activityKindLabels: Record<ActivityKind, string> = {
   [ActivityKind.VoteReceived]: 'Vote received',
   [ActivityKind.AnswerRetired]: 'Answer retired',
   [ActivityKind.ReportReceived]: 'Report received',
+  [ActivityKind.SignalCaptured]: 'Signal captured',
+  [ActivityKind.AnswerReused]: 'Answer reused',
+  [ActivityKind.DecisionFinalized]: 'Decision finalized',
 };
 
 export const actorKindLabels: Record<ActorKind, string> = {
