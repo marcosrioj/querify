@@ -72,8 +72,8 @@ Answer Hub currently uses the QnA project namespace and remains split by feature
 - `BaseFaq.Common.EntityFramework.Core`: shared EF Core helpers and database infrastructure used across the solution
 - `BaseFaq.Common.EntityFramework.Tenant`: tenant database context, tenant resolution helpers, and shared tenant infrastructure
 - `BaseFaq.QnA.Common.Persistence.QnADb`: Answer Hub database context and QnA-side persistence
-- `BaseFaq.SupportCopilot.Common.Persistence.SupportCopilotDb`: Support Copilot tenant persistence for conversations and conversation messages
-- `BaseFaq.EngagementHub.Common.Persistence.EngagementHubDb`: Engagement Hub tenant persistence for public/community threads and captured items
+- `BaseFaq.Direct.Common.Persistence.DirectDb`: Support Copilot tenant persistence for conversations and conversation messages
+- `BaseFaq.Broadcast.Common.Persistence.BroadcastDb`: Engagement Hub tenant persistence for public/community threads and captured items
 - `BaseFaq.Common.Infrastructure.Core`: shared core abstractions and backend helper services
 - `BaseFaq.Common.Infrastructure.ApiErrorHandling`: API error handling conventions
 - `BaseFaq.Common.Infrastructure.MassTransit`: MassTransit registration and messaging conventions
@@ -159,14 +159,14 @@ Each tenant can point to its own QnA database connection, which is why QnA migra
 
 ### Support Copilot and Engagement Hub databases
 
-`SupportCopilotDbContext` and `EngagementHubDbContext` are present as tenant product persistence boundaries for the product split described in [`../../business/value_proposition.md`](../../business/value_proposition.md).
+`DirectDbContext` and `BroadcastDbContext` are present as tenant product persistence boundaries for the product split described in [`../../business/value_proposition.md`](../../business/value_proposition.md).
 
-`SupportCopilotDbContext` stores the support-side behavior that should not live in Answer Hub:
+`DirectDbContext` stores the support-side behavior that should not live in Answer Hub:
 
 - conversations
 - conversation messages
 
-`EngagementHubDbContext` stores the engagement-side behavior that should not live in Answer Hub:
+`BroadcastDbContext` stores the engagement-side behavior that should not live in Answer Hub:
 
 - external engagement threads
 - captured thread items

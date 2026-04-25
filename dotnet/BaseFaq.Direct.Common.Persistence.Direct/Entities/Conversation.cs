@@ -1,8 +1,8 @@
 using BaseFaq.Common.EntityFramework.Core.Abstractions;
 using BaseFaq.Common.EntityFramework.Core.Entities;
-using BaseFaq.SupportCopilot.Common.Persistence.SupportCopilotDb.Enums;
+using BaseFaq.Direct.Common.Persistence.DirectDb.Enums;
 
-namespace BaseFaq.SupportCopilot.Common.Persistence.SupportCopilotDb.Entities;
+namespace BaseFaq.Direct.Common.Persistence.DirectDb.Entities;
 
 /// <summary>
 /// Represents a support conversation owned by Support Copilot.

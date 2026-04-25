@@ -35,7 +35,7 @@ If those documents do not describe the behavior you are changing, inspect the cl
 - Product persistence entities stay anemic. They contain state only, not behavior methods, factory methods, transition methods, or computed projection helpers.
 - `QnADbContext` is the Answer Hub store. Do not add Support Copilot conversation, handoff, ticket-resolution, or agent-assist workflow state to QnA entities.
 - Do not add Engagement Hub social, public-comment, mention, community-thread, or campaign engagement workflow state to QnA entities.
-- `BaseFaq.SupportCopilot.Common.Persistence.SupportCopilotDb` and `BaseFaq.EngagementHub.Common.Persistence.EngagementHubDb` contain the initial product entity models. Write or update those entities only for concrete product behavior; do not add placeholder entities or empty folders only to satisfy a split.
+- `BaseFaq.Direct.Common.Persistence.DirectDb` and `BaseFaq.Broadcast.Common.Persistence.BroadcastDb` contain the initial product entity models. Write or update those entities only for concrete product behavior; do not add placeholder entities or empty folders only to satisfy a split.
 - Command handlers return simple values only. Complex DTOs belong to queries.
 - Portal UI copy is frontend-owned. Backend DTOs should not return translated labels.
 
@@ -64,7 +64,7 @@ Before adding anything, search for the current behavior and adjacent concepts:
 
 ```bash
 rg -n "ConceptName|RelatedEnum|RelatedProperty" dotnet apps docs
-rg --files dotnet/BaseFaq.Models.QnA dotnet/BaseFaq.QnA.Common.Persistence.QnADb dotnet/BaseFaq.SupportCopilot.Common.Persistence.SupportCopilotDb dotnet/BaseFaq.EngagementHub.Common.Persistence.EngagementHubDb apps/portal/src/domains
+rg --files dotnet/BaseFaq.Models.QnA dotnet/BaseFaq.QnA.Common.Persistence.QnADb dotnet/BaseFaq.Direct.Common.Persistence.DirectDb dotnet/BaseFaq.Broadcast.Common.Persistence.BroadcastDb apps/portal/src/domains
 ```
 
 Capture these facts before editing:
@@ -119,8 +119,8 @@ Relevant locations:
 
 - Answer Hub contracts: `dotnet/BaseFaq.Models.QnA/Enums`
 - Answer Hub persistence entities: `dotnet/BaseFaq.QnA.Common.Persistence.QnADb/Entities`
-- Support Copilot persistence entities, when they exist: `dotnet/BaseFaq.SupportCopilot.Common.Persistence.SupportCopilotDb/Entities`
-- Engagement Hub persistence entities, when they exist: `dotnet/BaseFaq.EngagementHub.Common.Persistence.EngagementHubDb/Entities`
+- Support Copilot persistence entities, when they exist: `dotnet/BaseFaq.Direct.Common.Persistence.DirectDb/Entities`
+- Engagement Hub persistence entities, when they exist: `dotnet/BaseFaq.Broadcast.Common.Persistence.BroadcastDb/Entities`
 - Tenant contracts and entities when the behavior belongs to tenant control plane: `dotnet/BaseFaq.Models.Tenant`, `dotnet/BaseFaq.Common.EntityFramework.Tenant`
 
 Process:
@@ -154,8 +154,8 @@ Relevant locations:
 - Answer Hub configurations: `dotnet/BaseFaq.QnA.Common.Persistence.QnADb/Configurations`
 - Answer Hub DbContext: `dotnet/BaseFaq.QnA.Common.Persistence.QnADb/QnADbContext.cs`
 - Answer Hub read mappings: `dotnet/BaseFaq.QnA.Common.Persistence.QnADb/Projections/QnAReadModelMappings.cs`
-- Support Copilot configurations, DbContext, and mappings only when those files exist under `dotnet/BaseFaq.SupportCopilot.Common.Persistence.SupportCopilotDb`
-- Engagement Hub configurations, DbContext, and mappings only when those files exist under `dotnet/BaseFaq.EngagementHub.Common.Persistence.EngagementHubDb`
+- Support Copilot configurations, DbContext, and mappings only when those files exist under `dotnet/BaseFaq.Direct.Common.Persistence.DirectDb`
+- Engagement Hub configurations, DbContext, and mappings only when those files exist under `dotnet/BaseFaq.Broadcast.Common.Persistence.BroadcastDb`
 - Tenant persistence equivalents when the behavior is control-plane-owned.
 
 Process:
@@ -396,8 +396,8 @@ dotnet build dotnet/BaseFaq.Models.QnA/BaseFaq.Models.QnA.csproj -v minimal --no
 When the stage touches product-specific persistence projects that already contain source files:
 
 ```bash
-dotnet build dotnet/BaseFaq.SupportCopilot.Common.Persistence.SupportCopilotDb/BaseFaq.SupportCopilot.Common.Persistence.SupportCopilotDb.csproj -v minimal --no-restore
-dotnet build dotnet/BaseFaq.EngagementHub.Common.Persistence.EngagementHubDb/BaseFaq.EngagementHub.Common.Persistence.EngagementHubDb.csproj -v minimal --no-restore
+dotnet build dotnet/BaseFaq.Direct.Common.Persistence.DirectDb/BaseFaq.Direct.Common.Persistence.DirectDb.csproj -v minimal --no-restore
+dotnet build dotnet/BaseFaq.Broadcast.Common.Persistence.BroadcastDb/BaseFaq.Broadcast.Common.Persistence.BroadcastDb.csproj -v minimal --no-restore
 ```
 
 Backend feature stage:

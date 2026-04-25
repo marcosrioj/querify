@@ -2,19 +2,18 @@ using BaseFaq.Common.EntityFramework.Core;
 using BaseFaq.Common.EntityFramework.Core.Abstractions;
 using BaseFaq.Common.EntityFramework.Core.Entities;
 using BaseFaq.Common.Infrastructure.Core.Abstractions;
-using BaseFaq.EngagementHub.Common.Persistence.EngagementHubDb.Entities;
 using BaseFaq.Models.Common.Enums;
+using BaseFaq.Direct.Common.Persistence.DirectDb.Entities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using ThreadEntity = BaseFaq.EngagementHub.Common.Persistence.EngagementHubDb.Entities.Thread;
 
-namespace BaseFaq.EngagementHub.Common.Persistence.EngagementHubDb;
+namespace BaseFaq.Direct.Common.Persistence.DirectDb;
 
-public class EngagementHubDbContext : BaseDbContext<EngagementHubDbContext>
+public class DirectDbContext : BaseDbContext<DirectDbContext>
 {
-    public EngagementHubDbContext(
-        DbContextOptions<EngagementHubDbContext> options,
+    public DirectDbContext(
+        DbContextOptions<DirectDbContext> options,
         ISessionService sessionService,
         IConfiguration configuration,
         ITenantConnectionStringProvider tenantConnectionStringProvider,
@@ -28,15 +27,15 @@ public class EngagementHubDbContext : BaseDbContext<EngagementHubDbContext>
     {
     }
 
-    public DbSet<ThreadEntity> Threads { get; set; }
-    public DbSet<Item> Items { get; set; }
+    public DbSet<Conversation> Conversations { get; set; }
+    public DbSet<ConversationMessage> ConversationMessages { get; set; }
 
     protected override IEnumerable<string> ConfigurationNamespaces =>
     [
-        "BaseFaq.EngagementHub.Common.Persistence.EngagementHubDb.Configurations"
+        "BaseFaq.Direct.Common.Persistence.Direct.Configurations"
     ];
 
-    protected override AppEnum SessionApp => AppEnum.EngagementHub;
+    protected override AppEnum SessionApp => AppEnum.Direct;
 
     public override int SaveChanges(bool acceptAllChangesOnSuccess)
     {
@@ -62,14 +61,14 @@ public class EngagementHubDbContext : BaseDbContext<EngagementHubDbContext>
     {
         var cache = new IntegrityLookupCache(this);
 
-        foreach (var entry in ChangeTracker.Entries<Item>()
+        foreach (var entry in ChangeTracker.Entries<ConversationMessage>()
                      .Where(entry => entry.State is EntityState.Added or EntityState.Modified))
         {
-            var item = entry.Entity;
+            var message = entry.Entity;
             EnsureTenantMatch(
-                item.TenantId,
-                cache.GetThreadTenant(item.ThreadId),
-                nameof(Item.ThreadId));
+                message.TenantId,
+                cache.GetConversationTenant(message.ConversationId),
+                nameof(ConversationMessage.ConversationId));
         }
     }
 
@@ -80,13 +79,13 @@ public class EngagementHubDbContext : BaseDbContext<EngagementHubDbContext>
                 $"Cross-tenant relationship detected for '{relationshipName}'. Expected tenant '{expectedTenantId}' but found '{actualTenantId}'.");
     }
 
-    private sealed class IntegrityLookupCache(EngagementHubDbContext dbContext)
+    private sealed class IntegrityLookupCache(DirectDbContext dbContext)
     {
-        private Dictionary<Guid, Guid>? _threadTenants;
+        private Dictionary<Guid, Guid>? _conversationTenants;
 
-        public Guid GetThreadTenant(Guid id)
+        public Guid GetConversationTenant(Guid id)
         {
-            return GetTenant<ThreadEntity>(id, nameof(ThreadEntity), ref _threadTenants);
+            return GetTenant<Conversation>(id, nameof(Conversation), ref _conversationTenants);
         }
 
         private Guid GetTenant<TEntity>(Guid id, string entityName, ref Dictionary<Guid, Guid>? cache)

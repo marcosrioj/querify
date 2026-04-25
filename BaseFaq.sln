@@ -213,21 +213,21 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Helper", "Helper", "{990B10
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BaseFaq.QnA.Common.Helper", "dotnet\BaseFaq.QnA.Common.Helper\BaseFaq.QnA.Common.Helper.csproj", "{E9821077-93AB-4981-B853-939128BE5DCB}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SupportCopilot", "SupportCopilot", "{46F1AE19-CFC2-4929-A367-5119A4EBBBEA}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Direct", "Direct", "{46F1AE19-CFC2-4929-A367-5119A4EBBBEA}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Common", "Common", "{B0F82416-36E8-4BC0-8D18-F8A67FA49703}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Persistence", "Persistence", "{4DBC6605-9D46-4C4B-99C4-03299BAE73CA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BaseFaq.SupportCopilot.Common.Persistence.SupportCopilotDb", "dotnet\BaseFaq.SupportCopilot.Common.Persistence.SupportCopilotDb\BaseFaq.SupportCopilot.Common.Persistence.SupportCopilotDb.csproj", "{FFA7C897-FB20-494A-9519-EE977867C7C8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BaseFaq.Direct.Common.Persistence.Direct", "dotnet\BaseFaq.Direct.Common.Persistence.Direct\BaseFaq.Direct.Common.Persistence.Direct.csproj", "{FFA7C897-FB20-494A-9519-EE977867C7C8}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "EngagementHub", "EngagementHub", "{1FBE1884-AD50-4461-8120-1FC5179B3666}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Broadcast", "Broadcast", "{1FBE1884-AD50-4461-8120-1FC5179B3666}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Common", "Common", "{921C07E1-CCA1-496B-AD56-8FBA4E9D3EF0}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Persistence", "Persistence", "{205D46F6-139D-44B3-9977-1799BA75EB35}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BaseFaq.EngagementHub.Common.Persistence.EngagementHubDb", "dotnet\BaseFaq.EngagementHub.Common.Persistence.EngagementHubDb\BaseFaq.EngagementHub.Common.Persistence.EngagementHubDb.csproj", "{81095657-588F-4EEB-99E2-F6D417A2DCA5}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BaseFaq.Broadcast.Common.Persistence.BroadcastDb", "dotnet\BaseFaq.Broadcast.Common.Persistence.BroadcastDb\BaseFaq.Broadcast.Common.Persistence.BroadcastDb.csproj", "{81095657-588F-4EEB-99E2-F6D417A2DCA5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

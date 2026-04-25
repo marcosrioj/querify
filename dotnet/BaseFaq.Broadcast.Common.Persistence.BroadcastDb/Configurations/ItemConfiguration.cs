@@ -1,9 +1,9 @@
 using BaseFaq.Common.EntityFramework.Core.Configurations;
-using BaseFaq.EngagementHub.Common.Persistence.EngagementHubDb.Entities;
+using BaseFaq.Broadcast.Common.Persistence.BroadcastDb.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace BaseFaq.EngagementHub.Common.Persistence.EngagementHubDb.Configurations;
+namespace BaseFaq.Broadcast.Common.Persistence.BroadcastDb.Configurations;
 
 public class ItemConfiguration : BaseConfiguration<Item>
 {

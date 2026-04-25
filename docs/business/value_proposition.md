@@ -24,7 +24,7 @@ Uma categoria mais forte do que "plataforma de perguntas": o produto não apenas
 
 ## Os 4 Produtos Principais
 
-### 1. Answer Hub
+### 1. QnA
 
 O centro de conhecimento aprovado da empresa.
 
@@ -43,7 +43,7 @@ Ele transforma perguntas recorrentes, respostas validadas e aprendizados de supo
 - Apps web, PWAs e apps mobile com ajuda contextual.
 - Setores regulados, como educação, saúde, finanças, seguros, governo e B2B enterprise.
 
-### 2. Support Copilot
+### 2. Direct
 
 A camada de resolução para conversas diretas.
 
@@ -62,7 +62,7 @@ Ele ajuda clientes, usuários, agentes e times internos a encontrar a resposta c
 - Suporte interno para vendas, sucesso do cliente, implantação, suporte técnico e parceiros.
 - Handoff para humano ou ticket quando o caso exige decisão, exceção ou negociação.
 
-### 3. Engagement Hub
+### 3. Broadcast
 
 A camada de captura e resposta em canais públicos e comunitários.
 
@@ -81,7 +81,7 @@ Ele organiza comentários, menções, dúvidas sociais e discussões de comunida
 - SaaS e produtos B2B que precisam entender objeções, pedidos de melhoria e dúvidas de adoção.
 - Voz do cliente para produto, marketing, suporte e liderança.
 
-### 4. Trust Layer
+### 4. Trust
 
 A camada de confiança para decisões, validações e participação.
 
@@ -118,12 +118,12 @@ O posicionamento ideal trata os produtos como partes de um mesmo sistema. Cada p
 
 | Origem da interação | Produto que captura | Produto que resolve | Produto que transforma em ativo | Produto que valida | Resultado de negócio |
 | --- | --- | --- | --- | --- | --- |
-| Pergunta em site, app ou portal | Answer Hub | Answer Hub | Answer Hub | Trust Layer, quando necessário | Autoatendimento consistente e menos demanda repetida |
-| Conversa 1:1 de suporte | Support Copilot | Support Copilot | Answer Hub | Trust Layer, quando necessário | Resolução mais rápida e melhoria contínua da base |
-| Comentário em rede social | Engagement Hub | Engagement Hub ou Support Copilot | Answer Hub | Trust Layer, quando necessário | Resposta pública consistente e captura de sinais de mercado |
-| Pergunta em comunidade | Engagement Hub | Comunidade, Support Copilot ou time interno | Answer Hub | Trust Layer | Conhecimento comunitário convertido em resposta confiável |
-| Pedido de melhoria ou objeção recorrente | Engagement Hub | Produto, marketing ou suporte | Answer Hub | Trust Layer | Priorização melhor e comunicação mais clara |
-| Decisão coletiva ou proposta | Trust Layer | Trust Layer | Answer Hub | Trust Layer | Decisão auditável, explicável e reutilizável |
+| Pergunta em site, app ou portal | QnA | QnA | QnA | Trust, quando necessário | Autoatendimento consistente e menos demanda repetida |
+| Conversa 1:1 de suporte | Direct | Direct | QnA | Trust, quando necessário | Resolução mais rápida e melhoria contínua da base |
+| Comentário em rede social | Broadcast | Broadcast ou Direct | QnA | Trust, quando necessário | Resposta pública consistente e captura de sinais de mercado |
+| Pergunta em comunidade | Broadcast | Comunidade, Direct ou time interno | QnA | Trust | Conhecimento comunitário convertido em resposta confiável |
+| Pedido de melhoria ou objeção recorrente | Broadcast | Produto, marketing ou suporte | QnA | Trust | Priorização melhor e comunicação mais clara |
+| Decisão coletiva ou proposta | Trust | Trust | QnA | Trust | Decisão auditável, explicável e reutilizável |
 
 ## Fluxos De Negócio Possíveis
 
@@ -135,7 +135,7 @@ Os fluxos abaixo mostram como o sistema cria valor em diferentes momentos da jor
 
 > **Situação:** Um cliente pergunta algo que já foi aprovado antes.
 >
-> **Fluxo:** Answer Hub -> canal próprio, Support Copilot ou Engagement Hub -> resposta entregue -> dados de uso retornam para aprendizado.
+> **Fluxo:** QnA -> canal próprio, Direct ou Broadcast -> resposta entregue -> dados de uso retornam para aprendizado.
 >
 > **Valor:** reduz tickets, aumenta consistência e evita que times diferentes respondam a mesma dúvida de formas diferentes.
 
@@ -143,15 +143,15 @@ Os fluxos abaixo mostram como o sistema cria valor em diferentes momentos da jor
 
 > **Situação:** Uma pergunta aparece sem resposta aprovada.
 >
-> **Fluxo:** Support Copilot ou Engagement Hub captura a lacuna -> time revisa -> Answer Hub publica a resposta -> todos os canais passam a usar a mesma resposta.
+> **Fluxo:** Direct ou Broadcast captura a lacuna -> time revisa -> QnA publica a resposta -> todos os canais passam a usar a mesma resposta.
 >
 > **Valor:** cada falha de cobertura vira conhecimento permanente.
 
 #### 3. Atendimento 1:1 -> Conhecimento Para Todos
 
-> **Situação:** Um agente ou copilot resolve uma dúvida individual.
+> **Situação:** Um agente ou o Direct resolve uma dúvida individual.
 >
-> **Fluxo:** Support Copilot resolve ou escala -> resposta final é revisada -> Answer Hub armazena -> futuros usuários recebem a mesma resposta sem abrir novo contato.
+> **Fluxo:** Direct resolve ou escala -> resposta final é revisada -> QnA armazena -> futuros usuários recebem a mesma resposta sem abrir novo contato.
 >
 > **Valor:** o custo de uma conversa individual gera retorno em escala.
 
@@ -161,7 +161,7 @@ Os fluxos abaixo mostram como o sistema cria valor em diferentes momentos da jor
 
 > **Situação:** Alguém faz uma pergunta ou objeção em comentário público.
 >
-> **Fluxo:** Engagement Hub captura -> Answer Hub sugere resposta aprovada -> Engagement Hub responde no canal -> variações da pergunta alimentam a base.
+> **Fluxo:** Broadcast captura -> QnA sugere resposta aprovada -> Broadcast responde no canal -> variações da pergunta alimentam a base.
 >
 > **Valor:** aumenta velocidade de resposta sem sacrificar controle de marca.
 
@@ -169,7 +169,7 @@ Os fluxos abaixo mostram como o sistema cria valor em diferentes momentos da jor
 
 > **Situação:** Vários comentários repetem a mesma dúvida, medo ou objeção.
 >
-> **Fluxo:** Engagement Hub agrupa sinais -> Answer Hub cria resposta ou narrativa -> Support Copilot usa em conversas -> marketing ajusta campanha ou mensagem.
+> **Fluxo:** Broadcast agrupa sinais -> QnA cria resposta ou narrativa -> Direct usa em conversas -> marketing ajusta campanha ou mensagem.
 >
 > **Valor:** transforma ruído social em aprendizado comercial.
 
@@ -177,7 +177,7 @@ Os fluxos abaixo mostram como o sistema cria valor em diferentes momentos da jor
 
 > **Situação:** Usuários respondem perguntas uns dos outros.
 >
-> **Fluxo:** Engagement Hub captura a melhor resposta -> Trust Layer valida por moderação, voto ou revisão -> Answer Hub publica como resposta confiável.
+> **Fluxo:** Broadcast captura a melhor resposta -> Trust valida por moderação, voto ou revisão -> QnA publica como resposta confiável.
 >
 > **Valor:** aproveita conhecimento da comunidade sem abrir mão de confiança.
 
@@ -185,7 +185,7 @@ Os fluxos abaixo mostram como o sistema cria valor em diferentes momentos da jor
 
 > **Situação:** Um comprador tem uma dúvida antes de comprar.
 >
-> **Fluxo:** Answer Hub responde na página -> se a dúvida for nova, Support Copilot ou Engagement Hub captura -> Answer Hub publica para futuros compradores.
+> **Fluxo:** QnA responde na página -> se a dúvida for nova, Direct ou Broadcast captura -> QnA publica para futuros compradores.
 >
 > **Valor:** remove objeções no momento de decisão e reduz abandono.
 
@@ -193,7 +193,7 @@ Os fluxos abaixo mostram como o sistema cria valor em diferentes momentos da jor
 
 > **Situação:** Um usuário não sabe como concluir uma configuração ou primeiro uso.
 >
-> **Fluxo:** Support Copilot guia a pessoa -> respostas aprovadas explicam passos -> perguntas repetidas viram melhorias no Answer Hub e nas telas do produto.
+> **Fluxo:** Direct guia a pessoa -> respostas aprovadas explicam passos -> perguntas repetidas viram melhorias no QnA e nas telas do produto.
 >
 > **Valor:** acelera ativação e reduz fricção inicial.
 
@@ -203,7 +203,7 @@ Os fluxos abaixo mostram como o sistema cria valor em diferentes momentos da jor
 
 > **Situação:** O sistema não tem segurança para responder.
 >
-> **Fluxo:** Support Copilot escala para humano -> humano resolve -> resposta é revisada -> Answer Hub passa a cobrir o caso.
+> **Fluxo:** Direct escala para humano -> humano resolve -> resposta é revisada -> QnA passa a cobrir o caso.
 >
 > **Valor:** cria um caminho controlado para melhorar cobertura sem respostas improvisadas.
 
@@ -211,7 +211,7 @@ Os fluxos abaixo mostram como o sistema cria valor em diferentes momentos da jor
 
 > **Situação:** O mesmo motivo de contato aparece muitas vezes.
 >
-> **Fluxo:** Support Copilot e Engagement Hub detectam repetição -> Answer Hub cria resposta padrão -> canais próprios e sociais passam a responder antes do ticket.
+> **Fluxo:** Direct e Broadcast detectam repetição -> QnA cria resposta padrão -> canais próprios e sociais passam a responder antes do ticket.
 >
 > **Valor:** ataca a causa do volume, não apenas a fila.
 
@@ -221,7 +221,7 @@ Os fluxos abaixo mostram como o sistema cria valor em diferentes momentos da jor
 
 > **Situação:** Uma campanha gera comentários, dúvidas e resistência.
 >
-> **Fluxo:** Engagement Hub captura reações -> Answer Hub estrutura respostas -> Support Copilot usa em conversas privadas -> marketing ajusta criativos, landing pages e argumentos.
+> **Fluxo:** Broadcast captura reações -> QnA estrutura respostas -> Direct usa em conversas privadas -> marketing ajusta criativos, landing pages e argumentos.
 >
 > **Valor:** melhora a performance de campanhas a partir das perguntas reais do mercado.
 
@@ -229,7 +229,7 @@ Os fluxos abaixo mostram como o sistema cria valor em diferentes momentos da jor
 
 > **Situação:** Usuários pedem melhorias, reportam confusão ou questionam limites do produto.
 >
-> **Fluxo:** Engagement Hub identifica temas -> Trust Layer prioriza com votos, conselhos ou regras de decisão -> Answer Hub publica status, racional e próximos passos.
+> **Fluxo:** Broadcast identifica temas -> Trust prioriza com votos, conselhos ou regras de decisão -> QnA publica status, racional e próximos passos.
 >
 > **Valor:** transforma demanda dispersa em decisão transparente.
 
@@ -237,7 +237,7 @@ Os fluxos abaixo mostram como o sistema cria valor em diferentes momentos da jor
 
 > **Situação:** Uma comunidade, conselho ou grupo de clientes precisa decidir algo.
 >
-> **Fluxo:** Trust Layer registra proposta -> participantes validam ou votam -> resultado é publicado no Answer Hub -> Support Copilot e Engagement Hub respondem perguntas sobre a decisão.
+> **Fluxo:** Trust registra proposta -> participantes validam ou votam -> resultado é publicado no QnA -> Direct e Broadcast respondem perguntas sobre a decisão.
 >
 > **Valor:** aumenta confiança porque a decisão não fica escondida em conversas soltas.
 
@@ -245,7 +245,7 @@ Os fluxos abaixo mostram como o sistema cria valor em diferentes momentos da jor
 
 > **Situação:** Uma regra de preço, entrega, segurança, privacidade ou uso muda.
 >
-> **Fluxo:** Answer Hub atualiza a resposta aprovada -> todos os canais recebem a nova versão -> Trust Layer guarda histórico de aprovação quando necessário.
+> **Fluxo:** QnA atualiza a resposta aprovada -> todos os canais recebem a nova versão -> Trust guarda histórico de aprovação quando necessário.
 >
 > **Valor:** reduz risco de respostas antigas continuarem circulando.
 
@@ -255,7 +255,7 @@ Os fluxos abaixo mostram como o sistema cria valor em diferentes momentos da jor
 
 > **Situação:** Vendas, suporte, sucesso do cliente e parceiros precisam responder a mesma pergunta.
 >
-> **Fluxo:** Answer Hub centraliza a resposta -> Support Copilot ajuda o time interno -> Engagement Hub garante consistência em comentários e comunidades.
+> **Fluxo:** QnA centraliza a resposta -> Direct ajuda o time interno -> Broadcast garante consistência em comentários e comunidades.
 >
 > **Valor:** alinha a empresa inteira em torno da mesma verdade operacional.
 
@@ -263,7 +263,7 @@ Os fluxos abaixo mostram como o sistema cria valor em diferentes momentos da jor
 
 > **Situação:** Parceiros precisam de respostas aprovadas, mas nem sempre devem ver tudo.
 >
-> **Fluxo:** Answer Hub entrega respostas por audiência -> Support Copilot atende parceiros em portal ou canal privado -> lacunas retornam para revisão.
+> **Fluxo:** QnA entrega respostas por audiência -> Direct atende parceiros em portal ou canal privado -> lacunas retornam para revisão.
 >
 > **Valor:** escala suporte de canal sem perder controle sobre permissão e mensagem.
 
@@ -271,7 +271,7 @@ Os fluxos abaixo mostram como o sistema cria valor em diferentes momentos da jor
 
 > **Situação:** Desenvolvedores fazem perguntas sobre APIs, SDKs, erros ou limites.
 >
-> **Fluxo:** Perguntas entram por docs, comunidade ou suporte -> Answer Hub publica resposta versionada -> Support Copilot orienta casos individuais -> Engagement Hub captura discussões técnicas recorrentes.
+> **Fluxo:** Perguntas entram por docs, comunidade ou suporte -> QnA publica resposta versionada -> Direct orienta casos individuais -> Broadcast captura discussões técnicas recorrentes.
 >
 > **Valor:** reduz fricção para adoção técnica e transforma diagnóstico técnico em conhecimento.
 
@@ -279,7 +279,7 @@ Os fluxos abaixo mostram como o sistema cria valor em diferentes momentos da jor
 
 > **Situação:** Um novo mercado faz perguntas diferentes ou usa outras palavras.
 >
-> **Fluxo:** Engagement Hub e Support Copilot capturam variações locais -> Answer Hub adapta respostas por idioma, país e contexto -> canais locais passam a responder com consistência.
+> **Fluxo:** Broadcast e Direct capturam variações locais -> QnA adapta respostas por idioma, país e contexto -> canais locais passam a responder com consistência.
 >
 > **Valor:** evita copiar respostas de um mercado para outro sem aprender com a demanda real.
 
@@ -287,7 +287,7 @@ Os fluxos abaixo mostram como o sistema cria valor em diferentes momentos da jor
 
 > **Situação:** Um tema exige controle, revisão ou evidências.
 >
-> **Fluxo:** Answer Hub guarda resposta aprovada -> Trust Layer registra validação, regra e histórico -> Support Copilot e Engagement Hub usam apenas a versão permitida.
+> **Fluxo:** QnA guarda resposta aprovada -> Trust registra validação, regra e histórico -> Direct e Broadcast usam apenas a versão permitida.
 >
 > **Valor:** reduz risco operacional em temas sensíveis.
 
@@ -295,7 +295,7 @@ Os fluxos abaixo mostram como o sistema cria valor em diferentes momentos da jor
 
 > **Situação:** Diretoria quer entender o que clientes, usuários e comunidades estão perguntando.
 >
-> **Fluxo:** Engagement Hub, Support Copilot e Answer Hub consolidam sinais -> temas recorrentes viram relatórios -> decisões geram novas respostas, campanhas ou propostas.
+> **Fluxo:** Broadcast, Direct e QnA consolidam sinais -> temas recorrentes viram relatórios -> decisões geram novas respostas, campanhas ou propostas.
 >
 > **Valor:** transforma interações do dia a dia em insumo para estratégia.
 
@@ -319,7 +319,7 @@ Os fluxos abaixo mostram como o sistema cria valor em diferentes momentos da jor
 - [GitHub Discussions](https://docs.github.com/en/discussions/collaborating-with-your-community-using-discussions/participating-in-a-discussion) mostra enquetes, votos e marcação de respostas em comunidades.
 - [Stack Overflow Internal Questions](https://stackoverflowteams.help/en/articles/8882140-questions) reforça a ideia de base de conhecimento construída a partir de perguntas bem respondidas.
 - [FIDO Alliance Passkeys](https://fidoalliance.org/passkeys/) referencia autenticação forte e resistente a phishing para fluxos de confiança.
-- [OpenZeppelin Governor](https://docs.openzeppelin.com/contracts/5.x/governance) referencia proposta, voto e ciclo de decisão para governança verificável.
+- [OpenZeppelin Governor](https://docs.openzeppelin.com/contracts/5.x/governance) referencia proposta, voto e ciclo de decisão para processos auditáveis.
 
 ### Referências de viabilidade atual (abril de 2026)
 

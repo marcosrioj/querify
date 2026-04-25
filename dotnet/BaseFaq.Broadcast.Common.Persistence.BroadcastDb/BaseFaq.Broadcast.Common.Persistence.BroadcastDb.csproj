@@ -4,7 +4,9 @@
         <TargetFramework>net10.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <PackageId>BaseFaq.SupportCopilot.Common.Persistence.SupportCopilotDb</PackageId>
+        <PackageId>BaseFaq.Broadcast.Common.Persistence.BroadcastDb</PackageId>
+        <AssemblyName>BaseFaq.Broadcast.Common.Persistence.BroadcastDb</AssemblyName>
+        <RootNamespace>BaseFaq.Broadcast.Common.Persistence.BroadcastDb</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>

@@ -1,9 +1,9 @@
 using BaseFaq.Common.EntityFramework.Core.Configurations;
-using BaseFaq.SupportCopilot.Common.Persistence.SupportCopilotDb.Entities;
+using BaseFaq.Direct.Common.Persistence.DirectDb.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace BaseFaq.SupportCopilot.Common.Persistence.SupportCopilotDb.Configurations;
+namespace BaseFaq.Direct.Common.Persistence.DirectDb.Configurations;
 
 public class ConversationMessageConfiguration : BaseConfiguration<ConversationMessage>
 {

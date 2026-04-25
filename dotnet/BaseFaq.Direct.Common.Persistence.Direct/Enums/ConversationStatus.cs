@@ -1,4 +1,4 @@
-namespace BaseFaq.SupportCopilot.Common.Persistence.SupportCopilotDb.Enums;
+namespace BaseFaq.Direct.Common.Persistence.DirectDb.Enums;
 
 /// <summary>
 /// Defines the minimal lifecycle of a support conversation.

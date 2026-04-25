@@ -1,8 +1,8 @@
 export enum PortalApp {
   Tenant = 0,
   QnA = 1,
-  EngagementHub = 2,
-  SupportCopilot = 3,
+  Broadcast = 2,
+  Direct = 3,
 }
 
 export enum TenantEdition {

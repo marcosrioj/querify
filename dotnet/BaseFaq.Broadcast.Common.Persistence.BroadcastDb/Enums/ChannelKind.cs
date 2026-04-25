@@ -1,4 +1,4 @@
-namespace BaseFaq.EngagementHub.Common.Persistence.EngagementHubDb.Enums;
+namespace BaseFaq.Broadcast.Common.Persistence.BroadcastDb.Enums;
 
 /// <summary>
 /// Describes the broad engagement channel family.

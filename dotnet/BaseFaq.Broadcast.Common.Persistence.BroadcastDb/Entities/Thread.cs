@@ -1,8 +1,8 @@
 using BaseFaq.Common.EntityFramework.Core.Abstractions;
 using BaseFaq.Common.EntityFramework.Core.Entities;
-using BaseFaq.EngagementHub.Common.Persistence.EngagementHubDb.Enums;
+using BaseFaq.Broadcast.Common.Persistence.BroadcastDb.Enums;
 
-namespace BaseFaq.EngagementHub.Common.Persistence.EngagementHubDb.Entities;
+namespace BaseFaq.Broadcast.Common.Persistence.BroadcastDb.Entities;
 
 /// <summary>
 /// Represents an engagement thread captured by Engagement Hub.

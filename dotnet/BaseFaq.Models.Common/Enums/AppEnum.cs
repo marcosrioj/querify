@@ -4,6 +4,6 @@ public enum AppEnum
 {
     Tenant = 0,
     QnA = 1,
-    EngagementHub = 2,
-    SupportCopilot = 3
+    Broadcast = 2,
+    Direct = 3
 }

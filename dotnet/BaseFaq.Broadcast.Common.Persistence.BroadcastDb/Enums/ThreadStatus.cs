@@ -1,4 +1,4 @@
-namespace BaseFaq.EngagementHub.Common.Persistence.EngagementHubDb.Enums;
+namespace BaseFaq.Broadcast.Common.Persistence.BroadcastDb.Enums;
 
 /// <summary>
 /// Defines the minimal lifecycle of an engagement thread.

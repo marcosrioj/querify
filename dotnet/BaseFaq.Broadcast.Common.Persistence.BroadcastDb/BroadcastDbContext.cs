@@ -2,18 +2,19 @@ using BaseFaq.Common.EntityFramework.Core;
 using BaseFaq.Common.EntityFramework.Core.Abstractions;
 using BaseFaq.Common.EntityFramework.Core.Entities;
 using BaseFaq.Common.Infrastructure.Core.Abstractions;
+using BaseFaq.Broadcast.Common.Persistence.BroadcastDb.Entities;
 using BaseFaq.Models.Common.Enums;
-using BaseFaq.SupportCopilot.Common.Persistence.SupportCopilotDb.Entities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using ThreadEntity = BaseFaq.Broadcast.Common.Persistence.BroadcastDb.Entities.Thread;
 
-namespace BaseFaq.SupportCopilot.Common.Persistence.SupportCopilotDb;
+namespace BaseFaq.Broadcast.Common.Persistence.BroadcastDb;
 
-public class SupportCopilotDbContext : BaseDbContext<SupportCopilotDbContext>
+public class BroadcastDbContext : BaseDbContext<BroadcastDbContext>
 {
-    public SupportCopilotDbContext(
-        DbContextOptions<SupportCopilotDbContext> options,
+    public BroadcastDbContext(
+        DbContextOptions<BroadcastDbContext> options,
         ISessionService sessionService,
         IConfiguration configuration,
         ITenantConnectionStringProvider tenantConnectionStringProvider,
@@ -27,15 +28,15 @@ public class SupportCopilotDbContext : BaseDbContext<SupportCopilotDbContext>
     {
     }
 
-    public DbSet<Conversation> Conversations { get; set; }
-    public DbSet<ConversationMessage> ConversationMessages { get; set; }
+    public DbSet<ThreadEntity> Threads { get; set; }
+    public DbSet<Item> Items { get; set; }
 
     protected override IEnumerable<string> ConfigurationNamespaces =>
     [
-        "BaseFaq.SupportCopilot.Common.Persistence.SupportCopilotDb.Configurations"
+        "BaseFaq.Broadcast.Common.Persistence.BroadcastDb.Configurations"
     ];
 
-    protected override AppEnum SessionApp => AppEnum.SupportCopilot;
+    protected override AppEnum SessionApp => AppEnum.Broadcast;
 
     public override int SaveChanges(bool acceptAllChangesOnSuccess)
     {
@@ -61,14 +62,14 @@ public class SupportCopilotDbContext : BaseDbContext<SupportCopilotDbContext>
     {
         var cache = new IntegrityLookupCache(this);
 
-        foreach (var entry in ChangeTracker.Entries<ConversationMessage>()
+        foreach (var entry in ChangeTracker.Entries<Item>()
                      .Where(entry => entry.State is EntityState.Added or EntityState.Modified))
         {
-            var message = entry.Entity;
+            var item = entry.Entity;
             EnsureTenantMatch(
-                message.TenantId,
-                cache.GetConversationTenant(message.ConversationId),
-                nameof(ConversationMessage.ConversationId));
+                item.TenantId,
+                cache.GetThreadTenant(item.ThreadId),
+                nameof(Item.ThreadId));
         }
     }
 
@@ -79,13 +80,13 @@ public class SupportCopilotDbContext : BaseDbContext<SupportCopilotDbContext>
                 $"Cross-tenant relationship detected for '{relationshipName}'. Expected tenant '{expectedTenantId}' but found '{actualTenantId}'.");
     }
 
-    private sealed class IntegrityLookupCache(SupportCopilotDbContext dbContext)
+    private sealed class IntegrityLookupCache(BroadcastDbContext dbContext)
     {
-        private Dictionary<Guid, Guid>? _conversationTenants;
+        private Dictionary<Guid, Guid>? _threadTenants;
 
-        public Guid GetConversationTenant(Guid id)
+        public Guid GetThreadTenant(Guid id)
         {
-            return GetTenant<Conversation>(id, nameof(Conversation), ref _conversationTenants);
+            return GetTenant<ThreadEntity>(id, nameof(ThreadEntity), ref _threadTenants);
         }
 
         private Guid GetTenant<TEntity>(Guid id, string entityName, ref Dictionary<Guid, Guid>? cache)

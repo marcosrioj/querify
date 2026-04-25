@@ -51,8 +51,8 @@ The repository follows a consistent naming model:
 
 - `BaseFaq.Tenant.*`
 - `BaseFaq.QnA.*`
-- `BaseFaq.SupportCopilot.*`
-- `BaseFaq.EngagementHub.*`
+- `BaseFaq.Direct.*`
+- `BaseFaq.Broadcast.*`
 
 Inside each area, business modules are further split by feature, for example:
 
@@ -100,8 +100,8 @@ BaseFAQ uses separate EF Core context boundaries for each data responsibility:
 |---|---|
 | `TenantDbContext` | global tenant metadata, users, tenant memberships, tenant-to-database mapping, and control-plane background-processing state |
 | `QnADbContext` | tenant-specific Answer Hub product data such as spaces, questions, answers, source links, tag links, workflow state, and activity |
-| `SupportCopilotDbContext` | tenant-specific Support Copilot product data such as conversations and conversation messages |
-| `EngagementHubDbContext` | tenant-specific Engagement Hub product data such as external/community threads and captured items |
+| `DirectDbContext` | tenant-specific Support Copilot product data such as conversations and conversation messages |
+| `BroadcastDbContext` | tenant-specific Engagement Hub product data such as external/community threads and captured items |
 
 The split matters operationally:
 
@@ -110,7 +110,7 @@ The split matters operationally:
 - product data lives in tenant databases behind its owning product context
 - migration and seed tooling must coordinate tenant metadata plus the active product store
 
-`BaseFaq.SupportCopilot.Common.Persistence.SupportCopilotDb` and `BaseFaq.EngagementHub.Common.Persistence.EngagementHubDb` define a small entity, enum, configuration, DbContext, and registration-extension baseline only. API hosts, business modules, migrations, additional workflow entities, and seed flows should be added when the owning runtime behavior is implemented there.
+`BaseFaq.Direct.Common.Persistence.DirectDb` and `BaseFaq.Broadcast.Common.Persistence.BroadcastDb` define a small entity, enum, configuration, DbContext, and registration-extension baseline only. API hosts, business modules, migrations, additional workflow entities, and seed flows should be added when the owning runtime behavior is implemented there.
 
 ### 6. Multitenancy is part of the request model
 
@@ -188,7 +188,7 @@ The testing strategy is documented in [`../testing/integration-testing-strategy.
 - Preserve the existing composition-root pattern in API hosts.
 - Add new business features under the appropriate bounded-context module instead of enlarging unrelated projects.
 - Keep write flows simple and aligned with the CQRS rules.
-- Treat `TenantDbContext`, `QnADbContext`, `SupportCopilotDbContext`, and `EngagementHubDbContext` as separate ownership boundaries.
+- Treat `TenantDbContext`, `QnADbContext`, `DirectDbContext`, and `BroadcastDbContext` as separate ownership boundaries.
 - Keep Support Copilot and Engagement Hub behavior inside their product boundaries instead of folding it into Answer Hub.
 - Put public tenant ingress endpoints such as billing webhooks in `BaseFaq.Tenant.Public.Api`, not in authenticated portal hosts.
 - Update the specific docs in `docs/` when boundaries, startup steps, or operational assumptions change.

@@ -18,8 +18,8 @@ If this file conflicts with those sources, those sources win.
 Apply these rules to:
 
 - `BaseFaq.QnA.*`
-- `BaseFaq.SupportCopilot.*`
-- `BaseFaq.EngagementHub.*`
+- `BaseFaq.Direct.*`
+- `BaseFaq.Broadcast.*`
 - `BaseFaq.Tenant.*`
 - `BaseFaq.Common.*`
 - `BaseFaq.Models.Common`
@@ -73,7 +73,7 @@ Apply these rules to:
 - Do not add command-like methods, factory methods, behavior methods, or convenience projection properties to QnA persistence entities.
 - Keep QnA state transitions, relation management, validation, and projection shaping inside commands, queries, and feature-local private methods.
 - Support Copilot and Engagement Hub behavior must live in their own feature and persistence projects.
-- `BaseFaq.SupportCopilot.Common.Persistence.SupportCopilotDb` and `BaseFaq.EngagementHub.Common.Persistence.EngagementHubDb` contain their initial entity models; extend them only for concrete product behavior, not placeholder coverage.
+- `BaseFaq.Direct.Common.Persistence.DirectDb` and `BaseFaq.Broadcast.Common.Persistence.BroadcastDb` contain their initial entity models; extend them only for concrete product behavior, not placeholder coverage.
 
 ### 6. QnA model contract boundary
 

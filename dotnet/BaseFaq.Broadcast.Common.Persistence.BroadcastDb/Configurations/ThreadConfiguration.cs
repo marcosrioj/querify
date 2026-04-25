@@ -1,9 +1,9 @@
 using BaseFaq.Common.EntityFramework.Core.Configurations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using ThreadEntity = BaseFaq.EngagementHub.Common.Persistence.EngagementHubDb.Entities.Thread;
+using ThreadEntity = BaseFaq.Broadcast.Common.Persistence.BroadcastDb.Entities.Thread;
 
-namespace BaseFaq.EngagementHub.Common.Persistence.EngagementHubDb.Configurations;
+namespace BaseFaq.Broadcast.Common.Persistence.BroadcastDb.Configurations;
 
 public class ThreadConfiguration : BaseConfiguration<ThreadEntity>
 {

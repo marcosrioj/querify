@@ -1,4 +1,4 @@
-namespace BaseFaq.SupportCopilot.Common.Persistence.SupportCopilotDb.Enums;
+namespace BaseFaq.Direct.Common.Persistence.DirectDb.Enums;
 
 /// <summary>
 /// Identifies who wrote a support conversation message.
