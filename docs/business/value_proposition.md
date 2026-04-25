@@ -22,11 +22,29 @@ Cada resposta resolvida fortalece a base, reduz retrabalho e revela o que o merc
 
 Uma categoria mais forte do que "plataforma de perguntas": o produto não apenas responde dúvidas, ele transforma demanda, suporte, comunidade e decisão em conhecimento reutilizável.
 
-## Os 4 Módulos Principais Do BaseFaq
+## Os 5 Módulos Atuais Do BaseFaq
 
-O BaseFaq é composto por quatro módulos de produto: QnA, Direct, Broadcast e Trust.
+O BaseFaq é composto por cinco módulos atuais: Tenant, QnA, Direct, Broadcast e Trust.
 
-### 1. QnA
+### 1. Tenant
+
+O módulo de controle da plataforma.
+
+Ele organiza tenants, usuários, membros, permissões, cobrança, entitlement, chaves públicas, conexões de banco e operações assíncronas de controle.
+
+**Valor principal:** governança operacional. Cada workspace tem identidade, plano, acesso, roteamento de dados e processamento de plataforma controlados antes dos módulos de produto executarem seus fluxos.
+
+**Atuacoes**
+
+- Provisionamento e administração de workspaces.
+- Associação de usuários, papéis e acesso por tenant.
+- Mapeamento de conexão dos bancos dos módulos.
+- Billing, assinaturas, faturas, pagamentos, entitlements e webhooks.
+- Chaves públicas e identificação de tenants para superfícies públicas.
+- Outbox de email e processamento assíncrono de plataforma.
+- Suporte a cenários back-office, portal, público e worker.
+
+### 2. QnA
 
 O centro de conhecimento aprovado da empresa.
 
@@ -45,7 +63,7 @@ Ele transforma perguntas recorrentes, respostas validadas e aprendizados de supo
 - Apps web, PWAs e apps mobile com ajuda contextual.
 - Setores regulados, como educação, saúde, finanças, seguros, governo e B2B enterprise.
 
-### 2. Direct
+### 3. Direct
 
 A camada de resolução para conversas diretas.
 
@@ -64,7 +82,7 @@ Ele ajuda clientes, usuários, agentes e times internos a encontrar a resposta c
 - Suporte interno para vendas, sucesso do cliente, implantação, suporte técnico e parceiros.
 - Handoff para humano ou ticket quando o caso exige decisão, exceção ou negociação.
 
-### 3. Broadcast
+### 4. Broadcast
 
 A camada de captura e resposta em canais públicos e comunitários.
 
@@ -83,7 +101,7 @@ Ele organiza comentários, menções, dúvidas sociais e discussões de comunida
 - SaaS e produtos B2B que precisam entender objeções, pedidos de melhoria e dúvidas de adoção.
 - Voz do cliente para produto, marketing, suporte e liderança.
 
-### 4. Trust
+### 5. Trust
 
 A camada de confiança para decisões, validações e participação.
 
@@ -116,7 +134,7 @@ Esse é o ciclo que cria valor acumulado: **pergunta -> resolução -> conhecime
 
 ## Como Os Módulos Se Conectam
 
-O posicionamento ideal trata os módulos do BaseFaq como partes de um mesmo sistema. Cada módulo alimenta os demais:
+Os módulos do BaseFaq funcionam como partes de um mesmo sistema. Tenant controla identidade, acesso, cobrança e roteamento de dados. QnA, Direct, Broadcast e Trust executam os fluxos de produto e alimentam o ciclo de conhecimento.
 
 | Origem da interação | Módulo que captura | Módulo que resolve | Módulo que transforma em ativo | Módulo que valida | Resultado de negócio |
 | --- | --- | --- | --- | --- | --- |

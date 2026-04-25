@@ -18,7 +18,7 @@ public sealed class AnswersAddSourceCommandHandler(
 {
     public async Task<Guid> Handle(AnswersAddSourceCommand request, CancellationToken cancellationToken)
     {
-        var tenantId = sessionService.GetTenantId(AppEnum.QnA);
+        var tenantId = sessionService.GetTenantId(ModuleEnum.QnA);
         var userId = sessionService.GetUserId().ToString();
         var answer = await dbContext.Answers
             .Include(entity => entity.Question)

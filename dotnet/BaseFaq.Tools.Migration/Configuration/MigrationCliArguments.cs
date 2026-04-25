@@ -5,7 +5,7 @@ namespace BaseFaq.Tools.Migration.Configuration;
 
 internal sealed class MigrationCliArguments
 {
-    public AppEnum? App { get; private set; }
+    public ModuleEnum? Module { get; private set; }
     public MigrationCommand? Command { get; private set; }
     public string? MigrationName { get; private set; }
 
@@ -23,9 +23,9 @@ internal sealed class MigrationCliArguments
 
             switch (argument.ToLowerInvariant())
             {
-                case "--app":
+                case "--module":
                     EnsureValue(args, i, argument);
-                    parsed.App = ParseApp(args[++i]);
+                    parsed.Module = ParseModule(args[++i]);
                     break;
                 case "--command":
                     EnsureValue(args, i, argument);
@@ -56,15 +56,15 @@ internal sealed class MigrationCliArguments
         }
     }
 
-    private static AppEnum ParseApp(string value)
+    private static ModuleEnum ParseModule(string value)
     {
         if (string.Equals(value, "1", StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(value, AppEnum.QnA.ToString(), StringComparison.OrdinalIgnoreCase))
+            string.Equals(value, ModuleEnum.QnA.ToString(), StringComparison.OrdinalIgnoreCase))
         {
-            return AppEnum.QnA;
+            return ModuleEnum.QnA;
         }
 
-        throw new ArgumentException($"Unsupported app '{value}'. Supported: {AppEnum.QnA}.");
+        throw new ArgumentException($"Unsupported module '{value}'. Supported: {ModuleEnum.QnA}.");
     }
 
     private static MigrationCommand ParseCommand(string value)

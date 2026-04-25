@@ -89,7 +89,7 @@
   "Answers are ranked, validated, retired, and often grounded with evidence links after they are saved.": "تُرتَّب الإجابات وتُعتمد وتُسحب عند الحاجة وغالبًا ما تُدعَّم بروابط الأدلة بعد حفظها.",
   "Answers that passed validation workflow": "الإجابات التي اجتازت سير عمل التحقق",
   "API": "API",
-  "App scope": "نطاق التطبيق",
+  "Module scope": "نطاق الوحدة",
   "Appearance": "المظهر",
   "Appearance, profile, and workspace": "المظهر والملف الشخصي والفضاء",
   "Applicability rules JSON": "JSON لقواعد الانطباق",

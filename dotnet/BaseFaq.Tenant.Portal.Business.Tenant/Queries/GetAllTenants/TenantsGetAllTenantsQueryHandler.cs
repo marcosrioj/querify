@@ -17,7 +17,7 @@ public class TenantsGetAllTenantsQueryHandler(TenantDbContext dbContext, ISessio
         return await dbContext.TenantUsers
             .AsNoTracking()
             .Where(entity => entity.UserId == userId && entity.Tenant.IsActive)
-            .OrderBy(entity => entity.Tenant.App)
+            .OrderBy(entity => entity.Tenant.Module)
             .ThenBy(entity => entity.Tenant.Name)
             .Select(entity => new TenantSummaryDto
             {
@@ -25,7 +25,7 @@ public class TenantsGetAllTenantsQueryHandler(TenantDbContext dbContext, ISessio
                 Slug = entity.Tenant.Slug,
                 Name = entity.Tenant.Name,
                 Edition = entity.Tenant.Edition,
-                App = entity.Tenant.App,
+                Module = entity.Tenant.Module,
                 IsActive = entity.Tenant.IsActive,
                 CurrentUserRole = entity.Role
             })

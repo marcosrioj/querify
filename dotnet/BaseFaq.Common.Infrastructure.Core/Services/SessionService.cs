@@ -23,7 +23,7 @@ public sealed class SessionService : ISessionService
         _httpContextAccessor = httpContextAccessor;
     }
 
-    public Guid GetTenantId(AppEnum app)
+    public Guid GetTenantId(ModuleEnum module)
     {
         var httpContext = _httpContextAccessor.HttpContext;
         if (httpContext is null ||

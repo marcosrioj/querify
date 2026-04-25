@@ -102,7 +102,7 @@ Use this workflow when the change crosses the Portal and APIs together, for exam
 
 Start in this order:
 
-1. [`business/value_proposition.md`](business/value_proposition.md) when the change depends on the BaseFaq module split across QnA, Direct, Broadcast, or Trust.
+1. [`business/value_proposition.md`](business/value_proposition.md) when the change depends on the BaseFaq module split across Tenant, QnA, Direct, Broadcast, or Trust.
 2. [`backend/architecture/solution-architecture.md`](backend/architecture/solution-architecture.md) to identify ownership boundaries.
 3. The owning backend guide in [`backend/architecture`](backend/architecture).
 4. The owning frontend guide in [`frontend/architecture`](frontend/architecture).
@@ -191,7 +191,7 @@ Follow:
 3. [`backend/architecture/repository-rules.md`](backend/architecture/repository-rules.md)
 4. [`backend/testing/integration-testing-strategy.md`](backend/testing/integration-testing-strategy.md)
 
-Use this for new commands, queries, controllers, services, feature decomposition, and QnA project ownership changes.
+Use this for new commands, queries, controllers, services, feature decomposition, and module project ownership changes.
 
 ### Product behavior change
 
@@ -234,7 +234,7 @@ Follow:
 2. [`backend/tools/seed-tool.md`](backend/tools/seed-tool.md)
 3. [`backend/tools/migration-tool.md`](backend/tools/migration-tool.md)
 
-Use this for environment bootstrap, schema updates, tenant/QnA database setup, and local operational workflows.
+Use this for environment bootstrap, schema updates, tenant/module database setup, and local operational workflows.
 
 ### Portal domain data flow
 

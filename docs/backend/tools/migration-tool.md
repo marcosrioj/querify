@@ -2,13 +2,13 @@
 
 ## Purpose
 
-`BaseFaq.Tools.Migration` is the tenant-aware migration runner for BaseFAQ. It exists because QnA data is not stored in a single global database; the tool must read tenant metadata first and then apply QnA migrations to the correct tenant databases.
+`BaseFaq.Tools.Migration` is the tenant-aware migration runner for BaseFAQ module databases. It reads tenant metadata first, then applies supported module migrations to the correct tenant databases.
 
 ## What it manages
 
-The tool manages QnA application databases only.
+The tool manages supported module databases. Current supported module target: `QnA`.
 
-It uses the tenant database to discover which QnA database connection strings exist and then applies migrations across those databases.
+It uses the tenant database to discover which module database connection strings exist and then applies migrations across those databases.
 
 ## How it works
 
@@ -17,7 +17,7 @@ It uses the tenant database to discover which QnA database connection strings ex
 3. Choose a command.
 4. Either:
    - add a new EF Core migration, or
-   - run database update across all tenant QnA databases.
+   - run database update across all tenant databases for the selected module.
 
 ## Interactive usage
 
@@ -35,13 +35,13 @@ The tool prompts for:
 ### Apply QnA database updates
 
 ```bash
-dotnet run --project dotnet/BaseFaq.Tools.Migration -- --app QnA --command database-update
+dotnet run --project dotnet/BaseFaq.Tools.Migration -- --module QnA --command database-update
 ```
 
 ### Add a new QnA migration
 
 ```bash
-dotnet run --project dotnet/BaseFaq.Tools.Migration -- --app QnA --command migrations-add --migration-name AddExampleChange
+dotnet run --project dotnet/BaseFaq.Tools.Migration -- --module QnA --command migrations-add --migration-name AddExampleChange
 ```
 
 ## Configuration source
@@ -51,7 +51,7 @@ The tool reads the tenant database connection through the repository configurati
 Operationally, that means:
 
 - the tenant database must already be reachable
-- tenant records must contain the relevant QnA database connection strings
+- tenant records must contain the relevant module database connection strings
 
 ## Recommended workflow
 
@@ -78,7 +78,7 @@ dotnet ef database update \
 ## Common failure cases
 
 - tenant database is not reachable
-- a tenant record does not have the expected QnA database connection string
+- a tenant record does not have the expected module database connection string
 - the solution root cannot be located
 - `migrations-add` is used without `--migration-name` in CLI mode
 

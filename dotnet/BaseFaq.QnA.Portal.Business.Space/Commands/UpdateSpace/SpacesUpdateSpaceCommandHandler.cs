@@ -19,7 +19,7 @@ public sealed class SpacesUpdateSpaceCommandHandler(
     public async Task<Guid> Handle(SpacesUpdateSpaceCommand request,
         CancellationToken cancellationToken)
     {
-        var tenantId = sessionService.GetTenantId(AppEnum.QnA);
+        var tenantId = sessionService.GetTenantId(ModuleEnum.QnA);
         var userId = sessionService.GetUserId().ToString();
         var entity = await dbContext.Spaces
             .Include(space => space.Tags)

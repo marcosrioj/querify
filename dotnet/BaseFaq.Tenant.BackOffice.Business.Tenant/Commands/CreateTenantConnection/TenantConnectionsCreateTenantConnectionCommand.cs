@@ -5,7 +5,7 @@ namespace BaseFaq.Tenant.BackOffice.Business.Tenant.Commands.CreateTenantConnect
 
 public sealed class TenantConnectionsCreateTenantConnectionCommand : IRequest<Guid>
 {
-    public required AppEnum App { get; set; }
+    public required ModuleEnum Module { get; set; }
     public required string ConnectionString { get; set; }
     public required bool IsCurrent { get; set; }
 }

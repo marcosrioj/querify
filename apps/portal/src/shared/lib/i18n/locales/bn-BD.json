@@ -89,7 +89,7 @@
   "Answers are ranked, validated, retired, and often grounded with evidence links after they are saved.": "সংরক্ষণের পর উত্তরসমূহ র‌্যাঙ্ক করা হয়, যাচাই করা হয়, অবসর দেওয়া হয় এবং প্রায়ই প্রমাণ-লিংকের ভিত্তিতে সমর্থিত হয়।",
   "Answers that passed validation workflow": "যে উত্তরসমূহ যাচাইকরণ ওয়ার্কফ্লো পেরিয়েছে",
   "API": "API",
-  "App scope": "অ্যাপ স্কোপ",
+  "Module scope": "মডিউল স্কোপ",
   "Appearance": "চেহারা",
   "Appearance, profile, and workspace": "চেহারা, প্রোফাইল, এবং ওয়ার্কস্পেস",
   "Applicability rules JSON": "প্রযোজ্যতার নিয়ম JSON",

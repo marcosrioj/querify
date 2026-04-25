@@ -16,7 +16,7 @@ public sealed class SpacesGetSpaceListQueryHandler(
     public async Task<PagedResultDto<SpaceDto>> Handle(SpacesGetSpaceListQuery request,
         CancellationToken cancellationToken)
     {
-        var tenantId = sessionService.GetTenantId(AppEnum.QnA);
+        var tenantId = sessionService.GetTenantId(ModuleEnum.QnA);
         var query = dbContext.Spaces
             .Include(space => space.Questions)
             .Include(space => space.Tags)

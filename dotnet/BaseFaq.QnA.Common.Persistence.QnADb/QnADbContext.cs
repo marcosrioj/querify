@@ -45,7 +45,7 @@ public class QnADbContext : BaseDbContext<QnADbContext>
         "BaseFaq.QnA.Common.Persistence.QnADb.Configurations"
     ];
 
-    protected override AppEnum SessionApp => AppEnum.QnA;
+    protected override ModuleEnum SessionModule => ModuleEnum.QnA;
 
     public override int SaveChanges(bool acceptAllChangesOnSuccess)
     {

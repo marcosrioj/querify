@@ -26,7 +26,7 @@ public class TenantConnectionsGetTenantConnectionListQueryHandler(TenantDbContex
             .Select(connection => new TenantConnectionDto
             {
                 Id = connection.Id,
-                App = connection.App,
+                Module = connection.Module,
                 ConnectionString = string.Empty,
                 IsCurrent = connection.IsCurrent
             })
@@ -71,15 +71,15 @@ public class TenantConnectionsGetTenantConnectionListQueryHandler(TenantDbContex
     {
         return fieldName.ToLowerInvariant() switch
         {
-            "app" => isFirst
+            "module" => isFirst
                 ? (desc
-                    ? query.OrderByDescending(connection => connection.App)
-                    : query.OrderBy(connection => connection.App))
+                    ? query.OrderByDescending(connection => connection.Module)
+                    : query.OrderBy(connection => connection.Module))
                 : (desc
                     ? ((IOrderedQueryable<BaseFaq.Common.EntityFramework.Tenant.Entities.TenantConnection>)query)
-                    .ThenByDescending(connection => connection.App)
+                    .ThenByDescending(connection => connection.Module)
                     : ((IOrderedQueryable<BaseFaq.Common.EntityFramework.Tenant.Entities.TenantConnection>)query)
-                    .ThenBy(connection => connection.App)),
+                    .ThenBy(connection => connection.Module)),
             "iscurrent" => isFirst
                 ? (desc
                     ? query.OrderByDescending(connection => connection.IsCurrent)

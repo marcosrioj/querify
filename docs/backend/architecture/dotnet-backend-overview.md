@@ -16,7 +16,7 @@ This guide explains how the backend is organized under `dotnet/`, which APIs exi
 
 | Worker | Responsibility | Data boundary | Local port |
 |---|---|---|---:|
-| `BaseFaq.Tenant.Worker.Api` | control-plane background processing for billing webhooks, email outbox, and future platform jobs | `TenantDbContext` only | n/a |
+| `BaseFaq.Tenant.Worker.Api` | control-plane background processing for billing webhooks and email outbox | `TenantDbContext` only | n/a |
 
 ## Project taxonomy inside `dotnet/`
 
@@ -40,7 +40,9 @@ These projects contain ASP.NET Core startup, middleware, and DI registration:
 
 Each service area is split into feature projects.
 
-QnA, Direct, Broadcast, and Trust are the BaseFaq product modules. QnA remains split by feature project instead of monolithic business assemblies. Direct and Broadcast have persistence models, but no feature business modules yet. Trust should use the same module boundary rules when its runtime model is introduced.
+The current BaseFaq modules are Tenant, QnA, Direct, Broadcast, and Trust. Tenant owns the control plane. QnA, Direct, Broadcast, and Trust own product behavior. Each module uses feature-scoped projects for API behavior and module-owned persistence for data.
+
+Current API/business implementation in this solution:
 
 - QnA Portal:
   - `BaseFaq.QnA.Portal.Business.Space`
@@ -67,6 +69,15 @@ QnA, Direct, Broadcast, and Trust are the BaseFaq product modules. QnA remains s
   - `BaseFaq.Tenant.Worker.Business.Billing`
   - `BaseFaq.Tenant.Worker.Business.Email`
 
+Current module persistence implementation:
+
+- Direct:
+  - `BaseFaq.Direct.Common.Persistence.DirectDb`
+- Broadcast:
+  - `BaseFaq.Broadcast.Common.Persistence.BroadcastDb`
+- Trust:
+  - no active persistence project in this repository snapshot
+
 ### Shared infrastructure and persistence
 
 - `BaseFaq.Common.EntityFramework.Core`: shared EF Core helpers and database infrastructure used across the solution
@@ -82,7 +93,7 @@ QnA, Direct, Broadcast, and Trust are the BaseFaq product modules. QnA remains s
 - `BaseFaq.Common.Infrastructure.Sentry`: Sentry integration
 - `BaseFaq.Common.Infrastructure.Swagger`: Swagger/OpenAPI wiring
 - `BaseFaq.Common.Infrastructure.Telemetry`: shared telemetry wiring (OpenTelemetry tracing, OTLP export)
-- `BaseFaq.Models.Common`: shared primitive DTOs and common contracts
+- `BaseFaq.Models.Common`: shared primitive DTOs and common contracts, including `ModuleEnum`
 - `BaseFaq.Models.QnA`: QnA-facing contracts
 - `BaseFaq.Models.Direct`: Direct-facing contracts
 - `BaseFaq.Models.Broadcast`: Broadcast-facing contracts
@@ -116,9 +127,9 @@ Implications:
 - write flows should return simple values
 - query DTOs belong to read handlers, not command handlers
 - API hosts compose multiple feature-owned business modules rather than one catch-all business assembly
-- QnA uses the same one-business-project-per-feature pattern across the bounded context
-- QnA feature projects keep real source files inside the owning project directory and avoid linked compile items
-- QnA integration tests should use feature folders and names such as `Tests/Answer/AnswerCommandQueryTests.cs`
+- module business projects use the same one-business-project-per-feature pattern across the owning module
+- feature projects keep real source files inside the owning project directory and avoid linked compile items
+- integration tests should use feature folders and names such as `Tests/Answer/AnswerCommandQueryTests.cs`
 - HTTP route segments should use lowercase kebab-case for action-style paths such as `add-tenant-member` or `refresh-allowed-tenant-cache`
 
 The write-side rules are formalized in [`solution-cqrs-write-rules.md`](solution-cqrs-write-rules.md).
@@ -132,7 +143,7 @@ The write-side rules are formalized in [`solution-cqrs-write-rules.md`](solution
 - tenants
 - users
 - tenant memberships
-- tenant-to-QnA database connection strings
+- tenant-to-module database connection strings
 - client keys
 - control-plane background-processing state such as billing webhook inbox records and email outbox records
 - normalized billing state such as billing customers, subscriptions, invoices, payments, and entitlement snapshots
@@ -157,7 +168,7 @@ That also means these responsibilities belong in `TenantDbContext` and not in te
 - activity and public signaling metadata derived from activity
 - workflow state for question moderation and answer publication or validation
 
-Each tenant can point to its own QnA database connection, which is why QnA migration and seed tooling must resolve tenant metadata first.
+Each tenant can point to its own module database connection, which is why module migration and seed tooling must resolve tenant metadata first.
 
 ### Direct and Broadcast databases
 
@@ -173,9 +184,9 @@ Each tenant can point to its own QnA database connection, which is why QnA migra
 - external and community interaction threads
 - captured thread items
 
-These projects define a deliberately small entity, enum, configuration, DbContext, and registration-extension baseline. API hosts, business modules, migrations, additional workflow entities, and seed flows should be added only when those modules gain runtime behavior.
+These projects define the current entity, enum, configuration, DbContext, and registration-extension scope for their modules. API hosts, business modules, migrations, additional workflow entities, and seed flows belong in the same module boundary as the behavior.
 
-Trust has no active persistence project yet. When introduced, it should own validation, governance, and auditability data in a separate BaseFaq module boundary instead of sharing QnA, Direct, or Broadcast persistence by default.
+Trust has no active persistence project in this repository snapshot. Validation, governance, and auditability data belongs to the Trust module boundary instead of sharing QnA, Direct, or Broadcast persistence by default.
 
 ## Multitenancy model
 
@@ -197,7 +208,7 @@ The usual backend bootstrap sequence is:
 
 1. Start base services with `./devops/local/docker/base.sh`.
 2. On a clean environment, initialize schema and data with `BaseFaq.Tools.Seed`.
-3. Use `BaseFaq.Tools.Migration` when you need to apply QnA schema updates across tenant module databases.
+3. Use `BaseFaq.Tools.Migration` when you need to apply supported module schema updates across tenant module databases.
 4. Run the specific APIs needed for the workflow you are testing.
 
 Typical command set:
@@ -217,8 +228,8 @@ For worker-specific configuration and feature guidance, see [`basefaq-tenant-wor
 ## Development conventions
 
 - Add new features to the correct bounded-context project rather than enlarging an unrelated one.
-- For QnA backend work, keep source files real inside the owning feature project instead of creating a monolithic or linked-source business project.
-- Keep Direct and Broadcast behavior in their own module projects once those feature modules exist; do not model their workflows in QnA entities as a shortcut.
+- For module backend work, keep source files real inside the owning feature project instead of creating a monolithic or linked-source business project.
+- Keep behavior in its owning module project; do not model another module's workflow in QnA entities as a shortcut.
 - Preserve the API-host composition pattern through `AddFeatures(...)`.
 - Keep controllers and services thin; push actual use-case behavior into handlers and domain-specific services.
 - Prefer lowercase kebab-case in route path segments when a controller exposes named actions beyond plain resource ids.

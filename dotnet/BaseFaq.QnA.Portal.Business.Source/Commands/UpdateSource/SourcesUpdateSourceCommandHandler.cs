@@ -21,7 +21,7 @@ public sealed class SourcesUpdateSourceCommandHandler(
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(request.Request);
 
-        var tenantId = sessionService.GetTenantId(AppEnum.QnA);
+        var tenantId = sessionService.GetTenantId(ModuleEnum.QnA);
         var userId = sessionService.GetUserId().ToString();
         var entity = await dbContext.Sources
             .SingleOrDefaultAsync(source => source.TenantId == tenantId && source.Id == request.Id, cancellationToken);

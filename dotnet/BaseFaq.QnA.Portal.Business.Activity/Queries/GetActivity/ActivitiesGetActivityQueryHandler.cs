@@ -18,7 +18,7 @@ public sealed class ActivitiesGetActivityQueryHandler(
     public async Task<ActivityDto> Handle(ActivitiesGetActivityQuery request,
         CancellationToken cancellationToken)
     {
-        var tenantId = sessionService.GetTenantId(AppEnum.QnA);
+        var tenantId = sessionService.GetTenantId(ModuleEnum.QnA);
         var entity = await dbContext.Activities.AsNoTracking()
             .SingleOrDefaultAsync(activity => activity.TenantId == tenantId && activity.Id == request.Id,
                 cancellationToken);

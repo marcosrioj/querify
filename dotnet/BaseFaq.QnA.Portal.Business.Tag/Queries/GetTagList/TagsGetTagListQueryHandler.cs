@@ -16,7 +16,7 @@ public sealed class TagsGetTagListQueryHandler(QnADbContext dbContext, ISessionS
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(request.Request);
 
-        var tenantId = sessionService.GetTenantId(AppEnum.QnA);
+        var tenantId = sessionService.GetTenantId(ModuleEnum.QnA);
         var query = dbContext.Tags.Where(tag => tag.TenantId == tenantId);
 
         if (!string.IsNullOrWhiteSpace(request.Request.SearchText))

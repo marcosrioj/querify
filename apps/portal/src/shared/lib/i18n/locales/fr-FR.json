@@ -89,7 +89,7 @@
   "Answers are ranked, validated, retired, and often grounded with evidence links after they are saved.": "Les réponses sont classées, validées, retirées et souvent étayées par des liens de preuve après leur enregistrement.",
   "Answers that passed validation workflow": "Réponses ayant passé le flux de validation",
   "API": "API",
-  "App scope": "Portée de l'application",
+  "Module scope": "Portée du module",
   "Appearance": "Apparence",
   "Appearance, profile, and workspace": "Apparence, profil et espace de travail",
   "Applicability rules JSON": "JSON des règles d'applicabilité",

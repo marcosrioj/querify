@@ -89,7 +89,7 @@
   "Answers are ranked, validated, retired, and often grounded with evidence links after they are saved.": "Jawaban diberi peringkat, divalidasi, dipensiunkan, dan sering didasarkan pada tautan bukti setelah disimpan.",
   "Answers that passed validation workflow": "Jawaban yang lulus alur validasi",
   "API": "API",
-  "App scope": "Cakupan aplikasi",
+  "Module scope": "Cakupan modul",
   "Appearance": "Tampilan",
   "Appearance, profile, and workspace": "Tampilan, profil, dan ruang kerja",
   "Applicability rules JSON": "JSON aturan penerapan",

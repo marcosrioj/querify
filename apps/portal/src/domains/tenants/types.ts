@@ -1,5 +1,5 @@
 import {
-  PortalApp,
+  ModuleEnum,
   TenantEdition,
   TenantUserRoleType,
 } from '@/shared/constants/backend-enums';
@@ -9,7 +9,7 @@ export type TenantSummaryDto = {
   slug: string;
   name: string;
   edition: TenantEdition;
-  app: PortalApp;
+  module: ModuleEnum;
   isActive: boolean;
   currentUserRole: TenantUserRoleType;
 };

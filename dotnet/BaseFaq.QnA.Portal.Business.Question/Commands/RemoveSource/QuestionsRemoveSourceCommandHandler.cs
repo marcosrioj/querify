@@ -15,7 +15,7 @@ public sealed class QuestionsRemoveSourceCommandHandler(
 {
     public async Task Handle(QuestionsRemoveSourceCommand request, CancellationToken cancellationToken)
     {
-        var tenantId = sessionService.GetTenantId(AppEnum.QnA);
+        var tenantId = sessionService.GetTenantId(ModuleEnum.QnA);
         var link = await dbContext.QuestionSourceLinks
             .SingleOrDefaultAsync(
                 entity =>

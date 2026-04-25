@@ -20,7 +20,7 @@ public sealed class QuestionsGetQuestionListQueryHandler(
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(request.Request);
 
-        var tenantId = sessionService.GetTenantId(AppEnum.QnA);
+        var tenantId = sessionService.GetTenantId(ModuleEnum.QnA);
         var query = dbContext.Questions
             .Include(question => question.Space)
             .Include(question => question.Activities)

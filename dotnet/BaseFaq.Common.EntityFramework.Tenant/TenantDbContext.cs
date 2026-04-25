@@ -46,7 +46,7 @@ public class TenantDbContext(
     ];
 
     protected override bool UseTenantConnectionString => false;
-    protected override AppEnum SessionApp => AppEnum.Tenant;
+    protected override ModuleEnum SessionModule => ModuleEnum.Tenant;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -65,19 +65,19 @@ public class TenantDbContext(
             .HasConversion(converter);
     }
 
-    public async Task<TenantConnection> GetCurrentTenantConnection(AppEnum app,
+    public async Task<TenantConnection> GetCurrentTenantConnection(ModuleEnum module,
         CancellationToken cancellationToken = default)
     {
         var connection = await TenantConnections
             .AsNoTracking()
             .FirstOrDefaultAsync(
-                item => item.App == app && item.IsCurrent,
+                item => item.Module == module && item.IsCurrent,
                 cancellationToken);
 
         if (connection is null)
         {
             throw new ApiErrorException(
-                $"Current tenant connection for {app} was not found.",
+                $"Current tenant connection for {module} was not found.",
                 errorCode: (int)HttpStatusCode.NotFound);
         }
 

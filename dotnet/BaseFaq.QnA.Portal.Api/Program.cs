@@ -56,7 +56,7 @@ public class Program
         app.UseConfiguredSentry();
         app.UseAuthentication();
         app.UseAuthorization();
-        app.UseTenantResolution(AppEnum.QnA);
+        app.UseTenantResolution(ModuleEnum.QnA);
         app.MapControllers().RequireAuthorization();
         app.Run();
     }

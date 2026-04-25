@@ -23,7 +23,7 @@ public class TenantConnectionsGetTenantConnectionQueryHandler(TenantDbContext db
         return new TenantConnectionDto
         {
             Id = connection.Id,
-            App = connection.App,
+            Module = connection.Module,
             ConnectionString = string.Empty,
             IsCurrent = connection.IsCurrent
         };

@@ -13,7 +13,7 @@ public sealed class TagsDeleteTagCommandHandler(QnADbContext dbContext, ISession
 {
     public async Task Handle(TagsDeleteTagCommand request, CancellationToken cancellationToken)
     {
-        var tenantId = sessionService.GetTenantId(AppEnum.QnA);
+        var tenantId = sessionService.GetTenantId(ModuleEnum.QnA);
         var entity = await dbContext.Tags
             .SingleOrDefaultAsync(tag => tag.TenantId == tenantId && tag.Id == request.Id, cancellationToken);
 

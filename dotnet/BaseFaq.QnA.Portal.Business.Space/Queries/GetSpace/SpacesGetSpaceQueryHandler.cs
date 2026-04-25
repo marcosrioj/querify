@@ -19,7 +19,7 @@ public sealed class SpacesGetSpaceQueryHandler(
     public async Task<SpaceDetailDto> Handle(SpacesGetSpaceQuery request,
         CancellationToken cancellationToken)
     {
-        var tenantId = sessionService.GetTenantId(AppEnum.QnA);
+        var tenantId = sessionService.GetTenantId(ModuleEnum.QnA);
         var entity = await dbContext.Spaces
             .Include(space => space.Questions)
             .Include(space => space.Tags)

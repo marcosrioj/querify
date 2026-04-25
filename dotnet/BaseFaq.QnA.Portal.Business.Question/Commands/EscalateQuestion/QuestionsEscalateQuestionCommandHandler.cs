@@ -21,7 +21,7 @@ public sealed class QuestionsEscalateQuestionCommandHandler(
 {
     public async Task<Guid> Handle(QuestionsEscalateQuestionCommand request, CancellationToken cancellationToken)
     {
-        var tenantId = sessionService.GetTenantId(AppEnum.QnA);
+        var tenantId = sessionService.GetTenantId(ModuleEnum.QnA);
         var userId = sessionService.GetUserId().ToString();
         var entity = await dbContext.Questions
             .Include(question => question.Activities)

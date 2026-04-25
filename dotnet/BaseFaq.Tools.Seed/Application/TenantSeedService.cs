@@ -42,7 +42,7 @@ public sealed class TenantSeedService : ITenantSeedService
         if (seedTenant is null ||
             seedTenant.IsDeleted ||
             !seedTenant.IsActive ||
-            seedTenant.App != AppEnum.QnA ||
+            seedTenant.Module != ModuleEnum.QnA ||
             !string.Equals(seedTenant.ConnectionString, request.QnAConnectionString, StringComparison.Ordinal))
         {
             return false;
@@ -78,7 +78,7 @@ public sealed class TenantSeedService : ITenantSeedService
             .AsNoTracking()
             .Any(connection =>
                 !connection.IsDeleted &&
-                connection.App == AppEnum.QnA &&
+                connection.Module == ModuleEnum.QnA &&
                 connection.IsCurrent &&
                 connection.ConnectionString == request.QnAConnectionString);
     }
@@ -154,7 +154,7 @@ public sealed class TenantSeedService : ITenantSeedService
                 Slug = SeedTenantSlug,
                 Name = Tenant.DefaultTenantName,
                 Edition = TenantEdition.Free,
-                App = AppEnum.QnA,
+                Module = ModuleEnum.QnA,
                 ConnectionString = request.QnAConnectionString
             };
 
@@ -165,7 +165,7 @@ public sealed class TenantSeedService : ITenantSeedService
         tenant.Slug = SeedTenantSlug;
         tenant.Name = Tenant.DefaultTenantName;
         tenant.Edition = TenantEdition.Free;
-        tenant.App = AppEnum.QnA;
+        tenant.Module = ModuleEnum.QnA;
         tenant.ConnectionString = request.QnAConnectionString;
         tenant.IsActive = true;
 
@@ -205,7 +205,7 @@ public sealed class TenantSeedService : ITenantSeedService
             .IgnoreQueryFilters()
             .ToList()
             .FirstOrDefault(item =>
-                item.App == AppEnum.QnA &&
+                item.Module == ModuleEnum.QnA &&
                 (item.IsCurrent || item.ConnectionString == request.QnAConnectionString));
 
         if (connection is null)
@@ -213,7 +213,7 @@ public sealed class TenantSeedService : ITenantSeedService
             connection = new TenantConnection
             {
                 Id = Guid.NewGuid(),
-                App = AppEnum.QnA,
+                Module = ModuleEnum.QnA,
                 ConnectionString = request.QnAConnectionString,
                 IsCurrent = true
             };
@@ -224,7 +224,7 @@ public sealed class TenantSeedService : ITenantSeedService
 
         RestoreEntity(connection);
         connection.ConnectionString = request.QnAConnectionString;
-        connection.App = AppEnum.QnA;
+        connection.Module = ModuleEnum.QnA;
         connection.IsCurrent = true;
     }
 

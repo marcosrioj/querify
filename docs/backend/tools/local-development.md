@@ -69,9 +69,9 @@ Common choices:
 - `2`: seed essential tenant metadata only
 - `3`: clean databases and seed essential plus sample QnA data
 
-On a clean machine, this is the fastest way to create the tenant schema and the seed-target QnA schema because the seed application runs EF Core migrations before inserting data.
+On a clean machine, this is the fastest way to create the tenant schema and the seed-target module schema because the seed application runs EF Core migrations before inserting data.
 
-### 4. Use the migration tool when you change QnA schema
+### 4. Use the migration tool when you change supported module schema
 
 Use the migration tool after tenant metadata already exists:
 
@@ -79,13 +79,13 @@ Use the migration tool after tenant metadata already exists:
 dotnet run --project dotnet/BaseFaq.Tools.Migration
 ```
 
-Or run the QnA database update non-interactively:
+Or run the QnA module database update non-interactively:
 
 ```bash
-dotnet run --project dotnet/BaseFaq.Tools.Migration -- --app QnA --command database-update
+dotnet run --project dotnet/BaseFaq.Tools.Migration -- --module QnA --command database-update
 ```
 
-If you want full manual schema control from scratch, first migrate `TenantDbContext`, then use `BaseFaq.Tools.Migration` for tenant QnA databases.
+If you want full manual schema control from scratch, first migrate `TenantDbContext`, then use `BaseFaq.Tools.Migration` for supported tenant module databases.
 
 Manual tenant database migration:
 

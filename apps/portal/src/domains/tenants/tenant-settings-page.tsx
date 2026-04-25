@@ -154,7 +154,7 @@ export function TenantSettingsPage() {
             <KeyValueList
               items={[
                 { label: 'Tenant ID', value: currentWorkspace.id },
-                { label: 'App scope', value: 'QnA Portal' },
+                { label: 'Module scope', value: 'QnA Portal' },
                 {
                   label: 'Public client key',
                   value: clientKeyQuery.data || 'No client key generated yet',

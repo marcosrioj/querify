@@ -17,7 +17,7 @@ public static class TestDataFactory
         string? slug = null,
         string? name = null,
         TenantEdition edition = TenantEdition.Free,
-        AppEnum app = AppEnum.QnA,
+        ModuleEnum module = ModuleEnum.QnA,
         string? connectionString = null,
         bool isActive = true,
         Guid? userId = null)
@@ -31,7 +31,7 @@ public static class TestDataFactory
             Slug = slug ?? $"tenant-{Guid.NewGuid():N}",
             Name = name ?? "Default Tenant",
             Edition = edition,
-            App = app,
+            Module = module,
             ConnectionString = connectionString ?? IntegrationTestConnectionStrings.QnA,
             IsActive = isActive
         };
@@ -44,13 +44,13 @@ public static class TestDataFactory
 
     public static async Task<TenantConnection> SeedTenantConnectionAsync(
         TenantDbContext dbContext,
-        AppEnum app = AppEnum.QnA,
+        ModuleEnum module = ModuleEnum.QnA,
         string? connectionString = null,
         bool isCurrent = true)
     {
         var tenantConnection = new TenantConnection
         {
-            App = app,
+            Module = module,
             ConnectionString = connectionString ?? IntegrationTestConnectionStrings.QnA,
             IsCurrent = isCurrent
         };

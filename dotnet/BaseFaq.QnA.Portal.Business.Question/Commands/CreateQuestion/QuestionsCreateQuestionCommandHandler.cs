@@ -22,7 +22,7 @@ public sealed class QuestionsCreateQuestionCommandHandler(
 {
     public async Task<Guid> Handle(QuestionsCreateQuestionCommand request, CancellationToken cancellationToken)
     {
-        var tenantId = sessionService.GetTenantId(AppEnum.QnA);
+        var tenantId = sessionService.GetTenantId(ModuleEnum.QnA);
         var userId = sessionService.GetUserId().ToString();
         var space = await dbContext.Spaces
             .Include(entity => entity.Questions)

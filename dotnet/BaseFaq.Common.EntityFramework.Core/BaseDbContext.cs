@@ -40,10 +40,10 @@ public abstract class BaseDbContext<TContext> : DbContext where TContext : DbCon
 
     protected virtual bool UseTenantConnectionString => true;
 
-    protected abstract AppEnum SessionApp { get; }
+    protected abstract ModuleEnum SessionModule { get; }
 
     protected Guid? SessionTenantId =>
-        UseTenantConnectionString && TenantFiltersEnabled ? _sessionService.GetTenantId(SessionApp) : null;
+        UseTenantConnectionString && TenantFiltersEnabled ? _sessionService.GetTenantId(SessionModule) : null;
 
     public bool TenantFiltersEnabled { get; set; } = true;
     public bool SoftDeleteFiltersEnabled { get; set; } = true;
@@ -437,7 +437,7 @@ public abstract class BaseDbContext<TContext> : DbContext where TContext : DbCon
             return GetDefaultConnectionString();
         }
 
-        var tenantId = _sessionService.GetTenantId(SessionApp);
+        var tenantId = _sessionService.GetTenantId(SessionModule);
 
         var tenantConnectionString = _tenantConnectionStringProvider.GetConnectionString(tenantId);
 

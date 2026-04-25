@@ -36,7 +36,7 @@ public class BroadcastDbContext : BaseDbContext<BroadcastDbContext>
         "BaseFaq.Broadcast.Common.Persistence.BroadcastDb.Configurations"
     ];
 
-    protected override AppEnum SessionApp => AppEnum.Broadcast;
+    protected override ModuleEnum SessionModule => ModuleEnum.Broadcast;
 
     public override int SaveChanges(bool acceptAllChangesOnSuccess)
     {

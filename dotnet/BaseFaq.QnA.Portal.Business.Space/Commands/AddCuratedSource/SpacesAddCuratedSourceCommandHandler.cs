@@ -16,7 +16,7 @@ public sealed class SpacesAddCuratedSourceCommandHandler(
 {
     public async Task<Guid> Handle(SpacesAddCuratedSourceCommand request, CancellationToken cancellationToken)
     {
-        var tenantId = sessionService.GetTenantId(AppEnum.QnA);
+        var tenantId = sessionService.GetTenantId(ModuleEnum.QnA);
         var userId = sessionService.GetUserId().ToString();
         var space = await dbContext.Spaces
             .Include(entity => entity.Sources)

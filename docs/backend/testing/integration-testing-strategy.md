@@ -148,7 +148,7 @@ dotnet test dotnet/BaseFaq.Common.Architecture.Test.IntegrationTest/BaseFaq.Comm
 ### Must stay strong
 
 - tenant-aware DB behavior
-- CRUD and business-rule flows in the QnA and tenant domains
+- CRUD and business-rule flows in Tenant and implemented module domains
 - migration application from a clean database
 - architecture compliance around command and write contracts
 

@@ -18,7 +18,7 @@ public sealed class SourcesCreateSourceCommandHandler(
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(request.Request);
 
-        var tenantId = sessionService.GetTenantId(AppEnum.QnA);
+        var tenantId = sessionService.GetTenantId(ModuleEnum.QnA);
         var userId = sessionService.GetUserId().ToString();
         var entity = new Common.Persistence.QnADb.Entities.Source
         {

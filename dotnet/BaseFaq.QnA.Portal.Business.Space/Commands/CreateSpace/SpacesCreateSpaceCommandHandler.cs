@@ -16,7 +16,7 @@ public sealed class SpacesCreateSpaceCommandHandler(
     public async Task<Guid> Handle(SpacesCreateSpaceCommand request,
         CancellationToken cancellationToken)
     {
-        var tenantId = sessionService.GetTenantId(AppEnum.QnA);
+        var tenantId = sessionService.GetTenantId(ModuleEnum.QnA);
         var userId = sessionService.GetUserId().ToString();
 
         var entity = new SpaceEntity

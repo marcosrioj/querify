@@ -15,7 +15,12 @@ public class Tenant : BaseEntity
     public required string Slug { get; set; }
     public required string Name { get; set; }
     public required TenantEdition Edition { get; set; }
-    public required AppEnum App { get; set; }
+
+    /// <summary>
+    /// BaseFaq module that owns this tenant runtime record and its module database connection.
+    /// </summary>
+    public required ModuleEnum Module { get; set; }
+
     public required string ConnectionString { get; set; }
     public string? ClientKey { get; set; }
     public bool IsActive { get; set; } = true;

@@ -5,7 +5,7 @@ namespace BaseFaq.Tools.Seed.Infrastructure;
 
 public sealed class SeedSessionService(Guid userId, Guid tenantId) : ISessionService
 {
-    public Guid GetTenantId(AppEnum app)
+    public Guid GetTenantId(ModuleEnum module)
     {
         return tenantId;
     }

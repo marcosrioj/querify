@@ -89,7 +89,7 @@
   "Answers are ranked, validated, retired, and often grounded with evidence links after they are saved.": "Cevaplar kaydedildikten sonra sıralanır, doğrulanır, kullanımdan kaldırılır ve çoğu zaman kanıt bağlantılarıyla temellendirilir.",
   "Answers that passed validation workflow": "Doğrulama iş akışını geçen cevaplar",
   "API": "API",
-  "App scope": "Uygulama kapsamı",
+  "Module scope": "Modül kapsamı",
   "Appearance": "Görünüm",
   "Appearance, profile, and workspace": "Görünüm, profil ve çalışma alanı",
   "Applicability rules JSON": "Uygulanabilirlik kuralları JSON",

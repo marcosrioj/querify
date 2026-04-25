@@ -11,7 +11,7 @@ namespace BaseFaq.Tools.Migration.Runners;
 
 internal static class TenantMigrationUpdater
 {
-    public static void ApplyAll(IConfiguration configuration, string tenantDbConnectionString, AppEnum app)
+    public static void ApplyAll(IConfiguration configuration, string tenantDbConnectionString, ModuleEnum module)
     {
         var sessionService = new MigrationsSessionService();
         var tenantConnectionProvider = new NoopTenantConnectionStringProvider();
@@ -28,13 +28,13 @@ internal static class TenantMigrationUpdater
 
         var tenantConnectionStrings = tenantDbContext.Tenants
             .AsNoTracking()
-            .Where(item => item.App == ResolveTenantApp(app))
+            .Where(item => item.Module == ResolveTenantModule(module))
             .Select(item => item.ConnectionString)
             .ToList();
 
         if (tenantConnectionStrings.Count == 0)
         {
-            Console.WriteLine($"No tenants found for {app}.");
+            Console.WriteLine($"No tenants found for {module}.");
             return;
         }
 
@@ -46,41 +46,41 @@ internal static class TenantMigrationUpdater
 
         if (uniqueConnections.Count == 0)
         {
-            Console.WriteLine($"No valid connection strings found for {app}.");
+            Console.WriteLine($"No valid connection strings found for {module}.");
             return;
         }
 
-        Console.WriteLine($"Applying migrations for {app} ({uniqueConnections.Count} tenant(s))...");
+        Console.WriteLine($"Applying migrations for {module} ({uniqueConnections.Count} tenant(s))...");
 
         var index = 1;
         foreach (var connectionString in uniqueConnections)
         {
             Console.WriteLine($"[{index}/{uniqueConnections.Count}] Updating tenant database...");
-            ApplyMigration(app, connectionString, sessionService, configuration, tenantConnectionProvider, httpContextAccessor);
+            ApplyMigration(module, connectionString, sessionService, configuration, tenantConnectionProvider, httpContextAccessor);
             index++;
         }
 
         Console.WriteLine("Database update completed.");
     }
 
-    private static AppEnum ResolveTenantApp(AppEnum app)
+    private static ModuleEnum ResolveTenantModule(ModuleEnum module)
     {
-        return app == AppEnum.QnA
-            ? AppEnum.QnA
-            : throw new InvalidOperationException($"Database update is not supported for {app}.");
+        return module == ModuleEnum.QnA
+            ? ModuleEnum.QnA
+            : throw new InvalidOperationException($"Database update is not supported for {module}.");
     }
 
     private static void ApplyMigration(
-        AppEnum app,
+        ModuleEnum module,
         string connectionString,
         MigrationsSessionService sessionService,
         IConfiguration configuration,
         NoopTenantConnectionStringProvider tenantConnectionProvider,
         IHttpContextAccessor httpContextAccessor)
     {
-        if (app != AppEnum.QnA)
+        if (module != ModuleEnum.QnA)
         {
-            throw new InvalidOperationException($"Database update is not supported for {app}.");
+            throw new InvalidOperationException($"Database update is not supported for {module}.");
         }
 
         var options = new DbContextOptionsBuilder<QnADbContext>()

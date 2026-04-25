@@ -62,32 +62,32 @@ Apply these rules to:
 
 ### 5. BaseFaq module physical boundary
 
-- QnA, Direct, Broadcast, and Trust are BaseFaq product modules. QnA backend modules must keep the established feature-scoped physical decomposition style already used in the solution.
-- Each QnA entity or surface concern gets its own business project, for example `BaseFaq.QnA.Portal.Business.Question` or `BaseFaq.QnA.Public.Business.Vote`.
-- Do not introduce monolithic aggregation projects such as `BaseFaq.QnA.Portal.Business` or `BaseFaq.QnA.Public.Business`.
-- Keep QnA source files physically inside the owning feature project directory.
-- Do not use linked source items such as `<Compile Include="..\\..." Link="...">` for QnA business feature projects.
-- API hosts compose QnA modules through feature-level `Add*Business()` registrations.
+- Tenant, QnA, Direct, Broadcast, and Trust are the current BaseFaq modules. Every module must keep the established feature-scoped physical decomposition style used by the solution.
+- Each entity or surface concern gets its own business project inside the owning module, for example `BaseFaq.QnA.Portal.Business.Question` or `BaseFaq.QnA.Public.Business.Vote`.
+- Do not introduce monolithic aggregation projects such as `BaseFaq.<Module>.Portal.Business` or `BaseFaq.<Module>.Public.Business`.
+- Keep source files physically inside the owning module feature project directory.
+- Do not use linked source items such as `<Compile Include="..\\..." Link="...">` for module business feature projects.
+- API hosts compose module features through feature-level `Add*Business()` registrations.
 - Integration tests reference the owning feature projects directly and follow feature folders such as `Tests/Question/QuestionCommandQueryTests.cs`.
-- QnA command handlers and query handlers own the use-case logic directly, matching the solution's physical project pattern.
-- Do not introduce generic QnA helper files such as `*Operations.cs`, `PagedQuery.cs`, `QnAProjectionMapper.cs`, `QnAActivityMetadata.cs`, or `SignalRequestContext.cs`.
-- The only allowed QnA helper exception is a feature-specific request-context helper such as `FeedbackRequestContext.cs` or `VoteRequestContext.cs`.
-- QnA persistence entities in `QnADb/Entities` must stay anemic.
-- Do not add command-like methods, factory methods, behavior methods, or convenience projection properties to QnA persistence entities.
-- Keep QnA state transitions, relation management, validation, and projection shaping inside commands, queries, and feature-local private methods.
-- Direct and Broadcast behavior must live in their own feature and persistence projects.
-- `BaseFaq.Direct.Common.Persistence.DirectDb` and `BaseFaq.Broadcast.Common.Persistence.BroadcastDb` contain their initial entity models; extend them only for concrete module behavior, not placeholder coverage.
+- Command handlers and query handlers own the use-case logic directly, matching the solution's physical project pattern.
+- Do not introduce generic module helper files such as `*Operations.cs`, `PagedQuery.cs`, `<Module>ProjectionMapper.cs`, `<Module>ActivityMetadata.cs`, or `SignalRequestContext.cs`.
+- The allowed helper exception is a feature-specific request-context helper such as `FeedbackRequestContext.cs` or `VoteRequestContext.cs`.
+- Module persistence entities must stay anemic.
+- Do not add command-like methods, factory methods, behavior methods, or convenience projection properties to module persistence entities.
+- Keep state transitions, relation management, validation, and projection shaping inside commands, queries, and feature-local private methods.
+- Behavior must live in its owning feature and persistence projects.
+- `BaseFaq.Direct.Common.Persistence.DirectDb` and `BaseFaq.Broadcast.Common.Persistence.BroadcastDb` contain their current entity models; extend them only for concrete module behavior, not placeholder coverage.
 
-### 6. QnA model contract boundary
+### 6. Module model contract boundary
 
-- `BaseFaq.Models.QnA` must keep the same feature-folder DTO layout used across the solution.
+- Module contract projects such as `BaseFaq.Models.QnA`, `BaseFaq.Models.Direct`, `BaseFaq.Models.Broadcast`, and `BaseFaq.Models.Tenant` must keep the same feature-folder DTO layout used across the solution.
 - Keep DTOs in real feature folders such as `Dtos/Question/QuestionDto.cs` or `Dtos/Answer/AnswerCreateRequestDto.cs`.
-- Do not keep aggregate files such as `Dtos/QuestionDtos.cs` or any other `*Dtos.cs` catch-all file in `BaseFaq.Models.QnA`.
+- Do not keep aggregate files such as `Dtos/QuestionDtos.cs` or any other `*Dtos.cs` catch-all file in module contract projects.
 - Keep namespaces and file ownership coherent with the folder that owns the DTO.
 - Do not introduce pseudo-entity folders such as `Dtos/Link`; link DTOs belong to the owning feature folders like `Dtos/Answer`, `Dtos/Question`, or `Dtos/Space`.
-- QnA write-side `*RequestDto` types must be flat and must not inherit from other request DTO types.
-- QnA query request DTOs for paged or sorted list reads may inherit the shared pagination base used by the project pattern.
-- Each QnA write-side request DTO must declare its own properties explicitly.
+- Write-side `*RequestDto` types must be flat and must not inherit from other request DTO types.
+- Query request DTOs for paged or sorted list reads may inherit the shared pagination base used by the project pattern.
+- Each write-side request DTO must declare its own properties explicitly.
 
 ## Folder Ownership Rules
 

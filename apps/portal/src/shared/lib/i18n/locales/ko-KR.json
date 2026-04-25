@@ -89,7 +89,7 @@
   "Answers are ranked, validated, retired, and often grounded with evidence links after they are saved.": "답변은 저장 후 순위가 매겨지고, 검증되며, 사용 중지될 수 있고, 종종 근거 링크로 뒷받침됩니다.",
   "Answers that passed validation workflow": "검증 워크플로를 통과한 답변",
   "API": "API",
-  "App scope": "앱 범위",
+  "Module scope": "모듈 범위",
   "Appearance": "표시",
   "Appearance, profile, and workspace": "표시, 프로필 및 워크스페이스",
   "Applicability rules JSON": "적용 가능 규칙 JSON",

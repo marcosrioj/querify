@@ -18,7 +18,7 @@ public sealed class AnswersGetAnswerListQueryHandler(
     public async Task<PagedResultDto<AnswerDto>> Handle(AnswersGetAnswerListQuery request,
         CancellationToken cancellationToken)
     {
-        var tenantId = sessionService.GetTenantId(AppEnum.QnA);
+        var tenantId = sessionService.GetTenantId(ModuleEnum.QnA);
         var query = dbContext.Answers
             .Include(answer => answer.Question)
             .ThenInclude(question => question.Activities)

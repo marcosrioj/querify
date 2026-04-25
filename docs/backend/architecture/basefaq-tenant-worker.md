@@ -10,7 +10,7 @@ Current responsibilities:
 
 - billing webhook inbox polling and dispatch
 - email outbox polling and delivery
-- future control-plane recurring jobs
+- control-plane recurring jobs
 
 ## Project structure
 
@@ -63,7 +63,7 @@ Fully self-contained email processing module:
 
 - `TenantDbContext` is the global control-plane database
 - billing, entitlements, platform email, webhook inboxes, and operational jobs belong to `TenantDbContext`
-- QnA creation, workflow, public signals, and similar tenant product features stay outside the worker in the QnA APIs plus feature modules
+- product module creation, workflow, public signals, and similar tenant product features stay outside the worker in their owning APIs plus feature modules
 
 The worker intentionally uses a non-request session implementation because these jobs are not triggered by HTTP request context.
 

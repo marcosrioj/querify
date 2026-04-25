@@ -22,7 +22,7 @@ public class TenantConnectionsUpdateTenantConnectionCommandHandler(TenantDbConte
                 errorCode: (int)HttpStatusCode.NotFound);
         }
 
-        connection.App = request.App;
+        connection.Module = request.Module;
         connection.ConnectionString = request.ConnectionString;
         connection.IsCurrent = request.IsCurrent;
 

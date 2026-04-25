@@ -16,7 +16,7 @@ public sealed class QuestionsAddTagCommandHandler(
 {
     public async Task<Guid> Handle(QuestionsAddTagCommand request, CancellationToken cancellationToken)
     {
-        var tenantId = sessionService.GetTenantId(AppEnum.QnA);
+        var tenantId = sessionService.GetTenantId(ModuleEnum.QnA);
         var userId = sessionService.GetUserId().ToString();
         var question = await dbContext.Questions
             .Include(entity => entity.Tags)

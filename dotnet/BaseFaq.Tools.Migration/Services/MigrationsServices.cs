@@ -8,7 +8,7 @@ internal sealed class MigrationsSessionService : ISessionService
     private static readonly Guid MigrationTenantId = Guid.Empty;
     private static readonly Guid MigrationUserId = Guid.Empty;
 
-    public Guid GetTenantId(AppEnum app) => MigrationTenantId;
+    public Guid GetTenantId(ModuleEnum module) => MigrationTenantId;
 
     public Guid GetUserId() => MigrationUserId;
 }

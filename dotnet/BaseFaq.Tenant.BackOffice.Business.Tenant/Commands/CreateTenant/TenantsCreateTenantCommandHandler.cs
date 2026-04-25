@@ -27,7 +27,7 @@ public class TenantsCreateTenantCommandHandler(
             Slug = request.Slug,
             Name = request.Name,
             Edition = request.Edition,
-            App = request.App,
+            Module = request.Module,
             ConnectionString = request.ConnectionString,
             IsActive = request.IsActive
         };

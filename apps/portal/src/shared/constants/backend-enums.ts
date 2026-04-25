@@ -1,8 +1,9 @@
-export enum PortalApp {
+export enum ModuleEnum {
   Tenant = 0,
   QnA = 1,
-  Broadcast = 2,
   Direct = 3,
+  Broadcast = 2,
+  Trust = 4,
 }
 
 export enum TenantEdition {

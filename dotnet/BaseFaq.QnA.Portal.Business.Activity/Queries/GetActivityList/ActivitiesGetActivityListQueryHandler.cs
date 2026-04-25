@@ -21,7 +21,7 @@ public sealed class ActivitiesGetActivityListQueryHandler(
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(request.Request);
 
-        var tenantId = sessionService.GetTenantId(AppEnum.QnA);
+        var tenantId = sessionService.GetTenantId(ModuleEnum.QnA);
         var query = dbContext.Activities
             .Where(activity => activity.TenantId == tenantId);
 

@@ -15,7 +15,7 @@ public sealed class SpacesRemoveTagCommandHandler(
 {
     public async Task Handle(SpacesRemoveTagCommand request, CancellationToken cancellationToken)
     {
-        var tenantId = sessionService.GetTenantId(AppEnum.QnA);
+        var tenantId = sessionService.GetTenantId(ModuleEnum.QnA);
         var link = await dbContext.SpaceTags
             .SingleOrDefaultAsync(
                 entity =>

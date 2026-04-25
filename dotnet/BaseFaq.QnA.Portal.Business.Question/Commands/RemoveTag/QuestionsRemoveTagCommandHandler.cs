@@ -15,7 +15,7 @@ public sealed class QuestionsRemoveTagCommandHandler(
 {
     public async Task Handle(QuestionsRemoveTagCommand request, CancellationToken cancellationToken)
     {
-        var tenantId = sessionService.GetTenantId(AppEnum.QnA);
+        var tenantId = sessionService.GetTenantId(ModuleEnum.QnA);
         var link = await dbContext.QuestionTags
             .SingleOrDefaultAsync(
                 entity =>

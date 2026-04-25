@@ -26,7 +26,7 @@ The repository root contains one primary `.NET` solution file, `BaseFaq.sln`. It
 | `BaseFaq.Tenant.Public.Api` | public tenant ingress APIs such as Stripe webhooks | `5004` |
 | `BaseFaq.QnA.Portal.Api` | authenticated QnA management APIs | `5010` |
 | `BaseFaq.QnA.Public.Api` | public QnA access and public signaling APIs | `5020` |
-| `BaseFaq.Tenant.Worker.Api` | control-plane worker for billing webhooks, email outbox, and future tenant operations | n/a |
+| `BaseFaq.Tenant.Worker.Api` | control-plane worker for billing webhooks and email outbox processing | n/a |
 
 ## Core architectural patterns
 
@@ -45,15 +45,25 @@ API hosts additionally own:
 
 Business logic does not live in the host; the host wires the feature modules and infrastructure together.
 
-### 2. Business code is split by bounded context
+### 2. Business code is split by module
 
-The repository follows a consistent naming model. QnA, Direct, Broadcast, and Trust are the BaseFaq product modules; Tenant remains the control plane around them.
+The repository follows a consistent naming model. The current BaseFaq modules are Tenant, QnA, Direct, Broadcast, and Trust.
+
+| Module | Role |
+|---|---|
+| Tenant | Control plane for workspaces, users, permissions, billing, entitlements, public keys, and module connection routing |
+| QnA | Approved knowledge, questions, answers, sources, tags, workflow state, and public QnA signals |
+| Direct | Direct 1:1 resolution conversations, messages, handoff context, and agent-assist records |
+| Broadcast | Public and community interaction capture, response coordination, and social signal records |
+| Trust | Validation, governance, decision history, and auditability records |
+
+Project prefixes follow the same module names:
 
 - `BaseFaq.Tenant.*`
 - `BaseFaq.QnA.*`
 - `BaseFaq.Direct.*`
 - `BaseFaq.Broadcast.*`
-- `BaseFaq.Trust.*` when Trust runtime projects are introduced
+- `BaseFaq.Trust.*`
 
 Inside each area, business modules are further split by feature, for example:
 
@@ -69,7 +79,9 @@ Inside each area, business modules are further split by feature, for example:
 - `BaseFaq.Tenant.Public.Business.Billing`
 - `BaseFaq.Tenant.BackOffice.Business.Billing`
 
-This keeps controller, service, command, and query code grouped by domain capability instead of by technical layer alone. QnA follows a one-feature-per-project physical layout. Direct and Broadcast persistence projects now define their module entity models, but should only gain business modules and runtime wiring when their concrete product workflows are implemented. Trust should follow the same module boundary rules when its runtime persistence or feature modules are introduced.
+This keeps controller, service, command, and query code grouped by domain capability instead of by technical layer alone. Each module uses the same feature-scoped ownership rule: add behavior to the smallest module feature project that owns the use case, keep source files in that project, and compose API hosts from feature registrations.
+
+The current runtime catalog contains Tenant and QnA API/business projects. Direct and Broadcast are represented by their persistence boundaries. Trust is part of the module taxonomy and has no active runtime project in this repository snapshot.
 
 ### 3. CQRS with MediatR is the standard application pattern
 
@@ -95,25 +107,24 @@ They should not contain read-after-write orchestration, persistence logic, or cr
 
 ### 5. Persistence is explicitly split by database responsibility
 
-BaseFAQ uses separate EF Core context boundaries for each data responsibility:
+BaseFAQ uses separate EF Core context boundaries for module data responsibilities:
 
-| Context | Responsibility |
-|---|---|
-| `TenantDbContext` | global tenant metadata, users, tenant memberships, tenant-to-database mapping, and control-plane background-processing state |
-| `QnADbContext` | tenant-specific QnA module data such as spaces, questions, answers, source links, tag links, workflow state, and activity |
-| `DirectDbContext` | tenant-specific Direct module data such as conversations and conversation messages |
-| `BroadcastDbContext` | tenant-specific Broadcast module data such as external/community threads and captured items |
-
-Trust has no active persistence context yet; when introduced, it should own validation, governance, and auditability data in a separate BaseFaq module boundary.
+| Module | Context | Responsibility |
+|---|---|---|
+| Tenant | `TenantDbContext` | global tenant metadata, users, tenant memberships, module connection mapping, billing, entitlements, and control-plane background-processing state |
+| QnA | `QnADbContext` | tenant-specific QnA module data such as spaces, questions, answers, source links, tag links, workflow state, and activity |
+| Direct | `DirectDbContext` | tenant-specific Direct module data such as conversations and conversation messages |
+| Broadcast | `BroadcastDbContext` | tenant-specific Broadcast module data such as external/community threads and captured items |
+| Trust | no active EF context | validation, governance, decision history, and auditability records belong to the Trust module boundary |
 
 The split matters operationally:
 
 - tenant metadata is centralized
 - control-plane operational workloads belong with tenant metadata
-- module data lives in tenant databases behind its owning module context
+- module data lives behind its owning module context
 - migration and seed tooling must coordinate tenant metadata plus the active module store
 
-`BaseFaq.Direct.Common.Persistence.DirectDb` and `BaseFaq.Broadcast.Common.Persistence.BroadcastDb` define a small entity, enum, configuration, DbContext, and registration-extension baseline only. API hosts, business modules, migrations, additional workflow entities, and seed flows should be added when the owning runtime behavior is implemented there.
+`BaseFaq.Direct.Common.Persistence.DirectDb` and `BaseFaq.Broadcast.Common.Persistence.BroadcastDb` contain the current Direct and Broadcast entity, enum, configuration, DbContext, and registration-extension scope. API hosts, business modules, migrations, additional workflow entities, and seed flows for those behaviors belong in the same module boundaries.
 
 ### 6. Multitenancy is part of the request model
 
@@ -133,7 +144,7 @@ Control-plane background processing is hosted separately in `BaseFaq.Tenant.Work
 That separation is intentional:
 
 - billing webhooks, email outbox delivery, entitlements, and recurring tenant operational jobs belong to `BaseFaq.Tenant.Worker.Api`
-- the worker should operate against `TenantDbContext` and should not take ownership of QnA module-data workflows
+- the worker should operate against `TenantDbContext` and should not take ownership of product module workflows
 
 ### 8. Cross-cutting concerns are centralized in shared libraries
 
@@ -171,7 +182,7 @@ The testing strategy is documented in [`../testing/integration-testing-strategy.
 4. The API host resolves session and tenant context.
 5. A business module executes the command or query against the correct `DbContext`.
 
-### Public QnA flow
+### Public module flow: QnA
 
 1. A public client calls the QnA Public API.
 2. The request includes `X-Client-Key`.
@@ -191,7 +202,7 @@ The testing strategy is documented in [`../testing/integration-testing-strategy.
 - Preserve the existing composition-root pattern in API hosts.
 - Add new business features under the appropriate bounded-context module instead of enlarging unrelated projects.
 - Keep write flows simple and aligned with the CQRS rules.
-- Treat `TenantDbContext`, `QnADbContext`, `DirectDbContext`, and `BroadcastDbContext` as separate ownership boundaries.
-- Keep Direct and Broadcast behavior inside their BaseFaq module boundaries instead of folding it into QnA.
+- Treat Tenant, QnA, Direct, Broadcast, and Trust as separate module ownership boundaries.
+- Keep behavior inside its owning BaseFaq module boundary instead of folding it into a module with a similar enum, source, channel, or activity value.
 - Put public tenant ingress endpoints such as billing webhooks in `BaseFaq.Tenant.Public.Api`, not in authenticated portal hosts.
 - Update the specific docs in `docs/` when boundaries, startup steps, or operational assumptions change.

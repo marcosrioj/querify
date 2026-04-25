@@ -12,7 +12,7 @@ public class TenantConnectionsCreateTenantConnectionCommandHandler(TenantDbConte
     {
         var connection = new TenantConnection
         {
-            App = request.App,
+            Module = request.Module,
             ConnectionString = request.ConnectionString,
             IsCurrent = request.IsCurrent
         };

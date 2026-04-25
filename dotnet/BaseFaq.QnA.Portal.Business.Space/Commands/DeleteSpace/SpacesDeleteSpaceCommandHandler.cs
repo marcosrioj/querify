@@ -15,7 +15,7 @@ public sealed class SpacesDeleteSpaceCommandHandler(
 {
     public async Task Handle(SpacesDeleteSpaceCommand request, CancellationToken cancellationToken)
     {
-        var tenantId = sessionService.GetTenantId(AppEnum.QnA);
+        var tenantId = sessionService.GetTenantId(ModuleEnum.QnA);
         var entity = await dbContext.Spaces
             .SingleOrDefaultAsync(space => space.TenantId == tenantId && space.Id == request.Id, cancellationToken);
 

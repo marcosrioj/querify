@@ -89,7 +89,7 @@
   "Answers are ranked, validated, retired, and often grounded with evidence links after they are saved.": "התשובות מדורגות, מאומתות, מוצאות משימוש ולעיתים קרובות מעוגנות בקישורי ראיות לאחר השמירה.",
   "Answers that passed validation workflow": "תשובות שעברו את זרימת האימות",
   "API": "API",
-  "App scope": "טווח האפליקציה",
+  "Module scope": "טווח המודול",
   "Appearance": "מראה",
   "Appearance, profile, and workspace": "מראה, פרופיל וסביבת עבודה",
   "Applicability rules JSON": "JSON של כללי תחולה",

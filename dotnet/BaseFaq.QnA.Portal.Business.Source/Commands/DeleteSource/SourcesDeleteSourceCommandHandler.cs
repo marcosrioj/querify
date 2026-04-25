@@ -15,7 +15,7 @@ public sealed class SourcesDeleteSourceCommandHandler(
 {
     public async Task Handle(SourcesDeleteSourceCommand request, CancellationToken cancellationToken)
     {
-        var tenantId = sessionService.GetTenantId(AppEnum.QnA);
+        var tenantId = sessionService.GetTenantId(ModuleEnum.QnA);
         var entity = await dbContext.Sources
             .SingleOrDefaultAsync(source => source.TenantId == tenantId && source.Id == request.Id, cancellationToken);
 

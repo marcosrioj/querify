@@ -89,7 +89,7 @@
   "Answers are ranked, validated, retired, and often grounded with evidence links after they are saved.": "جوابات محفوظ ہونے کے بعد درجہ بند، توثیق شدہ، ریٹائر، اور اکثر evidence links کے ساتھ بنیاد یافتہ ہوتے ہیں۔",
   "Answers that passed validation workflow": "وہ جوابات جو validation workflow سے گزر چکے ہیں",
   "API": "API",
-  "App scope": "ایپ کا دائرہ",
+  "Module scope": "ماڈیول کا دائرہ",
   "Appearance": "ظاہری انداز",
   "Appearance, profile, and workspace": "ظاہری انداز، پروفائل، اور ورک اسپیس",
   "Applicability rules JSON": "اطلاقی قواعد JSON",

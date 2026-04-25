@@ -89,7 +89,7 @@
   "Answers are ranked, validated, retired, and often grounded with evidence links after they are saved.": "回答在保存后会被排序、验证、停用，并通常附有证据链接。",
   "Answers that passed validation workflow": "已通过验证工作流的回答",
   "API": "API",
-  "App scope": "应用范围",
+  "Module scope": "模块范围",
   "Appearance": "外观",
   "Appearance, profile, and workspace": "外观、个人资料和工作区",
   "Applicability rules JSON": "适用性规则 JSON",

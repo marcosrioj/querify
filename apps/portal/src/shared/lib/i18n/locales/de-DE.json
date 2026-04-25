@@ -89,7 +89,7 @@
   "Answers are ranked, validated, retired, and often grounded with evidence links after they are saved.": "Antworten werden nach dem Speichern gerankt, validiert, stillgelegt und oft mit Evidenzlinks untermauert.",
   "Answers that passed validation workflow": "Antworten, die den Validierungsworkflow bestanden haben",
   "API": "API",
-  "App scope": "App-Bereich",
+  "Module scope": "Modulbereich",
   "Appearance": "Erscheinungsbild",
   "Appearance, profile, and workspace": "Erscheinungsbild, Profil und Arbeitsbereich",
   "Applicability rules JSON": "JSON für Anwendbarkeitsregeln",

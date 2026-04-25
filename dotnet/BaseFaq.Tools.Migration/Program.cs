@@ -28,7 +28,7 @@ public static class Program
 
         var cliMode = args.Length > 0;
 
-        var app = AppEnum.QnA;
+        var module = cliArguments.Module ?? ModuleEnum.QnA;
         MigrationCommand command;
 
         if (cliMode)
@@ -62,7 +62,7 @@ public static class Program
 
         if (command == MigrationCommand.DatabaseUpdate)
         {
-            TenantMigrationUpdater.ApplyAll(configuration, tenantDbConnectionString, app);
+            TenantMigrationUpdater.ApplyAll(configuration, tenantDbConnectionString, module);
             return 0;
         }
 
@@ -82,7 +82,7 @@ public static class Program
             return 1;
         }
 
-        return EfMigrationsRunner.AddMigration(solutionRoot, migrationName, app);
+        return EfMigrationsRunner.AddMigration(solutionRoot, migrationName, module);
     }
 
     private static bool IsEfDesignTimeInvocation(string[] args)

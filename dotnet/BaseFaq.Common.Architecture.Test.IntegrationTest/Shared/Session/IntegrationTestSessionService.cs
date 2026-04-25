@@ -9,7 +9,7 @@ public sealed class IntegrationTestSessionService(Guid tenantId, Guid userId) : 
 
     public Guid UserId { get; } = userId;
 
-    public Guid GetTenantId(AppEnum app)
+    public Guid GetTenantId(ModuleEnum module)
     {
         return TenantId;
     }

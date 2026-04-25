@@ -89,7 +89,7 @@
   "Answers are ranked, validated, retired, and often grounded with evidence links after they are saved.": "Ответы ранжируются, валидируются, выводятся из использования и после сохранения часто подкрепляются ссылками на доказательства.",
   "Answers that passed validation workflow": "Ответы, прошедшие процесс валидации",
   "API": "API",
-  "App scope": "Область приложения",
+  "Module scope": "Область модуля",
   "Appearance": "Внешний вид",
   "Appearance, profile, and workspace": "Внешний вид, профиль и рабочее пространство",
   "Applicability rules JSON": "JSON правил применимости",

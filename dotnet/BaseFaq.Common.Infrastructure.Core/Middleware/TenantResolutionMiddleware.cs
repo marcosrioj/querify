@@ -54,7 +54,7 @@ public sealed class TenantResolutionMiddleware(
                     cancellationToken: context.RequestAborted);
             }
 
-            if (!IsTenantAllowed(allowedTenants, options.App, tenantId))
+            if (!IsTenantAllowed(allowedTenants, options.Module, tenantId))
             {
                 throw new ApiErrorException(
                     $"Tenant '{tenantId}' is not allowed for the current user.",
@@ -74,15 +74,15 @@ public sealed class TenantResolutionMiddleware(
     }
 
     private static bool IsTenantAllowed(IReadOnlyDictionary<string, IReadOnlyCollection<Guid>> allowedTenants,
-        AppEnum app,
+        ModuleEnum module,
         Guid tenantId)
     {
-        var appKey = app.ToString();
-        return allowedTenants.TryGetValue(appKey, out var tenantIds) && tenantIds.Contains(tenantId);
+        var moduleKey = module.ToString();
+        return allowedTenants.TryGetValue(moduleKey, out var tenantIds) && tenantIds.Contains(tenantId);
     }
 }
 
 public sealed class TenantResolutionOptions
 {
-    public AppEnum App { get; init; }
+    public ModuleEnum Module { get; init; }
 }

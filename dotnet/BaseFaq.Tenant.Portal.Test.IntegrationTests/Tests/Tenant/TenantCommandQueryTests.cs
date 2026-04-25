@@ -26,14 +26,14 @@ public class TenantCommandQueryTests
         await TestDataFactory.SeedTenantAsync(
             context.DbContext,
             name: "Current User Tenant",
-            app: AppEnum.QnA,
+            module: ModuleEnum.QnA,
             isActive: true,
             userId: currentUserId);
 
         await TestDataFactory.SeedTenantAsync(
             context.DbContext,
             name: "Other User Tenant",
-            app: AppEnum.QnA,
+            module: ModuleEnum.QnA,
             isActive: true,
             userId: Guid.NewGuid());
 
@@ -42,7 +42,7 @@ public class TenantCommandQueryTests
 
         Assert.Single(result);
         Assert.Equal("Current User Tenant", result[0].Name);
-        Assert.Equal(AppEnum.QnA, result[0].App);
+        Assert.Equal(ModuleEnum.QnA, result[0].Module);
         Assert.True(result[0].IsActive);
         Assert.Equal(TenantUserRoleType.Owner, result[0].CurrentUserRole);
     }
@@ -56,7 +56,7 @@ public class TenantCommandQueryTests
         await TestDataFactory.SeedUserAsync(context.DbContext, id: currentUserId);
         await TestDataFactory.SeedTenantConnectionAsync(
             context.DbContext,
-            app: AppEnum.QnA,
+            module: ModuleEnum.QnA,
             connectionString: IntegrationTestConnectionStrings.QnA,
             isCurrent: true);
 
@@ -83,7 +83,7 @@ public class TenantCommandQueryTests
         Assert.NotNull(tenant);
         Assert.Equal("Portal Tenant", tenant!.Name);
         Assert.Equal(TenantEdition.Free, tenant.Edition);
-        Assert.Equal(AppEnum.QnA, tenant.App);
+        Assert.Equal(ModuleEnum.QnA, tenant.Module);
         Assert.Equal(IntegrationTestConnectionStrings.QnA, tenant.ConnectionString);
         Assert.True(tenant.IsActive);
         Assert.Equal("portaltenantqna", tenant.Slug);
@@ -100,7 +100,7 @@ public class TenantCommandQueryTests
 
         await TestDataFactory.SeedTenantConnectionAsync(
             context.DbContext,
-            app: AppEnum.QnA,
+            module: ModuleEnum.QnA,
             connectionString: IntegrationTestConnectionStrings.CreateNamed("newdb"),
             isCurrent: true);
 
@@ -110,7 +110,7 @@ public class TenantCommandQueryTests
             slug: "old-slug",
             name: "Old Name",
             edition: TenantEdition.Free,
-            app: AppEnum.QnA,
+            module: ModuleEnum.QnA,
             connectionString: IntegrationTestConnectionStrings.CreateNamed("olddb"),
             isActive: true,
             userId: currentUserId);
@@ -141,14 +141,14 @@ public class TenantCommandQueryTests
     }
 
     [Fact]
-    public async Task CreateOrUpdateTenants_SkipsWhenNoCurrentConnectionForApp()
+    public async Task CreateOrUpdateTenants_SkipsWhenNoCurrentConnectionForModule()
     {
         var currentUserId = Guid.NewGuid();
         using var context = TestContext.Create(userId: currentUserId);
 
         await TestDataFactory.SeedTenantConnectionAsync(
             context.DbContext,
-            app: AppEnum.QnA,
+            module: ModuleEnum.QnA,
             connectionString: IntegrationTestConnectionStrings.CreateNamed("old"),
             isCurrent: false);
 
@@ -179,14 +179,14 @@ public class TenantCommandQueryTests
         await TestDataFactory.SeedTenantAsync(
             context.DbContext,
             name: "Inactive Current User Tenant",
-            app: AppEnum.QnA,
+            module: ModuleEnum.QnA,
             isActive: false,
             userId: currentUserId);
 
         await TestDataFactory.SeedTenantAsync(
             context.DbContext,
             name: "Active Other User Tenant",
-            app: AppEnum.QnA,
+            module: ModuleEnum.QnA,
             isActive: true,
             userId: Guid.NewGuid());
 
@@ -204,7 +204,7 @@ public class TenantCommandQueryTests
 
         await TestDataFactory.SeedTenantConnectionAsync(
             context.DbContext,
-            app: AppEnum.QnA,
+            module: ModuleEnum.QnA,
             connectionString: IntegrationTestConnectionStrings.QnA,
             isCurrent: true);
 
@@ -212,7 +212,7 @@ public class TenantCommandQueryTests
             context.DbContext,
             slug: "willconflictqna",
             name: "Will Conflict",
-            app: AppEnum.QnA,
+            module: ModuleEnum.QnA,
             isActive: false,
             userId: currentUserId);
 
@@ -252,7 +252,7 @@ public class TenantCommandQueryTests
         await TestDataFactory.SeedTenantAsync(
             context.DbContext,
             id: tenantId,
-            app: AppEnum.QnA,
+            module: ModuleEnum.QnA,
             isActive: true,
             userId: currentUserId,
             clientKey: "my-client-key");
@@ -274,7 +274,7 @@ public class TenantCommandQueryTests
         var tenant = await TestDataFactory.SeedTenantAsync(
             context.DbContext,
             id: tenantId,
-            app: AppEnum.QnA,
+            module: ModuleEnum.QnA,
             isActive: true,
             userId: currentUserId);
 
@@ -304,25 +304,25 @@ public class TenantCommandQueryTests
             context.DbContext,
             id: selectedTenantId,
             name: "Selected QnA Tenant",
-            app: AppEnum.QnA,
+            module: ModuleEnum.QnA,
             isActive: true,
             userId: currentUserId);
         var secondFaqTenant = await TestDataFactory.SeedTenantAsync(
             context.DbContext,
             name: "Second QnA Tenant",
-            app: AppEnum.QnA,
+            module: ModuleEnum.QnA,
             isActive: true,
             userId: currentUserId);
-        var tenantAppTenant = await TestDataFactory.SeedTenantAsync(
+        var tenantModuleTenant = await TestDataFactory.SeedTenantAsync(
             context.DbContext,
-            name: "Tenant App Workspace",
-            app: AppEnum.Tenant,
+            name: "Tenant Module Workspace",
+            module: ModuleEnum.Tenant,
             isActive: true,
             userId: currentUserId);
         await TestDataFactory.SeedTenantAsync(
             context.DbContext,
             name: "Other User QnA Tenant",
-            app: AppEnum.QnA,
+            module: ModuleEnum.QnA,
             isActive: true,
             userId: Guid.NewGuid());
 
@@ -331,8 +331,8 @@ public class TenantCommandQueryTests
             currentUserId,
             new Dictionary<string, IReadOnlyCollection<Guid>>
             {
-                [AppEnum.QnA.ToString()] = Array.Empty<Guid>(),
-                [AppEnum.Tenant.ToString()] = Array.Empty<Guid>()
+                [ModuleEnum.QnA.ToString()] = Array.Empty<Guid>(),
+                [ModuleEnum.Tenant.ToString()] = Array.Empty<Guid>()
             },
             cancellationToken: CancellationToken.None);
 
@@ -350,14 +350,14 @@ public class TenantCommandQueryTests
         var cachedAllowedTenants = await allowedTenantStore.GetAllowedTenantIds(currentUserId, CancellationToken.None);
         Assert.NotNull(cachedAllowedTenants);
 
-        var qnaTenantIds = cachedAllowedTenants![AppEnum.QnA.ToString()];
+        var qnaTenantIds = cachedAllowedTenants![ModuleEnum.QnA.ToString()];
         Assert.Equal(2, qnaTenantIds.Count);
         Assert.Contains(selectedTenantId, qnaTenantIds);
         Assert.Contains(secondFaqTenant.Id, qnaTenantIds);
 
-        var tenantAppTenantIds = cachedAllowedTenants[AppEnum.Tenant.ToString()];
-        Assert.Single(tenantAppTenantIds);
-        Assert.Contains(tenantAppTenant.Id, tenantAppTenantIds);
+        var tenantModuleTenantIds = cachedAllowedTenants[ModuleEnum.Tenant.ToString()];
+        Assert.Single(tenantModuleTenantIds);
+        Assert.Contains(tenantModuleTenant.Id, tenantModuleTenantIds);
     }
 
     private static HttpContext CreateHttpContextWithTenantId(Guid tenantId)

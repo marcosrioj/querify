@@ -13,7 +13,7 @@ The root [`../README.md`](../README.md) remains the short bootstrap summary. Eve
 
 ### Business
 
-- [`business/value_proposition.md`](business/value_proposition.md): BaseFaq module split, value proposition, and cross-module flow model for QnA, Direct, Broadcast, and Trust.
+- [`business/value_proposition.md`](business/value_proposition.md): BaseFaq module split, value proposition, and cross-module flow model for Tenant, QnA, Direct, Broadcast, and Trust.
 
 ### Backend
 
@@ -21,15 +21,15 @@ The root [`../README.md`](../README.md) remains the short bootstrap summary. Eve
 
 - [`backend/architecture/solution-architecture.md`](backend/architecture/solution-architecture.md): repository and runtime shape, service boundaries, persistence ownership, and request model.
 - [`backend/architecture/dotnet-backend-overview.md`](backend/architecture/dotnet-backend-overview.md): active backend project inventory, API catalog, module taxonomy, and local backend workflow.
-- [`backend/architecture/solution-cqrs-write-rules.md`](backend/architecture/solution-cqrs-write-rules.md): mandatory CQRS write-side rules and QnA physical-boundary constraints.
+- [`backend/architecture/solution-cqrs-write-rules.md`](backend/architecture/solution-cqrs-write-rules.md): mandatory CQRS write-side rules and module physical-boundary constraints.
 - [`backend/architecture/repository-rules.md`](backend/architecture/repository-rules.md): repository-wide architecture guardrails and review checklist enforced by the architecture compliance suite.
 - [`backend/architecture/basefaq-tenant-worker.md`](backend/architecture/basefaq-tenant-worker.md): worker host responsibilities, billing/email processing model, and control-plane constraints.
 
 #### Tools
 
 - [`backend/tools/local-development.md`](backend/tools/local-development.md): local runtime model, Docker infrastructure, split base/backend/frontend container flows, full-container mode, and troubleshooting.
-- [`backend/tools/migration-tool.md`](backend/tools/migration-tool.md): tenant-aware QnA migration workflow.
-- [`backend/tools/seed-tool.md`](backend/tools/seed-tool.md): tenant/QnA seed workflow and sample-data behavior.
+- [`backend/tools/migration-tool.md`](backend/tools/migration-tool.md): tenant-aware module migration workflow for supported module databases.
+- [`backend/tools/seed-tool.md`](backend/tools/seed-tool.md): tenant and module seed workflow and sample-data behavior.
 - [`backend/tools/release-artifacts.md`](backend/tools/release-artifacts.md): where to keep release plans, rollout checklists, and evidence packages.
 
 #### Testing

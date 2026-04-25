@@ -15,7 +15,7 @@ public sealed class AnswersDeleteAnswerCommandHandler(
 {
     public async Task Handle(AnswersDeleteAnswerCommand request, CancellationToken cancellationToken)
     {
-        var tenantId = sessionService.GetTenantId(AppEnum.QnA);
+        var tenantId = sessionService.GetTenantId(ModuleEnum.QnA);
         var entity = await dbContext.Answers
             .SingleOrDefaultAsync(answer => answer.TenantId == tenantId && answer.Id == request.Id, cancellationToken);
 

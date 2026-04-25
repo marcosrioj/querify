@@ -89,7 +89,7 @@
   "Answers are ranked, validated, retired, and often grounded with evidence links after they are saved.": "回答は保存後にランク付け、検証、廃止され、多くの場合は証拠リンクに基づいて管理されます。",
   "Answers that passed validation workflow": "検証ワークフローを通過した回答",
   "API": "API",
-  "App scope": "アプリのスコープ",
+  "Module scope": "モジュールのスコープ",
   "Appearance": "表示",
   "Appearance, profile, and workspace": "表示、プロフィール、ワークスペース",
   "Applicability rules JSON": "適用条件ルール JSON",

@@ -30,6 +30,10 @@ public class TenantConfiguration : BaseConfiguration<Entities.Tenant>
         builder.Property(p => p.Edition)
             .IsRequired();
 
+        builder.Property(p => p.Module)
+            .HasColumnName("App")
+            .IsRequired();
+
         builder.Property(p => p.IsActive)
             .IsRequired();
 

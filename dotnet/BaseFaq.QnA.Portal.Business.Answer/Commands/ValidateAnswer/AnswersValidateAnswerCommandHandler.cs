@@ -20,7 +20,7 @@ public sealed class AnswersValidateAnswerCommandHandler(
 {
     public async Task<Guid> Handle(AnswersValidateAnswerCommand request, CancellationToken cancellationToken)
     {
-        var tenantId = sessionService.GetTenantId(AppEnum.QnA);
+        var tenantId = sessionService.GetTenantId(ModuleEnum.QnA);
         var userId = sessionService.GetUserId().ToString();
         var entity = await dbContext.Answers
             .Include(answer => answer.Question)

@@ -13,13 +13,13 @@ public class TenantDbContextBusinessRulesTests
     public async Task GetCurrentTenantConnection_ReturnsCurrentConnection()
     {
         using var context = TestContext.Create();
-        await TestDataFactory.SeedTenantConnectionAsync(context.DbContext, app: AppEnum.QnA, isCurrent: false);
+        await TestDataFactory.SeedTenantConnectionAsync(context.DbContext, module: ModuleEnum.QnA, isCurrent: false);
         var current = await TestDataFactory.SeedTenantConnectionAsync(
             context.DbContext,
-            app: AppEnum.QnA,
+            module: ModuleEnum.QnA,
             isCurrent: true);
 
-        var result = await context.DbContext.GetCurrentTenantConnection(AppEnum.QnA);
+        var result = await context.DbContext.GetCurrentTenantConnection(ModuleEnum.QnA);
 
         Assert.Equal(current.Id, result.Id);
         Assert.True(result.IsCurrent);
@@ -32,7 +32,7 @@ public class TenantDbContextBusinessRulesTests
 
         var exception =
             await Assert.ThrowsAsync<ApiErrorException>(() =>
-                context.DbContext.GetCurrentTenantConnection(AppEnum.QnA));
+                context.DbContext.GetCurrentTenantConnection(ModuleEnum.QnA));
 
         Assert.Equal(404, exception.ErrorCode);
     }

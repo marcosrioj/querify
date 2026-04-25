@@ -5,7 +5,7 @@ namespace BaseFaq.Models.Tenant.Dtos.TenantConnection;
 public class TenantConnectionDto
 {
     public required Guid Id { get; set; }
-    public required AppEnum App { get; set; }
+    public required ModuleEnum Module { get; set; }
     public required string ConnectionString { get; set; }
     public required bool IsCurrent { get; set; }
 }

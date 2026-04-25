@@ -22,7 +22,7 @@ public class TenantConnectionCommandQueryTests
         var handler = new TenantConnectionsCreateTenantConnectionCommandHandler(context.DbContext);
         var request = new TenantConnectionsCreateTenantConnectionCommand
         {
-            App = AppEnum.Tenant,
+            Module = ModuleEnum.Tenant,
             ConnectionString = IntegrationTestConnectionStrings.Tenant,
             IsCurrent = true
         };
@@ -31,7 +31,7 @@ public class TenantConnectionCommandQueryTests
 
         var connection = await context.DbContext.TenantConnections.FindAsync(id);
         Assert.NotNull(connection);
-        Assert.Equal(AppEnum.Tenant, connection!.App);
+        Assert.Equal(ModuleEnum.Tenant, connection!.Module);
         Assert.Equal(request.ConnectionString, connection.ConnectionString);
         Assert.True(connection.IsCurrent);
     }
@@ -40,13 +40,13 @@ public class TenantConnectionCommandQueryTests
     public async Task UpdateTenantConnection_UpdatesExistingConnection()
     {
         using var context = TestContext.Create();
-        var connection = await TestDataFactory.SeedTenantConnectionAsync(context.DbContext, app: AppEnum.QnA);
+        var connection = await TestDataFactory.SeedTenantConnectionAsync(context.DbContext, module: ModuleEnum.QnA);
 
         var handler = new TenantConnectionsUpdateTenantConnectionCommandHandler(context.DbContext);
         var request = new TenantConnectionsUpdateTenantConnectionCommand
         {
             Id = connection.Id,
-            App = AppEnum.Tenant,
+            Module = ModuleEnum.Tenant,
             ConnectionString = IntegrationTestConnectionStrings.CreateNamed("updated"),
             IsCurrent = false
         };
@@ -55,7 +55,7 @@ public class TenantConnectionCommandQueryTests
 
         var updated = await context.DbContext.TenantConnections.FindAsync(connection.Id);
         Assert.NotNull(updated);
-        Assert.Equal(AppEnum.Tenant, updated!.App);
+        Assert.Equal(ModuleEnum.Tenant, updated!.Module);
         Assert.Equal(request.ConnectionString, updated.ConnectionString);
         Assert.False(updated.IsCurrent);
     }
@@ -68,7 +68,7 @@ public class TenantConnectionCommandQueryTests
         var request = new TenantConnectionsUpdateTenantConnectionCommand
         {
             Id = Guid.NewGuid(),
-            App = AppEnum.QnA,
+            Module = ModuleEnum.QnA,
             ConnectionString = IntegrationTestConnectionStrings.CreateNamed("missing"),
             IsCurrent = true
         };
@@ -99,7 +99,7 @@ public class TenantConnectionCommandQueryTests
     public async Task GetTenantConnection_ReturnsDto()
     {
         using var context = TestContext.Create();
-        var connection = await TestDataFactory.SeedTenantConnectionAsync(context.DbContext, app: AppEnum.QnA);
+        var connection = await TestDataFactory.SeedTenantConnectionAsync(context.DbContext, module: ModuleEnum.QnA);
 
         var handler = new TenantConnectionsGetTenantConnectionQueryHandler(context.DbContext);
         var result =
@@ -108,7 +108,7 @@ public class TenantConnectionCommandQueryTests
 
         Assert.NotNull(result);
         Assert.Equal(connection.Id, result!.Id);
-        Assert.Equal(connection.App, result.App);
+        Assert.Equal(connection.Module, result.Module);
         Assert.Equal(string.Empty, result.ConnectionString);
         Assert.Equal(connection.IsCurrent, result.IsCurrent);
     }
@@ -130,8 +130,8 @@ public class TenantConnectionCommandQueryTests
     public async Task GetTenantConnectionList_ReturnsPagedItems()
     {
         using var context = TestContext.Create();
-        await TestDataFactory.SeedTenantConnectionAsync(context.DbContext, app: AppEnum.QnA);
-        await TestDataFactory.SeedTenantConnectionAsync(context.DbContext, app: AppEnum.Tenant);
+        await TestDataFactory.SeedTenantConnectionAsync(context.DbContext, module: ModuleEnum.QnA);
+        await TestDataFactory.SeedTenantConnectionAsync(context.DbContext, module: ModuleEnum.Tenant);
 
         var handler = new TenantConnectionsGetTenantConnectionListQueryHandler(context.DbContext);
         var request = new TenantConnectionsGetTenantConnectionListQuery
@@ -149,8 +149,8 @@ public class TenantConnectionCommandQueryTests
     public async Task GetTenantConnectionList_SortsByExplicitField()
     {
         using var context = TestContext.Create();
-        await TestDataFactory.SeedTenantConnectionAsync(context.DbContext, app: AppEnum.QnA, isCurrent: false);
-        await TestDataFactory.SeedTenantConnectionAsync(context.DbContext, app: AppEnum.Tenant, isCurrent: true);
+        await TestDataFactory.SeedTenantConnectionAsync(context.DbContext, module: ModuleEnum.QnA, isCurrent: false);
+        await TestDataFactory.SeedTenantConnectionAsync(context.DbContext, module: ModuleEnum.Tenant, isCurrent: true);
 
         var handler = new TenantConnectionsGetTenantConnectionListQueryHandler(context.DbContext);
         var request = new TenantConnectionsGetTenantConnectionListQuery
@@ -173,8 +173,8 @@ public class TenantConnectionCommandQueryTests
     public async Task GetTenantConnectionList_FallsBackToUpdatedDateWhenSortingInvalid()
     {
         using var context = TestContext.Create();
-        var first = await TestDataFactory.SeedTenantConnectionAsync(context.DbContext, app: AppEnum.Tenant);
-        await TestDataFactory.SeedTenantConnectionAsync(context.DbContext, app: AppEnum.QnA);
+        var first = await TestDataFactory.SeedTenantConnectionAsync(context.DbContext, module: ModuleEnum.Tenant);
+        await TestDataFactory.SeedTenantConnectionAsync(context.DbContext, module: ModuleEnum.QnA);
         first.IsCurrent = !first.IsCurrent;
         await context.DbContext.SaveChangesAsync();
 
@@ -191,8 +191,8 @@ public class TenantConnectionCommandQueryTests
 
         var result = await handler.Handle(request, CancellationToken.None);
 
-        Assert.Equal(AppEnum.Tenant, result.Items[0].App);
-        Assert.Equal(AppEnum.QnA, result.Items[1].App);
+        Assert.Equal(ModuleEnum.Tenant, result.Items[0].Module);
+        Assert.Equal(ModuleEnum.QnA, result.Items[1].Module);
     }
 
     [Fact]
@@ -203,14 +203,14 @@ public class TenantConnectionCommandQueryTests
         var connectionA = new BaseFaq.Common.EntityFramework.Tenant.Entities.TenantConnection
         {
             Id = Guid.Parse("00000000-0000-0000-0000-000000000021"),
-            App = AppEnum.QnA,
+            Module = ModuleEnum.QnA,
             ConnectionString = IntegrationTestConnectionStrings.CreateNamed("a"),
             IsCurrent = false
         };
         var connectionB = new BaseFaq.Common.EntityFramework.Tenant.Entities.TenantConnection
         {
             Id = Guid.Parse("00000000-0000-0000-0000-000000000022"),
-            App = AppEnum.QnA,
+            Module = ModuleEnum.QnA,
             ConnectionString = IntegrationTestConnectionStrings.CreateNamed("b"),
             IsCurrent = true
         };
@@ -225,7 +225,7 @@ public class TenantConnectionCommandQueryTests
             {
                 SkipCount = 0,
                 MaxResultCount = 10,
-                Sorting = "app ASC, isCurrent DESC"
+                Sorting = "module ASC, isCurrent DESC"
             }
         };
 
@@ -239,9 +239,9 @@ public class TenantConnectionCommandQueryTests
     public async Task GetTenantConnectionList_AppliesPaginationWindow()
     {
         using var context = TestContext.Create();
-        await TestDataFactory.SeedTenantConnectionAsync(context.DbContext, app: AppEnum.QnA, isCurrent: false);
-        await TestDataFactory.SeedTenantConnectionAsync(context.DbContext, app: AppEnum.Tenant, isCurrent: true);
-        await TestDataFactory.SeedTenantConnectionAsync(context.DbContext, app: AppEnum.QnA, isCurrent: true);
+        await TestDataFactory.SeedTenantConnectionAsync(context.DbContext, module: ModuleEnum.QnA, isCurrent: false);
+        await TestDataFactory.SeedTenantConnectionAsync(context.DbContext, module: ModuleEnum.Tenant, isCurrent: true);
+        await TestDataFactory.SeedTenantConnectionAsync(context.DbContext, module: ModuleEnum.QnA, isCurrent: true);
 
         var handler = new TenantConnectionsGetTenantConnectionListQueryHandler(context.DbContext);
         var request = new TenantConnectionsGetTenantConnectionListQuery
@@ -250,7 +250,7 @@ public class TenantConnectionCommandQueryTests
             {
                 SkipCount = 1,
                 MaxResultCount = 1,
-                Sorting = "isCurrent DESC, app ASC"
+                Sorting = "isCurrent DESC, module ASC"
             }
         };
 

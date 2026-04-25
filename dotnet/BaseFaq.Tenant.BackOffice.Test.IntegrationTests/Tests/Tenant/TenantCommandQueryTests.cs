@@ -29,7 +29,7 @@ public class TenantCommandQueryTests
             Slug = "tenant-one",
             Name = "Tenant One",
             Edition = TenantEdition.Free,
-            App = AppEnum.QnA,
+            Module = ModuleEnum.QnA,
             ConnectionString = IntegrationTestConnectionStrings.QnA,
             IsActive = true,
             UserId = userId
@@ -44,7 +44,7 @@ public class TenantCommandQueryTests
         Assert.Equal("tenant-one", tenant!.Slug);
         Assert.Equal("Tenant One", tenant.Name);
         Assert.Equal(TenantEdition.Free, tenant.Edition);
-        Assert.Equal(AppEnum.QnA, tenant.App);
+        Assert.Equal(ModuleEnum.QnA, tenant.Module);
         Assert.Equal(request.ConnectionString, tenant.ConnectionString);
         Assert.True(tenant.IsActive);
         Assert.Contains(
@@ -142,7 +142,7 @@ public class TenantCommandQueryTests
         Assert.Equal("get", result.Slug);
         Assert.Equal("Get", result.Name);
         Assert.Equal(tenant.Edition, result.Edition);
-        Assert.Equal(tenant.App, result.App);
+        Assert.Equal(tenant.Module, result.Module);
         Assert.Equal(string.Empty, result.ConnectionString);
         Assert.Equal(tenant.IsActive, result.IsActive);
         Assert.Equal(ownerUserId, result.UserId);
@@ -277,7 +277,7 @@ public class TenantCommandQueryTests
             Slug = "dup",
             Name = "Duplicate",
             Edition = TenantEdition.Free,
-            App = AppEnum.QnA,
+            Module = ModuleEnum.QnA,
             ConnectionString = IntegrationTestConnectionStrings.CreateNamed("dup"),
             IsActive = true,
             UserId = userId

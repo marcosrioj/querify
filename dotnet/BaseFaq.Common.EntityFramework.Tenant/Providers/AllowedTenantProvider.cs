@@ -12,19 +12,19 @@ public sealed class AllowedTenantProvider(TenantDbContext tenantDbContext) : IAl
         var tenants = await tenantDbContext.TenantUsers
             .AsNoTracking()
             .Where(entity => entity.UserId == userId && entity.Tenant.IsActive)
-            .Select(entity => new { entity.Tenant.App, entity.TenantId })
+            .Select(entity => new { entity.Tenant.Module, entity.TenantId })
             .Distinct()
             .ToListAsync(cancellationToken);
 
         var lookup = tenants
-            .GroupBy(entity => entity.App.ToString())
+            .GroupBy(entity => entity.Module.ToString())
             .ToDictionary(
                 group => group.Key,
                 group => (IReadOnlyCollection<Guid>)group.Select(entity => entity.TenantId).ToList());
 
-        foreach (var appEnum in Enum.GetValues<AppEnum>())
+        foreach (var module in Enum.GetValues<ModuleEnum>())
         {
-            var key = appEnum.ToString();
+            var key = module.ToString();
             lookup.TryAdd(key, Array.Empty<Guid>());
         }
 

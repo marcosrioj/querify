@@ -23,7 +23,7 @@ public class TenantService(IMediator mediator) : ITenantService
             Slug = requestDto.Slug,
             Name = requestDto.Name,
             Edition = requestDto.Edition,
-            App = requestDto.App,
+            Module = requestDto.Module,
             ConnectionString = requestDto.ConnectionString,
             IsActive = requestDto.IsActive,
             UserId = requestDto.UserId

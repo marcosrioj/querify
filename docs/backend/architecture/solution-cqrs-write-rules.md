@@ -12,7 +12,7 @@ These rules apply to:
 - `BaseFaq.Direct.*`
 - `BaseFaq.Broadcast.*`
 - `BaseFaq.Tenant.*`
-- any future BaseFaq module, including Trust when it gains ASP.NET Core controllers plus MediatR
+- `BaseFaq.Trust.*`
 
 ## Rule 1: commands return simple values
 
@@ -93,39 +93,39 @@ When a command starts asynchronous work:
 - avoid large nested branches
 - keep the command contract unchanged while improving readability
 
-## Rule 8: QnA uses feature-scoped projects
+## Rule 8: modules use feature-scoped projects
 
-When the backend work belongs to QnA:
+When backend work belongs to a BaseFaq module:
 
-- do not aggregate Portal behavior into `BaseFaq.QnA.Portal.Business`
-- do not aggregate Public behavior into `BaseFaq.QnA.Public.Business`
+- do not aggregate Portal behavior into a monolithic `<Module>.Portal.Business` project
+- do not aggregate Public behavior into a monolithic `<Module>.Public.Business` project
 - create or extend the smallest entity or surface project that owns the use case
-- compose QnA APIs from multiple feature registrations such as `AddQuestionBusiness()` and `AddVoteBusiness()`
-- point QnA integration tests at the owning feature projects rather than a monolithic business assembly
-- keep source files physically inside the owning QnA feature project directory
-- do not use linked source entries such as `<Compile Include="..\\..." Link="...">` in QnA business feature projects
+- compose APIs from multiple feature registrations such as `AddQuestionBusiness()` and `AddVoteBusiness()`
+- point integration tests at the owning feature projects rather than a monolithic business assembly
+- keep source files physically inside the owning module feature project directory
+- do not use linked source entries such as `<Compile Include="..\\..." Link="...">` in module business feature projects
 - mirror the existing feature-scoped test folders and file names, for example `Tests/Question/QuestionCommandQueryTests.cs` or `Tests/Question/QuestionQueryTests.cs`
-- keep use-case logic in the QnA command and query handlers instead of generic helper classes
-- do not introduce `*Operations.cs`, `PagedQuery.cs`, `QnAProjectionMapper.cs`, `QnAActivityMetadata.cs`, or `SignalRequestContext.cs` in QnA business projects
-- the only allowed QnA helper exception is a feature-specific request-context helper such as `FeedbackRequestContext.cs` or `VoteRequestContext.cs`
+- keep use-case logic in the owning command and query handlers instead of generic helper classes
+- do not introduce aggregate helpers such as `*Operations.cs`, `PagedQuery.cs`, `<Module>ProjectionMapper.cs`, `<Module>ActivityMetadata.cs`, or `SignalRequestContext.cs` in module business projects
+- the allowed helper exception is a feature-specific request-context helper such as `FeedbackRequestContext.cs` or `VoteRequestContext.cs`
 
-## Rule 9: BaseFaq.Models.QnA stays feature-organized
+## Rule 9: module contract projects stay feature-organized
 
-When the work belongs to `BaseFaq.Models.QnA`:
+When the work belongs to a module contract project such as `BaseFaq.Models.QnA`, `BaseFaq.Models.Direct`, `BaseFaq.Models.Broadcast`, or `BaseFaq.Models.Tenant`:
 
 - keep DTO folders feature-scoped such as `Dtos/Question/QuestionDto.cs`
 - keep DTOs in real feature folders rather than aggregate `*Dtos.cs` files
-- do not place catch-all DTO files directly under `dotnet/BaseFaq.Models.QnA/Dtos`
+- do not place catch-all DTO files directly under `dotnet/BaseFaq.Models.<Module>/Dtos`
 - do not create pseudo-entity folders such as `dotnet/BaseFaq.Models.QnA/Dtos/Link`
 - place link DTOs under the owning feature folders like `Dtos/Answer`, `Dtos/Question`, and `Dtos/Space`
 - keep write-side handler request DTOs flat
 - do not inherit one write-side `*RequestDto` from another `*RequestDto`
 - let paged or sorted query request DTOs inherit the shared pagination base used by the project pattern
-- declare request DTO properties explicitly on each write-side QnA request type
+- declare request DTO properties explicitly on each write-side module request type
 
 ## Rule 10: Product persistence entities stay anemic
 
-When the work belongs to `BaseFaq.QnA.Common.Persistence.QnADb/Entities`:
+When the work belongs to a module persistence entity folder such as `QnADb/Entities`, `DirectDb/Entities`, or `BroadcastDb/Entities`:
 
 - keep entities as state-only persistence models
 - do not add behavior methods, factory methods, or transition methods
@@ -133,7 +133,7 @@ When the work belongs to `BaseFaq.QnA.Common.Persistence.QnADb/Entities`:
 - do not use `[NotMapped]` computed properties to hide query shaping inside entities
 - keep relation creation, validation, status transitions, and DTO shaping inside commands, queries, and feature-local private methods
 
-When the work belongs to `BaseFaq.Direct.Common.Persistence.DirectDb` or `BaseFaq.Broadcast.Common.Persistence.BroadcastDb`, apply the same state-only rule. Extend those entity models only for concrete Direct or Broadcast behavior; do not create placeholder entities or move module workflows into QnA entities as a shortcut.
+Extend module entity models only for concrete behavior owned by that module; do not create placeholder entities or move one module's workflow into another module's entities as a shortcut.
 
 ## HTTP mapping guidance
 
@@ -161,9 +161,9 @@ When the work belongs to `BaseFaq.Direct.Common.Persistence.DirectDb` or `BaseFa
 - controller returning `CreatedAtAction(..., dto)` for a write flow that only needs an id
 - services querying the database after the command only to return a richer payload
 - making production dependencies nullable to satisfy tests
-- introducing monolithic QnA business projects instead of feature-scoped modules
-- using linked source files in QnA feature projects instead of real files in the owning project folder
-- using aggregate `*Dtos.cs` files in `BaseFaq.Models.QnA` instead of feature-scoped DTO folders and files
-- keeping generic QnA helper files instead of placing logic in command/query handlers
+- introducing monolithic module business projects instead of feature-scoped modules
+- using linked source files in module feature projects instead of real files in the owning project folder
+- using aggregate `*Dtos.cs` files in module contract projects instead of feature-scoped DTO folders and files
+- keeping generic module helper files instead of placing logic in command/query handlers
 - introducing a pseudo-entity DTO folder such as `BaseFaq.Models.QnA/Dtos/Link`
 - adding behavior or computed projection properties to module persistence entities

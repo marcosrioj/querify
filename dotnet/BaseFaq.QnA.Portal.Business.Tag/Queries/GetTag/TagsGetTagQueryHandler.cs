@@ -14,7 +14,7 @@ public sealed class TagsGetTagQueryHandler(QnADbContext dbContext, ISessionServi
 {
     public async Task<TagDto> Handle(TagsGetTagQuery request, CancellationToken cancellationToken)
     {
-        var tenantId = sessionService.GetTenantId(AppEnum.QnA);
+        var tenantId = sessionService.GetTenantId(ModuleEnum.QnA);
         var entity = await dbContext.Tags.AsNoTracking()
             .SingleOrDefaultAsync(tag => tag.TenantId == tenantId && tag.Id == request.Id, cancellationToken);
 

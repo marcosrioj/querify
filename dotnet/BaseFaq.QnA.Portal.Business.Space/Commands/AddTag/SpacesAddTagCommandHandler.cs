@@ -16,7 +16,7 @@ public sealed class SpacesAddTagCommandHandler(
 {
     public async Task<Guid> Handle(SpacesAddTagCommand request, CancellationToken cancellationToken)
     {
-        var tenantId = sessionService.GetTenantId(AppEnum.QnA);
+        var tenantId = sessionService.GetTenantId(ModuleEnum.QnA);
         var userId = sessionService.GetUserId().ToString();
         var space = await dbContext.Spaces
             .Include(entity => entity.Tags)

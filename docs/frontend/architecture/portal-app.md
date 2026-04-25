@@ -9,9 +9,8 @@ This document is the main frontend guide for `apps/portal`. It explains what the
 `apps/portal` is the tenant-facing web application for BaseFAQ. It is responsible for:
 
 - authenticated workspace access
+- Tenant workspace context, settings, member, profile, and billing flows
 - QnA management screens for spaces, questions, answers, sources, tags, and activity
-- tenant settings and profile flows
-- member-management flows
 - frontend-owned localization and direction handling
 
 It is not the BackOffice UI and it does not own BackOffice API concerns.
@@ -55,6 +54,7 @@ Operational constraints reflected in the frontend:
 
 - protected flows require Auth0 JWT authentication
 - tenant-scoped backend calls require `X-Tenant-Id`
+- tenant summaries expose `module`, backed by `ModuleEnum` values: Tenant, QnA, Direct, Broadcast, and Trust
 - pagination contracts use `SkipCount`, `MaxResultCount`, and `Sorting`
 - backend error payloads follow `{ errorCode, messageError, data }`
 - Portal UI translation is frontend-owned, and backend DTOs do not provide translated labels
@@ -186,9 +186,9 @@ For browser-facing local hostnames such as `dev.portal.basefaq.com`, use [`../to
 
 For the required frontend validation pass before merge, use [`../testing/validation-guide.md`](../testing/validation-guide.md).
 
-## Known functional gaps
+## Current functional gaps
 
-The repository still has some important Portal gaps:
+The repository has these Portal gaps:
 
 - member creation requires an already-existing BaseFAQ user email
 - billing and invoice flows remain placeholder areas where the backend surface is missing

@@ -17,11 +17,11 @@ public sealed class QnADbContextFactory : IDesignTimeDbContextFactory<QnADbConte
     public QnADbContext CreateDbContext(string[] args)
     {
         var configuration = MigrationsConfiguration.Build(SolutionRootLocator.Find());
-        var app = ResolveAppEnum(args);
-        if (app != AppEnum.QnA)
+        var module = ResolveModuleEnum(args);
+        if (module != ModuleEnum.QnA)
         {
             throw new InvalidOperationException(
-                $"App '{app}' is not supported by {nameof(QnADbContextFactory)}.");
+                $"Module '{module}' is not supported by {nameof(QnADbContextFactory)}.");
         }
 
         var tenantDbConnectionString = MigrationsConfiguration.GetTenantDbConnectionString(configuration);
@@ -49,7 +49,7 @@ public sealed class QnADbContextFactory : IDesignTimeDbContextFactory<QnADbConte
             tenantConnection = new TenantConnection
             {
                 ConnectionString = designTimeConnectionString,
-                App = app,
+                Module = module,
                 IsCurrent = true
             };
         }
@@ -90,37 +90,37 @@ public sealed class QnADbContextFactory : IDesignTimeDbContextFactory<QnADbConte
     private static TenantConnection ResolveCurrentConnection(TenantDbContext tenantDbContext)
     {
         return tenantDbContext
-            .GetCurrentTenantConnection(AppEnum.QnA)
+            .GetCurrentTenantConnection(ModuleEnum.QnA)
             .GetAwaiter()
             .GetResult();
     }
 
-    private static AppEnum ResolveAppEnum(string[] args)
+    private static ModuleEnum ResolveModuleEnum(string[] args)
     {
         for (var i = 0; i < args.Length; i++)
         {
             var arg = args[i];
-            if (string.Equals(arg, "--app", StringComparison.OrdinalIgnoreCase) && i + 1 < args.Length)
+            if (string.Equals(arg, "--module", StringComparison.OrdinalIgnoreCase) && i + 1 < args.Length)
             {
-                return ParseAppEnum(args[i + 1]);
+                return ParseModuleEnum(args[i + 1]);
             }
 
-            if (arg.StartsWith("--app=", StringComparison.OrdinalIgnoreCase))
+            if (arg.StartsWith("--module=", StringComparison.OrdinalIgnoreCase))
             {
-                return ParseAppEnum(arg["--app=".Length..]);
+                return ParseModuleEnum(arg["--module=".Length..]);
             }
         }
 
-        return AppEnum.QnA;
+        return ModuleEnum.QnA;
     }
 
-    private static AppEnum ParseAppEnum(string value)
+    private static ModuleEnum ParseModuleEnum(string value)
     {
-        if (!Enum.TryParse<AppEnum>(value, ignoreCase: true, out var app))
+        if (!Enum.TryParse<ModuleEnum>(value, ignoreCase: true, out var module))
         {
-            throw new InvalidOperationException($"Unknown app value '{value}'.");
+            throw new InvalidOperationException($"Unknown module value '{value}'.");
         }
 
-        return app;
+        return module;
     }
 }

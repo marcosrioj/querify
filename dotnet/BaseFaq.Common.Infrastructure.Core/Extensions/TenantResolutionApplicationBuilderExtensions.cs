@@ -6,7 +6,7 @@ namespace BaseFaq.Common.Infrastructure.Core.Extensions;
 
 public static class TenantResolutionApplicationBuilderExtensions
 {
-    public static IApplicationBuilder UseTenantResolution(this IApplicationBuilder app, AppEnum appEnum)
+    public static IApplicationBuilder UseTenantResolution(this IApplicationBuilder app, ModuleEnum module)
     {
         return app.UseWhen(
             context =>
@@ -14,7 +14,7 @@ public static class TenantResolutionApplicationBuilderExtensions
                 !context.Request.Path.StartsWithSegments("/openapi", StringComparison.OrdinalIgnoreCase),
             branch => branch.UseMiddleware<TenantResolutionMiddleware>(new TenantResolutionOptions
             {
-                App = appEnum
+                Module = module
             }));
     }
 }

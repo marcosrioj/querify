@@ -5,7 +5,7 @@ import type { TenantSummaryDto } from '@/domains/tenants/types';
 import { portalRequest, requireAccessToken } from '@/platform/api/http-client';
 import { useAuth } from '@/platform/auth/use-auth';
 import { TenantContext, type TenantContextValue } from '@/platform/tenant/tenant-context';
-import { PortalApp } from '@/shared/constants/backend-enums';
+import { ModuleEnum } from '@/shared/constants/backend-enums';
 
 const STORAGE_KEY = 'basefaq.portal.currentTenantId';
 
@@ -29,7 +29,7 @@ export function PortalTenantProvider({ children }: PropsWithChildren) {
 
   const tenantOptions = useMemo(
     () =>
-      (tenantsQuery.data ?? []).filter((tenant) => tenant.app === PortalApp.QnA),
+      (tenantsQuery.data ?? []).filter((tenant) => tenant.module === ModuleEnum.QnA),
     [tenantsQuery.data],
   );
 

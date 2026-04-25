@@ -2,9 +2,9 @@
 
 ## Purpose
 
-`BaseFaq.Tools.Seed` prepares the local or target databases with either essential platform data or realistic sample QnA data.
+`BaseFaq.Tools.Seed` prepares the local or target databases with either essential platform data or realistic sample module data.
 
-It is designed to work across both the tenant database and a QnA database, which is why it is the standard entrypoint instead of ad hoc SQL or hand-written scripts.
+It is designed to work across both the tenant database and module databases, which is why it is the standard entrypoint instead of ad hoc SQL or hand-written scripts.
 
 ## What it seeds
 
@@ -13,14 +13,14 @@ It is designed to work across both the tenant database and a QnA database, which
 Essential seed creates or ensures:
 
 - the seed tenant users in `TenantDb`
-- the default QnA tenant metadata in `TenantDb`
-- tenant-user membership and the QnA tenant connection
+- the default module tenant metadata in `TenantDb`
+- tenant-user membership and the QnA module tenant connection
 
-This is the minimum required tenant-side data for tenant configuration and QnA database routing to work correctly.
+This is the minimum required tenant-side data for tenant configuration and module database routing to work correctly.
 
 ### Sample data
 
-Sample seed creates realistic QnA data in the QnA database for the essential seed tenant.
+Sample seed creates realistic QnA data in the QnA database for the essential seed tenant. Current sample module target: `QnA`.
 
 It also seeds billing sample scenarios in `TenantDb` covering five tenants with varied states:
 
@@ -82,7 +82,7 @@ Choose `5` when you want to clear only `QnADb`.
 
 ## Safety behavior
 
-- the tool logs the tenant and QnA connection info it is using
+- the tool logs the tenant and module connection info it is using
 - it applies EF Core migrations before seeding
 - it asks for confirmation before appending data into non-empty databases
 
@@ -90,7 +90,7 @@ Choose `5` when you want to clear only `QnADb`.
 
 1. start infrastructure
 2. on a clean environment, run the seed tool or manually migrate `TenantDbContext`
-3. use the migration tool later when you need to apply QnA schema updates across tenant QnA databases
+3. use the migration tool later when you need to apply supported module schema updates across tenant module databases
 4. run the APIs and frontend
 
 ## Related documents

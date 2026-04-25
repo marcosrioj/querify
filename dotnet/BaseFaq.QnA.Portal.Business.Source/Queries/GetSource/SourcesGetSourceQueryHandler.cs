@@ -17,7 +17,7 @@ public sealed class SourcesGetSourceQueryHandler(
     public async Task<SourceDto> Handle(SourcesGetSourceQuery request,
         CancellationToken cancellationToken)
     {
-        var tenantId = sessionService.GetTenantId(AppEnum.QnA);
+        var tenantId = sessionService.GetTenantId(ModuleEnum.QnA);
         var entity = await dbContext.Sources.AsNoTracking()
             .SingleOrDefaultAsync(source => source.TenantId == tenantId && source.Id == request.Id, cancellationToken);
 

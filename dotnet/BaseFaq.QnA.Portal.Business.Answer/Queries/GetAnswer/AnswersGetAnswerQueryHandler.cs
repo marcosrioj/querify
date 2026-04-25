@@ -18,7 +18,7 @@ public sealed class AnswersGetAnswerQueryHandler(
 {
     public async Task<AnswerDto> Handle(AnswersGetAnswerQuery request, CancellationToken cancellationToken)
     {
-        var tenantId = sessionService.GetTenantId(AppEnum.QnA);
+        var tenantId = sessionService.GetTenantId(ModuleEnum.QnA);
         var entity = await dbContext.Answers
             .Include(answer => answer.Question)
             .ThenInclude(question => question.Activities)

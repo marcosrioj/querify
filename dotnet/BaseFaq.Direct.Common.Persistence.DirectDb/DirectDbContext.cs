@@ -35,7 +35,7 @@ public class DirectDbContext : BaseDbContext<DirectDbContext>
         "BaseFaq.Direct.Common.Persistence.DirectDb.Configurations"
     ];
 
-    protected override AppEnum SessionApp => AppEnum.Direct;
+    protected override ModuleEnum SessionModule => ModuleEnum.Direct;
 
     public override int SaveChanges(bool acceptAllChangesOnSuccess)
     {

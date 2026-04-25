@@ -739,7 +739,7 @@ public sealed class BillingSeedService : IBillingSeedService
                 Slug = slug,
                 Name = name,
                 Edition = edition,
-                App = AppEnum.QnA,
+                Module = ModuleEnum.QnA,
                 ConnectionString = productConnectionString,
                 IsActive = true
             };
@@ -751,7 +751,7 @@ public sealed class BillingSeedService : IBillingSeedService
             tenant.Slug = slug;
             tenant.Name = name;
             tenant.Edition = edition;
-            tenant.App = AppEnum.QnA;
+            tenant.Module = ModuleEnum.QnA;
             tenant.ConnectionString = productConnectionString;
             tenant.IsActive = true;
         }

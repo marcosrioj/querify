@@ -89,7 +89,7 @@
   "Answers are ranked, validated, retired, and often grounded with evidence links after they are saved.": "Các câu trả lời được xếp hạng, xác thực, ngừng dùng và thường gắn với liên kết bằng chứng sau khi được lưu.",
   "Answers that passed validation workflow": "Các câu trả lời đã vượt qua workflow xác thực",
   "API": "API",
-  "App scope": "Phạm vi ứng dụng",
+  "Module scope": "Phạm vi mô-đun",
   "Appearance": "Giao diện",
   "Appearance, profile, and workspace": "Giao diện, hồ sơ và không gian làm việc",
   "Applicability rules JSON": "JSON quy tắc áp dụng",

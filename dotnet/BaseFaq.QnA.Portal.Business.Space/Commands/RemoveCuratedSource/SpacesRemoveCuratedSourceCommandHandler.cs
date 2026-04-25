@@ -15,7 +15,7 @@ public sealed class SpacesRemoveCuratedSourceCommandHandler(
 {
     public async Task Handle(SpacesRemoveCuratedSourceCommand request, CancellationToken cancellationToken)
     {
-        var tenantId = sessionService.GetTenantId(AppEnum.QnA);
+        var tenantId = sessionService.GetTenantId(ModuleEnum.QnA);
         var link = await dbContext.SpaceSources
             .SingleOrDefaultAsync(
                 entity =>

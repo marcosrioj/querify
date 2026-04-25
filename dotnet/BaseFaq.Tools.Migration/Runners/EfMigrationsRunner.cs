@@ -5,9 +5,9 @@ namespace BaseFaq.Tools.Migration.Runners;
 
 internal static class EfMigrationsRunner
 {
-    public static int AddMigration(string solutionRoot, string migrationName, AppEnum app)
+    public static int AddMigration(string solutionRoot, string migrationName, ModuleEnum module)
     {
-        var projectPath = ResolveProjectPath(solutionRoot, app);
+        var projectPath = ResolveProjectPath(solutionRoot, module);
 
         var startupProjectPath = Path.Combine(
             solutionRoot,
@@ -39,14 +39,14 @@ internal static class EfMigrationsRunner
         processInfo.ArgumentList.Add("add");
         processInfo.ArgumentList.Add(migrationName);
         processInfo.ArgumentList.Add("--context");
-        processInfo.ArgumentList.Add(ResolveContextName(app));
+        processInfo.ArgumentList.Add(ResolveContextName(module));
         processInfo.ArgumentList.Add("--project");
         processInfo.ArgumentList.Add(projectPath);
         processInfo.ArgumentList.Add("--startup-project");
         processInfo.ArgumentList.Add(startupProjectPath);
         processInfo.ArgumentList.Add("--");
-        processInfo.ArgumentList.Add("--app");
-        processInfo.ArgumentList.Add(app.ToString());
+        processInfo.ArgumentList.Add("--module");
+        processInfo.ArgumentList.Add(module.ToString());
 
         using var process = Process.Start(processInfo);
         if (process is null)
@@ -77,11 +77,11 @@ internal static class EfMigrationsRunner
         return process.ExitCode;
     }
 
-    private static string ResolveProjectPath(string solutionRoot, AppEnum app)
+    private static string ResolveProjectPath(string solutionRoot, ModuleEnum module)
     {
-        if (app != AppEnum.QnA)
+        if (module != ModuleEnum.QnA)
         {
-            throw new InvalidOperationException($"Migrations are not supported for {app}.");
+            throw new InvalidOperationException($"Migrations are not supported for {module}.");
         }
 
         return Path.Combine(
@@ -91,10 +91,10 @@ internal static class EfMigrationsRunner
             "BaseFaq.QnA.Common.Persistence.QnADb.csproj");
     }
 
-    private static string ResolveContextName(AppEnum app)
+    private static string ResolveContextName(ModuleEnum module)
     {
-        return app == AppEnum.QnA
+        return module == ModuleEnum.QnA
             ? "QnADbContext"
-            : throw new InvalidOperationException($"Migrations are not supported for {app}.");
+            : throw new InvalidOperationException($"Migrations are not supported for {module}.");
     }
 }

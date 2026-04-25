@@ -47,39 +47,39 @@ public class TenantsCreateOrUpdateTenantsCommandHandler(
         return true;
     }
 
-    private async Task<Dictionary<AppEnum, string>> GetCurrentConnectionsAsync(CancellationToken cancellationToken)
+    private async Task<Dictionary<ModuleEnum, string>> GetCurrentConnectionsAsync(CancellationToken cancellationToken)
     {
         return await dbContext.TenantConnections
             .AsNoTracking()
             .Where(entity => entity.IsCurrent)
-            .ToDictionaryAsync(entity => entity.App, entity => entity.ConnectionString, cancellationToken);
+            .ToDictionaryAsync(entity => entity.Module, entity => entity.ConnectionString, cancellationToken);
     }
 
     private async Task CreateActiveTenantsAsync(
         TenantsCreateOrUpdateTenantsCommand request,
         Guid userId,
-        IReadOnlyDictionary<AppEnum, string> currentConnections,
+        IReadOnlyDictionary<ModuleEnum, string> currentConnections,
         CancellationToken cancellationToken)
     {
-        var apps = Enum.GetValues<AppEnum>().Where(app => app != AppEnum.Tenant);
+        var modules = Enum.GetValues<ModuleEnum>().Where(module => module != ModuleEnum.Tenant);
 
-        foreach (var app in apps)
+        foreach (var module in modules)
         {
-            if (!TryGetConnectionString(currentConnections, app, out var connectionString))
+            if (!TryGetConnectionString(currentConnections, module, out var connectionString))
             {
                 continue;
             }
 
-            await CreateActiveTenantAsync(request, userId, app, connectionString, cancellationToken);
+            await CreateActiveTenantAsync(request, userId, module, connectionString, cancellationToken);
         }
     }
 
     private static bool TryGetConnectionString(
-        IReadOnlyDictionary<AppEnum, string> currentConnections,
-        AppEnum app,
+        IReadOnlyDictionary<ModuleEnum, string> currentConnections,
+        ModuleEnum module,
         out string connectionString)
     {
-        if (!currentConnections.TryGetValue(app, out connectionString!) || string.IsNullOrWhiteSpace(connectionString))
+        if (!currentConnections.TryGetValue(module, out connectionString!) || string.IsNullOrWhiteSpace(connectionString))
         {
             connectionString = string.Empty;
             return false;
@@ -91,7 +91,7 @@ public class TenantsCreateOrUpdateTenantsCommandHandler(
     private async Task CreateActiveTenantAsync(
         TenantsCreateOrUpdateTenantsCommand request,
         Guid userId,
-        AppEnum app,
+        ModuleEnum module,
         string connectionString,
         CancellationToken cancellationToken)
     {
@@ -100,10 +100,10 @@ public class TenantsCreateOrUpdateTenantsCommandHandler(
         var tenant = new BaseFaq.Common.EntityFramework.Tenant.Entities.Tenant
         {
             Id = tenantId,
-            Slug = await GenerateUniqueSlugAsync(request.Name, app, tenantId: null, cancellationToken),
+            Slug = await GenerateUniqueSlugAsync(request.Name, module, tenantId: null, cancellationToken),
             Name = request.Name,
             Edition = request.Edition,
-            App = app,
+            Module = module,
             ConnectionString = connectionString,
             IsActive = true
         };
@@ -115,16 +115,16 @@ public class TenantsCreateOrUpdateTenantsCommandHandler(
     private async Task UpdateSelectedTenantAsync(
         TenantsCreateOrUpdateTenantsCommand request,
         Guid tenantId,
-        IReadOnlyDictionary<AppEnum, string> currentConnections,
+        IReadOnlyDictionary<ModuleEnum, string> currentConnections,
         CancellationToken cancellationToken)
     {
         var tenant = await tenantPortalAccessService.GetAccessibleTenantAsync(tenantId, cancellationToken);
 
-        tenant.Slug = await GenerateUniqueSlugAsync(request.Name, tenant.App, tenant.Id, cancellationToken);
+        tenant.Slug = await GenerateUniqueSlugAsync(request.Name, tenant.Module, tenant.Id, cancellationToken);
         tenant.Name = request.Name;
         tenant.Edition = request.Edition;
 
-        if (TryGetConnectionString(currentConnections, tenant.App, out var connectionString))
+        if (TryGetConnectionString(currentConnections, tenant.Module, out var connectionString))
         {
             tenant.ConnectionString = connectionString;
         }
@@ -135,11 +135,11 @@ public class TenantsCreateOrUpdateTenantsCommandHandler(
 
     private async Task<string> GenerateUniqueSlugAsync(
         string tenantName,
-        AppEnum app,
+        ModuleEnum module,
         Guid? tenantId,
         CancellationToken cancellationToken)
     {
-        var baseSlug = TenantHelper.GenerateSlug($"{tenantName}{app}");
+        var baseSlug = TenantHelper.GenerateSlug($"{tenantName}{module}");
         if (string.IsNullOrWhiteSpace(baseSlug))
         {
             baseSlug = $"tenant{Guid.NewGuid():N}";

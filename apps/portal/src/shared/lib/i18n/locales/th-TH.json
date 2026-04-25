@@ -89,7 +89,7 @@
   "Answers are ranked, validated, retired, and often grounded with evidence links after they are saved.": "เมื่อบันทึกแล้ว คำตอบจะถูกจัดอันดับ ตรวจสอบ ยกเลิกการใช้งาน และมักอ้างอิงด้วยลิงก์หลักฐาน",
   "Answers that passed validation workflow": "คำตอบที่ผ่านเวิร์กโฟลว์การตรวจสอบ",
   "API": "API",
-  "App scope": "ขอบเขตของแอป",
+  "Module scope": "ขอบเขตของโมดูล",
   "Appearance": "ลักษณะที่ปรากฏ",
   "Appearance, profile, and workspace": "ลักษณะที่ปรากฏ โปรไฟล์ และเวิร์กสเปซ",
   "Applicability rules JSON": "JSON ของกฎการใช้งานได้",

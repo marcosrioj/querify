@@ -13,7 +13,7 @@ public sealed class TagsCreateTagCommandHandler(QnADbContext dbContext, ISession
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(request.Request);
 
-        var tenantId = sessionService.GetTenantId(AppEnum.QnA);
+        var tenantId = sessionService.GetTenantId(ModuleEnum.QnA);
         var userId = sessionService.GetUserId().ToString();
         var entity = new Common.Persistence.QnADb.Entities.Tag
         {
