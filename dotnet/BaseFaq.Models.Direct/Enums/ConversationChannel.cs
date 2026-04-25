@@ -1,4 +1,4 @@
-namespace BaseFaq.Direct.Common.Persistence.DirectDb.Enums;
+namespace BaseFaq.Models.Direct.Enums;
 
 /// <summary>
 /// Describes where a support conversation started.
@@ -21,7 +21,7 @@ public enum ConversationChannel
     Email = 3,
 
     /// <summary>
-    /// Conversation source is known by Support Copilot but not represented by a more specific channel yet.
+    /// Conversation source is known by Direct but not represented by a more specific channel yet.
     /// </summary>
     Other = 99
 }

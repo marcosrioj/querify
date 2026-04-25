@@ -9,8 +9,10 @@ This document defines the mandatory write-side rules for BaseFAQ. The goal is to
 These rules apply to:
 
 - `BaseFaq.QnA.*`
+- `BaseFaq.Direct.*`
+- `BaseFaq.Broadcast.*`
 - `BaseFaq.Tenant.*`
-- any future module using ASP.NET Core controllers plus MediatR
+- any future BaseFaq module, including Trust when it gains ASP.NET Core controllers plus MediatR
 
 ## Rule 1: commands return simple values
 
@@ -131,7 +133,7 @@ When the work belongs to `BaseFaq.QnA.Common.Persistence.QnADb/Entities`:
 - do not use `[NotMapped]` computed properties to hide query shaping inside entities
 - keep relation creation, validation, status transitions, and DTO shaping inside commands, queries, and feature-local private methods
 
-When the work belongs to `BaseFaq.Direct.Common.Persistence.DirectDb` or `BaseFaq.Broadcast.Common.Persistence.BroadcastDb`, apply the same state-only rule. Extend those entity models only for concrete Support Copilot or Engagement Hub behavior; do not create placeholder entities or move product workflows into QnA entities as a shortcut.
+When the work belongs to `BaseFaq.Direct.Common.Persistence.DirectDb` or `BaseFaq.Broadcast.Common.Persistence.BroadcastDb`, apply the same state-only rule. Extend those entity models only for concrete Direct or Broadcast behavior; do not create placeholder entities or move module workflows into QnA entities as a shortcut.
 
 ## HTTP mapping guidance
 
@@ -149,7 +151,7 @@ When the work belongs to `BaseFaq.Direct.Common.Persistence.DirectDb` or `BaseFa
 - service write methods stay thin
 - tests were updated for the real dependencies
 - large handler logic was extracted where necessary
-- product persistence entities stayed state-only
+- module persistence entities stayed state-only
 
 ## Anti-patterns
 
@@ -164,4 +166,4 @@ When the work belongs to `BaseFaq.Direct.Common.Persistence.DirectDb` or `BaseFa
 - using aggregate `*Dtos.cs` files in `BaseFaq.Models.QnA` instead of feature-scoped DTO folders and files
 - keeping generic QnA helper files instead of placing logic in command/query handlers
 - introducing a pseudo-entity DTO folder such as `BaseFaq.Models.QnA/Dtos/Link`
-- adding behavior or computed projection properties to product persistence entities
+- adding behavior or computed projection properties to module persistence entities

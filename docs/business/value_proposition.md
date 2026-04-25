@@ -22,7 +22,9 @@ Cada resposta resolvida fortalece a base, reduz retrabalho e revela o que o merc
 
 Uma categoria mais forte do que "plataforma de perguntas": o produto não apenas responde dúvidas, ele transforma demanda, suporte, comunidade e decisão em conhecimento reutilizável.
 
-## Os 4 Produtos Principais
+## Os 4 Módulos Principais Do BaseFaq
+
+O BaseFaq é composto por quatro módulos de produto: QnA, Direct, Broadcast e Trust.
 
 ### 1. QnA
 
@@ -112,11 +114,11 @@ Ele cria processos claros para revisar respostas, validar contribuições, prior
 
 Esse é o ciclo que cria valor acumulado: **pergunta -> resolução -> conhecimento -> distribuição -> aprendizado -> melhor próxima resposta.**
 
-## Como Os Produtos Se Conectam
+## Como Os Módulos Se Conectam
 
-O posicionamento ideal trata os produtos como partes de um mesmo sistema. Cada produto alimenta os demais:
+O posicionamento ideal trata os módulos do BaseFaq como partes de um mesmo sistema. Cada módulo alimenta os demais:
 
-| Origem da interação | Produto que captura | Produto que resolve | Produto que transforma em ativo | Produto que valida | Resultado de negócio |
+| Origem da interação | Módulo que captura | Módulo que resolve | Módulo que transforma em ativo | Módulo que valida | Resultado de negócio |
 | --- | --- | --- | --- | --- | --- |
 | Pergunta em site, app ou portal | QnA | QnA | QnA | Trust, quando necessário | Autoatendimento consistente e menos demanda repetida |
 | Conversa 1:1 de suporte | Direct | Direct | QnA | Trust, quando necessário | Resolução mais rápida e melhoria contínua da base |

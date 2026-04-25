@@ -40,7 +40,7 @@ These projects contain ASP.NET Core startup, middleware, and DI registration:
 
 Each service area is split into feature projects.
 
-Answer Hub currently uses the QnA project namespace and remains split by feature project instead of monolithic business assemblies. Support Copilot and Engagement Hub have persistence models, but no feature business modules yet.
+QnA, Direct, Broadcast, and Trust are the BaseFaq product modules. QnA remains split by feature project instead of monolithic business assemblies. Direct and Broadcast have persistence models, but no feature business modules yet. Trust should use the same module boundary rules when its runtime model is introduced.
 
 - QnA Portal:
   - `BaseFaq.QnA.Portal.Business.Space`
@@ -71,9 +71,9 @@ Answer Hub currently uses the QnA project namespace and remains split by feature
 
 - `BaseFaq.Common.EntityFramework.Core`: shared EF Core helpers and database infrastructure used across the solution
 - `BaseFaq.Common.EntityFramework.Tenant`: tenant database context, tenant resolution helpers, and shared tenant infrastructure
-- `BaseFaq.QnA.Common.Persistence.QnADb`: Answer Hub database context and QnA-side persistence
-- `BaseFaq.Direct.Common.Persistence.DirectDb`: Support Copilot tenant persistence for conversations and conversation messages
-- `BaseFaq.Broadcast.Common.Persistence.BroadcastDb`: Engagement Hub tenant persistence for public/community threads and captured items
+- `BaseFaq.QnA.Common.Persistence.QnADb`: QnA module database context and persistence
+- `BaseFaq.Direct.Common.Persistence.DirectDb`: Direct module tenant persistence for conversations and conversation messages
+- `BaseFaq.Broadcast.Common.Persistence.BroadcastDb`: Broadcast module tenant persistence for public/community threads and captured items
 - `BaseFaq.Common.Infrastructure.Core`: shared core abstractions and backend helper services
 - `BaseFaq.Common.Infrastructure.ApiErrorHandling`: API error handling conventions
 - `BaseFaq.Common.Infrastructure.MassTransit`: MassTransit registration and messaging conventions
@@ -84,6 +84,8 @@ Answer Hub currently uses the QnA project namespace and remains split by feature
 - `BaseFaq.Common.Infrastructure.Telemetry`: shared telemetry wiring (OpenTelemetry tracing, OTLP export)
 - `BaseFaq.Models.Common`: shared primitive DTOs and common contracts
 - `BaseFaq.Models.QnA`: QnA-facing contracts
+- `BaseFaq.Models.Direct`: Direct-facing contracts
+- `BaseFaq.Models.Broadcast`: Broadcast-facing contracts
 - `BaseFaq.Models.Tenant`: tenant-facing contracts
 - `BaseFaq.Models.User`: user and profile contracts
 
@@ -137,16 +139,16 @@ The write-side rules are formalized in [`solution-cqrs-write-rules.md`](solution
 
 This is the global control plane for the platform.
 
-That also means these responsibilities belong in `TenantDbContext` and not in tenant product persistence:
+That also means these responsibilities belong in `TenantDbContext` and not in tenant module persistence:
 
 - billing webhook inboxes
 - email outbox
 - tenant entitlements
 - platform recurring jobs
 
-### Answer Hub databases
+### QnA database
 
-`QnADbContext` stores tenant product data for the Answer Hub model:
+`QnADbContext` stores tenant module data for the QnA module:
 
 - spaces
 - questions
@@ -157,21 +159,23 @@ That also means these responsibilities belong in `TenantDbContext` and not in te
 
 Each tenant can point to its own QnA database connection, which is why QnA migration and seed tooling must resolve tenant metadata first.
 
-### Support Copilot and Engagement Hub databases
+### Direct and Broadcast databases
 
-`DirectDbContext` and `BroadcastDbContext` are present as tenant product persistence boundaries for the product split described in [`../../business/value_proposition.md`](../../business/value_proposition.md).
+`DirectDbContext` and `BroadcastDbContext` are present as tenant module persistence boundaries for the BaseFaq module split described in [`../../business/value_proposition.md`](../../business/value_proposition.md).
 
-`DirectDbContext` stores the support-side behavior that should not live in Answer Hub:
+`DirectDbContext` stores the 1:1 resolution behavior that should not live in QnA:
 
 - conversations
 - conversation messages
 
-`BroadcastDbContext` stores the engagement-side behavior that should not live in Answer Hub:
+`BroadcastDbContext` stores the public and community interaction behavior that should not live in QnA:
 
-- external engagement threads
+- external and community interaction threads
 - captured thread items
 
-These projects define a deliberately small entity, enum, configuration, DbContext, and registration-extension baseline. API hosts, business modules, migrations, additional workflow entities, and seed flows should be added only when those products gain runtime behavior.
+These projects define a deliberately small entity, enum, configuration, DbContext, and registration-extension baseline. API hosts, business modules, migrations, additional workflow entities, and seed flows should be added only when those modules gain runtime behavior.
+
+Trust has no active persistence project yet. When introduced, it should own validation, governance, and auditability data in a separate BaseFaq module boundary instead of sharing QnA, Direct, or Broadcast persistence by default.
 
 ## Multitenancy model
 
@@ -183,7 +187,7 @@ These projects define a deliberately small entity, enum, configuration, DbContex
 ### Public flows
 
 - QnA Public resolves the tenant from `X-Client-Key`.
-- Public handlers use tenant resolution before reading or writing tenant Answer Hub data.
+- Public handlers use tenant resolution before reading or writing tenant QnA data.
 - Tenant Public billing webhooks are anonymous ingress endpoints and do not rely on `X-Tenant-Id` or `X-Client-Key`.
 - Tenant identity for billing may be resolved later by the worker from provider metadata and normalized billing records.
 
@@ -193,7 +197,7 @@ The usual backend bootstrap sequence is:
 
 1. Start base services with `./devops/local/docker/base.sh`.
 2. On a clean environment, initialize schema and data with `BaseFaq.Tools.Seed`.
-3. Use `BaseFaq.Tools.Migration` when you need to apply QnA schema updates across tenant product databases.
+3. Use `BaseFaq.Tools.Migration` when you need to apply QnA schema updates across tenant module databases.
 4. Run the specific APIs needed for the workflow you are testing.
 
 Typical command set:
@@ -213,11 +217,11 @@ For worker-specific configuration and feature guidance, see [`basefaq-tenant-wor
 ## Development conventions
 
 - Add new features to the correct bounded-context project rather than enlarging an unrelated one.
-- For Answer Hub/QnA backend work, keep source files real inside the owning feature project instead of creating a monolithic or linked-source business project.
-- Keep Support Copilot and Engagement Hub behavior in their own product projects once those feature modules exist; do not model their workflows in QnA entities as a shortcut.
+- For QnA backend work, keep source files real inside the owning feature project instead of creating a monolithic or linked-source business project.
+- Keep Direct and Broadcast behavior in their own module projects once those feature modules exist; do not model their workflows in QnA entities as a shortcut.
 - Preserve the API-host composition pattern through `AddFeatures(...)`.
 - Keep controllers and services thin; push actual use-case behavior into handlers and domain-specific services.
 - Prefer lowercase kebab-case in route path segments when a controller exposes named actions beyond plain resource ids.
-- Treat tenant, Answer Hub, Support Copilot, and Engagement Hub data as separate ownership boundaries.
+- Treat tenant, QnA, Direct, Broadcast, and Trust data as separate ownership boundaries.
 - Put public tenant ingress endpoints such as billing webhooks in `BaseFaq.Tenant.Public.Api`, not in authenticated portal hosts.
 - Update the corresponding docs when request headers, ports, startup requirements, or operational assumptions change.

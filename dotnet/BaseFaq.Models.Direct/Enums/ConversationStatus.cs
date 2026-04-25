@@ -1,4 +1,4 @@
-namespace BaseFaq.Direct.Common.Persistence.DirectDb.Enums;
+namespace BaseFaq.Models.Direct.Enums;
 
 /// <summary>
 /// Defines the minimal lifecycle of a support conversation.

@@ -1,7 +1,7 @@
-namespace BaseFaq.Broadcast.Common.Persistence.BroadcastDb.Enums;
+namespace BaseFaq.Models.Broadcast.Enums;
 
 /// <summary>
-/// Identifies who produced an engagement item.
+/// Identifies who produced a Broadcast item.
 /// </summary>
 public enum ActorKind
 {

@@ -47,12 +47,13 @@ Business logic does not live in the host; the host wires the feature modules and
 
 ### 2. Business code is split by bounded context
 
-The repository follows a consistent naming model:
+The repository follows a consistent naming model. QnA, Direct, Broadcast, and Trust are the BaseFaq product modules; Tenant remains the control plane around them.
 
 - `BaseFaq.Tenant.*`
 - `BaseFaq.QnA.*`
 - `BaseFaq.Direct.*`
 - `BaseFaq.Broadcast.*`
+- `BaseFaq.Trust.*` when Trust runtime projects are introduced
 
 Inside each area, business modules are further split by feature, for example:
 
@@ -68,7 +69,7 @@ Inside each area, business modules are further split by feature, for example:
 - `BaseFaq.Tenant.Public.Business.Billing`
 - `BaseFaq.Tenant.BackOffice.Business.Billing`
 
-This keeps controller, service, command, and query code grouped by domain capability instead of by technical layer alone. Answer Hub currently uses the QnA namespace and follows a one-feature-per-project physical layout. Support Copilot and Engagement Hub persistence projects now define their product entity models, but should only gain business modules and runtime wiring when their concrete product workflows are implemented.
+This keeps controller, service, command, and query code grouped by domain capability instead of by technical layer alone. QnA follows a one-feature-per-project physical layout. Direct and Broadcast persistence projects now define their module entity models, but should only gain business modules and runtime wiring when their concrete product workflows are implemented. Trust should follow the same module boundary rules when its runtime persistence or feature modules are introduced.
 
 ### 3. CQRS with MediatR is the standard application pattern
 
@@ -99,16 +100,18 @@ BaseFAQ uses separate EF Core context boundaries for each data responsibility:
 | Context | Responsibility |
 |---|---|
 | `TenantDbContext` | global tenant metadata, users, tenant memberships, tenant-to-database mapping, and control-plane background-processing state |
-| `QnADbContext` | tenant-specific Answer Hub product data such as spaces, questions, answers, source links, tag links, workflow state, and activity |
-| `DirectDbContext` | tenant-specific Support Copilot product data such as conversations and conversation messages |
-| `BroadcastDbContext` | tenant-specific Engagement Hub product data such as external/community threads and captured items |
+| `QnADbContext` | tenant-specific QnA module data such as spaces, questions, answers, source links, tag links, workflow state, and activity |
+| `DirectDbContext` | tenant-specific Direct module data such as conversations and conversation messages |
+| `BroadcastDbContext` | tenant-specific Broadcast module data such as external/community threads and captured items |
+
+Trust has no active persistence context yet; when introduced, it should own validation, governance, and auditability data in a separate BaseFaq module boundary.
 
 The split matters operationally:
 
 - tenant metadata is centralized
 - control-plane operational workloads belong with tenant metadata
-- product data lives in tenant databases behind its owning product context
-- migration and seed tooling must coordinate tenant metadata plus the active product store
+- module data lives in tenant databases behind its owning module context
+- migration and seed tooling must coordinate tenant metadata plus the active module store
 
 `BaseFaq.Direct.Common.Persistence.DirectDb` and `BaseFaq.Broadcast.Common.Persistence.BroadcastDb` define a small entity, enum, configuration, DbContext, and registration-extension baseline only. API hosts, business modules, migrations, additional workflow entities, and seed flows should be added when the owning runtime behavior is implemented there.
 
@@ -130,7 +133,7 @@ Control-plane background processing is hosted separately in `BaseFaq.Tenant.Work
 That separation is intentional:
 
 - billing webhooks, email outbox delivery, entitlements, and recurring tenant operational jobs belong to `BaseFaq.Tenant.Worker.Api`
-- the worker should operate against `TenantDbContext` and should not take ownership of QnA product-data workflows
+- the worker should operate against `TenantDbContext` and should not take ownership of QnA module-data workflows
 
 ### 8. Cross-cutting concerns are centralized in shared libraries
 
@@ -189,6 +192,6 @@ The testing strategy is documented in [`../testing/integration-testing-strategy.
 - Add new business features under the appropriate bounded-context module instead of enlarging unrelated projects.
 - Keep write flows simple and aligned with the CQRS rules.
 - Treat `TenantDbContext`, `QnADbContext`, `DirectDbContext`, and `BroadcastDbContext` as separate ownership boundaries.
-- Keep Support Copilot and Engagement Hub behavior inside their product boundaries instead of folding it into Answer Hub.
+- Keep Direct and Broadcast behavior inside their BaseFaq module boundaries instead of folding it into QnA.
 - Put public tenant ingress endpoints such as billing webhooks in `BaseFaq.Tenant.Public.Api`, not in authenticated portal hosts.
 - Update the specific docs in `docs/` when boundaries, startup steps, or operational assumptions change.

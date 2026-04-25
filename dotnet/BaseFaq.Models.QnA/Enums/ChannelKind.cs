@@ -1,7 +1,7 @@
 namespace BaseFaq.Models.QnA.Enums;
 
 /// <summary>
-/// Describes the Answer Hub intake path through which reusable knowledge entered the system.
+/// Describes the QnA intake path through which reusable knowledge entered the system.
 /// </summary>
 public enum ChannelKind
 {

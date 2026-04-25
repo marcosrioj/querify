@@ -1,11 +1,11 @@
 using BaseFaq.Common.EntityFramework.Core.Abstractions;
 using BaseFaq.Common.EntityFramework.Core.Entities;
-using BaseFaq.Broadcast.Common.Persistence.BroadcastDb.Enums;
+using BaseFaq.Models.Broadcast.Enums;
 
 namespace BaseFaq.Broadcast.Common.Persistence.BroadcastDb.Entities;
 
 /// <summary>
-/// Represents one captured item inside an Engagement Hub thread.
+/// Represents one captured item inside a Broadcast thread.
 /// </summary>
 public class Item : BaseEntity, IMustHaveTenant
 {
@@ -22,7 +22,7 @@ public class Item : BaseEntity, IMustHaveTenant
     public Thread Thread { get; set; } = null!;
 
     /// <summary>
-    /// Captured item shape used to distinguish posts, comments, messages, and fallback engagement entries.
+    /// Captured item shape used to distinguish posts, comments, messages, and fallback public interaction entries.
     /// </summary>
     public required ItemKind Kind { get; set; }
 
@@ -32,12 +32,12 @@ public class Item : BaseEntity, IMustHaveTenant
     public required ActorKind ActorKind { get; set; }
 
     /// <summary>
-    /// Text content captured for the engagement timeline.
+    /// Text content captured for the Broadcast timeline.
     /// </summary>
     public required string Body { get; set; }
 
     /// <summary>
-    /// Time the item was captured from the engagement channel; it can differ from the record creation time.
+    /// Time the item was captured from the Broadcast channel; it can differ from the record creation time.
     /// </summary>
     public required DateTime CapturedAtUtc { get; set; }
 

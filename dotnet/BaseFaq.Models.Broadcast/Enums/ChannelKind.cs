@@ -1,7 +1,7 @@
-namespace BaseFaq.Broadcast.Common.Persistence.BroadcastDb.Enums;
+namespace BaseFaq.Models.Broadcast.Enums;
 
 /// <summary>
-/// Describes the broad engagement channel family.
+/// Describes the broad Broadcast channel family.
 /// </summary>
 public enum ChannelKind
 {
@@ -21,7 +21,7 @@ public enum ChannelKind
     Messaging = 3,
 
     /// <summary>
-    /// Thread source is known by Engagement Hub but not represented by a more specific channel family yet.
+    /// Thread source is known by Broadcast but not represented by a more specific channel family yet.
     /// </summary>
     Other = 99
 }

@@ -1,18 +1,18 @@
 using BaseFaq.Common.EntityFramework.Core.Abstractions;
 using BaseFaq.Common.EntityFramework.Core.Entities;
-using BaseFaq.Direct.Common.Persistence.DirectDb.Enums;
+using BaseFaq.Models.Direct.Enums;
 
 namespace BaseFaq.Direct.Common.Persistence.DirectDb.Entities;
 
 /// <summary>
-/// Represents a support conversation owned by Support Copilot.
+/// Represents a 1:1 support conversation owned by Direct.
 /// </summary>
 public class Conversation : BaseEntity, IMustHaveTenant
 {
     public const int MaxSubjectLength = 500;
 
     /// <summary>
-    /// Entry surface used to route support conversation behavior without storing Answer Hub channel state.
+    /// Entry surface used to route support conversation behavior without storing QnA channel state.
     /// </summary>
     public required ConversationChannel Channel { get; set; }
 

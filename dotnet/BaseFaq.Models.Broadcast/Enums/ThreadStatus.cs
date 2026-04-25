@@ -1,12 +1,12 @@
-namespace BaseFaq.Broadcast.Common.Persistence.BroadcastDb.Enums;
+namespace BaseFaq.Models.Broadcast.Enums;
 
 /// <summary>
-/// Defines the minimal lifecycle of an engagement thread.
+/// Defines the minimal lifecycle of a Broadcast thread.
 /// </summary>
 public enum ThreadStatus
 {
     /// <summary>
-    /// Thread is active and can continue receiving engagement items.
+    /// Thread is active and can continue receiving Broadcast items.
     /// </summary>
     Open = 1,
 

@@ -4,7 +4,7 @@
 
 `BaseFaq.Tenant.Worker.Api` is the dedicated control-plane background-processing host for BaseFAQ.
 
-It runs against `TenantDbContext` only. It must not own product-data processing.
+It runs against `TenantDbContext` only. It must not own module-data processing.
 
 Current responsibilities:
 

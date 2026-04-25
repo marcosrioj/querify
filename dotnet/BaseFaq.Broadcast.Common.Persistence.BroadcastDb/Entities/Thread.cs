@@ -1,18 +1,18 @@
 using BaseFaq.Common.EntityFramework.Core.Abstractions;
 using BaseFaq.Common.EntityFramework.Core.Entities;
-using BaseFaq.Broadcast.Common.Persistence.BroadcastDb.Enums;
+using BaseFaq.Models.Broadcast.Enums;
 
 namespace BaseFaq.Broadcast.Common.Persistence.BroadcastDb.Entities;
 
 /// <summary>
-/// Represents an engagement thread captured by Engagement Hub.
+/// Represents a public or community interaction thread captured by Broadcast.
 /// </summary>
 public class Thread : BaseEntity, IMustHaveTenant
 {
     public const int MaxTitleLength = 1000;
 
     /// <summary>
-    /// Broad engagement channel family used to route thread behavior without coupling to a specific provider.
+    /// Broad public interaction channel family used to route thread behavior without coupling to a specific provider.
     /// </summary>
     public required ChannelKind Channel { get; set; }
 
@@ -27,7 +27,7 @@ public class Thread : BaseEntity, IMustHaveTenant
     public string? Title { get; set; }
 
     /// <summary>
-    /// Engagement items owned by this thread; tenant integrity is enforced through the parent relationship.
+    /// Broadcast items owned by this thread; tenant integrity is enforced through the parent relationship.
     /// </summary>
     public ICollection<Item> Items { get; set; } = [];
 

@@ -219,7 +219,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Common", "Common", "{B0F824
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Persistence", "Persistence", "{4DBC6605-9D46-4C4B-99C4-03299BAE73CA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BaseFaq.Direct.Common.Persistence.Direct", "dotnet\BaseFaq.Direct.Common.Persistence.Direct\BaseFaq.Direct.Common.Persistence.Direct.csproj", "{FFA7C897-FB20-494A-9519-EE977867C7C8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BaseFaq.Direct.Common.Persistence.DirectDb", "dotnet\BaseFaq.Direct.Common.Persistence.DirectDb\BaseFaq.Direct.Common.Persistence.DirectDb.csproj", "{FFA7C897-FB20-494A-9519-EE977867C7C8}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Broadcast", "Broadcast", "{1FBE1884-AD50-4461-8120-1FC5179B3666}"
 EndProject
@@ -228,6 +228,10 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Persistence", "Persistence", "{205D46F6-139D-44B3-9977-1799BA75EB35}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BaseFaq.Broadcast.Common.Persistence.BroadcastDb", "dotnet\BaseFaq.Broadcast.Common.Persistence.BroadcastDb\BaseFaq.Broadcast.Common.Persistence.BroadcastDb.csproj", "{81095657-588F-4EEB-99E2-F6D417A2DCA5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BaseFaq.Models.Direct", "dotnet\BaseFaq.Models.Direct\BaseFaq.Models.Direct.csproj", "{0472D740-665B-4613-8FF7-8B088D26D8CA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BaseFaq.Models.Broadcast", "dotnet\BaseFaq.Models.Broadcast\BaseFaq.Models.Broadcast.csproj", "{D4571E58-726F-4150-9CF9-FB4A7C215968}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -863,6 +867,30 @@ Global
 		{81095657-588F-4EEB-99E2-F6D417A2DCA5}.Release|x64.Build.0 = Release|Any CPU
 		{81095657-588F-4EEB-99E2-F6D417A2DCA5}.Release|x86.ActiveCfg = Release|Any CPU
 		{81095657-588F-4EEB-99E2-F6D417A2DCA5}.Release|x86.Build.0 = Release|Any CPU
+		{0472D740-665B-4613-8FF7-8B088D26D8CA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0472D740-665B-4613-8FF7-8B088D26D8CA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0472D740-665B-4613-8FF7-8B088D26D8CA}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{0472D740-665B-4613-8FF7-8B088D26D8CA}.Debug|x64.Build.0 = Debug|Any CPU
+		{0472D740-665B-4613-8FF7-8B088D26D8CA}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{0472D740-665B-4613-8FF7-8B088D26D8CA}.Debug|x86.Build.0 = Debug|Any CPU
+		{0472D740-665B-4613-8FF7-8B088D26D8CA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0472D740-665B-4613-8FF7-8B088D26D8CA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0472D740-665B-4613-8FF7-8B088D26D8CA}.Release|x64.ActiveCfg = Release|Any CPU
+		{0472D740-665B-4613-8FF7-8B088D26D8CA}.Release|x64.Build.0 = Release|Any CPU
+		{0472D740-665B-4613-8FF7-8B088D26D8CA}.Release|x86.ActiveCfg = Release|Any CPU
+		{0472D740-665B-4613-8FF7-8B088D26D8CA}.Release|x86.Build.0 = Release|Any CPU
+		{D4571E58-726F-4150-9CF9-FB4A7C215968}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D4571E58-726F-4150-9CF9-FB4A7C215968}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D4571E58-726F-4150-9CF9-FB4A7C215968}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{D4571E58-726F-4150-9CF9-FB4A7C215968}.Debug|x64.Build.0 = Debug|Any CPU
+		{D4571E58-726F-4150-9CF9-FB4A7C215968}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{D4571E58-726F-4150-9CF9-FB4A7C215968}.Debug|x86.Build.0 = Debug|Any CPU
+		{D4571E58-726F-4150-9CF9-FB4A7C215968}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D4571E58-726F-4150-9CF9-FB4A7C215968}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D4571E58-726F-4150-9CF9-FB4A7C215968}.Release|x64.ActiveCfg = Release|Any CPU
+		{D4571E58-726F-4150-9CF9-FB4A7C215968}.Release|x64.Build.0 = Release|Any CPU
+		{D4571E58-726F-4150-9CF9-FB4A7C215968}.Release|x86.ActiveCfg = Release|Any CPU
+		{D4571E58-726F-4150-9CF9-FB4A7C215968}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -966,5 +994,7 @@ Global
 		{921C07E1-CCA1-496B-AD56-8FBA4E9D3EF0} = {1FBE1884-AD50-4461-8120-1FC5179B3666}
 		{205D46F6-139D-44B3-9977-1799BA75EB35} = {921C07E1-CCA1-496B-AD56-8FBA4E9D3EF0}
 		{81095657-588F-4EEB-99E2-F6D417A2DCA5} = {205D46F6-139D-44B3-9977-1799BA75EB35}
+		{D4571E58-726F-4150-9CF9-FB4A7C215968} = {CB8DB1C8-8F5C-474E-91A9-AF7BEAA0151F}
+		{0472D740-665B-4613-8FF7-8B088D26D8CA} = {CB8DB1C8-8F5C-474E-91A9-AF7BEAA0151F}
 	EndGlobalSection
 EndGlobal

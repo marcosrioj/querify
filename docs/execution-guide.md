@@ -56,7 +56,7 @@ Use this workflow when the request changes:
 
 Primary documents:
 
-- [`business/value_proposition.md`](business/value_proposition.md) when product ownership or cross-product flow is part of the change
+- [`business/value_proposition.md`](business/value_proposition.md) when BaseFaq module ownership or cross-module flow is part of the change
 - [`backend/architecture/solution-architecture.md`](backend/architecture/solution-architecture.md)
 - [`backend/architecture/dotnet-backend-overview.md`](backend/architecture/dotnet-backend-overview.md)
 - [`backend/architecture/solution-cqrs-write-rules.md`](backend/architecture/solution-cqrs-write-rules.md)
@@ -102,7 +102,7 @@ Use this workflow when the change crosses the Portal and APIs together, for exam
 
 Start in this order:
 
-1. [`business/value_proposition.md`](business/value_proposition.md) when the change depends on the Answer Hub, Support Copilot, Engagement Hub, or Trust Layer split.
+1. [`business/value_proposition.md`](business/value_proposition.md) when the change depends on the BaseFaq module split across QnA, Direct, Broadcast, or Trust.
 2. [`backend/architecture/solution-architecture.md`](backend/architecture/solution-architecture.md) to identify ownership boundaries.
 3. The owning backend guide in [`backend/architecture`](backend/architecture).
 4. The owning frontend guide in [`frontend/architecture`](frontend/architecture).
@@ -170,11 +170,11 @@ Use this workflow when the request is about:
 - personal-data classification
 
 There is no separate privacy documentation area in the current structure.
-Use the product and runtime docs to identify the real ownership boundary first, then update the most specific backend or frontend document touched by the change.
+Use the module and runtime docs to identify the real ownership boundary first, then update the most specific backend or frontend document touched by the change.
 
 Start with:
 
-- [`business/value_proposition.md`](business/value_proposition.md) for product boundaries and cross-product flow ownership
+- [`business/value_proposition.md`](business/value_proposition.md) for BaseFaq module boundaries and cross-module flow ownership
 - [`backend/architecture/solution-architecture.md`](backend/architecture/solution-architecture.md) for system and data ownership
 - [`backend/architecture/dotnet-backend-overview.md`](backend/architecture/dotnet-backend-overview.md) for concrete API and persistence surfaces
 - [`frontend/architecture/portal-app.md`](frontend/architecture/portal-app.md) when the Portal UI, profile settings, or consent-facing flows are affected

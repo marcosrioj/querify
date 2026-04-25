@@ -1,11 +1,11 @@
 using BaseFaq.Common.EntityFramework.Core.Abstractions;
 using BaseFaq.Common.EntityFramework.Core.Entities;
-using BaseFaq.Direct.Common.Persistence.DirectDb.Enums;
+using BaseFaq.Models.Direct.Enums;
 
 namespace BaseFaq.Direct.Common.Persistence.DirectDb.Entities;
 
 /// <summary>
-/// Represents one message inside a Support Copilot conversation.
+/// Represents one message inside a Direct conversation.
 /// </summary>
 public class ConversationMessage : BaseEntity, IMustHaveTenant
 {
@@ -22,7 +22,7 @@ public class ConversationMessage : BaseEntity, IMustHaveTenant
     public Conversation Conversation { get; set; } = null!;
 
     /// <summary>
-    /// Author role used to separate user input, copilot output, agent replies, and system entries.
+    /// Author role used to separate user input, automated Direct output, agent replies, and system entries.
     /// </summary>
     public required MessageActorKind ActorKind { get; set; }
 

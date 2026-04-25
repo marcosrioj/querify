@@ -32,7 +32,7 @@ public class DirectDbContext : BaseDbContext<DirectDbContext>
 
     protected override IEnumerable<string> ConfigurationNamespaces =>
     [
-        "BaseFaq.Direct.Common.Persistence.Direct.Configurations"
+        "BaseFaq.Direct.Common.Persistence.DirectDb.Configurations"
     ];
 
     protected override AppEnum SessionApp => AppEnum.Direct;
