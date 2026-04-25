@@ -11,6 +11,10 @@ The root [`../README.md`](../README.md) remains the short bootstrap summary. Eve
 - [`execution-guide.md`](execution-guide.md): repository work-routing guide for cross-cutting work types and the owning backend and frontend documents.
 - [`behavior-change-playbook.md`](behavior-change-playbook.md): end-to-end workflow for adding, updating, deleting, or consolidating product behavior across model, persistence, APIs, seed, tests, Portal UI, and translations.
 
+### Business
+
+- [`business/value_proposition.md`](business/value_proposition.md): product split, value proposition, and cross-product flow model for Answer Hub, Support Copilot, Engagement Hub, and Trust Layer.
+
 ### Backend
 
 #### Architecture
@@ -53,10 +57,11 @@ The root [`../README.md`](../README.md) remains the short bootstrap summary. Eve
 
 1. [`../README.md`](../README.md) for the shortest path to a working local environment.
 2. [`execution-guide.md`](execution-guide.md) to choose the correct workstream and owning documentation boundary.
-3. [`behavior-change-playbook.md`](behavior-change-playbook.md) when the work changes behavior across more than one layer.
-4. [`backend/tools/local-development.md`](backend/tools/local-development.md) to bring up the local stack.
-5. The owning architecture document for the boundary you are changing.
-6. The matching testing guide before you merge.
+3. [`business/value_proposition.md`](business/value_proposition.md) when the work depends on product ownership or cross-product flows.
+4. [`behavior-change-playbook.md`](behavior-change-playbook.md) when the work changes behavior across more than one layer.
+5. [`backend/tools/local-development.md`](backend/tools/local-development.md) to bring up the local stack.
+6. The owning architecture document for the boundary you are changing.
+7. The matching testing guide before you merge.
 
 ## Documentation rules
 

@@ -56,6 +56,7 @@ Use this workflow when the request changes:
 
 Primary documents:
 
+- [`business/value_proposition.md`](business/value_proposition.md) when product ownership or cross-product flow is part of the change
 - [`backend/architecture/solution-architecture.md`](backend/architecture/solution-architecture.md)
 - [`backend/architecture/dotnet-backend-overview.md`](backend/architecture/dotnet-backend-overview.md)
 - [`backend/architecture/solution-cqrs-write-rules.md`](backend/architecture/solution-cqrs-write-rules.md)
@@ -101,11 +102,12 @@ Use this workflow when the change crosses the Portal and APIs together, for exam
 
 Start in this order:
 
-1. [`backend/architecture/solution-architecture.md`](backend/architecture/solution-architecture.md) to identify ownership boundaries.
-2. The owning backend guide in [`backend/architecture`](backend/architecture).
-3. The owning frontend guide in [`frontend/architecture`](frontend/architecture).
-4. The matching testing guides in [`backend/testing`](backend/testing) and [`frontend/testing`](frontend/testing).
-5. [`behavior-change-playbook.md`](behavior-change-playbook.md) when the change also alters model contracts, seed data, tests, or translations.
+1. [`business/value_proposition.md`](business/value_proposition.md) when the change depends on the Answer Hub, Support Copilot, Engagement Hub, or Trust Layer split.
+2. [`backend/architecture/solution-architecture.md`](backend/architecture/solution-architecture.md) to identify ownership boundaries.
+3. The owning backend guide in [`backend/architecture`](backend/architecture).
+4. The owning frontend guide in [`frontend/architecture`](frontend/architecture).
+5. The matching testing guides in [`backend/testing`](backend/testing) and [`frontend/testing`](frontend/testing).
+6. [`behavior-change-playbook.md`](behavior-change-playbook.md) when the change also alters model contracts, seed data, tests, or translations.
 
 ### 4. Code review workflow
 
@@ -172,6 +174,7 @@ Use the product and runtime docs to identify the real ownership boundary first, 
 
 Start with:
 
+- [`business/value_proposition.md`](business/value_proposition.md) for product boundaries and cross-product flow ownership
 - [`backend/architecture/solution-architecture.md`](backend/architecture/solution-architecture.md) for system and data ownership
 - [`backend/architecture/dotnet-backend-overview.md`](backend/architecture/dotnet-backend-overview.md) for concrete API and persistence surfaces
 - [`frontend/architecture/portal-app.md`](frontend/architecture/portal-app.md) when the Portal UI, profile settings, or consent-facing flows are affected

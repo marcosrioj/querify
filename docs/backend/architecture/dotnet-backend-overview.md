@@ -40,7 +40,7 @@ These projects contain ASP.NET Core startup, middleware, and DI registration:
 
 Each service area is split into feature projects.
 
-QnA is the product surface and remains split by feature project instead of monolithic business assemblies.
+Answer Hub currently uses the QnA project namespace and remains split by feature project instead of monolithic business assemblies. Support Copilot and Engagement Hub have persistence project shells, but no feature business modules yet.
 
 - QnA Portal:
   - `BaseFaq.QnA.Portal.Business.Space`
@@ -71,7 +71,9 @@ QnA is the product surface and remains split by feature project instead of monol
 
 - `BaseFaq.Common.EntityFramework.Core`: shared EF Core helpers and database infrastructure used across the solution
 - `BaseFaq.Common.EntityFramework.Tenant`: tenant database context, tenant resolution helpers, and shared tenant infrastructure
-- `BaseFaq.QnA.Common.Persistence.QnADb`: QnA database context and QnA-side persistence
+- `BaseFaq.QnA.Common.Persistence.QnADb`: Answer Hub database context and QnA-side persistence
+- `BaseFaq.SupportCopilot.Common.Persistence.SupportCopilotDb`: reserved Support Copilot persistence project; add entities, configuration, and DbContext only when the real product model exists
+- `BaseFaq.EngagementHub.Common.Persistence.EngagementHubDb`: reserved Engagement Hub persistence project; add entities, configuration, and DbContext only when the real product model exists
 - `BaseFaq.Common.Infrastructure.Core`: shared core abstractions and backend helper services
 - `BaseFaq.Common.Infrastructure.ApiErrorHandling`: API error handling conventions
 - `BaseFaq.Common.Infrastructure.MassTransit`: MassTransit registration and messaging conventions
@@ -142,9 +144,9 @@ That also means these responsibilities belong in `TenantDbContext` and not in te
 - tenant entitlements
 - platform recurring jobs
 
-### QnA databases
+### Answer Hub databases
 
-`QnADbContext` stores tenant product data for the QnA model:
+`QnADbContext` stores tenant product data for the Answer Hub model:
 
 - spaces
 - questions
@@ -154,6 +156,10 @@ That also means these responsibilities belong in `TenantDbContext` and not in te
 - workflow state for question moderation and answer publication or validation
 
 Each tenant can point to its own QnA database connection, which is why QnA migration and seed tooling must resolve tenant metadata first.
+
+### Product persistence shells
+
+`BaseFaq.SupportCopilot.Common.Persistence.SupportCopilotDb` and `BaseFaq.EngagementHub.Common.Persistence.EngagementHubDb` are present as persistence project boundaries for the product split described in [`../../business/value_proposition.md`](../../business/value_proposition.md). They should not receive placeholder entities. Create entities, configurations, DbContexts, migrations, and seed flows only when a concrete Support Copilot or Engagement Hub behavior is being modeled.
 
 ## Multitenancy model
 
@@ -165,7 +171,7 @@ Each tenant can point to its own QnA database connection, which is why QnA migra
 ### Public flows
 
 - QnA Public resolves the tenant from `X-Client-Key`.
-- Public handlers use tenant resolution before reading or writing tenant QnA data.
+- Public handlers use tenant resolution before reading or writing tenant Answer Hub data.
 - Tenant Public billing webhooks are anonymous ingress endpoints and do not rely on `X-Tenant-Id` or `X-Client-Key`.
 - Tenant identity for billing may be resolved later by the worker from provider metadata and normalized billing records.
 
@@ -195,7 +201,8 @@ For worker-specific configuration and feature guidance, see [`basefaq-tenant-wor
 ## Development conventions
 
 - Add new features to the correct bounded-context project rather than enlarging an unrelated one.
-- For QnA backend work, keep source files real inside the owning feature project instead of creating a monolithic or linked-source business project.
+- For Answer Hub/QnA backend work, keep source files real inside the owning feature project instead of creating a monolithic or linked-source business project.
+- Keep Support Copilot and Engagement Hub behavior in their own product projects once those feature modules exist; do not model their workflows in QnA entities as a shortcut.
 - Preserve the API-host composition pattern through `AddFeatures(...)`.
 - Keep controllers and services thin; push actual use-case behavior into handlers and domain-specific services.
 - Prefer lowercase kebab-case in route path segments when a controller exposes named actions beyond plain resource ids.

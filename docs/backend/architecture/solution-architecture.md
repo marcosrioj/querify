@@ -51,6 +51,8 @@ The repository follows a consistent naming model:
 
 - `BaseFaq.Tenant.*`
 - `BaseFaq.QnA.*`
+- `BaseFaq.SupportCopilot.*`
+- `BaseFaq.EngagementHub.*`
 
 Inside each area, business modules are further split by feature, for example:
 
@@ -66,7 +68,7 @@ Inside each area, business modules are further split by feature, for example:
 - `BaseFaq.Tenant.Public.Business.Billing`
 - `BaseFaq.Tenant.BackOffice.Business.Billing`
 
-This keeps controller, service, command, and query code grouped by domain capability instead of by technical layer alone. QnA follows a one-feature-per-project physical layout and is the primary product model for backend work.
+This keeps controller, service, command, and query code grouped by domain capability instead of by technical layer alone. Answer Hub currently uses the QnA namespace and follows a one-feature-per-project physical layout. Support Copilot and Engagement Hub persistence projects exist as product boundaries, but should only gain entities and runtime wiring when their concrete product model exists.
 
 ### 3. CQRS with MediatR is the standard application pattern
 
@@ -92,19 +94,21 @@ They should not contain read-after-write orchestration, persistence logic, or cr
 
 ### 5. Persistence is explicitly split by database responsibility
 
-BaseFAQ uses two important EF Core contexts:
+BaseFAQ currently uses two runtime EF Core contexts:
 
 | Context | Responsibility |
 |---|---|
 | `TenantDbContext` | global tenant metadata, users, tenant memberships, tenant-to-database mapping, and control-plane background-processing state |
-| `QnADbContext` | tenant-specific QnA product data such as spaces, questions, answers, source links, tag links, workflow state, and activity |
+| `QnADbContext` | tenant-specific Answer Hub product data such as spaces, questions, answers, source links, tag links, workflow state, and activity |
 
 The split matters operationally:
 
 - tenant metadata is centralized
 - control-plane operational workloads belong with tenant metadata
-- QnA data lives in tenant databases and is the primary product path
+- Answer Hub data lives in tenant databases and is the current product data path
 - migration and seed tooling must coordinate tenant metadata plus the active product store
+
+`BaseFaq.SupportCopilot.Common.Persistence.SupportCopilotDb` and `BaseFaq.EngagementHub.Common.Persistence.EngagementHubDb` are product persistence project boundaries. They should not receive placeholder entity models; create their DbContexts, entities, migrations, and seed flows only when the owning behavior is implemented there.
 
 ### 6. Multitenancy is part of the request model
 
@@ -183,5 +187,6 @@ The testing strategy is documented in [`../testing/integration-testing-strategy.
 - Add new business features under the appropriate bounded-context module instead of enlarging unrelated projects.
 - Keep write flows simple and aligned with the CQRS rules.
 - Treat `TenantDbContext` and `QnADbContext` as separate ownership boundaries.
+- Treat Support Copilot and Engagement Hub persistence projects as separate product boundaries once they contain real entity models.
 - Put public tenant ingress endpoints such as billing webhooks in `BaseFaq.Tenant.Public.Api`, not in authenticated portal hosts.
 - Update the specific docs in `docs/` when boundaries, startup steps, or operational assumptions change.

@@ -121,7 +121,7 @@ When the work belongs to `BaseFaq.Models.QnA`:
 - let paged or sorted query request DTOs inherit the shared pagination base used by the project pattern
 - declare request DTO properties explicitly on each write-side QnA request type
 
-## Rule 10: QnA persistence entities stay anemic
+## Rule 10: Product persistence entities stay anemic
 
 When the work belongs to `BaseFaq.QnA.Common.Persistence.QnADb/Entities`:
 
@@ -130,6 +130,8 @@ When the work belongs to `BaseFaq.QnA.Common.Persistence.QnADb/Entities`:
 - do not add convenience projection properties such as computed tag or source collections
 - do not use `[NotMapped]` computed properties to hide query shaping inside entities
 - keep relation creation, validation, status transitions, and DTO shaping inside commands, queries, and feature-local private methods
+
+When the work belongs to `BaseFaq.SupportCopilot.Common.Persistence.SupportCopilotDb` or `BaseFaq.EngagementHub.Common.Persistence.EngagementHubDb`, apply the same state-only rule, but only add entities when the concrete Support Copilot or Engagement Hub entity model exists. Do not create placeholder entities or move product workflows into QnA entities as a shortcut.
 
 ## HTTP mapping guidance
 
@@ -147,7 +149,7 @@ When the work belongs to `BaseFaq.QnA.Common.Persistence.QnADb/Entities`:
 - service write methods stay thin
 - tests were updated for the real dependencies
 - large handler logic was extracted where necessary
-- QnA persistence entities stayed state-only
+- product persistence entities stayed state-only
 
 ## Anti-patterns
 
@@ -162,4 +164,4 @@ When the work belongs to `BaseFaq.QnA.Common.Persistence.QnADb/Entities`:
 - using aggregate `*Dtos.cs` files in `BaseFaq.Models.QnA` instead of feature-scoped DTO folders and files
 - keeping generic QnA helper files instead of placing logic in command/query handlers
 - introducing a pseudo-entity DTO folder such as `BaseFaq.Models.QnA/Dtos/Link`
-- adding behavior or computed projection properties to QnA persistence entities
+- adding behavior or computed projection properties to product persistence entities

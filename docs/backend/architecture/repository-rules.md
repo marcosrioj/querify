@@ -18,6 +18,8 @@ If this file conflicts with those sources, those sources win.
 Apply these rules to:
 
 - `BaseFaq.QnA.*`
+- `BaseFaq.SupportCopilot.*`
+- `BaseFaq.EngagementHub.*`
 - `BaseFaq.Tenant.*`
 - `BaseFaq.Common.*`
 - `BaseFaq.Models.Common`
@@ -55,10 +57,10 @@ Apply these rules to:
 - If dependencies change, update unit test doubles and integration fixtures.
 - Keep integration-first behavior with real DB and real migrations where defined.
 
-### 5. QnA physical module boundary
+### 5. Product physical module boundary
 
-- QnA backend modules must keep the established feature-scoped physical decomposition style already used in the solution.
-- Each QnA entity or surface concern gets its own business project, for example `BaseFaq.QnA.Portal.Business.Question` or `BaseFaq.QnA.Public.Business.Vote`.
+- Answer Hub backend modules currently use the QnA namespace and must keep the established feature-scoped physical decomposition style already used in the solution.
+- Each Answer Hub/QnA entity or surface concern gets its own business project, for example `BaseFaq.QnA.Portal.Business.Question` or `BaseFaq.QnA.Public.Business.Vote`.
 - Do not introduce monolithic aggregation projects such as `BaseFaq.QnA.Portal.Business` or `BaseFaq.QnA.Public.Business`.
 - Keep QnA source files physically inside the owning feature project directory.
 - Do not use linked source items such as `<Compile Include="..\\..." Link="...">` for QnA business feature projects.
@@ -70,6 +72,8 @@ Apply these rules to:
 - QnA persistence entities in `QnADb/Entities` must stay anemic.
 - Do not add command-like methods, factory methods, behavior methods, or convenience projection properties to QnA persistence entities.
 - Keep QnA state transitions, relation management, validation, and projection shaping inside commands, queries, and feature-local private methods.
+- Support Copilot and Engagement Hub behavior must live in their own feature and persistence projects once those models exist.
+- Do not create placeholder entities under `BaseFaq.SupportCopilot.Common.Persistence.SupportCopilotDb` or `BaseFaq.EngagementHub.Common.Persistence.EngagementHubDb`; add entities only when the concrete product behavior is being modeled.
 
 ### 6. QnA model contract boundary
 
@@ -153,7 +157,7 @@ Never solve a big command by moving behavior to unrelated folders.
 - write endpoints and services do not return read DTOs
 - `Handle(...)` is bounded and oversized logic was decomposed using the slicing rules
 - every extracted class has a single responsibility and clear name
-- behavior stays in the owning command or query flow or feature-local collaborators, not controllers, generic helpers, or QnA persistence entities
+- behavior stays in the owning command or query flow or feature-local collaborators, not controllers, generic helpers, or product persistence entities
 - action structure follows the standard slicing pattern for commands and queries
 - new behavior was added only to the correct folder ownership boundary
 - tests were updated for dependency and contract changes

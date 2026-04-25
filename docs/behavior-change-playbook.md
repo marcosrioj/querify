@@ -4,22 +4,25 @@
 
 Use this playbook when a change adds, updates, deletes, or consolidates product behavior across the BaseFAQ solution.
 
-This is the workflow for changes that start in the QnA model but eventually affect persistence, contracts, commands, queries, services, APIs, seed data, tests, Portal screens, and translations.
+This is the workflow for changes that start in a product model but eventually affect persistence, contracts, commands, queries, services, APIs, seed data, tests, Portal screens, and translations.
 
 The goal is not to add layers. The goal is to keep the model simple, preserve supported behavior, and remove duplicated concepts before they spread through the rest of the system.
+
+The current product split is documented in [`business/value_proposition.md`](business/value_proposition.md). Treat `QnADbContext` as the Answer Hub persistence boundary. Support Copilot and Engagement Hub behavior belongs in their own persistence projects when real owning entities exist there; do not park that behavior in Answer Hub because the QnA model already has a channel, source, or activity enum value that sounds close.
 
 ## Authority And Precedence
 
 Start with the existing documentation before making code changes:
 
 1. Work routing: [`execution-guide.md`](execution-guide.md).
-2. Backend architecture: [`backend/architecture/solution-architecture.md`](backend/architecture/solution-architecture.md) and [`backend/architecture/dotnet-backend-overview.md`](backend/architecture/dotnet-backend-overview.md).
-3. CQRS and repository rules: [`backend/architecture/solution-cqrs-write-rules.md`](backend/architecture/solution-cqrs-write-rules.md) and [`backend/architecture/repository-rules.md`](backend/architecture/repository-rules.md).
-4. Backend tests: [`backend/testing/integration-testing-strategy.md`](backend/testing/integration-testing-strategy.md).
-5. Seed and migration tools: [`backend/tools/seed-tool.md`](backend/tools/seed-tool.md) and [`backend/tools/migration-tool.md`](backend/tools/migration-tool.md).
-6. Portal architecture and UX: [`frontend/architecture/portal-app.md`](frontend/architecture/portal-app.md) and [`frontend/architecture/portal-app-ui-prompt-guidance.md`](frontend/architecture/portal-app-ui-prompt-guidance.md).
-7. Portal localization: [`frontend/architecture/portal-localization.md`](frontend/architecture/portal-localization.md).
-8. Frontend validation: [`frontend/testing/validation-guide.md`](frontend/testing/validation-guide.md).
+2. Product boundaries and value model: [`business/value_proposition.md`](business/value_proposition.md).
+3. Backend architecture: [`backend/architecture/solution-architecture.md`](backend/architecture/solution-architecture.md) and [`backend/architecture/dotnet-backend-overview.md`](backend/architecture/dotnet-backend-overview.md).
+4. CQRS and repository rules: [`backend/architecture/solution-cqrs-write-rules.md`](backend/architecture/solution-cqrs-write-rules.md) and [`backend/architecture/repository-rules.md`](backend/architecture/repository-rules.md).
+5. Backend tests: [`backend/testing/integration-testing-strategy.md`](backend/testing/integration-testing-strategy.md).
+6. Seed and migration tools: [`backend/tools/seed-tool.md`](backend/tools/seed-tool.md) and [`backend/tools/migration-tool.md`](backend/tools/migration-tool.md).
+7. Portal architecture and UX: [`frontend/architecture/portal-app.md`](frontend/architecture/portal-app.md) and [`frontend/architecture/portal-app-ui-prompt-guidance.md`](frontend/architecture/portal-app-ui-prompt-guidance.md).
+8. Portal localization: [`frontend/architecture/portal-localization.md`](frontend/architecture/portal-localization.md).
+9. Frontend validation: [`frontend/testing/validation-guide.md`](frontend/testing/validation-guide.md).
 
 If those documents do not describe the behavior you are changing, inspect the closest existing implementation and follow its current pattern. If the new behavior establishes a reusable pattern, update the most specific owning document and link it from [`docs/README.md`](README.md) when needed.
 
@@ -29,7 +32,10 @@ If those documents do not describe the behavior you are changing, inspect the cl
 - Do not remove `required` modifiers or add default values to hide object construction errors unless the user explicitly asks for that compatibility tradeoff.
 - Do not add a new enum, property, DTO field, or UI concept if an existing one already represents the same business dimension.
 - Do not keep deprecated behavior alive by retaining duplicate fields. Preserve behavior by mapping it to the canonical concept.
-- QnA persistence entities stay anemic. They contain state only, not behavior methods, factory methods, transition methods, or computed projection helpers.
+- Product persistence entities stay anemic. They contain state only, not behavior methods, factory methods, transition methods, or computed projection helpers.
+- `QnADbContext` is the Answer Hub store. Do not add Support Copilot conversation, handoff, ticket-resolution, or agent-assist workflow state to QnA entities.
+- Do not add Engagement Hub social, public-comment, mention, community-thread, or campaign engagement workflow state to QnA entities.
+- For `BaseFaq.SupportCopilot.Common.Persistence.SupportCopilotDb` and `BaseFaq.EngagementHub.Common.Persistence.EngagementHubDb`, write or update entities only when the owning entity already exists or the current stage explicitly creates the real entity model. Do not add placeholder entities or empty folders only to satisfy a split.
 - Command handlers return simple values only. Complex DTOs belong to queries.
 - Portal UI copy is frontend-owned. Backend DTOs should not return translated labels.
 
@@ -58,12 +64,13 @@ Before adding anything, search for the current behavior and adjacent concepts:
 
 ```bash
 rg -n "ConceptName|RelatedEnum|RelatedProperty" dotnet apps docs
-rg --files dotnet/BaseFaq.Models.QnA dotnet/BaseFaq.QnA.Common.Persistence.QnADb apps/portal/src/domains
+rg --files dotnet/BaseFaq.Models.QnA dotnet/BaseFaq.QnA.Common.Persistence.QnADb dotnet/BaseFaq.SupportCopilot.Common.Persistence.SupportCopilotDb dotnet/BaseFaq.EngagementHub.Common.Persistence.EngagementHubDb apps/portal/src/domains
 ```
 
 Capture these facts before editing:
 
 - which entity owns the persisted state
+- which product boundary owns the behavior: Answer Hub, Support Copilot, Engagement Hub, Trust Layer, or tenant control plane
 - which enum expresses lifecycle, channel, audience, mode, role, actor, or event history
 - which DTOs expose the state
 - which handlers mutate or query it
@@ -71,6 +78,7 @@ Capture these facts before editing:
 - which tests assert the old behavior
 - which Portal screens and translations expose it
 - which documentation already describes the pattern
+- whether Support Copilot or Engagement Hub already has the owning entity; if it does not, record a staged follow-up instead of storing that behavior in Answer Hub
 
 If two names describe the same business dimension, consolidate them before propagating the model.
 
@@ -78,11 +86,12 @@ If two names describe the same business dimension, consolidate them before propa
 
 Classify each field or enum into one business dimension. There should be one canonical representation per dimension.
 
-Use these dimensions for QnA behavior:
+Use these dimensions for Answer Hub behavior:
 
 | Dimension | Canonical location | Meaning |
 |---|---|---|
-| Product surface | `QnAProductSurface` | The product module primarily using the QnA asset: publish, resolve, listen, collaborate, or govern. |
+| Product boundary | owning persistence project | Which product owns the behavior: Answer Hub, Support Copilot, Engagement Hub, or Trust Layer. `QnADbContext` owns Answer Hub assets only. |
+| QnA asset surface | `QnAProductSurface` | How the reusable Answer Hub asset is primarily consumed or exposed. This is not ownership for Support Copilot or Engagement Hub workflows. |
 | Operating mode | `SpaceKind` | How participation works: controlled publication, moderated collaboration, or public validation. |
 | Lifecycle state | `QuestionStatus`, `AnswerStatus` | Where a question or answer is in workflow. |
 | Audience exposure | `VisibilityScope` | Who can see the item. This is not status and not moderation. |
@@ -102,13 +111,17 @@ Common consolidation rules:
 - An activity kind should describe an event that happened, not a field that can be edited directly.
 - A visibility value should not imply moderation, approval, or indexing beyond audience exposure.
 - Capability booleans are acceptable only when they represent an independent switch, such as whether a space accepts questions or answers.
+- Channel, source, or activity values may record where an Answer Hub asset came from, but they must not become the persistence home for Support Copilot or Engagement Hub workflows.
+- If Support Copilot or Engagement Hub behavior has no owning entity yet, stage the entity model before adding product-specific fields to QnA as a shortcut.
 
 ## Step 3: Update Entities And Enums
 
 Relevant locations:
 
-- QnA contracts: `dotnet/BaseFaq.Models.QnA/Enums`
-- QnA persistence entities: `dotnet/BaseFaq.QnA.Common.Persistence.QnADb/Entities`
+- Answer Hub contracts: `dotnet/BaseFaq.Models.QnA/Enums`
+- Answer Hub persistence entities: `dotnet/BaseFaq.QnA.Common.Persistence.QnADb/Entities`
+- Support Copilot persistence entities, when they exist: `dotnet/BaseFaq.SupportCopilot.Common.Persistence.SupportCopilotDb/Entities`
+- Engagement Hub persistence entities, when they exist: `dotnet/BaseFaq.EngagementHub.Common.Persistence.EngagementHubDb/Entities`
 - Tenant contracts and entities when the behavior belongs to tenant control plane: `dotnet/BaseFaq.Models.Tenant`, `dotnet/BaseFaq.Common.EntityFramework.Tenant`
 
 Process:
@@ -120,6 +133,7 @@ Process:
 5. Keep entities state-only.
 6. Keep `required` semantics explicit. Do not set silent defaults to make construction easier.
 7. Update XML summaries when they clarify the model boundary.
+8. Do not create placeholder Support Copilot or Engagement Hub entities. If the owning entity is missing and the stage does not explicitly introduce it, leave a handoff note instead.
 
 When deleting a property or enum, immediately search for all compile-time and string references:
 
@@ -133,9 +147,11 @@ Historical EF migration files may still mention old schema. Do not edit or regen
 
 Relevant locations:
 
-- Configurations: `dotnet/BaseFaq.QnA.Common.Persistence.QnADb/Configurations`
-- DbContext: `dotnet/BaseFaq.QnA.Common.Persistence.QnADb/QnADbContext.cs`
-- Read mappings: `dotnet/BaseFaq.QnA.Common.Persistence.QnADb/Projections/QnAReadModelMappings.cs`
+- Answer Hub configurations: `dotnet/BaseFaq.QnA.Common.Persistence.QnADb/Configurations`
+- Answer Hub DbContext: `dotnet/BaseFaq.QnA.Common.Persistence.QnADb/QnADbContext.cs`
+- Answer Hub read mappings: `dotnet/BaseFaq.QnA.Common.Persistence.QnADb/Projections/QnAReadModelMappings.cs`
+- Support Copilot configurations, DbContext, and mappings only when those files exist under `dotnet/BaseFaq.SupportCopilot.Common.Persistence.SupportCopilotDb`
+- Engagement Hub configurations, DbContext, and mappings only when those files exist under `dotnet/BaseFaq.EngagementHub.Common.Persistence.EngagementHubDb`
 - Tenant persistence equivalents when the behavior is control-plane-owned.
 
 Process:
@@ -154,7 +170,7 @@ Do not run migration commands here. Leave a manual migration note that lists the
 - remove `Spaces.RequiresQuestionReview`
 - remove `Questions.Kind`
 
-The operational migration tool is documented in [`backend/tools/migration-tool.md`](backend/tools/migration-tool.md), but migration execution is a separate manual step.
+The operational migration tool is documented in [`backend/tools/migration-tool.md`](backend/tools/migration-tool.md), but migration execution is a separate manual step. Do not create or run Support Copilot or Engagement Hub migrations until their real entity model and DbContext exist.
 
 ## Step 5: Update DTO Contracts
 
@@ -174,6 +190,7 @@ Process:
 4. Remove obsolete DTO fields instead of keeping compatibility aliases that duplicate model meaning.
 5. Keep QnA write-side request DTOs flat and explicit.
 6. Keep link DTOs under the owning feature folder, such as `Dtos/Question`, `Dtos/Answer`, or `Dtos/Space`.
+7. Do not add Support Copilot or Engagement Hub DTO fields to QnA contracts unless the field describes a reusable Answer Hub asset.
 
 Do not create catch-all DTO files.
 
@@ -191,6 +208,8 @@ Relevant QnA locations:
 - Public API host: `dotnet/BaseFaq.QnA.Public.Api`
 - Portal business modules: `dotnet/BaseFaq.QnA.Portal.Business.<Feature>`
 - Public business modules: `dotnet/BaseFaq.QnA.Public.Business.<Feature>`
+
+Support Copilot and Engagement Hub business modules are not present yet. When they are introduced, use the same feature-scoped module pattern and keep their behavior out of QnA handlers unless the use case is explicitly reading or writing an Answer Hub asset.
 
 For each affected feature, update or remove:
 
@@ -240,15 +259,17 @@ Process:
 4. Keep sample data deterministic where tests or demos depend on it.
 5. Ensure seed scenarios cover the product modes that matter for the value proposition.
 
-For the QnA operating model, seed examples should eventually demonstrate:
+For the Answer Hub operating model, seed examples should eventually demonstrate:
 
-- Publish: controlled answer hubs and canonical questions.
-- Resolve: questions with approved answers and resolution-ready metadata.
-- Listen: captured signals with source links or activity events.
-- Collaborate: moderated contribution and accepted-answer behavior.
-- Govern: auditable decision or validation records where applicable.
+- controlled answer hubs and canonical questions
+- questions with approved answers and resolution-ready metadata
+- source links that explain origin, evidence, citation, and canonical references
+- moderated contribution and accepted-answer behavior when it belongs to Answer Hub
+- auditable validation records where they are part of answer trust
 
 The seed tool may apply EF migrations when it is executed, as described in [`backend/tools/seed-tool.md`](backend/tools/seed-tool.md). Do not use that runtime behavior as a substitute for the manual migration step during model work.
+
+Support Copilot and Engagement Hub seed data belongs in their own seed services only after their persistence entities and DbContexts exist.
 
 ## Step 8: Update Tests
 
@@ -367,6 +388,13 @@ dotnet build dotnet/BaseFaq.QnA.Common.Persistence.QnADb/BaseFaq.QnA.Common.Pers
 dotnet build dotnet/BaseFaq.Models.QnA/BaseFaq.Models.QnA.csproj -v minimal --no-restore
 ```
 
+When the stage touches product-specific persistence projects that already contain source files:
+
+```bash
+dotnet build dotnet/BaseFaq.SupportCopilot.Common.Persistence.SupportCopilotDb/BaseFaq.SupportCopilot.Common.Persistence.SupportCopilotDb.csproj -v minimal --no-restore
+dotnet build dotnet/BaseFaq.EngagementHub.Common.Persistence.EngagementHubDb/BaseFaq.EngagementHub.Common.Persistence.EngagementHubDb.csproj -v minimal --no-restore
+```
+
 Backend feature stage:
 
 ```bash
@@ -397,6 +425,7 @@ Do not run migration commands as part of this validation unless migration work i
 End each staged behavior change with a short handoff:
 
 - canonical concepts added, changed, or deleted
+- product boundary chosen for the behavior
 - old duplicate concepts removed
 - projects that build
 - projects that are intentionally not fixed yet
@@ -404,6 +433,6 @@ End each staged behavior change with a short handoff:
 - tests not run and why
 - manual migration operations required
 - frontend/i18n work remaining
+- missing Support Copilot or Engagement Hub entity models that intentionally remain a follow-up
 
 This makes staged work safe even when the full solution is expected to fail between stages.
-
