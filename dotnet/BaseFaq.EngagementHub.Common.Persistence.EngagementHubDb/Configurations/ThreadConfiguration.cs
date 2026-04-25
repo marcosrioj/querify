@@ -15,14 +15,10 @@ public class ThreadConfiguration : BaseConfiguration<ThreadEntity>
 
         builder.Property(thread => thread.TenantId).IsRequired();
         builder.Property(thread => thread.Title).HasMaxLength(ThreadEntity.MaxTitleLength);
-        builder.Property(thread => thread.CapturedAtUtc).IsRequired();
 
         builder.HasMany(thread => thread.Items)
             .WithOne(item => item.Thread)
             .HasForeignKey(item => item.ThreadId)
             .OnDelete(DeleteBehavior.Cascade);
-
-        builder.HasIndex(thread => new { thread.TenantId, thread.CapturedAtUtc })
-            .HasDatabaseName("IX_Thread_TenantId_CapturedAtUtc");
     }
 }

@@ -126,17 +126,18 @@ Relevant locations:
 Process:
 
 1. Add, update, or delete enum values only after Step 2 confirms there is no duplicate concept.
-2. Update the owning entity with the smallest persisted shape that can execute the behavior.
-3. Before adding a persisted property, check whether `BaseEntity` or `AuditableEntity` already provides the needed state: `Id`, `CreatedDate`, `CreatedBy`, `UpdatedDate`, `UpdatedBy`, `DeletedDate`, `DeletedBy`, or `IsDeleted`.
-4. Do not duplicate or shadow base entity state with product-specific fields such as `CreatedAtUtc`, `UpdatedAtUtc`, `DeletedAtUtc`, `ExternalCreatedBy`, or separate soft-delete flags unless the new field represents a distinct domain timestamp or actor.
-5. Remove properties that duplicate the new canonical field.
-6. Preserve existing behavior semantics by moving callers to the canonical field.
-7. Keep entities state-only.
-8. Keep `required` semantics explicit. Do not set silent defaults to make construction easier.
-9. Update XML summaries when they clarify the model boundary.
-10. Do not create placeholder Support Copilot or Engagement Hub entities. If a needed owning entity is still missing and the stage does not explicitly introduce it, leave a handoff note instead.
-11. When a new or changed entity implements `IMustHaveTenant` and references another tenant-owned entity, update the owning `DbContext` to enforce tenant integrity before save. Follow the existing `EnsureTenantIntegrity` pattern: validate added and modified relationship rows, look up referenced tenants with `IgnoreQueryFilters()`, and throw on cross-tenant links or missing references.
-12. If a tenant-owned entity has no tenant-owned relationships, record that no additional `EnsureTenantIntegrity` rule is needed instead of adding empty validation code.
+2. Add an XML summary to every enum option in the enum file. The summary must explain the behavior or decision represented by the option, not just restate the option name.
+3. Update the owning entity with the smallest persisted shape that can execute the behavior.
+4. Add an XML summary to every persisted property and navigation in the entity file. The summary must explain how the behavior uses the property, including when a timestamp or actor differs from `BaseEntity`/`AuditableEntity` state.
+5. Before adding a persisted property, check whether `BaseEntity` or `AuditableEntity` already provides the needed state: `Id`, `CreatedDate`, `CreatedBy`, `UpdatedDate`, `UpdatedBy`, `DeletedDate`, `DeletedBy`, or `IsDeleted`.
+6. Do not duplicate or shadow base entity state with product-specific fields such as `CreatedAtUtc`, `UpdatedAtUtc`, `DeletedAtUtc`, `ExternalCreatedBy`, or separate soft-delete flags unless the new field represents a distinct domain timestamp or actor.
+7. Remove properties that duplicate the new canonical field.
+8. Preserve existing behavior semantics by moving callers to the canonical field.
+9. Keep entities state-only.
+10. Keep `required` semantics explicit. Do not set silent defaults to make construction easier.
+11. Do not create placeholder Support Copilot or Engagement Hub entities. If a needed owning entity is still missing and the stage does not explicitly introduce it, leave a handoff note instead.
+12. When a new or changed entity implements `IMustHaveTenant` and references another tenant-owned entity, update the owning `DbContext` to enforce tenant integrity before save. Follow the existing `EnsureTenantIntegrity` pattern: validate added and modified relationship rows, look up referenced tenants with `IgnoreQueryFilters()`, and throw on cross-tenant links or missing references.
+13. If a tenant-owned entity has no tenant-owned relationships, record that no additional `EnsureTenantIntegrity` rule is needed instead of adding empty validation code.
 
 When deleting a property or enum, immediately search for all compile-time and string references:
 

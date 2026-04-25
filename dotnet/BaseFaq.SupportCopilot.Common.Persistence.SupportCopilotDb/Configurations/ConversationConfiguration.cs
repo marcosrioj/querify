@@ -15,14 +15,10 @@ public class ConversationConfiguration : BaseConfiguration<Conversation>
 
         builder.Property(conversation => conversation.TenantId).IsRequired();
         builder.Property(conversation => conversation.Subject).HasMaxLength(Conversation.MaxSubjectLength);
-        builder.Property(conversation => conversation.StartedAtUtc).IsRequired();
 
         builder.HasMany(conversation => conversation.Messages)
             .WithOne(message => message.Conversation)
             .HasForeignKey(message => message.ConversationId)
             .OnDelete(DeleteBehavior.Cascade);
-
-        builder.HasIndex(conversation => new { conversation.TenantId, conversation.StartedAtUtc })
-            .HasDatabaseName("IX_Conversation_TenantId_StartedAtUtc");
     }
 }
