@@ -16,9 +16,9 @@ public enum ChannelKind
     Community = 2,
 
     /// <summary>
-    /// Thread came from a direct or private messaging surface.
+    /// Thread came from a shared messaging surface such as a group, channel, or community space.
     /// </summary>
-    Messaging = 3,
+    SharedMessaging = 3,
 
     /// <summary>
     /// Thread source is known by Broadcast but not represented by a more specific channel family yet.

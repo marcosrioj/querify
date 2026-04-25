@@ -22,7 +22,7 @@ public class Item : BaseEntity, IMustHaveTenant
     public Thread Thread { get; set; } = null!;
 
     /// <summary>
-    /// Captured item shape used to distinguish posts, comments, messages, and fallback public interaction entries.
+    /// Captured item shape used to distinguish posts, comments, shared messages, and fallback public interaction entries.
     /// </summary>
     public required ItemKind Kind { get; set; }
 

@@ -16,9 +16,9 @@ public enum ItemKind
     Comment = 2,
 
     /// <summary>
-    /// Direct or private message captured as part of a Broadcast thread.
+    /// Message captured from a shared Broadcast thread where responses can be seen by many people.
     /// </summary>
-    Message = 3,
+    SharedMessage = 3,
 
     /// <summary>
     /// Captured item is known by Broadcast but not represented by a more specific item kind yet.

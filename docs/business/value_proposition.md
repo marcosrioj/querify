@@ -26,6 +26,16 @@ Uma categoria mais forte do que "plataforma de perguntas": o produto não apenas
 
 O BaseFaq é composto por cinco módulos atuais: Tenant, QnA, Direct, Broadcast e Trust.
 
+### Critério De Responsabilidade
+
+A fronteira entre Direct e Broadcast não é o nome do canal. É a visibilidade da comunicação.
+
+**Direct é sempre responsável quando a comunicação é direta para uma pessoa, conta, cliente, usuário ou membro específico.** Isso inclui chat, DM, WhatsApp, portal logado, email ou qualquer atendimento privado, mesmo quando o canal tem alto volume.
+
+**Broadcast é sempre responsável quando a comunicação é para muitas pessoas ou quando a resposta pode ser vista por muitas pessoas.** Isso inclui comentários públicos, posts, vídeos, lives, comunidades, fóruns, grupos, canais compartilhados e discussões abertas ou semiabertas.
+
+Quando um mesmo conector permite os dois modos, como WhatsApp, Instagram, Slack ou Teams, o módulo é escolhido pelo modo da interação: conversa privada fica com Direct; resposta compartilhada ou visível por muitos fica com Broadcast.
+
 ### 1. Tenant
 
 O módulo de controle da plataforma.
@@ -67,7 +77,7 @@ Ele transforma perguntas recorrentes, respostas validadas e aprendizados de supo
 
 A camada de resolução para conversas diretas.
 
-Ele ajuda clientes, usuários, agentes e times internos a encontrar a resposta certa, concluir tarefas e escalar para uma pessoa quando o caso exige julgamento humano.
+Ele ajuda clientes, usuários, agentes e times internos a encontrar a resposta certa, concluir tarefas e escalar para uma pessoa quando o caso exige julgamento humano. Sempre que a resposta é direcionada a uma pessoa específica, a responsabilidade é do Direct.
 
 **Valor principal:** velocidade de resolução. Cada conversa individual deixa de ser apenas atendimento e passa a alimentar conhecimento para futuras interações.
 
@@ -78,15 +88,16 @@ Ele ajuda clientes, usuários, agentes e times internos a encontrar a resposta c
 - Fluxos de onboarding e ativação em SaaS, edtech, fintech, healthtech e marketplaces.
 - Portais de cliente para suporte procedural, segunda via, planos, assinaturas e solicitações.
 - Apps mobile com ajuda dentro da jornada do usuário.
-- WhatsApp Business e outros canais de mensageria usados para atendimento operacional.
+- WhatsApp Business, DMs e outros canais de mensageria usados para atendimento operacional individual.
+- Continuação privada de uma interação pública quando a empresa precisa tratar dados pessoais, exceções ou negociação com uma pessoa específica.
 - Suporte interno para vendas, sucesso do cliente, implantação, suporte técnico e parceiros.
 - Handoff para humano ou ticket quando o caso exige decisão, exceção ou negociação.
 
 ### 4. Broadcast
 
-A camada de captura e resposta em canais públicos e comunitários.
+A camada de captura e resposta em canais públicos, comunitários e um-para-muitos.
 
-Ele organiza comentários, menções, dúvidas sociais e discussões de comunidade, identifica padrões recorrentes e transforma interações dispersas em sinais acionáveis.
+Ele organiza comentários, menções, dúvidas sociais e discussões de comunidade, identifica padrões recorrentes e transforma interações dispersas em sinais acionáveis. Sempre que a resposta pode ser vista por muitas pessoas, a responsabilidade é do Broadcast.
 
 **Valor principal:** presença multicanal com aprendizado. A empresa responde onde as pessoas perguntam e usa essas interações para melhorar produto, comunicação e suporte.
 
@@ -94,8 +105,8 @@ Ele organiza comentários, menções, dúvidas sociais e discussões de comunida
 
 - Instagram e Facebook para comentários, menções, dúvidas em posts, anúncios e respostas públicas.
 - YouTube para comentários em vídeos, tutoriais, lançamentos, reviews e lives.
-- WhatsApp Business para organizar dúvidas recorrentes e motivos de contato em canais de alto volume.
-- Comunidades próprias em Discord, GitHub Discussions, Discourse, Slack, Teams e fóruns privados.
+- WhatsApp Channels, grupos, comunidades e outros espaços compartilhados onde a resposta pode ser vista por muitas pessoas.
+- Comunidades próprias em Discord, GitHub Discussions, Discourse, Slack, Teams e fóruns privados ou públicos.
 - Lançamentos, campanhas e eventos que geram objeções, dúvidas e comentários em massa.
 - Marcas DTC, e-commerce e creators com alto volume de perguntas repetidas.
 - SaaS e produtos B2B que precisam entender objeções, pedidos de melhoria e dúvidas de adoção.
@@ -136,14 +147,16 @@ Esse é o ciclo que cria valor acumulado: **pergunta -> resolução -> conhecime
 
 Os módulos do BaseFaq funcionam como partes de um mesmo sistema. Tenant controla identidade, acesso, cobrança e roteamento de dados. QnA, Direct, Broadcast e Trust executam os fluxos de produto e alimentam o ciclo de conhecimento.
 
-| Origem da interação | Módulo que captura | Módulo que resolve | Módulo que transforma em ativo | Módulo que valida | Resultado de negócio |
-| --- | --- | --- | --- | --- | --- |
-| Pergunta em site, app ou portal | QnA | QnA | QnA | Trust, quando necessário | Autoatendimento consistente e menos demanda repetida |
-| Conversa 1:1 de suporte | Direct | Direct | QnA | Trust, quando necessário | Resolução mais rápida e melhoria contínua da base |
-| Comentário em rede social | Broadcast | Broadcast ou Direct | QnA | Trust, quando necessário | Resposta pública consistente e captura de sinais de mercado |
-| Pergunta em comunidade | Broadcast | Comunidade, Direct ou time interno | QnA | Trust | Conhecimento comunitário convertido em resposta confiável |
-| Pedido de melhoria ou objeção recorrente | Broadcast | Produto, marketing ou suporte | QnA | Trust | Priorização melhor e comunicação mais clara |
-| Decisão coletiva ou proposta | Trust | Trust | QnA | Trust | Decisão auditável, explicável e reutilizável |
+A tabela abaixo mostra responsabilidade de módulo, não responsabilidade de times humanos. Produto, marketing, suporte, comunidade e liderança podem participar da decisão operacional, mas não são módulos do BaseFaq.
+
+| Origem da interação | Módulo de entrada e entrega no canal | Conhecimento reutilizável | Validação e governança | Resultado de negócio |
+| --- | --- | --- | --- | --- |
+| Pergunta em site, app ou portal | QnA | QnA | Trust, quando necessário | Autoatendimento consistente e menos demanda repetida |
+| Conversa 1:1 de suporte | Direct | QnA | Trust, quando necessário | Resolução mais rápida e melhoria contínua da base |
+| Comentário em rede social | Broadcast | QnA | Trust, quando necessário | Resposta pública consistente e captura de sinais de mercado |
+| Pergunta em comunidade | Broadcast | QnA | Trust | Conhecimento comunitário convertido em resposta confiável |
+| Pedido de melhoria ou objeção recorrente em espaço compartilhado | Broadcast | QnA | Trust | Priorização melhor e comunicação mais clara |
+| Decisão coletiva ou proposta | Trust | QnA | Trust | Decisão auditável, explicável e reutilizável |
 
 ## Fluxos De Negócio Possíveis
 
@@ -151,173 +164,48 @@ Os fluxos abaixo mostram como o sistema cria valor em diferentes momentos da jor
 
 ### Resolução E Conhecimento
 
-#### 1. Pergunta Conhecida -> Resposta Imediata
-
-> **Situação:** Um cliente pergunta algo que já foi aprovado antes.
->
-> **Fluxo:** QnA -> canal próprio, Direct ou Broadcast -> resposta entregue -> dados de uso retornam para aprendizado.
->
-> **Valor:** reduz tickets, aumenta consistência e evita que times diferentes respondam a mesma dúvida de formas diferentes.
-
-#### 2. Pergunta Nova -> Ativo Reutilizável
-
-> **Situação:** Uma pergunta aparece sem resposta aprovada.
->
-> **Fluxo:** Direct ou Broadcast captura a lacuna -> time revisa -> QnA publica a resposta -> todos os canais passam a usar a mesma resposta.
->
-> **Valor:** cada falha de cobertura vira conhecimento permanente.
-
-#### 3. Atendimento 1:1 -> Conhecimento Para Todos
-
-> **Situação:** Um agente ou o Direct resolve uma dúvida individual.
->
-> **Fluxo:** Direct resolve ou escala -> resposta final é revisada -> QnA armazena -> futuros usuários recebem a mesma resposta sem abrir novo contato.
->
-> **Valor:** o custo de uma conversa individual gera retorno em escala.
+| Processo | Situação | Fluxo | Valor |
+| --- | --- | --- | --- |
+| 1. Pergunta Conhecida -> Resposta Imediata | Um cliente pergunta algo que já foi aprovado antes. | QnA -> canal próprio, Direct ou Broadcast -> resposta entregue -> dados de uso retornam para aprendizado. | reduz tickets, aumenta consistência e evita que times diferentes respondam a mesma dúvida de formas diferentes. |
+| 2. Pergunta Nova -> Ativo Reutilizável | Uma pergunta aparece sem resposta aprovada. | Direct captura a lacuna quando a pergunta é privada; Broadcast captura quando a pergunta ou resposta é visível por muitas pessoas -> time revisa -> QnA publica a resposta -> todos os canais passam a usar a mesma resposta. | cada falha de cobertura vira conhecimento permanente. |
+| 3. Atendimento 1:1 -> Conhecimento Para Todos | Um agente ou o Direct resolve uma dúvida individual. | Direct resolve ou escala -> resposta final é revisada -> QnA armazena -> futuros usuários recebem a mesma resposta sem abrir novo contato. | o custo de uma conversa individual gera retorno em escala. |
 
 ### Social, Comunidade E Conversão
 
-#### 4. Comentário Público -> Resposta Segura
-
-> **Situação:** Alguém faz uma pergunta ou objeção em comentário público.
->
-> **Fluxo:** Broadcast captura -> QnA sugere resposta aprovada -> Broadcast responde no canal -> variações da pergunta alimentam a base.
->
-> **Valor:** aumenta velocidade de resposta sem sacrificar controle de marca.
-
-#### 5. Rede Social -> Insight De Mercado
-
-> **Situação:** Vários comentários repetem a mesma dúvida, medo ou objeção.
->
-> **Fluxo:** Broadcast agrupa sinais -> QnA cria resposta ou narrativa -> Direct usa em conversas -> marketing ajusta campanha ou mensagem.
->
-> **Valor:** transforma ruído social em aprendizado comercial.
-
-#### 6. Comunidade -> Resposta Verificada
-
-> **Situação:** Usuários respondem perguntas uns dos outros.
->
-> **Fluxo:** Broadcast captura a melhor resposta -> Trust valida por moderação, voto ou revisão -> QnA publica como resposta confiável.
->
-> **Valor:** aproveita conhecimento da comunidade sem abrir mão de confiança.
-
-#### 7. Página De Produto -> Conversão
-
-> **Situação:** Um comprador tem uma dúvida antes de comprar.
->
-> **Fluxo:** QnA responde na página -> se a dúvida for nova, Direct ou Broadcast captura -> QnA publica para futuros compradores.
->
-> **Valor:** remove objeções no momento de decisão e reduz abandono.
-
-#### 8. Onboarding -> Ativação
-
-> **Situação:** Um usuário não sabe como concluir uma configuração ou primeiro uso.
->
-> **Fluxo:** Direct guia a pessoa -> respostas aprovadas explicam passos -> perguntas repetidas viram melhorias no QnA e nas telas do produto.
->
-> **Valor:** acelera ativação e reduz fricção inicial.
+| Processo | Situação | Fluxo | Valor |
+| --- | --- | --- | --- |
+| 4. Comentário Público -> Resposta Segura | Alguém faz uma pergunta ou objeção em comentário público. | Broadcast captura -> QnA sugere resposta aprovada -> Broadcast responde no canal -> variações da pergunta alimentam a base. | aumenta velocidade de resposta sem sacrificar controle de marca. |
+| 5. Rede Social -> Insight De Mercado | Vários comentários repetem a mesma dúvida, medo ou objeção. | Broadcast agrupa sinais -> QnA cria resposta ou narrativa -> Direct usa em conversas -> marketing ajusta campanha ou mensagem. | transforma ruído social em aprendizado comercial. |
+| 6. Comunidade -> Resposta Verificada | Usuários respondem perguntas uns dos outros. | Broadcast captura a melhor resposta -> Trust valida por moderação, voto ou revisão -> QnA publica como resposta confiável. | aproveita conhecimento da comunidade sem abrir mão de confiança. |
+| 7. Página De Produto -> Conversão | Um comprador tem uma dúvida antes de comprar. | QnA responde na página -> se a dúvida for nova em conversa privada, Direct captura; se aparecer em comentário, comunidade ou canal compartilhado, Broadcast captura -> QnA publica para futuros compradores. | remove objeções no momento de decisão e reduz abandono. |
+| 8. Onboarding -> Ativação | Um usuário não sabe como concluir uma configuração ou primeiro uso. | Direct guia a pessoa -> respostas aprovadas explicam passos -> perguntas repetidas viram melhorias no QnA e nas telas do produto. | acelera ativação e reduz fricção inicial. |
 
 ### Suporte Operacional
 
-#### 9. Baixa Confiança -> Escalação Humana
-
-> **Situação:** O sistema não tem segurança para responder.
->
-> **Fluxo:** Direct escala para humano -> humano resolve -> resposta é revisada -> QnA passa a cobrir o caso.
->
-> **Valor:** cria um caminho controlado para melhorar cobertura sem respostas improvisadas.
-
-#### 10. Ticket Recorrente -> Redução De Volume
-
-> **Situação:** O mesmo motivo de contato aparece muitas vezes.
->
-> **Fluxo:** Direct e Broadcast detectam repetição -> QnA cria resposta padrão -> canais próprios e sociais passam a responder antes do ticket.
->
-> **Valor:** ataca a causa do volume, não apenas a fila.
+| Processo | Situação | Fluxo | Valor |
+| --- | --- | --- | --- |
+| 9. Baixa Confiança -> Escalação Humana | O sistema não tem segurança para responder. | Direct escala para humano -> humano resolve -> resposta é revisada -> QnA passa a cobrir o caso. | cria um caminho controlado para melhorar cobertura sem respostas improvisadas. |
+| 10. Ticket Recorrente -> Redução De Volume | O mesmo motivo de contato aparece muitas vezes. | Direct e Broadcast detectam repetição -> QnA cria resposta padrão -> canais próprios e sociais passam a responder antes do ticket. | ataca a causa do volume, não apenas a fila. |
 
 ### Mercado, Produto E Decisão
 
-#### 11. Campanha -> Mapa De Objeções
-
-> **Situação:** Uma campanha gera comentários, dúvidas e resistência.
->
-> **Fluxo:** Broadcast captura reações -> QnA estrutura respostas -> Direct usa em conversas privadas -> marketing ajusta criativos, landing pages e argumentos.
->
-> **Valor:** melhora a performance de campanhas a partir das perguntas reais do mercado.
-
-#### 12. Feedback De Produto -> Decisão De Roadmap
-
-> **Situação:** Usuários pedem melhorias, reportam confusão ou questionam limites do produto.
->
-> **Fluxo:** Broadcast identifica temas -> Trust prioriza com votos, conselhos ou regras de decisão -> QnA publica status, racional e próximos passos.
->
-> **Valor:** transforma demanda dispersa em decisão transparente.
-
-#### 13. Proposta Comunitária -> Decisão Auditável
-
-> **Situação:** Uma comunidade, conselho ou grupo de clientes precisa decidir algo.
->
-> **Fluxo:** Trust registra proposta -> participantes validam ou votam -> resultado é publicado no QnA -> Direct e Broadcast respondem perguntas sobre a decisão.
->
-> **Valor:** aumenta confiança porque a decisão não fica escondida em conversas soltas.
-
-#### 14. Mudança De Política -> Atualização Multicanal
-
-> **Situação:** Uma regra de preço, entrega, segurança, privacidade ou uso muda.
->
-> **Fluxo:** QnA atualiza a resposta aprovada -> todos os canais recebem a nova versão -> Trust guarda histórico de aprovação quando necessário.
->
-> **Valor:** reduz risco de respostas antigas continuarem circulando.
+| Processo | Situação | Fluxo | Valor |
+| --- | --- | --- | --- |
+| 11. Campanha -> Mapa De Objeções | Uma campanha gera comentários, dúvidas e resistência. | Broadcast captura reações -> QnA estrutura respostas -> Direct usa em conversas privadas -> marketing ajusta criativos, landing pages e argumentos. | melhora a performance de campanhas a partir das perguntas reais do mercado. |
+| 12. Feedback De Produto -> Decisão De Roadmap | Usuários pedem melhorias, reportam confusão ou questionam limites do produto. | Broadcast identifica temas -> Trust prioriza com votos, conselhos ou regras de decisão -> QnA publica status, racional e próximos passos. | transforma demanda dispersa em decisão transparente. |
+| 13. Proposta Comunitária -> Decisão Auditável | Uma comunidade, conselho ou grupo de clientes precisa decidir algo. | Trust registra proposta -> participantes validam ou votam -> resultado é publicado no QnA -> Direct responde dúvidas privadas e Broadcast responde perguntas visíveis pela comunidade. | aumenta confiança porque a decisão não fica escondida em conversas soltas. |
+| 14. Mudança De Política -> Atualização Multicanal | Uma regra de preço, entrega, segurança, privacidade ou uso muda. | QnA atualiza a resposta aprovada -> todos os canais recebem a nova versão -> Trust guarda histórico de aprovação quando necessário. | reduz risco de respostas antigas continuarem circulando. |
 
 ### Escala Organizacional
 
-#### 15. Time Interno -> Resposta Externa Consistente
-
-> **Situação:** Vendas, suporte, sucesso do cliente e parceiros precisam responder a mesma pergunta.
->
-> **Fluxo:** QnA centraliza a resposta -> Direct ajuda o time interno -> Broadcast garante consistência em comentários e comunidades.
->
-> **Valor:** alinha a empresa inteira em torno da mesma verdade operacional.
-
-#### 16. Parceiros E Revendas -> Conhecimento Controlado
-
-> **Situação:** Parceiros precisam de respostas aprovadas, mas nem sempre devem ver tudo.
->
-> **Fluxo:** QnA entrega respostas por audiência -> Direct atende parceiros em portal ou canal privado -> lacunas retornam para revisão.
->
-> **Valor:** escala suporte de canal sem perder controle sobre permissão e mensagem.
-
-#### 17. Documentação Técnica -> Resolução De Desenvolvedores
-
-> **Situação:** Desenvolvedores fazem perguntas sobre APIs, SDKs, erros ou limites.
->
-> **Fluxo:** Perguntas entram por docs, comunidade ou suporte -> QnA publica resposta versionada -> Direct orienta casos individuais -> Broadcast captura discussões técnicas recorrentes.
->
-> **Valor:** reduz fricção para adoção técnica e transforma diagnóstico técnico em conhecimento.
-
-#### 18. Expansão Internacional -> Aprendizado Local
-
-> **Situação:** Um novo mercado faz perguntas diferentes ou usa outras palavras.
->
-> **Fluxo:** Broadcast e Direct capturam variações locais -> QnA adapta respostas por idioma, país e contexto -> canais locais passam a responder com consistência.
->
-> **Valor:** evita copiar respostas de um mercado para outro sem aprender com a demanda real.
-
-#### 19. Risco, Compliance E Auditoria -> Prova De Decisão
-
-> **Situação:** Um tema exige controle, revisão ou evidências.
->
-> **Fluxo:** QnA guarda resposta aprovada -> Trust registra validação, regra e histórico -> Direct e Broadcast usam apenas a versão permitida.
->
-> **Valor:** reduz risco operacional em temas sensíveis.
-
-#### 20. Liderança -> Inteligência Operacional
-
-> **Situação:** Diretoria quer entender o que clientes, usuários e comunidades estão perguntando.
->
-> **Fluxo:** Broadcast, Direct e QnA consolidam sinais -> temas recorrentes viram relatórios -> decisões geram novas respostas, campanhas ou propostas.
->
-> **Valor:** transforma interações do dia a dia em insumo para estratégia.
+| Processo | Situação | Fluxo | Valor |
+| --- | --- | --- | --- |
+| 15. Time Interno -> Resposta Externa Consistente | Vendas, suporte, sucesso do cliente e parceiros precisam responder a mesma pergunta. | QnA centraliza a resposta -> Direct ajuda o time interno -> Broadcast garante consistência em comentários e comunidades. | alinha a empresa inteira em torno da mesma verdade operacional. |
+| 16. Parceiros E Revendas -> Conhecimento Controlado | Parceiros precisam de respostas aprovadas, mas nem sempre devem ver tudo. | QnA entrega respostas por audiência -> Direct atende parceiros em portal ou canal privado -> lacunas retornam para revisão. | escala suporte de canal sem perder controle sobre permissão e mensagem. |
+| 17. Documentação Técnica -> Resolução De Desenvolvedores | Desenvolvedores fazem perguntas sobre APIs, SDKs, erros ou limites. | Perguntas entram por docs, comunidade ou suporte -> QnA publica resposta versionada -> Direct orienta casos individuais -> Broadcast captura discussões técnicas recorrentes. | reduz fricção para adoção técnica e transforma diagnóstico técnico em conhecimento. |
+| 18. Expansão Internacional -> Aprendizado Local | Um novo mercado faz perguntas diferentes ou usa outras palavras. | Broadcast e Direct capturam variações locais -> QnA adapta respostas por idioma, país e contexto -> canais locais passam a responder com consistência. | evita copiar respostas de um mercado para outro sem aprender com a demanda real. |
+| 19. Risco, Compliance E Auditoria -> Prova De Decisão | Um tema exige controle, revisão ou evidências. | QnA guarda resposta aprovada -> Trust registra validação, regra e histórico -> Direct e Broadcast usam apenas a versão permitida. | reduz risco operacional em temas sensíveis. |
+| 20. Liderança -> Inteligência Operacional | Diretoria quer entender o que clientes, usuários e comunidades estão perguntando. | Broadcast, Direct e QnA consolidam sinais -> temas recorrentes viram relatórios -> decisões geram novas respostas, campanhas ou propostas. | transforma interações do dia a dia em insumo para estratégia. |
 
 ## Padrões De Mercado Validados Pela Pesquisa
 
