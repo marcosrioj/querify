@@ -16,8 +16,4 @@
         <ProjectReference Include="..\BaseFaq.Models.Broadcast\BaseFaq.Models.Broadcast.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
-        <Folder Include="Migrations\"/>
-    </ItemGroup>
-
 </Project>

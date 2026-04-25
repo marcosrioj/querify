@@ -16,8 +16,4 @@
         <ProjectReference Include="..\BaseFaq.Models.Direct\BaseFaq.Models.Direct.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
-        <Folder Include="Migrations\"/>
-    </ItemGroup>
-
 </Project>
