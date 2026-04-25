@@ -31,7 +31,7 @@ public class TenantConfiguration : BaseConfiguration<Entities.Tenant>
             .IsRequired();
 
         builder.Property(p => p.Module)
-            .HasColumnName("App")
+            .HasColumnName("Module")
             .IsRequired();
 
         builder.Property(p => p.IsActive)

@@ -111,7 +111,7 @@ namespace BaseFaq.Common.EntityFramework.Tenant.Migrations
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     ConnectionString = table.Column<string>(type: "character varying(1024)", maxLength: 1024, nullable: false),
-                    App = table.Column<int>(type: "integer", nullable: false),
+                    Module = table.Column<int>(type: "integer", nullable: false),
                     IsCurrent = table.Column<bool>(type: "boolean", nullable: false),
                     CreatedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     CreatedBy = table.Column<string>(type: "text", nullable: true),
@@ -159,7 +159,7 @@ namespace BaseFaq.Common.EntityFramework.Tenant.Migrations
                     Slug = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: false),
                     Name = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: false),
                     Edition = table.Column<int>(type: "integer", nullable: false),
-                    App = table.Column<int>(type: "integer", nullable: false),
+                    Module = table.Column<int>(type: "integer", nullable: false),
                     ConnectionString = table.Column<string>(type: "character varying(1024)", maxLength: 1024, nullable: false),
                     ClientKey = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: true),
                     IsActive = table.Column<bool>(type: "boolean", nullable: false),
@@ -521,14 +521,14 @@ namespace BaseFaq.Common.EntityFramework.Tenant.Migrations
                 columns: new[] { "Status", "NextAttemptDateUtc", "LockedUntilDateUtc" });
 
             migrationBuilder.CreateIndex(
-                name: "IX_TenantConnection_App_IsCurrent",
-                table: "TenantConnections",
-                columns: new[] { "App", "IsCurrent" });
-
-            migrationBuilder.CreateIndex(
                 name: "IX_TenantConnection_IsDeleted",
                 table: "TenantConnections",
                 column: "IsDeleted");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_TenantConnection_Module_IsCurrent",
+                table: "TenantConnections",
+                columns: new[] { "Module", "IsCurrent" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_TenantEntitlementSnapshot_IsActive_IsInGracePeriod_EffectiveUntilUtc",

@@ -18,13 +18,13 @@ public class TenantConnectionConfiguration : BaseConfiguration<TenantConnection>
             .HasMaxLength(TenantConnection.MaxConnectionStringLength);
 
         builder.Property(p => p.Module)
-            .HasColumnName("App")
+            .HasColumnName("Module")
             .IsRequired();
 
         builder.Property(p => p.IsCurrent)
             .IsRequired();
 
         builder.HasIndex(p => new { p.Module, p.IsCurrent })
-            .HasDatabaseName("IX_TenantConnection_App_IsCurrent");
+            .HasDatabaseName("IX_TenantConnection_Module_IsCurrent");
     }
 }

@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BaseFaq.Common.EntityFramework.Tenant.Migrations
 {
     [DbContext(typeof(TenantDbContext))]
-    [Migration("20260416223217_InitialMigration")]
+    [Migration("20260425224547_InitialMigration")]
     partial class InitialMigration
     {
         /// <inheritdoc />
@@ -21,7 +21,7 @@ namespace BaseFaq.Common.EntityFramework.Tenant.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .UseCollation("Latin1_General_100_CI_AS_SC_UTF8")
-                .HasAnnotation("ProductVersion", "10.0.6")
+                .HasAnnotation("ProductVersion", "10.0.7")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -584,9 +584,6 @@ namespace BaseFaq.Common.EntityFramework.Tenant.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<int>("App")
-                        .HasColumnType("integer");
-
                     b.Property<string>("ClientKey")
                         .HasMaxLength(128)
                         .HasColumnType("character varying(128)");
@@ -616,6 +613,10 @@ namespace BaseFaq.Common.EntityFramework.Tenant.Migrations
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
+
+                    b.Property<int>("Module")
+                        .HasColumnType("integer")
+                        .HasColumnName("Module");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -655,9 +656,6 @@ namespace BaseFaq.Common.EntityFramework.Tenant.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<int>("App")
-                        .HasColumnType("integer");
-
                     b.Property<string>("ConnectionString")
                         .IsRequired()
                         .HasMaxLength(1024)
@@ -681,6 +679,10 @@ namespace BaseFaq.Common.EntityFramework.Tenant.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 
+                    b.Property<int>("Module")
+                        .HasColumnType("integer")
+                        .HasColumnName("Module");
+
                     b.Property<string>("UpdatedBy")
                         .HasColumnType("text");
 
@@ -692,8 +694,8 @@ namespace BaseFaq.Common.EntityFramework.Tenant.Migrations
                     b.HasIndex("IsDeleted")
                         .HasDatabaseName("IX_TenantConnection_IsDeleted");
 
-                    b.HasIndex("App", "IsCurrent")
-                        .HasDatabaseName("IX_TenantConnection_App_IsCurrent");
+                    b.HasIndex("Module", "IsCurrent")
+                        .HasDatabaseName("IX_TenantConnection_Module_IsCurrent");
 
                     b.ToTable("TenantConnections", (string)null);
                 });

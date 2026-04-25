@@ -3,7 +3,7 @@ namespace BaseFaq.Tools.Seed.Configuration;
 public sealed record SeedCounts(
     int UserCount,
     int TenantCount,
-    int TenantConnectionsPerApp,
+    int TenantConnectionsPerModule,
     int SpaceCount,
     int QuestionsPerSpace,
     int TagCount,
@@ -15,7 +15,7 @@ public sealed record SeedCounts(
     public static SeedCounts Default => new(
         UserCount: 1,
         TenantCount: 1,
-        TenantConnectionsPerApp: 1,
+        TenantConnectionsPerModule: 1,
         SpaceCount: 16,
         QuestionsPerSpace: 10,
         TagCount: 64,
