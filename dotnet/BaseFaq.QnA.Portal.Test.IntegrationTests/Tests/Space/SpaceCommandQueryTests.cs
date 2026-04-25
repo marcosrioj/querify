@@ -10,7 +10,7 @@ namespace BaseFaq.QnA.Portal.Test.IntegrationTests.Tests.Space;
 public class SpaceCommandQueryTests
 {
     [Fact]
-    public async Task CreateSpace_PersistsGovernanceAndExposure()
+    public async Task CreateSpace_PersistsOperatingModelAndExposure()
     {
         using var context = TestContext.Create();
         var createHandler =
@@ -25,7 +25,6 @@ public class SpaceCommandQueryTests
                 DefaultLanguage = "en-US",
                 Summary = "Support questions for portal users.",
                 Kind = SpaceKind.PublicValidation,
-                ProductSurface = QnAProductSurface.Govern,
                 Visibility = VisibilityScope.PublicIndexed,
                 SearchMarkupMode = SearchMarkupMode.Hybrid,
                 ProductScope = "Portal",
@@ -45,7 +44,6 @@ public class SpaceCommandQueryTests
         Assert.Equal(VisibilityScope.PublicIndexed, result.Visibility);
         Assert.Equal(SearchMarkupMode.Hybrid, result.SearchMarkupMode);
         Assert.Equal(SpaceKind.PublicValidation, result.Kind);
-        Assert.Equal(QnAProductSurface.Govern, result.ProductSurface);
         Assert.True(result.AcceptsQuestions);
         Assert.NotNull(result.LastValidatedAtUtc);
     }

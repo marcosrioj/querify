@@ -32,44 +32,24 @@ public enum SourceKind
     Repository = 5,
 
     /// <summary>
-    /// A support ticket or resolved case.
-    /// </summary>
-    Ticket = 6,
-
-    /// <summary>
-    /// A community thread or discussion tag.
-    /// </summary>
-    CommunityThread = 7,
-
-    /// <summary>
-    /// A social-media comment or reply chain.
-    /// </summary>
-    SocialComment = 8,
-
-    /// <summary>
-    /// A chat or messaging transcript.
-    /// </summary>
-    ChatTranscript = 9,
-
-    /// <summary>
     /// A product note such as release note, change log, or feature note.
     /// </summary>
-    ProductNote = 10,
+    ProductNote = 6,
 
     /// <summary>
     /// An internal-only note or operational record.
     /// </summary>
-    InternalNote = 11,
+    InternalNote = 7,
 
     /// <summary>
     /// A proposal, decision record, or governance discussion artifact.
     /// </summary>
-    GovernanceRecord = 12,
+    GovernanceRecord = 8,
 
     /// <summary>
     /// An audit record, signed payload, or external verification anchor.
     /// </summary>
-    AuditRecord = 13,
+    AuditRecord = 9,
 
     /// <summary>
     /// Fallback for uncommon or still-uncategorized source artifacts.

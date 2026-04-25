@@ -1,5 +1,4 @@
 import {
-  QnAProductSurface,
   SearchMarkupMode,
   SpaceKind,
   VisibilityScope,
@@ -15,7 +14,6 @@ export type SpaceDto = {
   summary?: string | null;
   defaultLanguage: string;
   kind: SpaceKind;
-  productSurface: QnAProductSurface;
   visibility: VisibilityScope;
   searchMarkupMode: SearchMarkupMode;
   productScope?: string | null;
@@ -38,7 +36,6 @@ export type SpaceCreateRequestDto = {
   defaultLanguage: string;
   summary?: string | null;
   kind: SpaceKind;
-  productSurface: QnAProductSurface;
   visibility: VisibilityScope;
   searchMarkupMode: SearchMarkupMode;
   productScope?: string | null;

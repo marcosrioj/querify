@@ -50,7 +50,6 @@ public sealed class SpacesUpdateSpaceCommandHandler(
         entity.AcceptsQuestions = request.AcceptsQuestions;
         entity.AcceptsAnswers = request.AcceptsAnswers;
         entity.Kind = request.Kind;
-        entity.ProductSurface = request.ProductSurface;
         entity.Visibility = request.Visibility;
         entity.SearchMarkupMode = request.SearchMarkupMode;
         entity.PublishedAtUtc =

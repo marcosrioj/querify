@@ -1,6 +1,5 @@
 import { z } from 'zod';
 import {
-  QnAProductSurface,
   SearchMarkupMode,
   SpaceKind,
   VisibilityScope,
@@ -19,7 +18,6 @@ export const spaceFormSchema = z.object({
     .max(16, 'Keep the language code within the backend limit.'),
   summary: z.string().max(1000, 'Keep the summary concise.').optional(),
   kind: numericEnumSchema(SpaceKind),
-  productSurface: numericEnumSchema(QnAProductSurface),
   visibility: numericEnumSchema(VisibilityScope),
   searchMarkupMode: numericEnumSchema(SearchMarkupMode),
   productScope: z.string().max(200, 'Keep the product scope concise.').optional(),

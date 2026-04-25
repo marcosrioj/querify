@@ -4,11 +4,9 @@ import { useForm } from 'react-hook-form';
 import { X } from 'lucide-react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
-  qnaProductSurfaceLabels,
   searchMarkupModeLabels,
   spaceKindLabels,
   visibilityScopeLabels,
-  QnAProductSurface,
   SearchMarkupMode,
   SpaceKind,
   VisibilityScope,
@@ -60,7 +58,6 @@ export function SpaceFormPage({ mode }: { mode: 'create' | 'edit' }) {
       defaultLanguage,
       summary: '',
       kind: SpaceKind.ControlledPublication,
-      productSurface: QnAProductSurface.Publish,
       visibility: VisibilityScope.Internal,
       searchMarkupMode: SearchMarkupMode.CuratedList,
       productScope: '',
@@ -82,7 +79,6 @@ export function SpaceFormPage({ mode }: { mode: 'create' | 'edit' }) {
       defaultLanguage: spaceQuery.data.defaultLanguage,
       summary: spaceQuery.data.summary ?? '',
       kind: spaceQuery.data.kind,
-      productSurface: spaceQuery.data.productSurface,
       visibility: spaceQuery.data.visibility,
       searchMarkupMode: spaceQuery.data.searchMarkupMode,
       productScope: spaceQuery.data.productScope ?? '',
@@ -111,7 +107,7 @@ export function SpaceFormPage({ mode }: { mode: 'create' | 'edit' }) {
       header={
         <PageHeader
           title={mode === 'create' ? 'New space' : 'Edit space'}
-          description="Define the QnA surface, operating mode, and exposure before threads start accumulating."
+          description="Define the QnA operating mode and exposure before threads start accumulating."
           descriptionMode="hint"
           backTo={backTo}
         />
@@ -127,7 +123,7 @@ export function SpaceFormPage({ mode }: { mode: 'create' | 'edit' }) {
                   <span>{translateText('Quick notes')}</span>
                   <ContextHint
                     content={translateText(
-                      'Spaces define the product surface, operating mode, exposure, and how questions and answers behave operationally.',
+                      'Spaces define the operating mode, exposure, and how questions and answers behave operationally.',
                     )}
                     label={translateText('Quick notes details')}
                   />
@@ -138,7 +134,6 @@ export function SpaceFormPage({ mode }: { mode: 'create' | 'edit' }) {
               <KeyValueList
                 items={[
                   { label: 'Mode', value: 'Controlled, moderated, or public validation' },
-                  { label: 'Surface', value: 'Publish, resolve, listen, collaborate, or govern' },
                   { label: 'Visibility', value: 'Internal to public indexed' },
                 ]}
               />
@@ -181,7 +176,6 @@ export function SpaceFormPage({ mode }: { mode: 'create' | 'edit' }) {
                     productScope: values.productScope || undefined,
                     journeyScope: values.journeyScope || undefined,
                     kind: Number(values.kind) as SpaceKind,
-                    productSurface: Number(values.productSurface) as QnAProductSurface,
                     visibility: Number(values.visibility) as VisibilityScope,
                     searchMarkupMode:
                       Number(values.searchMarkupMode) as SearchMarkupMode,
@@ -199,7 +193,7 @@ export function SpaceFormPage({ mode }: { mode: 'create' | 'edit' }) {
               >
                 <FormSectionHeading
                   title="Identity"
-                  description="Name the space clearly so operators know exactly what knowledge surface they are configuring."
+                  description="Name the space clearly so operators know exactly what knowledge area they are configuring."
                 />
                 <div className="grid gap-4 md:grid-cols-2">
                   <TextField
@@ -242,16 +236,6 @@ export function SpaceFormPage({ mode }: { mode: 'create' | 'edit' }) {
                     }))}
                   />
                 </div>
-                <SelectField
-                  control={form.control}
-                  name="productSurface"
-                  label="Product surface"
-                  description="Choose the product module that primarily owns this QnA space."
-                  options={Object.entries(qnaProductSurfaceLabels).map(([value, label]) => ({
-                    value,
-                    label,
-                  }))}
-                />
                 <TextareaField
                   control={form.control}
                   name="summary"

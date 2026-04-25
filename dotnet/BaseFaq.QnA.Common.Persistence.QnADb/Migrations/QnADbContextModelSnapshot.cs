@@ -683,9 +683,6 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
-                    b.Property<int>("ProductSurface")
-                        .HasColumnType("integer");
-
                     b.Property<DateTime?>("PublishedAtUtc")
                         .HasColumnType("timestamp with time zone");
 

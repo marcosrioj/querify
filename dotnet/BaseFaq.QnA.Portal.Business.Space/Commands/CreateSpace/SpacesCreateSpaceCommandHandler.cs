@@ -26,7 +26,6 @@ public sealed class SpacesCreateSpaceCommandHandler(
             Key = request.Request.Key,
             DefaultLanguage = request.Request.DefaultLanguage,
             Kind = request.Request.Kind,
-            ProductSurface = request.Request.ProductSurface,
             Visibility = request.Request.Visibility,
             SearchMarkupMode = request.Request.SearchMarkupMode,
             AcceptsQuestions = request.Request.AcceptsQuestions,
@@ -56,7 +55,6 @@ public sealed class SpacesCreateSpaceCommandHandler(
         entity.AcceptsQuestions = request.AcceptsQuestions;
         entity.AcceptsAnswers = request.AcceptsAnswers;
         entity.Kind = request.Kind;
-        entity.ProductSurface = request.ProductSurface;
         entity.Visibility = request.Visibility;
         entity.SearchMarkupMode = request.SearchMarkupMode;
         entity.PublishedAtUtc =

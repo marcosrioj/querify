@@ -41,7 +41,6 @@ public sealed class SpacesGetSpaceQueryHandler(
             Summary = entity.Summary,
             DefaultLanguage = entity.DefaultLanguage,
             Kind = entity.Kind,
-            ProductSurface = entity.ProductSurface,
             Visibility = entity.Visibility,
             SearchMarkupMode = entity.SearchMarkupMode,
             ProductScope = entity.ProductScope,

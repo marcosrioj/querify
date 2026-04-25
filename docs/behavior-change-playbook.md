@@ -35,7 +35,7 @@ If those documents do not describe the behavior you are changing, inspect the cl
 - Product persistence entities stay anemic. They contain state only, not behavior methods, factory methods, transition methods, or computed projection helpers.
 - `QnADbContext` is the Answer Hub store. Do not add Support Copilot conversation, handoff, ticket-resolution, or agent-assist workflow state to QnA entities.
 - Do not add Engagement Hub social, public-comment, mention, community-thread, or campaign engagement workflow state to QnA entities.
-- For `BaseFaq.SupportCopilot.Common.Persistence.SupportCopilotDb` and `BaseFaq.EngagementHub.Common.Persistence.EngagementHubDb`, write or update entities only when the owning entity already exists or the current stage explicitly creates the real entity model. Do not add placeholder entities or empty folders only to satisfy a split.
+- `BaseFaq.SupportCopilot.Common.Persistence.SupportCopilotDb` and `BaseFaq.EngagementHub.Common.Persistence.EngagementHubDb` contain the initial product entity models. Write or update those entities only for concrete product behavior; do not add placeholder entities or empty folders only to satisfy a split.
 - Command handlers return simple values only. Complex DTOs belong to queries.
 - Portal UI copy is frontend-owned. Backend DTOs should not return translated labels.
 
@@ -91,7 +91,6 @@ Use these dimensions for Answer Hub behavior:
 | Dimension | Canonical location | Meaning |
 |---|---|---|
 | Product boundary | owning persistence project | Which product owns the behavior: Answer Hub, Support Copilot, Engagement Hub, or Trust Layer. `QnADbContext` owns Answer Hub assets only. |
-| QnA asset surface | `QnAProductSurface` | How the reusable Answer Hub asset is primarily consumed or exposed. This is not ownership for Support Copilot or Engagement Hub workflows. |
 | Operating mode | `SpaceKind` | How participation works: controlled publication, moderated collaboration, or public validation. |
 | Lifecycle state | `QuestionStatus`, `AnswerStatus` | Where a question or answer is in workflow. |
 | Audience exposure | `VisibilityScope` | Who can see the item. This is not status and not moderation. |
@@ -128,12 +127,16 @@ Process:
 
 1. Add, update, or delete enum values only after Step 2 confirms there is no duplicate concept.
 2. Update the owning entity with the smallest persisted shape that can execute the behavior.
-3. Remove properties that duplicate the new canonical field.
-4. Preserve existing behavior semantics by moving callers to the canonical field.
-5. Keep entities state-only.
-6. Keep `required` semantics explicit. Do not set silent defaults to make construction easier.
-7. Update XML summaries when they clarify the model boundary.
-8. Do not create placeholder Support Copilot or Engagement Hub entities. If the owning entity is missing and the stage does not explicitly introduce it, leave a handoff note instead.
+3. Before adding a persisted property, check whether `BaseEntity` or `AuditableEntity` already provides the needed state: `Id`, `CreatedDate`, `CreatedBy`, `UpdatedDate`, `UpdatedBy`, `DeletedDate`, `DeletedBy`, or `IsDeleted`.
+4. Do not duplicate or shadow base entity state with product-specific fields such as `CreatedAtUtc`, `UpdatedAtUtc`, `DeletedAtUtc`, `ExternalCreatedBy`, or separate soft-delete flags unless the new field represents a distinct domain timestamp or actor.
+5. Remove properties that duplicate the new canonical field.
+6. Preserve existing behavior semantics by moving callers to the canonical field.
+7. Keep entities state-only.
+8. Keep `required` semantics explicit. Do not set silent defaults to make construction easier.
+9. Update XML summaries when they clarify the model boundary.
+10. Do not create placeholder Support Copilot or Engagement Hub entities. If a needed owning entity is still missing and the stage does not explicitly introduce it, leave a handoff note instead.
+11. When a new or changed entity implements `IMustHaveTenant` and references another tenant-owned entity, update the owning `DbContext` to enforce tenant integrity before save. Follow the existing `EnsureTenantIntegrity` pattern: validate added and modified relationship rows, look up referenced tenants with `IgnoreQueryFilters()`, and throw on cross-tenant links or missing references.
+12. If a tenant-owned entity has no tenant-owned relationships, record that no additional `EnsureTenantIntegrity` rule is needed instead of adding empty validation code.
 
 When deleting a property or enum, immediately search for all compile-time and string references:
 
@@ -161,11 +164,12 @@ Process:
 3. Update indexes only when the behavior needs lookup, uniqueness, or query filtering.
 4. Update relationships only when ownership changed.
 5. Update projection mappings so DTOs and query handlers receive the canonical shape.
-6. Run a targeted build of the persistence project when the stage is meant to compile.
+6. Update `EnsureTenantIntegrity` when a new or changed relationship can connect two tenant-owned records.
+7. Run a targeted build of the persistence project when the stage is meant to compile.
 
 Do not run migration commands here. Leave a manual migration note that lists the intended schema operations, for example:
 
-- add `Spaces.ProductSurface`
+- remove `Spaces.ProductSurface`
 - remove `Spaces.ModerationPolicy`
 - remove `Spaces.RequiresQuestionReview`
 - remove `Questions.Kind`

@@ -68,7 +68,7 @@ Inside each area, business modules are further split by feature, for example:
 - `BaseFaq.Tenant.Public.Business.Billing`
 - `BaseFaq.Tenant.BackOffice.Business.Billing`
 
-This keeps controller, service, command, and query code grouped by domain capability instead of by technical layer alone. Answer Hub currently uses the QnA namespace and follows a one-feature-per-project physical layout. Support Copilot and Engagement Hub persistence projects exist as product boundaries, but should only gain entities and runtime wiring when their concrete product model exists.
+This keeps controller, service, command, and query code grouped by domain capability instead of by technical layer alone. Answer Hub currently uses the QnA namespace and follows a one-feature-per-project physical layout. Support Copilot and Engagement Hub persistence projects now define their product entity models, but should only gain business modules and runtime wiring when their concrete product workflows are implemented.
 
 ### 3. CQRS with MediatR is the standard application pattern
 
@@ -94,21 +94,23 @@ They should not contain read-after-write orchestration, persistence logic, or cr
 
 ### 5. Persistence is explicitly split by database responsibility
 
-BaseFAQ currently uses two runtime EF Core contexts:
+BaseFAQ uses separate EF Core context boundaries for each data responsibility:
 
 | Context | Responsibility |
 |---|---|
 | `TenantDbContext` | global tenant metadata, users, tenant memberships, tenant-to-database mapping, and control-plane background-processing state |
 | `QnADbContext` | tenant-specific Answer Hub product data such as spaces, questions, answers, source links, tag links, workflow state, and activity |
+| `SupportCopilotDbContext` | tenant-specific Support Copilot product data such as conversations and conversation messages |
+| `EngagementHubDbContext` | tenant-specific Engagement Hub product data such as external/community threads and captured items |
 
 The split matters operationally:
 
 - tenant metadata is centralized
 - control-plane operational workloads belong with tenant metadata
-- Answer Hub data lives in tenant databases and is the current product data path
+- product data lives in tenant databases behind its owning product context
 - migration and seed tooling must coordinate tenant metadata plus the active product store
 
-`BaseFaq.SupportCopilot.Common.Persistence.SupportCopilotDb` and `BaseFaq.EngagementHub.Common.Persistence.EngagementHubDb` are product persistence project boundaries. They should not receive placeholder entity models; create their DbContexts, entities, migrations, and seed flows only when the owning behavior is implemented there.
+`BaseFaq.SupportCopilot.Common.Persistence.SupportCopilotDb` and `BaseFaq.EngagementHub.Common.Persistence.EngagementHubDb` define a small entity, enum, configuration, DbContext, and registration-extension baseline only. API hosts, business modules, migrations, additional workflow entities, and seed flows should be added when the owning runtime behavior is implemented there.
 
 ### 6. Multitenancy is part of the request model
 
@@ -186,7 +188,7 @@ The testing strategy is documented in [`../testing/integration-testing-strategy.
 - Preserve the existing composition-root pattern in API hosts.
 - Add new business features under the appropriate bounded-context module instead of enlarging unrelated projects.
 - Keep write flows simple and aligned with the CQRS rules.
-- Treat `TenantDbContext` and `QnADbContext` as separate ownership boundaries.
-- Treat Support Copilot and Engagement Hub persistence projects as separate product boundaries once they contain real entity models.
+- Treat `TenantDbContext`, `QnADbContext`, `SupportCopilotDbContext`, and `EngagementHubDbContext` as separate ownership boundaries.
+- Keep Support Copilot and Engagement Hub behavior inside their product boundaries instead of folding it into Answer Hub.
 - Put public tenant ingress endpoints such as billing webhooks in `BaseFaq.Tenant.Public.Api`, not in authenticated portal hosts.
 - Update the specific docs in `docs/` when boundaries, startup steps, or operational assumptions change.

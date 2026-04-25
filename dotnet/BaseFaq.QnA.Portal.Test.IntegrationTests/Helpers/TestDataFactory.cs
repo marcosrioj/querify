@@ -24,7 +24,6 @@ public static class TestDataFactory
             Key = key ?? $"space-{Guid.NewGuid():N}".Substring(0, 12),
             DefaultLanguage = "en-US",
             Kind = SpaceKind.ControlledPublication,
-            ProductSurface = QnAProductSurface.Publish,
             Summary = "Support knowledge",
             AcceptsQuestions = acceptsQuestions,
             AcceptsAnswers = acceptsAnswers,

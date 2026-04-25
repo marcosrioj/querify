@@ -1,6 +1,8 @@
 export enum PortalApp {
   Tenant = 0,
-  QnA = 2,
+  QnA = 1,
+  EngagementHub = 2,
+  SupportCopilot = 3,
 }
 
 export enum TenantEdition {
@@ -66,14 +68,6 @@ export enum SpaceKind {
   PublicValidation = 3,
 }
 
-export enum QnAProductSurface {
-  Publish = 1,
-  Resolve = 2,
-  Listen = 3,
-  Collaborate = 4,
-  Govern = 5,
-}
-
 export enum VisibilityScope {
   Internal = 1,
   Authenticated = 2,
@@ -104,11 +98,7 @@ export enum ChannelKind {
   Widget = 2,
   Api = 3,
   HelpCenter = 4,
-  Ticket = 5,
-  Community = 6,
-  Social = 7,
-  Chat = 8,
-  Import = 9,
+  Import = 5,
   Other = 99,
 }
 
@@ -134,14 +124,10 @@ export enum SourceKind {
   Pdf = 3,
   Video = 4,
   Repository = 5,
-  Ticket = 6,
-  CommunityThread = 7,
-  SocialComment = 8,
-  ChatTranscript = 9,
-  ProductNote = 10,
-  InternalNote = 11,
-  GovernanceRecord = 12,
-  AuditRecord = 13,
+  ProductNote = 6,
+  InternalNote = 7,
+  GovernanceRecord = 8,
+  AuditRecord = 9,
   Other = 99,
 }
 
@@ -172,9 +158,6 @@ export enum ActivityKind {
   VoteReceived = 15,
   AnswerRetired = 16,
   ReportReceived = 17,
-  SignalCaptured = 18,
-  AnswerReused = 19,
-  DecisionFinalized = 20,
 }
 
 export enum ActorKind {
@@ -249,14 +232,6 @@ export const spaceKindLabels: Record<SpaceKind, string> = {
   [SpaceKind.PublicValidation]: 'Public validation',
 };
 
-export const qnaProductSurfaceLabels: Record<QnAProductSurface, string> = {
-  [QnAProductSurface.Publish]: 'Publish',
-  [QnAProductSurface.Resolve]: 'Resolve',
-  [QnAProductSurface.Listen]: 'Listen',
-  [QnAProductSurface.Collaborate]: 'Collaborate',
-  [QnAProductSurface.Govern]: 'Govern',
-};
-
 export const visibilityScopeLabels: Record<VisibilityScope, string> = {
   [VisibilityScope.Internal]: 'Internal',
   [VisibilityScope.Authenticated]: 'Authenticated',
@@ -287,10 +262,6 @@ export const channelKindLabels: Record<ChannelKind, string> = {
   [ChannelKind.Widget]: 'Widget',
   [ChannelKind.Api]: 'API',
   [ChannelKind.HelpCenter]: 'Help center',
-  [ChannelKind.Ticket]: 'Ticket',
-  [ChannelKind.Community]: 'Community',
-  [ChannelKind.Social]: 'Social',
-  [ChannelKind.Chat]: 'Chat',
   [ChannelKind.Import]: 'Import',
   [ChannelKind.Other]: 'Other',
 };
@@ -317,10 +288,6 @@ export const sourceKindLabels: Record<SourceKind, string> = {
   [SourceKind.Pdf]: 'PDF',
   [SourceKind.Video]: 'Video',
   [SourceKind.Repository]: 'Repository',
-  [SourceKind.Ticket]: 'Ticket',
-  [SourceKind.CommunityThread]: 'Community thread',
-  [SourceKind.SocialComment]: 'Social comment',
-  [SourceKind.ChatTranscript]: 'Chat transcript',
   [SourceKind.ProductNote]: 'Product note',
   [SourceKind.InternalNote]: 'Internal note',
   [SourceKind.GovernanceRecord]: 'Governance record',
@@ -355,9 +322,6 @@ export const activityKindLabels: Record<ActivityKind, string> = {
   [ActivityKind.VoteReceived]: 'Vote received',
   [ActivityKind.AnswerRetired]: 'Answer retired',
   [ActivityKind.ReportReceived]: 'Report received',
-  [ActivityKind.SignalCaptured]: 'Signal captured',
-  [ActivityKind.AnswerReused]: 'Answer reused',
-  [ActivityKind.DecisionFinalized]: 'Decision finalized',
 };
 
 export const actorKindLabels: Record<ActorKind, string> = {

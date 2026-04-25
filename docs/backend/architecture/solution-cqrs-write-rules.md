@@ -131,7 +131,7 @@ When the work belongs to `BaseFaq.QnA.Common.Persistence.QnADb/Entities`:
 - do not use `[NotMapped]` computed properties to hide query shaping inside entities
 - keep relation creation, validation, status transitions, and DTO shaping inside commands, queries, and feature-local private methods
 
-When the work belongs to `BaseFaq.SupportCopilot.Common.Persistence.SupportCopilotDb` or `BaseFaq.EngagementHub.Common.Persistence.EngagementHubDb`, apply the same state-only rule, but only add entities when the concrete Support Copilot or Engagement Hub entity model exists. Do not create placeholder entities or move product workflows into QnA entities as a shortcut.
+When the work belongs to `BaseFaq.SupportCopilot.Common.Persistence.SupportCopilotDb` or `BaseFaq.EngagementHub.Common.Persistence.EngagementHubDb`, apply the same state-only rule. Extend those entity models only for concrete Support Copilot or Engagement Hub behavior; do not create placeholder entities or move product workflows into QnA entities as a shortcut.
 
 ## HTTP mapping guidance
 

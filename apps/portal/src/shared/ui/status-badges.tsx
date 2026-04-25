@@ -5,7 +5,6 @@ import {
   AnswerKind,
   AnswerStatus,
   ChannelKind,
-  QnAProductSurface,
   QuestionStatus,
   SourceKind,
   SourceRole,
@@ -18,7 +17,6 @@ import {
   answerKindLabels,
   answerStatusLabels,
   channelKindLabels,
-  qnaProductSurfaceLabels,
   questionStatusLabels,
   sourceKindLabels,
   sourceRoleLabels,
@@ -70,12 +68,6 @@ export function TenantEditionBadge({ edition }: { edition: TenantEdition }) {
 
 export function SpaceKindBadge({ kind }: { kind: SpaceKind }) {
   return <BadgeText text={spaceKindLabels[kind]} variant="primary" />;
-}
-
-export function QnAProductSurfaceBadge({ surface }: { surface: QnAProductSurface }) {
-  const variant = surface === QnAProductSurface.Govern ? 'warning' : 'secondary';
-
-  return <BadgeText text={qnaProductSurfaceLabels[surface]} variant={variant} />;
 }
 
 export function VisibilityBadge({ visibility }: { visibility: VisibilityScope }) {

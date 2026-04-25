@@ -11,7 +11,6 @@ public class SpaceDto
     public string? Summary { get; set; }
     public required string DefaultLanguage { get; set; }
     public required SpaceKind Kind { get; set; }
-    public required QnAProductSurface ProductSurface { get; set; }
     public required VisibilityScope Visibility { get; set; }
     public required SearchMarkupMode SearchMarkupMode { get; set; }
     public string? ProductScope { get; set; }

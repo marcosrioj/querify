@@ -36,7 +36,6 @@ import {
 } from '@/shared/ui';
 import { EmptyState, ErrorState } from '@/shared/ui/placeholder-state';
 import {
-  QnAProductSurfaceBadge,
   QuestionStatusBadge,
   SpaceKindBadge,
   VisibilityBadge,
@@ -237,11 +236,6 @@ export function SpaceDetailPage() {
                 icon: BookOpen,
               },
               {
-                title: 'Surface',
-                value: <QnAProductSurfaceBadge surface={spaceQuery.data.productSurface} />,
-                icon: Tags,
-              },
-              {
                 title: 'Questions',
                 value: spaceQuery.data.questionCount,
                 description: translateText('Threads currently attached to this space'),
@@ -286,10 +280,6 @@ export function SpaceDetailPage() {
                         {translateText(reviewGated ? 'Required by mode' : 'Open by mode')}
                       </Badge>
                     ),
-                  },
-                  {
-                    label: 'Product surface',
-                    value: <QnAProductSurfaceBadge surface={spaceQuery.data.productSurface} />,
                   },
                 ]}
               />

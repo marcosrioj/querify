@@ -169,7 +169,6 @@ public sealed class QnASeedService : IQnASeedService
             Summary = BuildSpaceSummary(definition),
             DefaultLanguage = SeedLanguage,
             Kind = SpaceKind.ModeratedCollaboration,
-            ProductSurface = GetProductSurface(index),
             Visibility = VisibilityScope.PublicIndexed,
             SearchMarkupMode = SearchMarkupMode.Hybrid,
             ProductScope = definition.Name,
@@ -182,16 +181,6 @@ public sealed class QnASeedService : IQnASeedService
             UpdatedBy = "seed"
         };
     }
-
-    private static QnAProductSurface GetProductSurface(int index) =>
-        (index % 5) switch
-        {
-            0 => QnAProductSurface.Publish,
-            1 => QnAProductSurface.Resolve,
-            2 => QnAProductSurface.Listen,
-            3 => QnAProductSurface.Collaborate,
-            _ => QnAProductSurface.Govern
-        };
 
     private static string BuildSpaceSummary(SeedSpaceDefinition definition)
     {
@@ -831,7 +820,7 @@ public sealed class QnASeedService : IQnASeedService
 
         if (sourceName.Contains("Slack", StringComparison.OrdinalIgnoreCase))
         {
-            return SourceKind.ChatTranscript;
+            return SourceKind.Article;
         }
 
         if (sourceName.Contains("USPS", StringComparison.OrdinalIgnoreCase) ||

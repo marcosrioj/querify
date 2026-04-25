@@ -43,11 +43,6 @@ public class Space : BaseEntity, IMustHaveTenant
     public required SpaceKind Kind { get; set; }
 
     /// <summary>
-    ///     Product surface this space primarily supports.
-    /// </summary>
-    public required QnAProductSurface ProductSurface { get; set; }
-
-    /// <summary>
     ///     Visibility scope for the space.
     /// </summary>
     public required VisibilityScope Visibility { get; set; }

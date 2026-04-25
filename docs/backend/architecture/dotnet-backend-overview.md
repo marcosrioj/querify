@@ -40,7 +40,7 @@ These projects contain ASP.NET Core startup, middleware, and DI registration:
 
 Each service area is split into feature projects.
 
-Answer Hub currently uses the QnA project namespace and remains split by feature project instead of monolithic business assemblies. Support Copilot and Engagement Hub have persistence project shells, but no feature business modules yet.
+Answer Hub currently uses the QnA project namespace and remains split by feature project instead of monolithic business assemblies. Support Copilot and Engagement Hub have persistence models, but no feature business modules yet.
 
 - QnA Portal:
   - `BaseFaq.QnA.Portal.Business.Space`
@@ -72,8 +72,8 @@ Answer Hub currently uses the QnA project namespace and remains split by feature
 - `BaseFaq.Common.EntityFramework.Core`: shared EF Core helpers and database infrastructure used across the solution
 - `BaseFaq.Common.EntityFramework.Tenant`: tenant database context, tenant resolution helpers, and shared tenant infrastructure
 - `BaseFaq.QnA.Common.Persistence.QnADb`: Answer Hub database context and QnA-side persistence
-- `BaseFaq.SupportCopilot.Common.Persistence.SupportCopilotDb`: reserved Support Copilot persistence project; add entities, configuration, and DbContext only when the real product model exists
-- `BaseFaq.EngagementHub.Common.Persistence.EngagementHubDb`: reserved Engagement Hub persistence project; add entities, configuration, and DbContext only when the real product model exists
+- `BaseFaq.SupportCopilot.Common.Persistence.SupportCopilotDb`: Support Copilot tenant persistence for conversations and conversation messages
+- `BaseFaq.EngagementHub.Common.Persistence.EngagementHubDb`: Engagement Hub tenant persistence for public/community threads and captured items
 - `BaseFaq.Common.Infrastructure.Core`: shared core abstractions and backend helper services
 - `BaseFaq.Common.Infrastructure.ApiErrorHandling`: API error handling conventions
 - `BaseFaq.Common.Infrastructure.MassTransit`: MassTransit registration and messaging conventions
@@ -157,9 +157,21 @@ That also means these responsibilities belong in `TenantDbContext` and not in te
 
 Each tenant can point to its own QnA database connection, which is why QnA migration and seed tooling must resolve tenant metadata first.
 
-### Product persistence shells
+### Support Copilot and Engagement Hub databases
 
-`BaseFaq.SupportCopilot.Common.Persistence.SupportCopilotDb` and `BaseFaq.EngagementHub.Common.Persistence.EngagementHubDb` are present as persistence project boundaries for the product split described in [`../../business/value_proposition.md`](../../business/value_proposition.md). They should not receive placeholder entities. Create entities, configurations, DbContexts, migrations, and seed flows only when a concrete Support Copilot or Engagement Hub behavior is being modeled.
+`SupportCopilotDbContext` and `EngagementHubDbContext` are present as tenant product persistence boundaries for the product split described in [`../../business/value_proposition.md`](../../business/value_proposition.md).
+
+`SupportCopilotDbContext` stores the support-side behavior that should not live in Answer Hub:
+
+- conversations
+- conversation messages
+
+`EngagementHubDbContext` stores the engagement-side behavior that should not live in Answer Hub:
+
+- external engagement threads
+- captured thread items
+
+These projects define a deliberately small entity, enum, configuration, DbContext, and registration-extension baseline. API hosts, business modules, migrations, additional workflow entities, and seed flows should be added only when those products gain runtime behavior.
 
 ## Multitenancy model
 
@@ -206,6 +218,6 @@ For worker-specific configuration and feature guidance, see [`basefaq-tenant-wor
 - Preserve the API-host composition pattern through `AddFeatures(...)`.
 - Keep controllers and services thin; push actual use-case behavior into handlers and domain-specific services.
 - Prefer lowercase kebab-case in route path segments when a controller exposes named actions beyond plain resource ids.
-- Treat tenant data and QnA data as separate ownership boundaries.
+- Treat tenant, Answer Hub, Support Copilot, and Engagement Hub data as separate ownership boundaries.
 - Put public tenant ingress endpoints such as billing webhooks in `BaseFaq.Tenant.Public.Api`, not in authenticated portal hosts.
 - Update the corresponding docs when request headers, ports, startup requirements, or operational assumptions change.
