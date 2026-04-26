@@ -25,6 +25,9 @@ The approach is intentionally decoupled from host-machine Nginx:
 ## App and API mapping
 
 - `dev.portal.basefaq.com` -> `http://<upstream-host>:5500`
+- `dev.portal.basefaq.com/api/tenant` -> `http://<upstream-host>:5002`
+- `dev.portal.basefaq.com/api/user` -> `http://<upstream-host>:5002`
+- `dev.portal.basefaq.com/api/qna` -> `http://<upstream-host>:5010`
 - `dev.tenant.backoffice.basefaq.com` -> `http://<upstream-host>:5000`
 - `dev.tenant.public.basefaq.com` -> `http://<upstream-host>:5004`
 - `dev.tenant.portal.basefaq.com` -> `http://<upstream-host>:5002`
@@ -127,4 +130,5 @@ HTTPS uses a dev self-signed certificate, so browsers may show a certificate war
 - do not use `:5000`, `:5002`, `:5010`, `:5020`, or `:5999` in public URLs; those are backend API ports
 - use `https://...` in public URLs when testing TLS, or `http://...` if you want to avoid certificate warnings
 - ensure APIs are running on the mapped local ports
+- for the Portal Docker stack, prefer same-origin API URLs through `dev.portal.basefaq.com/api/*`; this avoids browser CORS/TLS failures from cross-origin local API subdomains
 - Docker Compose project used by scripts: `bf_baseservices`

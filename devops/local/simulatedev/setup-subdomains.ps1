@@ -98,6 +98,39 @@ server {
     ssl_certificate /etc/nginx/certs/dev.basefaq.com.crt;
     ssl_certificate_key /etc/nginx/certs/dev.basefaq.com.key;
 
+    location /api/tenant/ {
+        proxy_pass http://__UPSTREAM_HOST__:__TENANT_PORTAL_PORT__;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+    }
+
+    location /api/user/ {
+        proxy_pass http://__UPSTREAM_HOST__:__TENANT_PORTAL_PORT__;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+    }
+
+    location /api/qna/ {
+        proxy_pass http://__UPSTREAM_HOST__:__QNA_PORTAL_PORT__;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+    }
+
     location / {
         proxy_pass http://__UPSTREAM_HOST__:__PORTAL_APP_PORT__;
         proxy_http_version 1.1;
@@ -279,6 +312,9 @@ Write-Host "Upstream host: $UpstreamHost"
 Write-Host ""
 Write-Host "Domain mappings:"
 Write-Host "  dev.portal.basefaq.com            -> $UpstreamHost`:$PortalAppPort"
+Write-Host "  dev.portal.basefaq.com/api/tenant -> $UpstreamHost`:$TenantPortalPort"
+Write-Host "  dev.portal.basefaq.com/api/user   -> $UpstreamHost`:$TenantPortalPort"
+Write-Host "  dev.portal.basefaq.com/api/qna    -> $UpstreamHost`:$QnaPortalPort"
 Write-Host "  dev.tenant.backoffice.basefaq.com -> $UpstreamHost`:$TenantBackOfficePort"
 Write-Host "  dev.tenant.portal.basefaq.com     -> $UpstreamHost`:$TenantPortalPort"
 Write-Host "  dev.qna.portal.basefaq.com        -> $UpstreamHost`:$QnaPortalPort"

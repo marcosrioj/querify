@@ -87,6 +87,39 @@ server {
     ssl_certificate /etc/nginx/certs/dev.basefaq.com.crt;
     ssl_certificate_key /etc/nginx/certs/dev.basefaq.com.key;
 
+    location /api/tenant/ {
+        proxy_pass http://$UPSTREAM_HOST:$TENANT_PORTAL_PORT;
+        proxy_http_version 1.1;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Connection \$connection_upgrade;
+    }
+
+    location /api/user/ {
+        proxy_pass http://$UPSTREAM_HOST:$TENANT_PORTAL_PORT;
+        proxy_http_version 1.1;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Connection \$connection_upgrade;
+    }
+
+    location /api/qna/ {
+        proxy_pass http://$UPSTREAM_HOST:$QNA_PORTAL_PORT;
+        proxy_http_version 1.1;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Connection \$connection_upgrade;
+    }
+
     location / {
         proxy_pass http://$UPSTREAM_HOST:$PORTAL_APP_PORT;
         proxy_http_version 1.1;
@@ -295,6 +328,9 @@ print_summary() {
   echo
   echo "Domain mappings:"
   echo "  dev.portal.basefaq.com            -> $UPSTREAM_HOST:$PORTAL_APP_PORT"
+  echo "  dev.portal.basefaq.com/api/tenant -> $UPSTREAM_HOST:$TENANT_PORTAL_PORT"
+  echo "  dev.portal.basefaq.com/api/user   -> $UPSTREAM_HOST:$TENANT_PORTAL_PORT"
+  echo "  dev.portal.basefaq.com/api/qna    -> $UPSTREAM_HOST:$QNA_PORTAL_PORT"
   echo "  dev.tenant.backoffice.basefaq.com -> $UPSTREAM_HOST:$TENANT_BACKOFFICE_PORT"
   echo "  dev.tenant.public.basefaq.com     -> $UPSTREAM_HOST:$TENANT_PUBLIC_PORT"
   echo "  dev.tenant.portal.basefaq.com     -> $UPSTREAM_HOST:$TENANT_PORTAL_PORT"
