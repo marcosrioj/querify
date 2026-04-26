@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import { Link, useMatches } from "react-router-dom";
 import { AppRouteHandle } from "@/app/router/route-types";
 import { LanguageSelector } from "@/domains/shell/language-selector";
@@ -5,7 +6,7 @@ import { NotificationsMenu } from "@/domains/shell/notifications-menu";
 import { PortalCommandDialog } from "@/domains/shell/portal-command-dialog";
 import { UserMenu } from "@/domains/shell/user-menu";
 import { usePortalI18n } from "@/shared/lib/use-portal-i18n";
-import { portalNavigation } from "@/shared/constants/navigation";
+import { findPortalNavigationPath } from "@/shared/constants/navigation";
 import { Container } from "@/shared/layout/container";
 
 type RoutedHandle = AppRouteHandle;
@@ -31,22 +32,36 @@ function ToolbarBreadcrumbs() {
     return null;
   }
 
-  const navItem = portalNavigation.find((item) => item.key === current.navKey);
+  const navPath = findPortalNavigationPath(current.navKey);
   const currentLabel = t(current.breadcrumb ?? current.title);
+  const lastNavItem = navPath.at(-1);
+  const currentMatchesLastNavItem =
+    lastNavItem !== undefined && t(lastNavItem.label) === currentLabel;
 
-  if (!navItem || t(navItem.label) === currentLabel) {
+  if (
+    navPath.length === 0 ||
+    (navPath.length === 1 && currentMatchesLastNavItem)
+  ) {
     return null;
   }
 
+  const linkedItems = currentMatchesLastNavItem
+    ? navPath.slice(0, -1)
+    : navPath;
+
   return (
     <div className="flex items-center gap-2 text-sm">
-      <Link
-        to={navItem.path}
-        className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-      >
-        {t(navItem.label)}
-      </Link>
-      <span className="text-muted-foreground/60">/</span>
+      {linkedItems.map((item) => (
+        <Fragment key={item.key}>
+          <Link
+            to={item.path}
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            {t(item.label)}
+          </Link>
+          <span className="text-muted-foreground/60">/</span>
+        </Fragment>
+      ))}
       <span className="text-sm text-mono">{currentLabel}</span>
     </div>
   );

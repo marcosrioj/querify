@@ -17,16 +17,10 @@ export type NavigationItem = {
   description: string;
   path: string;
   icon: typeof Gauge;
+  children?: NavigationItem[];
 };
 
-export const portalNavigation: NavigationItem[] = [
-  {
-    key: 'dashboard',
-    label: 'Dashboard',
-    description: 'Workspace overview and usage signals',
-    path: '/app/dashboard',
-    icon: Gauge,
-  },
+const qnaNavigationItems: NavigationItem[] = [
   {
     key: 'spaces',
     label: 'Spaces',
@@ -69,6 +63,24 @@ export const portalNavigation: NavigationItem[] = [
     path: '/app/activity',
     icon: Activity,
   },
+];
+
+export const portalNavigation: NavigationItem[] = [
+  {
+    key: 'dashboard',
+    label: 'Dashboard',
+    description: 'Workspace overview and usage signals',
+    path: '/app/dashboard',
+    icon: Gauge,
+  },
+  {
+    key: 'qna',
+    label: 'QnA',
+    description: 'Operate QnA end to end',
+    path: '/app/spaces',
+    icon: MessagesSquare,
+    children: qnaNavigationItems,
+  },
   {
     key: 'members',
     label: 'Members',
@@ -91,3 +103,24 @@ export const portalNavigation: NavigationItem[] = [
     icon: Settings,
   },
 ];
+
+export function findPortalNavigationPath(
+  key: string,
+  items: NavigationItem[] = portalNavigation,
+): NavigationItem[] {
+  for (const item of items) {
+    if (item.key === key) {
+      return [item];
+    }
+
+    if (item.children) {
+      const childPath = findPortalNavigationPath(key, item.children);
+
+      if (childPath.length > 0) {
+        return [item, ...childPath];
+      }
+    }
+  }
+
+  return [];
+}
