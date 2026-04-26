@@ -390,8 +390,11 @@ Process:
 4. Do not concatenate translated fragments in components.
 5. Do not put frontend presentation strings in backend DTOs.
 6. Check RTL languages for direction-sensitive layout issues.
+7. When a key is renamed or replaces another concept, translate the new value in every locale. Do not leave the non-`en-US` values copied from English unless the term is intentionally identical in that language.
+8. Validate that every locale has exactly the same key set as `en-US`; missing or extra keys must be fixed in the same change.
+9. Validate that removed UI copy no longer leaves unused locale keys behind. Search for obsolete keys after deleting fields, enum values, pages, filters, or labels, and remove stale entries from every locale file.
 
-When a behavior removes UI copy, remove obsolete keys from every locale file in the same change.
+When a behavior removes UI copy, remove obsolete keys from every locale file in the same change. This includes legacy copy for renamed fields, deleted filters, removed enum labels, and deleted routes.
 
 ## Step 11: Verify The Stage
 
@@ -435,6 +438,12 @@ cd apps/portal
 npm run lint
 npm run build
 ```
+
+Localization validation should also confirm:
+
+- all locale key sets match `apps/portal/src/shared/lib/i18n/locales/en-US.json`
+- changed keys are translated in every non-`en-US` locale
+- removed UI concepts do not leave unused locale keys behind
 
 Do not run migration commands as part of this validation unless migration work is explicitly in scope.
 
