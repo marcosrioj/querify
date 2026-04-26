@@ -51,9 +51,9 @@ public sealed class AnswersCreateAnswerCommandHandler(
             Kind = request.Request.Kind,
             Status = request.Request.Status,
             Visibility = request.Request.Visibility,
-            ConfidenceScore = request.Request.ConfidenceScore,
-            Rank = request.Request.Rank,
-            RevisionNumber = 0,
+            AiConfidenceScore = request.Request.AiConfidenceScore,
+            Score = request.Request.Score,
+            Sort = request.Request.Sort,
             CreatedBy = userId,
             UpdatedBy = userId
         };
@@ -114,13 +114,10 @@ public sealed class AnswersCreateAnswerCommandHandler(
         entity.Headline = request.Headline;
         entity.Body = request.Body;
         entity.AuthorLabel = request.AuthorLabel;
-        entity.Language = request.Language;
-        entity.ContextKey = request.ContextKey;
-        entity.ApplicabilityRulesJson = request.ApplicabilityRulesJson;
-        entity.ConfidenceScore = request.ConfidenceScore;
-        entity.TrustNote = request.TrustNote;
-        entity.EvidenceSummary = request.EvidenceSummary;
-        entity.Rank = request.Rank;
+        entity.ContextNote = request.ContextNote;
+        entity.AiConfidenceScore = request.AiConfidenceScore;
+        entity.Score = request.Score;
+        entity.Sort = request.Sort;
         entity.Kind = request.Kind;
 
         switch (request.Status)
@@ -128,12 +125,10 @@ public sealed class AnswersCreateAnswerCommandHandler(
             case AnswerStatus.Published:
                 entity.Status = AnswerStatus.Published;
                 entity.PublishedAtUtc = DateTime.UtcNow;
-                entity.RevisionNumber++;
                 break;
             case AnswerStatus.Validated:
                 entity.Status = AnswerStatus.Validated;
                 entity.ValidatedAtUtc = DateTime.UtcNow;
-                entity.RevisionNumber++;
                 break;
             case AnswerStatus.Rejected:
                 entity.Status = AnswerStatus.Rejected;

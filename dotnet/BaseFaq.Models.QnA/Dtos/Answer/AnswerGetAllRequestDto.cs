@@ -8,6 +8,5 @@ public class AnswerGetAllRequestDto : PagedAndSortedResultRequestDto
     public Guid? QuestionId { get; set; }
     public AnswerStatus? Status { get; set; }
     public VisibilityScope? Visibility { get; set; }
-    public string? ContextKey { get; set; }
     public bool? IsAccepted { get; set; }
 }

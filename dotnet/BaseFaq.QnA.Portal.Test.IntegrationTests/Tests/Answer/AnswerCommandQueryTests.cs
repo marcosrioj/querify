@@ -31,10 +31,10 @@ public class AnswerCommandQueryTests
                 Kind = AnswerKind.Official,
                 Status = AnswerStatus.Published,
                 Visibility = VisibilityScope.PublicIndexed,
-                Language = "en-US",
-                ContextKey = "portal",
-                ConfidenceScore = 91,
-                Rank = 2
+                ContextNote = "Portal",
+                AiConfidenceScore = 91,
+                Score = 2,
+                Sort = 2
             }
         }, CancellationToken.None);
 

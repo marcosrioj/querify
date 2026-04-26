@@ -36,8 +36,6 @@ export function useSpaceList(params: {
   searchText?: string;
   visibility?: number;
   kind?: number;
-  productScope?: string;
-  journeyScope?: string;
   acceptsQuestions?: boolean;
   acceptsAnswers?: boolean;
 }) {

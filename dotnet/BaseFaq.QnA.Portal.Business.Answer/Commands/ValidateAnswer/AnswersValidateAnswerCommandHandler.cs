@@ -32,7 +32,6 @@ public sealed class AnswersValidateAnswerCommandHandler(
 
         entity.Status = AnswerStatus.Validated;
         entity.ValidatedAtUtc = DateTime.UtcNow;
-        entity.RevisionNumber++;
 
         var activityIdentity = ResolveActivityIdentity(userId);
         var activity = new ActivityEntity

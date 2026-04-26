@@ -17,49 +17,17 @@ public class QuestionConfiguration : BaseConfiguration<Question>
             .HasMaxLength(Question.MaxTitleLength)
             .IsRequired();
 
-        builder.Property(question => question.Key)
-            .HasMaxLength(Question.MaxKeyLength)
-            .IsRequired();
-
         builder.Property(question => question.Summary)
             .HasMaxLength(Question.MaxSummaryLength);
 
         builder.Property(question => question.ContextNote)
             .HasMaxLength(Question.MaxContextNoteLength);
 
-        builder.Property(question => question.Language)
-            .HasMaxLength(Question.MaxLanguageLength);
-
-        builder.Property(question => question.ProductScope)
-            .HasMaxLength(Question.MaxProductScopeLength);
-
-        builder.Property(question => question.JourneyScope)
-            .HasMaxLength(Question.MaxJourneyScopeLength);
-
-        builder.Property(question => question.AudienceScope)
-            .HasMaxLength(Question.MaxAudienceScopeLength);
-
-        builder.Property(question => question.ContextKey)
-            .HasMaxLength(Question.MaxContextKeyLength);
-
-        builder.Property(question => question.OriginUrl)
-            .HasMaxLength(Question.MaxOriginUrlLength);
-
-        builder.Property(question => question.OriginReference)
-            .HasMaxLength(Question.MaxOriginReferenceLength);
-
-        builder.Property(question => question.ThreadSummary)
-            .HasMaxLength(Question.MaxThreadSummaryLength);
-
         builder.Property(question => question.TenantId)
             .IsRequired();
 
         builder.Property(question => question.SpaceId)
             .IsRequired();
-
-        builder.HasIndex(question => new { question.TenantId, question.Key })
-            .HasDatabaseName("IX_Question_TenantId_Key")
-            .IsUnique();
 
         builder.HasOne(question => question.AcceptedAnswer)
             .WithMany()

@@ -24,15 +24,9 @@ public class SpaceConfiguration : BaseConfiguration<Space>
         builder.Property(space => space.Summary)
             .HasMaxLength(Space.MaxSummaryLength);
 
-        builder.Property(space => space.DefaultLanguage)
+        builder.Property(space => space.Language)
             .HasMaxLength(Space.MaxLanguageLength)
             .IsRequired();
-
-        builder.Property(space => space.ProductScope)
-            .HasMaxLength(Space.MaxProductScopeLength);
-
-        builder.Property(space => space.JourneyScope)
-            .HasMaxLength(Space.MaxJourneyScopeLength);
 
         builder.Property(space => space.TenantId)
             .IsRequired();

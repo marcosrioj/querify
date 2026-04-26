@@ -13,7 +13,6 @@ public static class TestDataFactory
         string? name = null,
         string? key = null,
         VisibilityScope visibility = VisibilityScope.Internal,
-        SearchMarkupMode searchMarkupMode = SearchMarkupMode.Off,
         bool acceptsQuestions = true,
         bool acceptsAnswers = true)
     {
@@ -22,13 +21,12 @@ public static class TestDataFactory
             TenantId = tenantId,
             Name = name ?? "Support Questions",
             Key = key ?? $"space-{Guid.NewGuid():N}".Substring(0, 12),
-            DefaultLanguage = "en-US",
+            Language = "en-US",
             Kind = SpaceKind.ControlledPublication,
             Summary = "Support knowledge",
             AcceptsQuestions = acceptsQuestions,
             AcceptsAnswers = acceptsAnswers,
             Visibility = visibility,
-            SearchMarkupMode = searchMarkupMode,
             PublishedAtUtc = visibility is VisibilityScope.Public or VisibilityScope.PublicIndexed
                 ? DateTime.UtcNow
                 : null,
@@ -60,20 +58,14 @@ public static class TestDataFactory
             SpaceId = space.Id,
             Space = space,
             Title = title ?? "How do I reset my password?",
-            Key = key ?? $"question-{Guid.NewGuid():N}".Substring(0, 14),
             Summary = "Short summary",
             ContextNote = "Context",
-            ThreadSummary = "Thread summary",
             Status = status,
             Visibility = visibility,
             OriginChannel = ChannelKind.Manual,
-            Language = "en-US",
-            ProductScope = "Portal",
-            JourneyScope = "Onboarding",
-            AudienceScope = "Customer",
-            ContextKey = "default",
-            ConfidenceScore = 85,
-            RevisionNumber = 1,
+            AiConfidenceScore = 85,
+            FeedbackScore = 0,
+            Sort = 0,
             ValidatedAtUtc = status == QuestionStatus.Validated ? DateTime.UtcNow : null,
             CreatedBy = "test",
             UpdatedBy = "test"
@@ -125,16 +117,12 @@ public static class TestDataFactory
             Headline = headline ?? "Use the reset link from the sign-in page.",
             Body = "Click reset and follow the emailed link.",
             Kind = AnswerKind.Official,
-            Language = "en-US",
-            ContextKey = "default",
-            ApplicabilityRulesJson = "{\"channel\":\"portal\"}",
-            ConfidenceScore = 92,
-            TrustNote = "Trusted",
-            EvidenceSummary = "Backed by docs",
+            AiConfidenceScore = 92,
+            ContextNote = "Trusted",
             Status = status,
             Visibility = visibility,
-            Rank = rank,
-            RevisionNumber = status == AnswerStatus.Validated ? 2 : 1,
+            Score = rank,
+            Sort = rank,
             CreatedBy = "test",
             UpdatedBy = "test"
         };
@@ -144,12 +132,10 @@ public static class TestDataFactory
             case AnswerStatus.Validated:
                 entity.Status = AnswerStatus.Validated;
                 entity.ValidatedAtUtc = DateTime.UtcNow;
-                entity.RevisionNumber = 2;
                 break;
             case AnswerStatus.Published:
                 entity.Status = AnswerStatus.Published;
                 entity.PublishedAtUtc = DateTime.UtcNow;
-                entity.RevisionNumber = 1;
                 break;
             default:
                 entity.Status = status;
@@ -244,11 +230,11 @@ public static class TestDataFactory
             Kind = SourceKind.Article,
             Locator = locator ?? "https://example.test/doc/1",
             Label = "Reset password doc",
-            Scope = "Section 1",
-            SystemName = "Docs",
+            ContextNote = "Section 1",
             ExternalId = "DOC-1",
             Language = "en-US",
             MediaType = "text/html",
+            Checksum = "sha256:test-source",
             MetadataJson = "{\"type\":\"doc\"}",
             IsAuthoritative = true,
             LastVerifiedAtUtc = DateTime.UtcNow,

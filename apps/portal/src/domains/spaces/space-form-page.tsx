@@ -4,10 +4,8 @@ import { useForm } from 'react-hook-form';
 import { X } from 'lucide-react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
-  searchMarkupModeLabels,
   spaceKindLabels,
   visibilityScopeLabels,
-  SearchMarkupMode,
   SpaceKind,
   VisibilityScope,
 } from '@/shared/constants/backend-enums';
@@ -48,20 +46,17 @@ export function SpaceFormPage({ mode }: { mode: 'create' | 'edit' }) {
   const spaceQuery = useSpace(mode === 'edit' ? id : undefined);
   const createSpace = useCreateSpace();
   const updateSpace = useUpdateSpace(id ?? '');
-  const defaultLanguage = getStoredPortalLanguage() ?? DEFAULT_PORTAL_LANGUAGE;
+  const initialLanguage = getStoredPortalLanguage() ?? DEFAULT_PORTAL_LANGUAGE;
 
   const form = useForm<SpaceFormValues>({
     resolver: zodResolver(spaceFormSchema),
     defaultValues: {
       name: '',
       key: '',
-      defaultLanguage,
+      language: initialLanguage,
       summary: '',
       kind: SpaceKind.ControlledPublication,
       visibility: VisibilityScope.Internal,
-      searchMarkupMode: SearchMarkupMode.CuratedList,
-      productScope: '',
-      journeyScope: '',
       acceptsQuestions: true,
       acceptsAnswers: true,
       markValidated: false,
@@ -76,13 +71,10 @@ export function SpaceFormPage({ mode }: { mode: 'create' | 'edit' }) {
     form.reset({
       name: spaceQuery.data.name,
       key: spaceQuery.data.key,
-      defaultLanguage: spaceQuery.data.defaultLanguage,
+      language: spaceQuery.data.language,
       summary: spaceQuery.data.summary ?? '',
       kind: spaceQuery.data.kind,
       visibility: spaceQuery.data.visibility,
-      searchMarkupMode: spaceQuery.data.searchMarkupMode,
-      productScope: spaceQuery.data.productScope ?? '',
-      journeyScope: spaceQuery.data.journeyScope ?? '',
       acceptsQuestions: spaceQuery.data.acceptsQuestions,
       acceptsAnswers: spaceQuery.data.acceptsAnswers,
       markValidated: false,
@@ -95,7 +87,7 @@ export function SpaceFormPage({ mode }: { mode: 'create' | 'edit' }) {
     description: `${option.code} • ${option.direction.toUpperCase()}`,
     keywords: [option.code, option.label, option.direction],
   }));
-  const selectedLanguageValue = form.watch('defaultLanguage');
+  const selectedLanguageValue = form.watch('language');
   const selectedLanguageOption =
     languageOptions.find((option) => option.value === selectedLanguageValue) ?? null;
   const isSubmitting = createSpace.isPending || updateSpace.isPending;
@@ -173,12 +165,8 @@ export function SpaceFormPage({ mode }: { mode: 'create' | 'edit' }) {
                   const body = {
                     ...values,
                     summary: values.summary || undefined,
-                    productScope: values.productScope || undefined,
-                    journeyScope: values.journeyScope || undefined,
                     kind: Number(values.kind) as SpaceKind,
                     visibility: Number(values.visibility) as VisibilityScope,
-                    searchMarkupMode:
-                      Number(values.searchMarkupMode) as SearchMarkupMode,
                   };
 
                   if (mode === 'create') {
@@ -214,8 +202,8 @@ export function SpaceFormPage({ mode }: { mode: 'create' | 'edit' }) {
                 <div className="grid gap-4 md:grid-cols-2">
                   <SearchSelectField
                     control={form.control}
-                    name="defaultLanguage"
-                    label="Default language"
+                    name="language"
+                    label="Language"
                     description="Use the main locale for the questions and answers in this space."
                     options={languageOptions}
                     selectedOption={selectedLanguageOption}
@@ -243,23 +231,9 @@ export function SpaceFormPage({ mode }: { mode: 'create' | 'edit' }) {
                   rows={3}
                   description="Explain what the space covers and when teams should route content here."
                 />
-                <div className="grid gap-4 md:grid-cols-2">
-                  <TextField
-                    control={form.control}
-                    name="productScope"
-                    label="Product scope"
-                    description="Optional product boundary such as Billing, Core API, or Onboarding."
-                  />
-                  <TextField
-                    control={form.control}
-                    name="journeyScope"
-                    label="Journey scope"
-                    description="Optional lifecycle segment such as Activation or Renewal."
-                  />
-                </div>
                 <FormSectionHeading
                   title="Exposure"
-                  description="Decide who can see the space and how it should behave from a search-surface perspective."
+                  description="Decide who can see the space."
                 />
                 <div className="grid gap-4 md:grid-cols-2">
                   <SelectField
@@ -268,16 +242,6 @@ export function SpaceFormPage({ mode }: { mode: 'create' | 'edit' }) {
                     label="Visibility"
                     description="Choose the strongest audience exposure the space should allow."
                     options={Object.entries(visibilityScopeLabels).map(([value, label]) => ({
-                      value,
-                      label,
-                    }))}
-                  />
-                  <SelectField
-                    control={form.control}
-                    name="searchMarkupMode"
-                    label="Search markup"
-                    description="Align the space with list, canonical question, hybrid, or off behavior."
-                    options={Object.entries(searchMarkupModeLabels).map(([value, label]) => ({
                       value,
                       label,
                     }))}

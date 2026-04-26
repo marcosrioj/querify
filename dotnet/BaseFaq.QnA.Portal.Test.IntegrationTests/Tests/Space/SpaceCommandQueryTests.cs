@@ -22,13 +22,10 @@ public class SpaceCommandQueryTests
             {
                 Name = "Portal Support",
                 Key = "portal-support",
-                DefaultLanguage = "en-US",
+                Language = "en-US",
                 Summary = "Support questions for portal users.",
                 Kind = SpaceKind.PublicValidation,
                 Visibility = VisibilityScope.PublicIndexed,
-                SearchMarkupMode = SearchMarkupMode.Hybrid,
-                ProductScope = "Portal",
-                JourneyScope = "Support",
                 AcceptsQuestions = true,
                 AcceptsAnswers = true,
                 MarkValidated = true
@@ -42,7 +39,7 @@ public class SpaceCommandQueryTests
         Assert.Equal("Portal Support", result.Name);
         Assert.Equal("portal-support", result.Key);
         Assert.Equal(VisibilityScope.PublicIndexed, result.Visibility);
-        Assert.Equal(SearchMarkupMode.Hybrid, result.SearchMarkupMode);
+        Assert.Equal("en-US", result.Language);
         Assert.Equal(SpaceKind.PublicValidation, result.Kind);
         Assert.True(result.AcceptsQuestions);
         Assert.NotNull(result.LastValidatedAtUtc);

@@ -20,8 +20,6 @@ export function listSpaces(
     searchText,
     visibility,
     kind,
-    productScope,
-    journeyScope,
     acceptsQuestions,
     acceptsAnswers,
   }: {
@@ -31,8 +29,6 @@ export function listSpaces(
     searchText?: string;
     visibility?: number;
     kind?: number;
-    productScope?: string;
-    journeyScope?: string;
     acceptsQuestions?: boolean;
     acceptsAnswers?: boolean;
   },
@@ -47,8 +43,6 @@ export function listSpaces(
       SearchText: searchText,
       Visibility: visibility,
       Kind: kind,
-      ProductScope: productScope,
-      JourneyScope: journeyScope,
       AcceptsQuestions: acceptsQuestions,
       AcceptsAnswers: acceptsAnswers,
     }),

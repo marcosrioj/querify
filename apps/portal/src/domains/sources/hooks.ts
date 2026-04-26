@@ -31,7 +31,6 @@ export function useSourceList(params: {
   kind?: number;
   visibility?: number;
   isAuthoritative?: boolean;
-  systemName?: string;
 }) {
   const { session, status } = useAuth();
   const { currentTenantId } = useTenant();

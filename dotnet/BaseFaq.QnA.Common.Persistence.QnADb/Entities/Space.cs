@@ -14,8 +14,6 @@ public class Space : BaseEntity, IMustHaveTenant
     public const int MaxKeyLength = 160;
     public const int MaxSummaryLength = 2000;
     public const int MaxLanguageLength = 50;
-    public const int MaxProductScopeLength = 200;
-    public const int MaxJourneyScopeLength = 200;
 
     /// <summary>
     ///     Display name for the space.
@@ -33,9 +31,9 @@ public class Space : BaseEntity, IMustHaveTenant
     public string? Summary { get; set; }
 
     /// <summary>
-    ///     Default language used for curation, search, and rendering.
+    ///     Language used for curation, search, and rendering in the space.
     /// </summary>
-    public required string DefaultLanguage { get; set; }
+    public required string Language { get; set; }
 
     /// <summary>
     ///     Operating mode for controlled publication, moderated collaboration, or public validation.
@@ -46,21 +44,6 @@ public class Space : BaseEntity, IMustHaveTenant
     ///     Visibility scope for the space.
     /// </summary>
     public required VisibilityScope Visibility { get; set; }
-
-    /// <summary>
-    ///     Controls markup behavior for search and indexable surfaces.
-    /// </summary>
-    public required SearchMarkupMode SearchMarkupMode { get; set; }
-
-    /// <summary>
-    ///     Optional product scope covered by the space.
-    /// </summary>
-    public string? ProductScope { get; set; }
-
-    /// <summary>
-    ///     Optional journey scope covered by the space.
-    /// </summary>
-    public string? JourneyScope { get; set; }
 
     /// <summary>
     ///     Indicates whether the space accepts new questions.

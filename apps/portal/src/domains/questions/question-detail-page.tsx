@@ -68,21 +68,14 @@ function buildQuestionUpdateBody(
   return {
     spaceId: question.spaceId,
     title: question.title,
-    key: question.key,
     summary: question.summary ?? undefined,
     contextNote: question.contextNote ?? undefined,
-    threadSummary: question.threadSummary ?? undefined,
     status: question.status,
     visibility: question.visibility,
     originChannel: question.originChannel,
-    language: question.language ?? undefined,
-    productScope: question.productScope ?? undefined,
-    journeyScope: question.journeyScope ?? undefined,
-    audienceScope: question.audienceScope ?? undefined,
-    contextKey: question.contextKey ?? undefined,
-    originUrl: question.originUrl ?? undefined,
-    originReference: question.originReference ?? undefined,
-    confidenceScore: question.confidenceScore,
+    aiConfidenceScore: question.aiConfidenceScore,
+    feedbackScore: question.feedbackScore,
+    sort: question.sort,
     acceptedAnswerId: question.acceptedAnswerId ?? null,
     duplicateOfQuestionId: question.duplicateOfQuestionId ?? null,
     ...overrides,
@@ -301,8 +294,8 @@ export function QuestionDetailPage() {
                       value: String(questionQuery.data.feedbackScore),
                     },
                     {
-                      label: 'Confidence',
-                      value: String(questionQuery.data.confidenceScore),
+                      label: 'AI confidence',
+                      value: String(questionQuery.data.aiConfidenceScore),
                     },
                     {
                       label: 'Accepted answer',
@@ -370,7 +363,7 @@ export function QuestionDetailPage() {
                   <span>{translateText('Thread settings')}</span>
                   <ContextHint
                     content={translateText(
-                      'These values describe the thread, its audience, and the intake path that created it.',
+                      'These values describe the thread and the intake path that created it.',
                     )}
                     label={translateText('Thread settings details')}
                   />
@@ -380,18 +373,17 @@ export function QuestionDetailPage() {
             <CardContent>
               <KeyValueList
                 items={[
-                  { label: 'Key', value: questionQuery.data.key },
                   {
                     label: 'Origin channel',
                     value: <ChannelKindBadge kind={questionQuery.data.originChannel} />,
                   },
                   {
-                    label: 'Language',
-                    value: questionQuery.data.language || 'Not set',
+                    label: 'AI confidence',
+                    value: String(questionQuery.data.aiConfidenceScore),
                   },
                   {
-                    label: 'Context key',
-                    value: questionQuery.data.contextKey || 'Not set',
+                    label: 'Sort',
+                    value: String(questionQuery.data.sort),
                   },
                   {
                     label: 'Duplicate target',
@@ -454,26 +446,6 @@ export function QuestionDetailPage() {
               <KeyValueList
                 items={[
                   {
-                    label: 'Product scope',
-                    value: questionQuery.data.productScope || 'Not set',
-                  },
-                  {
-                    label: 'Journey scope',
-                    value: questionQuery.data.journeyScope || 'Not set',
-                  },
-                  {
-                    label: 'Audience scope',
-                    value: questionQuery.data.audienceScope || 'Not set',
-                  },
-                  {
-                    label: 'Origin URL',
-                    value: questionQuery.data.originUrl || 'Not set',
-                  },
-                  {
-                    label: 'Origin reference',
-                    value: questionQuery.data.originReference || 'Not set',
-                  },
-                  {
                     label: 'Answered at',
                     value: formatOptionalDateTimeInTimeZone(
                       questionQuery.data.answeredAtUtc,
@@ -509,23 +481,13 @@ export function QuestionDetailPage() {
               </CardHeading>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="rounded-2xl border border-border bg-muted/10 p-4">
-                  <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-                    {translateText('Summary')}
-                  </p>
-                  <p className="mt-2 text-sm leading-6">
-                    {questionQuery.data.summary || translateText('No summary provided.')}
-                  </p>
-                </div>
-                <div className="rounded-2xl border border-border bg-muted/10 p-4">
-                  <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-                    {translateText('Thread summary')}
-                  </p>
-                  <p className="mt-2 text-sm leading-6">
-                    {questionQuery.data.threadSummary || translateText('No summary provided.')}
-                  </p>
-                </div>
+              <div className="rounded-2xl border border-border bg-muted/10 p-4">
+                <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
+                  {translateText('Summary')}
+                </p>
+                <p className="mt-2 text-sm leading-6">
+                  {questionQuery.data.summary || translateText('No summary provided.')}
+                </p>
               </div>
               <div className="rounded-2xl border border-border bg-muted/10 p-4">
                 <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">

@@ -20,14 +20,6 @@ public class QuestionController(IQuestionService questionService) : ControllerBa
         return Ok(await questionService.GetById(id, requestDto, token));
     }
 
-    [HttpGet("by-key/{key}")]
-    [ProducesResponseType(typeof(QuestionDetailDto), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetByKey(string key, [FromQuery] QuestionGetRequestDto requestDto,
-        CancellationToken token)
-    {
-        return Ok(await questionService.GetByKey(key, requestDto, token));
-    }
-
     [HttpGet]
     [ProducesResponseType(typeof(PagedResultDto<QuestionDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll([FromQuery] QuestionGetAllRequestDto requestDto, CancellationToken token)

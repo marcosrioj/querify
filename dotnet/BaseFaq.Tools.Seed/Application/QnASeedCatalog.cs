@@ -28,7 +28,7 @@ internal static partial class QnASeedCatalog
         string answer,
         SeedSource source,
         int helpfulFeedbackPercent,
-        int confidenceScore)
+        int aiConfidenceScore)
     {
         return new SeedQuestionDefinition(
             question,
@@ -38,7 +38,7 @@ internal static partial class QnASeedCatalog
             source.SourceLabel,
             source.SourceUrl,
             helpfulFeedbackPercent,
-            confidenceScore);
+            aiConfidenceScore);
     }
 
     private static SeedSource Source(string sourceName, string sourceLabel, string sourceUrl)
@@ -65,4 +65,4 @@ internal sealed record SeedQuestionDefinition(
     string SourceLabel,
     string SourceUrl,
     int HelpfulFeedbackPercent,
-    int ConfidenceScore);
+    int AiConfidenceScore);

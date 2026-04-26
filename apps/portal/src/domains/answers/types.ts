@@ -24,15 +24,11 @@ export type AnswerDto = {
   kind: AnswerKind;
   status: AnswerStatus;
   visibility: VisibilityScope;
-  language?: string | null;
-  contextKey?: string | null;
-  applicabilityRulesJson?: string | null;
-  trustNote?: string | null;
-  evidenceSummary?: string | null;
+  contextNote?: string | null;
   authorLabel?: string | null;
-  confidenceScore: number;
-  rank: number;
-  revisionNumber: number;
+  aiConfidenceScore: number;
+  score: number;
+  sort: number;
   isAccepted: boolean;
   isOfficial: boolean;
   publishedAtUtc?: string | null;
@@ -50,14 +46,11 @@ export type AnswerCreateRequestDto = {
   kind: AnswerKind;
   status: AnswerStatus;
   visibility: VisibilityScope;
-  language?: string | null;
-  contextKey?: string | null;
-  applicabilityRulesJson?: string | null;
-  trustNote?: string | null;
-  evidenceSummary?: string | null;
+  contextNote?: string | null;
   authorLabel?: string | null;
-  confidenceScore: number;
-  rank: number;
+  aiConfidenceScore: number;
+  score: number;
+  sort: number;
 };
 
 export type AnswerUpdateRequestDto = AnswerCreateRequestDto;

@@ -45,8 +45,6 @@ export function useQuestionList(params: {
   status?: number;
   visibility?: number;
   spaceKey?: string;
-  contextKey?: string;
-  language?: string;
   includeAnswers?: boolean;
   includeTags?: boolean;
   includeSources?: boolean;

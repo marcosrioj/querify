@@ -92,10 +92,6 @@ export function SourceDetailPage() {
                 <KeyValueList
                   items={[
                     {
-                      label: 'System name',
-                      value: sourceQuery.data.systemName || 'Not set',
-                    },
-                    {
                       label: 'External ID',
                       value: sourceQuery.data.externalId || 'Not set',
                     },
@@ -198,7 +194,7 @@ export function SourceDetailPage() {
             <CardContent className="space-y-4">
               <KeyValueList
                 items={[
-                  { label: 'Scope', value: sourceQuery.data.scope || 'Not set' },
+                  { label: 'Context note', value: sourceQuery.data.contextNote || 'Not set' },
                   { label: 'Media type', value: sourceQuery.data.mediaType || 'Not set' },
                   {
                     label: 'Captured at',

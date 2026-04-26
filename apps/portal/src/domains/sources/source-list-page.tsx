@@ -49,7 +49,6 @@ const SOURCE_FILTER_DEFAULTS = {
   kind: 'all',
   visibility: 'all',
   authoritative: 'all',
-  systemName: '',
 } as const;
 
 export function SourceListPage() {
@@ -74,7 +73,6 @@ export function SourceListPage() {
   const kindFilter = filters.kind;
   const visibilityFilter = filters.visibility;
   const authoritativeFilter = filters.authoritative;
-  const systemNameFilter = filters.systemName;
   const apiKind = kindFilter === 'all' ? undefined : Number(kindFilter);
   const apiVisibility =
     visibilityFilter === 'all' ? undefined : Number(visibilityFilter);
@@ -91,7 +89,6 @@ export function SourceListPage() {
     kind: apiKind,
     visibility: apiVisibility,
     isAuthoritative: apiAuthoritative,
-    systemName: systemNameFilter || undefined,
   });
 
   useEffect(() => {
@@ -129,8 +126,8 @@ export function SourceListPage() {
           </div>
           <div className="break-all text-sm text-muted-foreground">{source.locator}</div>
           <div className="text-sm text-muted-foreground">
-            {source.systemName || translateText('No system name recorded')}
-            {source.language ? ` • ${source.language}` : ''}
+            {source.language}
+            {source.contextNote ? ` • ${source.contextNote}` : ''}
           </div>
         </div>
       ),
@@ -273,7 +270,7 @@ export function SourceListPage() {
         loading={sourceQuery.isLoading}
         onRowClick={(source) => navigate(`/app/sources/${source.id}`)}
         toolbar={
-          <div className="grid w-full gap-2 sm:grid-cols-2 xl:grid-cols-[minmax(240px,1fr)_220px_220px_220px_220px]">
+          <div className="grid w-full gap-2 sm:grid-cols-2 xl:grid-cols-[minmax(240px,1fr)_220px_220px_220px]">
             <div className="sm:col-span-2 xl:col-span-1">
               <Input
                 value={search}
@@ -281,11 +278,6 @@ export function SourceListPage() {
                 placeholder={translateText('Search sources')}
               />
             </div>
-            <Input
-              value={systemNameFilter}
-              onChange={(event) => setFilter('systemName', event.target.value)}
-              placeholder={translateText('System name')}
-            />
             <Select value={kindFilter} onValueChange={(value) => setFilter('kind', value)}>
               <SelectTrigger className="w-full">
                 <SelectValue placeholder={translateText('Source kind')} />
@@ -328,7 +320,7 @@ export function SourceListPage() {
                 <SelectItem value="false">Reference only</SelectItem>
               </SelectContent>
             </Select>
-            <div className="sm:col-span-2 xl:col-span-5">
+            <div className="sm:col-span-2 xl:col-span-4">
               <Select value={sorting} onValueChange={setSorting}>
                 <SelectTrigger className="w-full xl:max-w-[240px]">
                   <SelectValue placeholder={translateText('Sort sources')} />

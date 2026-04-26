@@ -6,12 +6,17 @@ export const sourceFormSchema = z.object({
   kind: numericEnumSchema(SourceKind),
   locator: z.string().min(3, 'Locator is required.'),
   label: z.string().max(200, 'Keep the label concise.').optional(),
-  scope: z.string().max(200, 'Keep the scope concise.').optional(),
-  systemName: z.string().max(120, 'Keep the system name concise.').optional(),
+  contextNote: z.string().max(200, 'Keep the context note concise.').optional(),
   externalId: z.string().max(120, 'Keep the external id concise.').optional(),
-  language: z.string().max(16, 'Keep the language code concise.').optional(),
+  language: z
+    .string()
+    .min(2, 'Language is required.')
+    .max(16, 'Keep the language code concise.'),
   mediaType: z.string().max(120, 'Keep the media type concise.').optional(),
-  checksum: z.string().max(200, 'Keep the checksum concise.').optional(),
+  checksum: z
+    .string()
+    .min(1, 'Checksum is required.')
+    .max(200, 'Keep the checksum concise.'),
   metadataJson: z.string().max(4000, 'Keep the metadata concise.').optional(),
   visibility: numericEnumSchema(VisibilityScope),
   allowsPublicCitation: z.boolean(),

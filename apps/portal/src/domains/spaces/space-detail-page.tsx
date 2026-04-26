@@ -4,7 +4,6 @@ import {
   Link2,
   Pencil,
   Plus,
-  Tags,
   Trash2,
   Waypoints,
 } from 'lucide-react';
@@ -14,7 +13,7 @@ import { usePortalTimeZone } from '@/domains/settings/settings-hooks';
 import { useSourceList } from '@/domains/sources/hooks';
 import { useSpace, useAddSpaceSource, useAddSpaceTag, useDeleteSpace, useRemoveSpaceSource, useRemoveSpaceTag } from '@/domains/spaces/hooks';
 import { useTagList } from '@/domains/tags/hooks';
-import { SpaceKind, searchMarkupModeLabels } from '@/shared/constants/backend-enums';
+import { SpaceKind } from '@/shared/constants/backend-enums';
 import { DetailLayout, KeyValueList, PageHeader, SectionGrid } from '@/shared/layout/page-layouts';
 import {
   Badge,
@@ -188,7 +187,7 @@ export function SpaceDetailPage() {
                 <KeyValueList
                   items={[
                     { label: 'Key', value: spaceQuery.data.key },
-                    { label: 'Language', value: spaceQuery.data.defaultLanguage },
+                    { label: 'Language', value: spaceQuery.data.language },
                     {
                       label: 'Questions',
                       value: String(spaceQuery.data.questionCount),
@@ -289,24 +288,12 @@ export function SpaceDetailPage() {
           <Card>
             <CardHeader>
               <CardHeading>
-                <CardTitle>{translateText('Scope and publishing')}</CardTitle>
+                <CardTitle>{translateText('Publishing')}</CardTitle>
               </CardHeading>
             </CardHeader>
             <CardContent>
               <KeyValueList
                 items={[
-                  {
-                    label: 'Product scope',
-                    value: spaceQuery.data.productScope || 'Not set',
-                  },
-                  {
-                    label: 'Journey scope',
-                    value: spaceQuery.data.journeyScope || 'Not set',
-                  },
-                  {
-                    label: 'Search markup',
-                    value: searchMarkupModeLabels[spaceQuery.data.searchMarkupMode],
-                  },
                   {
                     label: 'Published at',
                     value: formatOptionalDateTimeInTimeZone(

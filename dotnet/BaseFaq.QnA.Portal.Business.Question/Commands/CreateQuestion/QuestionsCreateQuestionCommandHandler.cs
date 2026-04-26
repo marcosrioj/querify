@@ -44,12 +44,12 @@ public sealed class QuestionsCreateQuestionCommandHandler(
             SpaceId = space.Id,
             Space = space,
             Title = request.Request.Title,
-            Key = request.Request.Key,
             Status = request.Request.Status,
             Visibility = request.Request.Visibility,
             OriginChannel = request.Request.OriginChannel,
-            ConfidenceScore = request.Request.ConfidenceScore,
-            RevisionNumber = 0,
+            AiConfidenceScore = request.Request.AiConfidenceScore,
+            FeedbackScore = request.Request.FeedbackScore,
+            Sort = request.Request.Sort,
             CreatedBy = userId,
             UpdatedBy = userId
         };
@@ -101,19 +101,11 @@ public sealed class QuestionsCreateQuestionCommandHandler(
     private static void Apply(QuestionEntity entity, QuestionCreateRequestDto request, string userId)
     {
         entity.Title = request.Title;
-        entity.Key = request.Key;
         entity.Summary = request.Summary;
         entity.ContextNote = request.ContextNote;
-        entity.ThreadSummary = request.ThreadSummary;
-        entity.Language = request.Language;
-        entity.ProductScope = request.ProductScope;
-        entity.JourneyScope = request.JourneyScope;
-        entity.AudienceScope = request.AudienceScope;
-        entity.ContextKey = request.ContextKey;
-        entity.OriginUrl = request.OriginUrl;
-        entity.OriginReference = request.OriginReference;
-        entity.ConfidenceScore = request.ConfidenceScore;
-        entity.RevisionNumber++;
+        entity.AiConfidenceScore = request.AiConfidenceScore;
+        entity.FeedbackScore = request.FeedbackScore;
+        entity.Sort = request.Sort;
         entity.Status = request.Status;
 
         if (request.Status == QuestionStatus.Validated) entity.ValidatedAtUtc = DateTime.UtcNow;

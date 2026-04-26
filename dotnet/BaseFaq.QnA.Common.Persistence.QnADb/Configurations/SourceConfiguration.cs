@@ -20,23 +20,22 @@ public class SourceConfiguration : BaseConfiguration<Source>
         builder.Property(source => source.Label)
             .HasMaxLength(Source.MaxLabelLength);
 
-        builder.Property(source => source.Scope)
-            .HasMaxLength(Source.MaxScopeLength);
-
-        builder.Property(source => source.SystemName)
-            .HasMaxLength(Source.MaxSystemNameLength);
+        builder.Property(source => source.ContextNote)
+            .HasMaxLength(Source.MaxContextNoteLength);
 
         builder.Property(source => source.ExternalId)
             .HasMaxLength(Source.MaxExternalIdLength);
 
         builder.Property(source => source.Language)
-            .HasMaxLength(Source.MaxLanguageLength);
+            .HasMaxLength(Source.MaxLanguageLength)
+            .IsRequired();
 
         builder.Property(source => source.MediaType)
             .HasMaxLength(Source.MaxMediaTypeLength);
 
         builder.Property(source => source.Checksum)
-            .HasMaxLength(Source.MaxChecksumLength);
+            .HasMaxLength(Source.MaxChecksumLength)
+            .IsRequired();
 
         builder.Property(source => source.MetadataJson)
             .HasMaxLength(Source.MaxMetadataLength);

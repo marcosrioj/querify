@@ -37,9 +37,6 @@ public sealed class SourcesGetSourceListQueryHandler(
         if (request.Request.IsAuthoritative is not null)
             query = query.Where(source => source.IsAuthoritative == request.Request.IsAuthoritative);
 
-        if (!string.IsNullOrWhiteSpace(request.Request.SystemName))
-            query = query.Where(source => source.SystemName == request.Request.SystemName);
-
         query = request.Request.Sorting?.Trim().ToLowerInvariant() switch
         {
             "kind" => query.OrderBy(source => source.Kind).ThenBy(source => source.Label),
@@ -71,8 +68,7 @@ public sealed class SourcesGetSourceListQueryHandler(
                     Kind = entity.Kind,
                     Locator = entity.Locator,
                     Label = entity.Label,
-                    Scope = entity.Scope,
-                    SystemName = entity.SystemName,
+                    ContextNote = entity.ContextNote,
                     ExternalId = entity.ExternalId,
                     Language = entity.Language,
                     MediaType = entity.MediaType,

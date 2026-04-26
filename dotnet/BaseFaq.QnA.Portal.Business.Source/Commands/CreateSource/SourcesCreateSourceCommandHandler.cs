@@ -25,6 +25,8 @@ public sealed class SourcesCreateSourceCommandHandler(
             TenantId = tenantId,
             Kind = request.Request.Kind,
             Locator = request.Request.Locator,
+            Language = request.Request.Language,
+            Checksum = request.Request.Checksum,
             Visibility = request.Request.Visibility,
             AllowsPublicCitation = request.Request.AllowsPublicCitation,
             AllowsPublicExcerpt = request.Request.AllowsPublicExcerpt,
@@ -47,8 +49,7 @@ public sealed class SourcesCreateSourceCommandHandler(
         entity.Kind = request.Kind;
         entity.Locator = request.Locator;
         entity.Label = request.Label;
-        entity.Scope = request.Scope;
-        entity.SystemName = request.SystemName;
+        entity.ContextNote = request.ContextNote;
         entity.ExternalId = request.ExternalId;
         entity.Language = request.Language;
         entity.MediaType = request.MediaType;

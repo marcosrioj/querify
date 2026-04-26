@@ -44,15 +44,14 @@ const sortingOptions = [
   { value: 'LastActivityAtUtc DESC', label: 'Latest activity' },
   { value: 'Title ASC', label: 'Title A-Z' },
   { value: 'FeedbackScore DESC', label: 'Feedback score' },
-  { value: 'ConfidenceScore DESC', label: 'Confidence' },
+  { value: 'AiConfidenceScore DESC', label: 'AI confidence' },
+  { value: 'Sort ASC', label: 'Sort' },
 ];
 
 const QUESTION_FILTER_DEFAULTS = {
   status: 'all',
   visibility: 'all',
   spaceId: 'all',
-  language: '',
-  contextKey: '',
 } as const;
 
 export function QuestionListPage() {
@@ -77,8 +76,6 @@ export function QuestionListPage() {
   const statusFilter = filters.status;
   const visibilityFilter = filters.visibility;
   const spaceFilter = filters.spaceId;
-  const languageFilter = filters.language;
-  const contextKeyFilter = filters.contextKey;
   const apiStatus = statusFilter === 'all' ? undefined : Number(statusFilter);
   const apiVisibility =
     visibilityFilter === 'all' ? undefined : Number(visibilityFilter);
@@ -92,8 +89,6 @@ export function QuestionListPage() {
     status: apiStatus,
     visibility: apiVisibility,
     spaceId: apiSpaceId,
-    language: languageFilter || undefined,
-    contextKey: contextKeyFilter || undefined,
   });
   const spaceOptionsQuery = useSpaceList({
     page: 1,
@@ -145,14 +140,10 @@ export function QuestionListPage() {
         <div className="space-y-1">
           <div className="font-medium text-mono">{question.title}</div>
           <div className="text-sm text-muted-foreground">
-            {spaceLookup[question.spaceId] ?? question.spaceKey} • {question.key}
+            {spaceLookup[question.spaceId] ?? question.spaceKey}
           </div>
           <div className="flex flex-wrap gap-2">
             <ChannelKindBadge kind={question.originChannel} />
-          </div>
-          <div className="text-sm text-muted-foreground">
-            {question.language || translateText('No language set')}
-            {question.contextKey ? ` • ${question.contextKey}` : ''}
           </div>
           {question.summary ? (
             <div className="line-clamp-2 text-sm text-muted-foreground">
@@ -182,7 +173,7 @@ export function QuestionListPage() {
           <div>{translateText('Feedback {value}', { value: question.feedbackScore })}</div>
           <div>
             {translateText('Confidence {value}', {
-              value: question.confidenceScore,
+              value: question.aiConfidenceScore,
             })}
           </div>
           {question.acceptedAnswerId ? (
@@ -308,7 +299,7 @@ export function QuestionListPage() {
         loading={questionQuery.isLoading}
         onRowClick={(question) => navigate(`/app/questions/${question.id}`)}
         toolbar={
-          <div className="grid w-full gap-2 sm:grid-cols-2 xl:grid-cols-[minmax(240px,1fr)_220px_220px_220px]">
+          <div className="grid w-full gap-2 sm:grid-cols-2 xl:grid-cols-[minmax(240px,1fr)_220px_220px]">
             <div className="sm:col-span-2 xl:col-span-1">
               <Input
                 value={search}
@@ -316,16 +307,6 @@ export function QuestionListPage() {
                 placeholder={translateText('Search questions')}
               />
             </div>
-            <Input
-              value={languageFilter}
-              onChange={(event) => setFilter('language', event.target.value)}
-              placeholder={translateText('Language code')}
-            />
-            <Input
-              value={contextKeyFilter}
-              onChange={(event) => setFilter('contextKey', event.target.value)}
-              placeholder={translateText('Context key')}
-            />
             <Select value={spaceFilter} onValueChange={(value) => setFilter('spaceId', value)}>
               <SelectTrigger className="w-full">
                 <SelectValue placeholder={translateText('Space')} />
@@ -368,7 +349,7 @@ export function QuestionListPage() {
                 ))}
               </SelectContent>
             </Select>
-            <div className="sm:col-span-2 xl:col-span-4">
+            <div className="sm:col-span-2 xl:col-span-3">
               <Select value={sorting} onValueChange={setSorting}>
                 <SelectTrigger className="w-full xl:max-w-[240px]">
                   <SelectValue placeholder={translateText('Sort questions')} />

@@ -95,6 +95,7 @@ public sealed class FeedbacksCreateFeedbackCommandHandler(
 
         question.Activities.Add(activity);
         question.LastActivityAtUtc = activity.OccurredAtUtc;
+        question.FeedbackScore = ActivitySignals.ComputeFeedbackScore(question.Activities.Select(ToSignalEntry));
         dbContext.Activities.Add(activity);
 
         await dbContext.SaveChangesAsync(cancellationToken);
@@ -107,5 +108,15 @@ public sealed class FeedbacksCreateFeedbackCommandHandler(
         var tenantId = await tenantClientKeyResolver.ResolveTenantId(clientKey, cancellationToken);
         httpContextAccessor.HttpContext?.Items[TenantContextKeys.TenantIdItemKey] = tenantId;
         return tenantId;
+    }
+
+    private static ActivitySignalEntry ToSignalEntry(Activity entity)
+    {
+        return new ActivitySignalEntry(
+            entity.Kind,
+            entity.AnswerId,
+            entity.OccurredAtUtc,
+            entity.UserPrint,
+            entity.MetadataJson);
     }
 }

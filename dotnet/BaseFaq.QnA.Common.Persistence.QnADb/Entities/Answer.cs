@@ -11,11 +11,7 @@ public class Answer : BaseEntity, IMustHaveTenant
 {
     public const int MaxHeadlineLength = 250;
     public const int MaxBodyLength = 6000;
-    public const int MaxLanguageLength = 50;
-    public const int MaxContextKeyLength = 200;
-    public const int MaxApplicabilityRulesLength = 4000;
-    public const int MaxTrustNoteLength = 2000;
-    public const int MaxEvidenceSummaryLength = 4000;
+    public const int MaxContextNoteLength = 2000;
     public const int MaxAuthorLabelLength = 200;
 
     /// <summary>
@@ -44,29 +40,9 @@ public class Answer : BaseEntity, IMustHaveTenant
     public required VisibilityScope Visibility { get; set; }
 
     /// <summary>
-    ///     Language of the answer variant.
+    ///     Human-readable context that explains why or when the answer applies.
     /// </summary>
-    public string? Language { get; set; }
-
-    /// <summary>
-    ///     Context key for plan, country, version, or integration variants.
-    /// </summary>
-    public string? ContextKey { get; set; }
-
-    /// <summary>
-    ///     Serialized rules that determine in which context the answer applies.
-    /// </summary>
-    public string? ApplicabilityRulesJson { get; set; }
-
-    /// <summary>
-    ///     Human-readable explanation of why the answer can be trusted.
-    /// </summary>
-    public string? TrustNote { get; set; }
-
-    /// <summary>
-    ///     Consolidated summary of the evidence supporting the answer.
-    /// </summary>
-    public string? EvidenceSummary { get; set; }
+    public string? ContextNote { get; set; }
 
     /// <summary>
     ///     Public label for the author or origin of the answer.
@@ -74,19 +50,19 @@ public class Answer : BaseEntity, IMustHaveTenant
     public string? AuthorLabel { get; set; }
 
     /// <summary>
-    ///     Calculated confidence level for the answer.
+    ///     AI-generated confidence level for the answer.
     /// </summary>
-    public required int ConfidenceScore { get; set; }
+    public required int AiConfidenceScore { get; set; }
 
     /// <summary>
-    ///     Relative ranking of the answer among other answers to the same question.
+    ///     Quality score used to compare answers for the same question.
     /// </summary>
-    public required int Rank { get; set; }
+    public required int Score { get; set; }
 
     /// <summary>
-    ///     Current revision of the answer.
+    ///     Manual ordering value used when presenting answers in curated surfaces.
     /// </summary>
-    public required int RevisionNumber { get; set; }
+    public required int Sort { get; set; }
 
     /// <summary>
     ///     Id of the question that owns the answer.

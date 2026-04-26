@@ -44,8 +44,7 @@ public sealed class SourcesUpdateSourceCommandHandler(
         entity.Kind = request.Kind;
         entity.Locator = request.Locator;
         entity.Label = request.Label;
-        entity.Scope = request.Scope;
-        entity.SystemName = request.SystemName;
+        entity.ContextNote = request.ContextNote;
         entity.ExternalId = request.ExternalId;
         entity.Language = request.Language;
         entity.MediaType = request.MediaType;

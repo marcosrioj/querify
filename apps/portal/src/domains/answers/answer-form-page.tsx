@@ -37,11 +37,6 @@ import {
   TextareaField,
 } from '@/shared/ui/form-fields';
 import { translateText } from '@/shared/lib/i18n-core';
-import {
-  DEFAULT_PORTAL_LANGUAGE,
-  getStoredPortalLanguage,
-  portalLanguageOptions,
-} from '@/shared/lib/language';
 
 function buildQuestionOption(question: { id: string; title: string; spaceKey: string }) {
   return {
@@ -59,7 +54,6 @@ export function AnswerFormPage({ mode }: { mode: 'create' | 'edit' }) {
   const preselectedQuestionId = searchParams.get('questionId') ?? '';
   const [questionSearch, setQuestionSearch] = useState('');
   const deferredQuestionSearch = useDeferredValue(questionSearch.trim());
-  const defaultLanguage = getStoredPortalLanguage() ?? DEFAULT_PORTAL_LANGUAGE;
   const answerQuery = useAnswer(mode === 'edit' ? id : undefined);
   const createAnswer = useCreateAnswer();
   const updateAnswer = useUpdateAnswer(id ?? '');
@@ -73,14 +67,11 @@ export function AnswerFormPage({ mode }: { mode: 'create' | 'edit' }) {
       kind: AnswerKind.Official,
       status: AnswerStatus.Draft,
       visibility: VisibilityScope.Internal,
-      language: defaultLanguage,
-      contextKey: '',
-      applicabilityRulesJson: '',
-      trustNote: '',
-      evidenceSummary: '',
+      contextNote: '',
       authorLabel: '',
-      confidenceScore: 50,
-      rank: 1,
+      aiConfidenceScore: 50,
+      score: 1,
+      sort: 1,
     },
   });
 
@@ -96,16 +87,13 @@ export function AnswerFormPage({ mode }: { mode: 'create' | 'edit' }) {
       kind: answerQuery.data.kind,
       status: answerQuery.data.status,
       visibility: answerQuery.data.visibility,
-      language: answerQuery.data.language ?? defaultLanguage,
-      contextKey: answerQuery.data.contextKey ?? '',
-      applicabilityRulesJson: answerQuery.data.applicabilityRulesJson ?? '',
-      trustNote: answerQuery.data.trustNote ?? '',
-      evidenceSummary: answerQuery.data.evidenceSummary ?? '',
+      contextNote: answerQuery.data.contextNote ?? '',
       authorLabel: answerQuery.data.authorLabel ?? '',
-      confidenceScore: answerQuery.data.confidenceScore,
-      rank: answerQuery.data.rank,
+      aiConfidenceScore: answerQuery.data.aiConfidenceScore,
+      score: answerQuery.data.score,
+      sort: answerQuery.data.sort,
     });
-  }, [answerQuery.data, defaultLanguage, form]);
+  }, [answerQuery.data, form]);
 
   const selectedQuestionId =
     form.watch('questionId') || answerQuery.data?.questionId || preselectedQuestionId;
@@ -137,15 +125,6 @@ export function AnswerFormPage({ mode }: { mode: 'create' | 'edit' }) {
   const selectedQuestionOption = selectedQuestion
     ? buildQuestionOption(selectedQuestion)
     : null;
-  const languageOptions = portalLanguageOptions.map((option) => ({
-    value: option.code,
-    label: option.label,
-    description: `${option.code} • ${option.direction.toUpperCase()}`,
-    keywords: [option.code, option.label, option.direction],
-  }));
-  const selectedLanguageValue = form.watch('language');
-  const selectedLanguageOption =
-    languageOptions.find((option) => option.value === selectedLanguageValue) ?? null;
   const isSubmitting = createAnswer.isPending || updateAnswer.isPending;
   const backTo =
     mode === 'edit' && id
@@ -189,8 +168,8 @@ export function AnswerFormPage({ mode }: { mode: 'create' | 'edit' }) {
                     label: 'Question',
                     value: selectedQuestion?.title || 'Choose in form',
                   },
-                  { label: 'Ranking', value: 'Rank and vote score shape answer order' },
-                  { label: 'Trust', value: 'Trust note and evidence summary are optional' },
+                  { label: 'Ranking', value: 'Score, sort, and vote score shape answer order' },
+                  { label: 'Context', value: 'Context note is optional' },
                 ]}
               />
             </CardContent>
@@ -229,11 +208,7 @@ export function AnswerFormPage({ mode }: { mode: 'create' | 'edit' }) {
                   const body = {
                     ...values,
                     body: values.body || undefined,
-                    language: values.language || undefined,
-                    contextKey: values.contextKey || undefined,
-                    applicabilityRulesJson: values.applicabilityRulesJson || undefined,
-                    trustNote: values.trustNote || undefined,
-                    evidenceSummary: values.evidenceSummary || undefined,
+                    contextNote: values.contextNote || undefined,
                     authorLabel: values.authorLabel || undefined,
                     kind: Number(values.kind) as AnswerKind,
                     status: Number(values.status) as AnswerStatus,
@@ -325,55 +300,26 @@ export function AnswerFormPage({ mode }: { mode: 'create' | 'edit' }) {
                   />
                   <TextField
                     control={form.control}
-                    name="rank"
-                    label="Rank"
-                    description="Lower numbers surface first when vote or acceptance does not override ordering."
+                    name="sort"
+                    label="Sort"
+                    description="Lower numbers surface first when acceptance does not override ordering."
                   />
                 </div>
-                <div className="grid gap-4 md:grid-cols-2">
-                  <SearchSelectField
-                    control={form.control}
-                    name="language"
-                    label="Language"
-                    description="Optional locale for multilingual answer operations."
-                    options={languageOptions}
-                    selectedOption={selectedLanguageOption}
-                    searchPlaceholder="Search languages"
-                    emptyMessage="No languages found."
-                    resultCountHint={translateText('{count} languages available', {
-                      count: portalLanguageOptions.length,
-                    })}
-                  />
+                <div className="grid gap-4 md:grid-cols-3">
                   <TextField
                     control={form.control}
-                    name="confidenceScore"
-                    label="Confidence score"
+                    name="aiConfidenceScore"
+                    label="AI confidence score"
                   />
                   <TextField control={form.control} name="authorLabel" label="Author label" />
-                  <TextField control={form.control} name="contextKey" label="Context key" />
-                </div>
-                <div className="grid gap-4 md:grid-cols-2">
-                  <TextareaField
-                    control={form.control}
-                    name="trustNote"
-                    label="Trust note"
-                    rows={3}
-                    description="Optional note explaining why this answer should be trusted."
-                  />
-                  <TextareaField
-                    control={form.control}
-                    name="evidenceSummary"
-                    label="Evidence summary"
-                    rows={3}
-                    description="Optional summary of the strongest supporting evidence."
-                  />
+                  <TextField control={form.control} name="score" label="Score" />
                 </div>
                 <TextareaField
                   control={form.control}
-                  name="applicabilityRulesJson"
-                  label="Applicability rules JSON"
+                  name="contextNote"
+                  label="Context note"
                   rows={4}
-                  description="Optional machine-readable rules that constrain when the answer applies."
+                  description="Optional note explaining why, when, or how this answer applies."
                 />
                 <div className="flex flex-wrap items-center gap-3">
                   <Button type="submit" disabled={isSubmitting || spaceBlocksAnswers}>

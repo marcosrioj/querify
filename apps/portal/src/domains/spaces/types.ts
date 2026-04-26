@@ -1,8 +1,4 @@
-import {
-  SearchMarkupMode,
-  SpaceKind,
-  VisibilityScope,
-} from '@/shared/constants/backend-enums';
+import { SpaceKind, VisibilityScope } from '@/shared/constants/backend-enums';
 import type { SourceDto } from '@/domains/sources/types';
 import type { TagDto } from '@/domains/tags/types';
 
@@ -12,12 +8,9 @@ export type SpaceDto = {
   name: string;
   key: string;
   summary?: string | null;
-  defaultLanguage: string;
+  language: string;
   kind: SpaceKind;
   visibility: VisibilityScope;
-  searchMarkupMode: SearchMarkupMode;
-  productScope?: string | null;
-  journeyScope?: string | null;
   acceptsQuestions: boolean;
   acceptsAnswers: boolean;
   publishedAtUtc?: string | null;
@@ -33,13 +26,10 @@ export type SpaceDetailDto = SpaceDto & {
 export type SpaceCreateRequestDto = {
   name: string;
   key: string;
-  defaultLanguage: string;
+  language: string;
   summary?: string | null;
   kind: SpaceKind;
   visibility: VisibilityScope;
-  searchMarkupMode: SearchMarkupMode;
-  productScope?: string | null;
-  journeyScope?: string | null;
   acceptsQuestions: boolean;
   acceptsAnswers: boolean;
   markValidated: boolean;

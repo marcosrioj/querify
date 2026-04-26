@@ -76,13 +76,6 @@ export enum VisibilityScope {
   PublicIndexed = 4,
 }
 
-export enum SearchMarkupMode {
-  CuratedList = 1,
-  QuestionPage = 2,
-  Hybrid = 3,
-  Off = 4,
-}
-
 export enum QuestionStatus {
   Draft = 0,
   PendingReview = 1,
@@ -238,13 +231,6 @@ export const visibilityScopeLabels: Record<VisibilityScope, string> = {
   [VisibilityScope.Authenticated]: 'Authenticated',
   [VisibilityScope.Public]: 'Public',
   [VisibilityScope.PublicIndexed]: 'Public indexed',
-};
-
-export const searchMarkupModeLabels: Record<SearchMarkupMode, string> = {
-  [SearchMarkupMode.CuratedList]: 'Curated list',
-  [SearchMarkupMode.QuestionPage]: 'Question page',
-  [SearchMarkupMode.Hybrid]: 'Hybrid',
-  [SearchMarkupMode.Off]: 'Off',
 };
 
 export const questionStatusLabels: Record<QuestionStatus, string> = {

@@ -47,8 +47,7 @@ export function SourceFormPage({ mode }: { mode: 'create' | 'edit' }) {
       kind: SourceKind.Article,
       locator: '',
       label: '',
-      scope: '',
-      systemName: '',
+      contextNote: '',
       externalId: '',
       language: '',
       mediaType: '',
@@ -72,12 +71,11 @@ export function SourceFormPage({ mode }: { mode: 'create' | 'edit' }) {
       kind: sourceQuery.data.kind,
       locator: sourceQuery.data.locator,
       label: sourceQuery.data.label ?? '',
-      scope: sourceQuery.data.scope ?? '',
-      systemName: sourceQuery.data.systemName ?? '',
+      contextNote: sourceQuery.data.contextNote ?? '',
       externalId: sourceQuery.data.externalId ?? '',
-      language: sourceQuery.data.language ?? '',
+      language: sourceQuery.data.language,
       mediaType: sourceQuery.data.mediaType ?? '',
-      checksum: sourceQuery.data.checksum ?? '',
+      checksum: sourceQuery.data.checksum,
       metadataJson: sourceQuery.data.metadataJson ?? '',
       visibility: sourceQuery.data.visibility,
       allowsPublicCitation: sourceQuery.data.allowsPublicCitation,
@@ -163,12 +161,9 @@ export function SourceFormPage({ mode }: { mode: 'create' | 'edit' }) {
                   const body = {
                     ...values,
                     label: values.label || undefined,
-                    scope: values.scope || undefined,
-                    systemName: values.systemName || undefined,
+                    contextNote: values.contextNote || undefined,
                     externalId: values.externalId || undefined,
-                    language: values.language || undefined,
                     mediaType: values.mediaType || undefined,
-                    checksum: values.checksum || undefined,
                     metadataJson: values.metadataJson || undefined,
                     capturedAtUtc: values.capturedAtUtc || undefined,
                     kind: Number(values.kind) as SourceKind,
@@ -217,8 +212,7 @@ export function SourceFormPage({ mode }: { mode: 'create' | 'edit' }) {
                 />
                 <div className="grid gap-4 md:grid-cols-2">
                   <TextField control={form.control} name="label" label="Label" />
-                  <TextField control={form.control} name="scope" label="Scope" />
-                  <TextField control={form.control} name="systemName" label="System name" />
+                  <TextField control={form.control} name="contextNote" label="Context note" />
                   <TextField control={form.control} name="externalId" label="External ID" />
                   <TextField control={form.control} name="language" label="Language" />
                   <TextField control={form.control} name="mediaType" label="Media type" />

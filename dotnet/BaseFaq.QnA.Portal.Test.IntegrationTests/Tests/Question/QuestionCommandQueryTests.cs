@@ -36,21 +36,14 @@ public class QuestionCommandQueryTests
             {
                 SpaceId = question.SpaceId,
                 Title = question.Title,
-                Key = question.Key,
                 Summary = question.Summary,
                 ContextNote = question.ContextNote,
-                ThreadSummary = question.ThreadSummary,
                 Status = question.Status,
                 Visibility = question.Visibility,
                 OriginChannel = question.OriginChannel,
-                Language = question.Language,
-                ProductScope = question.ProductScope,
-                JourneyScope = question.JourneyScope,
-                AudienceScope = question.AudienceScope,
-                ContextKey = question.ContextKey,
-                OriginUrl = question.OriginUrl,
-                OriginReference = question.OriginReference,
-                ConfidenceScore = question.ConfidenceScore,
+                AiConfidenceScore = question.AiConfidenceScore,
+                FeedbackScore = question.FeedbackScore,
+                Sort = question.Sort,
                 AcceptedAnswerId = acceptedAnswer.Id
             }
         }, CancellationToken.None);

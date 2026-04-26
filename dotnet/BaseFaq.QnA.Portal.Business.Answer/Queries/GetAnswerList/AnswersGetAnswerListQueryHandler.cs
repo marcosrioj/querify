@@ -34,9 +34,6 @@ public sealed class AnswersGetAnswerListQueryHandler(
         if (request.Request.Visibility is not null)
             query = query.Where(answer => answer.Visibility == request.Request.Visibility);
 
-        if (!string.IsNullOrWhiteSpace(request.Request.ContextKey))
-            query = query.Where(answer => answer.ContextKey == request.Request.ContextKey);
-
         if (request.Request.IsAccepted is not null)
             query = request.Request.IsAccepted.Value
                 ? query.Where(answer => answer.Question != null && answer.Question.AcceptedAnswerId == answer.Id)
@@ -45,11 +42,14 @@ public sealed class AnswersGetAnswerListQueryHandler(
         query = request.Request.Sorting?.Trim().ToLowerInvariant() switch
         {
             "headline desc" => query.OrderByDescending(answer => answer.Headline),
-            "rank" => query.OrderBy(answer => answer.Rank),
-            "rank desc" => query.OrderByDescending(answer => answer.Rank),
+            "score" => query.OrderBy(answer => answer.Score),
+            "score desc" => query.OrderByDescending(answer => answer.Score),
+            "sort" => query.OrderBy(answer => answer.Sort),
+            "sort desc" => query.OrderByDescending(answer => answer.Sort),
             _ => query.OrderByDescending(answer =>
                     answer.Question != null && answer.Question.AcceptedAnswerId == answer.Id)
-                .ThenByDescending(answer => answer.Rank)
+                .ThenBy(answer => answer.Sort)
+                .ThenByDescending(answer => answer.Score)
         };
 
         var totalCount = await query.CountAsync(cancellationToken);

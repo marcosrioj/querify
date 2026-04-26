@@ -36,12 +36,6 @@ public sealed class SpacesGetSpaceListQueryHandler(
                 EF.Functions.ILike(space.Name, $"%{request.Request.SearchText}%") ||
                 EF.Functions.ILike(space.Key, $"%{request.Request.SearchText}%"));
 
-        if (!string.IsNullOrWhiteSpace(request.Request.ProductScope))
-            query = query.Where(space => space.ProductScope == request.Request.ProductScope);
-
-        if (!string.IsNullOrWhiteSpace(request.Request.JourneyScope))
-            query = query.Where(space => space.JourneyScope == request.Request.JourneyScope);
-
         query = request.Request.Sorting?.Trim().ToLowerInvariant() switch
         {
             "name desc" => query.OrderByDescending(space => space.Name),

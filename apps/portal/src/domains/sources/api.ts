@@ -18,7 +18,6 @@ export function listSources(
     kind,
     visibility,
     isAuthoritative,
-    systemName,
   }: {
     page: number;
     pageSize: number;
@@ -27,7 +26,6 @@ export function listSources(
     kind?: number;
     visibility?: number;
     isAuthoritative?: boolean;
-    systemName?: string;
   },
   signal?: AbortSignal,
 ) {
@@ -41,7 +39,6 @@ export function listSources(
       Kind: kind,
       Visibility: visibility,
       IsAuthoritative: isAuthoritative,
-      SystemName: systemName,
     }),
     signal,
   });

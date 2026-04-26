@@ -46,14 +46,10 @@ public sealed class QuestionsGetQuestionListQueryHandler(
         if (!string.IsNullOrWhiteSpace(request.Request.SpaceKey))
             query = query.Where(question => question.Space.Key == request.Request.SpaceKey);
 
-        if (!string.IsNullOrWhiteSpace(request.Request.ContextKey))
-            query = query.Where(question => question.ContextKey == request.Request.ContextKey);
-
-        if (!string.IsNullOrWhiteSpace(request.Request.Language))
-            query = query.Where(question => question.Language == request.Request.Language);
-
         query = request.Request.Sorting?.Trim().ToLowerInvariant() switch
         {
+            "sort" => query.OrderBy(question => question.Sort),
+            "sort desc" => query.OrderByDescending(question => question.Sort),
             "title" => query.OrderBy(question => question.Title),
             "title desc" => query.OrderByDescending(question => question.Title),
             _ => query.OrderByDescending(question =>

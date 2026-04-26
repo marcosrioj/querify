@@ -19,13 +19,12 @@ public static class TestDataFactory
             TenantId = tenantId,
             Name = name ?? "Public Support",
             Key = key ?? $"public-{Guid.NewGuid():N}".Substring(0, 12),
-            DefaultLanguage = "en-US",
+            Language = "en-US",
             Kind = SpaceKind.PublicValidation,
             Summary = "Public knowledge",
             AcceptsQuestions = true,
             AcceptsAnswers = true,
             Visibility = visibility,
-            SearchMarkupMode = SearchMarkupMode.Hybrid,
             PublishedAtUtc = visibility is VisibilityScope.Public or VisibilityScope.PublicIndexed
                 ? DateTime.UtcNow
                 : null,
@@ -56,20 +55,14 @@ public static class TestDataFactory
             SpaceId = space.Id,
             Space = space,
             Title = title ?? "How can I reset my password?",
-            Key = key ?? $"question-{Guid.NewGuid():N}".Substring(0, 14),
             Summary = "Public summary",
             ContextNote = "Public context",
-            ThreadSummary = "Public thread summary",
             Status = status,
             Visibility = visibility,
             OriginChannel = ChannelKind.Widget,
-            Language = "en-US",
-            ProductScope = "Portal",
-            JourneyScope = "Support",
-            AudienceScope = "Customer",
-            ContextKey = "default",
-            ConfidenceScore = 90,
-            RevisionNumber = 1,
+            AiConfidenceScore = 90,
+            FeedbackScore = 0,
+            Sort = 0,
             ValidatedAtUtc = status == QuestionStatus.Validated ? DateTime.UtcNow : null,
             CreatedBy = "test",
             UpdatedBy = "test"
@@ -121,16 +114,12 @@ public static class TestDataFactory
             Headline = headline ?? "Use the reset link from sign-in.",
             Body = "Open sign-in and request a reset link.",
             Kind = AnswerKind.Official,
-            Language = "en-US",
-            ContextKey = "default",
-            ApplicabilityRulesJson = "{\"surface\":\"public\"}",
-            ConfidenceScore = 94,
-            TrustNote = "Reviewed",
-            EvidenceSummary = "Docs backed",
+            AiConfidenceScore = 94,
+            ContextNote = "Reviewed",
             Status = status,
             Visibility = visibility,
-            Rank = rank,
-            RevisionNumber = status == AnswerStatus.Validated ? 2 : 1,
+            Score = rank,
+            Sort = rank,
             CreatedBy = "test",
             UpdatedBy = "test"
         };
@@ -140,12 +129,10 @@ public static class TestDataFactory
             case AnswerStatus.Validated:
                 entity.Status = AnswerStatus.Validated;
                 entity.ValidatedAtUtc = DateTime.UtcNow;
-                entity.RevisionNumber = 2;
                 break;
             case AnswerStatus.Published:
                 entity.Status = AnswerStatus.Published;
                 entity.PublishedAtUtc = DateTime.UtcNow;
-                entity.RevisionNumber = 1;
                 break;
             default:
                 entity.Status = status;

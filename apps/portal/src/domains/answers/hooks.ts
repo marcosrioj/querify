@@ -37,7 +37,6 @@ export function useAnswerList(params: {
   questionId?: string;
   status?: number;
   visibility?: number;
-  contextKey?: string;
   isAccepted?: boolean;
 }) {
   const { session, status } = useAuth();

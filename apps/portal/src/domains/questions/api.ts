@@ -24,8 +24,6 @@ export function listQuestions(
     status,
     visibility,
     spaceKey,
-    contextKey,
-    language,
     includeAnswers,
     includeTags,
     includeSources,
@@ -41,8 +39,6 @@ export function listQuestions(
     status?: number;
     visibility?: number;
     spaceKey?: string;
-    contextKey?: string;
-    language?: string;
     includeAnswers?: boolean;
     includeTags?: boolean;
     includeSources?: boolean;
@@ -63,8 +59,6 @@ export function listQuestions(
       Status: status,
       Visibility: visibility,
       SpaceKey: spaceKey,
-      ContextKey: contextKey,
-      Language: language,
       IncludeAnswers: includeAnswers,
       IncludeTags: includeTags,
       IncludeSources: includeSources,

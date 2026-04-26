@@ -18,7 +18,6 @@ export function listAnswers(
     questionId,
     status,
     visibility,
-    contextKey,
     isAccepted,
   }: {
     page: number;
@@ -27,7 +26,6 @@ export function listAnswers(
     questionId?: string;
     status?: number;
     visibility?: number;
-    contextKey?: string;
     isAccepted?: boolean;
   },
   signal?: AbortSignal,
@@ -41,7 +39,6 @@ export function listAnswers(
       QuestionId: questionId,
       Status: status,
       Visibility: visibility,
-      ContextKey: contextKey,
       IsAccepted: isAccepted,
     }),
     signal,

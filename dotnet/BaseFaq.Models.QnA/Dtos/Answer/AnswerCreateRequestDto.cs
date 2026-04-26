@@ -10,12 +10,9 @@ public class AnswerCreateRequestDto
     public required AnswerKind Kind { get; set; }
     public required AnswerStatus Status { get; set; }
     public required VisibilityScope Visibility { get; set; }
-    public string? Language { get; set; }
-    public string? ContextKey { get; set; }
-    public string? ApplicabilityRulesJson { get; set; }
-    public string? TrustNote { get; set; }
-    public string? EvidenceSummary { get; set; }
+    public string? ContextNote { get; set; }
     public string? AuthorLabel { get; set; }
-    public required int ConfidenceScore { get; set; }
-    public required int Rank { get; set; }
+    public required int AiConfidenceScore { get; set; }
+    public required int Score { get; set; }
+    public required int Sort { get; set; }
 }

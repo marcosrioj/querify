@@ -43,15 +43,12 @@ public sealed class SpacesUpdateSpaceCommandHandler(
     {
         entity.Name = request.Name;
         entity.Key = request.Key;
-        entity.DefaultLanguage = request.DefaultLanguage;
+        entity.Language = request.Language;
         entity.Summary = request.Summary;
-        entity.ProductScope = request.ProductScope;
-        entity.JourneyScope = request.JourneyScope;
         entity.AcceptsQuestions = request.AcceptsQuestions;
         entity.AcceptsAnswers = request.AcceptsAnswers;
         entity.Kind = request.Kind;
         entity.Visibility = request.Visibility;
-        entity.SearchMarkupMode = request.SearchMarkupMode;
         entity.PublishedAtUtc =
             request.Visibility is VisibilityScope.Public or VisibilityScope.PublicIndexed
                 ? entity.PublishedAtUtc ?? DateTime.UtcNow

@@ -4,7 +4,6 @@ using BaseFaq.QnA.Public.Business.Question.Abstractions;
 using BaseFaq.QnA.Public.Business.Question.Commands.CreateQuestion;
 using BaseFaq.QnA.Public.Business.Question.Commands.CreateReport;
 using BaseFaq.QnA.Public.Business.Question.Queries.GetQuestion;
-using BaseFaq.QnA.Public.Business.Question.Queries.GetQuestionByKey;
 using BaseFaq.QnA.Public.Business.Question.Queries.GetQuestionList;
 using MediatR;
 
@@ -24,17 +23,6 @@ public sealed class QuestionService(IMediator mediator) : IQuestionService
         return mediator.Send(new QuestionsGetQuestionQuery
         {
             Id = id,
-            Request = requestDto
-        }, token);
-    }
-
-    public Task<QuestionDetailDto> GetByKey(string key, QuestionGetRequestDto requestDto, CancellationToken token)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(key);
-        ArgumentNullException.ThrowIfNull(requestDto);
-        return mediator.Send(new QuestionsGetQuestionByKeyQuery
-        {
-            Key = key,
             Request = requestDto
         }, token);
     }

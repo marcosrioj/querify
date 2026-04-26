@@ -138,7 +138,7 @@ export function SpaceListPage() {
         <div className="space-y-1">
           <div className="font-medium text-mono">{space.name}</div>
           <div className="text-sm text-muted-foreground">
-            {space.key} • {space.defaultLanguage}
+            {space.key} • {space.language}
           </div>
           {space.summary ? (
             <div className="line-clamp-2 text-sm text-muted-foreground">

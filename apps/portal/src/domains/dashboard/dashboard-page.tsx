@@ -91,7 +91,7 @@ function SpaceRow({ space, timeZone }: { space: SpaceDto; timeZone: string }) {
             {space.name}
           </Link>
           <p className="text-sm text-muted-foreground">
-            {space.key} • {space.defaultLanguage}
+            {space.key} • {space.language}
           </p>
           {space.summary ? (
             <p className="line-clamp-2 text-sm text-muted-foreground">{space.summary}</p>
@@ -130,7 +130,7 @@ function QuestionRow({
             {question.title}
           </Link>
           <p className="text-sm text-muted-foreground">
-            {question.spaceKey} • {question.key}
+            {question.spaceKey}
           </p>
           {question.summary ? (
             <p className="line-clamp-2 text-sm text-muted-foreground">{question.summary}</p>
@@ -146,7 +146,7 @@ function QuestionRow({
           {translateText('Feedback {value}', { value: question.feedbackScore })}
         </span>
         <span>
-          {translateText('Confidence {value}', { value: question.confidenceScore })}
+          {translateText('Confidence {value}', { value: question.aiConfidenceScore })}
         </span>
         {question.acceptedAnswerId ? (
           <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-emerald-700">
@@ -189,9 +189,10 @@ function AnswerRow({ answer, timeZone }: { answer: AnswerDto; timeZone: string }
         </div>
       </div>
       <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-        <span>{translateText('Rank {value}', { value: answer.rank })}</span>
+        <span>{translateText('Score {value}', { value: answer.score })}</span>
+        <span>{translateText('Sort {value}', { value: answer.sort })}</span>
         <span>{translateText('Vote score {value}', { value: answer.voteScore })}</span>
-        <span>{translateText('Confidence {value}', { value: answer.confidenceScore })}</span>
+        <span>{translateText('Confidence {value}', { value: answer.aiConfidenceScore })}</span>
         {answer.isAccepted ? (
           <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-emerald-700">
             {translateText('Accepted')}

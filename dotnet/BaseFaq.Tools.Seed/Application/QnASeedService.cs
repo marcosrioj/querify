@@ -11,7 +11,6 @@ namespace BaseFaq.Tools.Seed.Application;
 public sealed class QnASeedService : IQnASeedService
 {
     private const string SeedLanguage = "en-US";
-    private const string SeedContextKey = "public-web";
     private static readonly DateTime SeedBaseTimeUtc = new(2026, 4, 6, 12, 0, 0, DateTimeKind.Utc);
 
     private static readonly string[] FeedbackReasons =
@@ -138,8 +137,7 @@ public sealed class QnASeedService : IQnASeedService
                 Kind = ResolveSourceKind(item.SourceName),
                 Locator = item.SourceUrl,
                 Label = item.SourceLabel,
-                Scope = $"Curated evidence for {item.Question}",
-                SystemName = item.SourceName,
+                ContextNote = $"Curated evidence for {item.Question}",
                 ExternalId = NormalizeKey($"{item.SourceName}-{item.Question}", "seed-source"),
                 Language = SeedLanguage,
                 MediaType = "text/html",
@@ -167,12 +165,9 @@ public sealed class QnASeedService : IQnASeedService
             Name = definition.Name,
             Key = NormalizeKey(definition.Name, $"space-{index + 1}"),
             Summary = BuildSpaceSummary(definition),
-            DefaultLanguage = SeedLanguage,
+            Language = SeedLanguage,
             Kind = SpaceKind.ModeratedCollaboration,
             Visibility = VisibilityScope.PublicIndexed,
-            SearchMarkupMode = SearchMarkupMode.Hybrid,
-            ProductScope = definition.Name,
-            JourneyScope = "Self-service support",
             AcceptsQuestions = true,
             AcceptsAnswers = true,
             PublishedAtUtc = SeedBaseTimeUtc.AddDays(-(index + 30)),
@@ -255,7 +250,7 @@ public sealed class QnASeedService : IQnASeedService
             var createdAtUtc = SeedBaseTimeUtc.AddDays(-(spaceIndex * 3 + questionIndex + 1));
             var publishedAtUtc = createdAtUtc.AddHours(2);
             var resolvedAtUtc = publishedAtUtc.AddHours(2);
-            var isValidated = item.ConfidenceScore >= 90;
+            var isValidated = item.AiConfidenceScore >= 90;
             var validatedAtUtc = isValidated ? resolvedAtUtc.AddHours(3) : (DateTime?)null;
             var questionId = Guid.NewGuid();
 
@@ -276,22 +271,14 @@ public sealed class QnASeedService : IQnASeedService
                 SpaceId = space.Id,
                 Space = space,
                 Title = item.Question,
-                Key = NormalizeKey($"{space.Key}-{questionIndex + 1}-{item.Question}", $"question-{spaceIndex + 1}-{questionIndex + 1}"),
                 Summary = item.ShortAnswer,
                 ContextNote = $"Imported from {item.SourceName}. Snapshot refreshed on {SeedBaseTimeUtc:yyyy-MM-dd}.",
                 Status = isValidated ? QuestionStatus.Validated : QuestionStatus.Answered,
                 Visibility = VisibilityScope.PublicIndexed,
                 OriginChannel = ChannelKind.Import,
-                Language = SeedLanguage,
-                ProductScope = definition.Name,
-                JourneyScope = "Self-service resolution",
-                AudienceScope = "Customer",
-                ContextKey = SeedContextKey,
-                OriginUrl = item.SourceUrl,
-                OriginReference = $"{space.Key.ToUpperInvariant()}-Q-{questionIndex + 1:000}",
-                ThreadSummary = item.ShortAnswer,
-                ConfidenceScore = Math.Clamp(item.ConfidenceScore, 0, 100),
-                RevisionNumber = isValidated ? 3 : 2,
+                AiConfidenceScore = Math.Clamp(item.AiConfidenceScore, 0, 100),
+                FeedbackScore = 0,
+                Sort = questionIndex + 1,
                 AnsweredAtUtc = resolvedAtUtc,
                 ResolvedAtUtc = resolvedAtUtc,
                 ValidatedAtUtc = validatedAtUtc,
@@ -342,6 +329,7 @@ public sealed class QnASeedService : IQnASeedService
             }
 
             question.LastActivityAtUtc = activities.Max(activity => activity.OccurredAtUtc);
+            question.FeedbackScore = ActivitySignals.ComputeFeedbackScore(activities.Select(ToSignalEntry));
             dbContext.Questions.Add(question);
             acceptedAnswerAssignments.Add(new AcceptedAnswerAssignment(question, primaryAnswer));
         }
@@ -367,15 +355,11 @@ public sealed class QnASeedService : IQnASeedService
             Kind = AnswerKind.Official,
             Status = validatedAtUtc is not null ? AnswerStatus.Validated : AnswerStatus.Published,
             Visibility = VisibilityScope.PublicIndexed,
-            Language = SeedLanguage,
-            ContextKey = SeedContextKey,
-            ApplicabilityRulesJson = $$"""{"channel":"public-web","source":"{{EscapeJson(item.SourceName)}}" }""",
-            TrustNote = $"Curated and reviewed from {item.SourceName}.",
-            EvidenceSummary = $"Primary guidance derived from {item.SourceLabel}.",
+            ContextNote = $"Curated and reviewed from {item.SourceName}. Primary guidance derived from {item.SourceLabel}.",
             AuthorLabel = moderatedBy,
-            ConfidenceScore = Math.Clamp(item.ConfidenceScore, 0, 100),
-            Rank = Math.Max(1, item.HelpfulFeedbackPercent / 10),
-            RevisionNumber = validatedAtUtc is not null ? 2 : 1,
+            AiConfidenceScore = Math.Clamp(item.AiConfidenceScore, 0, 100),
+            Score = Math.Max(1, item.HelpfulFeedbackPercent / 10),
+            Sort = 1,
             PublishedAtUtc = publishedAtUtc,
             ValidatedAtUtc = validatedAtUtc,
             AcceptedAtUtc = resolvedAtUtc,
@@ -408,15 +392,11 @@ public sealed class QnASeedService : IQnASeedService
             Kind = AnswerKind.Imported,
             Status = AnswerStatus.Archived,
             Visibility = VisibilityScope.Internal,
-            Language = SeedLanguage,
-            ContextKey = $"{SeedContextKey}-legacy",
-            ApplicabilityRulesJson = """{"status":"legacy"}""",
-            TrustNote = "Retained for audit only.",
-            EvidenceSummary = $"Superseded by the current operational answer based on {item.SourceLabel}.",
+            ContextNote = $"Retained for audit only. Superseded by the current operational answer based on {item.SourceLabel}.",
             AuthorLabel = moderatedBy,
-            ConfidenceScore = Math.Max(35, item.ConfidenceScore - 25),
-            Rank = 1,
-            RevisionNumber = 1,
+            AiConfidenceScore = Math.Max(35, item.AiConfidenceScore - 25),
+            Score = 1,
+            Sort = 2,
             PublishedAtUtc = publishedAtUtc.AddMinutes(-30),
             RetiredAtUtc = publishedAtUtc.AddHours(8),
             CreatedBy = "seed",
@@ -874,6 +854,16 @@ public sealed class QnASeedService : IQnASeedService
         return value
             .Replace("\\", "\\\\", StringComparison.Ordinal)
             .Replace("\"", "\\\"", StringComparison.Ordinal);
+    }
+
+    private static ActivitySignalEntry ToSignalEntry(Activity activity)
+    {
+        return new ActivitySignalEntry(
+            activity.Kind,
+            activity.AnswerId,
+            activity.OccurredAtUtc,
+            activity.UserPrint,
+            activity.MetadataJson);
     }
 
     private sealed record AcceptedAnswerAssignment(Question Question, Answer Answer);

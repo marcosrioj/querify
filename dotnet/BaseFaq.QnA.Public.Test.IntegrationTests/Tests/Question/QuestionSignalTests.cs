@@ -182,6 +182,13 @@ public class QuestionSignalTests
         question.Activities.Add(voteUp);
         question.Activities.Add(voteDown);
         question.LastActivityAtUtc = voteDown.OccurredAtUtc;
+        question.FeedbackScore = ActivitySignals.ComputeFeedbackScore(question.Activities.Select(activity =>
+            new ActivitySignalEntry(
+                activity.Kind,
+                activity.AnswerId,
+                activity.OccurredAtUtc,
+                activity.UserPrint,
+                activity.MetadataJson)));
         context.DbContext.Activities.AddRange(feedbackUp, feedbackDown, voteUp, voteDown);
         await context.DbContext.SaveChangesAsync();
 

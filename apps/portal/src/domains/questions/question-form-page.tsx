@@ -36,11 +36,6 @@ import {
   TextareaField,
 } from '@/shared/ui/form-fields';
 import { translateText } from '@/shared/lib/i18n-core';
-import {
-  DEFAULT_PORTAL_LANGUAGE,
-  getStoredPortalLanguage,
-  portalLanguageOptions,
-} from '@/shared/lib/language';
 
 function buildSpaceOption(space: { id: string; name: string; key: string }) {
   return {
@@ -58,7 +53,6 @@ export function QuestionFormPage({ mode }: { mode: 'create' | 'edit' }) {
   const preselectedSpaceId = searchParams.get('spaceId') ?? '';
   const [spaceSearch, setSpaceSearch] = useState('');
   const deferredSpaceSearch = useDeferredValue(spaceSearch.trim());
-  const defaultLanguage = getStoredPortalLanguage() ?? DEFAULT_PORTAL_LANGUAGE;
   const questionQuery = useQuestion(mode === 'edit' ? id : undefined);
   const createQuestion = useCreateQuestion();
   const updateQuestion = useUpdateQuestion(id ?? '');
@@ -68,21 +62,14 @@ export function QuestionFormPage({ mode }: { mode: 'create' | 'edit' }) {
     defaultValues: {
       spaceId: preselectedSpaceId,
       title: '',
-      key: '',
       summary: '',
       contextNote: '',
-      threadSummary: '',
       status: QuestionStatus.Draft,
       visibility: VisibilityScope.Internal,
       originChannel: ChannelKind.Manual,
-      language: defaultLanguage,
-      productScope: '',
-      journeyScope: '',
-      audienceScope: '',
-      contextKey: '',
-      originUrl: '',
-      originReference: '',
-      confidenceScore: 50,
+      aiConfidenceScore: 50,
+      feedbackScore: 0,
+      sort: 0,
     },
   });
 
@@ -94,23 +81,16 @@ export function QuestionFormPage({ mode }: { mode: 'create' | 'edit' }) {
     form.reset({
       spaceId: questionQuery.data.spaceId,
       title: questionQuery.data.title,
-      key: questionQuery.data.key,
       summary: questionQuery.data.summary ?? '',
       contextNote: questionQuery.data.contextNote ?? '',
-      threadSummary: questionQuery.data.threadSummary ?? '',
       status: questionQuery.data.status,
       visibility: questionQuery.data.visibility,
       originChannel: questionQuery.data.originChannel,
-      language: questionQuery.data.language ?? defaultLanguage,
-      productScope: questionQuery.data.productScope ?? '',
-      journeyScope: questionQuery.data.journeyScope ?? '',
-      audienceScope: questionQuery.data.audienceScope ?? '',
-      contextKey: questionQuery.data.contextKey ?? '',
-      originUrl: questionQuery.data.originUrl ?? '',
-      originReference: questionQuery.data.originReference ?? '',
-      confidenceScore: questionQuery.data.confidenceScore,
+      aiConfidenceScore: questionQuery.data.aiConfidenceScore,
+      feedbackScore: questionQuery.data.feedbackScore,
+      sort: questionQuery.data.sort,
     });
-  }, [defaultLanguage, form, questionQuery.data]);
+  }, [form, questionQuery.data]);
 
   const selectedSpaceId = form.watch('spaceId') || questionQuery.data?.spaceId || preselectedSpaceId;
   const selectedSpaceQuery = useSpace(selectedSpaceId || undefined);
@@ -136,15 +116,6 @@ export function QuestionFormPage({ mode }: { mode: 'create' | 'edit' }) {
   const spaceBlocksQuestions = selectedSpace?.acceptsQuestions === false;
   const spaceOptions = (spaceOptionsQuery.data?.items ?? []).map(buildSpaceOption);
   const selectedSpaceOption = selectedSpace ? buildSpaceOption(selectedSpace) : null;
-  const languageOptions = portalLanguageOptions.map((option) => ({
-    value: option.code,
-    label: option.label,
-    description: `${option.code} • ${option.direction.toUpperCase()}`,
-    keywords: [option.code, option.label, option.direction],
-  }));
-  const selectedLanguageValue = form.watch('language');
-  const selectedLanguageOption =
-    languageOptions.find((option) => option.value === selectedLanguageValue) ?? null;
   const isSubmitting = createQuestion.isPending || updateQuestion.isPending;
   const backTo =
     mode === 'edit' && id ? `/app/questions/${id}` : selectedSpaceId ? `/app/spaces/${selectedSpaceId}` : '/app/questions';
@@ -222,14 +193,6 @@ export function QuestionFormPage({ mode }: { mode: 'create' | 'edit' }) {
                     ...values,
                     summary: values.summary || undefined,
                     contextNote: values.contextNote || undefined,
-                    threadSummary: values.threadSummary || undefined,
-                    language: values.language || undefined,
-                    productScope: values.productScope || undefined,
-                    journeyScope: values.journeyScope || undefined,
-                    audienceScope: values.audienceScope || undefined,
-                    contextKey: values.contextKey || undefined,
-                    originUrl: values.originUrl || undefined,
-                    originReference: values.originReference || undefined,
                     status: Number(values.status) as QuestionStatus,
                     visibility: Number(values.visibility) as VisibilityScope,
                     originChannel: Number(values.originChannel) as ChannelKind,
@@ -284,10 +247,9 @@ export function QuestionFormPage({ mode }: { mode: 'create' | 'edit' }) {
                   />
                   <TextField
                     control={form.control}
-                    name="key"
-                    label="Key"
-                    placeholder="activate-workspace-for-new-tenant"
-                    description="Use a stable slug for routing and references."
+                    name="sort"
+                    label="Sort"
+                    description="Lower values appear earlier in curated ordering."
                   />
                 </div>
                 <TextareaField
@@ -297,22 +259,13 @@ export function QuestionFormPage({ mode }: { mode: 'create' | 'edit' }) {
                   rows={3}
                   description="A compact explanation of the thread before the full context."
                 />
-                <div className="grid gap-4 md:grid-cols-2">
-                  <TextareaField
-                    control={form.control}
-                    name="contextNote"
-                    label="Context note"
-                    rows={4}
-                    description="Operational nuance that answer authors should understand."
-                  />
-                  <TextareaField
-                    control={form.control}
-                    name="threadSummary"
-                    label="Thread summary"
-                    rows={4}
-                    description="A concise recap of the discussion or imported context."
-                  />
-                </div>
+                <TextareaField
+                  control={form.control}
+                  name="contextNote"
+                  label="Context note"
+                  rows={4}
+                  description="Operational nuance that answer authors should understand."
+                />
                 <FormSectionHeading
                   title="Workflow"
                   description="Set the starting lifecycle, visibility, and intake channel."
@@ -347,60 +300,17 @@ export function QuestionFormPage({ mode }: { mode: 'create' | 'edit' }) {
                   />
                 </div>
                 <div className="grid gap-4 md:grid-cols-2">
-                  <SearchSelectField
-                    control={form.control}
-                    name="language"
-                    label="Language"
-                    description="Optional locale for multilingual operations and public rendering."
-                    options={languageOptions}
-                    selectedOption={selectedLanguageOption}
-                    searchPlaceholder="Search languages"
-                    emptyMessage="No languages found."
-                    resultCountHint={translateText('{count} languages available', {
-                      count: portalLanguageOptions.length,
-                    })}
-                  />
                   <TextField
                     control={form.control}
-                    name="confidenceScore"
-                    label="Confidence score"
+                    name="aiConfidenceScore"
+                    label="AI confidence score"
                     description="Use a 0-100 score to indicate how strong the current thread framing is."
                   />
-                </div>
-                <FormSectionHeading
-                  title="Context and audience"
-                  description="Capture audience, product, and journey context that influences the answer."
-                />
-                <div className="grid gap-4 md:grid-cols-2">
                   <TextField
                     control={form.control}
-                    name="productScope"
-                    label="Product scope"
-                  />
-                  <TextField
-                    control={form.control}
-                    name="journeyScope"
-                    label="Journey scope"
-                  />
-                  <TextField
-                    control={form.control}
-                    name="audienceScope"
-                    label="Audience scope"
-                  />
-                  <TextField
-                    control={form.control}
-                    name="contextKey"
-                    label="Context key"
-                  />
-                  <TextField
-                    control={form.control}
-                    name="originUrl"
-                    label="Origin URL"
-                  />
-                  <TextField
-                    control={form.control}
-                    name="originReference"
-                    label="Origin reference"
+                    name="feedbackScore"
+                    label="Feedback score"
+                    description="Current aggregate feedback score for this question."
                   />
                 </div>
                 <div className="flex flex-wrap items-center gap-3">

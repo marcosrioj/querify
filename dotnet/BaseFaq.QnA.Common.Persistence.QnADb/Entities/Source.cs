@@ -12,8 +12,7 @@ public class Source : BaseEntity, IMustHaveTenant
 {
     public const int MaxLocatorLength = 1000;
     public const int MaxLabelLength = 200;
-    public const int MaxScopeLength = 1000;
-    public const int MaxSystemNameLength = 100;
+    public const int MaxContextNoteLength = 1000;
     public const int MaxExternalIdLength = 250;
     public const int MaxLanguageLength = 50;
     public const int MaxMediaTypeLength = 100;
@@ -36,14 +35,9 @@ public class Source : BaseEntity, IMustHaveTenant
     public string? Label { get; set; }
 
     /// <summary>
-    ///     Relevant segment, area, or scope of the source for the context.
+    ///     Human-readable context that explains how the source should be used.
     /// </summary>
-    public string? Scope { get; set; }
-
-    /// <summary>
-    ///     Upstream system for the source, such as Zendesk, GitHub, or Slack.
-    /// </summary>
-    public string? SystemName { get; set; }
+    public string? ContextNote { get; set; }
 
     /// <summary>
     ///     External identifier of the source in the upstream system.
@@ -53,7 +47,7 @@ public class Source : BaseEntity, IMustHaveTenant
     /// <summary>
     ///     Language of the source content.
     /// </summary>
-    public string? Language { get; set; }
+    public required string Language { get; set; }
 
     /// <summary>
     ///     Media type or content format.
@@ -63,7 +57,7 @@ public class Source : BaseEntity, IMustHaveTenant
     /// <summary>
     ///     Hash or signature used to detect content changes.
     /// </summary>
-    public string? Checksum { get; set; }
+    public required string Checksum { get; set; }
 
     /// <summary>
     ///     Serialized source metadata.

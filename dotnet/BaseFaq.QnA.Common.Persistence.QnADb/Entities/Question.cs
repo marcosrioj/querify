@@ -10,27 +10,13 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Entities;
 public class Question : BaseEntity, IMustHaveTenant
 {
     public const int MaxTitleLength = 1000;
-    public const int MaxKeyLength = 200;
     public const int MaxSummaryLength = 500;
     public const int MaxContextNoteLength = 2000;
-    public const int MaxLanguageLength = 50;
-    public const int MaxProductScopeLength = 200;
-    public const int MaxJourneyScopeLength = 200;
-    public const int MaxAudienceScopeLength = 200;
-    public const int MaxContextKeyLength = 200;
-    public const int MaxOriginUrlLength = 1000;
-    public const int MaxOriginReferenceLength = 250;
-    public const int MaxThreadSummaryLength = 4000;
 
     /// <summary>
     ///     Main question shown to the user.
     /// </summary>
     public required string Title { get; set; }
-
-    /// <summary>
-    ///     Stable question key for pages, APIs, and integrations.
-    /// </summary>
-    public required string Key { get; set; }
 
     /// <summary>
     ///     Short question summary for lists, search, and suggestions.
@@ -58,54 +44,19 @@ public class Question : BaseEntity, IMustHaveTenant
     public required ChannelKind OriginChannel { get; set; }
 
     /// <summary>
-    ///     Language captured for the question.
+    ///     AI-generated confidence that the question is well answered and safe to serve.
     /// </summary>
-    public string? Language { get; set; }
+    public required int AiConfidenceScore { get; set; }
 
     /// <summary>
-    ///     Optional product scope associated with the question.
+    ///     Current aggregate feedback score from public feedback signals.
     /// </summary>
-    public string? ProductScope { get; set; }
+    public required int FeedbackScore { get; set; }
 
     /// <summary>
-    ///     Optional journey scope associated with the question.
+    ///     Manual ordering value used when presenting questions in curated surfaces.
     /// </summary>
-    public string? JourneyScope { get; set; }
-
-    /// <summary>
-    ///     Optional audience scope that the question applies to.
-    /// </summary>
-    public string? AudienceScope { get; set; }
-
-    /// <summary>
-    ///     Context key for plan, country, version, or integration variants.
-    /// </summary>
-    public string? ContextKey { get; set; }
-
-    /// <summary>
-    ///     Source URL for the question when it comes from another channel.
-    /// </summary>
-    public string? OriginUrl { get; set; }
-
-    /// <summary>
-    ///     Source reference such as a ticket, message, or external identifier.
-    /// </summary>
-    public string? OriginReference { get; set; }
-
-    /// <summary>
-    ///     Operational summary of what the thread discovered or resolved.
-    /// </summary>
-    public string? ThreadSummary { get; set; }
-
-    /// <summary>
-    ///     Accumulated confidence that the question is well answered and safe to serve.
-    /// </summary>
-    public required int ConfidenceScore { get; set; }
-
-    /// <summary>
-    ///     Current revision of the thread.
-    /// </summary>
-    public required int RevisionNumber { get; set; }
+    public required int Sort { get; set; }
 
     /// <summary>
     ///     Identifier of the space that owns the question.

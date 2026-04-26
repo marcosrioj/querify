@@ -15,29 +15,20 @@ export type QuestionDto = {
   spaceId: string;
   spaceKey: string;
   title: string;
-  key: string;
   summary?: string | null;
   contextNote?: string | null;
   status: QuestionStatus;
   visibility: VisibilityScope;
   originChannel: ChannelKind;
-  language?: string | null;
-  productScope?: string | null;
-  journeyScope?: string | null;
-  audienceScope?: string | null;
-  contextKey?: string | null;
-  originUrl?: string | null;
-  originReference?: string | null;
-  threadSummary?: string | null;
-  confidenceScore: number;
-  revisionNumber: number;
+  aiConfidenceScore: number;
+  feedbackScore: number;
+  sort: number;
   acceptedAnswerId?: string | null;
   duplicateOfQuestionId?: string | null;
   answeredAtUtc?: string | null;
   resolvedAtUtc?: string | null;
   validatedAtUtc?: string | null;
   lastActivityAtUtc?: string | null;
-  feedbackScore: number;
 };
 
 export type QuestionSourceLinkDto = {
@@ -60,21 +51,14 @@ export type QuestionDetailDto = QuestionDto & {
 export type QuestionCreateRequestDto = {
   spaceId: string;
   title: string;
-  key: string;
   summary?: string | null;
   contextNote?: string | null;
-  threadSummary?: string | null;
   status: QuestionStatus;
   visibility: VisibilityScope;
   originChannel: ChannelKind;
-  language?: string | null;
-  productScope?: string | null;
-  journeyScope?: string | null;
-  audienceScope?: string | null;
-  contextKey?: string | null;
-  originUrl?: string | null;
-  originReference?: string | null;
-  confidenceScore: number;
+  aiConfidenceScore: number;
+  feedbackScore: number;
+  sort: number;
 };
 
 export type QuestionUpdateRequestDto = QuestionCreateRequestDto & {

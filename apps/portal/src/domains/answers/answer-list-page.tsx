@@ -28,7 +28,6 @@ import {
   Badge,
   Button,
   ConfirmAction,
-  Input,
   SectionGridSkeleton,
   Select,
   SelectContent,
@@ -39,10 +38,11 @@ import {
 import { AnswerKindBadge, AnswerStatusBadge, VisibilityBadge } from '@/shared/ui/status-badges';
 
 const sortingOptions = [
-  { value: 'Rank ASC', label: 'Rank' },
+  { value: 'Sort ASC', label: 'Sort' },
+  { value: 'Score DESC', label: 'Score' },
   { value: 'PublishedAtUtc DESC', label: 'Recently published' },
   { value: 'VoteScore DESC', label: 'Vote score' },
-  { value: 'ConfidenceScore DESC', label: 'Confidence' },
+  { value: 'AiConfidenceScore DESC', label: 'AI confidence' },
 ];
 
 const ANSWER_FILTER_DEFAULTS = {
@@ -50,7 +50,6 @@ const ANSWER_FILTER_DEFAULTS = {
   questionId: 'all',
   accepted: 'all',
   visibility: 'all',
-  contextKey: '',
 } as const;
 
 export function AnswerListPage() {
@@ -65,14 +64,13 @@ export function AnswerListPage() {
     setSorting,
     sorting,
   } = useListQueryState({
-    defaultSorting: 'Rank ASC',
+    defaultSorting: 'Sort ASC',
     filterDefaults: ANSWER_FILTER_DEFAULTS,
   });
   const statusFilter = filters.status;
   const questionFilter = filters.questionId;
   const acceptedFilter = filters.accepted;
   const visibilityFilter = filters.visibility;
-  const contextKeyFilter = filters.contextKey;
   const apiStatus = statusFilter === 'all' ? undefined : Number(statusFilter);
   const apiQuestionId = questionFilter === 'all' ? undefined : questionFilter;
   const apiAccepted =
@@ -88,7 +86,6 @@ export function AnswerListPage() {
     questionId: apiQuestionId,
     isAccepted: apiAccepted,
     visibility: apiVisibility,
-    contextKey: contextKeyFilter || undefined,
   });
   const questionOptionsQuery = useQuestionList({
     page: 1,
@@ -141,10 +138,6 @@ export function AnswerListPage() {
           <div className="text-sm text-muted-foreground">
             {questionLookup[answer.questionId] ?? answer.questionId}
           </div>
-          <div className="text-sm text-muted-foreground">
-            {answer.contextKey || translateText('No context key')}
-            {answer.language ? ` • ${answer.language}` : ''}
-          </div>
           {answer.body ? (
             <div className="line-clamp-2 text-sm text-muted-foreground">{answer.body}</div>
           ) : null}
@@ -181,11 +174,12 @@ export function AnswerListPage() {
       className: 'lg:w-[160px]',
       cell: (answer) => (
         <div className="space-y-1 text-sm text-muted-foreground">
-          <div>{translateText('Rank {value}', { value: answer.rank })}</div>
+          <div>{translateText('Score {value}', { value: answer.score })}</div>
+          <div>{translateText('Sort {value}', { value: answer.sort })}</div>
           <div>{translateText('Votes {value}', { value: answer.voteScore })}</div>
           <div>
             {translateText('Confidence {value}', {
-              value: answer.confidenceScore,
+              value: answer.aiConfidenceScore,
             })}
           </div>
         </div>
@@ -286,12 +280,7 @@ export function AnswerListPage() {
         loading={answerQuery.isLoading}
         onRowClick={(answer) => navigate(`/app/answers/${answer.id}`)}
         toolbar={
-          <div className="grid w-full gap-2 sm:grid-cols-2 xl:grid-cols-[220px_220px_220px_220px_220px]">
-            <Input
-              value={contextKeyFilter}
-              onChange={(event) => setFilter('contextKey', event.target.value)}
-              placeholder={translateText('Context key')}
-            />
+          <div className="grid w-full gap-2 sm:grid-cols-2 xl:grid-cols-[220px_220px_220px_220px]">
             <Select value={questionFilter} onValueChange={(value) => setFilter('questionId', value)}>
               <SelectTrigger className="w-full">
                 <SelectValue placeholder={translateText('Question')} />
@@ -344,7 +333,7 @@ export function AnswerListPage() {
                 <SelectItem value="false">Not accepted</SelectItem>
               </SelectContent>
             </Select>
-            <div className="sm:col-span-2 xl:col-span-5">
+            <div className="sm:col-span-2 xl:col-span-4">
               <Select value={sorting} onValueChange={setSorting}>
                 <SelectTrigger className="w-full xl:max-w-[240px]">
                   <SelectValue placeholder={translateText('Sort answers')} />

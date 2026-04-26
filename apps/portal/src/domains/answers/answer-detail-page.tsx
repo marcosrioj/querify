@@ -170,14 +170,15 @@ export function AnswerDetailPage() {
                       label: 'Question',
                       value: questionQuery.data?.title || answerQuery.data.questionId,
                     },
-                    { label: 'Rank', value: String(answerQuery.data.rank) },
+                    { label: 'Score', value: String(answerQuery.data.score) },
+                    { label: 'Sort', value: String(answerQuery.data.sort) },
                     {
                       label: 'Vote score',
                       value: String(answerQuery.data.voteScore),
                     },
                     {
-                      label: 'Confidence',
-                      value: String(answerQuery.data.confidenceScore),
+                      label: 'AI confidence',
+                      value: String(answerQuery.data.aiConfidenceScore),
                     },
                     {
                       label: 'Published at',
@@ -298,12 +299,8 @@ export function AnswerDetailPage() {
                     value: answerQuery.data.authorLabel || 'Not set',
                   },
                   {
-                    label: 'Language',
-                    value: answerQuery.data.language || 'Not set',
-                  },
-                  {
-                    label: 'Context key',
-                    value: answerQuery.data.contextKey || 'Not set',
+                    label: 'Score',
+                    value: String(answerQuery.data.score),
                   },
                   {
                     label: 'Published at',
@@ -367,35 +364,12 @@ export function AnswerDetailPage() {
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="rounded-2xl border border-border bg-muted/10 p-4">
                   <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-                    {translateText('Trust note')}
+                    {translateText('Context note')}
                   </p>
                   <p className="mt-2 text-sm leading-6">
-                    {answerQuery.data.trustNote || translateText('No trust note recorded.')}
+                    {answerQuery.data.contextNote || translateText('No context note recorded.')}
                   </p>
                 </div>
-                <div className="rounded-2xl border border-border bg-muted/10 p-4">
-                  <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-                    {translateText('Evidence summary')}
-                  </p>
-                  <p className="mt-2 text-sm leading-6">
-                    {answerQuery.data.evidenceSummary ||
-                      translateText('No evidence summary recorded.')}
-                  </p>
-                </div>
-              </div>
-              <div className="rounded-2xl border border-border bg-muted/10 p-4">
-                <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-                  {translateText('Applicability rules JSON')}
-                </p>
-                {answerQuery.data.applicabilityRulesJson ? (
-                  <pre className="mt-2 overflow-x-auto whitespace-pre-wrap text-sm leading-6">
-                    {answerQuery.data.applicabilityRulesJson}
-                  </pre>
-                ) : (
-                  <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                    {translateText('No applicability rules recorded.')}
-                  </p>
-                )}
               </div>
             </CardContent>
           </Card>

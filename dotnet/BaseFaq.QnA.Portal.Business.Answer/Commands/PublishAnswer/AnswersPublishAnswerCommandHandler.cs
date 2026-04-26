@@ -32,7 +32,6 @@ public sealed class AnswersPublishAnswerCommandHandler(
 
         entity.Status = AnswerStatus.Published;
         entity.PublishedAtUtc = DateTime.UtcNow;
-        entity.RevisionNumber++;
 
         var activityIdentity = ResolveActivityIdentity(userId);
         var activity = new ActivityEntity

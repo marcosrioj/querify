@@ -20,20 +20,8 @@ public class AnswerConfiguration : BaseConfiguration<Answer>
         builder.Property(answer => answer.Body)
             .HasMaxLength(Answer.MaxBodyLength);
 
-        builder.Property(answer => answer.Language)
-            .HasMaxLength(Answer.MaxLanguageLength);
-
-        builder.Property(answer => answer.ContextKey)
-            .HasMaxLength(Answer.MaxContextKeyLength);
-
-        builder.Property(answer => answer.ApplicabilityRulesJson)
-            .HasMaxLength(Answer.MaxApplicabilityRulesLength);
-
-        builder.Property(answer => answer.TrustNote)
-            .HasMaxLength(Answer.MaxTrustNoteLength);
-
-        builder.Property(answer => answer.EvidenceSummary)
-            .HasMaxLength(Answer.MaxEvidenceSummaryLength);
+        builder.Property(answer => answer.ContextNote)
+            .HasMaxLength(Answer.MaxContextNoteLength);
 
         builder.Property(answer => answer.AuthorLabel)
             .HasMaxLength(Answer.MaxAuthorLabelLength);

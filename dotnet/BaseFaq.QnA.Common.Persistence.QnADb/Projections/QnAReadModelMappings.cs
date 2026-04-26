@@ -21,29 +21,20 @@ public static class QnAReadModelMappings
             SpaceId = entity.SpaceId,
             SpaceKey = GetRequiredSpaceKey(entity),
             Title = entity.Title,
-            Key = entity.Key,
             Summary = entity.Summary,
             ContextNote = entity.ContextNote,
             Status = entity.Status,
             Visibility = entity.Visibility,
             OriginChannel = entity.OriginChannel,
-            Language = entity.Language,
-            ProductScope = entity.ProductScope,
-            JourneyScope = entity.JourneyScope,
-            AudienceScope = entity.AudienceScope,
-            ContextKey = entity.ContextKey,
-            OriginUrl = entity.OriginUrl,
-            OriginReference = entity.OriginReference,
-            ThreadSummary = entity.ThreadSummary,
-            ConfidenceScore = entity.ConfidenceScore,
-            RevisionNumber = entity.RevisionNumber,
+            AiConfidenceScore = entity.AiConfidenceScore,
+            FeedbackScore = entity.FeedbackScore,
+            Sort = entity.Sort,
             AcceptedAnswerId = entity.AcceptedAnswerId,
             DuplicateOfQuestionId = entity.DuplicateOfQuestionId,
             AnsweredAtUtc = entity.AnsweredAtUtc,
             ResolvedAtUtc = entity.ResolvedAtUtc,
             ValidatedAtUtc = entity.ValidatedAtUtc,
-            LastActivityAtUtc = entity.LastActivityAtUtc,
-            FeedbackScore = ActivitySignals.ComputeFeedbackScore(entity.Activities.Select(ToSignalEntry))
+            LastActivityAtUtc = entity.LastActivityAtUtc
         };
     }
 
@@ -56,33 +47,25 @@ public static class QnAReadModelMappings
             SpaceId = entity.SpaceId,
             SpaceKey = GetRequiredSpaceKey(entity),
             Title = entity.Title,
-            Key = entity.Key,
             Summary = entity.Summary,
             ContextNote = entity.ContextNote,
             Status = entity.Status,
             Visibility = entity.Visibility,
             OriginChannel = entity.OriginChannel,
-            Language = entity.Language,
-            ProductScope = entity.ProductScope,
-            JourneyScope = entity.JourneyScope,
-            AudienceScope = entity.AudienceScope,
-            ContextKey = entity.ContextKey,
-            OriginUrl = entity.OriginUrl,
-            OriginReference = entity.OriginReference,
-            ThreadSummary = entity.ThreadSummary,
-            ConfidenceScore = entity.ConfidenceScore,
-            RevisionNumber = entity.RevisionNumber,
+            AiConfidenceScore = entity.AiConfidenceScore,
+            FeedbackScore = entity.FeedbackScore,
+            Sort = entity.Sort,
             AcceptedAnswerId = entity.AcceptedAnswerId,
             DuplicateOfQuestionId = entity.DuplicateOfQuestionId,
             AnsweredAtUtc = entity.AnsweredAtUtc,
             ResolvedAtUtc = entity.ResolvedAtUtc,
             ValidatedAtUtc = entity.ValidatedAtUtc,
             LastActivityAtUtc = entity.LastActivityAtUtc,
-            FeedbackScore = ActivitySignals.ComputeFeedbackScore(entity.Activities.Select(ToSignalEntry)),
             AcceptedAnswer = entity.AcceptedAnswer?.ToPortalAnswerDto(entity.Activities, entity.AcceptedAnswerId),
             Answers = entity.Answers
                 .OrderByDescending(answer => answer.Id == entity.AcceptedAnswerId)
-                .ThenByDescending(answer => answer.Rank)
+                .ThenBy(answer => answer.Sort)
+                .ThenByDescending(answer => answer.Score)
                 .ThenBy(answer => answer.Headline)
                 .Select(answer => answer.ToPortalAnswerDto(entity.Activities, entity.AcceptedAnswerId))
                 .ToList(),
@@ -111,10 +94,11 @@ public static class QnAReadModelMappings
             .ToList();
         var publicAnswers = entity.Answers
             .Where(answer =>
-                answer.Visibility is VisibilityScope.Public or VisibilityScope.PublicIndexed &&
-                answer.Status is AnswerStatus.Published or AnswerStatus.Validated)
+            answer.Visibility is VisibilityScope.Public or VisibilityScope.PublicIndexed &&
+            answer.Status is AnswerStatus.Published or AnswerStatus.Validated)
             .OrderByDescending(answer => answer.Id == entity.AcceptedAnswerId)
-            .ThenByDescending(answer => answer.Rank)
+            .ThenBy(answer => answer.Sort)
+            .ThenByDescending(answer => answer.Score)
             .ThenBy(answer => answer.Headline)
             .Select(answer => answer.ToPublicAnswerDto(entity.Activities, entity.AcceptedAnswerId))
             .ToList();
@@ -127,29 +111,20 @@ public static class QnAReadModelMappings
             SpaceId = entity.SpaceId,
             SpaceKey = GetRequiredSpaceKey(entity),
             Title = entity.Title,
-            Key = entity.Key,
             Summary = entity.Summary,
             ContextNote = entity.ContextNote,
             Status = entity.Status,
             Visibility = entity.Visibility,
             OriginChannel = entity.OriginChannel,
-            Language = entity.Language,
-            ProductScope = entity.ProductScope,
-            JourneyScope = entity.JourneyScope,
-            AudienceScope = entity.AudienceScope,
-            ContextKey = entity.ContextKey,
-            OriginUrl = entity.OriginUrl,
-            OriginReference = entity.OriginReference,
-            ThreadSummary = entity.ThreadSummary,
-            ConfidenceScore = entity.ConfidenceScore,
-            RevisionNumber = entity.RevisionNumber,
+            AiConfidenceScore = entity.AiConfidenceScore,
+            FeedbackScore = entity.FeedbackScore,
+            Sort = entity.Sort,
             AcceptedAnswerId = acceptedAnswer?.Id,
             DuplicateOfQuestionId = entity.DuplicateOfQuestionId,
             AnsweredAtUtc = entity.AnsweredAtUtc,
             ResolvedAtUtc = entity.ResolvedAtUtc,
             ValidatedAtUtc = entity.ValidatedAtUtc,
             LastActivityAtUtc = entity.LastActivityAtUtc,
-            FeedbackScore = ActivitySignals.ComputeFeedbackScore(entity.Activities.Select(ToSignalEntry)),
             AcceptedAnswer = request.IncludeAnswers ? acceptedAnswer : null,
             Answers = request.IncludeAnswers ? publicAnswers : [],
             Tags = request.IncludeTags
@@ -190,12 +165,9 @@ public static class QnAReadModelMappings
             Name = entity.Name,
             Key = entity.Key,
             Summary = entity.Summary,
-            DefaultLanguage = entity.DefaultLanguage,
+            Language = entity.Language,
             Kind = entity.Kind,
             Visibility = entity.Visibility,
-            SearchMarkupMode = entity.SearchMarkupMode,
-            ProductScope = entity.ProductScope,
-            JourneyScope = entity.JourneyScope,
             AcceptsQuestions = entity.AcceptsQuestions,
             AcceptsAnswers = entity.AcceptsAnswers,
             PublishedAtUtc = entity.PublishedAtUtc,
@@ -223,8 +195,7 @@ public static class QnAReadModelMappings
             Kind = entity.Kind,
             Locator = entity.Locator,
             Label = entity.Label,
-            Scope = entity.Scope,
-            SystemName = entity.SystemName,
+            ContextNote = entity.ContextNote,
             ExternalId = entity.ExternalId,
             Language = entity.Language,
             MediaType = entity.MediaType,
@@ -307,15 +278,11 @@ public static class QnAReadModelMappings
             Kind = entity.Kind,
             Status = entity.Status,
             Visibility = entity.Visibility,
-            Language = entity.Language,
-            ContextKey = entity.ContextKey,
-            ApplicabilityRulesJson = entity.ApplicabilityRulesJson,
-            TrustNote = entity.TrustNote,
-            EvidenceSummary = entity.EvidenceSummary,
+            ContextNote = entity.ContextNote,
             AuthorLabel = entity.AuthorLabel,
-            ConfidenceScore = entity.ConfidenceScore,
-            Rank = entity.Rank,
-            RevisionNumber = entity.RevisionNumber,
+            AiConfidenceScore = entity.AiConfidenceScore,
+            Score = entity.Score,
+            Sort = entity.Sort,
             IsAccepted = entity.Id == acceptedAnswerId,
             IsOfficial = entity.Kind == AnswerKind.Official,
             PublishedAtUtc = entity.PublishedAtUtc,

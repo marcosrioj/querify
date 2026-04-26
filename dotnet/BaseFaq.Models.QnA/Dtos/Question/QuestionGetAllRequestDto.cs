@@ -12,8 +12,6 @@ public class QuestionGetAllRequestDto : PagedAndSortedResultRequestDto
     public QuestionStatus? Status { get; set; }
     public VisibilityScope? Visibility { get; set; }
     public string? SpaceKey { get; set; }
-    public string? ContextKey { get; set; }
-    public string? Language { get; set; }
     public bool IncludeAnswers { get; set; }
     public bool IncludeTags { get; set; }
     public bool IncludeSources { get; set; }

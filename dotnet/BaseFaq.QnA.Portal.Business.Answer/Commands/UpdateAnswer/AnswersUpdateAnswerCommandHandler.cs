@@ -76,13 +76,10 @@ public sealed class AnswersUpdateAnswerCommandHandler(
         entity.Headline = request.Headline;
         entity.Body = request.Body;
         entity.AuthorLabel = request.AuthorLabel;
-        entity.Language = request.Language;
-        entity.ContextKey = request.ContextKey;
-        entity.ApplicabilityRulesJson = request.ApplicabilityRulesJson;
-        entity.ConfidenceScore = request.ConfidenceScore;
-        entity.TrustNote = request.TrustNote;
-        entity.EvidenceSummary = request.EvidenceSummary;
-        entity.Rank = request.Rank;
+        entity.ContextNote = request.ContextNote;
+        entity.AiConfidenceScore = request.AiConfidenceScore;
+        entity.Score = request.Score;
+        entity.Sort = request.Sort;
         entity.Kind = request.Kind;
 
         switch (request.Status)
@@ -90,12 +87,10 @@ public sealed class AnswersUpdateAnswerCommandHandler(
             case AnswerStatus.Published:
                 entity.Status = AnswerStatus.Published;
                 entity.PublishedAtUtc = DateTime.UtcNow;
-                entity.RevisionNumber++;
                 break;
             case AnswerStatus.Validated:
                 entity.Status = AnswerStatus.Validated;
                 entity.ValidatedAtUtc = DateTime.UtcNow;
-                entity.RevisionNumber++;
                 break;
             case AnswerStatus.Rejected:
                 entity.Status = AnswerStatus.Rejected;

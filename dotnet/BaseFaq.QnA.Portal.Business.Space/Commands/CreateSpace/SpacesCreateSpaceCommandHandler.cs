@@ -24,10 +24,9 @@ public sealed class SpacesCreateSpaceCommandHandler(
             TenantId = tenantId,
             Name = request.Request.Name,
             Key = request.Request.Key,
-            DefaultLanguage = request.Request.DefaultLanguage,
+            Language = request.Request.Language,
             Kind = request.Request.Kind,
             Visibility = request.Request.Visibility,
-            SearchMarkupMode = request.Request.SearchMarkupMode,
             AcceptsQuestions = request.Request.AcceptsQuestions,
             AcceptsAnswers = request.Request.AcceptsAnswers,
             CreatedBy = userId,
@@ -48,15 +47,12 @@ public sealed class SpacesCreateSpaceCommandHandler(
     {
         entity.Name = request.Name;
         entity.Key = request.Key;
-        entity.DefaultLanguage = request.DefaultLanguage;
+        entity.Language = request.Language;
         entity.Summary = request.Summary;
-        entity.ProductScope = request.ProductScope;
-        entity.JourneyScope = request.JourneyScope;
         entity.AcceptsQuestions = request.AcceptsQuestions;
         entity.AcceptsAnswers = request.AcceptsAnswers;
         entity.Kind = request.Kind;
         entity.Visibility = request.Visibility;
-        entity.SearchMarkupMode = request.SearchMarkupMode;
         entity.PublishedAtUtc =
             request.Visibility is VisibilityScope.Public or VisibilityScope.PublicIndexed
                 ? DateTime.UtcNow
