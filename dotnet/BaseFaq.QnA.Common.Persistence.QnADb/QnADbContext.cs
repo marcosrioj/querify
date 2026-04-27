@@ -1,5 +1,8 @@
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using BaseFaq.Common.EntityFramework.Core;
 using BaseFaq.Common.EntityFramework.Core.Abstractions;
+using BaseFaq.Common.EntityFramework.Core.AutoHistory.Extensions;
 using BaseFaq.Common.EntityFramework.Core.Entities;
 using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Models.Common.Enums;
@@ -47,10 +50,18 @@ public class QnADbContext : BaseDbContext<QnADbContext>
 
     protected override ModuleEnum SessionModule => ModuleEnum.QnA;
 
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.EnableAutoHistory();
+
+        base.OnModelCreating(modelBuilder);
+    }
+
     public override int SaveChanges(bool acceptAllChangesOnSuccess)
     {
         EnsureActivityIdentity();
         EnsureTenantIntegrity();
+        this.EnsureAutoHistory();
         return base.SaveChanges(acceptAllChangesOnSuccess);
     }
 
@@ -60,6 +71,7 @@ public class QnADbContext : BaseDbContext<QnADbContext>
     {
         EnsureActivityIdentity();
         EnsureTenantIntegrity();
+        this.EnsureAutoHistory();
         return base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
     }
 
@@ -67,6 +79,7 @@ public class QnADbContext : BaseDbContext<QnADbContext>
     {
         EnsureActivityIdentity();
         EnsureTenantIntegrity();
+        this.EnsureAutoHistory();
         return base.SaveChangesAsync(cancellationToken);
     }
 

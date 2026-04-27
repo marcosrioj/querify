@@ -8,6 +8,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\BaseFaq.Common.EntityFramework.Core.AutoHistory\BaseFaq.Common.EntityFramework.Core.AutoHistory.csproj" />
         <ProjectReference Include="..\BaseFaq.Common.EntityFramework.Core\BaseFaq.Common.EntityFramework.Core.csproj"/>
         <ProjectReference Include="..\BaseFaq.Common.EntityFramework.Tenant\BaseFaq.Common.EntityFramework.Tenant.csproj"/>
         <ProjectReference Include="..\BaseFaq.Common.Infrastructure.Core\BaseFaq.Common.Infrastructure.Core.csproj"/>
