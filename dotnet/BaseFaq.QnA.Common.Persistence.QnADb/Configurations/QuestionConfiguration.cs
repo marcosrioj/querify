@@ -23,6 +23,10 @@ public class QuestionConfiguration : BaseConfiguration<Question>
         builder.Property(question => question.ContextNote)
             .HasMaxLength(Question.MaxContextNoteLength);
 
+        builder.Property(question => question.AiConfidenceScore)
+            .HasDefaultValue(0)
+            .IsRequired();
+
         builder.Property(question => question.TenantId)
             .IsRequired();
 

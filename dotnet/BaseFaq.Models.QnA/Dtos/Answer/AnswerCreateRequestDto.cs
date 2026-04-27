@@ -12,7 +12,6 @@ public class AnswerCreateRequestDto
     public required VisibilityScope Visibility { get; set; }
     public string? ContextNote { get; set; }
     public string? AuthorLabel { get; set; }
-    public required int AiConfidenceScore { get; set; }
     public required int Score { get; set; }
     public required int Sort { get; set; }
 }

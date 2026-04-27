@@ -26,6 +26,10 @@ public class AnswerConfiguration : BaseConfiguration<Answer>
         builder.Property(answer => answer.AuthorLabel)
             .HasMaxLength(Answer.MaxAuthorLabelLength);
 
+        builder.Property(answer => answer.AiConfidenceScore)
+            .HasDefaultValue(0)
+            .IsRequired();
+
         builder.Property(answer => answer.TenantId)
             .IsRequired();
 

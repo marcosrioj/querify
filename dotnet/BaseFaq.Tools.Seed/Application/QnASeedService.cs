@@ -280,7 +280,6 @@ public sealed class QnASeedService : IQnASeedService
                 FeedbackScore = 0,
                 Sort = questionIndex + 1,
                 AnsweredAtUtc = resolvedAtUtc,
-                ResolvedAtUtc = resolvedAtUtc,
                 ValidatedAtUtc = validatedAtUtc,
                 CreatedBy = "seed",
                 UpdatedBy = "seed"
@@ -362,7 +361,6 @@ public sealed class QnASeedService : IQnASeedService
             Sort = 1,
             PublishedAtUtc = publishedAtUtc,
             ValidatedAtUtc = validatedAtUtc,
-            AcceptedAtUtc = resolvedAtUtc,
             CreatedBy = "seed",
             UpdatedBy = "seed"
         };

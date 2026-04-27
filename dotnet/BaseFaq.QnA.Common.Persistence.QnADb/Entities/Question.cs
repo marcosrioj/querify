@@ -46,7 +46,7 @@ public class Question : BaseEntity, IMustHaveTenant
     /// <summary>
     ///     AI-generated confidence that the question is well answered and safe to serve.
     /// </summary>
-    public required int AiConfidenceScore { get; set; }
+    public required int AiConfidenceScore { get; set; } = 0;
 
     /// <summary>
     ///     Current aggregate feedback score from public feedback signals.
@@ -92,11 +92,6 @@ public class Question : BaseEntity, IMustHaveTenant
     ///     Timestamp when the question received its primary answer.
     /// </summary>
     public DateTime? AnsweredAtUtc { get; set; }
-
-    /// <summary>
-    ///     Timestamp when the question was considered resolved.
-    /// </summary>
-    public DateTime? ResolvedAtUtc { get; set; }
 
     /// <summary>
     ///     Timestamp when the question was validated.

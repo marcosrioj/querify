@@ -34,15 +34,12 @@ public class QuestionCommandQueryTests
             Id = question.Id,
             Request = new QuestionUpdateRequestDto
             {
-                SpaceId = question.SpaceId,
                 Title = question.Title,
                 Summary = question.Summary,
                 ContextNote = question.ContextNote,
                 Status = question.Status,
                 Visibility = question.Visibility,
                 OriginChannel = question.OriginChannel,
-                AiConfidenceScore = question.AiConfidenceScore,
-                FeedbackScore = question.FeedbackScore,
                 Sort = question.Sort,
                 AcceptedAnswerId = acceptedAnswer.Id
             }

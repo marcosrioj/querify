@@ -69,7 +69,6 @@ export function AnswerFormPage({ mode }: { mode: 'create' | 'edit' }) {
       visibility: VisibilityScope.Internal,
       contextNote: '',
       authorLabel: '',
-      aiConfidenceScore: 50,
       score: 1,
       sort: 1,
     },
@@ -89,7 +88,6 @@ export function AnswerFormPage({ mode }: { mode: 'create' | 'edit' }) {
       visibility: answerQuery.data.visibility,
       contextNote: answerQuery.data.contextNote ?? '',
       authorLabel: answerQuery.data.authorLabel ?? '',
-      aiConfidenceScore: answerQuery.data.aiConfidenceScore,
       score: answerQuery.data.score,
       sort: answerQuery.data.sort,
     });
@@ -138,7 +136,7 @@ export function AnswerFormPage({ mode }: { mode: 'create' | 'edit' }) {
       header={
         <PageHeader
           title={mode === 'create' ? 'New answer' : 'Edit answer'}
-          description="Author the answer candidate, then tune confidence, rank, visibility, and trust cues."
+          description="Author the answer candidate, then tune rank, visibility, and trust cues."
           descriptionMode="hint"
           backTo={backTo}
         />
@@ -193,7 +191,7 @@ export function AnswerFormPage({ mode }: { mode: 'create' | 'edit' }) {
                 <span>{translateText('Answer details')}</span>
                 <ContextHint
                   content={translateText(
-                    'Write the answer first, then decide how confident, visible, and official it should be.',
+                    'Write the answer first, then decide how visible and official it should be.',
                   )}
                   label={translateText('Form details')}
                 />
@@ -205,23 +203,36 @@ export function AnswerFormPage({ mode }: { mode: 'create' | 'edit' }) {
               <form
                 className="space-y-5"
                 onSubmit={form.handleSubmit(async (values) => {
-                  const body = {
-                    ...values,
+                  const createBody = {
+                    questionId: values.questionId,
+                    headline: values.headline,
                     body: values.body || undefined,
                     contextNote: values.contextNote || undefined,
                     authorLabel: values.authorLabel || undefined,
                     kind: Number(values.kind) as AnswerKind,
                     status: Number(values.status) as AnswerStatus,
                     visibility: Number(values.visibility) as VisibilityScope,
+                    score: values.score,
+                    sort: values.sort,
                   };
 
                   if (mode === 'create') {
-                    const createdId = await createAnswer.mutateAsync(body);
+                    const createdId = await createAnswer.mutateAsync(createBody);
                     navigate(`/app/answers/${createdId}`);
                     return;
                   }
 
-                  await updateAnswer.mutateAsync(body);
+                  await updateAnswer.mutateAsync({
+                    headline: createBody.headline,
+                    body: createBody.body,
+                    contextNote: createBody.contextNote,
+                    authorLabel: createBody.authorLabel,
+                    kind: createBody.kind,
+                    status: createBody.status,
+                    visibility: createBody.visibility,
+                    score: createBody.score,
+                    sort: createBody.sort,
+                  });
                   navigate(`/app/answers/${id}`);
                 })}
               >
@@ -268,7 +279,7 @@ export function AnswerFormPage({ mode }: { mode: 'create' | 'edit' }) {
                 />
                 <FormSectionHeading
                   title="Lifecycle and trust"
-                  description="Control visibility, official status, confidence, and operational rank."
+                  description="Control visibility, official status, and operational rank."
                 />
                 <div className="grid gap-4 md:grid-cols-4">
                   <SelectField
@@ -305,12 +316,7 @@ export function AnswerFormPage({ mode }: { mode: 'create' | 'edit' }) {
                     description="Lower numbers surface first when acceptance does not override ordering."
                   />
                 </div>
-                <div className="grid gap-4 md:grid-cols-3">
-                  <TextField
-                    control={form.control}
-                    name="aiConfidenceScore"
-                    label="AI confidence score"
-                  />
+                <div className="grid gap-4 md:grid-cols-2">
                   <TextField control={form.control} name="authorLabel" label="Author label" />
                   <TextField control={form.control} name="score" label="Score" />
                 </div>

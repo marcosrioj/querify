@@ -47,8 +47,8 @@ public sealed class QuestionsCreateQuestionCommandHandler(
             Status = request.Request.Status,
             Visibility = request.Request.Visibility,
             OriginChannel = request.Request.OriginChannel,
-            AiConfidenceScore = request.Request.AiConfidenceScore,
-            FeedbackScore = request.Request.FeedbackScore,
+            AiConfidenceScore = 0,
+            FeedbackScore = 0,
             Sort = request.Request.Sort,
             CreatedBy = userId,
             UpdatedBy = userId
@@ -103,8 +103,6 @@ public sealed class QuestionsCreateQuestionCommandHandler(
         entity.Title = request.Title;
         entity.Summary = request.Summary;
         entity.ContextNote = request.ContextNote;
-        entity.AiConfidenceScore = request.AiConfidenceScore;
-        entity.FeedbackScore = request.FeedbackScore;
         entity.Sort = request.Sort;
         entity.Status = request.Status;
 

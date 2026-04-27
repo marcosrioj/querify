@@ -26,7 +26,6 @@ export type QuestionDto = {
   acceptedAnswerId?: string | null;
   duplicateOfQuestionId?: string | null;
   answeredAtUtc?: string | null;
-  resolvedAtUtc?: string | null;
   validatedAtUtc?: string | null;
   lastActivityAtUtc?: string | null;
 };
@@ -56,12 +55,10 @@ export type QuestionCreateRequestDto = {
   status: QuestionStatus;
   visibility: VisibilityScope;
   originChannel: ChannelKind;
-  aiConfidenceScore: number;
-  feedbackScore: number;
   sort: number;
 };
 
-export type QuestionUpdateRequestDto = QuestionCreateRequestDto & {
+export type QuestionUpdateRequestDto = Omit<QuestionCreateRequestDto, 'spaceId'> & {
   acceptedAnswerId?: string | null;
   duplicateOfQuestionId?: string | null;
 };

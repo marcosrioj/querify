@@ -33,7 +33,6 @@ export type AnswerDto = {
   isOfficial: boolean;
   publishedAtUtc?: string | null;
   validatedAtUtc?: string | null;
-  acceptedAtUtc?: string | null;
   retiredAtUtc?: string | null;
   voteScore: number;
   sources: AnswerSourceLinkDto[];
@@ -48,12 +47,11 @@ export type AnswerCreateRequestDto = {
   visibility: VisibilityScope;
   contextNote?: string | null;
   authorLabel?: string | null;
-  aiConfidenceScore: number;
   score: number;
   sort: number;
 };
 
-export type AnswerUpdateRequestDto = AnswerCreateRequestDto;
+export type AnswerUpdateRequestDto = Omit<AnswerCreateRequestDto, 'questionId'>;
 
 export type AnswerSourceLinkCreateRequestDto = {
   answerId: string;

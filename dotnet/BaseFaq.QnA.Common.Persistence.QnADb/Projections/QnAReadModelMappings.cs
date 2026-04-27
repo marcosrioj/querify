@@ -32,7 +32,6 @@ public static class QnAReadModelMappings
             AcceptedAnswerId = entity.AcceptedAnswerId,
             DuplicateOfQuestionId = entity.DuplicateOfQuestionId,
             AnsweredAtUtc = entity.AnsweredAtUtc,
-            ResolvedAtUtc = entity.ResolvedAtUtc,
             ValidatedAtUtc = entity.ValidatedAtUtc,
             LastActivityAtUtc = entity.LastActivityAtUtc
         };
@@ -58,7 +57,6 @@ public static class QnAReadModelMappings
             AcceptedAnswerId = entity.AcceptedAnswerId,
             DuplicateOfQuestionId = entity.DuplicateOfQuestionId,
             AnsweredAtUtc = entity.AnsweredAtUtc,
-            ResolvedAtUtc = entity.ResolvedAtUtc,
             ValidatedAtUtc = entity.ValidatedAtUtc,
             LastActivityAtUtc = entity.LastActivityAtUtc,
             AcceptedAnswer = entity.AcceptedAnswer?.ToPortalAnswerDto(entity.Activities, entity.AcceptedAnswerId),
@@ -122,7 +120,6 @@ public static class QnAReadModelMappings
             AcceptedAnswerId = acceptedAnswer?.Id,
             DuplicateOfQuestionId = entity.DuplicateOfQuestionId,
             AnsweredAtUtc = entity.AnsweredAtUtc,
-            ResolvedAtUtc = entity.ResolvedAtUtc,
             ValidatedAtUtc = entity.ValidatedAtUtc,
             LastActivityAtUtc = entity.LastActivityAtUtc,
             AcceptedAnswer = request.IncludeAnswers ? acceptedAnswer : null,
@@ -287,7 +284,6 @@ public static class QnAReadModelMappings
             IsOfficial = entity.Kind == AnswerKind.Official,
             PublishedAtUtc = entity.PublishedAtUtc,
             ValidatedAtUtc = entity.ValidatedAtUtc,
-            AcceptedAtUtc = entity.AcceptedAtUtc,
             RetiredAtUtc = entity.RetiredAtUtc,
             VoteScore = ActivitySignals.ComputeVoteScore(questionActivity.Select(ToSignalEntry), entity.Id),
             Sources = sources

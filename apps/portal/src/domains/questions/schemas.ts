@@ -14,8 +14,6 @@ export const questionFormSchema = z.object({
   status: numericEnumSchema(QuestionStatus),
   visibility: numericEnumSchema(VisibilityScope),
   originChannel: numericEnumSchema(ChannelKind),
-  aiConfidenceScore: z.coerce.number().int().min(0).max(100),
-  feedbackScore: z.coerce.number().int(),
   sort: z.coerce.number().int().min(0),
 });
 

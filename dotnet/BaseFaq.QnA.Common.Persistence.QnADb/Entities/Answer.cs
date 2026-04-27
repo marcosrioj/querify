@@ -52,7 +52,7 @@ public class Answer : BaseEntity, IMustHaveTenant
     /// <summary>
     ///     AI-generated confidence level for the answer.
     /// </summary>
-    public required int AiConfidenceScore { get; set; }
+    public required int AiConfidenceScore { get; set; } = 0;
 
     /// <summary>
     ///     Quality score used to compare answers for the same question.
@@ -83,11 +83,6 @@ public class Answer : BaseEntity, IMustHaveTenant
     ///     Timestamp when the answer was validated.
     /// </summary>
     public DateTime? ValidatedAtUtc { get; set; }
-
-    /// <summary>
-    ///     Timestamp when the answer was accepted as primary.
-    /// </summary>
-    public DateTime? AcceptedAtUtc { get; set; }
 
     /// <summary>
     ///     Timestamp when the answer was retired.

@@ -53,7 +53,7 @@ public sealed class QuestionsGetQuestionListQueryHandler(
             "title" => query.OrderBy(question => question.Title),
             "title desc" => query.OrderByDescending(question => question.Title),
             _ => query.OrderByDescending(question =>
-                question.ResolvedAtUtc ?? question.AnsweredAtUtc ?? question.LastActivityAtUtc)
+                question.AnsweredAtUtc ?? question.LastActivityAtUtc)
         };
 
         var totalCount = await query.CountAsync(cancellationToken);

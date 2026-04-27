@@ -319,14 +319,6 @@ export function AnswerDetailPage() {
                     ),
                   },
                   {
-                    label: 'Accepted at',
-                    value: formatOptionalDateTimeInTimeZone(
-                      answerQuery.data.acceptedAtUtc,
-                      portalTimeZone,
-                      translateText('Not set'),
-                    ),
-                  },
-                  {
                     label: 'Retired at',
                     value: formatOptionalDateTimeInTimeZone(
                       answerQuery.data.retiredAtUtc,

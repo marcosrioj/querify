@@ -11,7 +11,5 @@ public class QuestionCreateRequestDto
     public required QuestionStatus Status { get; set; }
     public required VisibilityScope Visibility { get; set; }
     public required ChannelKind OriginChannel { get; set; }
-    public required int AiConfidenceScore { get; set; }
-    public required int FeedbackScore { get; set; }
     public required int Sort { get; set; }
 }

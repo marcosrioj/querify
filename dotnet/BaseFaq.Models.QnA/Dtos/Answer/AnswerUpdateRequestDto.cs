@@ -4,7 +4,6 @@ namespace BaseFaq.Models.QnA.Dtos.Answer;
 
 public class AnswerUpdateRequestDto
 {
-    public required Guid QuestionId { get; set; }
     public required string Headline { get; set; }
     public string? Body { get; set; }
     public required AnswerKind Kind { get; set; }
@@ -12,7 +11,6 @@ public class AnswerUpdateRequestDto
     public required VisibilityScope Visibility { get; set; }
     public string? ContextNote { get; set; }
     public string? AuthorLabel { get; set; }
-    public required int AiConfidenceScore { get; set; }
     public required int Score { get; set; }
     public required int Sort { get; set; }
 }

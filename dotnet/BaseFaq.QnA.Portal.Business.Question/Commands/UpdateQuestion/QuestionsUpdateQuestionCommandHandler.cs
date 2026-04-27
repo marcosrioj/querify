@@ -69,9 +69,6 @@ public sealed class QuestionsUpdateQuestionCommandHandler(
 
         if (!request.Request.AcceptedAnswerId.HasValue && entity.AcceptedAnswerId.HasValue)
         {
-            if (entity.AcceptedAnswer is not null)
-                entity.AcceptedAnswer.AcceptedAtUtc = null;
-
             entity.AcceptedAnswerId = null;
             entity.AcceptedAnswer = null;
         }
@@ -104,11 +101,9 @@ public sealed class QuestionsUpdateQuestionCommandHandler(
             entity.AcceptedAnswerId = answer.Id;
             entity.AcceptedAnswer = answer;
             entity.AnsweredAtUtc ??= acceptedAtUtc;
-            entity.ResolvedAtUtc = acceptedAtUtc;
             entity.Status = entity.Status == QuestionStatus.Validated
                 ? QuestionStatus.Validated
                 : QuestionStatus.Answered;
-            answer.AcceptedAtUtc = acceptedAtUtc;
 
             AddActivity(entity, ActivityKind.AnswerAccepted, userId, answer);
         }
@@ -167,8 +162,6 @@ public sealed class QuestionsUpdateQuestionCommandHandler(
         entity.Title = request.Title;
         entity.Summary = request.Summary;
         entity.ContextNote = request.ContextNote;
-        entity.AiConfidenceScore = request.AiConfidenceScore;
-        entity.FeedbackScore = request.FeedbackScore;
         entity.Sort = request.Sort;
         entity.Status = request.Status;
 

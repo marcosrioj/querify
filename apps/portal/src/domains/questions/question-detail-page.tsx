@@ -66,15 +66,12 @@ function buildQuestionUpdateBody(
   overrides: Partial<QuestionUpdateRequestDto> = {},
 ): QuestionUpdateRequestDto {
   return {
-    spaceId: question.spaceId,
     title: question.title,
     summary: question.summary ?? undefined,
     contextNote: question.contextNote ?? undefined,
     status: question.status,
     visibility: question.visibility,
     originChannel: question.originChannel,
-    aiConfidenceScore: question.aiConfidenceScore,
-    feedbackScore: question.feedbackScore,
     sort: question.sort,
     acceptedAnswerId: question.acceptedAnswerId ?? null,
     duplicateOfQuestionId: question.duplicateOfQuestionId ?? null,
@@ -449,14 +446,6 @@ export function QuestionDetailPage() {
                     label: 'Answered at',
                     value: formatOptionalDateTimeInTimeZone(
                       questionQuery.data.answeredAtUtc,
-                      portalTimeZone,
-                      translateText('Not set'),
-                    ),
-                  },
-                  {
-                    label: 'Resolved at',
-                    value: formatOptionalDateTimeInTimeZone(
-                      questionQuery.data.resolvedAtUtc,
                       portalTimeZone,
                       translateText('Not set'),
                     ),

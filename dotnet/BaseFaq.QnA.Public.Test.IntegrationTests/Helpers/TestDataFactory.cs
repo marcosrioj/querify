@@ -165,11 +165,9 @@ public static class TestDataFactory
         if (accept)
         {
             var acceptedAtUtc = DateTime.UtcNow;
-            entity.AcceptedAtUtc = acceptedAtUtc;
             question.AcceptedAnswerId = entity.Id;
             question.AcceptedAnswer = entity;
             question.AnsweredAtUtc = acceptedAtUtc;
-            question.ResolvedAtUtc = acceptedAtUtc;
             question.Status = question.Status == QuestionStatus.Validated
                 ? QuestionStatus.Validated
                 : QuestionStatus.Answered;

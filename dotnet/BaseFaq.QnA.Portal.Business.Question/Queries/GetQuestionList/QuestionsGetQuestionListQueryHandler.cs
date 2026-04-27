@@ -54,8 +54,6 @@ public sealed class QuestionsGetQuestionListQueryHandler(
             "sort" => query.OrderBy(question => question.Sort),
             "sort desc" => query.OrderByDescending(question => question.Sort),
             "title desc" => query.OrderByDescending(question => question.Title),
-            "resolvedatutc desc" => query.OrderByDescending(question => question.ResolvedAtUtc),
-            "resolvedatutc" => query.OrderBy(question => question.ResolvedAtUtc),
             _ => query.OrderByDescending(question =>
                 question.LastActivityAtUtc ?? question.UpdatedDate ?? question.CreatedDate)
         };

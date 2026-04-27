@@ -67,8 +67,6 @@ export function QuestionFormPage({ mode }: { mode: 'create' | 'edit' }) {
       status: QuestionStatus.Draft,
       visibility: VisibilityScope.Internal,
       originChannel: ChannelKind.Manual,
-      aiConfidenceScore: 50,
-      feedbackScore: 0,
       sort: 0,
     },
   });
@@ -86,8 +84,6 @@ export function QuestionFormPage({ mode }: { mode: 'create' | 'edit' }) {
       status: questionQuery.data.status,
       visibility: questionQuery.data.visibility,
       originChannel: questionQuery.data.originChannel,
-      aiConfidenceScore: questionQuery.data.aiConfidenceScore,
-      feedbackScore: questionQuery.data.feedbackScore,
       sort: questionQuery.data.sort,
     });
   }, [form, questionQuery.data]);
@@ -189,23 +185,31 @@ export function QuestionFormPage({ mode }: { mode: 'create' | 'edit' }) {
               <form
                 className="space-y-5"
                 onSubmit={form.handleSubmit(async (values) => {
-                  const body = {
-                    ...values,
+                  const createBody = {
+                    spaceId: values.spaceId,
+                    title: values.title,
                     summary: values.summary || undefined,
                     contextNote: values.contextNote || undefined,
                     status: Number(values.status) as QuestionStatus,
                     visibility: Number(values.visibility) as VisibilityScope,
                     originChannel: Number(values.originChannel) as ChannelKind,
+                    sort: values.sort,
                   };
 
                   if (mode === 'create') {
-                    const createdId = await createQuestion.mutateAsync(body);
+                    const createdId = await createQuestion.mutateAsync(createBody);
                     navigate(`/app/questions/${createdId}`);
                     return;
                   }
 
                   await updateQuestion.mutateAsync({
-                    ...body,
+                    title: createBody.title,
+                    summary: createBody.summary,
+                    contextNote: createBody.contextNote,
+                    status: createBody.status,
+                    visibility: createBody.visibility,
+                    originChannel: createBody.originChannel,
+                    sort: createBody.sort,
                     acceptedAnswerId: questionQuery.data?.acceptedAnswerId || undefined,
                     duplicateOfQuestionId:
                       questionQuery.data?.duplicateOfQuestionId || undefined,
@@ -297,20 +301,6 @@ export function QuestionFormPage({ mode }: { mode: 'create' | 'edit' }) {
                       value,
                       label,
                     }))}
-                  />
-                </div>
-                <div className="grid gap-4 md:grid-cols-2">
-                  <TextField
-                    control={form.control}
-                    name="aiConfidenceScore"
-                    label="AI confidence score"
-                    description="Use a 0-100 score to indicate how strong the current thread framing is."
-                  />
-                  <TextField
-                    control={form.control}
-                    name="feedbackScore"
-                    label="Feedback score"
-                    description="Current aggregate feedback score for this question."
                   />
                 </div>
                 <div className="flex flex-wrap items-center gap-3">
