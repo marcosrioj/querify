@@ -70,7 +70,7 @@ export function SpaceFormPage({ mode }: { mode: "create" | "edit" }) {
       language: initialLanguage,
       summary: "",
       kind: SpaceKind.ControlledPublication,
-      visibility: VisibilityScope.Internal,
+      visibility: VisibilityScope.PublicIndexed,
       acceptsQuestions: true,
       acceptsAnswers: true,
     },

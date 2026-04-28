@@ -2,6 +2,7 @@ using BaseFaq.Common.EntityFramework.Core.AutoHistory;
 using BaseFaq.Models.QnA.Dtos.Source;
 using BaseFaq.Models.QnA.Enums;
 using BaseFaq.QnA.Portal.Business.Source.Commands.CreateSource;
+using BaseFaq.QnA.Portal.Business.Source.Commands.UpdateSource;
 using BaseFaq.QnA.Portal.Business.Source.Queries.GetSource;
 using BaseFaq.QnA.Portal.Test.IntegrationTests.Helpers;
 using Microsoft.EntityFrameworkCore;
@@ -29,7 +30,6 @@ public class SourceCommandQueryTests
                 ExternalId = "DOC-42",
                 Language = "en-US",
                 MediaType = "text/html",
-                Checksum = "sha256:doc-42",
                 MetadataJson = "{\"category\":\"support\"}",
                 Visibility = VisibilityScope.Internal,
                 AllowsCitation = false,
@@ -45,6 +45,8 @@ public class SourceCommandQueryTests
         Assert.Equal("Reset password guide", result.Label);
         Assert.Equal(VisibilityScope.Internal, result.Visibility);
         Assert.False(result.AllowsCitation);
+        Assert.StartsWith("sha256:", result.Checksum);
+        Assert.Equal(71, result.Checksum.Length);
 
         var history = await context.DbContext.Set<AutoHistory>().SingleAsync();
         Assert.Equal(id.ToString(), history.KeyId);
@@ -52,5 +54,38 @@ public class SourceCommandQueryTests
         Assert.Equal(EntityState.Added, history.Kind);
         Assert.Null(history.ChangedFrom);
         Assert.Contains("https://docs.example.test/qna/reset-password", history.ChangedTo);
+    }
+
+    [Fact]
+    public async Task UpdateSource_RecomputesChecksumFromLocator()
+    {
+        using var context = TestContext.Create();
+        var source = await TestDataFactory.SeedSourceAsync(context.DbContext, context.SessionService.TenantId);
+
+        var updateHandler =
+            new SourcesUpdateSourceCommandHandler(context.DbContext, context.SessionService);
+        await updateHandler.Handle(new SourcesUpdateSourceCommand
+        {
+            Id = source.Id,
+            Request = new SourceUpdateRequestDto
+            {
+                Kind = source.Kind,
+                Locator = "https://docs.example.test/qna/updated-source",
+                Label = source.Label,
+                ContextNote = source.ContextNote,
+                ExternalId = source.ExternalId,
+                Language = source.Language,
+                MediaType = source.MediaType,
+                MetadataJson = source.MetadataJson,
+                Visibility = source.Visibility,
+                AllowsCitation = source.AllowsCitation,
+                MarkVerified = false
+            }
+        }, CancellationToken.None);
+
+        Assert.Equal("https://docs.example.test/qna/updated-source", source.Locator);
+        Assert.NotEqual("sha256:test-source", source.Checksum);
+        Assert.StartsWith("sha256:", source.Checksum);
+        Assert.Equal(71, source.Checksum.Length);
     }
 }

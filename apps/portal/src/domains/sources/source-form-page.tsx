@@ -41,12 +41,18 @@ import {
 } from "@/shared/ui";
 import { ErrorState } from "@/shared/ui/placeholder-state";
 import {
+  SearchSelectField,
   SelectField,
   SwitchField,
   TextField,
   TextareaField,
 } from "@/shared/ui/form-fields";
 import { translateText } from "@/shared/lib/i18n-core";
+import {
+  DEFAULT_PORTAL_LANGUAGE,
+  getStoredPortalLanguage,
+  portalLanguageOptions,
+} from "@/shared/lib/language";
 
 export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
   const navigate = useNavigate();
@@ -54,6 +60,7 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
   const sourceQuery = useSource(mode === "edit" ? id : undefined);
   const createSource = useCreateSource();
   const updateSource = useUpdateSource(id ?? "");
+  const initialLanguage = getStoredPortalLanguage() ?? DEFAULT_PORTAL_LANGUAGE;
 
   const form = useForm<SourceFormValues>({
     resolver: zodResolver(sourceFormSchema),
@@ -63,11 +70,11 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
       label: "",
       contextNote: "",
       externalId: "",
-      language: "",
+      language: initialLanguage,
       mediaType: "",
       checksum: "",
       metadataJson: "",
-      visibility: VisibilityScope.Internal,
+      visibility: VisibilityScope.PublicIndexed,
       allowsCitation: false,
       capturedAtUtc: "",
       markVerified: false,
@@ -96,6 +103,16 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
     });
   }, [form, sourceQuery.data]);
 
+  const languageOptions = portalLanguageOptions.map((option) => ({
+    value: option.code,
+    label: option.label,
+    description: `${option.code} • ${option.direction.toUpperCase()}`,
+    keywords: [option.code, option.label, option.direction],
+  }));
+  const selectedLanguageValue = form.watch("language");
+  const selectedLanguageOption =
+    languageOptions.find((option) => option.value === selectedLanguageValue) ??
+    null;
   const isSubmitting = createSource.isPending || updateSource.isPending;
   const setupValues = form.watch();
   const setupSteps = [
@@ -116,12 +133,6 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
       label: "Language",
       description: "Set the locale code for this source content.",
       complete: hasSetupText(setupValues.language, 2),
-    },
-    {
-      id: "checksum",
-      label: "Checksum",
-      description: "Capture a digest so content changes can be detected.",
-      complete: hasSetupText(setupValues.checksum),
     },
     {
       id: "visibility",
@@ -210,15 +221,18 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
                   className="space-y-5"
                   onSubmit={form.handleSubmit(async (values) => {
                     const body = {
-                      ...values,
+                      kind: Number(values.kind) as SourceKind,
+                      locator: values.locator,
                       label: values.label || undefined,
                       contextNote: values.contextNote || undefined,
                       externalId: values.externalId || undefined,
+                      language: values.language,
                       mediaType: values.mediaType || undefined,
                       metadataJson: values.metadataJson || undefined,
-                      capturedAtUtc: values.capturedAtUtc || undefined,
-                      kind: Number(values.kind) as SourceKind,
                       visibility: Number(values.visibility) as VisibilityScope,
+                      allowsCitation: values.allowsCitation,
+                      capturedAtUtc: values.capturedAtUtc || undefined,
+                      markVerified: values.markVerified,
                     };
 
                     if (mode === "create") {
@@ -286,11 +300,21 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
                       label="External ID"
                       description="Identifier from the upstream connector, repository, or source system."
                     />
-                    <TextField
+                    <SearchSelectField
                       control={form.control}
                       name="language"
                       label="Language"
-                      description="Locale code for the source content when known."
+                      description="Use the main locale for this source content."
+                      options={languageOptions}
+                      selectedOption={selectedLanguageOption}
+                      searchPlaceholder="Search languages"
+                      emptyMessage="No languages found."
+                      resultCountHint={translateText(
+                        "{count} languages available",
+                        {
+                          count: portalLanguageOptions.length,
+                        },
+                      )}
                     />
                     <TextField
                       control={form.control}
@@ -302,7 +326,8 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
                       control={form.control}
                       name="checksum"
                       label="Checksum"
-                      description="Digest used to detect source content changes."
+                      description="Read-only value generated by the backend from the locator."
+                      readOnly
                     />
                     <TextField
                       control={form.control}

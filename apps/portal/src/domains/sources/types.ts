@@ -29,7 +29,6 @@ export type SourceCreateRequestDto = {
   externalId?: string | null;
   language: string;
   mediaType?: string | null;
-  checksum: string;
   metadataJson?: string | null;
   visibility: VisibilityScope;
   allowsCitation: boolean;

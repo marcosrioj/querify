@@ -824,7 +824,7 @@ export function SpaceDetailPage() {
                           summary: newQuestionSummary.trim() || undefined,
                           contextNote: undefined,
                           status: QuestionStatus.Draft,
-                          visibility: VisibilityScope.Internal,
+                          visibility: VisibilityScope.PublicIndexed,
                           originChannel: ChannelKind.Manual,
                           sort: spaceQuestions.length + 1,
                         })

@@ -89,7 +89,7 @@ export function AnswerFormPage({ mode }: { mode: "create" | "edit" }) {
       body: "",
       kind: AnswerKind.Official,
       status: AnswerStatus.Draft,
-      visibility: VisibilityScope.Internal,
+      visibility: VisibilityScope.PublicIndexed,
       contextNote: "",
       authorLabel: "",
       sort: 1,

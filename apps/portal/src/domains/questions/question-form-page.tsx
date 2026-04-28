@@ -84,7 +84,7 @@ export function QuestionFormPage({ mode }: { mode: "create" | "edit" }) {
       summary: "",
       contextNote: "",
       status: QuestionStatus.Draft,
-      visibility: VisibilityScope.Internal,
+      visibility: VisibilityScope.PublicIndexed,
       originChannel: ChannelKind.Manual,
       sort: 0,
     },

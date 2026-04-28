@@ -11,7 +11,6 @@ public class SourceCreateRequestDto
     public string? ExternalId { get; set; }
     public required string Language { get; set; }
     public string? MediaType { get; set; }
-    public required string Checksum { get; set; }
     public string? MetadataJson { get; set; }
     public required VisibilityScope Visibility { get; set; }
     public required bool AllowsCitation { get; set; }

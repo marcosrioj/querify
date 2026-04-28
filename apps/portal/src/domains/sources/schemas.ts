@@ -15,8 +15,8 @@ export const sourceFormSchema = z.object({
   mediaType: z.string().max(120, 'Keep the media type concise.').optional(),
   checksum: z
     .string()
-    .min(1, 'Checksum is required.')
-    .max(200, 'Keep the checksum concise.'),
+    .max(128, 'Keep the checksum within the backend limit.')
+    .optional(),
   metadataJson: z.string().max(4000, 'Keep the metadata concise.').optional(),
   visibility: numericEnumSchema(VisibilityScope),
   allowsCitation: z.boolean(),

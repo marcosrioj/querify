@@ -264,10 +264,12 @@ export function TextField<TFieldValues extends FieldValues>({
   type = "text",
   placeholder,
   disabled = false,
+  readOnly = false,
 }: BaseFieldProps<TFieldValues> & {
   type?: string;
   placeholder?: string;
   disabled?: boolean;
+  readOnly?: boolean;
 }) {
   const { t } = usePortalI18n();
 
@@ -284,6 +286,7 @@ export function TextField<TFieldValues extends FieldValues>({
               type={type}
               placeholder={placeholder ? t(placeholder) : undefined}
               disabled={disabled}
+              readOnly={readOnly}
             />
           </FormControl>
           {description ? (

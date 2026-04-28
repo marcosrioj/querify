@@ -1166,7 +1166,7 @@ export function QuestionDetailPage() {
                           body: newAnswerBody.trim() || undefined,
                           kind: AnswerKind.Official,
                           status: AnswerStatus.Draft,
-                          visibility: VisibilityScope.Internal,
+                          visibility: VisibilityScope.PublicIndexed,
                           contextNote: undefined,
                           authorLabel: undefined,
                           sort: questionQuery.data.answers.length + 1,

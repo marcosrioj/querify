@@ -3,6 +3,7 @@ using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.QnA.Dtos.Source;
 using BaseFaq.Models.QnA.Enums;
 using BaseFaq.QnA.Common.Persistence.QnADb.DbContext;
+using BaseFaq.QnA.Portal.Business.Source.Helpers;
 using MediatR;
 
 namespace BaseFaq.QnA.Portal.Business.Source.Commands.CreateSource;
@@ -26,7 +27,7 @@ public sealed class SourcesCreateSourceCommandHandler(
             Kind = request.Request.Kind,
             Locator = request.Request.Locator,
             Language = request.Request.Language,
-            Checksum = request.Request.Checksum,
+            Checksum = SourceChecksum.FromLocator(request.Request.Locator),
             Visibility = request.Request.Visibility,
             AllowsCitation = request.Request.AllowsCitation,
             CreatedBy = userId,
@@ -51,7 +52,7 @@ public sealed class SourcesCreateSourceCommandHandler(
         entity.ExternalId = request.ExternalId;
         entity.Language = request.Language;
         entity.MediaType = request.MediaType;
-        entity.Checksum = request.Checksum;
+        entity.Checksum = SourceChecksum.FromLocator(request.Locator);
         entity.MetadataJson = request.MetadataJson;
         entity.CapturedAtUtc = request.CapturedAtUtc ?? entity.CapturedAtUtc;
         entity.Visibility = request.Visibility;
