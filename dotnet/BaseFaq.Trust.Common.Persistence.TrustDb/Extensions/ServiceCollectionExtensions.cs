@@ -1,3 +1,4 @@
+using BaseFaq.Trust.Common.Persistence.TrustDb.DbContext;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace BaseFaq.Trust.Common.Persistence.TrustDb.Extensions;

@@ -2,7 +2,7 @@ using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Models.Common.Dtos;
 using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.QnA.Dtos.Activity;
-using BaseFaq.QnA.Common.Persistence.QnADb;
+using BaseFaq.QnA.Common.Persistence.QnADb.DbContext;
 using BaseFaq.QnA.Common.Persistence.QnADb.Projections;
 using MediatR;
 using Microsoft.EntityFrameworkCore;

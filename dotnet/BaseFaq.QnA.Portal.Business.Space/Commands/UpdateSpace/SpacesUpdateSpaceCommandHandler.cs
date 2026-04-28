@@ -4,10 +4,9 @@ using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.QnA.Dtos.Space;
 using BaseFaq.Models.QnA.Enums;
-using BaseFaq.QnA.Common.Persistence.QnADb;
+using BaseFaq.QnA.Common.Persistence.QnADb.DbContext;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using SpaceEntity = BaseFaq.QnA.Common.Persistence.QnADb.Entities.Space;
 
 namespace BaseFaq.QnA.Portal.Business.Space.Commands.UpdateSpace;
 
@@ -37,7 +36,7 @@ public sealed class SpacesUpdateSpaceCommandHandler(
     }
 
     private static void Apply(
-        SpaceEntity entity,
+        Common.Persistence.QnADb.Entities.Space entity,
         SpaceUpdateRequestDto request,
         string userId)
     {

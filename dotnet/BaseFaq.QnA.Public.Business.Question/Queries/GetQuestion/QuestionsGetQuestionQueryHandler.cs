@@ -4,12 +4,11 @@ using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Common.Infrastructure.Core.Constants;
 using BaseFaq.Models.QnA.Dtos.Question;
 using BaseFaq.Models.QnA.Enums;
-using BaseFaq.QnA.Common.Persistence.QnADb;
+using BaseFaq.QnA.Common.Persistence.QnADb.DbContext;
 using BaseFaq.QnA.Common.Persistence.QnADb.Projections;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using QuestionEntity = BaseFaq.QnA.Common.Persistence.QnADb.Entities.Question;
 
 namespace BaseFaq.QnA.Public.Business.Question.Queries.GetQuestion;
 
@@ -43,7 +42,7 @@ public sealed class QuestionsGetQuestionQueryHandler(
         return tenantId;
     }
 
-    private IQueryable<QuestionEntity> BuildVisibleQuestionDetailQuery(Guid tenantId)
+    private IQueryable<Common.Persistence.QnADb.Entities.Question> BuildVisibleQuestionDetailQuery(Guid tenantId)
     {
         return dbContext.Questions
             .Include(question => question.Space)

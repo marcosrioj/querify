@@ -1,6 +1,6 @@
 using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Models.Common.Enums;
-using BaseFaq.QnA.Common.Persistence.QnADb;
+using BaseFaq.QnA.Common.Persistence.QnADb.DbContext;
 using MediatR;
 
 namespace BaseFaq.QnA.Portal.Business.Tag.Commands.CreateTag;

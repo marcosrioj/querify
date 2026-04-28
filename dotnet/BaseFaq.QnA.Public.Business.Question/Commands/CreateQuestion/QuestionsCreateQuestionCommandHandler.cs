@@ -4,12 +4,11 @@ using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Common.Infrastructure.Core.Constants;
 using BaseFaq.Models.QnA.Enums;
 using BaseFaq.QnA.Common.Helper.Activities;
-using BaseFaq.QnA.Common.Persistence.QnADb;
+using BaseFaq.QnA.Common.Persistence.QnADb.DbContext;
+using BaseFaq.QnA.Common.Persistence.QnADb.Entities;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using QuestionEntity = BaseFaq.QnA.Common.Persistence.QnADb.Entities.Question;
-using ActivityEntity = BaseFaq.QnA.Common.Persistence.QnADb.Entities.Activity;
 
 namespace BaseFaq.QnA.Public.Business.Question.Commands.CreateQuestion;
 
@@ -52,7 +51,7 @@ public sealed class QuestionsCreateQuestionCommandHandler(
                 "This space is not accepting questions.",
                 (int)HttpStatusCode.UnprocessableEntity);
 
-        var entity = new QuestionEntity
+        var entity = new Common.Persistence.QnADb.Entities.Question
         {
             TenantId = tenantId,
             SpaceId = space.Id,
@@ -73,7 +72,7 @@ public sealed class QuestionsCreateQuestionCommandHandler(
         space.Questions.Add(entity);
         dbContext.Questions.Add(entity);
 
-        var createdActivity = new ActivityEntity
+        var createdActivity = new Activity
         {
             TenantId = entity.TenantId,
             QuestionId = entity.Id,
@@ -92,7 +91,7 @@ public sealed class QuestionsCreateQuestionCommandHandler(
         entity.LastActivityAtUtc = createdActivity.OccurredAtUtc;
         dbContext.Activities.Add(createdActivity);
 
-        var submittedActivity = new ActivityEntity
+        var submittedActivity = new Activity
         {
             TenantId = entity.TenantId,
             QuestionId = entity.Id,

@@ -1,4 +1,6 @@
+using BaseFaq.Common.EntityFramework.Core.Audit.DbContext.AuditableEntity;
 using BaseFaq.Common.EntityFramework.Core.Entities;
+using BaseFaq.Common.EntityFramework.Core.SoftDelete.DbContext.SoftDelete;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -9,27 +11,7 @@ public abstract class BaseConfiguration<TEntity> : IEntityTypeConfiguration<TEnt
 {
     public virtual void Configure(EntityTypeBuilder<TEntity> builder)
     {
-        builder.HasIndex(p => p.IsDeleted)
-            .HasDatabaseName($"IX_{typeof(TEntity).Name}_IsDeleted");
-
-        builder.Property(c => c.IsDeleted);
-
-        builder.Property(c => c.DeletedBy)
-            .IsRequired(false);
-
-        builder.Property(c => c.DeletedDate)
-            .IsRequired(false);
-
-        builder.Property(c => c.CreatedBy)
-            .IsRequired(false);
-
-        builder.Property(c => c.CreatedDate)
-            .IsRequired(false);
-
-        builder.Property(c => c.UpdatedBy)
-            .IsRequired(false);
-
-        builder.Property(c => c.UpdatedDate)
-            .IsRequired(false);
+        builder.ConfigureSoftDelete();
+        builder.ConfigureAuditFields();
     }
 }

@@ -1,3 +1,4 @@
+using BaseFaq.Broadcast.Common.Persistence.BroadcastDb.DbContext;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace BaseFaq.Broadcast.Common.Persistence.BroadcastDb.Extensions;

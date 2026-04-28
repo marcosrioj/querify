@@ -1,3 +1,4 @@
+using BaseFaq.QnA.Common.Persistence.QnADb.DbContext;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace BaseFaq.QnA.Common.Persistence.QnADb.Extensions;

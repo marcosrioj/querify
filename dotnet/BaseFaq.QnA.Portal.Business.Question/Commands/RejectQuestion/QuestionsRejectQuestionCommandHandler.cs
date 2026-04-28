@@ -4,12 +4,11 @@ using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.QnA.Enums;
 using BaseFaq.QnA.Common.Helper.Activities;
-using BaseFaq.QnA.Common.Persistence.QnADb;
+using BaseFaq.QnA.Common.Persistence.QnADb.DbContext;
+using BaseFaq.QnA.Common.Persistence.QnADb.Entities;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using QuestionEntity = BaseFaq.QnA.Common.Persistence.QnADb.Entities.Question;
-using ActivityEntity = BaseFaq.QnA.Common.Persistence.QnADb.Entities.Activity;
 
 namespace BaseFaq.QnA.Portal.Business.Question.Commands.RejectQuestion;
 
@@ -38,10 +37,10 @@ public sealed class QuestionsRejectQuestionCommandHandler(
         return request.Id;
     }
 
-    private void AddActivity(QuestionEntity question, ActivityKind kind, string userId, string? notes = null)
+    private void AddActivity(Common.Persistence.QnADb.Entities.Question question, ActivityKind kind, string userId, string? notes = null)
     {
         var activityIdentity = ResolveActivityIdentity(userId);
-        var activity = new ActivityEntity
+        var activity = new Activity
         {
             TenantId = question.TenantId,
             QuestionId = question.Id,

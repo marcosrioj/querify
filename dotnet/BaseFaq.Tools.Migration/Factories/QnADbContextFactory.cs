@@ -1,7 +1,7 @@
 using BaseFaq.Common.EntityFramework.Tenant;
 using BaseFaq.Common.EntityFramework.Tenant.Entities;
 using BaseFaq.Models.Common.Enums;
-using BaseFaq.QnA.Common.Persistence.QnADb;
+using BaseFaq.QnA.Common.Persistence.QnADb.DbContext;
 using BaseFaq.Tools.Migration.Configuration;
 using BaseFaq.Tools.Migration.Services;
 using BaseFaq.Tools.Migration.Utilities;

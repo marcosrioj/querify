@@ -2,9 +2,8 @@ using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.QnA.Dtos.Space;
 using BaseFaq.Models.QnA.Enums;
-using BaseFaq.QnA.Common.Persistence.QnADb;
+using BaseFaq.QnA.Common.Persistence.QnADb.DbContext;
 using MediatR;
-using SpaceEntity = BaseFaq.QnA.Common.Persistence.QnADb.Entities.Space;
 
 namespace BaseFaq.QnA.Portal.Business.Space.Commands.CreateSpace;
 
@@ -19,7 +18,7 @@ public sealed class SpacesCreateSpaceCommandHandler(
         var tenantId = sessionService.GetTenantId(ModuleEnum.QnA);
         var userId = sessionService.GetUserId().ToString();
 
-        var entity = new SpaceEntity
+        var entity = new Common.Persistence.QnADb.Entities.Space
         {
             TenantId = tenantId,
             Name = request.Request.Name,
@@ -41,7 +40,7 @@ public sealed class SpacesCreateSpaceCommandHandler(
     }
 
     private static void Apply(
-        SpaceEntity entity,
+        Common.Persistence.QnADb.Entities.Space entity,
         SpaceCreateRequestDto request,
         string userId)
     {

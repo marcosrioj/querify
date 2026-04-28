@@ -2,11 +2,11 @@ using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Models.Common.Dtos;
 using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.QnA.Dtos.Answer;
-using BaseFaq.QnA.Common.Persistence.QnADb;
+using BaseFaq.QnA.Common.Persistence.QnADb.DbContext;
+using BaseFaq.QnA.Common.Persistence.QnADb.Entities;
 using BaseFaq.QnA.Common.Persistence.QnADb.Projections;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using ActivityEntity = BaseFaq.QnA.Common.Persistence.QnADb.Entities.Activity;
 
 namespace BaseFaq.QnA.Portal.Business.Answer.Queries.GetAnswerList;
 
@@ -63,7 +63,7 @@ public sealed class AnswersGetAnswerListQueryHandler(
             totalCount,
             items.Select(answer =>
             {
-                IEnumerable<ActivityEntity> questionActivity = answer.Question?.Activities ?? [];
+                IEnumerable<Activity> questionActivity = answer.Question?.Activities ?? [];
                 return answer.ToPortalAnswerDto(questionActivity, answer.Question?.AcceptedAnswerId);
             }).ToList());
     }

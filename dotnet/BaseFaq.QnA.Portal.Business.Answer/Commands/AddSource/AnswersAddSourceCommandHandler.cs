@@ -3,11 +3,10 @@ using BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception;
 using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.QnA.Enums;
-using BaseFaq.QnA.Common.Persistence.QnADb;
+using BaseFaq.QnA.Common.Persistence.QnADb.DbContext;
 using BaseFaq.QnA.Common.Persistence.QnADb.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using AnswerSourceLinkEntity = BaseFaq.QnA.Common.Persistence.QnADb.Entities.AnswerSourceLink;
 
 namespace BaseFaq.QnA.Portal.Business.Answer.Commands.AddSource;
 
@@ -41,7 +40,7 @@ public sealed class AnswersAddSourceCommandHandler(
 
         EnsureSourceSupportsVisibility(answer.Visibility, source, request.Request.Role);
 
-        var link = new AnswerSourceLinkEntity
+        var link = new AnswerSourceLink
         {
             TenantId = tenantId,
             AnswerId = answer.Id,

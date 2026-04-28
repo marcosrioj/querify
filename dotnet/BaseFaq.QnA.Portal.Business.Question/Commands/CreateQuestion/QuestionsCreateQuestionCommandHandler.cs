@@ -5,12 +5,11 @@ using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.QnA.Dtos.Question;
 using BaseFaq.Models.QnA.Enums;
 using BaseFaq.QnA.Common.Helper.Activities;
-using BaseFaq.QnA.Common.Persistence.QnADb;
+using BaseFaq.QnA.Common.Persistence.QnADb.DbContext;
+using BaseFaq.QnA.Common.Persistence.QnADb.Entities;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using QuestionEntity = BaseFaq.QnA.Common.Persistence.QnADb.Entities.Question;
-using ActivityEntity = BaseFaq.QnA.Common.Persistence.QnADb.Entities.Activity;
 
 namespace BaseFaq.QnA.Portal.Business.Question.Commands.CreateQuestion;
 
@@ -38,7 +37,7 @@ public sealed class QuestionsCreateQuestionCommandHandler(
                 "This space is not accepting questions.",
                 (int)HttpStatusCode.UnprocessableEntity);
 
-        var entity = new QuestionEntity
+        var entity = new Common.Persistence.QnADb.Entities.Question
         {
             TenantId = tenantId,
             SpaceId = space.Id,
@@ -64,10 +63,10 @@ public sealed class QuestionsCreateQuestionCommandHandler(
         return entity.Id;
     }
 
-    private void AddActivity(QuestionEntity question, ActivityKind kind, string userId)
+    private void AddActivity(Common.Persistence.QnADb.Entities.Question question, ActivityKind kind, string userId)
     {
         var activityIdentity = ResolveActivityIdentity(userId);
-        var activity = new ActivityEntity
+        var activity = new Activity
         {
             TenantId = question.TenantId,
             QuestionId = question.Id,
@@ -98,7 +97,7 @@ public sealed class QuestionsCreateQuestionCommandHandler(
             ActivityRequestInfo.GetRequiredUserAgent(httpContext));
     }
 
-    private static void Apply(QuestionEntity entity, QuestionCreateRequestDto request, string userId)
+    private static void Apply(Common.Persistence.QnADb.Entities.Question entity, QuestionCreateRequestDto request, string userId)
     {
         entity.Title = request.Title;
         entity.Summary = request.Summary;
@@ -113,7 +112,7 @@ public sealed class QuestionsCreateQuestionCommandHandler(
         entity.UpdatedBy = userId;
     }
 
-    private static void EnsureVisibilityAllowed(QuestionEntity entity, VisibilityScope visibility)
+    private static void EnsureVisibilityAllowed(Common.Persistence.QnADb.Entities.Question entity, VisibilityScope visibility)
     {
         if (visibility is not VisibilityScope.Public and not VisibilityScope.PublicIndexed) return;
 

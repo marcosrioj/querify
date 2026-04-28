@@ -1,5 +1,5 @@
 using BaseFaq.Common.EntityFramework.Tenant;
-using BaseFaq.QnA.Common.Persistence.QnADb;
+using BaseFaq.QnA.Common.Persistence.QnADb.DbContext;
 
 namespace BaseFaq.Tools.Seed.Abstractions;
 

@@ -7,6 +7,9 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\BaseFaq.Common.EntityFramework.Core.Audit\BaseFaq.Common.EntityFramework.Core.Audit.csproj"/>
+        <ProjectReference Include="..\BaseFaq.Common.EntityFramework.Core.SoftDelete\BaseFaq.Common.EntityFramework.Core.SoftDelete.csproj"/>
+        <ProjectReference Include="..\BaseFaq.Common.EntityFramework.Core.Tenant\BaseFaq.Common.EntityFramework.Core.Tenant.csproj"/>
         <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.1" />
         <ProjectReference Include="..\BaseFaq.Common.Infrastructure.Core\BaseFaq.Common.Infrastructure.Core.csproj"/>
         <PackageReference Include="Microsoft.AspNetCore.DataProtection.EntityFrameworkCore" Version="10.0.7" />

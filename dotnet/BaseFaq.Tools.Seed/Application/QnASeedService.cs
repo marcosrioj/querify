@@ -1,7 +1,7 @@
 using System.Text;
 using BaseFaq.Models.QnA.Enums;
 using BaseFaq.QnA.Common.Helper.Activities;
-using BaseFaq.QnA.Common.Persistence.QnADb;
+using BaseFaq.QnA.Common.Persistence.QnADb.DbContext;
 using BaseFaq.QnA.Common.Persistence.QnADb.Entities;
 using BaseFaq.Tools.Seed.Abstractions;
 using BaseFaq.Tools.Seed.Configuration;

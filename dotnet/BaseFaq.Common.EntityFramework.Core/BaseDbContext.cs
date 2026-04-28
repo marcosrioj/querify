@@ -1,20 +1,23 @@
-using System.Linq.Expressions;
 using System.Net;
 using BaseFaq.Common.EntityFramework.Core.Abstractions;
-using BaseFaq.Common.EntityFramework.Core.Entities;
+using BaseFaq.Common.EntityFramework.Core.Audit.DbContext.AuditableEntity;
 using BaseFaq.Common.EntityFramework.Core.Helpers;
+using BaseFaq.Common.EntityFramework.Core.SoftDelete.Abstractions;
+using BaseFaq.Common.EntityFramework.Core.SoftDelete.DbContext.SoftDelete;
+using BaseFaq.Common.EntityFramework.Core.Tenant.Abstractions;
+using BaseFaq.Common.EntityFramework.Core.Tenant.DbContext.Tenant;
 using BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception;
 using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Common.Infrastructure.Core.Attributes;
 using BaseFaq.Models.Common.Enums;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.Extensions.Configuration;
 
 namespace BaseFaq.Common.EntityFramework.Core;
 
-public abstract class BaseDbContext<TContext> : DbContext where TContext : DbContext
+public abstract class BaseDbContext<TContext> : DbContext, ISoftDeleteFilterState, ITenantFilterState
+    where TContext : DbContext
 {
     private readonly IConfiguration _configuration;
     private readonly ISessionService _sessionService;
@@ -45,14 +48,18 @@ public abstract class BaseDbContext<TContext> : DbContext where TContext : DbCon
     protected Guid? SessionTenantId =>
         UseTenantConnectionString && TenantFiltersEnabled ? _sessionService.GetTenantId(SessionModule) : null;
 
+    Guid? ITenantFilterState.SessionTenantId => SessionTenantId;
+
     public bool TenantFiltersEnabled { get; set; } = true;
     public bool SoftDeleteFiltersEnabled { get; set; } = true;
 
     public override int SaveChanges(bool acceptAllChangesOnSuccess)
     {
-        ApplySoftDeleteRules();
-        ApplyAuditRules();
+        OnBeforeSaveChangesRules();
+        this.ApplySoftDeleteRules();
+        this.ApplyAuditRules(ResolveUserId());
         NormalizeTrackedDateTimesToUtc();
+        OnBeforeSaveChanges();
         return base.SaveChanges(acceptAllChangesOnSuccess);
     }
 
@@ -60,18 +67,25 @@ public abstract class BaseDbContext<TContext> : DbContext where TContext : DbCon
         bool acceptAllChangesOnSuccess,
         CancellationToken cancellationToken = default)
     {
-        ApplySoftDeleteRules();
-        ApplyAuditRules();
+        OnBeforeSaveChangesRules();
+        this.ApplySoftDeleteRules();
+        this.ApplyAuditRules(ResolveUserId());
         NormalizeTrackedDateTimesToUtc();
+        OnBeforeSaveChanges();
         return base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
     }
 
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
-        ApplySoftDeleteRules();
-        ApplyAuditRules();
-        NormalizeTrackedDateTimesToUtc();
-        return base.SaveChangesAsync(cancellationToken);
+        return SaveChangesAsync(acceptAllChangesOnSuccess: true, cancellationToken);
+    }
+
+    protected virtual void OnBeforeSaveChanges()
+    {
+    }
+
+    protected virtual void OnBeforeSaveChangesRules()
+    {
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -86,9 +100,9 @@ public abstract class BaseDbContext<TContext> : DbContext where TContext : DbCon
             configurationLoader.LoadFromNameSpace(modelBuilder, configurationNamespace);
         }
 
-        ApplySoftDeleteFilters(modelBuilder);
-        ApplyTenantFilters(modelBuilder);
-        ApplyTenantIndexes(modelBuilder);
+        modelBuilder.ApplySoftDeleteFilters(this);
+        modelBuilder.ApplyTenantFilters(this);
+        modelBuilder.ApplyTenantIndexes();
     }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -121,233 +135,10 @@ public abstract class BaseDbContext<TContext> : DbContext where TContext : DbCon
         return defaultConnectionString;
     }
 
-    private void ApplySoftDeleteFilters(ModelBuilder modelBuilder)
-    {
-        foreach (var entityType in modelBuilder.Model.GetEntityTypes())
-        {
-            var filter = BuildSoftDeleteFilterExpression(entityType.ClrType);
-            if (filter is null)
-            {
-                continue;
-            }
-
-            ApplyQueryFilter(modelBuilder, entityType.ClrType, filter);
-        }
-    }
-
-    private void ApplyTenantFilters(ModelBuilder modelBuilder)
-    {
-        foreach (var entityType in modelBuilder.Model.GetEntityTypes())
-        {
-            var filter = BuildTenantFilterExpression(entityType.ClrType);
-            if (filter is null)
-            {
-                continue;
-            }
-
-            ApplyQueryFilter(modelBuilder, entityType.ClrType, filter);
-        }
-    }
-
-    private static void ApplyQueryFilter(ModelBuilder modelBuilder, Type entityType, LambdaExpression filter)
-    {
-        var entity = modelBuilder.Entity(entityType);
-        var declaredFilters = entity.Metadata.GetDeclaredQueryFilters();
-
-        if (!declaredFilters.Any())
-        {
-            entity.HasQueryFilter(filter);
-            return;
-        }
-
-        var parameter = Expression.Parameter(entityType, "e");
-        var combinedLeft = CombineFilters(declaredFilters, parameter);
-        var right = ReplaceParameter(filter, parameter);
-        var combined = Expression.Lambda(Expression.AndAlso(combinedLeft, right), parameter);
-
-        entity.HasQueryFilter(combined);
-    }
-
-    private static Expression CombineFilters(
-        IEnumerable<IQueryFilter> filters,
-        ParameterExpression parameter)
-    {
-        Expression? combined = null;
-
-        foreach (var queryFilter in filters)
-        {
-            if (queryFilter.Expression != null)
-            {
-                var filterBody = ReplaceParameter(queryFilter.Expression, parameter);
-                combined = combined is null ? filterBody : Expression.AndAlso(combined, filterBody);
-            }
-        }
-
-        return combined ?? Expression.Constant(true);
-    }
-
-    private static Expression ReplaceParameter(LambdaExpression expression, ParameterExpression parameter)
-    {
-        return new ParameterReplaceVisitor(expression.Parameters[0], parameter).Visit(expression.Body)!;
-    }
-
-    private sealed class ParameterReplaceVisitor : ExpressionVisitor
-    {
-        private readonly ParameterExpression _from;
-        private readonly ParameterExpression _to;
-
-        public ParameterReplaceVisitor(ParameterExpression from, ParameterExpression to)
-        {
-            _from = from;
-            _to = to;
-        }
-
-        protected override Expression VisitParameter(ParameterExpression node)
-        {
-            return node == _from ? _to : base.VisitParameter(node);
-        }
-    }
-
-    private LambdaExpression? BuildSoftDeleteFilterExpression(Type entityType)
-    {
-        if (!typeof(ISoftDelete).IsAssignableFrom(entityType))
-        {
-            return null;
-        }
-
-        var parameter = Expression.Parameter(entityType, "e");
-        var isDeletedProperty = Expression.Property(
-            Expression.Convert(parameter, typeof(ISoftDelete)),
-            nameof(ISoftDelete.IsDeleted));
-
-        var notDeleted = Expression.Not(isDeletedProperty);
-
-        return ApplySoftDeleteFiltersToggle(Expression.Lambda(notDeleted, parameter));
-    }
-
-    private LambdaExpression? BuildTenantFilterExpression(Type entityType)
-    {
-        var currentTenantId = Expression.Property(Expression.Constant(this), nameof(SessionTenantId));
-        var tenantIsNull = Expression.Equal(currentTenantId, Expression.Constant(null, typeof(Guid?)));
-
-        if (typeof(IMustHaveTenant).IsAssignableFrom(entityType))
-        {
-            var parameter = Expression.Parameter(entityType, "e");
-            var tenantProperty = Expression.Property(
-                Expression.Convert(parameter, typeof(IMustHaveTenant)),
-                nameof(IMustHaveTenant.TenantId));
-
-            var tenantMatches = Expression.Equal(
-                Expression.Convert(tenantProperty, typeof(Guid?)),
-                currentTenantId);
-
-            var tenantFilter = Expression.OrElse(tenantIsNull, tenantMatches);
-
-            return ApplyTenantFiltersToggle(Expression.Lambda(tenantFilter, parameter));
-        }
-
-        if (typeof(IMayHaveTenant).IsAssignableFrom(entityType))
-        {
-            var parameter = Expression.Parameter(entityType, "e");
-            var tenantProperty = Expression.Property(
-                Expression.Convert(parameter, typeof(IMayHaveTenant)),
-                nameof(IMayHaveTenant.TenantId));
-
-            var tenantIsNullOnEntity = Expression.Equal(
-                tenantProperty,
-                Expression.Constant(null, typeof(Guid?)));
-
-            var tenantMatches = Expression.Equal(tenantProperty, currentTenantId);
-            var tenantFilter = Expression.OrElse(
-                tenantIsNull,
-                Expression.OrElse(tenantIsNullOnEntity, tenantMatches));
-
-            return ApplyTenantFiltersToggle(Expression.Lambda(tenantFilter, parameter));
-        }
-
-        return null;
-    }
-
-    private LambdaExpression ApplySoftDeleteFiltersToggle(LambdaExpression filter)
-    {
-        var softDeleteFiltersEnabled = Expression.Property(
-            Expression.Constant(this),
-            nameof(SoftDeleteFiltersEnabled));
-
-        var ignoreFilters = Expression.Not(softDeleteFiltersEnabled);
-        var finalFilter = Expression.OrElse(ignoreFilters, filter.Body);
-
-        return Expression.Lambda(finalFilter, filter.Parameters);
-    }
-
-    private LambdaExpression ApplyTenantFiltersToggle(LambdaExpression filter)
-    {
-        var tenantFiltersEnabled = Expression.Property(
-            Expression.Constant(this),
-            nameof(TenantFiltersEnabled));
-
-        var ignoreFilters = Expression.Not(tenantFiltersEnabled);
-        var finalFilter = Expression.OrElse(ignoreFilters, filter.Body);
-
-        return Expression.Lambda(finalFilter, filter.Parameters);
-    }
-
     private bool ResolveTenantFiltersEnabled()
     {
         var endpoint = _httpContextAccessor.HttpContext?.GetEndpoint();
         return endpoint?.Metadata.GetMetadata<SkipTenantAccessValidationAttribute>() is null;
-    }
-
-    private void ApplySoftDeleteRules()
-    {
-        var userId = ResolveUserId();
-        foreach (var entry in ChangeTracker.Entries<ISoftDelete>())
-        {
-            if (entry.State != EntityState.Deleted)
-            {
-                continue;
-            }
-
-            entry.Entity.IsDeleted = true;
-            entry.State = EntityState.Modified;
-            entry.Property(nameof(ISoftDelete.IsDeleted)).IsModified = true;
-
-            if (entry.Entity is AuditableEntity auditableEntity)
-            {
-                auditableEntity.DeletedDate = DateTime.UtcNow;
-                auditableEntity.DeletedBy = userId;
-            }
-        }
-    }
-
-    private void ApplyAuditRules()
-    {
-        var now = DateTime.UtcNow;
-        var userId = ResolveUserId();
-
-        foreach (var entry in ChangeTracker.Entries<AuditableEntity>())
-        {
-            if (entry.State == EntityState.Added)
-            {
-                entry.Entity.CreatedDate ??= now;
-                entry.Entity.UpdatedDate = now;
-
-                if (string.IsNullOrWhiteSpace(entry.Entity.CreatedBy))
-                {
-                    entry.Entity.CreatedBy = userId;
-                }
-
-                entry.Entity.UpdatedBy = userId;
-            }
-            else if (entry.State == EntityState.Modified)
-            {
-                entry.Property(nameof(AuditableEntity.CreatedDate)).IsModified = false;
-                entry.Property(nameof(AuditableEntity.CreatedBy)).IsModified = false;
-
-                entry.Entity.UpdatedDate = now;
-                entry.Entity.UpdatedBy = userId;
-            }
-        }
     }
 
     private void NormalizeTrackedDateTimesToUtc()
@@ -385,27 +176,6 @@ public abstract class BaseDbContext<TContext> : DbContext where TContext : DbCon
     {
         var userId = _sessionService.GetUserId();
         return userId == Guid.Empty ? null : userId.ToString();
-    }
-
-    private static void ApplyTenantIndexes(ModelBuilder modelBuilder)
-    {
-        foreach (var entityType in modelBuilder.Model.GetEntityTypes())
-        {
-            if (typeof(IMustHaveTenant).IsAssignableFrom(entityType.ClrType))
-            {
-                modelBuilder.Entity(entityType.ClrType)
-                    .HasIndex(nameof(IMustHaveTenant.TenantId))
-                    .HasDatabaseName($"IX_{entityType.ClrType.Name}_TenantId");
-                continue;
-            }
-
-            if (typeof(IMayHaveTenant).IsAssignableFrom(entityType.ClrType))
-            {
-                modelBuilder.Entity(entityType.ClrType)
-                    .HasIndex(nameof(IMayHaveTenant.TenantId))
-                    .HasDatabaseName($"IX_{entityType.ClrType.Name}_TenantId");
-            }
-        }
     }
 
     private sealed class ResetOnDispose : IDisposable

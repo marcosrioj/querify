@@ -1,4 +1,4 @@
-using BaseFaq.QnA.Common.Persistence.QnADb;
+using BaseFaq.QnA.Common.Persistence.QnADb.DbContext;
 using BaseFaq.Tools.Seed.Configuration;
 
 namespace BaseFaq.Tools.Seed.Abstractions;

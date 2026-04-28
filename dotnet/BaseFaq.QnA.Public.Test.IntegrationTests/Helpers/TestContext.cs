@@ -4,7 +4,7 @@ using BaseFaq.Common.Architecture.Test.IntegrationTest.Shared.Database;
 using BaseFaq.Common.Architecture.Test.IntegrationTest.Shared.Session;
 using BaseFaq.Common.Architecture.Test.IntegrationTest.Shared.Tenancy;
 using BaseFaq.Common.Infrastructure.Core.Constants;
-using BaseFaq.QnA.Common.Persistence.QnADb;
+using BaseFaq.QnA.Common.Persistence.QnADb.DbContext;
 using Microsoft.AspNetCore.Http;
 
 namespace BaseFaq.QnA.Public.Test.IntegrationTests.Helpers;

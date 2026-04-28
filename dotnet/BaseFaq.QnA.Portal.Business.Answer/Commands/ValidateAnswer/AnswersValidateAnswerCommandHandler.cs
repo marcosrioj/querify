@@ -4,11 +4,11 @@ using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.QnA.Enums;
 using BaseFaq.QnA.Common.Helper.Activities;
-using BaseFaq.QnA.Common.Persistence.QnADb;
+using BaseFaq.QnA.Common.Persistence.QnADb.DbContext;
+using BaseFaq.QnA.Common.Persistence.QnADb.Entities;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using ActivityEntity = BaseFaq.QnA.Common.Persistence.QnADb.Entities.Activity;
 
 namespace BaseFaq.QnA.Portal.Business.Answer.Commands.ValidateAnswer;
 
@@ -34,7 +34,7 @@ public sealed class AnswersValidateAnswerCommandHandler(
         entity.ValidatedAtUtc = DateTime.UtcNow;
 
         var activityIdentity = ResolveActivityIdentity(userId);
-        var activity = new ActivityEntity
+        var activity = new Activity
         {
             TenantId = entity.TenantId,
             QuestionId = entity.QuestionId,

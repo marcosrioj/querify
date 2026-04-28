@@ -1,3 +1,4 @@
+using BaseFaq.Direct.Common.Persistence.DirectDb.DbContext;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace BaseFaq.Direct.Common.Persistence.DirectDb.Extensions;

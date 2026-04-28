@@ -5,12 +5,11 @@ using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.QnA.Dtos.Answer;
 using BaseFaq.Models.QnA.Enums;
 using BaseFaq.QnA.Common.Helper.Activities;
-using BaseFaq.QnA.Common.Persistence.QnADb;
+using BaseFaq.QnA.Common.Persistence.QnADb.DbContext;
+using BaseFaq.QnA.Common.Persistence.QnADb.Entities;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using AnswerEntity = BaseFaq.QnA.Common.Persistence.QnADb.Entities.Answer;
-using ActivityEntity = BaseFaq.QnA.Common.Persistence.QnADb.Entities.Activity;
 
 namespace BaseFaq.QnA.Portal.Business.Answer.Commands.UpdateAnswer;
 
@@ -36,7 +35,7 @@ public sealed class AnswersUpdateAnswerCommandHandler(
 
         Apply(entity, request.Request, userId);
         var activityIdentity = ResolveActivityIdentity(userId);
-        var activity = new ActivityEntity
+        var activity = new Activity
         {
             TenantId = entity.TenantId,
             QuestionId = entity.QuestionId,
@@ -71,7 +70,7 @@ public sealed class AnswersUpdateAnswerCommandHandler(
             ActivityRequestInfo.GetRequiredUserAgent(httpContext));
     }
 
-    private static void Apply(AnswerEntity entity, AnswerUpdateRequestDto request, string userId)
+    private static void Apply(Common.Persistence.QnADb.Entities.Answer entity, AnswerUpdateRequestDto request, string userId)
     {
         entity.Headline = request.Headline;
         entity.Body = request.Body;
@@ -105,7 +104,7 @@ public sealed class AnswersUpdateAnswerCommandHandler(
         entity.UpdatedBy = userId;
     }
 
-    private static void EnsureVisibilityAllowed(AnswerEntity entity, VisibilityScope visibility)
+    private static void EnsureVisibilityAllowed(Common.Persistence.QnADb.Entities.Answer entity, VisibilityScope visibility)
     {
         if (visibility is not VisibilityScope.Public and not VisibilityScope.PublicIndexed) return;
 
