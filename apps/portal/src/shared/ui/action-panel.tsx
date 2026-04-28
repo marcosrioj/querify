@@ -36,7 +36,9 @@ export function ActionPanel({
         </CardHeading>
       </CardHeader>
       <CardContent className="p-3">
-        <div className="grid grid-cols-2 gap-2">{children}</div>
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 [&_[data-slot=button]]:min-w-0 [&_[data-slot=button]]:whitespace-normal">
+          {children}
+        </div>
       </CardContent>
     </Card>
   );

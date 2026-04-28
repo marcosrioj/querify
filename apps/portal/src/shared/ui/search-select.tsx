@@ -120,7 +120,10 @@ export const SearchSelect = React.forwardRef<
           placeholder={!currentOption}
           disabled={disabled}
           selected={open}
-          className={cn("w-full px-3 py-2 text-left", className)}
+          className={cn(
+            "min-w-0 max-w-full overflow-hidden px-3 py-2 text-left",
+            className,
+          )}
         >
           <button
             ref={ref}
@@ -147,7 +150,7 @@ export const SearchSelect = React.forwardRef<
                 </span>
               ) : null}
             </span>
-            <span className="ml-3 flex items-center gap-2">
+            <span className="ml-3 flex shrink-0 items-center gap-2">
               {currentOption ? (
                 <Badge variant="secondary" className="hidden sm:inline-flex">
                   {t("Selected")}
@@ -159,7 +162,7 @@ export const SearchSelect = React.forwardRef<
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        className="w-[var(--radix-popover-trigger-width)] min-w-[18rem] p-0"
+        className="w-[var(--radix-popover-trigger-width)] min-w-0 max-w-[calc(100vw-1rem)] p-0 sm:min-w-[18rem]"
         align="start"
       >
         <Command shouldFilter={!onSearchChange}>
@@ -260,7 +263,7 @@ function SearchSelectItem({
       value={t(option.label)}
       keywords={option.keywords}
       onSelect={onSelect}
-      className="items-start"
+      className="min-w-0 items-start"
     >
       <span
         className={cn(
@@ -273,9 +276,9 @@ function SearchSelectItem({
         <Check className="size-3" />
       </span>
       <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <span className="truncate font-medium">{t(option.label)}</span>
+        <span className="min-w-0 truncate font-medium">{t(option.label)}</span>
         {option.description ? (
-          <span className="truncate text-xs text-muted-foreground">
+          <span className="min-w-0 truncate text-xs text-muted-foreground">
             {t(option.description)}
           </span>
         ) : null}

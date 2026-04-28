@@ -88,12 +88,12 @@ export function PaginationControls({
       aria-live="polite"
       aria-busy={isFetching}
     >
-      <div className="flex items-center justify-between gap-3 overflow-x-auto pb-1 whitespace-nowrap">
-        <div className="shrink-0 text-left text-sm font-medium text-foreground">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="text-left text-sm font-medium text-foreground sm:shrink-0">
           {summary}
         </div>
 
-        <div className="ml-auto flex min-w-max items-center justify-end gap-2">
+        <div className="flex min-w-0 items-center gap-2 overflow-x-auto pb-1 whitespace-nowrap sm:ml-auto sm:min-w-max sm:justify-end">
           {onPageSizeChange ? (
             <Select
               value={String(pageSize)}

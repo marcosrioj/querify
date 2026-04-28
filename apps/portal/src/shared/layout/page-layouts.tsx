@@ -57,7 +57,7 @@ export function PageHeader({
     ) : null;
 
   return (
-    <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+    <div className="flex min-w-0 flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
       <div className="min-w-0 space-y-2.5">
         {renderTitle ? (
           <div className="flex flex-wrap items-start gap-3">
@@ -68,8 +68,8 @@ export function PageHeader({
                 </Link>
               </Button>
             ) : null}
-            <div className="flex min-w-0 flex-wrap items-start gap-2">
-              <h2 className="text-2xl font-semibold tracking-normal text-mono lg:text-[2rem]">
+            <div className="flex min-w-0 flex-1 flex-wrap items-start gap-2">
+              <h2 className="min-w-0 max-w-full break-words text-2xl font-semibold tracking-normal text-mono lg:text-[2rem]">
                 {translateMaybeString(title, t)}
               </h2>
               {descriptionHint}
@@ -87,7 +87,7 @@ export function PageHeader({
       </div>
 
       {actions ? (
-        <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center lg:justify-end [&>*]:w-full sm:[&>*]:w-auto">
+        <div className="flex w-full min-w-0 flex-col gap-3 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center lg:justify-end [&>*]:w-full sm:[&>*]:w-auto [&_[data-slot=button]]:min-w-0 [&_[data-slot=button]]:whitespace-normal">
           {actions}
         </div>
       ) : null}
@@ -146,7 +146,7 @@ export function DetailLayout({
     <PageSurface className="space-y-5 lg:space-y-7.5">
       {header}
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_340px] lg:gap-7.5">
-        <div className="space-y-5 lg:space-y-7.5">{children}</div>
+        <div className="min-w-0 space-y-5 lg:space-y-7.5">{children}</div>
         {sidebar ? (
           <div className="min-w-0 space-y-5 lg:space-y-7.5">{sidebar}</div>
         ) : null}
@@ -244,7 +244,9 @@ export function SectionGrid({
             <div className="flex items-start justify-between gap-4">
               <div className="min-w-0 space-y-2.5">
                 <p className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
-                  <span>{translateMaybeString(item.title, t)}</span>
+                  <span className="min-w-0 break-words">
+                    {translateMaybeString(item.title, t)}
+                  </span>
                   {item.titleHint ? (
                     <ContextHint
                       content={translateMaybeString(item.titleHint, t)}

@@ -342,7 +342,7 @@ export function SpaceListPage() {
         }
         toolbar={
           <div className="grid w-full gap-3 xl:min-w-[720px]">
-            <div className="flex gap-1.5 overflow-x-auto rounded-xl border border-border/70 bg-muted/30 p-1">
+            <div className="flex flex-wrap gap-1.5 rounded-xl border border-border/70 bg-muted/30 p-1">
               {spaceModeBuckets.map((bucket) => (
                 <Button
                   key={bucket.value}

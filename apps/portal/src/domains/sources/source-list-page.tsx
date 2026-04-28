@@ -346,14 +346,14 @@ export function SourceListPage() {
       key: "source",
       header: "Source",
       cell: (source) => (
-        <div className="space-y-1">
-          <div className="font-medium text-mono">
+        <div className="min-w-0 space-y-1">
+          <div className="min-w-0 break-words font-medium text-mono [overflow-wrap:anywhere]">
             {source.label || translateText("Untitled source")}
           </div>
           <div className="break-all text-sm text-muted-foreground">
             {source.locator}
           </div>
-          <div className="text-sm text-muted-foreground">
+          <div className="min-w-0 break-words text-sm text-muted-foreground [overflow-wrap:anywhere]">
             {source.language}
             {source.contextNote ? ` • ${source.contextNote}` : ""}
           </div>
@@ -363,7 +363,7 @@ export function SourceListPage() {
     {
       key: "kind",
       header: "Type",
-      className: "lg:w-[180px]",
+      className: "xl:w-[150px]",
       cell: (source) => (
         <div className="space-y-2">
           <SourceKindBadge kind={source.kind} />
@@ -374,7 +374,7 @@ export function SourceListPage() {
     {
       key: "authoritative",
       header: "Trust",
-      className: "lg:w-[180px]",
+      className: "xl:w-[150px]",
       cell: (source) => (
         <div className="space-y-2 text-sm text-muted-foreground">
           <Badge variant={source.isAuthoritative ? "primary" : "outline"}>
@@ -396,10 +396,10 @@ export function SourceListPage() {
     {
       key: "usage",
       header: relationshipActive ? "Relationship" : "Where used",
-      className: "lg:w-[220px]",
+      className: "xl:w-[180px]",
       cell: (source) =>
         source.relationship ? (
-          <div className="flex flex-wrap gap-2">
+          <div className="flex min-w-0 flex-wrap gap-2">
             <Badge variant="primary" appearance="outline">
               {translateText(scopeLabel ?? "Scoped")}
             </Badge>
@@ -415,7 +415,7 @@ export function SourceListPage() {
             ) : null}
           </div>
         ) : (
-          <div className="flex flex-wrap gap-2">
+          <div className="flex min-w-0 flex-wrap gap-2">
             <Badge variant={source.spaceUsageCount > 0 ? "primary" : "outline"}>
               {translateText("{count} spaces", {
                 count: source.spaceUsageCount,
@@ -441,9 +441,9 @@ export function SourceListPage() {
     {
       key: "lastVerifiedAtUtc",
       header: "Verified",
-      className: "lg:w-[160px]",
+      className: "xl:w-[140px]",
       cell: (source) => (
-        <span className="text-sm text-muted-foreground">
+        <span className="break-words text-sm text-muted-foreground">
           {formatNumericDateTimeInTimeZone(
             source.lastVerifiedAtUtc,
             portalTimeZone,
@@ -454,10 +454,10 @@ export function SourceListPage() {
     {
       key: "actions",
       header: "Actions",
-      className: "lg:w-[140px]",
+      className: "xl:w-[120px]",
       cell: (source) => (
         <div
-          className="flex items-center justify-end gap-1"
+          className="flex min-w-0 flex-wrap items-center justify-start gap-1 lg:justify-end"
           onClick={(event) => event.stopPropagation()}
         >
           {relationshipActive ? (
@@ -626,8 +626,8 @@ export function SourceListPage() {
         }
         onRowClick={(source) => navigate(`/app/sources/${source.id}`)}
         toolbar={
-          <div className="grid w-full gap-2 sm:grid-cols-2 xl:grid-cols-[minmax(240px,1fr)_220px_220px_220px]">
-            <div className="sm:col-span-2 xl:col-span-1">
+          <div className="grid w-full gap-2 sm:grid-cols-2 2xl:grid-cols-[minmax(240px,1fr)_220px_220px_220px]">
+            <div className="sm:col-span-2 2xl:col-span-1">
               <Input
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
@@ -681,9 +681,9 @@ export function SourceListPage() {
                 <SelectItem value="false">Reference only</SelectItem>
               </SelectContent>
             </Select>
-            <div className="sm:col-span-2 xl:col-span-4">
+            <div className="sm:col-span-2 2xl:col-span-4">
               <Select value={sorting} onValueChange={setSorting}>
-                <SelectTrigger className="w-full xl:max-w-[240px]">
+                <SelectTrigger className="w-full 2xl:max-w-[240px]">
                   <SelectValue placeholder={translateText("Sort sources")} />
                 </SelectTrigger>
                 <SelectContent>

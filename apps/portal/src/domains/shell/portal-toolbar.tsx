@@ -96,7 +96,7 @@ function ToolbarActions() {
 
 export function PortalToolbar() {
   return (
-    <div className="sticky top-0 z-10 border-b border-border/60 bg-background/88 pb-4 pt-0 backdrop-blur supports-[backdrop-filter]:bg-background/78">
+    <div className="sticky top-0 z-10 min-w-0 border-b border-border/60 bg-background/88 pb-4 pt-0 backdrop-blur supports-[backdrop-filter]:bg-background/78">
       <Container className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
         <ToolbarHeading />
         <ToolbarActions />

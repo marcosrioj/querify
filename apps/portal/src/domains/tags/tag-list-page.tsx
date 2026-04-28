@@ -165,7 +165,11 @@ export function TagListPage() {
     {
       key: "name",
       header: "Tag",
-      cell: (tag) => <div className="font-medium text-mono">{tag.name}</div>,
+      cell: (tag) => (
+        <div className="min-w-0 break-words font-medium text-mono [overflow-wrap:anywhere]">
+          {tag.name}
+        </div>
+      ),
     },
     {
       key: "usage",
@@ -173,13 +177,13 @@ export function TagListPage() {
       className: "lg:w-[260px]",
       cell: (tag) =>
         tag.relationship ? (
-          <div className="flex flex-wrap gap-2">
+          <div className="flex min-w-0 flex-wrap gap-2">
             <Badge variant="primary" appearance="outline">
               {translateText(scopeLabel ?? "Scoped")}
             </Badge>
           </div>
         ) : (
-          <div className="flex flex-wrap gap-2">
+          <div className="flex min-w-0 flex-wrap gap-2">
             <Badge variant={tag.spaceUsageCount > 0 ? "primary" : "outline"}>
               {translateText("{count} spaces", {
                 count: tag.spaceUsageCount,
@@ -201,7 +205,7 @@ export function TagListPage() {
       className: "lg:w-[140px]",
       cell: (tag) => (
         <div
-          className="flex items-center justify-end gap-1"
+          className="flex min-w-0 flex-wrap items-center justify-start gap-1 lg:justify-end"
           onClick={(event) => event.stopPropagation()}
         >
           {relationshipActive ? (

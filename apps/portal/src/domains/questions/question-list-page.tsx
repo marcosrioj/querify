@@ -225,9 +225,11 @@ export function QuestionListPage() {
       key: "title",
       header: "Question",
       cell: (question) => (
-        <div className="space-y-1">
-          <div className="font-medium text-mono">{question.title}</div>
-          <div className="text-sm text-muted-foreground">
+        <div className="min-w-0 space-y-1">
+          <div className="min-w-0 break-words font-medium text-mono [overflow-wrap:anywhere]">
+            {question.title}
+          </div>
+          <div className="min-w-0 break-words text-sm text-muted-foreground [overflow-wrap:anywhere]">
             {spaceLookup[question.spaceId] ?? question.spaceKey}
           </div>
           <div className="flex flex-wrap gap-2">
@@ -257,7 +259,7 @@ export function QuestionListPage() {
       header: "Signals",
       className: "lg:w-[160px]",
       cell: (question) => (
-        <div className="space-y-1 text-sm text-muted-foreground">
+        <div className="min-w-0 space-y-1 break-words text-sm text-muted-foreground">
           <div>
             {translateText("Feedback {value}", {
               value: question.feedbackScore,
@@ -286,7 +288,7 @@ export function QuestionListPage() {
       header: "Last activity",
       className: "lg:w-[160px]",
       cell: (question) => (
-        <span className="text-sm text-muted-foreground">
+        <span className="break-words text-sm text-muted-foreground">
           {formatNumericDateTimeInTimeZone(
             question.lastActivityAtUtc,
             portalTimeZone,
@@ -300,7 +302,7 @@ export function QuestionListPage() {
       className: "lg:w-[120px]",
       cell: (question) => (
         <div
-          className="flex items-center justify-end gap-1"
+          className="flex min-w-0 flex-wrap items-center justify-start gap-1 lg:justify-end"
           onClick={(event) => event.stopPropagation()}
         >
           <Button asChild variant="ghost" mode="icon">
@@ -412,7 +414,7 @@ export function QuestionListPage() {
         }
         toolbar={
           <div className="grid w-full gap-3 xl:min-w-[680px]">
-            <div className="flex gap-1.5 overflow-x-auto rounded-xl border border-border/70 bg-muted/30 p-1">
+            <div className="flex flex-wrap gap-1.5 rounded-xl border border-border/70 bg-muted/30 p-1">
               {statusBuckets.map((bucket) => (
                 <Button
                   key={bucket.value}

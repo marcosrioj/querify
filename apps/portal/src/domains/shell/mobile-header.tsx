@@ -12,9 +12,11 @@ import {
 } from "@/shared/ui";
 import { Container } from "@/shared/layout/container";
 import { PortalSidebar } from "@/domains/shell/portal-sidebar";
+import { usePortalI18n } from "@/shared/lib/use-portal-i18n";
 
 export function MobileHeader() {
   const { pathname } = useLocation();
+  const { t } = usePortalI18n();
   const [isSheetOpen, setIsSheetOpen] = useState(false);
 
   useEffect(() => {
@@ -22,7 +24,7 @@ export function MobileHeader() {
   }, [pathname]);
 
   return (
-    <header className="fixed inset-x-0 top-0 z-10 flex h-[var(--header-height)] items-center bg-muted lg:hidden">
+    <header className="fixed inset-x-0 top-0 z-10 flex h-[var(--header-height)] items-center bg-muted xl:hidden">
       <Container className="flex items-center justify-between gap-3">
         <Link
           to="/app/dashboard"
@@ -37,7 +39,7 @@ export function MobileHeader() {
 
         <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
           <SheetTrigger asChild>
-            <Button variant="ghost" mode="icon">
+            <Button variant="ghost" mode="icon" aria-label={t("Open navigation")}>
               <Menu />
             </Button>
           </SheetTrigger>

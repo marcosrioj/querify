@@ -140,8 +140,8 @@ export function ActivityListPage() {
       key: "notes",
       header: "Details",
       cell: (event) => (
-        <div className="space-y-1">
-          <div className="font-medium text-mono">
+        <div className="min-w-0 space-y-1">
+          <div className="min-w-0 break-words font-medium text-mono [overflow-wrap:anywhere]">
             {event.actorLabel || event.userPrint}
           </div>
           <div className="line-clamp-2 text-sm text-muted-foreground">
@@ -155,12 +155,12 @@ export function ActivityListPage() {
       header: "Subject",
       className: "lg:w-[200px]",
       cell: (event) => (
-        <div className="space-y-1 text-sm text-muted-foreground">
-          <div>
+        <div className="min-w-0 space-y-1 text-sm text-muted-foreground">
+          <div className="break-all">
             {translateText("Question {value}", { value: event.questionId })}
           </div>
           {event.answerId ? (
-            <div>
+            <div className="break-all">
               {translateText("Answer {value}", { value: event.answerId })}
             </div>
           ) : null}
@@ -172,7 +172,7 @@ export function ActivityListPage() {
       header: "Occurred",
       className: "lg:w-[160px]",
       cell: (event) => (
-        <span className="text-sm text-muted-foreground">
+        <span className="break-words text-sm text-muted-foreground">
           {formatNumericDateTimeInTimeZone(event.occurredAtUtc, portalTimeZone)}
         </span>
       ),

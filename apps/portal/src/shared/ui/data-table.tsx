@@ -18,6 +18,7 @@ import {
 import { ContextHint } from "@/shared/ui/context-hint";
 import { translateMaybeString } from "@/shared/lib/i18n-render";
 import { usePortalI18n } from "@/shared/lib/use-portal-i18n";
+import { cn } from "@/lib/utils";
 
 export type DataTableColumn<T> = {
   key: string;
@@ -82,25 +83,27 @@ export function DataTable<T>({
     ) : null;
 
   return (
-    <Card className="overflow-hidden">
+    <Card className="min-w-0 overflow-hidden">
       {title || description || headingControl || toolbar ? (
         <CardHeader
           className={
             toolbarPlacement === "below"
               ? "gap-4 md:flex-col md:items-stretch"
-              : "gap-4 md:flex-row md:items-start md:justify-between"
+              : "gap-4 md:flex-col md:items-stretch"
           }
         >
           <CardHeading
             className={
               headingControl && toolbarPlacement === "inline"
-                ? "w-full md:max-w-md"
-                : undefined
+                ? "w-full min-w-0"
+                : "min-w-0"
             }
           >
             {title ? (
-              <CardTitle className="flex flex-wrap items-start gap-2">
-                <span>{translateMaybeString(title, t)}</span>
+              <CardTitle className="flex min-w-0 flex-wrap items-start gap-2">
+                <span className="min-w-0 break-words">
+                  {translateMaybeString(title, t)}
+                </span>
                 {titleHint}
               </CardTitle>
             ) : null}
@@ -110,15 +113,15 @@ export function DataTable<T>({
               </CardDescription>
             ) : null}
             {headingControl ? (
-              <div className="pt-1">{headingControl}</div>
+              <div className="min-w-0 pt-1">{headingControl}</div>
             ) : null}
           </CardHeading>
           {toolbar ? (
             <CardToolbar
               className={
                 toolbarPlacement === "below"
-                  ? "w-full flex-wrap gap-2"
-                  : "w-full flex-wrap gap-2 md:w-auto"
+                  ? "w-full min-w-0 flex-wrap gap-2"
+                  : "w-full min-w-0 flex-wrap gap-2"
               }
             >
               {toolbar}
@@ -127,17 +130,17 @@ export function DataTable<T>({
         </CardHeader>
       ) : null}
 
-      <CardContent className="space-y-5">
+      <CardContent className="min-w-0 space-y-5">
         {errorState ? (
           errorState
         ) : (
           <>
-            <div className="space-y-3 lg:hidden">
+            <div className="space-y-3 xl:hidden">
               {loading
                 ? Array.from({ length: 4 }, (_, index) => (
                     <div
                       key={`mobile-loading-${index}`}
-                      className="rounded-xl border border-border/80 bg-card p-4"
+                      className="min-w-0 max-w-full rounded-xl border border-border/80 bg-card p-4"
                     >
                       <div className="space-y-3">
                         {columns.map((column) => (
@@ -152,7 +155,7 @@ export function DataTable<T>({
                 : rows.map((row) => (
                     <div
                       key={getRowId(row)}
-                      className="rounded-xl border border-border/80 bg-card p-4 transition-colors hover:border-primary/25 hover:bg-primary/[0.025]"
+                      className="min-w-0 max-w-full overflow-hidden rounded-xl border border-border/80 bg-card p-4 transition-colors hover:border-primary/25 hover:bg-primary/[0.025]"
                       onClick={() => onRowClick?.(row)}
                       onKeyDown={(event) => {
                         if (!onRowClick) {
@@ -171,12 +174,12 @@ export function DataTable<T>({
                         {columns.map((column) => (
                           <div
                             key={column.key}
-                            className="border-b border-border/60 pb-3 last:border-b-0 last:pb-0"
+                            className="min-w-0 border-b border-border/60 pb-3 last:border-b-0 last:pb-0"
                           >
-                            <p className="text-[0.6875rem] font-medium uppercase tracking-[0.16em] text-muted-foreground">
+                            <p className="min-w-0 break-words text-[0.6875rem] font-medium uppercase tracking-[0.16em] text-muted-foreground">
                               {mobileHeaderLabel(column)}
                             </p>
-                            <div className="mt-1.5 min-w-0 break-words text-sm text-foreground">
+                            <div className="mt-1.5 min-w-0 max-w-full break-words text-sm text-foreground [overflow-wrap:anywhere] [&_[data-slot=button]]:min-w-0 [&_[data-slot=button]]:whitespace-normal">
                               {translateMaybeString(column.cell(row), t)}
                             </div>
                           </div>
@@ -188,12 +191,18 @@ export function DataTable<T>({
               {!loading && rows.length === 0 ? emptyState : null}
             </div>
 
-            <div className="hidden overflow-hidden rounded-xl border border-border/80 bg-card lg:block">
-              <Table>
+            <div className="hidden min-w-0 overflow-x-auto overflow-y-hidden rounded-xl border border-border/80 bg-card xl:block">
+              <Table className="table-fixed">
                 <TableHeader className="bg-muted/45">
                   <TableRow>
                     {columns.map((column) => (
-                      <TableHead key={column.key} className={column.className}>
+                      <TableHead
+                        key={column.key}
+                        className={cn(
+                          "min-w-0 whitespace-normal break-words [overflow-wrap:anywhere]",
+                          column.className,
+                        )}
+                      >
                         {translateMaybeString(column.header, t)}
                       </TableHead>
                     ))}
@@ -235,7 +244,10 @@ export function DataTable<T>({
                           {columns.map((column) => (
                             <TableCell
                               key={column.key}
-                              className={column.className}
+                              className={cn(
+                                "min-w-0 align-top break-words [overflow-wrap:anywhere] [&_[data-slot=button]]:min-w-0 [&_[data-slot=button]]:whitespace-normal",
+                                column.className,
+                              )}
                             >
                               {translateMaybeString(column.cell(row), t)}
                             </TableCell>

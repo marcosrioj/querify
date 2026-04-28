@@ -25,7 +25,7 @@ const useCardContext = () => {
 
 // Variants
 const cardVariants = cva(
-  "flex flex-col items-stretch rounded-xl text-card-foreground",
+  "flex min-w-0 flex-col items-stretch rounded-xl text-card-foreground",
   {
     variants: {
       variant: {
@@ -41,7 +41,7 @@ const cardVariants = cva(
 );
 
 const cardHeaderVariants = cva(
-  "flex flex-col gap-3 px-5 py-4 md:flex-row md:items-start md:justify-between",
+  "flex min-w-0 flex-col gap-3 px-5 py-4 md:flex-row md:items-start md:justify-between",
   {
     variants: {
       variant: {
@@ -55,7 +55,7 @@ const cardHeaderVariants = cva(
   },
 );
 
-const cardContentVariants = cva("grow p-5", {
+const cardContentVariants = cva("min-w-0 grow p-5", {
   variants: {
     variant: {
       default: "",
@@ -79,7 +79,7 @@ const cardTableVariants = cva("grid grow", {
   },
 });
 
-const cardFooterVariants = cva("flex items-center px-5 py-4", {
+const cardFooterVariants = cva("flex min-w-0 items-center px-5 py-4", {
   variants: {
     variant: {
       default: "border-t border-border/60",
@@ -176,7 +176,7 @@ function CardHeading({
   return (
     <div
       data-slot="card-heading"
-      className={cn("space-y-1.5", className)}
+      className={cn("min-w-0 space-y-1.5", className)}
       {...props}
     />
   );
@@ -189,7 +189,7 @@ function CardToolbar({
   return (
     <div
       data-slot="card-toolbar"
-      className={cn("flex flex-wrap items-center gap-2.5", className)}
+      className={cn("flex min-w-0 flex-wrap items-center gap-2.5", className)}
       {...props}
     />
   );
@@ -202,7 +202,10 @@ function CardTitle({
   return (
     <h3
       data-slot="card-title"
-      className={cn("text-base font-semibold leading-5 text-mono", className)}
+      className={cn(
+        "min-w-0 break-words text-base font-semibold leading-5 text-mono",
+        className,
+      )}
       {...props}
     >
       {translateRenderableNode(props.children)}
@@ -217,7 +220,10 @@ function CardDescription({
   return (
     <div
       data-slot="card-description"
-      className={cn("text-sm leading-5 text-muted-foreground", className)}
+      className={cn(
+        "min-w-0 break-words text-sm leading-5 text-muted-foreground",
+        className,
+      )}
       {...props}
     >
       {translateRenderableNode(props.children)}

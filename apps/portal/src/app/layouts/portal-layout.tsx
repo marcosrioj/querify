@@ -28,7 +28,7 @@ export function PortalLayout() {
   useBodyClass(`
     [--header-height:var(--portal-header-height)]
     [--sidebar-width:var(--portal-sidebar-width)]
-    lg:overflow-hidden
+    xl:overflow-hidden
     portal-body-background
   `);
 
@@ -40,15 +40,15 @@ export function PortalLayout() {
         </title>
       </Helmet>
 
-      <div className="flex min-h-screen grow">
+      <div className="flex min-h-screen min-w-0 grow">
         {!isMobile && <PortalSidebar />}
         {isMobile && <MobileHeader />}
 
-        <div className="flex grow flex-col pt-[var(--header-height)] lg:flex-row lg:pt-0">
-          <div className="portal-elevated relative m-3 mt-0 flex grow flex-col items-stretch overflow-hidden rounded-2xl border border-border/70 bg-background/95 backdrop-blur lg:ms-[calc(var(--sidebar-width)+0.25rem)] lg:mt-3">
+        <div className="flex min-w-0 grow flex-col pt-[var(--header-height)] xl:ms-[var(--sidebar-width)] xl:w-[calc(100vw-var(--sidebar-width))] xl:max-w-[calc(100vw-var(--sidebar-width))] xl:grow-0 xl:pt-0">
+          <div className="portal-elevated relative m-2 mt-0 flex min-w-0 grow flex-col items-stretch overflow-hidden rounded-2xl border border-border/70 bg-background/95 backdrop-blur sm:m-3 sm:mt-0 xl:mt-3">
             <PortalActivityBar />
-            <div className="kt-scrollable-y-auto flex grow flex-col pt-5 [--kt-scrollbar-width:auto]">
-              <main className="grow" role="main">
+            <div className="kt-scrollable-y-auto flex min-w-0 grow flex-col pt-5 [--kt-scrollbar-width:auto]">
+              <main className="min-w-0 grow" role="main">
                 <PortalToolbar />
                 <Outlet />
               </main>
