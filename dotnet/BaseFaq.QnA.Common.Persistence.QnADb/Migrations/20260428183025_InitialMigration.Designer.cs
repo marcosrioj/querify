@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
 {
     [DbContext(typeof(QnADbContext))]
-    [Migration("20260428171508_InitialMigration")]
+    [Migration("20260428183025_InitialMigration")]
     partial class InitialMigration
     {
         /// <inheritdoc />
@@ -514,10 +514,7 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<bool>("AllowsPublicCitation")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("AllowsPublicExcerpt")
+                    b.Property<bool>("AllowsCitation")
                         .HasColumnType("boolean");
 
                     b.Property<DateTime?>("CapturedAtUtc")
@@ -547,9 +544,6 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
                     b.Property<string>("ExternalId")
                         .HasMaxLength(250)
                         .HasColumnType("character varying(250)");
-
-                    b.Property<bool>("IsAuthoritative")
-                        .HasColumnType("boolean");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
