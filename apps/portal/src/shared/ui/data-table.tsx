@@ -37,7 +37,9 @@ export function DataTable<T>({
   loading,
   emptyState,
   errorState,
+  headingControl,
   toolbar,
+  toolbarPlacement = "inline",
   footer,
   onRowClick,
 }: {
@@ -50,7 +52,9 @@ export function DataTable<T>({
   loading?: boolean;
   emptyState?: ReactNode;
   errorState?: ReactNode;
+  headingControl?: ReactNode;
   toolbar?: ReactNode;
+  toolbarPlacement?: "inline" | "below";
   footer?: ReactNode;
   onRowClick?: (row: T) => void;
 }) {
@@ -79,9 +83,21 @@ export function DataTable<T>({
 
   return (
     <Card className="overflow-hidden">
-      {title || description || toolbar ? (
-        <CardHeader className="gap-4 md:flex-row md:items-center md:justify-between">
-          <CardHeading>
+      {title || description || headingControl || toolbar ? (
+        <CardHeader
+          className={
+            toolbarPlacement === "below"
+              ? "gap-4 md:flex-col md:items-stretch"
+              : "gap-4 md:flex-row md:items-start md:justify-between"
+          }
+        >
+          <CardHeading
+            className={
+              headingControl && toolbarPlacement === "inline"
+                ? "w-full md:max-w-md"
+                : undefined
+            }
+          >
             {title ? (
               <CardTitle className="flex flex-wrap items-start gap-2">
                 <span>{translateMaybeString(title, t)}</span>
@@ -93,9 +109,18 @@ export function DataTable<T>({
                 {translateMaybeString(description, t)}
               </CardDescription>
             ) : null}
+            {headingControl ? (
+              <div className="pt-1">{headingControl}</div>
+            ) : null}
           </CardHeading>
           {toolbar ? (
-            <CardToolbar className="w-full flex-wrap gap-2 md:w-auto">
+            <CardToolbar
+              className={
+                toolbarPlacement === "below"
+                  ? "w-full flex-wrap gap-2"
+                  : "w-full flex-wrap gap-2 md:w-auto"
+              }
+            >
               {toolbar}
             </CardToolbar>
           ) : null}

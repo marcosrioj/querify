@@ -58,6 +58,22 @@ const SPACE_FILTER_DEFAULTS = {
   acceptsAnswers: "all",
 } as const;
 
+const spaceModeBuckets = [
+  { label: "All", value: "all" },
+  {
+    label: "Controlled",
+    value: String(SpaceKind.ControlledPublication),
+  },
+  {
+    label: "Moderated",
+    value: String(SpaceKind.ModeratedCollaboration),
+  },
+  {
+    label: "Public validation",
+    value: String(SpaceKind.PublicValidation),
+  },
+] as const;
+
 export function SpaceListPage() {
   const navigate = useNavigate();
   const portalTimeZone = usePortalTimeZone();
@@ -92,6 +108,10 @@ export function SpaceListPage() {
     acceptsAnswersFilter === "all"
       ? undefined
       : acceptsAnswersFilter === "true";
+  const quickAllActive =
+    kindFilter === "all" &&
+    acceptsQuestionsFilter === "all" &&
+    acceptsAnswersFilter === "all";
 
   const spaceQuery = useSpaceList({
     page,
@@ -312,88 +332,143 @@ export function SpaceListPage() {
         getRowId={(row) => row.id}
         loading={spaceQuery.isLoading}
         onRowClick={(space) => navigate(`/app/spaces/${space.id}`)}
+        headingControl={
+          <Input
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder={translateText("Search spaces")}
+            className="w-full"
+          />
+        }
         toolbar={
-          <div className="grid w-full gap-2 sm:grid-cols-2 xl:grid-cols-[minmax(280px,1fr)_180px_190px_180px_180px]">
-            <div className="sm:col-span-2 xl:col-span-1">
-              <Input
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-                placeholder={translateText("Search spaces")}
-                className="w-full"
-              />
+          <div className="grid w-full gap-3 xl:min-w-[720px]">
+            <div className="flex gap-1.5 overflow-x-auto rounded-xl border border-border/70 bg-muted/30 p-1">
+              {spaceModeBuckets.map((bucket) => (
+                <Button
+                  key={bucket.value}
+                  type="button"
+                  variant={
+                    bucket.value === "all"
+                      ? quickAllActive
+                        ? "secondary"
+                        : "ghost"
+                      : kindFilter === bucket.value
+                        ? "secondary"
+                        : "ghost"
+                  }
+                  size="sm"
+                  className="shrink-0"
+                  onClick={() => {
+                    setFilter("kind", bucket.value);
+
+                    if (bucket.value === "all") {
+                      setFilter("acceptsQuestions", "all");
+                      setFilter("acceptsAnswers", "all");
+                    }
+                  }}
+                >
+                  {translateText(bucket.label)}
+                </Button>
+              ))}
+              <Button
+                type="button"
+                variant={
+                  acceptsQuestionsFilter === "true" ? "secondary" : "ghost"
+                }
+                size="sm"
+                className="shrink-0"
+                onClick={() => setFilter("acceptsQuestions", "true")}
+              >
+                {translateText("Questions enabled")}
+              </Button>
+              <Button
+                type="button"
+                variant={
+                  acceptsAnswersFilter === "true" ? "secondary" : "ghost"
+                }
+                size="sm"
+                className="shrink-0"
+                onClick={() => setFilter("acceptsAnswers", "true")}
+              >
+                {translateText("Answers enabled")}
+              </Button>
             </div>
-            <Select
-              value={visibilityFilter}
-              onValueChange={(value) => setFilter("visibility", value)}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder={translateText("Visibility")} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All visibility</SelectItem>
-                {Object.entries(visibilityScopeLabels).map(([value, label]) => (
-                  <SelectItem key={value} value={value}>
-                    {translateText(label)}
+            <div className="grid w-full gap-2 sm:grid-cols-2 xl:grid-cols-[170px_180px_170px_170px_180px]">
+              <Select
+                value={visibilityFilter}
+                onValueChange={(value) => setFilter("visibility", value)}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder={translateText("Visibility")} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All visibility</SelectItem>
+                  {Object.entries(visibilityScopeLabels).map(
+                    ([value, label]) => (
+                      <SelectItem key={value} value={value}>
+                        {translateText(label)}
+                      </SelectItem>
+                    ),
+                  )}
+                </SelectContent>
+              </Select>
+              <Select
+                value={kindFilter}
+                onValueChange={(value) => setFilter("kind", value)}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder={translateText("Operating mode")} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">
+                    {translateText("All modes")}
                   </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select
-              value={kindFilter}
-              onValueChange={(value) => setFilter("kind", value)}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder={translateText("Operating mode")} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">
-                  {translateText("All modes")}
-                </SelectItem>
-                {Object.entries(spaceKindLabels).map(([value, label]) => (
-                  <SelectItem key={value} value={value}>
-                    {translateText(label)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select
-              value={acceptsQuestionsFilter}
-              onValueChange={(value) => setFilter("acceptsQuestions", value)}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder={translateText("Question intake")} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All question states</SelectItem>
-                <SelectItem value="true">Questions enabled</SelectItem>
-                <SelectItem value="false">Questions disabled</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select
-              value={acceptsAnswersFilter}
-              onValueChange={(value) => setFilter("acceptsAnswers", value)}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder={translateText("Answer intake")} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All answer states</SelectItem>
-                <SelectItem value="true">Answers enabled</SelectItem>
-                <SelectItem value="false">Answers disabled</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={sorting} onValueChange={setSorting}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder={translateText("Sort spaces")} />
-              </SelectTrigger>
-              <SelectContent>
-                {sortingOptions.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {translateText(option.label)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+                  {Object.entries(spaceKindLabels).map(([value, label]) => (
+                    <SelectItem key={value} value={value}>
+                      {translateText(label)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select
+                value={acceptsQuestionsFilter}
+                onValueChange={(value) => setFilter("acceptsQuestions", value)}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder={translateText("Question intake")} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All question states</SelectItem>
+                  <SelectItem value="true">Questions enabled</SelectItem>
+                  <SelectItem value="false">Questions disabled</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select
+                value={acceptsAnswersFilter}
+                onValueChange={(value) => setFilter("acceptsAnswers", value)}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder={translateText("Answer intake")} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All answer states</SelectItem>
+                  <SelectItem value="true">Answers enabled</SelectItem>
+                  <SelectItem value="false">Answers disabled</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={sorting} onValueChange={setSorting}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder={translateText("Sort spaces")} />
+                </SelectTrigger>
+                <SelectContent>
+                  {sortingOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {translateText(option.label)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         }
         emptyState={

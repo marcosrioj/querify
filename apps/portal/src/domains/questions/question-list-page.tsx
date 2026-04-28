@@ -403,8 +403,15 @@ export function QuestionListPage() {
         getRowId={(row) => row.id}
         loading={questionQuery.isLoading}
         onRowClick={(question) => navigate(`/app/questions/${question.id}`)}
+        headingControl={
+          <Input
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder={translateText("Search questions")}
+          />
+        }
         toolbar={
-          <div className="grid w-full gap-3">
+          <div className="grid w-full gap-3 xl:min-w-[680px]">
             <div className="flex gap-1.5 overflow-x-auto rounded-xl border border-border/70 bg-muted/30 p-1">
               {statusBuckets.map((bucket) => (
                 <Button
@@ -421,14 +428,7 @@ export function QuestionListPage() {
                 </Button>
               ))}
             </div>
-            <div className="grid w-full gap-2 sm:grid-cols-2 xl:grid-cols-[minmax(240px,1fr)_220px_220px]">
-              <div className="sm:col-span-2 xl:col-span-1">
-                <Input
-                  value={search}
-                  onChange={(event) => setSearch(event.target.value)}
-                  placeholder={translateText("Search questions")}
-                />
-              </div>
+            <div className="grid w-full gap-2 sm:grid-cols-2 xl:grid-cols-[minmax(220px,1fr)_180px_180px_200px]">
               <SearchSelect
                 value={apiSpaceId ?? ""}
                 onValueChange={(value) => setFilter("spaceId", value || "all")}
@@ -489,22 +489,18 @@ export function QuestionListPage() {
                   )}
                 </SelectContent>
               </Select>
-              <div className="sm:col-span-2 xl:col-span-3">
-                <Select value={sorting} onValueChange={setSorting}>
-                  <SelectTrigger className="w-full xl:max-w-[240px]">
-                    <SelectValue
-                      placeholder={translateText("Sort questions")}
-                    />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {sortingOptions.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {translateText(option.label)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              <Select value={sorting} onValueChange={setSorting}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder={translateText("Sort questions")} />
+                </SelectTrigger>
+                <SelectContent>
+                  {sortingOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {translateText(option.label)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
         }
