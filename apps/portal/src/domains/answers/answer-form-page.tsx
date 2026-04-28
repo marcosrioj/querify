@@ -332,6 +332,7 @@ export function AnswerFormPage({ mode }: { mode: "create" | "edit" }) {
                     control={form.control}
                     name="kind"
                     label="Answer kind"
+                    description="Classifies the answer so workflow and badges present it correctly."
                     options={Object.entries(answerKindLabels).map(
                       ([value, label]) => ({
                         value,
@@ -343,6 +344,7 @@ export function AnswerFormPage({ mode }: { mode: "create" | "edit" }) {
                     control={form.control}
                     name="status"
                     label="Status"
+                    description="Controls where the answer is in draft, review, publication, or retirement."
                     options={Object.entries(answerStatusLabels).map(
                       ([value, label]) => ({
                         value,
@@ -354,6 +356,7 @@ export function AnswerFormPage({ mode }: { mode: "create" | "edit" }) {
                     control={form.control}
                     name="visibility"
                     label="Visibility"
+                    description="Controls whether the answer stays internal or can be exposed publicly."
                     options={Object.entries(visibilityScopeLabels).map(
                       ([value, label]) => ({
                         value,
@@ -373,6 +376,7 @@ export function AnswerFormPage({ mode }: { mode: "create" | "edit" }) {
                     control={form.control}
                     name="authorLabel"
                     label="Author label"
+                    description="Optional attribution shown with the answer when authorship should be clear."
                   />
                 </div>
                 <TextareaField

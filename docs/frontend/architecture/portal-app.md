@@ -141,6 +141,9 @@ Relationship sections are local management surfaces for child records and relate
 - prefer tooltip-based contextual help over large paragraphs under every heading
 - reuse shared field components before introducing custom wrappers
 - keep copy concise and action-oriented
+- every editable field must include a concise field-level explanation, not only a label
+- for shared form fields, pass `description`; use `hint` only for secondary caveats or consequences
+- when a native input is necessary, pair its visible label with `ContextHint` so the field purpose is still discoverable
 - any select or dropdown whose options come from a backend list endpoint must use `SearchSelect` or `SearchSelectField`
 - use the same searchable pattern whether the field accepts one selection or participates in a multi-selection/linking flow
 - keep static enum fields on the normal `Select` primitive unless they are backed by an API list

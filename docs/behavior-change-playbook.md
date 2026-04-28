@@ -357,10 +357,11 @@ Process:
 12. Use `ChildListPagination` for local child lists with more than five items; keep top-level list pagination governed by the page API contract.
 13. Use `SearchSelect` or `SearchSelectField` for any select or dropdown backed by a backend list endpoint, including single-selection and relationship-linking flows.
 14. Keep enum-only controls on the normal `Select` primitive and route labels, descriptions, and badge variants through the centralized enum presentation layer.
-15. Keep top-level list pages usable from 320 CSS pixels through tablet and desktop. Below `xl`, list records should use stacked card rows and the shell should use the header/drawer instead of the fixed sidebar.
-16. Prevent horizontal page overflow at the root, shell, page, card, filter, table, dialog, sheet, popover, pagination, and action levels. Use `min-w-0`, viewport constraints, and word breaking for long URLs, ids, checksums, user agents, and generated tokens.
-17. Verify loading, empty, error, pending, success, and destructive-action states.
-18. Verify light and dark mode whenever the change touches layout, colors, cards, tables, forms, actions, or badges.
+15. Give every editable field a concise field-level explanation. Use the shared field `description` prop whenever possible, add `hint` only for secondary caveats, and pair native inputs with a visible label plus `ContextHint`.
+16. Keep top-level list pages usable from 320 CSS pixels through tablet and desktop. Below `xl`, list records should use stacked card rows and the shell should use the header/drawer instead of the fixed sidebar.
+17. Prevent horizontal page overflow at the root, shell, page, card, filter, table, dialog, sheet, popover, pagination, and action levels. Use `min-w-0`, viewport constraints, and word breaking for long URLs, ids, checksums, user agents, and generated tokens.
+18. Verify loading, empty, error, pending, success, and destructive-action states.
+19. Verify light and dark mode whenever the change touches layout, colors, cards, tables, forms, actions, or badges.
 
 For large frontend changes, update one domain at a time and keep each domain buildable before moving to the next.
 
@@ -463,6 +464,7 @@ Frontend manual validation should also confirm:
 - relationship sections behave as local tabs, not anchors or redirects to global list pages
 - child lists with more than five items expose 5, 10, and 20 item pagination
 - backend-list selects use the searchable select pattern
+- editable fields have both a clear label and field-level explanation through `description`, `hint`, or a visible label paired with `ContextHint`
 - action panels use the shared square, lightly rounded action identity
 - affected top-level list pages do not create horizontal page overflow at 320, 360, 375, 414, 768, 1024, 1279, 1280, and a wider desktop width
 - list records, filters, toolbar actions, pagination, cards, tables, dialogs, sheets, and `SearchSelect` surfaces can shrink or wrap without making the page wider than the viewport

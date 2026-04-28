@@ -53,6 +53,7 @@ import {
   ContextHint,
   DetailPageSkeleton,
   Input,
+  Label,
   SearchSelect,
   SidebarSummarySkeleton,
   Textarea,
@@ -819,23 +820,51 @@ export function SpaceDetailPage() {
                             )}
                           </p>
                         </div>
-                        <Input
-                          value={newQuestionTitle}
-                          onChange={(event) =>
-                            setNewQuestionTitle(event.target.value)
-                          }
-                          placeholder={translateText("Question title")}
-                          aria-label={translateText("Question title")}
-                        />
-                        <Textarea
-                          value={newQuestionSummary}
-                          onChange={(event) =>
-                            setNewQuestionSummary(event.target.value)
-                          }
-                          placeholder={translateText("Optional summary")}
-                          aria-label={translateText("Question summary")}
-                          rows={3}
-                        />
+                        <div className="space-y-1.5">
+                          <div className="flex items-center gap-1.5">
+                            <Label htmlFor="new-question-title">
+                              {translateText("Question title")}
+                            </Label>
+                            <ContextHint
+                              content={translateText(
+                                "Canonical thread wording saved into this Space.",
+                              )}
+                              label={translateText("Field details")}
+                            />
+                          </div>
+                          <Input
+                            id="new-question-title"
+                            value={newQuestionTitle}
+                            onChange={(event) =>
+                              setNewQuestionTitle(event.target.value)
+                            }
+                            placeholder={translateText("Question title")}
+                            aria-label={translateText("Question title")}
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <div className="flex items-center gap-1.5">
+                            <Label htmlFor="new-question-summary">
+                              {translateText("Question summary")}
+                            </Label>
+                            <ContextHint
+                              content={translateText(
+                                "Short context paragraph stored with the new question.",
+                              )}
+                              label={translateText("Field details")}
+                            />
+                          </div>
+                          <Textarea
+                            id="new-question-summary"
+                            value={newQuestionSummary}
+                            onChange={(event) =>
+                              setNewQuestionSummary(event.target.value)
+                            }
+                            placeholder={translateText("Optional summary")}
+                            aria-label={translateText("Question summary")}
+                            rows={3}
+                          />
+                        </div>
                       </div>
                       <div className="flex items-end">
                         <Button

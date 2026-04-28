@@ -344,6 +344,7 @@ export function QuestionFormPage({ mode }: { mode: "create" | "edit" }) {
                     control={form.control}
                     name="status"
                     label="Status"
+                    description="Controls where the thread is in triage, review, publication, or closure."
                     options={Object.entries(questionStatusLabels).map(
                       ([value, label]) => ({
                         value,
@@ -355,6 +356,7 @@ export function QuestionFormPage({ mode }: { mode: "create" | "edit" }) {
                     control={form.control}
                     name="visibility"
                     label="Visibility"
+                    description="Controls whether the question stays internal or can be exposed publicly."
                     options={Object.entries(visibilityScopeLabels).map(
                       ([value, label]) => ({
                         value,
@@ -366,6 +368,7 @@ export function QuestionFormPage({ mode }: { mode: "create" | "edit" }) {
                     control={form.control}
                     name="originChannel"
                     label="Origin channel"
+                    description="Records where the question came from for reporting and routing."
                     options={Object.entries(channelKindLabels).map(
                       ([value, label]) => ({
                         value,

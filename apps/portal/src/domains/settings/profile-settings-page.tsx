@@ -118,10 +118,25 @@ export function ProfileSettingsPage() {
               })}
             >
               <div className="grid gap-4 md:grid-cols-2">
-                <TextField control={form.control} name="givenName" label="Given name" />
-                <TextField control={form.control} name="surName" label="Surname" />
+                <TextField
+                  control={form.control}
+                  name="givenName"
+                  label="Given name"
+                  description="First name shown in your portal profile and member lists."
+                />
+                <TextField
+                  control={form.control}
+                  name="surName"
+                  label="Surname"
+                  description="Last name shown in your portal profile and member lists."
+                />
               </div>
-              <TextField control={form.control} name="phoneNumber" label="Phone number" />
+              <TextField
+                control={form.control}
+                name="phoneNumber"
+                label="Phone number"
+                description="Optional contact number for workspace administrators."
+              />
               <SearchSelectField
                 control={form.control}
                 name="language"

@@ -69,6 +69,7 @@ import {
   ContextHint,
   DetailPageSkeleton,
   Input,
+  Label,
   SearchSelect,
   Select,
   SelectContent,
@@ -1167,23 +1168,51 @@ export function QuestionDetailPage() {
                             )}
                           </p>
                         </div>
-                        <Input
-                          value={newAnswerHeadline}
-                          onChange={(event) =>
-                            setNewAnswerHeadline(event.target.value)
-                          }
-                          placeholder={translateText("Answer headline")}
-                          aria-label={translateText("Answer headline")}
-                        />
-                        <Textarea
-                          value={newAnswerBody}
-                          onChange={(event) =>
-                            setNewAnswerBody(event.target.value)
-                          }
-                          placeholder={translateText("Answer body")}
-                          aria-label={translateText("Answer body")}
-                          rows={5}
-                        />
+                        <div className="space-y-1.5">
+                          <div className="flex items-center gap-1.5">
+                            <Label htmlFor="new-answer-headline">
+                              {translateText("Answer headline")}
+                            </Label>
+                            <ContextHint
+                              content={translateText(
+                                "Short answer title saved into this thread.",
+                              )}
+                              label={translateText("Field details")}
+                            />
+                          </div>
+                          <Input
+                            id="new-answer-headline"
+                            value={newAnswerHeadline}
+                            onChange={(event) =>
+                              setNewAnswerHeadline(event.target.value)
+                            }
+                            placeholder={translateText("Answer headline")}
+                            aria-label={translateText("Answer headline")}
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <div className="flex items-center gap-1.5">
+                            <Label htmlFor="new-answer-body">
+                              {translateText("Answer body")}
+                            </Label>
+                            <ContextHint
+                              content={translateText(
+                                "Optional full answer body for steps, caveats, and detail.",
+                              )}
+                              label={translateText("Field details")}
+                            />
+                          </div>
+                          <Textarea
+                            id="new-answer-body"
+                            value={newAnswerBody}
+                            onChange={(event) =>
+                              setNewAnswerBody(event.target.value)
+                            }
+                            placeholder={translateText("Answer body")}
+                            aria-label={translateText("Answer body")}
+                            rows={5}
+                          />
+                        </div>
                       </div>
                       <div className="flex items-end">
                         <Button

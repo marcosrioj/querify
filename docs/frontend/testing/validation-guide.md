@@ -82,6 +82,7 @@ Verify:
 - relationship sections behave as local tabs, not anchors or global-list redirects
 - child lists with more than five items use the local 5, 10, and 20 item pagination pattern
 - API-backed relationship selects use `SearchSelect` or `SearchSelectField`
+- editable fields have both a clear label and field-level explanation through `description`, `hint`, or a visible label paired with `ContextHint`
 
 ### Responsive list regression check
 

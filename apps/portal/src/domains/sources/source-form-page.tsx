@@ -207,6 +207,7 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
                     control={form.control}
                     name="kind"
                     label="Source kind"
+                    description="The type of evidence or reusable reference this source represents."
                     options={Object.entries(sourceKindLabels).map(
                       ([value, label]) => ({
                         value,
@@ -218,6 +219,7 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
                     control={form.control}
                     name="visibility"
                     label="Visibility"
+                    description="Controls which audiences can see or reuse this source."
                     options={Object.entries(visibilityScopeLabels).map(
                       ([value, label]) => ({
                         value,
@@ -237,31 +239,37 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
                     control={form.control}
                     name="label"
                     label="Label"
+                    description="Human-readable name shown when operators choose this source."
                   />
                   <TextField
                     control={form.control}
                     name="contextNote"
                     label="Context note"
+                    description="Internal note describing why this source matters or where it applies."
                   />
                   <TextField
                     control={form.control}
                     name="externalId"
                     label="External ID"
+                    description="Identifier from the upstream connector, repository, or source system."
                   />
                   <TextField
                     control={form.control}
                     name="language"
                     label="Language"
+                    description="Locale code for the source content when known."
                   />
                   <TextField
                     control={form.control}
                     name="mediaType"
                     label="Media type"
+                    description="MIME type or source format such as text/html, application/pdf, or text/markdown."
                   />
                   <TextField
                     control={form.control}
                     name="checksum"
                     label="Checksum"
+                    description="Digest used to detect source content changes."
                   />
                   <TextField
                     control={form.control}
@@ -286,21 +294,25 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
                     control={form.control}
                     name="allowsPublicCitation"
                     label="Allows public citation"
+                    description="Allow public answers to cite this source as a reference."
                   />
                   <SwitchField
                     control={form.control}
                     name="allowsPublicExcerpt"
                     label="Allows public excerpt"
+                    description="Allow public answers to include short excerpts from this source."
                   />
                   <SwitchField
                     control={form.control}
                     name="isAuthoritative"
                     label="Authoritative"
+                    description="Treat this source as a trusted canonical reference."
                   />
                   <SwitchField
                     control={form.control}
                     name="markVerified"
                     label="Mark verified now"
+                    description="Set the verification timestamp when saving this source."
                   />
                 </div>
                 <div className="flex flex-wrap items-center gap-3">
