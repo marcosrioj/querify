@@ -358,10 +358,12 @@ Process:
 13. Use `SearchSelect` or `SearchSelectField` for any select or dropdown backed by a backend list endpoint, including single-selection and relationship-linking flows.
 14. Keep enum-only controls on the normal `Select` primitive and route labels, descriptions, and badge variants through the centralized enum presentation layer.
 15. Give every editable field a concise field-level explanation. Use the shared field `description` prop whenever possible, add `hint` only for secondary caveats, and pair native inputs with a visible label plus `ContextHint`.
-16. Keep top-level list pages usable from 320 CSS pixels through tablet and desktop. Below `xl`, list records should use stacked card rows and the shell should use the header/drawer instead of the fixed sidebar.
-17. Prevent horizontal page overflow at the root, shell, page, card, filter, table, dialog, sheet, popover, pagination, and action levels. Use `min-w-0`, viewport constraints, and word breaking for long URLs, ids, checksums, user agents, and generated tokens.
-18. Verify loading, empty, error, pending, success, and destructive-action states.
-19. Verify light and dark mode whenever the change touches layout, colors, cards, tables, forms, actions, or badges.
+16. For dedicated Add/Edit forms, consider whether `FormSetupProgressCard` needs to be added or updated. Keep it below the main form card, derive steps from current form values, and keep the default hide-at-100% behavior.
+17. When changing dashboard activation criteria, update dashboard setup progress from real workspace data and ensure no setup-progress or completion surface renders after progress reaches 100%.
+18. Keep top-level list pages usable from 320 CSS pixels through tablet and desktop. Below `xl`, list records should use stacked card rows and the shell should use the header/drawer instead of the fixed sidebar.
+19. Prevent horizontal page overflow at the root, shell, page, card, filter, table, dialog, sheet, popover, pagination, and action levels. Use `min-w-0`, viewport constraints, and word breaking for long URLs, ids, checksums, user agents, and generated tokens.
+20. Verify loading, empty, error, pending, success, and destructive-action states.
+21. Verify light and dark mode whenever the change touches layout, colors, cards, tables, forms, actions, or badges.
 
 For large frontend changes, update one domain at a time and keep each domain buildable before moving to the next.
 

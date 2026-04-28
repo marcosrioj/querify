@@ -118,6 +118,11 @@ export {
   TableCardSkeleton,
   TileGridSkeleton,
 } from "@/shared/ui/loading-states";
+export { FormSetupProgressCard } from "@/shared/ui/form-setup-progress";
+export {
+  hasSetupText,
+  hasSetupValue,
+} from "@/shared/ui/form-setup-progress-utils";
 export {
   ProgressChecklistCard,
   type ProgressChecklistStep,

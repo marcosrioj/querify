@@ -98,6 +98,9 @@ Relationship sections manage children and related records without leaving the or
 - use the searchable pattern for both single-selection and link/multi-selection flows
 - keep enum-only controls on the normal `Select` primitive
 - `SearchSelect` popovers must be constrained to the viewport on narrow screens and must not impose a desktop minimum width on mobile.
+- For dedicated Add/Edit forms, consider `FormSetupProgressCard` whenever required fields represent a meaningful completion path for creating or updating the record.
+- Place form setup progress below the main form card in the primary content column, derive steps from current form values, and keep the default hide-at-100% behavior.
+- Keep setup progress steps aligned with the fields that actually determine readiness; update the steps whenever those fields or their meaning change.
 
 ## Confirmation standards
 
@@ -126,6 +129,8 @@ Relationship sections manage children and related records without leaving the or
 ### Progress guidance
 
 - Dashboard progress should be derived from real data where possible.
+- Dashboard setup progress should not render any setup-progress or completion surface after it reaches 100%.
+- Dedicated Add/Edit setup progress should be form-specific and should disappear when every step is complete.
 - First-run guidance should focus on the next best action.
 - Avoid dense enterprise dashboards before there is workspace content to manage.
 

@@ -147,6 +147,9 @@ Relationship sections are local management surfaces for child records and relate
 - any select or dropdown whose options come from a backend list endpoint must use `SearchSelect` or `SearchSelectField`
 - use the same searchable pattern whether the field accepts one selection or participates in a multi-selection/linking flow
 - keep static enum fields on the normal `Select` primitive unless they are backed by an API list
+- when a dedicated Add/Edit form has required fields that define whether the record is ready to save, include or update the shared `FormSetupProgressCard`
+- form setup progress belongs below the main form card in the primary content column, and it should use `react-hook-form` values so it reflects the current unsaved state
+- form setup progress should keep the default behavior of disappearing when every step is complete; do not add a separate completed-state card unless the product requirement explicitly asks for one
 
 ### Confirmation standards
 
@@ -175,6 +178,9 @@ Relationship sections are local management surfaces for child records and relate
 #### First-run and progress guidance
 
 - Dashboard activation should infer progress from real Portal data where possible.
+- Dashboard setup progress should disappear completely when it reaches 100%, including compact progress panels and completion cards.
+- Dedicated Add/Edit setup progress should be considered whenever a form change adds, removes, renames, or changes the readiness meaning of required fields.
+- Dedicated Add/Edit setup progress should describe the form-specific completion path, not the workspace activation path.
 - First-run guidance should make the next action obvious without hiding operational surfaces.
 - Progress guidance may appear in the main content column or as a compact right-rail status summary when that placement better supports the page.
 

@@ -1,7 +1,6 @@
 import {
   Activity,
   ArrowRight,
-  CheckCircle2,
   Clock3,
   FileCheck2,
   FolderKanban,
@@ -99,6 +98,8 @@ function HomeHero({
   workspaceName?: string;
   activationMode: boolean;
 }) {
+  const showSetupProgress = setupProgress < 100;
+
   return (
     <Card className="overflow-hidden border-primary/15 bg-linear-to-br from-card via-card to-emerald-500/[0.07]">
       <CardContent className="relative p-5 lg:p-7">
@@ -106,7 +107,13 @@ function HomeHero({
           aria-hidden="true"
           className="absolute inset-x-0 top-0 h-1 bg-linear-to-r from-emerald-500 via-sky-500 to-indigo-500"
         />
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-center">
+        <div
+          className={
+            showSetupProgress
+              ? "grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-center"
+              : "grid gap-6"
+          }
+        >
           <div className="min-w-0 space-y-5">
             <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
               <Sparkles className="size-3.5" />
@@ -117,7 +124,7 @@ function HomeHero({
                 {translateText(
                   activationMode
                     ? "Start with a clean QnA foundation"
-                    : "Keep trusted answers moving",
+                    : "Workspace overview",
                 )}
               </h2>
               <p className="text-sm leading-6 text-muted-foreground lg:text-base">
@@ -144,28 +151,30 @@ function HomeHero({
             </div>
           </div>
 
-          <div className="rounded-2xl border border-border/70 bg-background/80 p-4 shadow-xs">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-              {translateText("Setup progress")}
-            </p>
-            <div className="mt-3 flex items-end justify-between gap-4">
-              <div className="text-4xl font-semibold leading-none text-mono">
-                {setupProgress}%
+          {showSetupProgress ? (
+            <div className="rounded-2xl border border-border/70 bg-background/80 p-4 shadow-xs">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                {translateText("Setup progress")}
+              </p>
+              <div className="mt-3 flex items-end justify-between gap-4">
+                <div className="text-4xl font-semibold leading-none text-mono">
+                  {setupProgress}%
+                </div>
+                <Badge variant="primary" appearance="outline">
+                  {translateText("In progress")}
+                </Badge>
               </div>
-              <Badge variant={setupProgress === 100 ? "success" : "primary"} appearance="outline">
-                {translateText(setupProgress === 100 ? "Complete" : "In progress")}
-              </Badge>
+              <div className="mt-4 h-2 overflow-hidden rounded-full bg-muted">
+                <div
+                  className="h-full rounded-full bg-primary transition-[width] duration-500"
+                  style={{ width: `${setupProgress}%` }}
+                />
+              </div>
+              <p className="mt-4 text-sm leading-6 text-muted-foreground">
+                {translateText(nextAction.description)}
+              </p>
             </div>
-            <div className="mt-4 h-2 overflow-hidden rounded-full bg-muted">
-              <div
-                className="h-full rounded-full bg-primary transition-[width] duration-500"
-                style={{ width: `${setupProgress}%` }}
-              />
-            </div>
-            <p className="mt-4 text-sm leading-6 text-muted-foreground">
-              {translateText(nextAction.description)}
-            </p>
-          </div>
+          ) : null}
         </div>
       </CardContent>
     </Card>
@@ -570,30 +579,7 @@ export function DashboardPage() {
           secondaryAction={{ label: "Open profile", to: "/app/settings/profile" }}
           hideWhenComplete
         />
-      ) : (
-        <Card className="border-success/25 bg-success/5">
-          <CardContent className="flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex min-w-0 items-start gap-3">
-              <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                <CheckCircle2 className="size-5" />
-              </span>
-              <div className="min-w-0">
-                <p className="font-semibold text-mono">
-                  {translateText("Setup is complete")}
-                </p>
-                <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                  {translateText(
-                    "Home now prioritizes moderation throughput, validation, evidence coverage, and recent signals.",
-                  )}
-                </p>
-              </div>
-            </div>
-            <Button asChild variant="outline">
-              <Link to="/app/settings/profile">{translateText("Review setup")}</Link>
-            </Button>
-          </CardContent>
-        </Card>
-      )}
+      ) : null}
 
       {billingNeedsAttention ? (
         <BillingNotice

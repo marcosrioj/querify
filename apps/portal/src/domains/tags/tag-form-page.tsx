@@ -19,7 +19,9 @@ import {
   CardTitle,
   ContextHint,
   Form,
+  FormSetupProgressCard,
   FormCardSkeleton,
+  hasSetupText,
   SidebarSummarySkeleton,
 } from "@/shared/ui";
 import { ErrorState } from "@/shared/ui/placeholder-state";
@@ -49,6 +51,15 @@ export function TagFormPage({ mode }: { mode: "create" | "edit" }) {
   }, [form, tagQuery.data]);
 
   const isSubmitting = createTag.isPending || updateTag.isPending;
+  const setupValues = form.watch();
+  const setupSteps = [
+    {
+      id: "name",
+      label: "Tag name",
+      description: "Use a concise reusable label for taxonomy.",
+      complete: hasSetupText(setupValues.name, 2),
+    },
+  ];
   const backTo = "/app/tags";
 
   return (
@@ -110,50 +121,57 @@ export function TagFormPage({ mode }: { mode: "create" | "edit" }) {
       ) : mode === "edit" && tagQuery.isLoading ? (
         <FormCardSkeleton fields={1} />
       ) : (
-        <Card>
-          <CardHeader>
-            <CardHeading>
-              <CardTitle>{translateText("Tag details")}</CardTitle>
-            </CardHeading>
-          </CardHeader>
-          <CardContent>
-            <Form {...form}>
-              <form
-                className="space-y-4"
-                onSubmit={form.handleSubmit(async (values) => {
-                  if (mode === "create") {
-                    await createTag.mutateAsync(values);
-                    navigate("/app/tags");
-                    return;
-                  }
+        <>
+          <Card>
+            <CardHeader>
+              <CardHeading>
+                <CardTitle>{translateText("Tag details")}</CardTitle>
+              </CardHeading>
+            </CardHeader>
+            <CardContent>
+              <Form {...form}>
+                <form
+                  className="space-y-4"
+                  onSubmit={form.handleSubmit(async (values) => {
+                    if (mode === "create") {
+                      await createTag.mutateAsync(values);
+                      navigate("/app/tags");
+                      return;
+                    }
 
-                  await updateTag.mutateAsync(values);
-                  navigate("/app/tags");
-                })}
-              >
-                <TextField
-                  control={form.control}
-                  name="name"
-                  label="Tag name"
-                  description="Use short reusable labels such as Billing, Activation, or API limits."
-                />
-                <div className="flex flex-wrap items-center gap-3">
-                  <Button type="submit" disabled={isSubmitting}>
-                    {translateText(
-                      mode === "create" ? "Create tag" : "Save changes",
-                    )}
-                  </Button>
-                  <Button asChild variant="outline">
-                    <Link to={backTo}>
-                      <X className="size-4" />
-                      {translateText("Cancel")}
-                    </Link>
-                  </Button>
-                </div>
-              </form>
-            </Form>
-          </CardContent>
-        </Card>
+                    await updateTag.mutateAsync(values);
+                    navigate("/app/tags");
+                  })}
+                >
+                  <TextField
+                    control={form.control}
+                    name="name"
+                    label="Tag name"
+                    description="Use short reusable labels such as Billing, Activation, or API limits."
+                  />
+                  <div className="flex flex-wrap items-center gap-3">
+                    <Button type="submit" disabled={isSubmitting}>
+                      {translateText(
+                        mode === "create" ? "Create tag" : "Save changes",
+                      )}
+                    </Button>
+                    <Button asChild variant="outline">
+                      <Link to={backTo}>
+                        <X className="size-4" />
+                        {translateText("Cancel")}
+                      </Link>
+                    </Button>
+                  </div>
+                </form>
+              </Form>
+            </CardContent>
+          </Card>
+          <FormSetupProgressCard
+            title={mode === "create" ? "Tag setup" : "Tag edit setup"}
+            description="Complete the required taxonomy field before saving this tag."
+            steps={setupSteps}
+          />
+        </>
       )}
     </DetailLayout>
   );

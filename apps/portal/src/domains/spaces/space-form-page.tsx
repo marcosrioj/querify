@@ -32,8 +32,11 @@ import {
   CardTitle,
   ContextHint,
   Form,
+  FormSetupProgressCard,
   FormCardSkeleton,
   FormSectionHeading,
+  hasSetupText,
+  hasSetupValue,
   SidebarSummarySkeleton,
 } from "@/shared/ui";
 import { ErrorState } from "@/shared/ui/placeholder-state";
@@ -100,6 +103,34 @@ export function SpaceFormPage({ mode }: { mode: "create" | "edit" }) {
   const selectedLanguageOption =
     languageOptions.find((option) => option.value === selectedLanguageValue) ??
     null;
+  const setupValues = form.watch();
+  const setupSteps = [
+    {
+      id: "identity",
+      label: "Name and slug",
+      description: "Give the space a clear name and stable slug.",
+      complete:
+        hasSetupText(setupValues.name, 2) && hasSetupText(setupValues.slug, 2),
+    },
+    {
+      id: "language",
+      label: "Language",
+      description: "Choose the main locale used by this space.",
+      complete: hasSetupText(setupValues.language, 2),
+    },
+    {
+      id: "operating-mode",
+      label: "Operating mode",
+      description: "Pick how this space gathers and governs answers.",
+      complete: hasSetupValue(setupValues.kind),
+    },
+    {
+      id: "visibility",
+      label: "Visibility",
+      description: "Set the audience exposure for the space.",
+      complete: hasSetupValue(setupValues.visibility),
+    },
+  ];
   const isSubmitting = createSpace.isPending || updateSpace.isPending;
   const backTo = mode === "edit" && id ? `/app/spaces/${id}` : "/app/spaces";
 
@@ -155,152 +186,159 @@ export function SpaceFormPage({ mode }: { mode: "create" | "edit" }) {
       ) : mode === "edit" && spaceQuery.isLoading ? (
         <FormCardSkeleton fields={12} />
       ) : (
-        <Card>
-          <CardHeader>
-            <CardHeading>
-              <CardTitle className="flex flex-wrap items-center gap-2">
-                <span>{translateText("Configuration")}</span>
-                <ContextHint
-                  content={translateText(
-                    "Start with the operating model, then decide who can see the space and how submissions move through review.",
-                  )}
-                  label={translateText("Form details")}
-                />
-              </CardTitle>
-            </CardHeading>
-          </CardHeader>
-          <CardContent>
-            <Form {...form}>
-              <form
-                className="space-y-5"
-                onSubmit={form.handleSubmit(async (values) => {
-                  const body = {
-                    ...values,
-                    summary: values.summary || undefined,
-                    kind: Number(values.kind) as SpaceKind,
-                    visibility: Number(values.visibility) as VisibilityScope,
-                  };
+        <>
+          <Card>
+            <CardHeader>
+              <CardHeading>
+                <CardTitle className="flex flex-wrap items-center gap-2">
+                  <span>{translateText("Configuration")}</span>
+                  <ContextHint
+                    content={translateText(
+                      "Start with the operating model, then decide who can see the space and how submissions move through review.",
+                    )}
+                    label={translateText("Form details")}
+                  />
+                </CardTitle>
+              </CardHeading>
+            </CardHeader>
+            <CardContent>
+              <Form {...form}>
+                <form
+                  className="space-y-5"
+                  onSubmit={form.handleSubmit(async (values) => {
+                    const body = {
+                      ...values,
+                      summary: values.summary || undefined,
+                      kind: Number(values.kind) as SpaceKind,
+                      visibility: Number(values.visibility) as VisibilityScope,
+                    };
 
-                  if (mode === "create") {
-                    const createdId = await createSpace.mutateAsync(body);
-                    navigate(`/app/spaces/${createdId}`);
-                    return;
-                  }
+                    if (mode === "create") {
+                      const createdId = await createSpace.mutateAsync(body);
+                      navigate(`/app/spaces/${createdId}`);
+                      return;
+                    }
 
-                  await updateSpace.mutateAsync(body);
-                  navigate(`/app/spaces/${id}`);
-                })}
-              >
-                <FormSectionHeading
-                  title="Identity"
-                  description="Name the space clearly so operators know exactly what knowledge area they are configuring."
-                />
-                <div className="grid gap-4 md:grid-cols-2">
-                  <TextField
-                    control={form.control}
-                    name="name"
-                    label="Name"
-                    placeholder="Product support space"
-                    description="Use the operational name teammates will recognize."
+                    await updateSpace.mutateAsync(body);
+                    navigate(`/app/spaces/${id}`);
+                  })}
+                >
+                  <FormSectionHeading
+                    title="Identity"
+                    description="Name the space clearly so operators know exactly what knowledge area they are configuring."
                   />
-                  <TextField
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <TextField
+                      control={form.control}
+                      name="name"
+                      label="Name"
+                      placeholder="Product support space"
+                      description="Use the operational name teammates will recognize."
+                    />
+                    <TextField
+                      control={form.control}
+                      name="slug"
+                      label="Slug"
+                      placeholder="product-support"
+                      description="Use a stable slug for routing and integrations."
+                    />
+                  </div>
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <SearchSelectField
+                      control={form.control}
+                      name="language"
+                      label="Language"
+                      description="Use the main locale for the questions and answers in this space."
+                      options={languageOptions}
+                      selectedOption={selectedLanguageOption}
+                      searchPlaceholder="Search languages"
+                      emptyMessage="No languages found."
+                      resultCountHint={translateText(
+                        "{count} languages available",
+                        {
+                          count: portalLanguageOptions.length,
+                        },
+                      )}
+                    />
+                    <SelectField
+                      control={form.control}
+                      name="kind"
+                      label="Operating mode"
+                      description="Pick the operating model that best matches how this space should gather and govern answers."
+                      options={Object.entries(spaceKindLabels).map(
+                        ([value, label]) => ({
+                          value,
+                          label,
+                        }),
+                      )}
+                    />
+                  </div>
+                  <TextareaField
                     control={form.control}
-                    name="slug"
-                    label="Slug"
-                    placeholder="product-support"
-                    description="Use a stable slug for routing and integrations."
+                    name="summary"
+                    label="Summary"
+                    rows={3}
+                    description="Explain what the space covers and when teams should route content here."
                   />
-                </div>
-                <div className="grid gap-4 md:grid-cols-2">
-                  <SearchSelectField
-                    control={form.control}
-                    name="language"
-                    label="Language"
-                    description="Use the main locale for the questions and answers in this space."
-                    options={languageOptions}
-                    selectedOption={selectedLanguageOption}
-                    searchPlaceholder="Search languages"
-                    emptyMessage="No languages found."
-                    resultCountHint={translateText(
-                      "{count} languages available",
-                      {
-                        count: portalLanguageOptions.length,
-                      },
-                    )}
+                  <FormSectionHeading
+                    title="Exposure"
+                    description="Decide who can see the space."
                   />
-                  <SelectField
-                    control={form.control}
-                    name="kind"
-                    label="Operating mode"
-                    description="Pick the operating model that best matches how this space should gather and govern answers."
-                    options={Object.entries(spaceKindLabels).map(
-                      ([value, label]) => ({
-                        value,
-                        label,
-                      }),
-                    )}
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <SelectField
+                      control={form.control}
+                      name="visibility"
+                      label="Visibility"
+                      description="Choose the strongest audience exposure the space should allow."
+                      options={Object.entries(visibilityScopeLabels).map(
+                        ([value, label]) => ({
+                          value,
+                          label,
+                        }),
+                      )}
+                    />
+                  </div>
+                  <FormSectionHeading
+                    title="Workflow rules"
+                    description="Tune whether the space accepts new threads. Review behavior comes from the operating mode."
                   />
-                </div>
-                <TextareaField
-                  control={form.control}
-                  name="summary"
-                  label="Summary"
-                  rows={3}
-                  description="Explain what the space covers and when teams should route content here."
-                />
-                <FormSectionHeading
-                  title="Exposure"
-                  description="Decide who can see the space."
-                />
-                <div className="grid gap-4 md:grid-cols-2">
-                  <SelectField
-                    control={form.control}
-                    name="visibility"
-                    label="Visibility"
-                    description="Choose the strongest audience exposure the space should allow."
-                    options={Object.entries(visibilityScopeLabels).map(
-                      ([value, label]) => ({
-                        value,
-                        label,
-                      }),
-                    )}
-                  />
-                </div>
-                <FormSectionHeading
-                  title="Workflow rules"
-                  description="Tune whether the space accepts new threads. Review behavior comes from the operating mode."
-                />
-                <div className="grid gap-4 md:grid-cols-2">
-                  <SwitchField
-                    control={form.control}
-                    name="acceptsQuestions"
-                    label="Accept questions"
-                    description="Disable this for frozen or read-only knowledge spaces."
-                  />
-                  <SwitchField
-                    control={form.control}
-                    name="acceptsAnswers"
-                    label="Accept answers"
-                    description="Disable this if questions should route elsewhere instead of collecting answers."
-                  />
-                </div>
-                <div className="flex flex-wrap items-center gap-3">
-                  <Button type="submit" disabled={isSubmitting}>
-                    {translateText(
-                      mode === "create" ? "Create space" : "Save changes",
-                    )}
-                  </Button>
-                  <Button asChild variant="outline">
-                    <Link to={backTo}>
-                      <X className="size-4" />
-                      {translateText("Cancel")}
-                    </Link>
-                  </Button>
-                </div>
-              </form>
-            </Form>
-          </CardContent>
-        </Card>
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <SwitchField
+                      control={form.control}
+                      name="acceptsQuestions"
+                      label="Accept questions"
+                      description="Disable this for frozen or read-only knowledge spaces."
+                    />
+                    <SwitchField
+                      control={form.control}
+                      name="acceptsAnswers"
+                      label="Accept answers"
+                      description="Disable this if questions should route elsewhere instead of collecting answers."
+                    />
+                  </div>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <Button type="submit" disabled={isSubmitting}>
+                      {translateText(
+                        mode === "create" ? "Create space" : "Save changes",
+                      )}
+                    </Button>
+                    <Button asChild variant="outline">
+                      <Link to={backTo}>
+                        <X className="size-4" />
+                        {translateText("Cancel")}
+                      </Link>
+                    </Button>
+                  </div>
+                </form>
+              </Form>
+            </CardContent>
+          </Card>
+          <FormSetupProgressCard
+            title={mode === "create" ? "Space setup" : "Space edit setup"}
+            description="Complete the required configuration before saving this space."
+            steps={setupSteps}
+          />
+        </>
       )}
     </DetailLayout>
   );

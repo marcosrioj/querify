@@ -40,8 +40,11 @@ import {
   CardTitle,
   ContextHint,
   Form,
+  FormSetupProgressCard,
   FormCardSkeleton,
   FormSectionHeading,
+  hasSetupText,
+  hasSetupValue,
   SidebarSummarySkeleton,
 } from "@/shared/ui";
 import { EmptyState, ErrorState } from "@/shared/ui/placeholder-state";
@@ -136,6 +139,40 @@ export function QuestionFormPage({ mode }: { mode: "create" | "edit" }) {
   const selectedSpaceOption = selectedSpace
     ? buildSpaceOption(selectedSpace)
     : null;
+  const setupValues = form.watch();
+  const setupSteps = [
+    {
+      id: "space",
+      label: "Space",
+      description: "Attach the thread to its owning operating space.",
+      complete: hasSetupText(setupValues.spaceId),
+    },
+    {
+      id: "title",
+      label: "Title",
+      description: "Write the canonical question wording.",
+      complete: hasSetupText(setupValues.title, 3),
+    },
+    {
+      id: "status",
+      label: "Status",
+      description: "Set the starting lifecycle for the thread.",
+      complete: hasSetupValue(setupValues.status),
+    },
+    {
+      id: "visibility",
+      label: "Visibility",
+      description:
+        "Choose whether the question stays internal or can be public.",
+      complete: hasSetupValue(setupValues.visibility),
+    },
+    {
+      id: "origin",
+      label: "Origin channel",
+      description: "Record where this question came from.",
+      complete: hasSetupValue(setupValues.originChannel),
+    },
+  ];
   const isSubmitting = createQuestion.isPending || updateQuestion.isPending;
   const backTo =
     mode === "edit" && id
@@ -224,191 +261,202 @@ export function QuestionFormPage({ mode }: { mode: "create" | "edit" }) {
       ) : mode === "edit" && questionQuery.isLoading ? (
         <FormCardSkeleton fields={12} />
       ) : (
-        <Card>
-          <CardHeader>
-            <CardHeading>
-              <CardTitle className="flex flex-wrap items-center gap-2">
-                <span>{translateText("Thread details")}</span>
-                <ContextHint
-                  content={translateText(
-                    "Start with the space, then set lifecycle, visibility, and thread context so downstream answers inherit the right guardrails.",
-                  )}
-                  label={translateText("Form details")}
-                />
-              </CardTitle>
-            </CardHeading>
-          </CardHeader>
-          <CardContent>
-            <Form {...form}>
-              <form
-                className="space-y-5"
-                onSubmit={form.handleSubmit(async (values) => {
-                  const createBody = {
-                    spaceId: values.spaceId,
-                    title: values.title,
-                    summary: values.summary || undefined,
-                    contextNote: values.contextNote || undefined,
-                    status: Number(values.status) as QuestionStatus,
-                    visibility: Number(values.visibility) as VisibilityScope,
-                    originChannel: Number(values.originChannel) as ChannelKind,
-                    sort: values.sort,
-                  };
+        <>
+          <Card>
+            <CardHeader>
+              <CardHeading>
+                <CardTitle className="flex flex-wrap items-center gap-2">
+                  <span>{translateText("Thread details")}</span>
+                  <ContextHint
+                    content={translateText(
+                      "Start with the space, then set lifecycle, visibility, and thread context so downstream answers inherit the right guardrails.",
+                    )}
+                    label={translateText("Form details")}
+                  />
+                </CardTitle>
+              </CardHeading>
+            </CardHeader>
+            <CardContent>
+              <Form {...form}>
+                <form
+                  className="space-y-5"
+                  onSubmit={form.handleSubmit(async (values) => {
+                    const createBody = {
+                      spaceId: values.spaceId,
+                      title: values.title,
+                      summary: values.summary || undefined,
+                      contextNote: values.contextNote || undefined,
+                      status: Number(values.status) as QuestionStatus,
+                      visibility: Number(values.visibility) as VisibilityScope,
+                      originChannel: Number(
+                        values.originChannel,
+                      ) as ChannelKind,
+                      sort: values.sort,
+                    };
 
-                  if (mode === "create") {
-                    const createdId =
-                      await createQuestion.mutateAsync(createBody);
-                    navigate(`/app/questions/${createdId}`);
-                    return;
-                  }
+                    if (mode === "create") {
+                      const createdId =
+                        await createQuestion.mutateAsync(createBody);
+                      navigate(`/app/questions/${createdId}`);
+                      return;
+                    }
 
-                  await updateQuestion.mutateAsync({
-                    title: createBody.title,
-                    summary: createBody.summary,
-                    contextNote: createBody.contextNote,
-                    status: createBody.status,
-                    visibility: createBody.visibility,
-                    originChannel: createBody.originChannel,
-                    sort: createBody.sort,
-                    acceptedAnswerId:
-                      questionQuery.data?.acceptedAnswerId || undefined,
-                    duplicateOfQuestionId:
-                      questionQuery.data?.duplicateOfQuestionId || undefined,
-                  });
-                  navigate(`/app/questions/${id}`);
-                })}
-              >
-                <FormSectionHeading
-                  title="Placement"
-                  description="Pick the owning space first so the thread inherits the right exposure and operating mode."
-                />
-                <SearchSelectField
-                  control={form.control}
-                  name="spaceId"
-                  label="Space"
-                  description="The space controls exposure, operating mode, and how the question should be operated."
-                  placeholder="Search and choose the owning space"
-                  searchPlaceholder="Search spaces"
-                  emptyMessage={
-                    deferredSpaceSearch
-                      ? "No spaces match this search."
-                      : "No spaces available."
-                  }
-                  options={spaceOptions}
-                  selectedOption={selectedSpaceOption}
-                  loading={spaceOptionsQuery.isFetching}
-                  disabled={Boolean(preselectedSpaceId) || mode === "edit"}
-                  searchValue={spaceSearch}
-                  onSearchChange={(value) =>
-                    startTransition(() => setSpaceSearch(value))
-                  }
-                />
-                <FormSectionHeading
-                  title="Identity"
-                  description="Use the wording customers or operators will actually search for."
-                />
-                <div className="grid gap-4 md:grid-cols-2">
-                  <TextField
-                    control={form.control}
-                    name="title"
-                    label="Title"
-                    placeholder="How do I activate the workspace for a new tenant?"
-                    description="Use the canonical question wording."
+                    await updateQuestion.mutateAsync({
+                      title: createBody.title,
+                      summary: createBody.summary,
+                      contextNote: createBody.contextNote,
+                      status: createBody.status,
+                      visibility: createBody.visibility,
+                      originChannel: createBody.originChannel,
+                      sort: createBody.sort,
+                      acceptedAnswerId:
+                        questionQuery.data?.acceptedAnswerId || undefined,
+                      duplicateOfQuestionId:
+                        questionQuery.data?.duplicateOfQuestionId || undefined,
+                    });
+                    navigate(`/app/questions/${id}`);
+                  })}
+                >
+                  <FormSectionHeading
+                    title="Placement"
+                    description="Pick the owning space first so the thread inherits the right exposure and operating mode."
                   />
-                  <TextField
+                  <SearchSelectField
                     control={form.control}
-                    name="sort"
-                    label="Sort"
-                    description="Lower values appear earlier in curated ordering."
+                    name="spaceId"
+                    label="Space"
+                    description="The space controls exposure, operating mode, and how the question should be operated."
+                    placeholder="Search and choose the owning space"
+                    searchPlaceholder="Search spaces"
+                    emptyMessage={
+                      deferredSpaceSearch
+                        ? "No spaces match this search."
+                        : "No spaces available."
+                    }
+                    options={spaceOptions}
+                    selectedOption={selectedSpaceOption}
+                    loading={spaceOptionsQuery.isFetching}
+                    disabled={Boolean(preselectedSpaceId) || mode === "edit"}
+                    searchValue={spaceSearch}
+                    onSearchChange={(value) =>
+                      startTransition(() => setSpaceSearch(value))
+                    }
                   />
-                </div>
-                <TextareaField
-                  control={form.control}
-                  name="summary"
-                  label="Summary"
-                  rows={3}
-                  description="A compact explanation of the thread before the full context."
-                />
-                <TextareaField
-                  control={form.control}
-                  name="contextNote"
-                  label="Context note"
-                  rows={4}
-                  description="Operational nuance that answer authors should understand."
-                />
-                <FormSectionHeading
-                  title="Workflow"
-                  description="Set the starting lifecycle, visibility, and intake channel."
-                />
-                <div className="grid gap-4 md:grid-cols-3">
-                  <SelectField
+                  <FormSectionHeading
+                    title="Identity"
+                    description="Use the wording customers or operators will actually search for."
+                  />
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <TextField
+                      control={form.control}
+                      name="title"
+                      label="Title"
+                      placeholder="How do I activate the workspace for a new tenant?"
+                      description="Use the canonical question wording."
+                    />
+                    <TextField
+                      control={form.control}
+                      name="sort"
+                      label="Sort"
+                      description="Lower values appear earlier in curated ordering."
+                    />
+                  </div>
+                  <TextareaField
                     control={form.control}
-                    name="status"
-                    label="Status"
-                    description="Controls where the thread is in triage, review, publication, or closure."
-                    options={Object.entries(questionStatusLabels).map(
-                      ([value, label]) => ({
-                        value,
-                        label,
-                      }),
-                    )}
+                    name="summary"
+                    label="Summary"
+                    rows={3}
+                    description="A compact explanation of the thread before the full context."
                   />
-                  <SelectField
+                  <TextareaField
                     control={form.control}
-                    name="visibility"
-                    label="Visibility"
-                    description="Controls whether the question stays internal or can be exposed publicly."
-                    options={Object.entries(visibilityScopeLabels).map(
-                      ([value, label]) => ({
-                        value,
-                        label,
-                      }),
-                    )}
+                    name="contextNote"
+                    label="Context note"
+                    rows={4}
+                    description="Operational nuance that answer authors should understand."
                   />
-                  <SelectField
-                    control={form.control}
-                    name="originChannel"
-                    label="Origin channel"
-                    description="Records where the question came from for reporting and routing."
-                    options={Object.entries(channelKindLabels).map(
-                      ([value, label]) => ({
-                        value,
-                        label,
-                      }),
-                    )}
+                  <FormSectionHeading
+                    title="Workflow"
+                    description="Set the starting lifecycle, visibility, and intake channel."
                   />
-                </div>
-                <div className="flex flex-wrap items-center gap-3">
-                  <Button
-                    type="submit"
-                    disabled={isSubmitting || spaceBlocksQuestions}
-                  >
-                    {translateText(
-                      mode === "create" ? "Create question" : "Save changes",
-                    )}
-                  </Button>
-                  <Button asChild variant="outline">
-                    <Link to={backTo}>
-                      <X className="size-4" />
-                      {translateText("Cancel")}
-                    </Link>
-                  </Button>
-                </div>
-                {spaceBlocksQuestions ? (
-                  <p className="text-sm text-muted-foreground">
-                    {translateText("This space does not accept new questions.")}
-                  </p>
-                ) : null}
-                {invalidPublicStatus ? (
-                  <p className="text-sm text-muted-foreground">
-                    {translateText(
-                      "Public visibility requires status Open, Answered, or Validated.",
-                    )}
-                  </p>
-                ) : null}
-              </form>
-            </Form>
-          </CardContent>
-        </Card>
+                  <div className="grid gap-4 md:grid-cols-3">
+                    <SelectField
+                      control={form.control}
+                      name="status"
+                      label="Status"
+                      description="Controls where the thread is in triage, review, publication, or closure."
+                      options={Object.entries(questionStatusLabels).map(
+                        ([value, label]) => ({
+                          value,
+                          label,
+                        }),
+                      )}
+                    />
+                    <SelectField
+                      control={form.control}
+                      name="visibility"
+                      label="Visibility"
+                      description="Controls whether the question stays internal or can be exposed publicly."
+                      options={Object.entries(visibilityScopeLabels).map(
+                        ([value, label]) => ({
+                          value,
+                          label,
+                        }),
+                      )}
+                    />
+                    <SelectField
+                      control={form.control}
+                      name="originChannel"
+                      label="Origin channel"
+                      description="Records where the question came from for reporting and routing."
+                      options={Object.entries(channelKindLabels).map(
+                        ([value, label]) => ({
+                          value,
+                          label,
+                        }),
+                      )}
+                    />
+                  </div>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <Button
+                      type="submit"
+                      disabled={isSubmitting || spaceBlocksQuestions}
+                    >
+                      {translateText(
+                        mode === "create" ? "Create question" : "Save changes",
+                      )}
+                    </Button>
+                    <Button asChild variant="outline">
+                      <Link to={backTo}>
+                        <X className="size-4" />
+                        {translateText("Cancel")}
+                      </Link>
+                    </Button>
+                  </div>
+                  {spaceBlocksQuestions ? (
+                    <p className="text-sm text-muted-foreground">
+                      {translateText(
+                        "This space does not accept new questions.",
+                      )}
+                    </p>
+                  ) : null}
+                  {invalidPublicStatus ? (
+                    <p className="text-sm text-muted-foreground">
+                      {translateText(
+                        "Public visibility requires status Open, Answered, or Validated.",
+                      )}
+                    </p>
+                  ) : null}
+                </form>
+              </Form>
+            </CardContent>
+          </Card>
+          <FormSetupProgressCard
+            title={mode === "create" ? "Question setup" : "Question edit setup"}
+            description="Complete the required thread fields before saving this question."
+            steps={setupSteps}
+          />
+        </>
       )}
     </DetailLayout>
   );

@@ -32,8 +32,11 @@ import {
   CardTitle,
   ContextHint,
   Form,
+  FormSetupProgressCard,
   FormCardSkeleton,
   FormSectionHeading,
+  hasSetupText,
+  hasSetupValue,
   SidebarSummarySkeleton,
 } from "@/shared/ui";
 import { ErrorState } from "@/shared/ui/placeholder-state";
@@ -98,6 +101,39 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
   }, [form, sourceQuery.data]);
 
   const isSubmitting = createSource.isPending || updateSource.isPending;
+  const setupValues = form.watch();
+  const setupSteps = [
+    {
+      id: "source-type",
+      label: "Source type",
+      description: "Choose what kind of evidence this source represents.",
+      complete: hasSetupValue(setupValues.kind),
+    },
+    {
+      id: "locator",
+      label: "Locator",
+      description: "Add the canonical URL, path, ticket, or document locator.",
+      complete: hasSetupText(setupValues.locator, 3),
+    },
+    {
+      id: "language",
+      label: "Language",
+      description: "Set the locale code for this source content.",
+      complete: hasSetupText(setupValues.language, 2),
+    },
+    {
+      id: "checksum",
+      label: "Checksum",
+      description: "Capture a digest so content changes can be detected.",
+      complete: hasSetupText(setupValues.checksum),
+    },
+    {
+      id: "visibility",
+      label: "Visibility",
+      description: "Choose who can see or reuse this source.",
+      complete: hasSetupValue(setupValues.visibility),
+    },
+  ];
   const backTo = mode === "edit" && id ? `/app/sources/${id}` : "/app/sources";
 
   return (
@@ -157,181 +193,188 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
       ) : mode === "edit" && sourceQuery.isLoading ? (
         <FormCardSkeleton fields={12} />
       ) : (
-        <Card>
-          <CardHeader>
-            <CardHeading>
-              <CardTitle className="flex flex-wrap items-center gap-2">
-                <span>{translateText("Source details")}</span>
-                <ContextHint
-                  content={translateText(
-                    "Start with the locator and classification, then capture trust, public-citation, and verification metadata.",
-                  )}
-                  label={translateText("Form details")}
-                />
-              </CardTitle>
-            </CardHeading>
-          </CardHeader>
-          <CardContent>
-            <Form {...form}>
-              <form
-                className="space-y-5"
-                onSubmit={form.handleSubmit(async (values) => {
-                  const body = {
-                    ...values,
-                    label: values.label || undefined,
-                    contextNote: values.contextNote || undefined,
-                    externalId: values.externalId || undefined,
-                    mediaType: values.mediaType || undefined,
-                    metadataJson: values.metadataJson || undefined,
-                    capturedAtUtc: values.capturedAtUtc || undefined,
-                    kind: Number(values.kind) as SourceKind,
-                    visibility: Number(values.visibility) as VisibilityScope,
-                  };
+        <>
+          <Card>
+            <CardHeader>
+              <CardHeading>
+                <CardTitle className="flex flex-wrap items-center gap-2">
+                  <span>{translateText("Source details")}</span>
+                  <ContextHint
+                    content={translateText(
+                      "Start with the locator and classification, then capture trust, public-citation, and verification metadata.",
+                    )}
+                    label={translateText("Form details")}
+                  />
+                </CardTitle>
+              </CardHeading>
+            </CardHeader>
+            <CardContent>
+              <Form {...form}>
+                <form
+                  className="space-y-5"
+                  onSubmit={form.handleSubmit(async (values) => {
+                    const body = {
+                      ...values,
+                      label: values.label || undefined,
+                      contextNote: values.contextNote || undefined,
+                      externalId: values.externalId || undefined,
+                      mediaType: values.mediaType || undefined,
+                      metadataJson: values.metadataJson || undefined,
+                      capturedAtUtc: values.capturedAtUtc || undefined,
+                      kind: Number(values.kind) as SourceKind,
+                      visibility: Number(values.visibility) as VisibilityScope,
+                    };
 
-                  if (mode === "create") {
-                    const createdId = await createSource.mutateAsync(body);
-                    navigate(`/app/sources/${createdId}`);
-                    return;
-                  }
+                    if (mode === "create") {
+                      const createdId = await createSource.mutateAsync(body);
+                      navigate(`/app/sources/${createdId}`);
+                      return;
+                    }
 
-                  await updateSource.mutateAsync(body);
-                  navigate(`/app/sources/${id}`);
-                })}
-              >
-                <FormSectionHeading
-                  title="Core identity"
-                  description="Define the locator and source kind first so the record can be reused across threads."
-                />
-                <div className="grid gap-4 md:grid-cols-2">
-                  <SelectField
-                    control={form.control}
-                    name="kind"
-                    label="Source kind"
-                    description="The type of evidence or reusable reference this source represents."
-                    options={Object.entries(sourceKindLabels).map(
-                      ([value, label]) => ({
-                        value,
-                        label,
-                      }),
-                    )}
+                    await updateSource.mutateAsync(body);
+                    navigate(`/app/sources/${id}`);
+                  })}
+                >
+                  <FormSectionHeading
+                    title="Core identity"
+                    description="Define the locator and source kind first so the record can be reused across threads."
                   />
-                  <SelectField
-                    control={form.control}
-                    name="visibility"
-                    label="Visibility"
-                    description="Controls which audiences can see or reuse this source."
-                    options={Object.entries(visibilityScopeLabels).map(
-                      ([value, label]) => ({
-                        value,
-                        label,
-                      }),
-                    )}
-                  />
-                </div>
-                <TextField
-                  control={form.control}
-                  name="locator"
-                  label="Locator"
-                  description="Use the canonical URL, path, repository URI, ticket reference, or document locator."
-                />
-                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <SelectField
+                      control={form.control}
+                      name="kind"
+                      label="Source kind"
+                      description="The type of evidence or reusable reference this source represents."
+                      options={Object.entries(sourceKindLabels).map(
+                        ([value, label]) => ({
+                          value,
+                          label,
+                        }),
+                      )}
+                    />
+                    <SelectField
+                      control={form.control}
+                      name="visibility"
+                      label="Visibility"
+                      description="Controls which audiences can see or reuse this source."
+                      options={Object.entries(visibilityScopeLabels).map(
+                        ([value, label]) => ({
+                          value,
+                          label,
+                        }),
+                      )}
+                    />
+                  </div>
                   <TextField
                     control={form.control}
-                    name="label"
-                    label="Label"
-                    description="Human-readable name shown when operators choose this source."
+                    name="locator"
+                    label="Locator"
+                    description="Use the canonical URL, path, repository URI, ticket reference, or document locator."
                   />
-                  <TextField
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <TextField
+                      control={form.control}
+                      name="label"
+                      label="Label"
+                      description="Human-readable name shown when operators choose this source."
+                    />
+                    <TextField
+                      control={form.control}
+                      name="contextNote"
+                      label="Context note"
+                      description="Internal note describing why this source matters or where it applies."
+                    />
+                    <TextField
+                      control={form.control}
+                      name="externalId"
+                      label="External ID"
+                      description="Identifier from the upstream connector, repository, or source system."
+                    />
+                    <TextField
+                      control={form.control}
+                      name="language"
+                      label="Language"
+                      description="Locale code for the source content when known."
+                    />
+                    <TextField
+                      control={form.control}
+                      name="mediaType"
+                      label="Media type"
+                      description="MIME type or source format such as text/html, application/pdf, or text/markdown."
+                    />
+                    <TextField
+                      control={form.control}
+                      name="checksum"
+                      label="Checksum"
+                      description="Digest used to detect source content changes."
+                    />
+                    <TextField
+                      control={form.control}
+                      name="capturedAtUtc"
+                      label="Captured at (ISO)"
+                      description="Optional ISO timestamp such as 2026-04-16T12:00:00Z."
+                    />
+                  </div>
+                  <TextareaField
                     control={form.control}
-                    name="contextNote"
-                    label="Context note"
-                    description="Internal note describing why this source matters or where it applies."
+                    name="metadataJson"
+                    label="Metadata JSON"
+                    rows={5}
+                    description="Optional structured metadata for connectors, ingestion, or future audit needs."
                   />
-                  <TextField
-                    control={form.control}
-                    name="externalId"
-                    label="External ID"
-                    description="Identifier from the upstream connector, repository, or source system."
+                  <FormSectionHeading
+                    title="Trust and public use"
+                    description="Control whether the source can be cited publicly and whether it should be treated as authoritative."
                   />
-                  <TextField
-                    control={form.control}
-                    name="language"
-                    label="Language"
-                    description="Locale code for the source content when known."
-                  />
-                  <TextField
-                    control={form.control}
-                    name="mediaType"
-                    label="Media type"
-                    description="MIME type or source format such as text/html, application/pdf, or text/markdown."
-                  />
-                  <TextField
-                    control={form.control}
-                    name="checksum"
-                    label="Checksum"
-                    description="Digest used to detect source content changes."
-                  />
-                  <TextField
-                    control={form.control}
-                    name="capturedAtUtc"
-                    label="Captured at (ISO)"
-                    description="Optional ISO timestamp such as 2026-04-16T12:00:00Z."
-                  />
-                </div>
-                <TextareaField
-                  control={form.control}
-                  name="metadataJson"
-                  label="Metadata JSON"
-                  rows={5}
-                  description="Optional structured metadata for connectors, ingestion, or future audit needs."
-                />
-                <FormSectionHeading
-                  title="Trust and public use"
-                  description="Control whether the source can be cited publicly and whether it should be treated as authoritative."
-                />
-                <div className="grid gap-4 md:grid-cols-2">
-                  <SwitchField
-                    control={form.control}
-                    name="allowsPublicCitation"
-                    label="Allows public citation"
-                    description="Allow public answers to cite this source as a reference."
-                  />
-                  <SwitchField
-                    control={form.control}
-                    name="allowsPublicExcerpt"
-                    label="Allows public excerpt"
-                    description="Allow public answers to include short excerpts from this source."
-                  />
-                  <SwitchField
-                    control={form.control}
-                    name="isAuthoritative"
-                    label="Authoritative"
-                    description="Treat this source as a trusted canonical reference."
-                  />
-                  <SwitchField
-                    control={form.control}
-                    name="markVerified"
-                    label="Mark verified now"
-                    description="Set the verification timestamp when saving this source."
-                  />
-                </div>
-                <div className="flex flex-wrap items-center gap-3">
-                  <Button type="submit" disabled={isSubmitting}>
-                    {translateText(
-                      mode === "create" ? "Create source" : "Save changes",
-                    )}
-                  </Button>
-                  <Button asChild variant="outline">
-                    <Link to={backTo}>
-                      <X className="size-4" />
-                      {translateText("Cancel")}
-                    </Link>
-                  </Button>
-                </div>
-              </form>
-            </Form>
-          </CardContent>
-        </Card>
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <SwitchField
+                      control={form.control}
+                      name="allowsPublicCitation"
+                      label="Allows public citation"
+                      description="Allow public answers to cite this source as a reference."
+                    />
+                    <SwitchField
+                      control={form.control}
+                      name="allowsPublicExcerpt"
+                      label="Allows public excerpt"
+                      description="Allow public answers to include short excerpts from this source."
+                    />
+                    <SwitchField
+                      control={form.control}
+                      name="isAuthoritative"
+                      label="Authoritative"
+                      description="Treat this source as a trusted canonical reference."
+                    />
+                    <SwitchField
+                      control={form.control}
+                      name="markVerified"
+                      label="Mark verified now"
+                      description="Set the verification timestamp when saving this source."
+                    />
+                  </div>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <Button type="submit" disabled={isSubmitting}>
+                      {translateText(
+                        mode === "create" ? "Create source" : "Save changes",
+                      )}
+                    </Button>
+                    <Button asChild variant="outline">
+                      <Link to={backTo}>
+                        <X className="size-4" />
+                        {translateText("Cancel")}
+                      </Link>
+                    </Button>
+                  </div>
+                </form>
+              </Form>
+            </CardContent>
+          </Card>
+          <FormSetupProgressCard
+            title={mode === "create" ? "Source setup" : "Source edit setup"}
+            description="Complete the required evidence fields before saving this source."
+            steps={setupSteps}
+          />
+        </>
       )}
     </DetailLayout>
   );
