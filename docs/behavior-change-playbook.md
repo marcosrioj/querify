@@ -77,7 +77,7 @@ Capture these facts before editing:
 - which DTOs expose the state
 - which handlers mutate or query it
 - which seed files create examples
-- which tests assert the old behavior
+- which tests assert the affected behavior
 - which Portal screens and translations expose it
 - which documentation already describes the pattern
 - whether the owning module already has the owning entity; if it does not, record a staged follow-up instead of storing that behavior in another module
@@ -100,7 +100,7 @@ Use these dimensions for module behavior:
 | Answer provenance | `AnswerKind` | Whether an answer is official, community-provided, or imported. |
 | Source material type | `SourceKind` | What artifact is linked: article, page, ticket, thread, audit record, and so on. |
 | Source relationship role | `SourceRole` | Why a source is attached: origin, evidence, citation, canonical reference, audit proof. |
-| Source citation permission | `Source.AllowsCitation` | Whether publicly visible QnA outputs may cite the source. This is not visibility, excerpt policy, or authority. |
+| Source citation permission | `Source.AllowsCitation` | Whether publicly visible QnA outputs may cite the source. |
 | Actor type | `ActorKind` | Who or what caused an activity event. |
 | Event journal | `ActivityKind` | What happened historically. This is not current state. |
 | Search rendering | `SearchMarkupMode` | How search-facing markup behaves for a space. |
@@ -109,9 +109,8 @@ Common consolidation rules:
 
 - A mode enum should not be duplicated by policy enums plus boolean review flags.
 - A question type enum should not duplicate origin channel, lifecycle status, or the parent space mode.
-- A source kind should describe the artifact. A source role should describe why it is linked.
-- A source citation permission should be represented by `Source.AllowsCitation`; do not split it into separate public citation and public excerpt flags unless a distinct product behavior is approved.
-- Source authority should come from relationship context such as `SourceRole.CanonicalReference` or from Trust-owned validation behavior, not from a blanket QnA source boolean such as `IsAuthoritative`.
+- A source kind should describe the artifact. A source role should describe why it is linked. `Source.AllowsCitation` should describe citation permission.
+- Source trust or validation behavior belongs to relationship context or Trust-owned validation, not a source-wide shortcut in QnA.
 - An activity kind should describe an event that happened, not a field that can be edited directly.
 - A visibility value should not imply moderation, approval, or indexing beyond audience exposure.
 - Capability booleans are acceptable only when they represent an independent switch, such as whether a space accepts questions or answers.
@@ -184,13 +183,9 @@ Process:
 
 Do not run migration commands here. Leave a manual migration note that lists the intended schema operations, for example:
 
-- remove `Spaces.ProductSurface`
-- remove `Spaces.ModerationPolicy`
-- remove `Spaces.RequiresQuestionReview`
-- remove `Questions.Kind`
-- replace `Sources.AllowsPublicCitation` with `Sources.AllowsCitation`
-- remove `Sources.AllowsPublicExcerpt`
-- remove `Sources.IsAuthoritative`
+- add, remove, or rename columns changed by the current stage
+- backfill required values when a new non-null column is introduced
+- drop indexes or constraints that belong only to deleted fields
 
 The operational migration tool is documented in [`backend/tools/migration-tool.md`](backend/tools/migration-tool.md), but migration execution is a separate manual step. Do not create or run migrations for a module unless that module is the explicit schema target.
 
@@ -216,7 +211,7 @@ Process:
 5. Keep module write-side request DTOs flat and explicit.
 6. Keep link DTOs under the owning feature folder, such as `Dtos/Question`, `Dtos/Answer`, or `Dtos/Space`.
 7. Do not add one module's DTO fields to another module's contracts unless the field describes a reusable asset owned by that target module.
-8. Source DTOs should expose `AllowsCitation`; do not keep `AllowsPublicCitation`, `AllowsPublicExcerpt`, or `IsAuthoritative` aliases after the source model is consolidated.
+8. Source DTOs should expose `AllowsCitation` as the citation permission field.
 
 Do not create catch-all DTO files.
 
@@ -371,7 +366,7 @@ Process:
 17. When changing dashboard activation criteria, update dashboard setup progress from real workspace data and ensure no setup-progress or completion surface renders after progress reaches 100%.
 18. Keep top-level list pages usable from 320 CSS pixels through tablet and desktop. Below `xl`, list records should use stacked card rows and the shell should use the header/drawer instead of the fixed sidebar.
 19. Prevent horizontal page overflow at the root, shell, page, card, filter, table, dialog, sheet, popover, pagination, and action levels. Use `min-w-0`, viewport constraints, and word breaking for long URLs, ids, checksums, user agents, and generated tokens.
-20. For Source screens, keep UI controls, filters, badges, metrics, and setup-progress steps aligned to canonical fields such as `allowsCitation`, `visibility`, usage counts, and relationship role. Remove public excerpt and authoritative controls when those backend fields are removed.
+20. For Source screens, keep UI controls, filters, badges, metrics, and setup-progress steps aligned to canonical fields such as `allowsCitation`, `visibility`, usage counts, and relationship role.
 21. Verify loading, empty, error, pending, success, and destructive-action states.
 22. Verify light and dark mode whenever the change touches layout, colors, cards, tables, forms, actions, or badges.
 
@@ -423,7 +418,7 @@ Process:
 7. When a key is renamed or replaces another concept, translate the new value in every locale. Do not leave the non-`en-US` values copied from English unless the term is intentionally identical in that language.
 8. Validate that every locale has exactly the same key set as `en-US`; missing or extra keys must be fixed in the same change.
 9. Validate that removed UI copy no longer leaves unused locale keys behind. Search for obsolete keys after deleting fields, enum values, pages, filters, or labels, and remove stale entries from every locale file.
-10. When Source citation behavior is consolidated, add keys for the `allowsCitation` field and remove obsolete public excerpt or authoritative source copy from every locale file.
+10. When behavior is consolidated, add keys for the canonical field and remove obsolete copy from every locale file.
 
 When a behavior removes UI copy, remove obsolete keys from every locale file in the same change. This includes legacy copy for renamed fields, deleted filters, removed enum labels, and deleted routes.
 
@@ -489,6 +484,12 @@ Localization validation should also confirm:
 - changed keys are translated in every non-`en-US` locale
 - removed UI concepts do not leave unused locale keys behind
 
+Documentation validation should also confirm:
+
+- documentation names only current fields, enum values, routes, and behaviors
+- exact searches for deleted names return no documentation or locale hits outside historical migrations
+- temporary migration notes are removed once the schema change lands
+
 Do not run migration commands as part of this validation unless migration work is explicitly in scope.
 
 ## Step 12: Handoff Notes
@@ -504,6 +505,7 @@ End each staged behavior change with a short handoff:
 - tests not run and why
 - manual migration operations required
 - frontend/i18n work remaining
+- documentation cleanup performed
 - missing Direct or Broadcast entity models that intentionally remain a follow-up
 
 This makes staged work safe even when the full solution is expected to fail between stages.
