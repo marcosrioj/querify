@@ -32,7 +32,6 @@ public class AnswerCommandQueryTests
                 Status = AnswerStatus.Published,
                 Visibility = VisibilityScope.PublicIndexed,
                 ContextNote = "Portal",
-                Score = 2,
                 Sort = 2
             }
         }, CancellationToken.None);

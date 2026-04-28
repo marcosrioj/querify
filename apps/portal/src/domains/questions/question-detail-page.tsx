@@ -1147,7 +1147,6 @@ export function QuestionDetailPage() {
                           visibility: VisibilityScope.Internal,
                           contextNote: undefined,
                           authorLabel: undefined,
-                          score: 1,
                           sort: questionQuery.data.answers.length + 1,
                         })
                         .then(() => {

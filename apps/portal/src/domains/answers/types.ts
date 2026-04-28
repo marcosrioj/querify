@@ -47,7 +47,6 @@ export type AnswerCreateRequestDto = {
   visibility: VisibilityScope;
   contextNote?: string | null;
   authorLabel?: string | null;
-  score: number;
   sort: number;
 };
 

@@ -50,7 +50,7 @@ public sealed class AnswersCreateAnswerCommandHandler(
             Status = request.Request.Status,
             Visibility = request.Request.Visibility,
             AiConfidenceScore = 0,
-            Score = request.Request.Score,
+            Score = 0,
             Sort = request.Request.Sort,
             CreatedBy = userId,
             UpdatedBy = userId
@@ -114,7 +114,6 @@ public sealed class AnswersCreateAnswerCommandHandler(
         entity.Body = request.Body;
         entity.AuthorLabel = request.AuthorLabel;
         entity.ContextNote = request.ContextNote;
-        entity.Score = request.Score;
         entity.Sort = request.Sort;
         entity.Kind = request.Kind;
 

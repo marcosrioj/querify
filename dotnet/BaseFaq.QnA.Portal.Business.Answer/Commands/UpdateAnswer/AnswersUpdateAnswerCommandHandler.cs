@@ -76,7 +76,6 @@ public sealed class AnswersUpdateAnswerCommandHandler(
         entity.Body = request.Body;
         entity.AuthorLabel = request.AuthorLabel;
         entity.ContextNote = request.ContextNote;
-        entity.Score = request.Score;
         entity.Sort = request.Sort;
         entity.Kind = request.Kind;
 

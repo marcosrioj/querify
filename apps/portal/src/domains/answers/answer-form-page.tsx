@@ -89,7 +89,6 @@ export function AnswerFormPage({ mode }: { mode: "create" | "edit" }) {
       visibility: VisibilityScope.Internal,
       contextNote: "",
       authorLabel: "",
-      score: 1,
       sort: 1,
     },
   });
@@ -108,7 +107,6 @@ export function AnswerFormPage({ mode }: { mode: "create" | "edit" }) {
       visibility: answerQuery.data.visibility,
       contextNote: answerQuery.data.contextNote ?? "",
       authorLabel: answerQuery.data.authorLabel ?? "",
-      score: answerQuery.data.score,
       sort: answerQuery.data.sort,
     });
   }, [answerQuery.data, form]);
@@ -213,7 +211,7 @@ export function AnswerFormPage({ mode }: { mode: "create" | "edit" }) {
                   },
                   {
                     label: "Ranking",
-                    value: "Score, sort, and vote score shape answer order",
+                    value: "Sort controls manual answer order",
                   },
                   { label: "Context", value: "Context note is optional" },
                 ]}
@@ -260,7 +258,6 @@ export function AnswerFormPage({ mode }: { mode: "create" | "edit" }) {
                     kind: Number(values.kind) as AnswerKind,
                     status: Number(values.status) as AnswerStatus,
                     visibility: Number(values.visibility) as VisibilityScope,
-                    score: values.score,
                     sort: values.sort,
                   };
 
@@ -279,7 +276,6 @@ export function AnswerFormPage({ mode }: { mode: "create" | "edit" }) {
                     kind: createBody.kind,
                     status: createBody.status,
                     visibility: createBody.visibility,
-                    score: createBody.score,
                     sort: createBody.sort,
                   });
                   navigate(`/app/answers/${id}`);
@@ -377,11 +373,6 @@ export function AnswerFormPage({ mode }: { mode: "create" | "edit" }) {
                     control={form.control}
                     name="authorLabel"
                     label="Author label"
-                  />
-                  <TextField
-                    control={form.control}
-                    name="score"
-                    label="Score"
                   />
                 </div>
                 <TextareaField

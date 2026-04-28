@@ -15,7 +15,6 @@ export const answerFormSchema = z.object({
   visibility: numericEnumSchema(VisibilityScope),
   contextNote: z.string().max(2000, 'Keep the context note concise.').optional(),
   authorLabel: z.string().max(120, 'Keep the author label concise.').optional(),
-  score: z.coerce.number().int().min(0),
   sort: z.coerce.number().int().min(0),
 });
 
