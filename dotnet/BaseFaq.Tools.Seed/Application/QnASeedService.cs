@@ -145,9 +145,7 @@ public sealed class QnASeedService : IQnASeedService
                 MetadataJson =
                     $$"""{"catalog":"seed-qna","sourceName":"{{EscapeJson(item.SourceName)}}","sourceLabel":"{{EscapeJson(item.SourceLabel)}}"}""",
                 Visibility = VisibilityScope.PublicIndexed,
-                AllowsPublicCitation = true,
-                AllowsPublicExcerpt = true,
-                IsAuthoritative = true,
+                AllowsCitation = true,
                 CapturedAtUtc = SeedBaseTimeUtc.AddDays(-14),
                 LastVerifiedAtUtc = SeedBaseTimeUtc.AddDays(-1),
                 CreatedBy = "seed",

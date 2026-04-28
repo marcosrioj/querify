@@ -84,9 +84,7 @@ public class EntityConstraintsTests
             Language = "en-US",
             Checksum = "sha256:internal-note-1",
             Visibility = VisibilityScope.Public,
-            AllowsPublicCitation = true,
-            AllowsPublicExcerpt = true,
-            IsAuthoritative = false,
+            AllowsCitation = true,
             LastVerifiedAtUtc = DateTime.UtcNow,
             CreatedBy = "test",
             UpdatedBy = "test"

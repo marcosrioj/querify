@@ -684,19 +684,9 @@ export function SpaceDetailPage() {
                         </div>
                         <div className="flex flex-wrap gap-2">
                           <VisibilityBadge visibility={source.visibility} />
-                          {source.isAuthoritative ? (
-                            <Badge variant="primary">
-                              {translateText("Authoritative")}
-                            </Badge>
-                          ) : null}
-                          {source.allowsPublicCitation ? (
+                          {source.allowsCitation ? (
                             <Badge variant="success" appearance="outline">
-                              {translateText("Public citation")}
-                            </Badge>
-                          ) : null}
-                          {source.allowsPublicExcerpt ? (
-                            <Badge variant="outline">
-                              {translateText("Public excerpt")}
+                              {translateText("Citation allowed")}
                             </Badge>
                           ) : null}
                           <Button asChild variant="outline" size="sm">
@@ -722,7 +712,7 @@ export function SpaceDetailPage() {
                 ) : (
                   <EmptyState
                     title="No curated sources yet"
-                    description="Attach authoritative or reusable material that should anchor this space."
+                    description="Attach reusable material that should anchor this space."
                   />
                 )}
                 <ChildListPagination

@@ -19,9 +19,7 @@ export const sourceFormSchema = z.object({
     .max(200, 'Keep the checksum concise.'),
   metadataJson: z.string().max(4000, 'Keep the metadata concise.').optional(),
   visibility: numericEnumSchema(VisibilityScope),
-  allowsPublicCitation: z.boolean(),
-  allowsPublicExcerpt: z.boolean(),
-  isAuthoritative: z.boolean(),
+  allowsCitation: z.boolean(),
   capturedAtUtc: z.string().max(64, 'Use an ISO timestamp.').optional(),
   markVerified: z.boolean(),
 });

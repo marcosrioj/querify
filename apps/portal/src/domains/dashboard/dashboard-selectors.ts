@@ -138,7 +138,7 @@ export function getRoleAwareNextAction({
 export function getDashboardKpis({
   activity,
   answers,
-  authoritativeSourceCount,
+  citableSourceCount,
   openQuestions,
   pendingQuestionCount,
   questionCount,
@@ -148,7 +148,7 @@ export function getDashboardKpis({
 }: {
   activity: ActivityDto[];
   answers: AnswerDto[];
-  authoritativeSourceCount: number;
+  citableSourceCount: number;
   openQuestions: QuestionDto[];
   pendingQuestionCount: number;
   questionCount: number;
@@ -172,7 +172,7 @@ export function getDashboardKpis({
     pendingQuestionCount,
     openQuestionCount: openQuestions.length,
     validatedAnswerCount,
-    authoritativeSourceCount,
+    citableSourceCount,
     recentActivityCount: activity.length,
     publishedAnswers,
     sourceCount,

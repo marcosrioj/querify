@@ -32,9 +32,7 @@ public class SourceCommandQueryTests
                 Checksum = "sha256:doc-42",
                 MetadataJson = "{\"category\":\"support\"}",
                 Visibility = VisibilityScope.Internal,
-                AllowsPublicCitation = false,
-                AllowsPublicExcerpt = false,
-                IsAuthoritative = true,
+                AllowsCitation = false,
                 MarkVerified = true
             }
         }, CancellationToken.None);
@@ -46,7 +44,7 @@ public class SourceCommandQueryTests
         Assert.Equal("https://docs.example.test/qna/reset-password", result.Locator);
         Assert.Equal("Reset password guide", result.Label);
         Assert.Equal(VisibilityScope.Internal, result.Visibility);
-        Assert.False(result.AllowsPublicCitation);
+        Assert.False(result.AllowsCitation);
 
         var history = await context.DbContext.Set<AutoHistory>().SingleAsync();
         Assert.Equal(id.ToString(), history.KeyId);

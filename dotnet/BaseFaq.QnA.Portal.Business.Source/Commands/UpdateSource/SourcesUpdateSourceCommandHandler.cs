@@ -52,21 +52,13 @@ public sealed class SourcesUpdateSourceCommandHandler(
         entity.MetadataJson = request.MetadataJson;
         entity.CapturedAtUtc = request.CapturedAtUtc ?? entity.CapturedAtUtc;
         entity.Visibility = request.Visibility;
-        entity.AllowsPublicCitation =
+        entity.AllowsCitation =
             request.Visibility is VisibilityScope.Public or VisibilityScope.PublicIndexed &&
-            request.AllowsPublicCitation;
-        entity.AllowsPublicExcerpt =
-            request.Visibility is VisibilityScope.Public or VisibilityScope.PublicIndexed &&
-            request.AllowsPublicExcerpt;
+            request.AllowsCitation;
 
         if (request.MarkVerified)
         {
-            entity.IsAuthoritative = request.IsAuthoritative;
             entity.LastVerifiedAtUtc = DateTime.UtcNow;
-        }
-        else if (request.IsAuthoritative != entity.IsAuthoritative && entity.LastVerifiedAtUtc is not null)
-        {
-            entity.IsAuthoritative = request.IsAuthoritative;
         }
 
         entity.UpdatedBy = userId;

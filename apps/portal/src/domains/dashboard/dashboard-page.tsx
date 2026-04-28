@@ -370,11 +370,11 @@ export function DashboardPage() {
     pageSize: 1,
     sorting: "LastVerifiedAtUtc DESC",
   });
-  const authoritativeSourcesQuery = useSourceList({
+  const citableSourcesQuery = useSourceList({
     page: 1,
     pageSize: 1,
     sorting: "LastVerifiedAtUtc DESC",
-    isAuthoritative: true,
+    allowsCitation: true,
   });
   const activityQuery = useActivityList({
     page: 1,
@@ -391,7 +391,7 @@ export function DashboardPage() {
     publishedAnswersQuery.isLoading ||
     validatedAnswersQuery.isLoading ||
     sourcesQuery.isLoading ||
-    authoritativeSourcesQuery.isLoading ||
+    citableSourcesQuery.isLoading ||
     activityQuery.isLoading ||
     membersQuery.isLoading ||
     profileQuery.isLoading ||
@@ -406,7 +406,7 @@ export function DashboardPage() {
     publishedAnswersQuery.isError ||
     validatedAnswersQuery.isError ||
     sourcesQuery.isError ||
-    authoritativeSourcesQuery.isError ||
+    citableSourcesQuery.isError ||
     activityQuery.isError;
 
   if (isInitialDashboardLoading) {
@@ -423,7 +423,7 @@ export function DashboardPage() {
       publishedAnswersQuery.error ??
       validatedAnswersQuery.error ??
       sourcesQuery.error ??
-      authoritativeSourcesQuery.error ??
+      citableSourcesQuery.error ??
       activityQuery.error;
 
     return (
@@ -444,7 +444,7 @@ export function DashboardPage() {
             void publishedAnswersQuery.refetch();
             void validatedAnswersQuery.refetch();
             void sourcesQuery.refetch();
-            void authoritativeSourcesQuery.refetch();
+            void citableSourcesQuery.refetch();
             void activityQuery.refetch();
           }}
         />
@@ -462,8 +462,7 @@ export function DashboardPage() {
   const questionCount = questionsSummaryQuery.data?.totalCount ?? 0;
   const pendingQuestionCount = pendingQuestionsQuery.data?.totalCount ?? 0;
   const sourceCount = sourcesQuery.data?.totalCount ?? 0;
-  const authoritativeSourceCount =
-    authoritativeSourcesQuery.data?.totalCount ?? 0;
+  const citableSourceCount = citableSourcesQuery.data?.totalCount ?? 0;
   const validatedAnswerCount = validatedAnswersQuery.data?.totalCount ?? 0;
   const billingSummary = billing.summaryQuery.data;
   const activation = getActivationState({
@@ -487,7 +486,7 @@ export function DashboardPage() {
   const kpis = getDashboardKpis({
     activity: recentActivity,
     answers: publishedAnswers,
-    authoritativeSourceCount,
+    citableSourceCount,
     openQuestions,
     pendingQuestionCount,
     questionCount,
@@ -603,8 +602,8 @@ export function DashboardPage() {
             icon: ShieldCheck,
           },
           {
-            title: "Authoritative sources",
-            value: kpis.authoritativeSourceCount,
+            title: "Citable sources",
+            value: kpis.citableSourceCount,
             description: `${kpis.sourceCount} total sources in the evidence catalog.`,
             icon: Waypoints,
           },
@@ -660,7 +659,7 @@ export function DashboardPage() {
               },
               {
                 label: "Add source",
-                description: "Attach authoritative evidence before publishing.",
+                description: "Attach reusable evidence before publishing.",
                 to: "/app/sources/new",
                 icon: FileCheck2,
               },

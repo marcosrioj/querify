@@ -64,7 +64,7 @@ const sortingOptions = [
 const SOURCE_FILTER_DEFAULTS = {
   kind: "all",
   visibility: "all",
-  authoritative: "all",
+  citation: "all",
 } as const;
 
 type SourceRelationshipKind = "space" | "question" | "answer";
@@ -98,12 +98,12 @@ function sourceMatchesSearch(source: SourceListRow, searchText: string) {
 function sourceMatchesFilters(
   source: SourceListRow,
   {
-    authoritativeFilter,
+    citationFilter,
     kindFilter,
     searchText,
     visibilityFilter,
   }: {
-    authoritativeFilter: string;
+    citationFilter: string;
     kindFilter: string;
     searchText: string;
     visibilityFilter: string;
@@ -114,14 +114,14 @@ function sourceMatchesFilters(
   const matchesVisibility =
     visibilityFilter === "all" ||
     source.visibility === Number(visibilityFilter);
-  const matchesAuthoritative =
-    authoritativeFilter === "all" ||
-    source.isAuthoritative === (authoritativeFilter === "true");
+  const matchesCitation =
+    citationFilter === "all" ||
+    source.allowsCitation === (citationFilter === "true");
 
   return (
     matchesKind &&
     matchesVisibility &&
-    matchesAuthoritative &&
+    matchesCitation &&
     sourceMatchesSearch(source, searchText)
   );
 }
@@ -159,12 +159,12 @@ export function SourceListPage() {
   });
   const kindFilter = filters.kind;
   const visibilityFilter = filters.visibility;
-  const authoritativeFilter = filters.authoritative;
+  const citationFilter = filters.citation;
   const apiKind = kindFilter === "all" ? undefined : Number(kindFilter);
   const apiVisibility =
     visibilityFilter === "all" ? undefined : Number(visibilityFilter);
-  const apiAuthoritative =
-    authoritativeFilter === "all" ? undefined : authoritativeFilter === "true";
+  const apiAllowsCitation =
+    citationFilter === "all" ? undefined : citationFilter === "true";
 
   const spaceQuery = useSpace(spaceId || undefined);
   const questionQuery = useQuestion(questionId || undefined);
@@ -176,7 +176,7 @@ export function SourceListPage() {
     searchText: debouncedSearch || undefined,
     kind: apiKind,
     visibility: apiVisibility,
-    isAuthoritative: apiAuthoritative,
+    allowsCitation: apiAllowsCitation,
     enabled: !relationshipActive,
   });
   const deleteSource = useDeleteSource();
@@ -241,7 +241,7 @@ export function SourceListPage() {
   const sourceRows = relationshipActive
     ? relationshipRows.filter((source) =>
         sourceMatchesFilters(source, {
-          authoritativeFilter,
+          citationFilter,
           kindFilter,
           searchText: debouncedSearch,
           visibilityFilter,
@@ -299,12 +299,9 @@ export function SourceListPage() {
     sourceQuery.data?.totalCount,
   ]);
 
-  const authoritativeCount = sourceRows.filter(
-    (source) => source.isAuthoritative,
-  ).length;
-  const publicCitationCount = sourceRows.filter(
+  const citableSourceCount = sourceRows.filter(
     (source) =>
-      source.allowsPublicCitation &&
+      source.allowsCitation &&
       source.visibility >= VisibilityScope.Public,
   ).length;
   const linkedRecordCount = sourceRows.reduce(
@@ -372,24 +369,16 @@ export function SourceListPage() {
       ),
     },
     {
-      key: "authoritative",
-      header: "Trust",
+      key: "citation",
+      header: "Citation",
       className: "xl:w-[150px]",
       cell: (source) => (
         <div className="space-y-2 text-sm text-muted-foreground">
-          <Badge variant={source.isAuthoritative ? "primary" : "outline"}>
+          <Badge variant={source.allowsCitation ? "success" : "outline"}>
             {translateText(
-              source.isAuthoritative ? "Authoritative" : "Reference",
+              source.allowsCitation ? "Citation allowed" : "Citation disabled",
             )}
           </Badge>
-          {source.allowsPublicCitation ? (
-            <Badge variant="success" appearance="outline">
-              {translateText("Public citation")}
-            </Badge>
-          ) : null}
-          {source.allowsPublicExcerpt ? (
-            <Badge variant="outline">{translateText("Public excerpt")}</Badge>
-          ) : null}
         </div>
       ),
     },
@@ -576,16 +565,10 @@ export function SourceListPage() {
               icon: Waypoints,
             },
             {
-              title: "Authoritative",
-              value: authoritativeCount,
-              description: translateText("Strongest source-of-truth records"),
-              icon: ShieldCheck,
-            },
-            {
-              title: "Public citation",
-              value: publicCitationCount,
+              title: "Citable",
+              value: citableSourceCount,
               description: translateText(
-                "Sources that can be exposed publicly",
+                "Publicly visible sources that allow citation",
               ),
               icon: CheckCircle2,
             },
@@ -609,7 +592,7 @@ export function SourceListPage() {
         description={
           relationshipActive
             ? "This list is scoped to the selected relationship. Detach removes the link, not the source record."
-            : "Open a source to review trust metadata and external identifiers."
+            : "Open a source to review citation rules and external identifiers."
         }
         descriptionMode="hint"
         columns={columns}
@@ -667,18 +650,22 @@ export function SourceListPage() {
               </SelectContent>
             </Select>
             <Select
-              value={authoritativeFilter}
-              onValueChange={(value) => setFilter("authoritative", value)}
+              value={citationFilter}
+              onValueChange={(value) => setFilter("citation", value)}
             >
               <SelectTrigger className="w-full">
-                <SelectValue
-                  placeholder={translateText("Authoritative state")}
-                />
+                <SelectValue placeholder={translateText("Citation")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All trust states</SelectItem>
-                <SelectItem value="true">Authoritative only</SelectItem>
-                <SelectItem value="false">Reference only</SelectItem>
+                <SelectItem value="all">
+                  {translateText("All citation states")}
+                </SelectItem>
+                <SelectItem value="true">
+                  {translateText("Citation allowed")}
+                </SelectItem>
+                <SelectItem value="false">
+                  {translateText("Citation disabled")}
+                </SelectItem>
               </SelectContent>
             </Select>
             <div className="sm:col-span-2 2xl:col-span-4">

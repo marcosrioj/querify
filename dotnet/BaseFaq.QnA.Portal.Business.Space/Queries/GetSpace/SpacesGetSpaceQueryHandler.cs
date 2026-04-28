@@ -71,9 +71,7 @@ public sealed class SpacesGetSpaceQueryHandler(
                     Checksum = source.Checksum,
                     MetadataJson = source.MetadataJson,
                     Visibility = source.Visibility,
-                    AllowsPublicCitation = source.AllowsPublicCitation,
-                    AllowsPublicExcerpt = source.AllowsPublicExcerpt,
-                    IsAuthoritative = source.IsAuthoritative,
+                    AllowsCitation = source.AllowsCitation,
                     CapturedAtUtc = source.CapturedAtUtc,
                     LastVerifiedAtUtc = source.LastVerifiedAtUtc
                 })

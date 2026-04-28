@@ -234,11 +234,9 @@ public static class TestDataFactory
             MediaType = "text/html",
             Checksum = "sha256:test-source",
             MetadataJson = "{\"type\":\"doc\"}",
-            IsAuthoritative = true,
             LastVerifiedAtUtc = DateTime.UtcNow,
             Visibility = visibility,
-            AllowsPublicCitation = visibility != VisibilityScope.Internal,
-            AllowsPublicExcerpt = visibility != VisibilityScope.Internal,
+            AllowsCitation = visibility != VisibilityScope.Internal,
             CreatedBy = "test",
             UpdatedBy = "test"
         };

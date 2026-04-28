@@ -17,7 +17,7 @@ export function listSources(
     searchText,
     kind,
     visibility,
-    isAuthoritative,
+    allowsCitation,
   }: {
     page: number;
     pageSize: number;
@@ -25,7 +25,7 @@ export function listSources(
     searchText?: string;
     kind?: number;
     visibility?: number;
-    isAuthoritative?: boolean;
+    allowsCitation?: boolean;
   },
   signal?: AbortSignal,
 ) {
@@ -38,7 +38,7 @@ export function listSources(
       SearchText: searchText,
       Kind: kind,
       Visibility: visibility,
-      IsAuthoritative: isAuthoritative,
+      AllowsCitation: allowsCitation,
     }),
     signal,
   });

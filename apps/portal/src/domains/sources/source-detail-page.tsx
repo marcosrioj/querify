@@ -58,7 +58,7 @@ export function SourceDetailPage() {
       header={
         <PageHeader
           title={sourceQuery.data?.label || "Source"}
-          description="Review trust metadata, public-use rules, and connector identifiers for this reusable source."
+          description="Review citation rules, verification metadata, and connector identifiers for this reusable source."
           descriptionMode="hint"
           backTo="/app/sources"
         />
@@ -162,25 +162,9 @@ export function SourceDetailPage() {
               {
                 title: "Citation",
                 value: translateText(
-                  sourceQuery.data.allowsPublicCitation
+                  sourceQuery.data.allowsCitation
                     ? "Allowed"
                     : "Internal only",
-                ),
-              },
-              {
-                title: "Excerpt",
-                value: translateText(
-                  sourceQuery.data.allowsPublicExcerpt
-                    ? "Allowed"
-                    : "Internal only",
-                ),
-              },
-              {
-                title: "Trust",
-                value: translateText(
-                  sourceQuery.data.isAuthoritative
-                    ? "Authoritative"
-                    : "Reference",
                 ),
               },
             ]}

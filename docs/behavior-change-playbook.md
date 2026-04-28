@@ -100,6 +100,7 @@ Use these dimensions for module behavior:
 | Answer provenance | `AnswerKind` | Whether an answer is official, community-provided, or imported. |
 | Source material type | `SourceKind` | What artifact is linked: article, page, ticket, thread, audit record, and so on. |
 | Source relationship role | `SourceRole` | Why a source is attached: origin, evidence, citation, canonical reference, audit proof. |
+| Source citation permission | `Source.AllowsCitation` | Whether publicly visible QnA outputs may cite the source. This is not visibility, excerpt policy, or authority. |
 | Actor type | `ActorKind` | Who or what caused an activity event. |
 | Event journal | `ActivityKind` | What happened historically. This is not current state. |
 | Search rendering | `SearchMarkupMode` | How search-facing markup behaves for a space. |
@@ -109,6 +110,8 @@ Common consolidation rules:
 - A mode enum should not be duplicated by policy enums plus boolean review flags.
 - A question type enum should not duplicate origin channel, lifecycle status, or the parent space mode.
 - A source kind should describe the artifact. A source role should describe why it is linked.
+- A source citation permission should be represented by `Source.AllowsCitation`; do not split it into separate public citation and public excerpt flags unless a distinct product behavior is approved.
+- Source authority should come from relationship context such as `SourceRole.CanonicalReference` or from Trust-owned validation behavior, not from a blanket QnA source boolean such as `IsAuthoritative`.
 - An activity kind should describe an event that happened, not a field that can be edited directly.
 - A visibility value should not imply moderation, approval, or indexing beyond audience exposure.
 - Capability booleans are acceptable only when they represent an independent switch, such as whether a space accepts questions or answers.
@@ -139,11 +142,12 @@ Process:
 8. Preserve existing behavior semantics by moving callers to the canonical field.
 9. Keep entities state-only.
 10. Keep `required` semantics explicit. Do not set silent defaults to make construction easier.
-11. Do not create placeholder module entities. If a needed owning entity is still missing and the stage does not explicitly introduce it, leave a handoff note instead.
-12. When a new or changed entity implements `IMustHaveTenant` and references another tenant-owned entity, update the owning `DbContext` to enforce tenant integrity before save.
-13. Follow the module `DbContext` pattern: call `EnsureTenantIntegrity()` from `OnBeforeSaveChangesRules()`, place one focused rule per checked entity or relationship under `DbContext/TenantIntegrity/<Entity>TenantIntegrityExtension.cs`, and keep `Extensions` folders for service registration only.
-14. Resolve referenced tenant ids with `TenantIntegrityLookupCacheBase` or a module-specific `TenantIntegrityLookupCache`, using `IgnoreQueryFilters()` so tenant filters and soft-delete do not hide invalid relationships.
-15. Throw on cross-tenant links or missing references. If a tenant-owned entity has no tenant-owned relationships, record that no additional tenant-integrity rule is needed instead of adding empty validation code.
+11. For `Source`, keep artifact identity, audience exposure, and citation permission separate: `Kind` and locator fields identify the material, `Visibility` controls who can see it, `AllowsCitation` controls whether it may be cited, and `SourceRole` explains why it is attached.
+12. Do not create placeholder module entities. If a needed owning entity is still missing and the stage does not explicitly introduce it, leave a handoff note instead.
+13. When a new or changed entity implements `IMustHaveTenant` and references another tenant-owned entity, update the owning `DbContext` to enforce tenant integrity before save.
+14. Follow the module `DbContext` pattern: call `EnsureTenantIntegrity()` from `OnBeforeSaveChangesRules()`, place one focused rule per checked entity or relationship under `DbContext/TenantIntegrity/<Entity>TenantIntegrityExtension.cs`, and keep `Extensions` folders for service registration only.
+15. Resolve referenced tenant ids with `TenantIntegrityLookupCacheBase` or a module-specific `TenantIntegrityLookupCache`, using `IgnoreQueryFilters()` so tenant filters and soft-delete do not hide invalid relationships.
+16. Throw on cross-tenant links or missing references. If a tenant-owned entity has no tenant-owned relationships, record that no additional tenant-integrity rule is needed instead of adding empty validation code.
 
 When deleting a property or enum, immediately search for all compile-time and string references:
 
@@ -184,6 +188,9 @@ Do not run migration commands here. Leave a manual migration note that lists the
 - remove `Spaces.ModerationPolicy`
 - remove `Spaces.RequiresQuestionReview`
 - remove `Questions.Kind`
+- replace `Sources.AllowsPublicCitation` with `Sources.AllowsCitation`
+- remove `Sources.AllowsPublicExcerpt`
+- remove `Sources.IsAuthoritative`
 
 The operational migration tool is documented in [`backend/tools/migration-tool.md`](backend/tools/migration-tool.md), but migration execution is a separate manual step. Do not create or run migrations for a module unless that module is the explicit schema target.
 
@@ -209,6 +216,7 @@ Process:
 5. Keep module write-side request DTOs flat and explicit.
 6. Keep link DTOs under the owning feature folder, such as `Dtos/Question`, `Dtos/Answer`, or `Dtos/Space`.
 7. Do not add one module's DTO fields to another module's contracts unless the field describes a reusable asset owned by that target module.
+8. Source DTOs should expose `AllowsCitation`; do not keep `AllowsPublicCitation`, `AllowsPublicExcerpt`, or `IsAuthoritative` aliases after the source model is consolidated.
 
 Do not create catch-all DTO files.
 
@@ -286,6 +294,7 @@ For the QnA operating model, seed examples demonstrate:
 - controlled QnA spaces and canonical questions
 - questions with approved answers and resolution-ready metadata
 - source links that explain origin, evidence, citation, and canonical references
+- source records with artifact identity, visibility, and the single `AllowsCitation` permission
 - moderated contribution and accepted-answer behavior when it belongs to QnA
 - auditable validation records where they are part of answer trust
 
@@ -362,8 +371,9 @@ Process:
 17. When changing dashboard activation criteria, update dashboard setup progress from real workspace data and ensure no setup-progress or completion surface renders after progress reaches 100%.
 18. Keep top-level list pages usable from 320 CSS pixels through tablet and desktop. Below `xl`, list records should use stacked card rows and the shell should use the header/drawer instead of the fixed sidebar.
 19. Prevent horizontal page overflow at the root, shell, page, card, filter, table, dialog, sheet, popover, pagination, and action levels. Use `min-w-0`, viewport constraints, and word breaking for long URLs, ids, checksums, user agents, and generated tokens.
-20. Verify loading, empty, error, pending, success, and destructive-action states.
-21. Verify light and dark mode whenever the change touches layout, colors, cards, tables, forms, actions, or badges.
+20. For Source screens, keep UI controls, filters, badges, metrics, and setup-progress steps aligned to canonical fields such as `allowsCitation`, `visibility`, usage counts, and relationship role. Remove public excerpt and authoritative controls when those backend fields are removed.
+21. Verify loading, empty, error, pending, success, and destructive-action states.
+22. Verify light and dark mode whenever the change touches layout, colors, cards, tables, forms, actions, or badges.
 
 For large frontend changes, update one domain at a time and keep each domain buildable before moving to the next.
 
@@ -413,6 +423,7 @@ Process:
 7. When a key is renamed or replaces another concept, translate the new value in every locale. Do not leave the non-`en-US` values copied from English unless the term is intentionally identical in that language.
 8. Validate that every locale has exactly the same key set as `en-US`; missing or extra keys must be fixed in the same change.
 9. Validate that removed UI copy no longer leaves unused locale keys behind. Search for obsolete keys after deleting fields, enum values, pages, filters, or labels, and remove stale entries from every locale file.
+10. When Source citation behavior is consolidated, add keys for the `allowsCitation` field and remove obsolete public excerpt or authoritative source copy from every locale file.
 
 When a behavior removes UI copy, remove obsolete keys from every locale file in the same change. This includes legacy copy for renamed fields, deleted filters, removed enum labels, and deleted routes.
 

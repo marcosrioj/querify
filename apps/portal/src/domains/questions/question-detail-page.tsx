@@ -1005,14 +1005,9 @@ export function QuestionDetailPage() {
                                 <VisibilityBadge
                                   visibility={sourceLink.source.visibility}
                                 />
-                                {sourceLink.source.isAuthoritative ? (
-                                  <Badge variant="primary">
-                                    {translateText("Authoritative")}
-                                  </Badge>
-                                ) : null}
-                                {sourceLink.source.allowsPublicCitation ? (
+                                {sourceLink.source.allowsCitation ? (
                                   <Badge variant="success" appearance="outline">
-                                    {translateText("Public citation")}
+                                    {translateText("Citation allowed")}
                                   </Badge>
                                 ) : null}
                               </>

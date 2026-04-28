@@ -70,19 +70,9 @@ public class Source : BaseEntity, IMustHaveTenant
     public required VisibilityScope Visibility { get; set; }
 
     /// <summary>
-    ///     Indicates whether the source can be cited publicly.
+    ///     Indicates whether publicly visible QnA outputs can cite the source.
     /// </summary>
-    public required bool AllowsPublicCitation { get; set; }
-
-    /// <summary>
-    ///     Indicates whether excerpts from the source can be shown publicly.
-    /// </summary>
-    public required bool AllowsPublicExcerpt { get; set; }
-
-    /// <summary>
-    ///     Indicates whether the source is considered authoritative.
-    /// </summary>
-    public required bool IsAuthoritative { get; set; }
+    public required bool AllowsCitation { get; set; }
 
     /// <summary>
     ///     Timestamp when the source was captured.

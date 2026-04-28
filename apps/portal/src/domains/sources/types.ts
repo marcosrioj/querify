@@ -13,9 +13,7 @@ export type SourceDto = {
   checksum: string;
   metadataJson?: string | null;
   visibility: VisibilityScope;
-  allowsPublicCitation: boolean;
-  allowsPublicExcerpt: boolean;
-  isAuthoritative: boolean;
+  allowsCitation: boolean;
   capturedAtUtc?: string | null;
   lastVerifiedAtUtc?: string | null;
   spaceUsageCount: number;
@@ -34,9 +32,7 @@ export type SourceCreateRequestDto = {
   checksum: string;
   metadataJson?: string | null;
   visibility: VisibilityScope;
-  allowsPublicCitation: boolean;
-  allowsPublicExcerpt: boolean;
-  isAuthoritative: boolean;
+  allowsCitation: boolean;
   capturedAtUtc?: string | null;
   markVerified: boolean;
 };

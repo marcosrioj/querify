@@ -15,9 +15,9 @@ internal static class SourceTenantIntegrityExtension
 
             if (!source.Visibility.IsPubliclyVisible())
             {
-                if (source.AllowsPublicCitation || source.AllowsPublicExcerpt)
+                if (source.AllowsCitation)
                     throw new InvalidOperationException(
-                        $"Source '{source.Id}' cannot allow public citation or excerpt reuse while not publicly visible.");
+                        $"Source '{source.Id}' cannot allow citation while not publicly visible.");
 
                 continue;
             }

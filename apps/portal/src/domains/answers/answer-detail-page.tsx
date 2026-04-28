@@ -509,19 +509,9 @@ export function AnswerDetailPage() {
                                 <VisibilityBadge
                                   visibility={sourceLink.source.visibility}
                                 />
-                                {sourceLink.source.isAuthoritative ? (
-                                  <Badge variant="primary">
-                                    {translateText("Authoritative")}
-                                  </Badge>
-                                ) : null}
-                                {sourceLink.source.allowsPublicCitation ? (
+                                {sourceLink.source.allowsCitation ? (
                                   <Badge variant="success" appearance="outline">
-                                    {translateText("Public citation")}
-                                  </Badge>
-                                ) : null}
-                                {sourceLink.source.allowsPublicExcerpt ? (
-                                  <Badge variant="outline">
-                                    {translateText("Public excerpt")}
+                                    {translateText("Citation allowed")}
                                   </Badge>
                                 ) : null}
                               </>

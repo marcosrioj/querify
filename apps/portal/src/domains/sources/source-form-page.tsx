@@ -68,9 +68,7 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
       checksum: "",
       metadataJson: "",
       visibility: VisibilityScope.Internal,
-      allowsPublicCitation: false,
-      allowsPublicExcerpt: false,
-      isAuthoritative: false,
+      allowsCitation: false,
       capturedAtUtc: "",
       markVerified: false,
     },
@@ -92,9 +90,7 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
       checksum: sourceQuery.data.checksum,
       metadataJson: sourceQuery.data.metadataJson ?? "",
       visibility: sourceQuery.data.visibility,
-      allowsPublicCitation: sourceQuery.data.allowsPublicCitation,
-      allowsPublicExcerpt: sourceQuery.data.allowsPublicExcerpt,
-      isAuthoritative: sourceQuery.data.isAuthoritative,
+      allowsCitation: sourceQuery.data.allowsCitation,
       capturedAtUtc: sourceQuery.data.capturedAtUtc ?? "",
       markVerified: false,
     });
@@ -141,7 +137,7 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
       header={
         <PageHeader
           title={mode === "create" ? "New source" : "Edit source"}
-          description="Capture locator, trust metadata, and public-citation rules for reusable evidence."
+          description="Capture locator, visibility, citation, and verification metadata for reusable evidence."
           descriptionMode="hint"
           backTo={backTo}
         />
@@ -157,7 +153,7 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
                   <span>{translateText("Quick notes")}</span>
                   <ContextHint
                     content={translateText(
-                      "Good sources are durable, clearly classified, and explicit about what can be shown publicly.",
+                      "Good sources are durable, clearly classified, and explicit about when they can be cited.",
                     )}
                     label={translateText("Quick notes details")}
                   />
@@ -174,8 +170,8 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
                   },
                   { label: "Visibility", value: "Internal to public indexed" },
                   {
-                    label: "Trust",
-                    value: "Public citation and excerpt flags matter",
+                    label: "Citation",
+                    value: "Citation permission stays separate from visibility",
                   },
                 ]}
               />
@@ -201,7 +197,7 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
                   <span>{translateText("Source details")}</span>
                   <ContextHint
                     content={translateText(
-                      "Start with the locator and classification, then capture trust, public-citation, and verification metadata.",
+                      "Start with the locator and classification, then capture visibility, citation, and verification metadata.",
                     )}
                     label={translateText("Form details")}
                   />
@@ -323,27 +319,15 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
                     description="Optional structured metadata for connectors, ingestion, or future audit needs."
                   />
                   <FormSectionHeading
-                    title="Trust and public use"
-                    description="Control whether the source can be cited publicly and whether it should be treated as authoritative."
+                    title="Citation and verification"
+                    description="Control whether answers may cite this source and whether this save should refresh verification time."
                   />
                   <div className="grid gap-4 md:grid-cols-2">
                     <SwitchField
                       control={form.control}
-                      name="allowsPublicCitation"
-                      label="Allows public citation"
-                      description="Allow public answers to cite this source as a reference."
-                    />
-                    <SwitchField
-                      control={form.control}
-                      name="allowsPublicExcerpt"
-                      label="Allows public excerpt"
-                      description="Allow public answers to include short excerpts from this source."
-                    />
-                    <SwitchField
-                      control={form.control}
-                      name="isAuthoritative"
-                      label="Authoritative"
-                      description="Treat this source as a trusted canonical reference."
+                      name="allowsCitation"
+                      label="Allows citation"
+                      description="Allow eligible answers to cite this source as a reference."
                     />
                     <SwitchField
                       control={form.control}

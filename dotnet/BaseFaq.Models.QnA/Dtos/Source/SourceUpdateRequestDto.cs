@@ -14,9 +14,7 @@ public class SourceUpdateRequestDto
     public required string Checksum { get; set; }
     public string? MetadataJson { get; set; }
     public required VisibilityScope Visibility { get; set; }
-    public required bool AllowsPublicCitation { get; set; }
-    public required bool AllowsPublicExcerpt { get; set; }
-    public required bool IsAuthoritative { get; set; }
+    public required bool AllowsCitation { get; set; }
     public DateTime? CapturedAtUtc { get; set; }
     public required bool MarkVerified { get; set; }
 }
