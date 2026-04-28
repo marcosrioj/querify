@@ -27,7 +27,7 @@ export const AnswerRoutes: RouteObject[] = [
     element: <AnswerDetailPage />,
     handle: {
       title: 'Answer',
-      breadcrumb: 'Detail',
+      breadcrumb: 'Answer',
       navKey: 'answers',
     },
   },

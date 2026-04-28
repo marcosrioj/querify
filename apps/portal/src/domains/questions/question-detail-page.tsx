@@ -250,11 +250,15 @@ export function QuestionDetailPage() {
             title={questionQuery.data?.title ?? "Question"}
             description="Operate thread workflow, accepted answers, duplicate routing, source links, and activity from one place."
             descriptionMode="hint"
-            backTo="/app/questions"
+            backTo={
+              questionQuery.data?.spaceId
+                ? `/app/spaces/${questionQuery.data.spaceId}`
+                : "/app/spaces"
+            }
           />
           <QnaModuleNav
-            activeKey="questions"
-            intent="This question sits under a space. Keep accepted answers, duplicate routing, sources, tags, and activity tied to that parent."
+            activeKey="spaces"
+            intent="This question sits under a Space. Resolve the thread by checking status, accepted answer, duplicates, evidence, tags, and activity in that context."
           />
         </>
       }
@@ -312,7 +316,13 @@ export function QuestionDetailPage() {
                 onConfirm={() =>
                   deleteQuestion
                     .mutateAsync(id)
-                    .then(() => navigate("/app/questions"))
+                    .then(() =>
+                      navigate(
+                        questionQuery.data?.spaceId
+                          ? `/app/spaces/${questionQuery.data.spaceId}`
+                          : "/app/spaces",
+                      ),
+                    )
                 }
                 trigger={
                   <Button

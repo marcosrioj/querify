@@ -117,9 +117,14 @@ export function SourceListPage() {
       source.allowsPublicCitation &&
       source.visibility >= VisibilityScope.Public,
   ).length;
-  const verifiedCount = sourceRows.filter((source) =>
-    Boolean(source.lastVerifiedAtUtc),
-  ).length;
+  const linkedRecordCount = sourceRows.reduce(
+    (total, source) =>
+      total +
+      source.spaceUsageCount +
+      source.questionUsageCount +
+      source.answerUsageCount,
+    0,
+  );
   const showMetricsLoadingState =
     sourceQuery.isLoading && sourceQuery.data === undefined;
 
@@ -172,6 +177,32 @@ export function SourceListPage() {
           {source.allowsPublicExcerpt ? (
             <Badge variant="outline">{translateText("Public excerpt")}</Badge>
           ) : null}
+        </div>
+      ),
+    },
+    {
+      key: "usage",
+      header: "Where used",
+      className: "lg:w-[220px]",
+      cell: (source) => (
+        <div className="flex flex-wrap gap-2">
+          <Badge variant={source.spaceUsageCount > 0 ? "primary" : "outline"}>
+            {translateText("{count} spaces", {
+              count: source.spaceUsageCount,
+            })}
+          </Badge>
+          <Badge
+            variant={source.questionUsageCount > 0 ? "secondary" : "outline"}
+          >
+            {translateText("{count} questions", {
+              count: source.questionUsageCount,
+            })}
+          </Badge>
+          <Badge variant={source.answerUsageCount > 0 ? "success" : "outline"}>
+            {translateText("{count} answers", {
+              count: source.answerUsageCount,
+            })}
+          </Badge>
         </div>
       ),
     },
@@ -275,10 +306,10 @@ export function SourceListPage() {
               icon: CheckCircle2,
             },
             {
-              title: "Verified",
-              value: verifiedCount,
+              title: "Linked records",
+              value: linkedRecordCount,
               description: translateText(
-                "Sources with a verification timestamp",
+                "Attachments across spaces, questions, and answers",
               ),
               icon: ShieldCheck,
             },

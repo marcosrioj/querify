@@ -5,7 +5,6 @@ import {
   CircleDot,
   GitFork,
   Pencil,
-  Plus,
   Trash2,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
@@ -259,20 +258,13 @@ export function QuestionListPage() {
         <>
           <PageHeader
             title="Questions"
-            description="Work the full thread lifecycle: intake, review, duplication, accepted answers, and public feedback."
+            description="Questions are operated from their owning Space. Use this scoped view only to triage threads that already have parent context."
             descriptionMode="inline"
-            actions={
-              <Button asChild>
-                <Link to="/app/questions/new">
-                  <Plus className="size-4" />
-                  {translateText("New question")}
-                </Link>
-              </Button>
-            }
+            backTo="/app/spaces"
           />
           <QnaModuleNav
-            activeKey="questions"
-            intent="Questions are children of spaces, so review space context before changing workflow, visibility, or resolution."
+            activeKey="spaces"
+            intent="Questions are not a standalone workspace. Open the Space first, then create or resolve question threads inside that operating context."
           />
         </>
       }
@@ -402,8 +394,8 @@ export function QuestionListPage() {
         emptyState={
           <EmptyState
             title="No questions in view"
-            description="Create the first thread to start the QnA workflow."
-            action={{ label: "New question", to: "/app/questions/new" }}
+            description="Open a Space and create the first thread from there so intake rules, visibility, tags, and sources stay attached."
+            action={{ label: "Open spaces", to: "/app/spaces" }}
           />
         }
         errorState={

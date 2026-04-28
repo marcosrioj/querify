@@ -27,7 +27,7 @@ export const SpaceRoutes: RouteObject[] = [
     element: <SpaceDetailPage />,
     handle: {
       title: 'Space',
-      breadcrumb: 'Detail',
+      breadcrumb: 'Space',
       navKey: 'spaces',
     },
   },

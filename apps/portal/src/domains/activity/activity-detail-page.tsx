@@ -46,10 +46,16 @@ export function ActivityDetailPage() {
             title="Activity event"
             description="Inspect actor context, notes, metadata, and the thread identifiers behind this audit entry."
             descriptionMode="hint"
-            backTo="/app/activity"
+            backTo={
+              activityQuery.data?.answerId
+                ? `/app/answers/${activityQuery.data.answerId}`
+                : activityQuery.data?.questionId
+                  ? `/app/questions/${activityQuery.data.questionId}`
+                  : "/app/spaces"
+            }
           />
           <QnaModuleNav
-            activeKey="activity"
+            activeKey="spaces"
             intent="Activity is child evidence for question and answer operations. Jump to the subject before changing related records."
           />
         </>

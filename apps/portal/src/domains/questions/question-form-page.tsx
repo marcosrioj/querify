@@ -45,7 +45,7 @@ import {
   FormSectionHeading,
   SidebarSummarySkeleton,
 } from "@/shared/ui";
-import { ErrorState } from "@/shared/ui/placeholder-state";
+import { EmptyState, ErrorState } from "@/shared/ui/placeholder-state";
 import {
   SearchSelectField,
   SelectField,
@@ -143,7 +143,34 @@ export function QuestionFormPage({ mode }: { mode: "create" | "edit" }) {
       ? `/app/questions/${id}`
       : selectedSpaceId
         ? `/app/spaces/${selectedSpaceId}`
-        : "/app/questions";
+        : "/app/spaces";
+
+  if (mode === "create" && !preselectedSpaceId) {
+    return (
+      <DetailLayout
+        header={
+          <>
+            <PageHeader
+              title="New question"
+              description="A question needs a Space before it can inherit intake, visibility, tags, sources, and activity context."
+              descriptionMode="hint"
+              backTo="/app/spaces"
+            />
+            <QnaModuleNav
+              activeKey="spaces"
+              intent="Create questions from a Space so operators do not have to choose business context twice."
+            />
+          </>
+        }
+      >
+        <EmptyState
+          title="Open a Space before creating a question"
+          description="Choose the operating Space first. The creation form will then keep the parent context fixed and only ask for thread details."
+          action={{ label: "Open spaces", to: "/app/spaces" }}
+        />
+      </DetailLayout>
+    );
+  }
 
   return (
     <DetailLayout
@@ -156,8 +183,8 @@ export function QuestionFormPage({ mode }: { mode: "create" | "edit" }) {
             backTo={backTo}
           />
           <QnaModuleNav
-            activeKey="questions"
-            intent="Every question needs a space parent. Choose that space first so lifecycle, visibility, and answers inherit the right rules."
+            activeKey="spaces"
+            intent="Every question needs a Space parent. When the Space is already known, keep it fixed and focus only on the thread to resolve."
           />
         </>
       }
@@ -282,6 +309,7 @@ export function QuestionFormPage({ mode }: { mode: "create" | "edit" }) {
                   options={spaceOptions}
                   selectedOption={selectedSpaceOption}
                   loading={spaceOptionsQuery.isFetching}
+                  disabled={Boolean(preselectedSpaceId) || mode === "edit"}
                   searchValue={spaceSearch}
                   onSearchChange={(value) =>
                     startTransition(() => setSpaceSearch(value))

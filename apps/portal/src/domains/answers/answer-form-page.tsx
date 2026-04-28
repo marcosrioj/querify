@@ -46,7 +46,7 @@ import {
   FormSectionHeading,
   SidebarSummarySkeleton,
 } from "@/shared/ui";
-import { ErrorState } from "@/shared/ui/placeholder-state";
+import { EmptyState, ErrorState } from "@/shared/ui/placeholder-state";
 import {
   SearchSelectField,
   SelectField,
@@ -154,7 +154,34 @@ export function AnswerFormPage({ mode }: { mode: "create" | "edit" }) {
       ? `/app/answers/${id}`
       : selectedQuestionId
         ? `/app/questions/${selectedQuestionId}`
-        : "/app/answers";
+        : "/app/spaces";
+
+  if (mode === "create" && !preselectedQuestionId) {
+    return (
+      <DetailLayout
+        header={
+          <>
+            <PageHeader
+              title="New answer"
+              description="An answer needs a parent Question before publication, validation, sources, and accepted state are meaningful."
+              descriptionMode="hint"
+              backTo="/app/spaces"
+            />
+            <QnaModuleNav
+              activeKey="spaces"
+              intent="Create answers from a Question so the candidate is tied to a real thread and its Space rules."
+            />
+          </>
+        }
+      >
+        <EmptyState
+          title="Open a Question before creating an answer"
+          description="Start in a Space, choose the question thread, then author the answer candidate with the right context already locked."
+          action={{ label: "Open spaces", to: "/app/spaces" }}
+        />
+      </DetailLayout>
+    );
+  }
 
   return (
     <DetailLayout
@@ -167,8 +194,8 @@ export function AnswerFormPage({ mode }: { mode: "create" | "edit" }) {
             backTo={backTo}
           />
           <QnaModuleNav
-            activeKey="answers"
-            intent="Answers are children of questions. Select the question first so accepted state, sources, and visibility remain traceable."
+            activeKey="spaces"
+            intent="Answers are children of Questions. Keep the parent thread fixed so accepted state, sources, and visibility remain traceable."
           />
         </>
       }
@@ -290,6 +317,7 @@ export function AnswerFormPage({ mode }: { mode: "create" | "edit" }) {
                   options={questionOptions}
                   selectedOption={selectedQuestionOption}
                   loading={questionOptionsQuery.isFetching}
+                  disabled={Boolean(preselectedQuestionId) || mode === "edit"}
                   searchValue={questionSearch}
                   onSearchChange={(value) =>
                     startTransition(() => setQuestionSearch(value))

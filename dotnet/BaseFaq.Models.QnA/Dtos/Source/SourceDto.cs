@@ -21,4 +21,7 @@ public class SourceDto
     public required bool IsAuthoritative { get; set; }
     public DateTime? CapturedAtUtc { get; set; }
     public DateTime? LastVerifiedAtUtc { get; set; }
+    public int SpaceUsageCount { get; set; }
+    public int QuestionUsageCount { get; set; }
+    public int AnswerUsageCount { get; set; }
 }

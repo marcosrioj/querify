@@ -14,8 +14,8 @@ import {
 const shortcuts = [
   { label: 'Go to dashboard', to: '/app/dashboard' },
   { label: 'Open spaces', to: '/app/spaces' },
-  { label: 'Open questions', to: '/app/questions' },
-  { label: 'Create question', to: '/app/questions/new' },
+  { label: 'Open tags', to: '/app/tags' },
+  { label: 'Open sources', to: '/app/sources' },
   { label: 'Open billing', to: '/app/billing' },
 ];
 

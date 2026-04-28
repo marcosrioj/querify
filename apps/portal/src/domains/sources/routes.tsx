@@ -27,7 +27,7 @@ export const SourceRoutes: RouteObject[] = [
     element: <SourceDetailPage />,
     handle: {
       title: 'Source',
-      breadcrumb: 'Detail',
+      breadcrumb: 'Source',
       navKey: 'sources',
     },
   },

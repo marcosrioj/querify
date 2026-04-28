@@ -57,30 +57,33 @@ public sealed class SourcesGetSourceListQueryHandler(
         var items = await query
             .Skip(request.SkipCount)
             .Take(request.MaxResultCount)
+            .Select(entity => new SourceDto
+            {
+                Id = entity.Id,
+                TenantId = entity.TenantId,
+                Kind = entity.Kind,
+                Locator = entity.Locator,
+                Label = entity.Label,
+                ContextNote = entity.ContextNote,
+                ExternalId = entity.ExternalId,
+                Language = entity.Language,
+                MediaType = entity.MediaType,
+                Checksum = entity.Checksum,
+                MetadataJson = entity.MetadataJson,
+                Visibility = entity.Visibility,
+                AllowsPublicCitation = entity.AllowsPublicCitation,
+                AllowsPublicExcerpt = entity.AllowsPublicExcerpt,
+                IsAuthoritative = entity.IsAuthoritative,
+                CapturedAtUtc = entity.CapturedAtUtc,
+                LastVerifiedAtUtc = entity.LastVerifiedAtUtc,
+                SpaceUsageCount = entity.Spaces.Count,
+                QuestionUsageCount = entity.Questions.Count,
+                AnswerUsageCount = entity.Answers.Count
+            })
             .ToListAsync(cancellationToken);
 
         return new PagedResultDto<SourceDto>(
             totalCount,
-            items.Select(entity => new SourceDto
-                {
-                    Id = entity.Id,
-                    TenantId = entity.TenantId,
-                    Kind = entity.Kind,
-                    Locator = entity.Locator,
-                    Label = entity.Label,
-                    ContextNote = entity.ContextNote,
-                    ExternalId = entity.ExternalId,
-                    Language = entity.Language,
-                    MediaType = entity.MediaType,
-                    Checksum = entity.Checksum,
-                    MetadataJson = entity.MetadataJson,
-                    Visibility = entity.Visibility,
-                    AllowsPublicCitation = entity.AllowsPublicCitation,
-                    AllowsPublicExcerpt = entity.AllowsPublicExcerpt,
-                    IsAuthoritative = entity.IsAuthoritative,
-                    CapturedAtUtc = entity.CapturedAtUtc,
-                    LastVerifiedAtUtc = entity.LastVerifiedAtUtc
-                })
-                .ToList());
+            items);
     }
 }

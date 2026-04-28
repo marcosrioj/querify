@@ -16,15 +16,19 @@ public sealed class TagsGetTagQueryHandler(QnADbContext dbContext, ISessionServi
     {
         var tenantId = sessionService.GetTenantId(ModuleEnum.QnA);
         var entity = await dbContext.Tags.AsNoTracking()
-            .SingleOrDefaultAsync(tag => tag.TenantId == tenantId && tag.Id == request.Id, cancellationToken);
+            .Where(tag => tag.TenantId == tenantId && tag.Id == request.Id)
+            .Select(tag => new TagDto
+            {
+                Id = tag.Id,
+                TenantId = tag.TenantId,
+                Name = tag.Name,
+                SpaceUsageCount = tag.Spaces.Count,
+                QuestionUsageCount = tag.Questions.Count
+            })
+            .SingleOrDefaultAsync(cancellationToken);
 
         return entity is null
             ? throw new ApiErrorException($"Tag '{request.Id}' was not found.", (int)HttpStatusCode.NotFound)
-            : new TagDto
-            {
-                Id = entity.Id,
-                TenantId = entity.TenantId,
-                Name = entity.Name
-            };
+            : entity;
     }
 }

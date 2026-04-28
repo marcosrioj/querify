@@ -251,6 +251,18 @@ export function SourceDetailPage() {
                       translateText("Not set"),
                     ),
                   },
+                  {
+                    label: "Spaces",
+                    value: String(sourceQuery.data.spaceUsageCount),
+                  },
+                  {
+                    label: "Questions",
+                    value: String(sourceQuery.data.questionUsageCount),
+                  },
+                  {
+                    label: "Answers",
+                    value: String(sourceQuery.data.answerUsageCount),
+                  },
                 ]}
               />
               {sourceQuery.data.metadataJson ? (

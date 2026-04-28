@@ -19,31 +19,36 @@ public sealed class SourcesGetSourceQueryHandler(
     {
         var tenantId = sessionService.GetTenantId(ModuleEnum.QnA);
         var entity = await dbContext.Sources.AsNoTracking()
-            .SingleOrDefaultAsync(source => source.TenantId == tenantId && source.Id == request.Id, cancellationToken);
+            .Where(source => source.TenantId == tenantId && source.Id == request.Id)
+            .Select(source => new SourceDto
+            {
+                Id = source.Id,
+                TenantId = source.TenantId,
+                Kind = source.Kind,
+                Locator = source.Locator,
+                Label = source.Label,
+                ContextNote = source.ContextNote,
+                ExternalId = source.ExternalId,
+                Language = source.Language,
+                MediaType = source.MediaType,
+                Checksum = source.Checksum,
+                MetadataJson = source.MetadataJson,
+                Visibility = source.Visibility,
+                AllowsPublicCitation = source.AllowsPublicCitation,
+                AllowsPublicExcerpt = source.AllowsPublicExcerpt,
+                IsAuthoritative = source.IsAuthoritative,
+                CapturedAtUtc = source.CapturedAtUtc,
+                LastVerifiedAtUtc = source.LastVerifiedAtUtc,
+                SpaceUsageCount = source.Spaces.Count,
+                QuestionUsageCount = source.Questions.Count,
+                AnswerUsageCount = source.Answers.Count
+            })
+            .SingleOrDefaultAsync(cancellationToken);
 
         return entity is null
             ? throw new ApiErrorException(
                 $"Source '{request.Id}' was not found.",
                 (int)HttpStatusCode.NotFound)
-            : new SourceDto
-            {
-                Id = entity.Id,
-                TenantId = entity.TenantId,
-                Kind = entity.Kind,
-                Locator = entity.Locator,
-                Label = entity.Label,
-                ContextNote = entity.ContextNote,
-                ExternalId = entity.ExternalId,
-                Language = entity.Language,
-                MediaType = entity.MediaType,
-                Checksum = entity.Checksum,
-                MetadataJson = entity.MetadataJson,
-                Visibility = entity.Visibility,
-                AllowsPublicCitation = entity.AllowsPublicCitation,
-                AllowsPublicExcerpt = entity.AllowsPublicExcerpt,
-                IsAuthoritative = entity.IsAuthoritative,
-                CapturedAtUtc = entity.CapturedAtUtc,
-                LastVerifiedAtUtc = entity.LastVerifiedAtUtc
-            };
+            : entity;
     }
 }

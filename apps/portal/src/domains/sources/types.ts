@@ -18,6 +18,9 @@ export type SourceDto = {
   isAuthoritative: boolean;
   capturedAtUtc?: string | null;
   lastVerifiedAtUtc?: string | null;
+  spaceUsageCount: number;
+  questionUsageCount: number;
+  answerUsageCount: number;
 };
 
 export type SourceCreateRequestDto = {

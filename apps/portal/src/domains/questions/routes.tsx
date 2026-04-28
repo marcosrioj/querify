@@ -27,7 +27,7 @@ export const QuestionRoutes: RouteObject[] = [
     element: <QuestionDetailPage />,
     handle: {
       title: 'Question',
-      breadcrumb: 'Detail',
+      breadcrumb: 'Question',
       navKey: 'questions',
     },
   },

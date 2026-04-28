@@ -30,7 +30,8 @@ export function SidebarMenuPrimary({
   );
   const activeRootItem = portalNavigation.find((item) =>
     item.children
-      ? item.children.some((child) => matchPath(child.path))
+      ? item.children.some((child) => matchPath(child.path)) ||
+        item.activePaths?.some(matchPath)
       : item.activePaths?.some(matchPath)
         ? true
         : matchPath(item.path),
@@ -39,7 +40,8 @@ export function SidebarMenuPrimary({
     ? `${activeRootItem.key}:${pathname}`
     : (activeRootItem?.key ?? pathname);
   const selectedNavigationValue = activeRootItem?.children
-    ? pathname
+    ? (activeRootItem.children.find((child) => matchPath(child.path))?.path ??
+      (activeRootItem.key === "qna" ? "/app/spaces" : pathname))
     : (activeRootItem?.path ?? pathname);
 
   const classNames: AccordionMenuClassNames = {

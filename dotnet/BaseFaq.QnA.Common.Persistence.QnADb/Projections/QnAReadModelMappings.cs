@@ -179,7 +179,9 @@ public static class QnAReadModelMappings
         {
             Id = entity.Id,
             TenantId = entity.TenantId,
-            Name = entity.Name
+            Name = entity.Name,
+            SpaceUsageCount = entity.Spaces.Count,
+            QuestionUsageCount = entity.Questions.Count
         };
     }
 
@@ -203,7 +205,10 @@ public static class QnAReadModelMappings
             AllowsPublicExcerpt = entity.AllowsPublicExcerpt,
             IsAuthoritative = entity.IsAuthoritative,
             CapturedAtUtc = entity.CapturedAtUtc,
-            LastVerifiedAtUtc = entity.LastVerifiedAtUtc
+            LastVerifiedAtUtc = entity.LastVerifiedAtUtc,
+            SpaceUsageCount = entity.Spaces.Count,
+            QuestionUsageCount = entity.Questions.Count,
+            AnswerUsageCount = entity.Answers.Count
         };
     }
 

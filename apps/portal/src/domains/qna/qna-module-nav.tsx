@@ -1,12 +1,10 @@
 import {
-  Activity,
   BarChart3,
-  CheckCircle2,
-  MessageSquareText,
-  MessagesSquare,
-  PanelsTopLeft,
+  ArrowRight,
+  FolderKanban,
   Tags,
   Waypoints,
+  type LucideIcon,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -16,46 +14,29 @@ import { Button, Card, CardContent, ContextHint } from "@/shared/ui";
 export type QnaModuleKey =
   | "dashboard"
   | "spaces"
-  | "questions"
-  | "answers"
-  | "sources"
   | "tags"
-  | "activity";
+  | "sources";
 
 const qnaModuleItems: Array<{
   key: QnaModuleKey;
   label: string;
   description: string;
   to: string;
-  icon: typeof PanelsTopLeft;
+  icon: LucideIcon;
 }> = [
+  {
+    key: "dashboard",
+    label: "Dashboard",
+    description: "Act on risks",
+    to: "/app/dashboard",
+    icon: BarChart3,
+  },
   {
     key: "spaces",
     label: "Spaces",
-    description: "Start here",
+    description: "Daily work",
     to: "/app/spaces",
-    icon: PanelsTopLeft,
-  },
-  {
-    key: "questions",
-    label: "Questions",
-    description: "Threads",
-    to: "/app/questions",
-    icon: MessagesSquare,
-  },
-  {
-    key: "answers",
-    label: "Answers",
-    description: "Resolutions",
-    to: "/app/answers",
-    icon: MessageSquareText,
-  },
-  {
-    key: "sources",
-    label: "Sources",
-    description: "Evidence",
-    to: "/app/sources",
-    icon: Waypoints,
+    icon: FolderKanban,
   },
   {
     key: "tags",
@@ -65,18 +46,11 @@ const qnaModuleItems: Array<{
     icon: Tags,
   },
   {
-    key: "activity",
-    label: "Activity",
-    description: "Signals",
-    to: "/app/activity",
-    icon: Activity,
-  },
-  {
-    key: "dashboard",
-    label: "Dashboard",
-    description: "Macro view",
-    to: "/app/dashboard",
-    icon: BarChart3,
+    key: "sources",
+    label: "Sources",
+    description: "Evidence",
+    to: "/app/sources",
+    icon: Waypoints,
   },
 ];
 
@@ -88,42 +62,45 @@ export function QnaModuleNav({
   intent?: string;
 }) {
   return (
-    <Card className="overflow-hidden border-primary/20 bg-linear-to-br from-primary/[0.08] via-background to-cyan-500/[0.05]">
+    <Card className="overflow-hidden border-primary/15 bg-linear-to-br from-background via-background to-emerald-500/[0.06]">
       <CardContent className="space-y-4 p-4 lg:p-5">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="min-w-0 space-y-2">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+              <span className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-600 dark:text-emerald-300">
                 {translateText("QnA module")}
               </span>
               <ContextHint
                 content={translateText(
-                  "Spaces are the parent boundary. Questions, answers, sources, tags, and activity should always be read through that operating context.",
+                  "Dashboard shows risk, Spaces are the operating boundary, and Tags plus Sources are reusable libraries.",
                 )}
                 label={translateText("QnA module details")}
               />
             </div>
             <div className="flex min-w-0 flex-col gap-1">
               <h3 className="text-lg font-semibold text-mono">
-                {translateText("Start with Spaces")}
+                {translateText("Operate QnA through business context")}
               </h3>
               <p className="max-w-3xl text-sm leading-6 text-muted-foreground">
                 {translateText(
                   intent ??
-                    "Use the module map to keep every child record tied to its parent space and operational outcome.",
+                    "Start with the dashboard for risks, then work inside Spaces before attaching taxonomy or evidence.",
                 )}
               </p>
             </div>
           </div>
-          <Button asChild className="shadow-lg shadow-primary/20">
+          <Button
+            asChild
+            className="bg-emerald-600 text-white shadow-lg shadow-emerald-600/25 hover:bg-emerald-700"
+          >
             <Link to="/app/spaces">
-              <CheckCircle2 className="size-4" />
               {translateText("Start here")}
+              <ArrowRight className="size-4" />
             </Link>
           </Button>
         </div>
 
-        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
+        <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
           {qnaModuleItems.map((item) => {
             const Icon = item.icon;
             const active = item.key === activeKey;
@@ -135,16 +112,16 @@ export function QnaModuleNav({
                 className={cn(
                   "group flex min-h-16 min-w-0 items-center gap-3 rounded-lg border px-3 py-3 text-left transition-colors",
                   active
-                    ? "border-primary/25 bg-primary/10 text-primary"
-                    : "border-border/70 bg-background/75 text-foreground hover:border-primary/20 hover:bg-primary/[0.04]",
+                    ? "border-emerald-500/25 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
+                    : "border-border/70 bg-background/75 text-foreground hover:border-emerald-500/20 hover:bg-emerald-500/[0.04]",
                 )}
               >
                 <span
                   className={cn(
                     "flex size-9 shrink-0 items-center justify-center rounded-lg ring-1 ring-inset",
                     active
-                      ? "bg-primary text-primary-foreground ring-primary/20"
-                      : "bg-muted text-muted-foreground ring-border/70 group-hover:text-primary",
+                      ? "bg-emerald-600 text-white ring-emerald-500/20"
+                      : "bg-muted text-muted-foreground ring-border/70 group-hover:text-emerald-600",
                   )}
                 >
                   <Icon className="size-4" />

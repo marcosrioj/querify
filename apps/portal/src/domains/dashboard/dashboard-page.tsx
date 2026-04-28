@@ -5,40 +5,21 @@ import {
   FolderKanban,
   MessageSquareText,
   Plus,
-  RadioTower,
   ShieldCheck,
-  UsersRound,
   Waypoints,
+  type LucideIcon,
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
-import {
-  Area,
-  AreaChart,
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Cell,
-  Pie,
-  PieChart,
-  XAxis,
-  YAxis,
-} from "recharts";
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@/components/ui/chart";
 import { useActivityList } from "@/domains/activity/hooks";
 import type { ActivityDto } from "@/domains/activity/types";
 import { useAnswerList } from "@/domains/answers/hooks";
 import type { AnswerDto } from "@/domains/answers/types";
 import { QnaModuleNav } from "@/domains/qna/qna-module-nav";
-import { usePortalTimeZone } from "@/domains/settings/settings-hooks";
 import { useQuestionList } from "@/domains/questions/hooks";
 import type { QuestionDto } from "@/domains/questions/types";
+import { usePortalTimeZone } from "@/domains/settings/settings-hooks";
 import { useSourceList } from "@/domains/sources/hooks";
-import type { SourceDto } from "@/domains/sources/types";
 import { useSpaceList } from "@/domains/spaces/hooks";
 import type { SpaceDto } from "@/domains/spaces/types";
 import {
@@ -46,6 +27,23 @@ import {
   useTenantWorkspace,
 } from "@/domains/tenants/hooks";
 import {
+  AnswerStatus,
+  QuestionStatus,
+  VisibilityScope,
+} from "@/shared/constants/backend-enums";
+import { PageHeader, PageSurface } from "@/shared/layout/page-layouts";
+import { formatNumericDateTimeInTimeZone } from "@/shared/lib/time-zone";
+import { translateText } from "@/shared/lib/i18n-core";
+import {
+  ActivityKindBadge,
+  ActorKindBadge,
+  AnswerStatusBadge,
+  QuestionStatusBadge,
+  SpaceKindBadge,
+  VisibilityBadge,
+} from "@/shared/ui/status-badges";
+import {
+  Badge,
   Button,
   Card,
   CardContent,
@@ -57,93 +55,96 @@ import {
   SectionGridSkeleton,
   Skeleton,
 } from "@/shared/ui";
-import {
-  PageHeader,
-  PageSurface,
-  SectionGrid,
-} from "@/shared/layout/page-layouts";
 import { EmptyState, ErrorState } from "@/shared/ui/placeholder-state";
-import { formatNumericDateTimeInTimeZone } from "@/shared/lib/time-zone";
-import { translateText } from "@/shared/lib/i18n-core";
-import {
-  ActivityKindBadge,
-  ActorKindBadge,
-  AnswerStatusBadge,
-  QuestionStatusBadge,
-  SourceKindBadge,
-  SpaceKindBadge,
-  VisibilityBadge,
-} from "@/shared/ui/status-badges";
-import { AnswerStatus, QuestionStatus } from "@/shared/constants/backend-enums";
 
-function DashboardSection({
-  title,
-  description,
-  action,
-  children,
-}: {
+type DashboardActionCardProps = {
   title: string;
+  value: ReactNode;
   description: string;
-  action?: { label: string; to: string };
-  children: ReactNode;
-}) {
-  return (
-    <Card className="min-h-full overflow-hidden">
-      <CardHeader className="gap-4">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <CardHeading>
-            <CardTitle>{translateText(title)}</CardTitle>
-            <CardDescription>{translateText(description)}</CardDescription>
-          </CardHeading>
-          {action ? (
-            <Button asChild variant="ghost" size="sm">
-              <Link to={action.to}>
-                {translateText(action.label)}
-                <ArrowRight className="size-4" />
-              </Link>
-            </Button>
-          ) : null}
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-3">{children}</CardContent>
-    </Card>
-  );
-}
+  actionLabel: string;
+  to: string;
+  icon: LucideIcon;
+  tone: "emerald" | "amber" | "sky" | "rose";
+};
 
-function DashboardSectionSkeleton() {
+const toneClasses: Record<
+  DashboardActionCardProps["tone"],
+  {
+    card: string;
+    icon: string;
+    line: string;
+  }
+> = {
+  emerald: {
+    card: "border-emerald-500/20 bg-linear-to-br from-background via-background to-emerald-500/[0.08]",
+    icon: "bg-emerald-500/10 text-emerald-600 ring-emerald-500/20 dark:text-emerald-300",
+    line: "bg-emerald-500",
+  },
+  amber: {
+    card: "border-amber-500/20 bg-linear-to-br from-background via-background to-amber-500/[0.08]",
+    icon: "bg-amber-500/10 text-amber-600 ring-amber-500/20 dark:text-amber-300",
+    line: "bg-amber-500",
+  },
+  sky: {
+    card: "border-sky-500/20 bg-linear-to-br from-background via-background to-sky-500/[0.08]",
+    icon: "bg-sky-500/10 text-sky-600 ring-sky-500/20 dark:text-sky-300",
+    line: "bg-sky-500",
+  },
+  rose: {
+    card: "border-rose-500/20 bg-linear-to-br from-background via-background to-rose-500/[0.08]",
+    icon: "bg-rose-500/10 text-rose-600 ring-rose-500/20 dark:text-rose-300",
+    line: "bg-rose-500",
+  },
+};
+
+function DashboardActionCard({
+  title,
+  value,
+  description,
+  actionLabel,
+  to,
+  icon: Icon,
+  tone,
+}: DashboardActionCardProps) {
+  const classes = toneClasses[tone];
+
   return (
-    <Card className="min-h-full overflow-hidden">
-      <CardHeader className="gap-4">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="space-y-2">
-            <Skeleton className="h-5 w-36" />
-            <Skeleton className="h-4 w-56" />
+    <Card className={classes.card}>
+      <CardContent className="relative flex min-h-48 flex-col justify-between gap-5 p-5">
+        <span
+          aria-hidden="true"
+          className={`absolute inset-x-5 top-0 h-1 rounded-b-full ${classes.line}`}
+        />
+        <div className="flex items-start justify-between gap-4 pt-2">
+          <div className="min-w-0 space-y-2">
+            <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
+              {translateText(title)}
+            </p>
+            <div className="text-3xl font-semibold text-mono">{value}</div>
           </div>
-          <Skeleton className="h-7 w-24" />
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        {Array.from({ length: 3 }, (_, index) => (
           <div
-            key={`dashboard-section-skeleton-${index}`}
-            className="rounded-lg border border-border/70 bg-background/70 px-4 py-3"
+            className={`flex size-10 shrink-0 items-center justify-center rounded-lg ring-1 ring-inset ${classes.icon}`}
           >
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0 flex-1 space-y-2">
-                <Skeleton className="h-4 w-2/3" />
-                <Skeleton className="h-4 w-1/3" />
-                <Skeleton className="h-4 w-full" />
-              </div>
-              <Skeleton className="h-6 w-20 rounded-full" />
-            </div>
+            <Icon className="size-5" />
           </div>
-        ))}
+        </div>
+        <div className="space-y-4">
+          <p className="text-sm leading-6 text-muted-foreground">
+            {translateText(description)}
+          </p>
+          <Button asChild variant="outline" size="sm">
+            <Link to={to}>
+              {translateText(actionLabel)}
+              <ArrowRight className="size-4" />
+            </Link>
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );
 }
 
-function DashboardChartCard({
+function DashboardPanel({
   title,
   description,
   children,
@@ -153,95 +154,197 @@ function DashboardChartCard({
   children: ReactNode;
 }) {
   return (
-    <Card className="min-h-full overflow-hidden">
+    <Card className="min-h-full">
       <CardHeader>
         <CardHeading>
           <CardTitle>{translateText(title)}</CardTitle>
           <CardDescription>{translateText(description)}</CardDescription>
         </CardHeading>
       </CardHeader>
-      <CardContent>{children}</CardContent>
+      <CardContent className="space-y-3">{children}</CardContent>
     </Card>
   );
 }
 
-function ModuleSignalCard({
-  title,
-  description,
-  value,
-  icon: Icon,
-}: {
-  title: string;
-  description: string;
-  value: ReactNode;
-  icon: typeof FolderKanban;
-}) {
+function SpaceAttentionRow({ space }: { space: SpaceDto }) {
+  const blocksWork = !space.acceptsQuestions && !space.acceptsAnswers;
+  const needsValidation = !space.lastValidatedAtUtc;
+
   return (
     <div className="rounded-lg border border-border/70 bg-background/75 p-4">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0 space-y-1">
-          <p className="text-sm font-semibold text-mono">
-            {translateText(title)}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0 space-y-2">
+          <Link
+            to={`/app/spaces/${space.id}`}
+            className="font-medium text-mono hover:text-primary"
+          >
+            {space.name}
+          </Link>
+          <p className="line-clamp-2 text-sm text-muted-foreground">
+            {space.summary || translateText("No summary recorded.")}
           </p>
-          <p className="text-sm leading-6 text-muted-foreground">
-            {translateText(description)}
-          </p>
+          <div className="flex flex-wrap gap-2">
+            <SpaceKindBadge kind={space.kind} />
+            <VisibilityBadge visibility={space.visibility} />
+            <Badge
+              variant={space.acceptsQuestions ? "success" : "mono"}
+              appearance="outline"
+            >
+              {translateText(
+                space.acceptsQuestions
+                  ? "Questions enabled"
+                  : "Questions disabled",
+              )}
+            </Badge>
+            <Badge
+              variant={space.acceptsAnswers ? "success" : "mono"}
+              appearance="outline"
+            >
+              {translateText(
+                space.acceptsAnswers ? "Answers enabled" : "Answers disabled",
+              )}
+            </Badge>
+          </div>
         </div>
-        <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary ring-1 ring-primary/15">
-          <Icon className="size-4" />
+        <div className="flex shrink-0 flex-col gap-2 sm:items-end">
+          <Badge
+            variant={blocksWork ? "destructive" : needsValidation ? "warning" : "success"}
+          >
+            {translateText(
+              blocksWork
+                ? "Intake closed"
+                : needsValidation
+                  ? "Needs validation"
+                  : "Ready",
+            )}
+          </Badge>
+          <Button asChild size="sm">
+            <Link to={`/app/spaces/${space.id}`}>
+              {translateText("Open space")}
+            </Link>
+          </Button>
         </div>
-      </div>
-      <div className="mt-4 border-t border-border/70 pt-3 text-sm font-medium text-primary">
-        {typeof value === "string" ? translateText(value) : value}
       </div>
     </div>
   );
 }
 
-function DashboardValueTracker({
-  items,
+function QuestionAttentionRow({
+  question,
+  timeZone,
 }: {
-  items: Array<{
-    label: string;
-    value: string | number;
-    description: string;
-    tone: string;
-  }>;
+  question: QuestionDto;
+  timeZone: string;
 }) {
   return (
-    <Card className="overflow-hidden border-primary/20 bg-linear-to-br from-background via-background to-primary/[0.06]">
-      <CardHeader>
-        <CardHeading>
-          <CardTitle>{translateText("Value tracker")}</CardTitle>
-          <CardDescription>
-            {translateText(
-              "Proof that QnA is moving from raw intake toward reusable, trusted knowledge.",
-            )}
-          </CardDescription>
-        </CardHeading>
-      </CardHeader>
-      <CardContent className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-        {items.map((item) => (
-          <div
-            key={item.label}
-            className="rounded-lg border border-border/70 bg-background/80 p-4"
+    <div className="rounded-lg border border-border/70 bg-background/75 p-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0 space-y-2">
+          <Link
+            to={`/app/questions/${question.id}`}
+            className="font-medium text-mono hover:text-primary"
           >
-            <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
-              {translateText(item.label)}
-            </p>
-            <div className="mt-3 flex items-end justify-between gap-3">
-              <p className="text-2xl font-semibold text-mono">
-                {translateText(String(item.value))}
-              </p>
-              <span className={`h-2 w-14 rounded-full ${item.tone}`} />
-            </div>
-            <p className="mt-3 text-sm leading-6 text-muted-foreground">
-              {translateText(item.description)}
-            </p>
+            {question.title}
+          </Link>
+          <p className="line-clamp-2 text-sm text-muted-foreground">
+            {question.summary || translateText("No summary provided.")}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <QuestionStatusBadge status={question.status} />
+            <VisibilityBadge visibility={question.visibility} />
+            {question.duplicateOfQuestionId ? (
+              <Badge variant="mono" appearance="outline">
+                {translateText("Duplicate")}
+              </Badge>
+            ) : null}
           </div>
-        ))}
-      </CardContent>
-    </Card>
+        </div>
+        <div className="flex shrink-0 flex-col gap-2 sm:items-end">
+          <p className="text-xs text-muted-foreground">
+            {formatNumericDateTimeInTimeZone(
+              question.lastActivityAtUtc,
+              timeZone,
+            )}
+          </p>
+          <Button asChild size="sm">
+            <Link to={`/app/questions/${question.id}`}>
+              {translateText("Resolve thread")}
+            </Link>
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AnswerAttentionRow({ answer }: { answer: AnswerDto }) {
+  return (
+    <div className="rounded-lg border border-border/70 bg-background/75 p-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0 space-y-2">
+          <Link
+            to={`/app/answers/${answer.id}`}
+            className="font-medium text-mono hover:text-primary"
+          >
+            {answer.headline}
+          </Link>
+          <p className="line-clamp-2 text-sm text-muted-foreground">
+            {answer.body || translateText("No answer body recorded.")}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <AnswerStatusBadge status={answer.status} />
+            <VisibilityBadge visibility={answer.visibility} />
+            {answer.isAccepted ? (
+              <Badge variant="success">{translateText("Accepted")}</Badge>
+            ) : null}
+            <Badge variant="outline">
+              {translateText("{count} sources", {
+                count: answer.sources.length,
+              })}
+            </Badge>
+          </div>
+        </div>
+        <Button asChild size="sm" className="shrink-0">
+          <Link to={`/app/answers/${answer.id}`}>
+            {translateText("Validate answer")}
+          </Link>
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function ActivitySignalRow({
+  entry,
+  timeZone,
+}: {
+  entry: ActivityDto;
+  timeZone: string;
+}) {
+  const target = entry.answerId
+    ? `/app/answers/${entry.answerId}`
+    : `/app/questions/${entry.questionId}`;
+
+  return (
+    <div className="rounded-lg border border-border/70 bg-background/75 p-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0 space-y-2">
+          <div className="flex flex-wrap gap-2">
+            <ActivityKindBadge kind={entry.kind} />
+            <ActorKindBadge kind={entry.actorKind} />
+          </div>
+          <p className="line-clamp-2 text-sm text-muted-foreground">
+            {entry.notes || entry.actorLabel || entry.userPrint}
+          </p>
+          <p className="text-xs text-muted-foreground">
+            {formatNumericDateTimeInTimeZone(entry.occurredAtUtc, timeZone)}
+          </p>
+        </div>
+        <Button asChild variant="outline" size="sm" className="shrink-0">
+          <Link to={target}>{translateText("Open context")}</Link>
+        </Button>
+      </div>
+    </div>
   );
 }
 
@@ -249,15 +352,15 @@ function DashboardLoadingState() {
   return (
     <PageSurface className="space-y-5 lg:space-y-7.5">
       <PageHeader
-        title="QnA dashboard"
-        description="Operate the workspace around spaces, question workflow, answer publication, curated sources, and activity signals."
+        title="Dashboard"
+        description="QnA overview focused on operational action."
       />
-      <Card className="border-primary/20 bg-linear-to-br from-primary/[0.08] via-background to-sky-500/[0.05]">
+      <Card className="border-emerald-500/20 bg-linear-to-br from-background via-background to-emerald-500/[0.06]">
         <CardContent className="space-y-5 p-5 lg:p-6">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div className="space-y-3">
               <Skeleton className="h-3 w-24" />
-              <Skeleton className="h-6 w-48" />
+              <Skeleton className="h-6 w-56" />
               <Skeleton className="h-4 w-full max-w-xl" />
             </div>
             <Skeleton className="h-16 w-36 rounded-lg" />
@@ -274,256 +377,15 @@ function DashboardLoadingState() {
         </CardContent>
       </Card>
       <SectionGridSkeleton items={4} />
-      <div className="grid gap-5 xl:grid-cols-2 lg:gap-7.5">
-        {Array.from({ length: 4 }, (_, index) => (
-          <DashboardSectionSkeleton key={`dashboard-card-skeleton-${index}`} />
+      <div className="grid gap-5 xl:grid-cols-3 lg:gap-7.5">
+        {Array.from({ length: 3 }, (_, index) => (
+          <Skeleton
+            key={`dashboard-panel-skeleton-${index}`}
+            className="h-80 rounded-lg"
+          />
         ))}
       </div>
     </PageSurface>
-  );
-}
-
-function SpaceRow({ space, timeZone }: { space: SpaceDto; timeZone: string }) {
-  return (
-    <div className="rounded-lg border border-border/70 bg-background/70 px-4 py-3">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="min-w-0 space-y-1.5">
-          <Link
-            to={`/app/spaces/${space.id}`}
-            className="block truncate text-sm font-medium text-mono hover:text-primary"
-          >
-            {space.name}
-          </Link>
-          <p className="text-sm text-muted-foreground">
-            {space.key} • {space.language}
-          </p>
-          {space.summary ? (
-            <p className="line-clamp-2 text-sm text-muted-foreground">
-              {space.summary}
-            </p>
-          ) : null}
-        </div>
-        <div className="space-y-2 text-right">
-          <SpaceKindBadge kind={space.kind} />
-          <VisibilityBadge visibility={space.visibility} />
-        </div>
-      </div>
-      <p className="mt-3 text-xs text-muted-foreground">
-        {translateText("Questions {count} • Last validated {value}", {
-          count: space.questionCount,
-          value: formatNumericDateTimeInTimeZone(
-            space.lastValidatedAtUtc,
-            timeZone,
-          ),
-        })}
-      </p>
-    </div>
-  );
-}
-
-function QuestionRow({
-  question,
-  timeZone,
-}: {
-  question: QuestionDto;
-  timeZone: string;
-}) {
-  return (
-    <div className="rounded-lg border border-border/70 bg-background/70 px-4 py-3">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="min-w-0 space-y-1.5">
-          <Link
-            to={`/app/questions/${question.id}`}
-            className="block text-sm font-medium text-mono hover:text-primary"
-          >
-            {question.title}
-          </Link>
-          <p className="text-sm text-muted-foreground">{question.spaceKey}</p>
-          {question.summary ? (
-            <p className="line-clamp-2 text-sm text-muted-foreground">
-              {question.summary}
-            </p>
-          ) : null}
-        </div>
-        <div className="space-y-2 text-right">
-          <QuestionStatusBadge status={question.status} />
-          <VisibilityBadge visibility={question.visibility} />
-        </div>
-      </div>
-      <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-        <span>
-          {translateText("Feedback {value}", { value: question.feedbackScore })}
-        </span>
-        <span>
-          {translateText("Confidence {value}", {
-            value: question.aiConfidenceScore,
-          })}
-        </span>
-        {question.acceptedAnswerId ? (
-          <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-emerald-700">
-            {translateText("Accepted")}
-          </span>
-        ) : null}
-        {question.duplicateOfQuestionId ? (
-          <span className="rounded-full border border-border bg-muted px-2 py-0.5">
-            {translateText("Duplicate")}
-          </span>
-        ) : null}
-        <span>
-          {translateText("Last activity {value}", {
-            value: formatNumericDateTimeInTimeZone(
-              question.lastActivityAtUtc,
-              timeZone,
-            ),
-          })}
-        </span>
-      </div>
-    </div>
-  );
-}
-
-function AnswerRow({
-  answer,
-  timeZone,
-}: {
-  answer: AnswerDto;
-  timeZone: string;
-}) {
-  return (
-    <div className="rounded-lg border border-border/70 bg-background/70 px-4 py-3">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="min-w-0 space-y-1.5">
-          <Link
-            to={`/app/answers/${answer.id}`}
-            className="block text-sm font-medium text-mono hover:text-primary"
-          >
-            {answer.headline}
-          </Link>
-          {answer.body ? (
-            <p className="line-clamp-2 text-sm text-muted-foreground">
-              {answer.body}
-            </p>
-          ) : null}
-        </div>
-        <div className="space-y-2 text-right">
-          <AnswerStatusBadge status={answer.status} />
-          <VisibilityBadge visibility={answer.visibility} />
-        </div>
-      </div>
-      <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-        <span>{translateText("Score {value}", { value: answer.score })}</span>
-        <span>{translateText("Sort {value}", { value: answer.sort })}</span>
-        <span>
-          {translateText("Vote score {value}", { value: answer.voteScore })}
-        </span>
-        <span>
-          {translateText("Confidence {value}", {
-            value: answer.aiConfidenceScore,
-          })}
-        </span>
-        {answer.isAccepted ? (
-          <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-emerald-700">
-            {translateText("Accepted")}
-          </span>
-        ) : null}
-        <span>
-          {translateText("Published {value}", {
-            value: formatNumericDateTimeInTimeZone(
-              answer.publishedAtUtc,
-              timeZone,
-            ),
-          })}
-        </span>
-      </div>
-    </div>
-  );
-}
-
-function SourceRow({
-  source,
-  timeZone,
-}: {
-  source: SourceDto;
-  timeZone: string;
-}) {
-  return (
-    <div className="rounded-lg border border-border/70 bg-background/70 px-4 py-3">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="min-w-0 space-y-1.5">
-          <Link
-            to={`/app/sources/${source.id}`}
-            className="block truncate text-sm font-medium text-mono hover:text-primary"
-          >
-            {source.label || source.locator}
-          </Link>
-          <p className="truncate text-sm text-muted-foreground">
-            {source.locator}
-          </p>
-        </div>
-        <div className="space-y-2 text-right">
-          <SourceKindBadge kind={source.kind} />
-          <VisibilityBadge visibility={source.visibility} />
-        </div>
-      </div>
-      <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-        {source.isAuthoritative ? (
-          <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-emerald-700">
-            {translateText("Authoritative")}
-          </span>
-        ) : null}
-        {source.allowsPublicCitation ? (
-          <span className="rounded-full border border-border bg-muted px-2 py-0.5">
-            {translateText("Public citation")}
-          </span>
-        ) : null}
-        <span>
-          {translateText("Verified {value}", {
-            value: formatNumericDateTimeInTimeZone(
-              source.lastVerifiedAtUtc,
-              timeZone,
-            ),
-          })}
-        </span>
-      </div>
-    </div>
-  );
-}
-
-function ActivityRow({
-  entry,
-  timeZone,
-}: {
-  entry: ActivityDto;
-  timeZone: string;
-}) {
-  return (
-    <div className="rounded-lg border border-border/70 bg-background/70 px-4 py-3">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="min-w-0 space-y-1.5">
-          <Link
-            to={`/app/activity/${entry.id}`}
-            className="block text-sm font-medium text-mono hover:text-primary"
-          >
-            {entry.userPrint}
-          </Link>
-          <p className="text-sm text-muted-foreground">
-            {entry.actorLabel || translateText("Unlabeled actor")}
-          </p>
-          {entry.notes ? (
-            <p className="line-clamp-2 text-sm text-muted-foreground">
-              {entry.notes}
-            </p>
-          ) : null}
-        </div>
-        <div className="space-y-2 text-right">
-          <ActivityKindBadge kind={entry.kind} />
-          <ActorKindBadge kind={entry.actorKind} />
-        </div>
-      </div>
-      <p className="mt-3 text-xs text-muted-foreground">
-        {formatNumericDateTimeInTimeZone(entry.occurredAtUtc, timeZone)}
-      </p>
-    </div>
   );
 }
 
@@ -534,29 +396,23 @@ export function DashboardPage() {
 
   const spacesQuery = useSpaceList({
     page: 1,
-    pageSize: 4,
-    sorting: "PublishedAtUtc DESC",
-  });
-  const questionsQuery = useQuestionList({
-    page: 1,
-    pageSize: 5,
-    sorting: "LastActivityAtUtc DESC",
-    includeAnswers: true,
+    pageSize: 100,
+    sorting: "Name ASC",
   });
   const pendingQuestionsQuery = useQuestionList({
     page: 1,
-    pageSize: 1,
+    pageSize: 5,
     sorting: "LastActivityAtUtc DESC",
     status: QuestionStatus.PendingReview,
   });
-  const answersQuery = useAnswerList({
+  const recentQuestionsQuery = useQuestionList({
     page: 1,
     pageSize: 5,
-    sorting: "PublishedAtUtc DESC",
+    sorting: "LastActivityAtUtc DESC",
   });
-  const publishedAnswersQuery = useAnswerList({
+  const unvalidatedAnswersQuery = useAnswerList({
     page: 1,
-    pageSize: 1,
+    pageSize: 5,
     sorting: "PublishedAtUtc DESC",
     status: AnswerStatus.Published,
   });
@@ -568,7 +424,7 @@ export function DashboardPage() {
   });
   const sourcesQuery = useSourceList({
     page: 1,
-    pageSize: 5,
+    pageSize: 1,
     sorting: "LastVerifiedAtUtc DESC",
   });
   const activityQuery = useActivityList({
@@ -579,20 +435,18 @@ export function DashboardPage() {
 
   const isInitialDashboardLoading =
     spacesQuery.isLoading ||
-    questionsQuery.isLoading ||
     pendingQuestionsQuery.isLoading ||
-    answersQuery.isLoading ||
-    publishedAnswersQuery.isLoading ||
+    recentQuestionsQuery.isLoading ||
+    unvalidatedAnswersQuery.isLoading ||
     validatedAnswersQuery.isLoading ||
     sourcesQuery.isLoading ||
     activityQuery.isLoading ||
     clientKeyQuery.isLoading;
   const hasCriticalError =
     spacesQuery.isError ||
-    questionsQuery.isError ||
     pendingQuestionsQuery.isError ||
-    answersQuery.isError ||
-    publishedAnswersQuery.isError ||
+    recentQuestionsQuery.isError ||
+    unvalidatedAnswersQuery.isError ||
     validatedAnswersQuery.isError ||
     sourcesQuery.isError ||
     activityQuery.isError;
@@ -604,10 +458,9 @@ export function DashboardPage() {
   if (hasCriticalError) {
     const error =
       spacesQuery.error ??
-      questionsQuery.error ??
       pendingQuestionsQuery.error ??
-      answersQuery.error ??
-      publishedAnswersQuery.error ??
+      recentQuestionsQuery.error ??
+      unvalidatedAnswersQuery.error ??
       validatedAnswersQuery.error ??
       sourcesQuery.error ??
       activityQuery.error;
@@ -615,18 +468,17 @@ export function DashboardPage() {
     return (
       <PageSurface>
         <PageHeader
-          title="QnA dashboard"
-          description="Track spaces, questions, answers, sources, and activity for the current workspace."
+          title="Dashboard"
+          description="QnA overview focused on operational action."
         />
         <ErrorState
           title="Unable to load the QnA dashboard"
           error={error}
           retry={() => {
             void spacesQuery.refetch();
-            void questionsQuery.refetch();
             void pendingQuestionsQuery.refetch();
-            void answersQuery.refetch();
-            void publishedAnswersQuery.refetch();
+            void recentQuestionsQuery.refetch();
+            void unvalidatedAnswersQuery.refetch();
             void validatedAnswersQuery.refetch();
             void sourcesQuery.refetch();
             void activityQuery.refetch();
@@ -636,161 +488,99 @@ export function DashboardPage() {
     );
   }
 
-  const recentSpaces = spacesQuery.data?.items ?? [];
-  const recentQuestions = questionsQuery.data?.items ?? [];
-  const recentAnswers = answersQuery.data?.items ?? [];
-  const recentSources = sourcesQuery.data?.items ?? [];
+  const spaces = spacesQuery.data?.items ?? [];
+  const pendingQuestions = pendingQuestionsQuery.data?.items ?? [];
+  const recentQuestions = recentQuestionsQuery.data?.items ?? [];
+  const unvalidatedAnswers = unvalidatedAnswersQuery.data?.items ?? [];
   const recentActivity = activityQuery.data?.items ?? [];
   const workspaceReady = Boolean(workspace);
   const clientKeyReady = Boolean(clientKeyQuery.data);
   const spaceCount = spacesQuery.data?.totalCount ?? 0;
-  const questionCount = questionsQuery.data?.totalCount ?? 0;
-  const answerCount = answersQuery.data?.totalCount ?? 0;
+  const activeSpaceCount = spaces.filter(
+    (space) => space.acceptsQuestions || space.acceptsAnswers,
+  ).length;
+  const intakeClosedCount = spaces.filter(
+    (space) => !space.acceptsQuestions && !space.acceptsAnswers,
+  ).length;
+  const publicSpaceCount = spaces.filter(
+    (space) => space.visibility >= VisibilityScope.Public,
+  ).length;
   const pendingQuestionCount = pendingQuestionsQuery.data?.totalCount ?? 0;
-  const publishedAnswerCount = publishedAnswersQuery.data?.totalCount ?? 0;
+  const unvalidatedAnswerCount =
+    unvalidatedAnswersQuery.data?.totalCount ?? 0;
   const validatedAnswerCount = validatedAnswersQuery.data?.totalCount ?? 0;
   const sourceCount = sourcesQuery.data?.totalCount ?? 0;
-  const activityCount = activityQuery.data?.totalCount ?? 0;
-  const acceptedQuestionCount = recentQuestions.filter((question) =>
-    Boolean(question.acceptedAnswerId),
-  ).length;
-  const duplicateQuestionCount = recentQuestions.filter((question) =>
-    Boolean(question.duplicateOfQuestionId),
-  ).length;
-  const reviewPressurePercent = questionCount
-    ? Math.round((pendingQuestionCount / questionCount) * 100)
-    : 0;
-  const trustedAnswerPercent = answerCount
-    ? Math.round(
-        ((publishedAnswerCount + validatedAnswerCount) / answerCount) * 100,
-      )
-    : 0;
-  const readinessProgress =
-    [
-      workspaceReady,
-      clientKeyReady,
-      spaceCount > 0,
-      validatedAnswerCount > 0,
-    ].filter(Boolean).length * 25;
-  const readinessComplete =
-    workspaceReady &&
-    clientKeyReady &&
-    spaceCount > 0 &&
-    validatedAnswerCount > 0;
-  const readinessActionTarget = !workspaceReady
-    ? "/app/settings/tenant"
-    : !clientKeyReady
-      ? "/app/settings/tenant"
-      : spaceCount === 0
-        ? "/app/spaces/new"
-        : validatedAnswerCount === 0
-          ? "/app/answers"
-          : "/app/activity";
-  const qnaFlowData = [
+  const signalTarget = recentActivity[0]
+    ? recentActivity[0].answerId
+      ? `/app/answers/${recentActivity[0].answerId}`
+      : `/app/questions/${recentActivity[0].questionId}`
+    : "/app/spaces";
+  const readinessActionTarget =
+    spaceCount === 0
+      ? "/app/spaces/new"
+      : pendingQuestionCount > 0
+        ? `/app/questions?status=${QuestionStatus.PendingReview}`
+        : unvalidatedAnswerCount > 0
+          ? `/app/answers?status=${AnswerStatus.Published}`
+          : sourceCount === 0
+            ? "/app/sources/new"
+            : "/app/spaces";
+  const riskItems = [
     {
-      stage: "Spaces",
-      value: spaceCount,
-      fill: "var(--primary)",
-    },
-    {
-      stage: "Questions",
-      value: questionCount,
-      fill: "var(--color-blue-500)",
-    },
-    {
-      stage: "Answers",
-      value: answerCount,
-      fill: "var(--color-cyan-500)",
-    },
-    {
-      stage: "Sources",
-      value: sourceCount,
-      fill: "var(--color-amber-500)",
-    },
-    {
-      stage: "Activity",
-      value: activityCount,
-      fill: "var(--color-violet-500)",
-    },
-  ];
-  const governanceFunnelData = [
-    { stage: "Intake", value: questionCount },
-    { stage: "Review", value: pendingQuestionCount },
-    { stage: "Published", value: publishedAnswerCount },
-    { stage: "Validated", value: validatedAnswerCount },
-  ];
-  const signalMixData = [
-    {
-      name: "Accepted",
-      value: acceptedQuestionCount,
-      fill: "var(--primary)",
-    },
-    {
-      name: "Duplicates",
-      value: duplicateQuestionCount,
-      fill: "var(--color-amber-500)",
-    },
-    {
-      name: "Open sample",
-      value: Math.max(
-        recentQuestions.length - acceptedQuestionCount - duplicateQuestionCount,
-        0,
-      ),
-      fill: "var(--color-blue-500)",
-    },
-  ];
-  const valueTrackerItems = [
-    {
-      label: "Readiness",
-      value: `${readinessProgress}%`,
+      title: "Questions waiting for decision",
+      value: pendingQuestionCount,
       description:
-        "Workspace, client key, spaces, and validated answers aligned",
-      tone: "bg-emerald-500",
+        "Moderation backlog blocks reusable answers and public confidence.",
+      to: `/app/questions?status=${QuestionStatus.PendingReview}`,
+      action: "Review threads",
+      tone: pendingQuestionCount > 0 ? "warning" : "success",
     },
     {
-      label: "Review pressure",
-      value: `${reviewPressurePercent}%`,
-      description: "Share of all questions currently waiting for review",
-      tone: "bg-amber-500",
+      title: "Published answers not validated",
+      value: unvalidatedAnswerCount,
+      description:
+        "Published answers need validation before they become trusted knowledge.",
+      to: `/app/answers?status=${AnswerStatus.Published}`,
+      action: "Validate answers",
+      tone: unvalidatedAnswerCount > 0 ? "warning" : "success",
     },
     {
-      label: "Trusted answers",
-      value: `${trustedAnswerPercent}%`,
-      description: "Answers already published or validated against the catalog",
-      tone: "bg-cyan-500",
+      title: "Spaces with intake closed",
+      value: intakeClosedCount,
+      description:
+        "Closed intake can be intentional, but it should be visible before operators route work.",
+      to: "/app/spaces?acceptsQuestions=false&acceptsAnswers=false",
+      action: "Review spaces",
+      tone: intakeClosedCount > 0 ? "warning" : "success",
     },
     {
-      label: "Evidence base",
+      title: "Evidence catalog",
       value: sourceCount,
       description:
-        "Reusable sources available for spaces, questions, and answers",
-      tone: "bg-blue-500",
+        "Answers need reusable sources before citation and audit can scale.",
+      to: sourceCount > 0 ? "/app/sources" : "/app/sources/new",
+      action: sourceCount > 0 ? "Open sources" : "Create source",
+      tone: sourceCount > 0 ? "success" : "warning",
     },
-  ];
+  ] as const;
 
   return (
     <PageSurface className="space-y-5 lg:space-y-7.5">
       <PageHeader
-        title="QnA dashboard"
-        description="Operate the workspace around spaces, question workflow, answer publication, curated sources, and activity signals."
+        title="Dashboard"
+        description="QnA overview: active Spaces, pending decisions, unvalidated answers, recent signals, and operational risk."
         actions={
           <>
+            <Button asChild>
+              <Link to="/app/spaces">
+                <FolderKanban className="size-4" />
+                {translateText("Start with Spaces")}
+              </Link>
+            </Button>
             <Button asChild variant="outline">
               <Link to="/app/spaces/new">
                 <Plus className="size-4" />
                 {translateText("New space")}
-              </Link>
-            </Button>
-            <Button asChild variant="outline">
-              <Link to="/app/questions/new">
-                <Plus className="size-4" />
-                {translateText("New question")}
-              </Link>
-            </Button>
-            <Button asChild variant="outline">
-              <Link to="/app/answers/new">
-                <Plus className="size-4" />
-                {translateText("New answer")}
               </Link>
             </Button>
           </>
@@ -799,361 +589,237 @@ export function DashboardPage() {
 
       <QnaModuleNav
         activeKey="dashboard"
-        intent="This dashboard is the macro view for the QnA module. Use Spaces as the entry point, then follow child records through workflow, trust, and activity."
+        intent="This is the QnA macro view. It only shows what helps an operator decide where to act next."
       />
 
       <ProgressChecklistCard
         hideWhenComplete={false}
-        title="Workspace readiness"
-        description="Keep the operational prerequisites aligned before exposing QnA publicly."
+        eyebrow="Start here"
+        title="Workspace path to trusted answers"
+        description="Progress is measured by business readiness: context exists, intake works, questions are handled, answers are validated, and sources can be cited."
         steps={[
           {
             id: "workspace",
-            label: "Workspace",
+            label: "Workspace selected",
             description: workspaceReady
-              ? "Current selection"
-              : "Pick a workspace to load tenant-scoped QnA data.",
+              ? "Current workspace context is available."
+              : "Pick a workspace before operating QnA records.",
             complete: workspaceReady,
           },
           {
             id: "client-key",
             label: "Public client key",
             description: clientKeyReady
-              ? "Public QnA previews and widgets can authenticate."
-              : "Generate a client key before depending on public feedback or vote flows.",
+              ? "Public feedback and widget flows can authenticate."
+              : "Generate a client key before relying on public QnA signals.",
             complete: clientKeyReady,
           },
           {
             id: "spaces",
-            label: "Spaces",
+            label: "Active Spaces",
             description:
-              "Create a space to define operating mode, exposure, and curated source rules.",
-            complete: spaceCount > 0,
+              "Spaces define where questions, answers, tags, sources, and activity belong.",
+            complete: activeSpaceCount > 0,
           },
           {
-            id: "validated-answers",
+            id: "trusted-answers",
             label: "Validated answers",
             description:
-              "Validated answers are the strongest candidates for trusted public visibility.",
+              "Validated answers are ready to be reused as trusted knowledge.",
             complete: validatedAnswerCount > 0,
           },
         ]}
         action={{
-          label: readinessComplete ? "Review activity" : "Start here",
+          label:
+            spaceCount === 0
+              ? "Start here"
+              : pendingQuestionCount > 0
+                ? "Review queue"
+                : "Open spaces",
           to: readinessActionTarget,
         }}
+        secondaryAction={{ label: "Manage sources", to: "/app/sources" }}
       />
 
-      <SectionGrid
-        items={[
-          {
-            title: "Spaces",
-            value: spaceCount,
-            description: "Configured knowledge spaces for this workspace",
-            icon: FolderKanban,
-          },
-          {
-            title: "Questions in review",
-            value: pendingQuestionCount,
-            description: "Threads waiting for moderation or approval",
-            icon: Clock3,
-            iconToneClassName:
-              "bg-amber-500/10 text-amber-600 ring-amber-500/15 dark:bg-amber-500/15 dark:text-amber-300",
-          },
-          {
-            title: "Published answers",
-            value: publishedAnswerCount,
-            description: "Answers already live in the operational flow",
-            icon: MessageSquareText,
-            iconToneClassName:
-              "bg-emerald-500/10 text-emerald-600 ring-emerald-500/15 dark:bg-emerald-500/15 dark:text-emerald-300",
-          },
-          {
-            title: "Sources",
-            value: sourceCount,
-            description: "Reusable evidence, citations, and references",
-            icon: Waypoints,
-            iconToneClassName:
-              "bg-sky-500/10 text-sky-600 ring-sky-500/15 dark:bg-sky-500/15 dark:text-sky-300",
-          },
-        ]}
-      />
-
-      <DashboardValueTracker items={valueTrackerItems} />
-
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_360px] lg:gap-7.5">
-        <DashboardChartCard
-          title="QnA operating flow"
-          description="Volume by parent and child record type across the current workspace."
-        >
-          <ChartContainer
-            config={{
-              value: {
-                label: translateText("Records"),
-                color: "var(--primary)",
-              },
-            }}
-            className="aspect-auto h-[260px]"
-          >
-            <BarChart data={qnaFlowData} margin={{ left: 0, right: 8 }}>
-              <CartesianGrid vertical={false} strokeDasharray="3 3" />
-              <XAxis dataKey="stage" tickLine={false} axisLine={false} />
-              <YAxis tickLine={false} axisLine={false} allowDecimals={false} />
-              <ChartTooltip content={<ChartTooltipContent hideLabel />} />
-              <Bar dataKey="value" radius={[8, 8, 0, 0]}>
-                {qnaFlowData.map((entry) => (
-                  <Cell key={entry.stage} fill={entry.fill} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ChartContainer>
-        </DashboardChartCard>
-
-        <DashboardChartCard
-          title="Governance funnel"
-          description="How much knowledge is still intake, in review, published, or validated."
-        >
-          <ChartContainer
-            config={{
-              value: {
-                label: translateText("Records"),
-                color: "var(--primary)",
-              },
-            }}
-            className="aspect-auto h-[260px]"
-          >
-            <AreaChart
-              data={governanceFunnelData}
-              margin={{ left: 0, right: 8 }}
-            >
-              <defs>
-                <linearGradient id="governanceFill" x1="0" x2="0" y1="0" y2="1">
-                  <stop
-                    offset="5%"
-                    stopColor="var(--primary)"
-                    stopOpacity={0.35}
-                  />
-                  <stop
-                    offset="95%"
-                    stopColor="var(--primary)"
-                    stopOpacity={0.02}
-                  />
-                </linearGradient>
-              </defs>
-              <CartesianGrid vertical={false} strokeDasharray="3 3" />
-              <XAxis dataKey="stage" tickLine={false} axisLine={false} />
-              <YAxis tickLine={false} axisLine={false} allowDecimals={false} />
-              <ChartTooltip content={<ChartTooltipContent hideLabel />} />
-              <Area
-                dataKey="value"
-                type="monotone"
-                stroke="var(--primary)"
-                strokeWidth={2}
-                fill="url(#governanceFill)"
-              />
-            </AreaChart>
-          </ChartContainer>
-        </DashboardChartCard>
-
-        <DashboardChartCard
-          title="Resolution signal mix"
-          description="Accepted, duplicate, and open states in the latest question sample."
-        >
-          {signalMixData.some((item) => item.value > 0) ? (
-            <ChartContainer
-              config={{
-                value: {
-                  label: translateText("Questions"),
-                  color: "var(--primary)",
-                },
-              }}
-              className="aspect-auto h-[260px]"
-            >
-              <PieChart>
-                <ChartTooltip content={<ChartTooltipContent hideLabel />} />
-                <Pie
-                  data={signalMixData}
-                  dataKey="value"
-                  nameKey="name"
-                  innerRadius={54}
-                  outerRadius={92}
-                  paddingAngle={3}
-                >
-                  {signalMixData.map((entry) => (
-                    <Cell key={entry.name} fill={entry.fill} />
-                  ))}
-                </Pie>
-              </PieChart>
-            </ChartContainer>
-          ) : (
-            <EmptyState
-              title="No resolution signals yet"
-              description="Accepted answers, duplicate routing, and open threads will appear once questions accumulate."
-            />
-          )}
-        </DashboardChartCard>
+      <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4 lg:gap-7.5">
+        <DashboardActionCard
+          title="Active Spaces"
+          value={activeSpaceCount}
+          description={`${publicSpaceCount} public or indexed. Open a Space to see rules, questions, sources, tags, and next action.`}
+          actionLabel="Open spaces"
+          to="/app/spaces"
+          icon={FolderKanban}
+          tone="emerald"
+        />
+        <DashboardActionCard
+          title="Pending questions"
+          value={pendingQuestionCount}
+          description="These threads need moderation, approval, duplicate routing, or an accepted answer decision."
+          actionLabel="Review by Space"
+          to={`/app/questions?status=${QuestionStatus.PendingReview}`}
+          icon={Clock3}
+          tone={pendingQuestionCount > 0 ? "amber" : "emerald"}
+        />
+        <DashboardActionCard
+          title="Answers without validation"
+          value={unvalidatedAnswerCount}
+          description="Published answers are useful, but validation turns them into trusted reusable knowledge."
+          actionLabel="Validate answers"
+          to={`/app/answers?status=${AnswerStatus.Published}`}
+          icon={MessageSquareText}
+          tone={unvalidatedAnswerCount > 0 ? "rose" : "emerald"}
+        />
+        <DashboardActionCard
+          title="Recent signals"
+          value={recentActivity.length}
+          description="Feedback, votes, moderation, and workflow events. Open the latest signal in its own Question or Answer context."
+          actionLabel="Open latest context"
+          to={signalTarget}
+          icon={Activity}
+          tone="sky"
+        />
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardHeading>
-            <CardTitle>{translateText("Business module health")}</CardTitle>
-            <CardDescription>
-              {translateText(
-                "BaseFAQ modules connected through the QnA knowledge loop: tenant setup, reusable knowledge, private resolution, public reuse, and trust.",
-              )}
-            </CardDescription>
-          </CardHeading>
-        </CardHeader>
-        <CardContent className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
-          <ModuleSignalCard
-            title="Tenant"
-            description="Workspace identity and public client key readiness."
-            value={translateText("{value}% ready", {
-              value: readinessProgress,
-            })}
-            icon={UsersRound}
-          />
-          <ModuleSignalCard
-            title="QnA"
-            description="Spaces, questions, answers, sources, and activity in one operating loop."
-            value={translateText("{count} spaces", { count: spaceCount })}
-            icon={FolderKanban}
-          />
-          <ModuleSignalCard
-            title="Direct"
-            description="Private unresolved asks that should become reusable answers."
-            value={translateText("{count} in review", {
-              count: pendingQuestionCount,
-            })}
-            icon={MessageSquareText}
-          />
-          <ModuleSignalCard
-            title="Broadcast"
-            description="Published answers ready for public or community distribution."
-            value={translateText("{count} published", {
-              count: publishedAnswerCount,
-            })}
-            icon={RadioTower}
-          />
-          <ModuleSignalCard
-            title="Trust"
-            description="Validated answers and curated sources protecting answer quality."
-            value={translateText("{count} validated", {
-              count: validatedAnswerCount,
-            })}
-            icon={ShieldCheck}
-          />
-        </CardContent>
-      </Card>
-
-      <div className="grid gap-5 xl:grid-cols-2 lg:gap-7.5">
-        <DashboardSection
-          title="Recent spaces"
-          description="Spaces drive operating mode, visibility, and curated source policy."
-          action={{ label: "Open spaces", to: "/app/spaces" }}
+      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-7.5">
+        <DashboardPanel
+          title="Spaces needing attention"
+          description="Open the Space first. It is the operating boundary for questions, answers, sources, tags, and activity."
         >
-          {recentSpaces.length ? (
-            recentSpaces.map((space) => (
-              <SpaceRow key={space.id} space={space} timeZone={timeZone} />
+          {spaces.length ? (
+            spaces
+              .slice()
+              .sort((first, second) => {
+                const firstScore =
+                  (!first.acceptsQuestions && !first.acceptsAnswers ? 2 : 0) +
+                  (!first.lastValidatedAtUtc ? 1 : 0);
+                const secondScore =
+                  (!second.acceptsQuestions && !second.acceptsAnswers ? 2 : 0) +
+                  (!second.lastValidatedAtUtc ? 1 : 0);
+
+                return secondScore - firstScore;
+              })
+              .slice(0, 4)
+              .map((space) => (
+                <SpaceAttentionRow key={space.id} space={space} />
+              ))
+          ) : (
+            <EmptyState
+              title="No Spaces yet"
+              description="Create a Space before questions, answers, tags, sources, or activity can be operated safely."
+              action={{ label: "Create Space", to: "/app/spaces/new" }}
+            />
+          )}
+        </DashboardPanel>
+
+        <DashboardPanel
+          title="Questions needing action"
+          description="Pending review comes first; recent unresolved threads remain visible as secondary context."
+        >
+          {(pendingQuestions.length ? pendingQuestions : recentQuestions).length ? (
+            (pendingQuestions.length ? pendingQuestions : recentQuestions).map(
+              (question) => (
+                <QuestionAttentionRow
+                  key={question.id}
+                  question={question}
+                  timeZone={timeZone}
+                />
+              ),
+            )
+          ) : (
+            <EmptyState
+              title="No question action needed"
+              description="When a Space receives questions, pending review and unresolved threads will appear here."
+              action={{ label: "Open spaces", to: "/app/spaces" }}
+            />
+          )}
+        </DashboardPanel>
+      </div>
+
+      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_380px] lg:gap-7.5">
+        <DashboardPanel
+          title="Answers waiting for validation"
+          description="An Answer becomes reliable only when publication, validation, quality, and sources line up."
+        >
+          {unvalidatedAnswers.length ? (
+            unvalidatedAnswers.map((answer) => (
+              <AnswerAttentionRow key={answer.id} answer={answer} />
             ))
           ) : (
             <EmptyState
-              title="No spaces yet"
-              description="Create a space to define operating mode, exposure, and curated source rules."
-              action={{ label: "Create first space", to: "/app/spaces/new" }}
+              title="No validation backlog"
+              description="Published answers that still need validation will appear here."
             />
           )}
-        </DashboardSection>
+        </DashboardPanel>
 
-        <DashboardSection
-          title="Question workflow"
-          description="Watch pending review, duplicates, accepted answers, and customer feedback signals."
-          action={{ label: "Open questions", to: "/app/questions" }}
+        <DashboardPanel
+          title="Operational risks"
+          description="Only risks that can change an operator decision are shown."
         >
-          {recentQuestions.length ? (
-            recentQuestions.map((question) => (
-              <QuestionRow
-                key={question.id}
-                question={question}
+          <div className="space-y-3">
+            {riskItems.map((risk) => (
+              <div
+                key={risk.title}
+                className="rounded-lg border border-border/70 bg-background/75 p-4"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0 space-y-1">
+                    <p className="text-sm font-medium text-mono">
+                      {translateText(risk.title)}
+                    </p>
+                    <p className="text-sm leading-6 text-muted-foreground">
+                      {translateText(risk.description)}
+                    </p>
+                  </div>
+                  <Badge
+                    variant={risk.tone === "warning" ? "warning" : "success"}
+                  >
+                    {risk.value}
+                  </Badge>
+                </div>
+                <Button asChild variant="ghost" size="sm" className="mt-3 px-0">
+                  <Link to={risk.to}>
+                    {translateText(risk.action)}
+                    <ArrowRight className="size-4" />
+                  </Link>
+                </Button>
+              </div>
+            ))}
+          </div>
+        </DashboardPanel>
+      </div>
+
+      <DashboardPanel
+        title="Recent signals"
+        description="Macro feed only. Every item sends the operator back to the Question or Answer that owns the event."
+      >
+        {recentActivity.length ? (
+          <div className="grid gap-3 lg:grid-cols-2">
+            {recentActivity.map((entry) => (
+              <ActivitySignalRow
+                key={entry.id}
+                entry={entry}
                 timeZone={timeZone}
               />
-            ))
-          ) : (
-            <EmptyState
-              title="No questions yet"
-              description="Create the first question thread so answers, votes, and activity can accumulate around it."
-              action={{
-                label: "Create first question",
-                to: "/app/questions/new",
-              }}
-            />
-          )}
-        </DashboardSection>
-
-        <DashboardSection
-          title="Answer publication"
-          description="Track ranking, confidence, accepted answers, and answer lifecycle."
-          action={{ label: "Open answers", to: "/app/answers" }}
-        >
-          {recentAnswers.length ? (
-            recentAnswers.map((answer) => (
-              <AnswerRow key={answer.id} answer={answer} timeZone={timeZone} />
-            ))
-          ) : (
-            <EmptyState
-              title="No answers yet"
-              description="Add an answer candidate so the question workflow can move toward publication and validation."
-              action={{ label: "Create first answer", to: "/app/answers/new" }}
-            />
-          )}
-        </DashboardSection>
-
-        <DashboardSection
-          title="Curated sources"
-          description="Sources feed evidence, citations, and public trust signals across spaces, questions, and answers."
-          action={{ label: "Open sources", to: "/app/sources" }}
-        >
-          {recentSources.length ? (
-            recentSources.map((source) => (
-              <SourceRow key={source.id} source={source} timeZone={timeZone} />
-            ))
-          ) : (
-            <EmptyState
-              title="No sources yet"
-              description="Register a reusable source before attaching evidence or citations to QnA records."
-              action={{ label: "Create first source", to: "/app/sources/new" }}
-            />
-          )}
-        </DashboardSection>
-
-        <DashboardSection
-          title="Latest activity"
-          description="This feed reflects workflow operations, public feedback, votes, and audit events."
-          action={{ label: "Open activity", to: "/app/activity" }}
-        >
-          {recentActivity.length ? (
-            recentActivity.map((entry) => (
-              <ActivityRow key={entry.id} entry={entry} timeZone={timeZone} />
-            ))
-          ) : (
-            <EmptyState
-              title="No activity yet"
-              description="Once questions, answers, feedback, or votes start flowing, the activity timeline will appear here."
-            />
-          )}
-        </DashboardSection>
-      </div>
+            ))}
+          </div>
+        ) : (
+          <EmptyState
+            title="No recent signals"
+            description="Feedback, votes, reports, moderation, and workflow transitions will appear here once operators start working."
+          />
+        )}
+      </DashboardPanel>
 
       <Card className="border-dashed bg-muted/20">
         <CardContent className="flex flex-col gap-4 p-5 lg:flex-row lg:items-center lg:justify-between">
           <div className="space-y-1">
             <p className="text-sm font-semibold text-mono">
-              {translateText("Operate QnA end to end")}
+              {translateText("Business rule")}
             </p>
             <p className="text-sm text-muted-foreground">
               {translateText(
-                "Spaces define operating boundaries, questions drive workflow, answers hold publication state, sources ground evidence, and activity captures moderation plus public signals.",
+                "Questions are created from Spaces. Answers are created from Questions. Activity is audit context, not a standalone work queue.",
               )}
             </p>
           </div>
@@ -1165,9 +831,9 @@ export function DashboardPage() {
               </Link>
             </Button>
             <Button asChild>
-              <Link to="/app/activity">
-                <Activity className="size-4" />
-                {translateText("Review activity")}
+              <Link to="/app/sources">
+                <Waypoints className="size-4" />
+                {translateText("Manage sources")}
               </Link>
             </Button>
           </div>

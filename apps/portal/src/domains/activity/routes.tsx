@@ -17,7 +17,7 @@ export const ActivityRoutes: RouteObject[] = [
     element: <ActivityDetailPage />,
     handle: {
       title: 'Activity event',
-      breadcrumb: 'Detail',
+      breadcrumb: 'Activity',
       navKey: 'activity',
     },
   },

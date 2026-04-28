@@ -40,16 +40,18 @@ public sealed class TagsGetTagListQueryHandler(QnADbContext dbContext, ISessionS
         var items = await query
             .Skip(request.SkipCount)
             .Take(request.MaxResultCount)
+            .Select(tag => new TagDto
+            {
+                Id = tag.Id,
+                TenantId = tag.TenantId,
+                Name = tag.Name,
+                SpaceUsageCount = tag.Spaces.Count,
+                QuestionUsageCount = tag.Questions.Count
+            })
             .ToListAsync(cancellationToken);
 
         return new PagedResultDto<TagDto>(
             totalCount,
-            items.Select(tag => new TagDto
-                {
-                    Id = tag.Id,
-                    TenantId = tag.TenantId,
-                    Name = tag.Name
-                })
-                .ToList());
+            items);
     }
 }

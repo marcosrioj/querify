@@ -93,6 +93,14 @@ export function TagFormPage({ mode }: { mode: "create" | "edit" }) {
                     label: "Scope",
                     value: "Reusable taxonomy across spaces and questions",
                   },
+                  {
+                    label: "Spaces",
+                    value: String(tagQuery.data?.spaceUsageCount ?? 0),
+                  },
+                  {
+                    label: "Questions",
+                    value: String(tagQuery.data?.questionUsageCount ?? 0),
+                  },
                 ]}
               />
             </CardContent>

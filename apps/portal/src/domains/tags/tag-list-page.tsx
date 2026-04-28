@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Pencil, Plus, Tags, Trash2 } from "lucide-react";
+import { FolderKanban, MessageSquareText, Pencil, Plus, Tags, Trash2 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { QnaModuleNav } from "@/domains/qna/qna-module-nav";
 import { useDeleteTag, useTagList } from "@/domains/tags/hooks";
@@ -15,7 +15,13 @@ import { translateText } from "@/shared/lib/i18n-core";
 import { DataTable, type DataTableColumn } from "@/shared/ui/data-table";
 import { PaginationControls } from "@/shared/ui/pagination-controls";
 import { EmptyState, ErrorState } from "@/shared/ui/placeholder-state";
-import { Button, ConfirmAction, Input, SectionGridSkeleton } from "@/shared/ui";
+import {
+  Badge,
+  Button,
+  ConfirmAction,
+  Input,
+  SectionGridSkeleton,
+} from "@/shared/ui";
 
 const TAG_FILTER_DEFAULTS = {} as const;
 
@@ -56,12 +62,39 @@ export function TagListPage() {
 
   const deleteTag = useDeleteTag();
   const tagRows = tagQuery.data?.items ?? [];
+  const spaceUsageCount = tagRows.reduce(
+    (total, tag) => total + tag.spaceUsageCount,
+    0,
+  );
+  const questionUsageCount = tagRows.reduce(
+    (total, tag) => total + tag.questionUsageCount,
+    0,
+  );
 
   const columns: DataTableColumn<TagDto>[] = [
     {
       key: "name",
       header: "Tag",
       cell: (tag) => <div className="font-medium text-mono">{tag.name}</div>,
+    },
+    {
+      key: "usage",
+      header: "Where used",
+      className: "lg:w-[260px]",
+      cell: (tag) => (
+        <div className="flex flex-wrap gap-2">
+          <Badge variant={tag.spaceUsageCount > 0 ? "primary" : "outline"}>
+            {translateText("{count} spaces", {
+              count: tag.spaceUsageCount,
+            })}
+          </Badge>
+          <Badge variant={tag.questionUsageCount > 0 ? "secondary" : "outline"}>
+            {translateText("{count} questions", {
+              count: tag.questionUsageCount,
+            })}
+          </Badge>
+        </div>
+      ),
     },
     {
       key: "actions",
@@ -132,6 +165,18 @@ export function TagListPage() {
                 ? translateText("Search: {value}", { value: debouncedSearch })
                 : translateText("Reusable taxonomy labels"),
               icon: Tags,
+            },
+            {
+              title: "Spaces",
+              value: spaceUsageCount,
+              description: translateText("Tag attachments on Spaces"),
+              icon: FolderKanban,
+            },
+            {
+              title: "Questions",
+              value: questionUsageCount,
+              description: translateText("Tag attachments on Questions"),
+              icon: MessageSquareText,
             },
           ]}
         />

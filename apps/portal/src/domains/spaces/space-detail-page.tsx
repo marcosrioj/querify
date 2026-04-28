@@ -1,6 +1,16 @@
 import { useMemo, useState } from "react";
-import { BookOpen, Link2, Pencil, Plus, Trash2, Waypoints } from "lucide-react";
+import {
+  Activity,
+  BookOpen,
+  CheckCircle2,
+  Link2,
+  Pencil,
+  Plus,
+  Trash2,
+  Waypoints,
+} from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import { useActivityList } from "@/domains/activity/hooks";
 import { QnaModuleNav } from "@/domains/qna/qna-module-nav";
 import { useQuestionList } from "@/domains/questions/hooks";
 import { usePortalTimeZone } from "@/domains/settings/settings-hooks";
@@ -14,7 +24,7 @@ import {
   useRemoveSpaceTag,
 } from "@/domains/spaces/hooks";
 import { useTagList } from "@/domains/tags/hooks";
-import { SpaceKind } from "@/shared/constants/backend-enums";
+import { QuestionStatus, SpaceKind } from "@/shared/constants/backend-enums";
 import {
   DetailLayout,
   KeyValueList,
@@ -41,6 +51,8 @@ import {
 } from "@/shared/ui";
 import { EmptyState, ErrorState } from "@/shared/ui/placeholder-state";
 import {
+  ActivityKindBadge,
+  ActorKindBadge,
   QuestionStatusBadge,
   SpaceKindBadge,
   VisibilityBadge,
@@ -58,6 +70,11 @@ export function SpaceDetailPage() {
     pageSize: 8,
     sorting: "LastActivityAtUtc DESC",
     spaceId: id,
+  });
+  const activityQuery = useActivityList({
+    page: 1,
+    pageSize: 20,
+    sorting: "OccurredAtUtc DESC",
   });
   const sourceOptionsQuery = useSourceList({
     page: 1,
@@ -112,10 +129,48 @@ export function SpaceDetailPage() {
   const blocksQuestions = spaceQuery.data
     ? !spaceQuery.data.acceptsQuestions
     : false;
+  const blocksAnswers = spaceQuery.data ? !spaceQuery.data.acceptsAnswers : false;
   const reviewGated = spaceQuery.data
     ? spaceQuery.data.kind === SpaceKind.ControlledPublication ||
       spaceQuery.data.kind === SpaceKind.ModeratedCollaboration
     : false;
+  const spaceQuestions = questionQuery.data?.items ?? [];
+  const questionsNeedingAction = spaceQuestions.filter(
+    (question) =>
+      question.status === QuestionStatus.Draft ||
+      question.status === QuestionStatus.PendingReview ||
+      question.status === QuestionStatus.Escalated ||
+      (!question.acceptedAnswerId &&
+        question.status !== QuestionStatus.Duplicate &&
+        question.status !== QuestionStatus.Archived),
+  );
+  const visibleQuestionIds = new Set(spaceQuestions.map((question) => question.id));
+  const contextualActivity = (activityQuery.data?.items ?? []).filter((entry) =>
+    visibleQuestionIds.has(entry.questionId),
+  );
+  const nextAction = blocksQuestions
+    ? {
+        label: "Review intake rules",
+        to: `/app/spaces/${id}/edit`,
+        text: "Question intake is closed. Reopen it or keep routing work to another Space.",
+      }
+    : questionsNeedingAction.length > 0
+      ? {
+          label: "Resolve first thread",
+          to: `/app/questions/${questionsNeedingAction[0].id}`,
+          text: "A question needs moderation, an accepted answer, duplicate routing, or escalation review.",
+        }
+      : (spaceQuery.data?.curatedSources.length ?? 0) === 0
+        ? {
+            label: "Attach source",
+            to: "/app/sources",
+            text: "This Space has no curated evidence yet. Attach a reusable Source before scaling answers.",
+          }
+        : {
+            label: "Create question",
+            to: `/app/questions/new?spaceId=${id}`,
+            text: "The Space is ready for the next operational thread.",
+          };
 
   return (
     <DetailLayout
@@ -123,7 +178,7 @@ export function SpaceDetailPage() {
         <>
           <PageHeader
             title={spaceQuery.data?.name ?? "Space"}
-            description="Review visibility, workflow rules, curated sources, and the most recent question threads for this space."
+            description="Review state, intake rules, questions needing action, connected tags and sources, and the next recommended move."
             descriptionMode="hint"
             backTo="/app/spaces"
           />
@@ -252,27 +307,74 @@ export function SpaceDetailPage() {
           <SectionGrid
             items={[
               {
+                title: "State",
+                value: (
+                  <Badge
+                    variant={
+                      blocksQuestions && blocksAnswers ? "destructive" : "success"
+                    }
+                  >
+                    {translateText(
+                      blocksQuestions && blocksAnswers
+                        ? "Intake closed"
+                        : "Operational",
+                    )}
+                  </Badge>
+                ),
+                icon: BookOpen,
+              },
+              {
+                title: "Accepts",
+                value: (
+                  <div className="flex flex-wrap gap-2">
+                    <Badge variant={blocksQuestions ? "mono" : "success"}>
+                      {translateText(blocksQuestions ? "No questions" : "Questions")}
+                    </Badge>
+                    <Badge variant={blocksAnswers ? "mono" : "success"}>
+                      {translateText(blocksAnswers ? "No answers" : "Answers")}
+                    </Badge>
+                  </div>
+                ),
+                icon: CheckCircle2,
+              },
+              {
+                title: "Needs action",
+                value: questionsNeedingAction.length,
+                description: translateText(
+                  "Questions in this Space waiting for an operator decision",
+                ),
+                icon: Waypoints,
+              },
+              {
                 title: "Visibility",
                 value: (
                   <VisibilityBadge visibility={spaceQuery.data.visibility} />
                 ),
                 icon: BookOpen,
               },
-              {
-                title: "Model",
-                value: <SpaceKindBadge kind={spaceQuery.data.kind} />,
-                icon: BookOpen,
-              },
-              {
-                title: "Questions",
-                value: spaceQuery.data.questionCount,
-                description: translateText(
-                  "Threads currently attached to this space",
-                ),
-                icon: Waypoints,
-              },
             ]}
           />
+
+          <Card className="border-emerald-500/20 bg-linear-to-br from-background via-background to-emerald-500/[0.06]">
+            <CardContent className="flex flex-col gap-4 p-5 lg:flex-row lg:items-center lg:justify-between">
+              <div className="space-y-1">
+                <p className="text-xs font-medium uppercase tracking-[0.18em] text-emerald-600 dark:text-emerald-300">
+                  {translateText("Recommended next action")}
+                </p>
+                <p className="text-lg font-semibold text-mono">
+                  {translateText(nextAction.label)}
+                </p>
+                <p className="max-w-2xl text-sm leading-6 text-muted-foreground">
+                  {translateText(nextAction.text)}
+                </p>
+              </div>
+              <Button asChild className="bg-emerald-600 text-white shadow-lg shadow-emerald-600/25 hover:bg-emerald-700">
+                <Link to={nextAction.to}>
+                  {translateText(nextAction.label)}
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
 
           <Card>
             <CardHeader>
@@ -535,12 +637,12 @@ export function SpaceDetailPage() {
           <Card>
             <CardHeader>
               <CardHeading>
-                <CardTitle>{translateText("Recent questions")}</CardTitle>
+                <CardTitle>{translateText("Questions in this Space")}</CardTitle>
               </CardHeading>
             </CardHeader>
             <CardContent className="space-y-3">
-              {(questionQuery.data?.items ?? []).length ? (
-                (questionQuery.data?.items ?? []).map((question) => (
+              {spaceQuestions.length ? (
+                spaceQuestions.map((question) => (
                   <div
                     key={question.id}
                     className="flex flex-col gap-3 rounded-lg border border-border bg-muted/10 p-4 sm:flex-row sm:items-start sm:justify-between"
@@ -556,8 +658,28 @@ export function SpaceDetailPage() {
                         {question.summary ||
                           translateText("No summary provided.")}
                       </p>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {!question.acceptedAnswerId &&
+                        question.status !== QuestionStatus.Duplicate ? (
+                          <Badge variant="warning" appearance="outline">
+                            {translateText("Needs answer decision")}
+                          </Badge>
+                        ) : null}
+                        {question.duplicateOfQuestionId ? (
+                          <Badge variant="mono" appearance="outline">
+                            {translateText("Duplicate")}
+                          </Badge>
+                        ) : null}
+                      </div>
                     </div>
-                    <QuestionStatusBadge status={question.status} />
+                    <div className="flex shrink-0 flex-col gap-2 sm:items-end">
+                      <QuestionStatusBadge status={question.status} />
+                      <Button asChild variant="outline" size="sm">
+                        <Link to={`/app/questions/${question.id}`}>
+                          {translateText("Open thread")}
+                        </Link>
+                      </Button>
+                    </div>
                   </div>
                 ))
               ) : (
@@ -576,6 +698,58 @@ export function SpaceDetailPage() {
                           to: `/app/questions/new?spaceId=${id}`,
                         }
                   }
+                />
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardHeading>
+                <CardTitle className="flex items-center gap-2">
+                  <span>{translateText("Activity in this Space")}</span>
+                  <Badge variant="outline">
+                    {translateText("{count} events", {
+                      count: contextualActivity.length,
+                    })}
+                  </Badge>
+                </CardTitle>
+              </CardHeading>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {contextualActivity.length ? (
+                contextualActivity.slice(0, 6).map((event) => (
+                  <div
+                    key={event.id}
+                    className="flex flex-col gap-3 rounded-lg border border-border bg-muted/10 p-4 sm:flex-row sm:items-start sm:justify-between"
+                  >
+                    <div className="min-w-0 space-y-2">
+                      <div className="flex flex-wrap gap-2">
+                        <ActivityKindBadge kind={event.kind} />
+                        <ActorKindBadge kind={event.actorKind} />
+                      </div>
+                      <p className="line-clamp-2 text-sm text-muted-foreground">
+                        {event.notes || event.actorLabel || event.userPrint}
+                      </p>
+                    </div>
+                    <Button asChild variant="outline" size="sm">
+                      <Link
+                        to={
+                          event.answerId
+                            ? `/app/answers/${event.answerId}`
+                            : `/app/questions/${event.questionId}`
+                        }
+                      >
+                        <Activity className="size-4" />
+                        {translateText("Open context")}
+                      </Link>
+                    </Button>
+                  </div>
+                ))
+              ) : (
+                <EmptyState
+                  title="No contextual activity yet"
+                  description="Activity appears here after questions in this Space receive workflow changes, moderation, votes, feedback, or reports."
                 />
               )}
             </CardContent>

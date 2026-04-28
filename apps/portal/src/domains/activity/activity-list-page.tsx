@@ -169,8 +169,8 @@ export function ActivityListPage() {
             descriptionMode="inline"
           />
           <QnaModuleNav
-            activeKey="activity"
-            intent="Activity is the audit trail for spaces, question workflow, answer lifecycle, and public feedback signals."
+            activeKey="spaces"
+            intent="Activity is contextual evidence. Use this audit view to jump back to the Space, Question, or Answer that needs action."
           />
         </>
       }

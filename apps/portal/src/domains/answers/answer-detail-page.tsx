@@ -128,11 +128,15 @@ export function AnswerDetailPage() {
             title={answerQuery.data?.headline ?? "Answer"}
             description="Manage publication, validation, evidence links, and retirement for this answer candidate."
             descriptionMode="hint"
-            backTo="/app/answers"
+            backTo={
+              answerQuery.data?.questionId
+                ? `/app/questions/${answerQuery.data.questionId}`
+                : "/app/spaces"
+            }
           />
           <QnaModuleNav
-            activeKey="answers"
-            intent="This answer resolves a parent question. Use lifecycle actions only after checking question and source context."
+            activeKey="spaces"
+            intent="This answer belongs to a Question. Publish, validate, or retire it only after checking the parent thread and evidence links."
           />
         </>
       }
@@ -172,7 +176,13 @@ export function AnswerDetailPage() {
                 onConfirm={() =>
                   deleteAnswer
                     .mutateAsync(id)
-                    .then(() => navigate("/app/answers"))
+                    .then(() =>
+                      navigate(
+                        answerQuery.data?.questionId
+                          ? `/app/questions/${answerQuery.data.questionId}`
+                          : "/app/spaces",
+                      ),
+                    )
                 }
                 trigger={
                   <Button

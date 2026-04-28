@@ -3,7 +3,6 @@ import {
   CheckCircle2,
   Medal,
   Pencil,
-  Plus,
   ShieldCheck,
   Trash2,
   Vote,
@@ -239,20 +238,13 @@ export function AnswerListPage() {
         <>
           <PageHeader
             title="Answers"
-            description="Manage answer candidates, official guidance, ranking, validation, and retirement across all threads."
+            description="Answers are operated from their parent Question. Use this scoped view only to triage candidates that already belong to a thread."
             descriptionMode="inline"
-            actions={
-              <Button asChild>
-                <Link to="/app/answers/new">
-                  <Plus className="size-4" />
-                  {translateText("New answer")}
-                </Link>
-              </Button>
-            }
+            backTo="/app/spaces"
           />
           <QnaModuleNav
-            activeKey="answers"
-            intent="Answers resolve question threads, inherit their space context, and become trusted knowledge only after publication and validation."
+            activeKey="spaces"
+            intent="Answers are not created globally. Open a Space, choose the Question, then author or validate the answer in that thread."
           />
         </>
       }
@@ -382,8 +374,8 @@ export function AnswerListPage() {
         emptyState={
           <EmptyState
             title="No answers in view"
-            description="Create an answer candidate to begin ranking and validation."
-            action={{ label: "New answer", to: "/app/answers/new" }}
+            description="Open a Question from its Space before creating an answer candidate."
+            action={{ label: "Open spaces", to: "/app/spaces" }}
           />
         }
         errorState={
