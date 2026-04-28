@@ -70,6 +70,11 @@ Verify:
 
 - the page still uses the intended shared layout
 - responsive behavior works on narrow and wide viewports
+- no affected route creates horizontal page overflow at 320, 360, 375, 414, 768, 1024, 1279, 1280, and desktop widths
+- tablet widths below `xl` use the header and drawer shell, not the fixed desktop sidebar
+- list pages use stacked card rows below `xl` and table layout from `xl` upward unless the page intentionally owns a different responsive pattern
+- root, shell, page, cards, filters, tables, dialogs, sheets, popovers, and flex children can shrink with `min-w-0` or equivalent constraints
+- long unbroken content such as URLs, external ids, checksums, user agents, and generated tokens wraps inside cards and cells
 - skeletons, empty states, and error states still fit the surrounding layout
 - focus flow and keyboard activation remain intact for dialogs, buttons, and confirms
 - light and dark themes both use readable contrast and token-based surfaces
@@ -77,6 +82,37 @@ Verify:
 - relationship sections behave as local tabs, not anchors or global-list redirects
 - child lists with more than five items use the local 5, 10, and 20 item pagination pattern
 - API-backed relationship selects use `SearchSelect` or `SearchSelectField`
+
+### Responsive list regression check
+
+Run this check whenever a change touches the Portal shell, `ListLayout`, `DataTable`, `Card`, `SearchSelect`, pagination, top-level list pages, or shared filter/action surfaces.
+
+Required routes:
+
+- `/app/questions`
+- `/app/sources`
+- `/app/tags`
+- `/app/activity`
+
+Required viewport widths:
+
+- `320`
+- `360`
+- `375`
+- `414`
+- `768`
+- `1024`
+- `1279`
+- `1280`
+- at least one wider desktop size, such as `1440`
+
+For each route and width:
+
+- verify `document.documentElement.scrollWidth` and `document.body.scrollWidth` do not exceed the viewport, except for an explicitly local scroll container
+- verify visible elements do not extend beyond the viewport bounds
+- verify the mobile/tablet shell is active below `1280px`
+- verify the desktop sidebar and table are active at `1280px` and wider
+- use representative data with long unbroken strings so URLs, ids, checksums, and user agents cannot hide wrapping defects
 
 ## Change-driven checklists
 
@@ -89,6 +125,7 @@ Verify:
 - relationship tabs stay scoped to the current record
 - destructive actions require confirmation
 - right-rail actions, metadata, workflow rules, and timing summaries remain readable in dark mode
+- top-level list pages were checked across the responsive list regression matrix when their list, filters, toolbar, pagination, or row content changed
 
 ### If you changed shared UI primitives
 
@@ -96,6 +133,7 @@ Verify:
 - no layout regression was introduced in list, detail, and settings contexts
 - lint and build still pass
 - light and dark theme behavior was checked on every affected primitive
+- responsive list consumers were checked at mobile, tablet, and desktop widths when the primitive affects width, wrapping, popovers, tables, cards, dialogs, sheets, filters, or actions
 
 ### If you changed localization logic
 
@@ -120,6 +158,7 @@ Until then, treat the manual checklist as required engineering work, not as opti
 - `npm run lint` passes
 - `npm run build` passes
 - affected browser flows were exercised manually
+- affected shell, list, shared UI, and filter changes were checked against the responsive list regression matrix
 - loading, empty, error, and confirmation states were checked
 - localization was checked when user-facing copy changed
 - documentation was updated if the runtime or validation workflow changed

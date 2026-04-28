@@ -70,6 +70,9 @@ The Portal shell uses a stable left sidebar for primary navigation and workspace
 - Keep primary navigation grouped by user mental model: Workspace, Administration, and Account.
 - The top toolbar is for route context and global utilities: breadcrumbs, command search, language, notifications, and user menu.
 - The QnA module navigation pattern is not a primary app navigation replacement. Use it only inside a domain screen when the user is managing children or related records in the current context.
+- The fixed sidebar is a desktop pattern only. Below the `xl` breakpoint, including tablet widths, use the mobile/tablet header and drawer so content keeps the full viewport width.
+- Keep the JavaScript shell breakpoint in `useIsMobile` aligned with the Tailwind breakpoint used by the sidebar and mobile header. Do not let React render one shell mode while CSS displays another.
+- The Portal must work down to a 320 CSS pixel viewport. Root, shell, and page flex containers must allow shrinking with `min-w-0`; do not introduce a page-level minimum width such as 414px.
 
 ### Shared layouts and primitives
 
@@ -98,6 +101,10 @@ If a shared primitive already matches the use case, do not replace it with ad ho
 - use `ListLayout`
 - keep metrics in `SectionGrid`
 - keep the main record surface in the shared table pattern
+- Top-level list pages must remain fully usable from mobile through tablet and desktop. Use card rows below `xl` and the table surface from `xl` upward unless a page has a deliberate alternate responsive pattern.
+- List headers, filter bars, toolbar actions, pagination, and API-backed selects must wrap or stack instead of forcing horizontal page overflow.
+- Cells, card rows, badges, long URLs, ids, checksums, user agents, and generated tokens must use `min-w-0` plus explicit word breaking where needed.
+- Horizontal scrolling is acceptable only inside an intentionally scrollable component such as a table wrapper. The page, shell, and card surface must not become wider than the viewport.
 
 #### Detail pages
 

@@ -40,6 +40,9 @@ If a shared primitive already matches the use case, do not replace it with ad ho
 - The top toolbar is for breadcrumbs, command search, language, notifications, and the user menu.
 - Do not use the QnA module navigation as primary app navigation.
 - Use the QnA module visual language only for in-screen child and relationship management.
+- The left sidebar belongs to desktop only. Mobile and tablet widths use the header plus drawer through the `xl` breakpoint.
+- Keep shell rendering and CSS breakpoints in sync. If `PortalSidebar`, `MobileHeader`, or `useIsMobile` changes, verify all three still switch at the same width.
+- The app shell must not impose a minimum content width. Add `min-w-0` to root, shell, main, card, and flex children that need to shrink.
 
 ## Layout standards
 
@@ -48,6 +51,11 @@ If a shared primitive already matches the use case, do not replace it with ad ho
 - use `ListLayout`
 - keep metrics in `SectionGrid`
 - keep the main record surface in the shared table pattern
+- keep list pages usable at 320, 360, 375, 414, 768, 1024, 1279, 1280, and desktop widths
+- render list records as stacked cards below `xl`; render the table surface at `xl` and above unless the page intentionally owns a different pattern
+- make filters, search inputs, sort controls, pagination, and actions stack or wrap before they overflow
+- long unbroken values such as URLs, external ids, checksums, user agents, and generated keys must wrap inside their card or cell
+- never fix a list overflow only in the page component if the cause is a shared primitive, shell container, or root flex width
 
 ### Detail pages
 
@@ -86,6 +94,7 @@ Relationship sections manage children and related records without leaving the or
 - any select/dropdown backed by a backend list endpoint must use `SearchSelect` or `SearchSelectField`
 - use the searchable pattern for both single-selection and link/multi-selection flows
 - keep enum-only controls on the normal `Select` primitive
+- `SearchSelect` popovers must be constrained to the viewport on narrow screens and must not impose a desktop minimum width on mobile.
 
 ## Confirmation standards
 
