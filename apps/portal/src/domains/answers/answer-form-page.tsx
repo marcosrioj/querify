@@ -134,7 +134,8 @@ export function AnswerFormPage({ mode }: { mode: "create" | "edit" }) {
     form.watch("visibility"),
   ) as VisibilityScope;
   const selectedStatus = Number(form.watch("status")) as AnswerStatus;
-  const publicVisibilitySelected = selectedVisibility === VisibilityScope.Public;
+  const publicVisibilitySelected =
+    selectedVisibility === VisibilityScope.Public;
   const invalidPublicStatus =
     publicVisibilitySelected &&
     selectedStatus !== AnswerStatus.Published &&
@@ -187,6 +188,12 @@ export function AnswerFormPage({ mode }: { mode: "create" | "edit" }) {
       : selectedQuestionId
         ? `/app/questions/${selectedQuestionId}`
         : "/app/spaces";
+  const pageTitle =
+    mode === "create"
+      ? "New answer"
+      : answerQuery.data?.headline
+        ? `${translateText("Edit")} ${answerQuery.data.headline}`
+        : "Edit answer";
 
   if (mode === "create" && !preselectedQuestionId) {
     return (
@@ -213,7 +220,7 @@ export function AnswerFormPage({ mode }: { mode: "create" | "edit" }) {
     <DetailLayout
       header={
         <PageHeader
-          title={mode === "create" ? "New answer" : "Edit answer"}
+          title={pageTitle}
           description="Author the answer candidate, then tune rank, visibility, and trust cues."
           descriptionMode="hint"
           backTo={backTo}
@@ -426,7 +433,9 @@ export function AnswerFormPage({ mode }: { mode: "create" | "edit" }) {
                     <Button
                       type="submit"
                       disabled={
-                        isSubmitting || spaceBlocksAnswers || invalidPublicStatus
+                        isSubmitting ||
+                        spaceBlocksAnswers ||
+                        invalidPublicStatus
                       }
                     >
                       {translateText(

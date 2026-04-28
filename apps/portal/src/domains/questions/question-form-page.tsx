@@ -124,11 +124,13 @@ export function QuestionFormPage({ mode }: { mode: "create" | "edit" }) {
     form.watch("visibility"),
   ) as VisibilityScope;
   const selectedStatus = Number(form.watch("status")) as QuestionStatus;
-  const publicVisibilitySelected = selectedVisibility === VisibilityScope.Public;
+  const publicVisibilitySelected =
+    selectedVisibility === VisibilityScope.Public;
   const invalidPublicStatus =
-    publicVisibilitySelected &&
-    selectedStatus !== QuestionStatus.Active;
-  const duplicateTargetLocked = Boolean(questionQuery.data?.duplicateOfQuestionId);
+    publicVisibilitySelected && selectedStatus !== QuestionStatus.Active;
+  const duplicateTargetLocked = Boolean(
+    questionQuery.data?.duplicateOfQuestionId,
+  );
   const questionStatusOptions = Object.entries(questionStatusLabels)
     .filter(([value]) => {
       const status = Number(value) as QuestionStatus;
@@ -187,6 +189,12 @@ export function QuestionFormPage({ mode }: { mode: "create" | "edit" }) {
       : selectedSpaceId
         ? `/app/spaces/${selectedSpaceId}`
         : "/app/spaces";
+  const pageTitle =
+    mode === "create"
+      ? "New question"
+      : questionQuery.data?.title
+        ? `${translateText("Edit")} ${questionQuery.data.title}`
+        : "Edit question";
 
   if (mode === "create" && !preselectedSpaceId) {
     return (
@@ -213,7 +221,7 @@ export function QuestionFormPage({ mode }: { mode: "create" | "edit" }) {
     <DetailLayout
       header={
         <PageHeader
-          title={mode === "create" ? "New question" : "Edit question"}
+          title={pageTitle}
           description="Capture the thread, its operational status, and the context needed for accurate answers."
           descriptionMode="hint"
           backTo={backTo}
@@ -428,7 +436,9 @@ export function QuestionFormPage({ mode }: { mode: "create" | "edit" }) {
                     <Button
                       type="submit"
                       disabled={
-                        isSubmitting || spaceBlocksQuestions || invalidPublicStatus
+                        isSubmitting ||
+                        spaceBlocksQuestions ||
+                        invalidPublicStatus
                       }
                     >
                       {translateText(

@@ -133,12 +133,18 @@ export function SpaceFormPage({ mode }: { mode: "create" | "edit" }) {
   ];
   const isSubmitting = createSpace.isPending || updateSpace.isPending;
   const backTo = mode === "edit" && id ? `/app/spaces/${id}` : "/app/spaces";
+  const pageTitle =
+    mode === "create"
+      ? "New space"
+      : spaceQuery.data?.name
+        ? `${translateText("Edit")} ${spaceQuery.data.name}`
+        : "Edit space";
 
   return (
     <DetailLayout
       header={
         <PageHeader
-          title={mode === "create" ? "New space" : "Edit space"}
+          title={pageTitle}
           description="Define the QnA status and exposure before threads start accumulating."
           descriptionMode="hint"
           backTo={backTo}

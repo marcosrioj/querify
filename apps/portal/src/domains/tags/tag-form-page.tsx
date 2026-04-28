@@ -61,12 +61,18 @@ export function TagFormPage({ mode }: { mode: "create" | "edit" }) {
     },
   ];
   const backTo = "/app/tags";
+  const pageTitle =
+    mode === "create"
+      ? "New tag"
+      : tagQuery.data?.name
+        ? `${translateText("Edit")} ${tagQuery.data.name}`
+        : "Edit tag";
 
   return (
     <DetailLayout
       header={
         <PageHeader
-          title={mode === "create" ? "New tag" : "Edit tag"}
+          title={pageTitle}
           description="Keep the taxonomy concise and reusable across spaces and questions."
           descriptionMode="hint"
           backTo={backTo}

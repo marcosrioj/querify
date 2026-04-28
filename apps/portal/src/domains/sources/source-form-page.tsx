@@ -206,12 +206,19 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
     },
   ];
   const backTo = mode === "edit" && id ? `/app/sources/${id}` : "/app/sources";
+  const sourceTitle = sourceQuery.data?.label || sourceQuery.data?.locator;
+  const pageTitle =
+    mode === "create"
+      ? "New source"
+      : sourceTitle
+        ? `${translateText("Edit")} ${sourceTitle}`
+        : "Edit source";
 
   return (
     <DetailLayout
       header={
         <PageHeader
-          title={mode === "create" ? "New source" : "Edit source"}
+          title={pageTitle}
           description="Capture locator, visibility, and verification metadata for reusable evidence."
           descriptionMode="hint"
           backTo={backTo}
