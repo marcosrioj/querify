@@ -1,16 +1,21 @@
-import { useEffect } from 'react';
-import { Pencil, Plus, Tags, Trash2 } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useDeleteTag, useTagList } from '@/domains/tags/hooks';
-import type { TagDto } from '@/domains/tags/types';
-import { ListLayout, PageHeader, SectionGrid } from '@/shared/layout/page-layouts';
-import { clampPage } from '@/shared/lib/pagination';
-import { useListQueryState } from '@/shared/lib/use-list-query-state';
-import { translateText } from '@/shared/lib/i18n-core';
-import { DataTable, type DataTableColumn } from '@/shared/ui/data-table';
-import { PaginationControls } from '@/shared/ui/pagination-controls';
-import { EmptyState, ErrorState } from '@/shared/ui/placeholder-state';
-import { Button, ConfirmAction, Input, SectionGridSkeleton } from '@/shared/ui';
+import { useEffect } from "react";
+import { Pencil, Plus, Tags, Trash2 } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { QnaModuleNav } from "@/domains/qna/qna-module-nav";
+import { useDeleteTag, useTagList } from "@/domains/tags/hooks";
+import type { TagDto } from "@/domains/tags/types";
+import {
+  ListLayout,
+  PageHeader,
+  SectionGrid,
+} from "@/shared/layout/page-layouts";
+import { clampPage } from "@/shared/lib/pagination";
+import { useListQueryState } from "@/shared/lib/use-list-query-state";
+import { translateText } from "@/shared/lib/i18n-core";
+import { DataTable, type DataTableColumn } from "@/shared/ui/data-table";
+import { PaginationControls } from "@/shared/ui/pagination-controls";
+import { EmptyState, ErrorState } from "@/shared/ui/placeholder-state";
+import { Button, ConfirmAction, Input, SectionGridSkeleton } from "@/shared/ui";
 
 const TAG_FILTER_DEFAULTS = {} as const;
 
@@ -25,14 +30,14 @@ export function TagListPage() {
     setPageSize,
     setSearch,
   } = useListQueryState({
-    defaultSorting: 'Name ASC',
+    defaultSorting: "Name ASC",
     filterDefaults: TAG_FILTER_DEFAULTS,
   });
 
   const tagQuery = useTagList({
     page,
     pageSize,
-    sorting: 'Name ASC',
+    sorting: "Name ASC",
     searchText: debouncedSearch || undefined,
   });
 
@@ -54,14 +59,14 @@ export function TagListPage() {
 
   const columns: DataTableColumn<TagDto>[] = [
     {
-      key: 'name',
-      header: 'Tag',
+      key: "name",
+      header: "Tag",
       cell: (tag) => <div className="font-medium text-mono">{tag.name}</div>,
     },
     {
-      key: 'actions',
-      header: 'Actions',
-      className: 'lg:w-[120px]',
+      key: "actions",
+      header: "Actions",
+      className: "lg:w-[120px]",
       cell: (tag) => (
         <div
           className="flex items-center justify-end gap-1"
@@ -75,9 +80,9 @@ export function TagListPage() {
           <ConfirmAction
             title={translateText('Delete tag "{name}"?', { name: tag.name })}
             description={translateText(
-              'This removes the reusable tag from the workspace taxonomy.',
+              "This removes the reusable tag from the workspace taxonomy.",
             )}
-            confirmLabel={translateText('Delete tag')}
+            confirmLabel={translateText("Delete tag")}
             isPending={deleteTag.isPending}
             onConfirm={() => deleteTag.mutateAsync(tag.id)}
             trigger={
@@ -94,19 +99,25 @@ export function TagListPage() {
   return (
     <ListLayout
       header={
-        <PageHeader
-          title="Tags"
-          description="Maintain the reusable taxonomy that groups spaces and questions."
-          descriptionMode="inline"
-          actions={
-            <Button asChild>
-              <Link to="/app/tags/new">
-                <Plus className="size-4" />
-                {translateText('New tag')}
-              </Link>
-            </Button>
-          }
-        />
+        <>
+          <PageHeader
+            title="Tags"
+            description="Maintain the reusable taxonomy that groups spaces and questions."
+            descriptionMode="inline"
+            actions={
+              <Button asChild>
+                <Link to="/app/tags/new">
+                  <Plus className="size-4" />
+                  {translateText("New tag")}
+                </Link>
+              </Button>
+            }
+          />
+          <QnaModuleNav
+            activeKey="tags"
+            intent="Tags are shared taxonomy. Keep labels reusable so spaces and questions stay easy to scan."
+          />
+        </>
       }
     >
       {tagQuery.isLoading && tagQuery.data === undefined ? (
@@ -115,11 +126,11 @@ export function TagListPage() {
         <SectionGrid
           items={[
             {
-              title: 'Total',
+              title: "Total",
               value: tagQuery.data?.totalCount ?? 0,
               description: debouncedSearch
-                ? translateText('Search: {value}', { value: debouncedSearch })
-                : translateText('Reusable taxonomy labels'),
+                ? translateText("Search: {value}", { value: debouncedSearch })
+                : translateText("Reusable taxonomy labels"),
               icon: Tags,
             },
           ]}
@@ -138,7 +149,7 @@ export function TagListPage() {
           <Input
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder={translateText('Search tags')}
+            placeholder={translateText("Search tags")}
             className="w-full max-w-sm"
           />
         }
@@ -146,7 +157,7 @@ export function TagListPage() {
           <EmptyState
             title="No tags in view"
             description="Create the first reusable tag for space and question taxonomy."
-            action={{ label: 'New tag', to: '/app/tags/new' }}
+            action={{ label: "New tag", to: "/app/tags/new" }}
           />
         }
         errorState={

@@ -69,7 +69,7 @@ export function PageHeader({
               </Button>
             ) : null}
             <div className="flex min-w-0 flex-wrap items-start gap-2">
-              <h2 className="text-2xl font-semibold tracking-tight text-mono lg:text-3xl">
+              <h2 className="text-2xl font-semibold text-mono lg:text-3xl">
                 {translateMaybeString(title, t)}
               </h2>
               {descriptionHint}
@@ -116,7 +116,7 @@ export function ListLayout({
     <PageSurface className="space-y-5 lg:space-y-7.5">
       {header}
       {filters ? (
-        <Card className="border-dashed bg-muted/20">
+        <Card className="border-dashed bg-muted/15">
           <CardContent className="space-y-3 p-4 lg:p-5">
             <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
               {t("Refine view")}
@@ -234,44 +234,54 @@ export function SectionGrid({
               ? item.title
               : `section-grid-${index}`)
           }
-          className="bg-muted/10"
+          className="group overflow-hidden bg-linear-to-b from-background to-muted/10"
         >
           <CardContent className="relative min-w-0 p-5">
-            <div className="min-w-0 space-y-2.5">
-              <p className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
-                <span>{translateMaybeString(item.title, t)}</span>
-                {item.titleHint ? (
-                  <ContextHint
-                    content={translateMaybeString(item.titleHint, t)}
-                    label={t("Metric details")}
-                    className="size-4 text-[inherit]"
-                  />
-                ) : null}
-              </p>
+            <div className="flex items-start justify-between gap-4">
+              <div className="min-w-0 space-y-2.5">
+                <p className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
+                  <span>{translateMaybeString(item.title, t)}</span>
+                  {item.titleHint ? (
+                    <ContextHint
+                      content={translateMaybeString(item.titleHint, t)}
+                      label={t("Metric details")}
+                      className="size-4 text-[inherit]"
+                    />
+                  ) : null}
+                </p>
+                <div
+                  className={cn(
+                    "break-words text-2xl font-semibold text-mono sm:text-3xl",
+                    valueClassName,
+                  )}
+                >
+                  {translateMaybeString(item.value, t)}
+                </div>
+              </div>
+              {item.icon ? (
+                <div
+                  className={cn(
+                    "pointer-events-none flex size-9 shrink-0 items-center justify-center rounded-lg ring-1 ring-inset",
+                    item.iconToneClassName ??
+                      toneClassNames[index % toneClassNames.length],
+                  )}
+                >
+                  <item.icon className="size-4" />
+                </div>
+              ) : null}
+            </div>
+            <div className="mt-3 min-w-0">
               <div
                 className={cn(
-                  "break-words text-2xl font-semibold tracking-tight text-mono sm:text-3xl",
-                  valueClassName,
+                  "h-px w-full bg-linear-to-r from-border via-border/60 to-transparent",
                 )}
-              >
-                {translateMaybeString(item.value, t)}
-              </div>
+              />
               {item.description ? (
-                <p className="text-sm leading-6 text-muted-foreground">
+                <p className="mt-3 text-sm leading-6 text-muted-foreground">
                   {translateMaybeString(item.description, t)}
                 </p>
               ) : null}
             </div>
-            {item.icon ? (
-              <div
-                className={cn(
-                  "pointer-events-none absolute right-5 top-5 flex size-5 items-center justify-center rounded-2xl",
-                  item.iconToneClassName ?? toneClassNames[index % toneClassNames.length],
-                )}
-              >
-                <item.icon className="size-5" />
-              </div>
-            ) : null}
           </CardContent>
         </Card>
       ))}

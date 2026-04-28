@@ -1,20 +1,26 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState } from "react";
+import { BookOpen, Link2, Pencil, Plus, Trash2, Waypoints } from "lucide-react";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { QnaModuleNav } from "@/domains/qna/qna-module-nav";
+import { useQuestionList } from "@/domains/questions/hooks";
+import { usePortalTimeZone } from "@/domains/settings/settings-hooks";
+import { useSourceList } from "@/domains/sources/hooks";
 import {
-  BookOpen,
-  Link2,
-  Pencil,
-  Plus,
-  Trash2,
-  Waypoints,
-} from 'lucide-react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
-import { useQuestionList } from '@/domains/questions/hooks';
-import { usePortalTimeZone } from '@/domains/settings/settings-hooks';
-import { useSourceList } from '@/domains/sources/hooks';
-import { useSpace, useAddSpaceSource, useAddSpaceTag, useDeleteSpace, useRemoveSpaceSource, useRemoveSpaceTag } from '@/domains/spaces/hooks';
-import { useTagList } from '@/domains/tags/hooks';
-import { SpaceKind } from '@/shared/constants/backend-enums';
-import { DetailLayout, KeyValueList, PageHeader, SectionGrid } from '@/shared/layout/page-layouts';
+  useSpace,
+  useAddSpaceSource,
+  useAddSpaceTag,
+  useDeleteSpace,
+  useRemoveSpaceSource,
+  useRemoveSpaceTag,
+} from "@/domains/spaces/hooks";
+import { useTagList } from "@/domains/tags/hooks";
+import { SpaceKind } from "@/shared/constants/backend-enums";
+import {
+  DetailLayout,
+  KeyValueList,
+  PageHeader,
+  SectionGrid,
+} from "@/shared/layout/page-layouts";
 import {
   Badge,
   Button,
@@ -32,15 +38,15 @@ import {
   SelectTrigger,
   SelectValue,
   SidebarSummarySkeleton,
-} from '@/shared/ui';
-import { EmptyState, ErrorState } from '@/shared/ui/placeholder-state';
+} from "@/shared/ui";
+import { EmptyState, ErrorState } from "@/shared/ui/placeholder-state";
 import {
   QuestionStatusBadge,
   SpaceKindBadge,
   VisibilityBadge,
-} from '@/shared/ui/status-badges';
-import { translateText } from '@/shared/lib/i18n-core';
-import { formatOptionalDateTimeInTimeZone } from '@/shared/lib/time-zone';
+} from "@/shared/ui/status-badges";
+import { translateText } from "@/shared/lib/i18n-core";
+import { formatOptionalDateTimeInTimeZone } from "@/shared/lib/time-zone";
 
 export function SpaceDetailPage() {
   const navigate = useNavigate();
@@ -50,30 +56,34 @@ export function SpaceDetailPage() {
   const questionQuery = useQuestionList({
     page: 1,
     pageSize: 8,
-    sorting: 'LastActivityAtUtc DESC',
+    sorting: "LastActivityAtUtc DESC",
     spaceId: id,
   });
   const sourceOptionsQuery = useSourceList({
     page: 1,
     pageSize: 100,
-    sorting: 'Label ASC',
+    sorting: "Label ASC",
   });
   const tagOptionsQuery = useTagList({
     page: 1,
     pageSize: 100,
-    sorting: 'Name ASC',
+    sorting: "Name ASC",
   });
   const deleteSpace = useDeleteSpace();
-  const addTag = useAddSpaceTag(id ?? '');
-  const removeTag = useRemoveSpaceTag(id ?? '');
-  const addSource = useAddSpaceSource(id ?? '');
-  const removeSource = useRemoveSpaceSource(id ?? '');
-  const [selectedTagId, setSelectedTagId] = useState('');
-  const [selectedSourceId, setSelectedSourceId] = useState('');
+  const addTag = useAddSpaceTag(id ?? "");
+  const removeTag = useRemoveSpaceTag(id ?? "");
+  const addSource = useAddSpaceSource(id ?? "");
+  const removeSource = useRemoveSpaceSource(id ?? "");
+  const [selectedTagId, setSelectedTagId] = useState("");
+  const [selectedSourceId, setSelectedSourceId] = useState("");
 
   const availableTags = useMemo(() => {
-    const existing = new Set((spaceQuery.data?.tags ?? []).map((tag) => tag.id));
-    return (tagOptionsQuery.data?.items ?? []).filter((tag) => !existing.has(tag.id));
+    const existing = new Set(
+      (spaceQuery.data?.tags ?? []).map((tag) => tag.id),
+    );
+    return (tagOptionsQuery.data?.items ?? []).filter(
+      (tag) => !existing.has(tag.id),
+    );
   }, [spaceQuery.data?.tags, tagOptionsQuery.data?.items]);
 
   const availableSources = useMemo(() => {
@@ -96,8 +106,12 @@ export function SpaceDetailPage() {
 
   const showLoadingState =
     !spaceQuery.data &&
-    (spaceQuery.isLoading || questionQuery.isLoading || sourceOptionsQuery.isLoading);
-  const blocksQuestions = spaceQuery.data ? !spaceQuery.data.acceptsQuestions : false;
+    (spaceQuery.isLoading ||
+      questionQuery.isLoading ||
+      sourceOptionsQuery.isLoading);
+  const blocksQuestions = spaceQuery.data
+    ? !spaceQuery.data.acceptsQuestions
+    : false;
   const reviewGated = spaceQuery.data
     ? spaceQuery.data.kind === SpaceKind.ControlledPublication ||
       spaceQuery.data.kind === SpaceKind.ModeratedCollaboration
@@ -106,12 +120,18 @@ export function SpaceDetailPage() {
   return (
     <DetailLayout
       header={
-        <PageHeader
-          title={spaceQuery.data?.name ?? 'Space'}
-          description="Review visibility, workflow rules, curated sources, and the most recent question threads for this space."
-          descriptionMode="hint"
-          backTo="/app/spaces"
-        />
+        <>
+          <PageHeader
+            title={spaceQuery.data?.name ?? "Space"}
+            description="Review visibility, workflow rules, curated sources, and the most recent question threads for this space."
+            descriptionMode="hint"
+            backTo="/app/spaces"
+          />
+          <QnaModuleNav
+            activeKey="spaces"
+            intent="This space is the parent context. Review its rules before creating child questions, curation links, or taxonomy."
+          />
+        </>
       }
       sidebar={
         <>
@@ -120,33 +140,40 @@ export function SpaceDetailPage() {
               {blocksQuestions ? (
                 <Button size="sm" className="w-full justify-start" disabled>
                   <Plus className="size-4" />
-                  {translateText('New question')}
+                  {translateText("New question")}
                 </Button>
               ) : (
                 <Button asChild size="sm" className="w-full justify-start">
                   <Link to={`/app/questions/new?spaceId=${id}`}>
                     <Plus className="size-4" />
-                    {translateText('New question')}
+                    {translateText("New question")}
                   </Link>
                 </Button>
               )}
-              <Button asChild variant="outline" size="sm" className="w-full justify-start">
+              <Button
+                asChild
+                variant="outline"
+                size="sm"
+                className="w-full justify-start"
+              >
                 <Link to={`/app/spaces/${id}/edit`}>
                   <Pencil className="size-4" />
-                  {translateText('Edit')}
+                  {translateText("Edit")}
                 </Link>
               </Button>
               <ConfirmAction
                 title={translateText('Delete space "{name}"?', {
-                  name: spaceQuery.data?.name ?? translateText('this space'),
+                  name: spaceQuery.data?.name ?? translateText("this space"),
                 })}
                 description={translateText(
-                  'This removes the space and its operating rules from the workspace.',
+                  "This removes the space and its operating rules from the workspace.",
                 )}
-                confirmLabel={translateText('Delete space')}
+                confirmLabel={translateText("Delete space")}
                 isPending={deleteSpace.isPending}
                 onConfirm={() =>
-                  deleteSpace.mutateAsync(id).then(() => navigate('/app/spaces'))
+                  deleteSpace
+                    .mutateAsync(id)
+                    .then(() => navigate("/app/spaces"))
                 }
                 trigger={
                   <Button
@@ -155,13 +182,13 @@ export function SpaceDetailPage() {
                     className="col-span-2 w-full justify-start"
                   >
                     <Trash2 className="size-4" />
-                    {translateText('Delete')}
+                    {translateText("Delete")}
                   </Button>
                 }
               />
               {blocksQuestions ? (
                 <p className="col-span-2 text-xs text-muted-foreground">
-                  {translateText('This space does not accept new questions.')}
+                  {translateText("This space does not accept new questions.")}
                 </p>
               ) : null}
             </CardContent>
@@ -173,12 +200,12 @@ export function SpaceDetailPage() {
               <CardHeader>
                 <CardHeading>
                   <CardTitle className="flex items-center gap-2">
-                    <span>{translateText('Overview')}</span>
+                    <span>{translateText("Overview")}</span>
                     <ContextHint
                       content={translateText(
-                        'This summarizes the operating model and the major workflow gates.',
+                        "This summarizes the operating model and the major workflow gates.",
                       )}
-                      label={translateText('Overview details')}
+                      label={translateText("Overview details")}
                     />
                   </CardTitle>
                 </CardHeading>
@@ -186,22 +213,22 @@ export function SpaceDetailPage() {
               <CardContent>
                 <KeyValueList
                   items={[
-                    { label: 'Key', value: spaceQuery.data.key },
-                    { label: 'Language', value: spaceQuery.data.language },
+                    { label: "Key", value: spaceQuery.data.key },
+                    { label: "Language", value: spaceQuery.data.language },
                     {
-                      label: 'Questions',
+                      label: "Questions",
                       value: String(spaceQuery.data.questionCount),
                     },
                     {
-                      label: 'Curated sources',
+                      label: "Curated sources",
                       value: String(spaceQuery.data.curatedSources.length),
                     },
                     {
-                      label: 'Published at',
+                      label: "Published at",
                       value: formatOptionalDateTimeInTimeZone(
                         spaceQuery.data.publishedAtUtc,
                         portalTimeZone,
-                        translateText('Not set'),
+                        translateText("Not set"),
                       ),
                     },
                   ]}
@@ -225,19 +252,23 @@ export function SpaceDetailPage() {
           <SectionGrid
             items={[
               {
-                title: 'Visibility',
-                value: <VisibilityBadge visibility={spaceQuery.data.visibility} />,
+                title: "Visibility",
+                value: (
+                  <VisibilityBadge visibility={spaceQuery.data.visibility} />
+                ),
                 icon: BookOpen,
               },
               {
-                title: 'Model',
+                title: "Model",
                 value: <SpaceKindBadge kind={spaceQuery.data.kind} />,
                 icon: BookOpen,
               },
               {
-                title: 'Questions',
+                title: "Questions",
                 value: spaceQuery.data.questionCount,
-                description: translateText('Threads currently attached to this space'),
+                description: translateText(
+                  "Threads currently attached to this space",
+                ),
                 icon: Waypoints,
               },
             ]}
@@ -246,37 +277,51 @@ export function SpaceDetailPage() {
           <Card>
             <CardHeader>
               <CardHeading>
-                <CardTitle>{translateText('Workflow rules')}</CardTitle>
+                <CardTitle>{translateText("Workflow rules")}</CardTitle>
               </CardHeading>
             </CardHeader>
             <CardContent>
               <KeyValueList
                 items={[
                   {
-                    label: 'Accepts questions',
+                    label: "Accepts questions",
                     value: (
-                      <Badge variant={spaceQuery.data.acceptsQuestions ? 'success' : 'mono'}>
+                      <Badge
+                        variant={
+                          spaceQuery.data.acceptsQuestions ? "success" : "mono"
+                        }
+                      >
                         {translateText(
-                          spaceQuery.data.acceptsQuestions ? 'Enabled' : 'Disabled',
+                          spaceQuery.data.acceptsQuestions
+                            ? "Enabled"
+                            : "Disabled",
                         )}
                       </Badge>
                     ),
                   },
                   {
-                    label: 'Accepts answers',
+                    label: "Accepts answers",
                     value: (
-                      <Badge variant={spaceQuery.data.acceptsAnswers ? 'success' : 'mono'}>
+                      <Badge
+                        variant={
+                          spaceQuery.data.acceptsAnswers ? "success" : "mono"
+                        }
+                      >
                         {translateText(
-                          spaceQuery.data.acceptsAnswers ? 'Enabled' : 'Disabled',
+                          spaceQuery.data.acceptsAnswers
+                            ? "Enabled"
+                            : "Disabled",
                         )}
                       </Badge>
                     ),
                   },
                   {
-                    label: 'Review gate',
+                    label: "Review gate",
                     value: (
-                      <Badge variant={reviewGated ? 'warning' : 'secondary'}>
-                        {translateText(reviewGated ? 'Required by mode' : 'Open by mode')}
+                      <Badge variant={reviewGated ? "warning" : "secondary"}>
+                        {translateText(
+                          reviewGated ? "Required by mode" : "Open by mode",
+                        )}
                       </Badge>
                     ),
                   },
@@ -288,26 +333,26 @@ export function SpaceDetailPage() {
           <Card>
             <CardHeader>
               <CardHeading>
-                <CardTitle>{translateText('Publishing')}</CardTitle>
+                <CardTitle>{translateText("Publishing")}</CardTitle>
               </CardHeading>
             </CardHeader>
             <CardContent>
               <KeyValueList
                 items={[
                   {
-                    label: 'Published at',
+                    label: "Published at",
                     value: formatOptionalDateTimeInTimeZone(
                       spaceQuery.data.publishedAtUtc,
                       portalTimeZone,
-                      translateText('Not set'),
+                      translateText("Not set"),
                     ),
                   },
                   {
-                    label: 'Last validated',
+                    label: "Last validated",
                     value: formatOptionalDateTimeInTimeZone(
                       spaceQuery.data.lastValidatedAtUtc,
                       portalTimeZone,
-                      translateText('Not set'),
+                      translateText("Not set"),
                     ),
                   },
                 ]}
@@ -319,9 +364,9 @@ export function SpaceDetailPage() {
             <CardHeader>
               <CardHeading>
                 <CardTitle className="flex items-center gap-2">
-                  <span>{translateText('Tags')}</span>
+                  <span>{translateText("Tags")}</span>
                   <Badge variant="outline">
-                    {translateText('{count} tags', {
+                    {translateText("{count} tags", {
                       count: spaceQuery.data.tags.length,
                     })}
                   </Badge>
@@ -332,7 +377,11 @@ export function SpaceDetailPage() {
               {spaceQuery.data.tags.length ? (
                 <div className="flex flex-wrap gap-2">
                   {spaceQuery.data.tags.map((tag) => (
-                    <Badge key={tag.id} variant="outline" className="gap-2 px-3 py-1.5">
+                    <Badge
+                      key={tag.id}
+                      variant="outline"
+                      className="gap-2 px-3 py-1.5"
+                    >
                       <span>{tag.name}</span>
                       <button
                         type="button"
@@ -353,7 +402,9 @@ export function SpaceDetailPage() {
               <div className="flex flex-col gap-3 sm:flex-row">
                 <Select value={selectedTagId} onValueChange={setSelectedTagId}>
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder={translateText('Attach existing tag')} />
+                    <SelectValue
+                      placeholder={translateText("Attach existing tag")}
+                    />
                   </SelectTrigger>
                   <SelectContent>
                     {availableTags.map((tag) => (
@@ -368,10 +419,10 @@ export function SpaceDetailPage() {
                   onClick={() =>
                     addTag
                       .mutateAsync({ spaceId: id, tagId: selectedTagId })
-                      .then(() => setSelectedTagId(''))
+                      .then(() => setSelectedTagId(""))
                   }
                 >
-                  {translateText('Attach tag')}
+                  {translateText("Attach tag")}
                 </Button>
               </div>
             </CardContent>
@@ -381,9 +432,9 @@ export function SpaceDetailPage() {
             <CardHeader>
               <CardHeading>
                 <CardTitle className="flex items-center gap-2">
-                  <span>{translateText('Curated sources')}</span>
+                  <span>{translateText("Curated sources")}</span>
                   <Badge variant="outline">
-                    {translateText('{count} sources', {
+                    {translateText("{count} sources", {
                       count: spaceQuery.data.curatedSources.length,
                     })}
                   </Badge>
@@ -396,11 +447,11 @@ export function SpaceDetailPage() {
                   {spaceQuery.data.curatedSources.map((source) => (
                     <div
                       key={source.id}
-                      className="flex flex-col gap-3 rounded-2xl border border-border bg-muted/10 p-4 sm:flex-row sm:items-start sm:justify-between"
+                      className="flex flex-col gap-3 rounded-lg border border-border bg-muted/10 p-4 sm:flex-row sm:items-start sm:justify-between"
                     >
                       <div className="min-w-0">
                         <p className="font-medium text-mono">
-                          {source.label || translateText('Untitled source')}
+                          {source.label || translateText("Untitled source")}
                         </p>
                         <p className="mt-1 break-all text-sm text-muted-foreground">
                           {source.locator}
@@ -409,31 +460,35 @@ export function SpaceDetailPage() {
                       <div className="flex flex-wrap gap-2">
                         <VisibilityBadge visibility={source.visibility} />
                         {source.isAuthoritative ? (
-                          <Badge variant="primary">{translateText('Authoritative')}</Badge>
+                          <Badge variant="primary">
+                            {translateText("Authoritative")}
+                          </Badge>
                         ) : null}
                         {source.allowsPublicCitation ? (
                           <Badge variant="success" appearance="outline">
-                            {translateText('Public citation')}
+                            {translateText("Public citation")}
                           </Badge>
                         ) : null}
                         {source.allowsPublicExcerpt ? (
                           <Badge variant="outline">
-                            {translateText('Public excerpt')}
+                            {translateText("Public excerpt")}
                           </Badge>
                         ) : null}
                         <Button asChild variant="outline" size="sm">
                           <Link to={`/app/sources/${source.id}`}>
                             <Link2 className="size-4" />
-                            {translateText('Open source')}
+                            {translateText("Open source")}
                           </Link>
                         </Button>
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => void removeSource.mutateAsync(source.id)}
+                          onClick={() =>
+                            void removeSource.mutateAsync(source.id)
+                          }
                         >
                           <Trash2 className="size-4" />
-                          {translateText('Remove')}
+                          {translateText("Detach")}
                         </Button>
                       </div>
                     </div>
@@ -446,9 +501,14 @@ export function SpaceDetailPage() {
                 />
               )}
               <div className="flex flex-col gap-3 sm:flex-row">
-                <Select value={selectedSourceId} onValueChange={setSelectedSourceId}>
+                <Select
+                  value={selectedSourceId}
+                  onValueChange={setSelectedSourceId}
+                >
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder={translateText('Attach existing source')} />
+                    <SelectValue
+                      placeholder={translateText("Attach existing source")}
+                    />
                   </SelectTrigger>
                   <SelectContent>
                     {availableSources.map((source) => (
@@ -463,10 +523,10 @@ export function SpaceDetailPage() {
                   onClick={() =>
                     addSource
                       .mutateAsync({ spaceId: id, sourceId: selectedSourceId })
-                      .then(() => setSelectedSourceId(''))
+                      .then(() => setSelectedSourceId(""))
                   }
                 >
-                  {translateText('Attach source')}
+                  {translateText("Attach source")}
                 </Button>
               </div>
             </CardContent>
@@ -475,7 +535,7 @@ export function SpaceDetailPage() {
           <Card>
             <CardHeader>
               <CardHeading>
-                <CardTitle>{translateText('Recent questions')}</CardTitle>
+                <CardTitle>{translateText("Recent questions")}</CardTitle>
               </CardHeading>
             </CardHeader>
             <CardContent className="space-y-3">
@@ -483,7 +543,7 @@ export function SpaceDetailPage() {
                 (questionQuery.data?.items ?? []).map((question) => (
                   <div
                     key={question.id}
-                    className="flex flex-col gap-3 rounded-2xl border border-border bg-muted/10 p-4 sm:flex-row sm:items-start sm:justify-between"
+                    className="flex flex-col gap-3 rounded-lg border border-border bg-muted/10 p-4 sm:flex-row sm:items-start sm:justify-between"
                   >
                     <div className="min-w-0">
                       <Link
@@ -493,7 +553,8 @@ export function SpaceDetailPage() {
                         {question.title}
                       </Link>
                       <p className="mt-1 text-sm text-muted-foreground">
-                        {question.summary || translateText('No summary provided.')}
+                        {question.summary ||
+                          translateText("No summary provided.")}
                       </p>
                     </div>
                     <QuestionStatusBadge status={question.status} />
@@ -504,13 +565,16 @@ export function SpaceDetailPage() {
                   title="No questions yet"
                   description={
                     blocksQuestions
-                      ? 'Question intake is disabled for this space.'
-                      : 'Create the first thread in this space to start the QnA workflow.'
+                      ? "Question intake is disabled for this space."
+                      : "Create the first thread in this space to start the QnA workflow."
                   }
                   action={
                     blocksQuestions
                       ? undefined
-                      : { label: 'New question', to: `/app/questions/new?spaceId=${id}` }
+                      : {
+                          label: "New question",
+                          to: `/app/questions/new?spaceId=${id}`,
+                        }
                   }
                 />
               )}

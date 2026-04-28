@@ -1,17 +1,29 @@
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { X } from 'lucide-react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { X } from "lucide-react";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { QnaModuleNav } from "@/domains/qna/qna-module-nav";
 import {
   SourceKind,
   VisibilityScope,
   sourceKindLabels,
   visibilityScopeLabels,
-} from '@/shared/constants/backend-enums';
-import { useCreateSource, useSource, useUpdateSource } from '@/domains/sources/hooks';
-import { sourceFormSchema, type SourceFormValues } from '@/domains/sources/schemas';
-import { DetailLayout, KeyValueList, PageHeader } from '@/shared/layout/page-layouts';
+} from "@/shared/constants/backend-enums";
+import {
+  useCreateSource,
+  useSource,
+  useUpdateSource,
+} from "@/domains/sources/hooks";
+import {
+  sourceFormSchema,
+  type SourceFormValues,
+} from "@/domains/sources/schemas";
+import {
+  DetailLayout,
+  KeyValueList,
+  PageHeader,
+} from "@/shared/layout/page-layouts";
 import {
   Button,
   Card,
@@ -24,40 +36,40 @@ import {
   FormCardSkeleton,
   FormSectionHeading,
   SidebarSummarySkeleton,
-} from '@/shared/ui';
-import { ErrorState } from '@/shared/ui/placeholder-state';
+} from "@/shared/ui";
+import { ErrorState } from "@/shared/ui/placeholder-state";
 import {
   SelectField,
   SwitchField,
   TextField,
   TextareaField,
-} from '@/shared/ui/form-fields';
-import { translateText } from '@/shared/lib/i18n-core';
+} from "@/shared/ui/form-fields";
+import { translateText } from "@/shared/lib/i18n-core";
 
-export function SourceFormPage({ mode }: { mode: 'create' | 'edit' }) {
+export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
   const navigate = useNavigate();
   const { id } = useParams();
-  const sourceQuery = useSource(mode === 'edit' ? id : undefined);
+  const sourceQuery = useSource(mode === "edit" ? id : undefined);
   const createSource = useCreateSource();
-  const updateSource = useUpdateSource(id ?? '');
+  const updateSource = useUpdateSource(id ?? "");
 
   const form = useForm<SourceFormValues>({
     resolver: zodResolver(sourceFormSchema),
     defaultValues: {
       kind: SourceKind.Article,
-      locator: '',
-      label: '',
-      contextNote: '',
-      externalId: '',
-      language: '',
-      mediaType: '',
-      checksum: '',
-      metadataJson: '',
+      locator: "",
+      label: "",
+      contextNote: "",
+      externalId: "",
+      language: "",
+      mediaType: "",
+      checksum: "",
+      metadataJson: "",
       visibility: VisibilityScope.Internal,
       allowsPublicCitation: false,
       allowsPublicExcerpt: false,
       isAuthoritative: false,
-      capturedAtUtc: '',
+      capturedAtUtc: "",
       markVerified: false,
     },
   });
@@ -70,49 +82,55 @@ export function SourceFormPage({ mode }: { mode: 'create' | 'edit' }) {
     form.reset({
       kind: sourceQuery.data.kind,
       locator: sourceQuery.data.locator,
-      label: sourceQuery.data.label ?? '',
-      contextNote: sourceQuery.data.contextNote ?? '',
-      externalId: sourceQuery.data.externalId ?? '',
+      label: sourceQuery.data.label ?? "",
+      contextNote: sourceQuery.data.contextNote ?? "",
+      externalId: sourceQuery.data.externalId ?? "",
       language: sourceQuery.data.language,
-      mediaType: sourceQuery.data.mediaType ?? '',
+      mediaType: sourceQuery.data.mediaType ?? "",
       checksum: sourceQuery.data.checksum,
-      metadataJson: sourceQuery.data.metadataJson ?? '',
+      metadataJson: sourceQuery.data.metadataJson ?? "",
       visibility: sourceQuery.data.visibility,
       allowsPublicCitation: sourceQuery.data.allowsPublicCitation,
       allowsPublicExcerpt: sourceQuery.data.allowsPublicExcerpt,
       isAuthoritative: sourceQuery.data.isAuthoritative,
-      capturedAtUtc: sourceQuery.data.capturedAtUtc ?? '',
+      capturedAtUtc: sourceQuery.data.capturedAtUtc ?? "",
       markVerified: false,
     });
   }, [form, sourceQuery.data]);
 
   const isSubmitting = createSource.isPending || updateSource.isPending;
-  const backTo = mode === 'edit' && id ? `/app/sources/${id}` : '/app/sources';
+  const backTo = mode === "edit" && id ? `/app/sources/${id}` : "/app/sources";
 
   return (
     <DetailLayout
       header={
-        <PageHeader
-          title={mode === 'create' ? 'New source' : 'Edit source'}
-          description="Capture locator, trust metadata, and public-citation rules for reusable evidence."
-          descriptionMode="hint"
-          backTo={backTo}
-        />
+        <>
+          <PageHeader
+            title={mode === "create" ? "New source" : "Edit source"}
+            description="Capture locator, trust metadata, and public-citation rules for reusable evidence."
+            descriptionMode="hint"
+            backTo={backTo}
+          />
+          <QnaModuleNav
+            activeKey="sources"
+            intent="Sources become useful when attached to spaces, questions, or answers with clear public-use rules."
+          />
+        </>
       }
       sidebar={
-        mode === 'edit' && sourceQuery.isLoading ? (
+        mode === "edit" && sourceQuery.isLoading ? (
           <SidebarSummarySkeleton />
         ) : (
           <Card>
             <CardHeader>
               <CardHeading>
                 <CardTitle className="flex flex-wrap items-center gap-2">
-                  <span>{translateText('Quick notes')}</span>
+                  <span>{translateText("Quick notes")}</span>
                   <ContextHint
                     content={translateText(
-                      'Good sources are durable, clearly classified, and explicit about what can be shown publicly.',
+                      "Good sources are durable, clearly classified, and explicit about what can be shown publicly.",
                     )}
-                    label={translateText('Quick notes details')}
+                    label={translateText("Quick notes details")}
                   />
                 </CardTitle>
               </CardHeading>
@@ -120,9 +138,16 @@ export function SourceFormPage({ mode }: { mode: 'create' | 'edit' }) {
             <CardContent>
               <KeyValueList
                 items={[
-                  { label: 'Kinds', value: 'Article, web page, ticket, repository, chat, and more' },
-                  { label: 'Visibility', value: 'Internal to public indexed' },
-                  { label: 'Trust', value: 'Public citation and excerpt flags matter' },
+                  {
+                    label: "Kinds",
+                    value:
+                      "Article, web page, ticket, repository, chat, and more",
+                  },
+                  { label: "Visibility", value: "Internal to public indexed" },
+                  {
+                    label: "Trust",
+                    value: "Public citation and excerpt flags matter",
+                  },
                 ]}
               />
             </CardContent>
@@ -136,19 +161,19 @@ export function SourceFormPage({ mode }: { mode: 'create' | 'edit' }) {
           error={sourceQuery.error}
           retry={() => void sourceQuery.refetch()}
         />
-      ) : mode === 'edit' && sourceQuery.isLoading ? (
+      ) : mode === "edit" && sourceQuery.isLoading ? (
         <FormCardSkeleton fields={12} />
       ) : (
         <Card>
           <CardHeader>
             <CardHeading>
               <CardTitle className="flex flex-wrap items-center gap-2">
-                <span>{translateText('Source details')}</span>
+                <span>{translateText("Source details")}</span>
                 <ContextHint
                   content={translateText(
-                    'Start with the locator and classification, then capture trust, public-citation, and verification metadata.',
+                    "Start with the locator and classification, then capture trust, public-citation, and verification metadata.",
                   )}
-                  label={translateText('Form details')}
+                  label={translateText("Form details")}
                 />
               </CardTitle>
             </CardHeading>
@@ -170,7 +195,7 @@ export function SourceFormPage({ mode }: { mode: 'create' | 'edit' }) {
                     visibility: Number(values.visibility) as VisibilityScope,
                   };
 
-                  if (mode === 'create') {
+                  if (mode === "create") {
                     const createdId = await createSource.mutateAsync(body);
                     navigate(`/app/sources/${createdId}`);
                     return;
@@ -189,19 +214,23 @@ export function SourceFormPage({ mode }: { mode: 'create' | 'edit' }) {
                     control={form.control}
                     name="kind"
                     label="Source kind"
-                    options={Object.entries(sourceKindLabels).map(([value, label]) => ({
-                      value,
-                      label,
-                    }))}
+                    options={Object.entries(sourceKindLabels).map(
+                      ([value, label]) => ({
+                        value,
+                        label,
+                      }),
+                    )}
                   />
                   <SelectField
                     control={form.control}
                     name="visibility"
                     label="Visibility"
-                    options={Object.entries(visibilityScopeLabels).map(([value, label]) => ({
-                      value,
-                      label,
-                    }))}
+                    options={Object.entries(visibilityScopeLabels).map(
+                      ([value, label]) => ({
+                        value,
+                        label,
+                      }),
+                    )}
                   />
                 </div>
                 <TextField
@@ -211,12 +240,36 @@ export function SourceFormPage({ mode }: { mode: 'create' | 'edit' }) {
                   description="Use the canonical URL, path, repository URI, ticket reference, or document locator."
                 />
                 <div className="grid gap-4 md:grid-cols-2">
-                  <TextField control={form.control} name="label" label="Label" />
-                  <TextField control={form.control} name="contextNote" label="Context note" />
-                  <TextField control={form.control} name="externalId" label="External ID" />
-                  <TextField control={form.control} name="language" label="Language" />
-                  <TextField control={form.control} name="mediaType" label="Media type" />
-                  <TextField control={form.control} name="checksum" label="Checksum" />
+                  <TextField
+                    control={form.control}
+                    name="label"
+                    label="Label"
+                  />
+                  <TextField
+                    control={form.control}
+                    name="contextNote"
+                    label="Context note"
+                  />
+                  <TextField
+                    control={form.control}
+                    name="externalId"
+                    label="External ID"
+                  />
+                  <TextField
+                    control={form.control}
+                    name="language"
+                    label="Language"
+                  />
+                  <TextField
+                    control={form.control}
+                    name="mediaType"
+                    label="Media type"
+                  />
+                  <TextField
+                    control={form.control}
+                    name="checksum"
+                    label="Checksum"
+                  />
                   <TextField
                     control={form.control}
                     name="capturedAtUtc"
@@ -259,12 +312,14 @@ export function SourceFormPage({ mode }: { mode: 'create' | 'edit' }) {
                 </div>
                 <div className="flex flex-wrap items-center gap-3">
                   <Button type="submit" disabled={isSubmitting}>
-                    {translateText(mode === 'create' ? 'Create source' : 'Save changes')}
+                    {translateText(
+                      mode === "create" ? "Create source" : "Save changes",
+                    )}
                   </Button>
                   <Button asChild variant="outline">
                     <Link to={backTo}>
                       <X className="size-4" />
-                      {translateText('Cancel')}
+                      {translateText("Cancel")}
                     </Link>
                   </Button>
                 </div>

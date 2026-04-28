@@ -1,105 +1,74 @@
 import {
-  Activity,
   CircleDollarSign,
   Gauge,
-  MessageSquareText,
   MessagesSquare,
-  PanelsTopLeft,
   Settings,
-  Tags,
   Users,
-  Waypoints,
-} from 'lucide-react';
+  type LucideIcon,
+} from "lucide-react";
 
 export type NavigationItem = {
   key: string;
   label: string;
   description: string;
   path: string;
-  icon: typeof Gauge;
+  icon: LucideIcon;
+  activePaths?: string[];
   children?: NavigationItem[];
 };
 
-const qnaNavigationItems: NavigationItem[] = [
-  {
-    key: 'spaces',
-    label: 'Spaces',
-    description: 'QnA surfaces, modes, and governed knowledge',
-    path: '/app/spaces',
-    icon: PanelsTopLeft,
-  },
-  {
-    key: 'questions',
-    label: 'Questions',
-    description: 'Threads, workflow, duplicates, and accepted answers',
-    path: '/app/questions',
-    icon: MessagesSquare,
-  },
-  {
-    key: 'answers',
-    label: 'Answers',
-    description: 'Publication, validation, ranking, and retirement',
-    path: '/app/answers',
-    icon: MessageSquareText,
-  },
-  {
-    key: 'sources',
-    label: 'Sources',
-    description: 'Reusable evidence, citations, and curated references',
-    path: '/app/sources',
-    icon: Waypoints,
-  },
-  {
-    key: 'tags',
-    label: 'Tags',
-    description: 'Reusable taxonomy for spaces and questions',
-    path: '/app/tags',
-    icon: Tags,
-  },
-  {
-    key: 'activity',
-    label: 'Activity',
-    description: 'Operational audit trail and public signals',
-    path: '/app/activity',
-    icon: Activity,
-  },
-];
+const qnaModuleKeys = new Set([
+  "spaces",
+  "questions",
+  "answers",
+  "sources",
+  "tags",
+  "activity",
+]);
 
 export const portalNavigation: NavigationItem[] = [
   {
-    key: 'dashboard',
-    label: 'Dashboard',
-    description: 'Workspace overview and usage signals',
-    path: '/app/dashboard',
+    key: "dashboard",
+    label: "Dashboard",
+    description: "Workspace overview and usage signals",
+    path: "/app/dashboard",
     icon: Gauge,
   },
   {
-    key: 'qna',
-    label: 'QnA',
-    description: 'Operate QnA end to end',
-    path: '/app/spaces',
+    key: "qna",
+    label: "QnA",
+    description:
+      "Start with Spaces, then operate questions, answers, sources, tags, and activity.",
+    path: "/app/spaces",
     icon: MessagesSquare,
-    children: qnaNavigationItems,
+    activePaths: [
+      "/app/spaces",
+      "/app/questions",
+      "/app/answers",
+      "/app/sources",
+      "/app/tags",
+      "/app/activity",
+    ],
   },
   {
-    key: 'members',
-    label: 'Members',
-    description: 'People and workspace roles',
-    path: '/app/members',
+    key: "members",
+    label: "Members",
+    description: "People and workspace roles",
+    path: "/app/members",
     icon: Users,
   },
   {
-    key: 'billing',
-    label: 'Billing',
-    description: 'Plan, contact, and invoices',
-    path: '/app/billing',
+    key: "billing",
+    label: "Billing",
+    description: "Plan, contact, and invoices",
+    path: "/app/billing",
     icon: CircleDollarSign,
   },
   {
-    key: 'settings',
-    label: 'Settings',
-    description: 'Appearance, profile, and workspace',
-    path: '/app/settings/general',
+    key: "settings",
+    label: "Settings",
+    description: "Appearance, profile, and workspace",
+    path: "/app/settings/general",
     icon: Settings,
   },
 ];
@@ -120,6 +89,10 @@ export function findPortalNavigationPath(
         return [item, ...childPath];
       }
     }
+  }
+
+  if (items === portalNavigation && qnaModuleKeys.has(key)) {
+    return [portalNavigation[0]];
   }
 
   return [];

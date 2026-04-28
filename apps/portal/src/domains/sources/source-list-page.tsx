@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect } from "react";
 import {
   CheckCircle2,
   Pencil,
@@ -6,24 +6,29 @@ import {
   ShieldCheck,
   Trash2,
   Waypoints,
-} from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
-import { usePortalTimeZone } from '@/domains/settings/settings-hooks';
-import { useDeleteSource, useSourceList } from '@/domains/sources/hooks';
-import type { SourceDto } from '@/domains/sources/types';
+} from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { usePortalTimeZone } from "@/domains/settings/settings-hooks";
+import { useDeleteSource, useSourceList } from "@/domains/sources/hooks";
+import type { SourceDto } from "@/domains/sources/types";
 import {
   VisibilityScope,
   sourceKindLabels,
   visibilityScopeLabels,
-} from '@/shared/constants/backend-enums';
-import { ListLayout, PageHeader, SectionGrid } from '@/shared/layout/page-layouts';
-import { clampPage } from '@/shared/lib/pagination';
-import { formatNumericDateTimeInTimeZone } from '@/shared/lib/time-zone';
-import { useListQueryState } from '@/shared/lib/use-list-query-state';
-import { translateText } from '@/shared/lib/i18n-core';
-import { DataTable, type DataTableColumn } from '@/shared/ui/data-table';
-import { PaginationControls } from '@/shared/ui/pagination-controls';
-import { EmptyState, ErrorState } from '@/shared/ui/placeholder-state';
+} from "@/shared/constants/backend-enums";
+import { QnaModuleNav } from "@/domains/qna/qna-module-nav";
+import {
+  ListLayout,
+  PageHeader,
+  SectionGrid,
+} from "@/shared/layout/page-layouts";
+import { clampPage } from "@/shared/lib/pagination";
+import { formatNumericDateTimeInTimeZone } from "@/shared/lib/time-zone";
+import { useListQueryState } from "@/shared/lib/use-list-query-state";
+import { translateText } from "@/shared/lib/i18n-core";
+import { DataTable, type DataTableColumn } from "@/shared/ui/data-table";
+import { PaginationControls } from "@/shared/ui/pagination-controls";
+import { EmptyState, ErrorState } from "@/shared/ui/placeholder-state";
 import {
   Badge,
   Button,
@@ -35,20 +40,20 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/shared/ui';
-import { SourceKindBadge, VisibilityBadge } from '@/shared/ui/status-badges';
+} from "@/shared/ui";
+import { SourceKindBadge, VisibilityBadge } from "@/shared/ui/status-badges";
 
 const sortingOptions = [
-  { value: 'Label ASC', label: 'Label A-Z' },
-  { value: 'Kind ASC', label: 'Source kind' },
-  { value: 'LastVerifiedAtUtc DESC', label: 'Recently verified' },
-  { value: 'Locator ASC', label: 'Locator' },
+  { value: "Label ASC", label: "Label A-Z" },
+  { value: "Kind ASC", label: "Source kind" },
+  { value: "LastVerifiedAtUtc DESC", label: "Recently verified" },
+  { value: "Locator ASC", label: "Locator" },
 ];
 
 const SOURCE_FILTER_DEFAULTS = {
-  kind: 'all',
-  visibility: 'all',
-  authoritative: 'all',
+  kind: "all",
+  visibility: "all",
+  authoritative: "all",
 } as const;
 
 export function SourceListPage() {
@@ -67,19 +72,17 @@ export function SourceListPage() {
     setSorting,
     sorting,
   } = useListQueryState({
-    defaultSorting: 'Label ASC',
+    defaultSorting: "Label ASC",
     filterDefaults: SOURCE_FILTER_DEFAULTS,
   });
   const kindFilter = filters.kind;
   const visibilityFilter = filters.visibility;
   const authoritativeFilter = filters.authoritative;
-  const apiKind = kindFilter === 'all' ? undefined : Number(kindFilter);
+  const apiKind = kindFilter === "all" ? undefined : Number(kindFilter);
   const apiVisibility =
-    visibilityFilter === 'all' ? undefined : Number(visibilityFilter);
+    visibilityFilter === "all" ? undefined : Number(visibilityFilter);
   const apiAuthoritative =
-    authoritativeFilter === 'all'
-      ? undefined
-      : authoritativeFilter === 'true';
+    authoritativeFilter === "all" ? undefined : authoritativeFilter === "true";
 
   const sourceQuery = useSourceList({
     page,
@@ -106,36 +109,43 @@ export function SourceListPage() {
 
   const deleteSource = useDeleteSource();
   const sourceRows = sourceQuery.data?.items ?? [];
-  const authoritativeCount = sourceRows.filter((source) => source.isAuthoritative).length;
+  const authoritativeCount = sourceRows.filter(
+    (source) => source.isAuthoritative,
+  ).length;
   const publicCitationCount = sourceRows.filter(
     (source) =>
-      source.allowsPublicCitation && source.visibility >= VisibilityScope.Public,
+      source.allowsPublicCitation &&
+      source.visibility >= VisibilityScope.Public,
   ).length;
-  const verifiedCount = sourceRows.filter((source) => Boolean(source.lastVerifiedAtUtc)).length;
+  const verifiedCount = sourceRows.filter((source) =>
+    Boolean(source.lastVerifiedAtUtc),
+  ).length;
   const showMetricsLoadingState =
     sourceQuery.isLoading && sourceQuery.data === undefined;
 
   const columns: DataTableColumn<SourceDto>[] = [
     {
-      key: 'source',
-      header: 'Source',
+      key: "source",
+      header: "Source",
       cell: (source) => (
         <div className="space-y-1">
           <div className="font-medium text-mono">
-            {source.label || translateText('Untitled source')}
+            {source.label || translateText("Untitled source")}
           </div>
-          <div className="break-all text-sm text-muted-foreground">{source.locator}</div>
+          <div className="break-all text-sm text-muted-foreground">
+            {source.locator}
+          </div>
           <div className="text-sm text-muted-foreground">
             {source.language}
-            {source.contextNote ? ` • ${source.contextNote}` : ''}
+            {source.contextNote ? ` • ${source.contextNote}` : ""}
           </div>
         </div>
       ),
     },
     {
-      key: 'kind',
-      header: 'Type',
-      className: 'lg:w-[180px]',
+      key: "kind",
+      header: "Type",
+      className: "lg:w-[180px]",
       cell: (source) => (
         <div className="space-y-2">
           <SourceKindBadge kind={source.kind} />
@@ -144,39 +154,44 @@ export function SourceListPage() {
       ),
     },
     {
-      key: 'authoritative',
-      header: 'Trust',
-      className: 'lg:w-[180px]',
+      key: "authoritative",
+      header: "Trust",
+      className: "lg:w-[180px]",
       cell: (source) => (
         <div className="space-y-2 text-sm text-muted-foreground">
-          <Badge variant={source.isAuthoritative ? 'primary' : 'outline'}>
-            {translateText(source.isAuthoritative ? 'Authoritative' : 'Reference')}
+          <Badge variant={source.isAuthoritative ? "primary" : "outline"}>
+            {translateText(
+              source.isAuthoritative ? "Authoritative" : "Reference",
+            )}
           </Badge>
           {source.allowsPublicCitation ? (
             <Badge variant="success" appearance="outline">
-              {translateText('Public citation')}
+              {translateText("Public citation")}
             </Badge>
           ) : null}
           {source.allowsPublicExcerpt ? (
-            <Badge variant="outline">{translateText('Public excerpt')}</Badge>
+            <Badge variant="outline">{translateText("Public excerpt")}</Badge>
           ) : null}
         </div>
       ),
     },
     {
-      key: 'lastVerifiedAtUtc',
-      header: 'Verified',
-      className: 'lg:w-[160px]',
+      key: "lastVerifiedAtUtc",
+      header: "Verified",
+      className: "lg:w-[160px]",
       cell: (source) => (
         <span className="text-sm text-muted-foreground">
-          {formatNumericDateTimeInTimeZone(source.lastVerifiedAtUtc, portalTimeZone)}
+          {formatNumericDateTimeInTimeZone(
+            source.lastVerifiedAtUtc,
+            portalTimeZone,
+          )}
         </span>
       ),
     },
     {
-      key: 'actions',
-      header: 'Actions',
-      className: 'lg:w-[120px]',
+      key: "actions",
+      header: "Actions",
+      className: "lg:w-[120px]",
       cell: (source) => (
         <div
           className="flex items-center justify-end gap-1"
@@ -192,9 +207,9 @@ export function SourceListPage() {
               name: source.label || source.locator,
             })}
             description={translateText(
-              'This removes the source from the portal catalog and from future attachment flows.',
+              "This removes the source from the portal catalog and from future attachment flows.",
             )}
-            confirmLabel={translateText('Delete source')}
+            confirmLabel={translateText("Delete source")}
             isPending={deleteSource.isPending}
             onConfirm={() => deleteSource.mutateAsync(source.id)}
             trigger={
@@ -211,19 +226,25 @@ export function SourceListPage() {
   return (
     <ListLayout
       header={
-        <PageHeader
-          title="Sources"
-          description="Maintain the evidence, citations, and reusable reference material behind questions and answers."
-          descriptionMode="inline"
-          actions={
-            <Button asChild>
-              <Link to="/app/sources/new">
-                <Plus className="size-4" />
-                {translateText('New source')}
-              </Link>
-            </Button>
-          }
-        />
+        <>
+          <PageHeader
+            title="Sources"
+            description="Maintain the evidence, citations, and reusable reference material behind questions and answers."
+            descriptionMode="inline"
+            actions={
+              <Button asChild>
+                <Link to="/app/sources/new">
+                  <Plus className="size-4" />
+                  {translateText("New source")}
+                </Link>
+              </Button>
+            }
+          />
+          <QnaModuleNav
+            activeKey="sources"
+            intent="Sources prove answers and spaces. Keep locator, visibility, and public-citation rules explicit before attaching them downstream."
+          />
+        </>
       }
     >
       {showMetricsLoadingState ? (
@@ -232,29 +253,33 @@ export function SourceListPage() {
         <SectionGrid
           items={[
             {
-              title: 'Total',
+              title: "Total",
               value: sourceQuery.data?.totalCount ?? 0,
               description: debouncedSearch
-                ? translateText('Search: {value}', { value: debouncedSearch })
-                : translateText('Reusable source records in this workspace'),
+                ? translateText("Search: {value}", { value: debouncedSearch })
+                : translateText("Reusable source records in this workspace"),
               icon: Waypoints,
             },
             {
-              title: 'Authoritative',
+              title: "Authoritative",
               value: authoritativeCount,
-              description: translateText('Strongest source-of-truth records'),
+              description: translateText("Strongest source-of-truth records"),
               icon: ShieldCheck,
             },
             {
-              title: 'Public citation',
+              title: "Public citation",
               value: publicCitationCount,
-              description: translateText('Sources that can be exposed publicly'),
+              description: translateText(
+                "Sources that can be exposed publicly",
+              ),
               icon: CheckCircle2,
             },
             {
-              title: 'Verified',
+              title: "Verified",
               value: verifiedCount,
-              description: translateText('Sources with a verification timestamp'),
+              description: translateText(
+                "Sources with a verification timestamp",
+              ),
               icon: ShieldCheck,
             },
           ]}
@@ -275,12 +300,15 @@ export function SourceListPage() {
               <Input
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
-                placeholder={translateText('Search sources')}
+                placeholder={translateText("Search sources")}
               />
             </div>
-            <Select value={kindFilter} onValueChange={(value) => setFilter('kind', value)}>
+            <Select
+              value={kindFilter}
+              onValueChange={(value) => setFilter("kind", value)}
+            >
               <SelectTrigger className="w-full">
-                <SelectValue placeholder={translateText('Source kind')} />
+                <SelectValue placeholder={translateText("Source kind")} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All kinds</SelectItem>
@@ -293,10 +321,10 @@ export function SourceListPage() {
             </Select>
             <Select
               value={visibilityFilter}
-              onValueChange={(value) => setFilter('visibility', value)}
+              onValueChange={(value) => setFilter("visibility", value)}
             >
               <SelectTrigger className="w-full">
-                <SelectValue placeholder={translateText('Visibility')} />
+                <SelectValue placeholder={translateText("Visibility")} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All visibility</SelectItem>
@@ -309,10 +337,12 @@ export function SourceListPage() {
             </Select>
             <Select
               value={authoritativeFilter}
-              onValueChange={(value) => setFilter('authoritative', value)}
+              onValueChange={(value) => setFilter("authoritative", value)}
             >
               <SelectTrigger className="w-full">
-                <SelectValue placeholder={translateText('Authoritative state')} />
+                <SelectValue
+                  placeholder={translateText("Authoritative state")}
+                />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All trust states</SelectItem>
@@ -323,7 +353,7 @@ export function SourceListPage() {
             <div className="sm:col-span-2 xl:col-span-4">
               <Select value={sorting} onValueChange={setSorting}>
                 <SelectTrigger className="w-full xl:max-w-[240px]">
-                  <SelectValue placeholder={translateText('Sort sources')} />
+                  <SelectValue placeholder={translateText("Sort sources")} />
                 </SelectTrigger>
                 <SelectContent>
                   {sortingOptions.map((option) => (
@@ -340,7 +370,7 @@ export function SourceListPage() {
           <EmptyState
             title="No sources in view"
             description="Create a source record so questions and answers can cite stable evidence."
-            action={{ label: 'New source', to: '/app/sources/new' }}
+            action={{ label: "New source", to: "/app/sources/new" }}
           />
         }
         errorState={

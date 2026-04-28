@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo } from "react";
 import {
   CheckCircle2,
   Medal,
@@ -7,23 +7,28 @@ import {
   ShieldCheck,
   Trash2,
   Vote,
-} from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAnswerList, useDeleteAnswer } from '@/domains/answers/hooks';
-import type { AnswerDto } from '@/domains/answers/types';
-import { useQuestionList } from '@/domains/questions/hooks';
+} from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAnswerList, useDeleteAnswer } from "@/domains/answers/hooks";
+import type { AnswerDto } from "@/domains/answers/types";
+import { QnaModuleNav } from "@/domains/qna/qna-module-nav";
+import { useQuestionList } from "@/domains/questions/hooks";
 import {
   AnswerStatus,
   answerStatusLabels,
   visibilityScopeLabels,
-} from '@/shared/constants/backend-enums';
-import { ListLayout, PageHeader, SectionGrid } from '@/shared/layout/page-layouts';
-import { clampPage } from '@/shared/lib/pagination';
-import { useListQueryState } from '@/shared/lib/use-list-query-state';
-import { translateText } from '@/shared/lib/i18n-core';
-import { DataTable, type DataTableColumn } from '@/shared/ui/data-table';
-import { PaginationControls } from '@/shared/ui/pagination-controls';
-import { EmptyState, ErrorState } from '@/shared/ui/placeholder-state';
+} from "@/shared/constants/backend-enums";
+import {
+  ListLayout,
+  PageHeader,
+  SectionGrid,
+} from "@/shared/layout/page-layouts";
+import { clampPage } from "@/shared/lib/pagination";
+import { useListQueryState } from "@/shared/lib/use-list-query-state";
+import { translateText } from "@/shared/lib/i18n-core";
+import { DataTable, type DataTableColumn } from "@/shared/ui/data-table";
+import { PaginationControls } from "@/shared/ui/pagination-controls";
+import { EmptyState, ErrorState } from "@/shared/ui/placeholder-state";
 import {
   Badge,
   Button,
@@ -34,22 +39,26 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/shared/ui';
-import { AnswerKindBadge, AnswerStatusBadge, VisibilityBadge } from '@/shared/ui/status-badges';
+} from "@/shared/ui";
+import {
+  AnswerKindBadge,
+  AnswerStatusBadge,
+  VisibilityBadge,
+} from "@/shared/ui/status-badges";
 
 const sortingOptions = [
-  { value: 'Sort ASC', label: 'Sort' },
-  { value: 'Score DESC', label: 'Score' },
-  { value: 'PublishedAtUtc DESC', label: 'Recently published' },
-  { value: 'VoteScore DESC', label: 'Vote score' },
-  { value: 'AiConfidenceScore DESC', label: 'AI confidence' },
+  { value: "Sort ASC", label: "Sort" },
+  { value: "Score DESC", label: "Score" },
+  { value: "PublishedAtUtc DESC", label: "Recently published" },
+  { value: "VoteScore DESC", label: "Vote score" },
+  { value: "AiConfidenceScore DESC", label: "AI confidence" },
 ];
 
 const ANSWER_FILTER_DEFAULTS = {
-  status: 'all',
-  questionId: 'all',
-  accepted: 'all',
-  visibility: 'all',
+  status: "all",
+  questionId: "all",
+  accepted: "all",
+  visibility: "all",
 } as const;
 
 export function AnswerListPage() {
@@ -64,19 +73,19 @@ export function AnswerListPage() {
     setSorting,
     sorting,
   } = useListQueryState({
-    defaultSorting: 'Sort ASC',
+    defaultSorting: "Sort ASC",
     filterDefaults: ANSWER_FILTER_DEFAULTS,
   });
   const statusFilter = filters.status;
   const questionFilter = filters.questionId;
   const acceptedFilter = filters.accepted;
   const visibilityFilter = filters.visibility;
-  const apiStatus = statusFilter === 'all' ? undefined : Number(statusFilter);
-  const apiQuestionId = questionFilter === 'all' ? undefined : questionFilter;
+  const apiStatus = statusFilter === "all" ? undefined : Number(statusFilter);
+  const apiQuestionId = questionFilter === "all" ? undefined : questionFilter;
   const apiAccepted =
-    acceptedFilter === 'all' ? undefined : acceptedFilter === 'true';
+    acceptedFilter === "all" ? undefined : acceptedFilter === "true";
   const apiVisibility =
-    visibilityFilter === 'all' ? undefined : Number(visibilityFilter);
+    visibilityFilter === "all" ? undefined : Number(visibilityFilter);
 
   const answerQuery = useAnswerList({
     page,
@@ -90,7 +99,7 @@ export function AnswerListPage() {
   const questionOptionsQuery = useQuestionList({
     page: 1,
     pageSize: 100,
-    sorting: 'Title ASC',
+    sorting: "Title ASC",
   });
 
   useEffect(() => {
@@ -130,8 +139,8 @@ export function AnswerListPage() {
 
   const columns: DataTableColumn<AnswerDto>[] = [
     {
-      key: 'headline',
-      header: 'Answer',
+      key: "headline",
+      header: "Answer",
       cell: (answer) => (
         <div className="space-y-1">
           <div className="font-medium text-mono">{answer.headline}</div>
@@ -139,15 +148,17 @@ export function AnswerListPage() {
             {questionLookup[answer.questionId] ?? answer.questionId}
           </div>
           {answer.body ? (
-            <div className="line-clamp-2 text-sm text-muted-foreground">{answer.body}</div>
+            <div className="line-clamp-2 text-sm text-muted-foreground">
+              {answer.body}
+            </div>
           ) : null}
         </div>
       ),
     },
     {
-      key: 'status',
-      header: 'Status',
-      className: 'lg:w-[160px]',
+      key: "status",
+      header: "Status",
+      className: "lg:w-[160px]",
       cell: (answer) => (
         <div className="space-y-2">
           <AnswerStatusBadge status={answer.status} />
@@ -156,29 +167,31 @@ export function AnswerListPage() {
       ),
     },
     {
-      key: 'kind',
-      header: 'Type',
-      className: 'lg:w-[160px]',
+      key: "kind",
+      header: "Type",
+      className: "lg:w-[160px]",
       cell: (answer) => (
         <div className="space-y-2">
           <AnswerKindBadge kind={answer.kind} />
           {answer.isAccepted ? (
-            <Badge variant="success">{translateText('Accepted')}</Badge>
+            <Badge variant="success">{translateText("Accepted")}</Badge>
           ) : null}
         </div>
       ),
     },
     {
-      key: 'signals',
-      header: 'Signals',
-      className: 'lg:w-[160px]',
+      key: "signals",
+      header: "Signals",
+      className: "lg:w-[160px]",
       cell: (answer) => (
         <div className="space-y-1 text-sm text-muted-foreground">
-          <div>{translateText('Score {value}', { value: answer.score })}</div>
-          <div>{translateText('Sort {value}', { value: answer.sort })}</div>
-          <div>{translateText('Votes {value}', { value: answer.voteScore })}</div>
+          <div>{translateText("Score {value}", { value: answer.score })}</div>
+          <div>{translateText("Sort {value}", { value: answer.sort })}</div>
           <div>
-            {translateText('Confidence {value}', {
+            {translateText("Votes {value}", { value: answer.voteScore })}
+          </div>
+          <div>
+            {translateText("Confidence {value}", {
               value: answer.aiConfidenceScore,
             })}
           </div>
@@ -186,9 +199,9 @@ export function AnswerListPage() {
       ),
     },
     {
-      key: 'actions',
-      header: 'Actions',
-      className: 'lg:w-[120px]',
+      key: "actions",
+      header: "Actions",
+      className: "lg:w-[120px]",
       cell: (answer) => (
         <div
           className="flex items-center justify-end gap-1"
@@ -204,9 +217,9 @@ export function AnswerListPage() {
               name: answer.headline,
             })}
             description={translateText(
-              'This removes the answer candidate and any vote-based ranking attached to it.',
+              "This removes the answer candidate and any vote-based ranking attached to it.",
             )}
-            confirmLabel={translateText('Delete answer')}
+            confirmLabel={translateText("Delete answer")}
             isPending={deleteAnswer.isPending}
             onConfirm={() => deleteAnswer.mutateAsync(answer.id)}
             trigger={
@@ -223,19 +236,25 @@ export function AnswerListPage() {
   return (
     <ListLayout
       header={
-        <PageHeader
-          title="Answers"
-          description="Manage answer candidates, official guidance, ranking, validation, and retirement across all threads."
-          descriptionMode="inline"
-          actions={
-            <Button asChild>
-              <Link to="/app/answers/new">
-                <Plus className="size-4" />
-                {translateText('New answer')}
-              </Link>
-            </Button>
-          }
-        />
+        <>
+          <PageHeader
+            title="Answers"
+            description="Manage answer candidates, official guidance, ranking, validation, and retirement across all threads."
+            descriptionMode="inline"
+            actions={
+              <Button asChild>
+                <Link to="/app/answers/new">
+                  <Plus className="size-4" />
+                  {translateText("New answer")}
+                </Link>
+              </Button>
+            }
+          />
+          <QnaModuleNav
+            activeKey="answers"
+            intent="Answers resolve question threads, inherit their space context, and become trusted knowledge only after publication and validation."
+          />
+        </>
       }
     >
       {showMetricsLoadingState ? (
@@ -244,27 +263,29 @@ export function AnswerListPage() {
         <SectionGrid
           items={[
             {
-              title: 'Total',
+              title: "Total",
               value: answerQuery.data?.totalCount ?? 0,
-              description: translateText('Answer candidates in this workspace'),
+              description: translateText("Answer candidates in this workspace"),
               icon: Medal,
             },
             {
-              title: 'Published',
+              title: "Published",
               value: publishedCount,
-              description: translateText('Visible or validated answers'),
+              description: translateText("Visible or validated answers"),
               icon: ShieldCheck,
             },
             {
-              title: 'Accepted',
+              title: "Accepted",
               value: acceptedCount,
-              description: translateText('Currently chosen thread resolutions'),
+              description: translateText("Currently chosen thread resolutions"),
               icon: CheckCircle2,
             },
             {
-              title: 'Official',
+              title: "Official",
               value: officialCount,
-              description: translateText('Brand-owned or operationally official answers'),
+              description: translateText(
+                "Brand-owned or operationally official answers",
+              ),
               icon: Vote,
             },
           ]}
@@ -281,9 +302,12 @@ export function AnswerListPage() {
         onRowClick={(answer) => navigate(`/app/answers/${answer.id}`)}
         toolbar={
           <div className="grid w-full gap-2 sm:grid-cols-2 xl:grid-cols-[220px_220px_220px_220px]">
-            <Select value={questionFilter} onValueChange={(value) => setFilter('questionId', value)}>
+            <Select
+              value={questionFilter}
+              onValueChange={(value) => setFilter("questionId", value)}
+            >
               <SelectTrigger className="w-full">
-                <SelectValue placeholder={translateText('Question')} />
+                <SelectValue placeholder={translateText("Question")} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All questions</SelectItem>
@@ -294,9 +318,12 @@ export function AnswerListPage() {
                 ))}
               </SelectContent>
             </Select>
-            <Select value={statusFilter} onValueChange={(value) => setFilter('status', value)}>
+            <Select
+              value={statusFilter}
+              onValueChange={(value) => setFilter("status", value)}
+            >
               <SelectTrigger className="w-full">
-                <SelectValue placeholder={translateText('Status')} />
+                <SelectValue placeholder={translateText("Status")} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All statuses</SelectItem>
@@ -309,10 +336,10 @@ export function AnswerListPage() {
             </Select>
             <Select
               value={visibilityFilter}
-              onValueChange={(value) => setFilter('visibility', value)}
+              onValueChange={(value) => setFilter("visibility", value)}
             >
               <SelectTrigger className="w-full">
-                <SelectValue placeholder={translateText('Visibility')} />
+                <SelectValue placeholder={translateText("Visibility")} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All visibility</SelectItem>
@@ -323,9 +350,12 @@ export function AnswerListPage() {
                 ))}
               </SelectContent>
             </Select>
-            <Select value={acceptedFilter} onValueChange={(value) => setFilter('accepted', value)}>
+            <Select
+              value={acceptedFilter}
+              onValueChange={(value) => setFilter("accepted", value)}
+            >
               <SelectTrigger className="w-full">
-                <SelectValue placeholder={translateText('Accepted state')} />
+                <SelectValue placeholder={translateText("Accepted state")} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All answer states</SelectItem>
@@ -336,7 +366,7 @@ export function AnswerListPage() {
             <div className="sm:col-span-2 xl:col-span-4">
               <Select value={sorting} onValueChange={setSorting}>
                 <SelectTrigger className="w-full xl:max-w-[240px]">
-                  <SelectValue placeholder={translateText('Sort answers')} />
+                  <SelectValue placeholder={translateText("Sort answers")} />
                 </SelectTrigger>
                 <SelectContent>
                   {sortingOptions.map((option) => (
@@ -353,7 +383,7 @@ export function AnswerListPage() {
           <EmptyState
             title="No answers in view"
             description="Create an answer candidate to begin ranking and validation."
-            action={{ label: 'New answer', to: '/app/answers/new' }}
+            action={{ label: "New answer", to: "/app/answers/new" }}
           />
         }
         errorState={

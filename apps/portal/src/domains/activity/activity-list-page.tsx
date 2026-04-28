@@ -1,23 +1,28 @@
-import { useEffect } from 'react';
-import { Activity, Eye, ShieldCheck, TriangleAlert } from 'lucide-react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
-import { usePortalTimeZone } from '@/domains/settings/settings-hooks';
-import { useActivityList } from '@/domains/activity/hooks';
-import type { ActivityDto } from '@/domains/activity/types';
+import { useEffect } from "react";
+import { Activity, Eye, ShieldCheck, TriangleAlert } from "lucide-react";
+import { useSearchParams, useNavigate } from "react-router-dom";
+import { QnaModuleNav } from "@/domains/qna/qna-module-nav";
+import { usePortalTimeZone } from "@/domains/settings/settings-hooks";
+import { useActivityList } from "@/domains/activity/hooks";
+import type { ActivityDto } from "@/domains/activity/types";
 import {
   ActivityKind,
   ActorKind,
   activityKindLabels,
   actorKindLabels,
-} from '@/shared/constants/backend-enums';
-import { ListLayout, PageHeader, SectionGrid } from '@/shared/layout/page-layouts';
-import { clampPage } from '@/shared/lib/pagination';
-import { formatNumericDateTimeInTimeZone } from '@/shared/lib/time-zone';
-import { useListQueryState } from '@/shared/lib/use-list-query-state';
-import { DataTable, type DataTableColumn } from '@/shared/ui/data-table';
-import { PaginationControls } from '@/shared/ui/pagination-controls';
-import { EmptyState, ErrorState } from '@/shared/ui/placeholder-state';
-import { translateText } from '@/shared/lib/i18n-core';
+} from "@/shared/constants/backend-enums";
+import {
+  ListLayout,
+  PageHeader,
+  SectionGrid,
+} from "@/shared/layout/page-layouts";
+import { clampPage } from "@/shared/lib/pagination";
+import { formatNumericDateTimeInTimeZone } from "@/shared/lib/time-zone";
+import { useListQueryState } from "@/shared/lib/use-list-query-state";
+import { DataTable, type DataTableColumn } from "@/shared/ui/data-table";
+import { PaginationControls } from "@/shared/ui/pagination-controls";
+import { EmptyState, ErrorState } from "@/shared/ui/placeholder-state";
+import { translateText } from "@/shared/lib/i18n-core";
 import {
   SectionGridSkeleton,
   Select,
@@ -25,17 +30,17 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/shared/ui';
-import { ActivityKindBadge, ActorKindBadge } from '@/shared/ui/status-badges';
+} from "@/shared/ui";
+import { ActivityKindBadge, ActorKindBadge } from "@/shared/ui/status-badges";
 
 const sortingOptions = [
-  { value: 'OccurredAtUtc DESC', label: 'Latest first' },
-  { value: 'OccurredAtUtc ASC', label: 'Oldest first' },
+  { value: "OccurredAtUtc DESC", label: "Latest first" },
+  { value: "OccurredAtUtc ASC", label: "Oldest first" },
 ];
 
 const ACTIVITY_FILTER_DEFAULTS = {
-  kind: 'all',
-  actorKind: 'all',
+  kind: "all",
+  actorKind: "all",
 } as const;
 
 export function ActivityListPage() {
@@ -52,16 +57,16 @@ export function ActivityListPage() {
     setSorting,
     sorting,
   } = useListQueryState({
-    defaultSorting: 'OccurredAtUtc DESC',
+    defaultSorting: "OccurredAtUtc DESC",
     filterDefaults: ACTIVITY_FILTER_DEFAULTS,
   });
   const kindFilter = filters.kind;
   const actorKindFilter = filters.actorKind;
-  const apiKind = kindFilter === 'all' ? undefined : Number(kindFilter);
+  const apiKind = kindFilter === "all" ? undefined : Number(kindFilter);
   const apiActorKind =
-    actorKindFilter === 'all' ? undefined : Number(actorKindFilter);
-  const questionId = searchParams.get('questionId') ?? undefined;
-  const answerId = searchParams.get('answerId') ?? undefined;
+    actorKindFilter === "all" ? undefined : Number(actorKindFilter);
+  const questionId = searchParams.get("questionId") ?? undefined;
+  const answerId = searchParams.get("answerId") ?? undefined;
 
   const activityQuery = useActivityList({
     page,
@@ -102,8 +107,8 @@ export function ActivityListPage() {
 
   const columns: DataTableColumn<ActivityDto>[] = [
     {
-      key: 'kind',
-      header: 'Event',
+      key: "kind",
+      header: "Event",
       cell: (event) => (
         <div className="space-y-2">
           <ActivityKindBadge kind={event.kind} />
@@ -112,36 +117,40 @@ export function ActivityListPage() {
       ),
     },
     {
-      key: 'notes',
-      header: 'Details',
+      key: "notes",
+      header: "Details",
       cell: (event) => (
         <div className="space-y-1">
           <div className="font-medium text-mono">
             {event.actorLabel || event.userPrint}
           </div>
           <div className="line-clamp-2 text-sm text-muted-foreground">
-            {event.notes || translateText('No notes recorded.')}
+            {event.notes || translateText("No notes recorded.")}
           </div>
         </div>
       ),
     },
     {
-      key: 'subject',
-      header: 'Subject',
-      className: 'lg:w-[200px]',
+      key: "subject",
+      header: "Subject",
+      className: "lg:w-[200px]",
       cell: (event) => (
         <div className="space-y-1 text-sm text-muted-foreground">
-          <div>{translateText('Question {value}', { value: event.questionId })}</div>
+          <div>
+            {translateText("Question {value}", { value: event.questionId })}
+          </div>
           {event.answerId ? (
-            <div>{translateText('Answer {value}', { value: event.answerId })}</div>
+            <div>
+              {translateText("Answer {value}", { value: event.answerId })}
+            </div>
           ) : null}
         </div>
       ),
     },
     {
-      key: 'occurredAtUtc',
-      header: 'Occurred',
-      className: 'lg:w-[160px]',
+      key: "occurredAtUtc",
+      header: "Occurred",
+      className: "lg:w-[160px]",
       cell: (event) => (
         <span className="text-sm text-muted-foreground">
           {formatNumericDateTimeInTimeZone(event.occurredAtUtc, portalTimeZone)}
@@ -153,11 +162,17 @@ export function ActivityListPage() {
   return (
     <ListLayout
       header={
-        <PageHeader
-          title="Activity"
-          description="Review moderation actions, workflow transitions, and public signals across QnA threads."
-          descriptionMode="inline"
-        />
+        <>
+          <PageHeader
+            title="Activity"
+            description="Review moderation actions, workflow transitions, and public signals across QnA threads."
+            descriptionMode="inline"
+          />
+          <QnaModuleNav
+            activeKey="activity"
+            intent="Activity is the audit trail for spaces, question workflow, answer lifecycle, and public feedback signals."
+          />
+        </>
       }
     >
       {activityQuery.isLoading && activityQuery.data === undefined ? (
@@ -166,31 +181,33 @@ export function ActivityListPage() {
         <SectionGrid
           items={[
             {
-              title: 'Total',
+              title: "Total",
               value: activityQuery.data?.totalCount ?? 0,
               description: questionId
-                ? translateText('Scoped to the current question thread')
+                ? translateText("Scoped to the current question thread")
                 : answerId
-                  ? translateText('Scoped to the current answer')
-                  : translateText('Audit trail and public-signal events'),
+                  ? translateText("Scoped to the current answer")
+                  : translateText("Audit trail and public-signal events"),
               icon: Activity,
             },
             {
-              title: 'Moderation',
+              title: "Moderation",
               value: moderationCount,
-              description: translateText('Events caused by moderators'),
+              description: translateText("Events caused by moderators"),
               icon: ShieldCheck,
             },
             {
-              title: 'Signals',
+              title: "Signals",
               value: signalCount,
-              description: translateText('Feedback, votes, and reports'),
+              description: translateText("Feedback, votes, and reports"),
               icon: Eye,
             },
             {
-              title: 'Escalations',
+              title: "Escalations",
               value: escalationCount,
-              description: translateText('Threads that left normal QnA resolution'),
+              description: translateText(
+                "Threads that left normal QnA resolution",
+              ),
               icon: TriangleAlert,
             },
           ]}
@@ -207,9 +224,12 @@ export function ActivityListPage() {
         onRowClick={(row) => navigate(`/app/activity/${row.id}`)}
         toolbar={
           <div className="grid w-full gap-2 sm:grid-cols-2 xl:grid-cols-[220px_220px_220px]">
-            <Select value={kindFilter} onValueChange={(value) => setFilter('kind', value)}>
+            <Select
+              value={kindFilter}
+              onValueChange={(value) => setFilter("kind", value)}
+            >
               <SelectTrigger className="w-full">
-                <SelectValue placeholder={translateText('Event kind')} />
+                <SelectValue placeholder={translateText("Event kind")} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All event kinds</SelectItem>
@@ -222,10 +242,10 @@ export function ActivityListPage() {
             </Select>
             <Select
               value={actorKindFilter}
-              onValueChange={(value) => setFilter('actorKind', value)}
+              onValueChange={(value) => setFilter("actorKind", value)}
             >
               <SelectTrigger className="w-full">
-                <SelectValue placeholder={translateText('Actor kind')} />
+                <SelectValue placeholder={translateText("Actor kind")} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All actors</SelectItem>
@@ -238,15 +258,15 @@ export function ActivityListPage() {
             </Select>
             <Select value={sorting} onValueChange={setSorting}>
               <SelectTrigger className="w-full">
-                <SelectValue placeholder={translateText('Sort events')} />
+                <SelectValue placeholder={translateText("Sort events")} />
               </SelectTrigger>
-                <SelectContent>
-                  {sortingOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {translateText(option.label)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
+              <SelectContent>
+                {sortingOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {translateText(option.label)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
             </Select>
           </div>
         }

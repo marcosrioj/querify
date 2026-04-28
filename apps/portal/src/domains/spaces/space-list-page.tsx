@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect } from "react";
 import {
   Eye,
   FolderKanban,
@@ -7,25 +7,30 @@ import {
   Plus,
   ShieldCheck,
   Trash2,
-} from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
-import { usePortalTimeZone } from '@/domains/settings/settings-hooks';
-import { useDeleteSpace, useSpaceList } from '@/domains/spaces/hooks';
-import type { SpaceDto } from '@/domains/spaces/types';
+} from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { QnaModuleNav } from "@/domains/qna/qna-module-nav";
+import { usePortalTimeZone } from "@/domains/settings/settings-hooks";
+import { useDeleteSpace, useSpaceList } from "@/domains/spaces/hooks";
+import type { SpaceDto } from "@/domains/spaces/types";
 import {
   SpaceKind,
   VisibilityScope,
   spaceKindLabels,
   visibilityScopeLabels,
-} from '@/shared/constants/backend-enums';
-import { ListLayout, PageHeader, SectionGrid } from '@/shared/layout/page-layouts';
-import { clampPage } from '@/shared/lib/pagination';
-import { formatNumericDateTimeInTimeZone } from '@/shared/lib/time-zone';
-import { useListQueryState } from '@/shared/lib/use-list-query-state';
-import { DataTable, type DataTableColumn } from '@/shared/ui/data-table';
-import { PaginationControls } from '@/shared/ui/pagination-controls';
-import { EmptyState, ErrorState } from '@/shared/ui/placeholder-state';
-import { translateText } from '@/shared/lib/i18n-core';
+} from "@/shared/constants/backend-enums";
+import {
+  ListLayout,
+  PageHeader,
+  SectionGrid,
+} from "@/shared/layout/page-layouts";
+import { clampPage } from "@/shared/lib/pagination";
+import { formatNumericDateTimeInTimeZone } from "@/shared/lib/time-zone";
+import { useListQueryState } from "@/shared/lib/use-list-query-state";
+import { DataTable, type DataTableColumn } from "@/shared/ui/data-table";
+import { PaginationControls } from "@/shared/ui/pagination-controls";
+import { EmptyState, ErrorState } from "@/shared/ui/placeholder-state";
+import { translateText } from "@/shared/lib/i18n-core";
 import {
   Badge,
   Button,
@@ -37,24 +42,21 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/shared/ui';
-import {
-  SpaceKindBadge,
-  VisibilityBadge,
-} from '@/shared/ui/status-badges';
+} from "@/shared/ui";
+import { SpaceKindBadge, VisibilityBadge } from "@/shared/ui/status-badges";
 
 const sortingOptions = [
-  { value: 'Name ASC', label: 'Name A-Z' },
-  { value: 'QuestionCount DESC', label: 'Question count' },
-  { value: 'PublishedAtUtc DESC', label: 'Recently published' },
-  { value: 'LastValidatedAtUtc DESC', label: 'Recently validated' },
+  { value: "Name ASC", label: "Name A-Z" },
+  { value: "QuestionCount DESC", label: "Question count" },
+  { value: "PublishedAtUtc DESC", label: "Recently published" },
+  { value: "LastValidatedAtUtc DESC", label: "Recently validated" },
 ];
 
 const SPACE_FILTER_DEFAULTS = {
-  visibility: 'all',
-  kind: 'all',
-  acceptsQuestions: 'all',
-  acceptsAnswers: 'all',
+  visibility: "all",
+  kind: "all",
+  acceptsQuestions: "all",
+  acceptsAnswers: "all",
 } as const;
 
 export function SpaceListPage() {
@@ -73,7 +75,7 @@ export function SpaceListPage() {
     setSorting,
     sorting,
   } = useListQueryState({
-    defaultSorting: 'Name ASC',
+    defaultSorting: "Name ASC",
     filterDefaults: SPACE_FILTER_DEFAULTS,
   });
   const visibilityFilter = filters.visibility;
@@ -81,16 +83,16 @@ export function SpaceListPage() {
   const acceptsQuestionsFilter = filters.acceptsQuestions;
   const acceptsAnswersFilter = filters.acceptsAnswers;
   const apiVisibility =
-    visibilityFilter === 'all' ? undefined : Number(visibilityFilter);
-  const apiKind = kindFilter === 'all' ? undefined : Number(kindFilter);
+    visibilityFilter === "all" ? undefined : Number(visibilityFilter);
+  const apiKind = kindFilter === "all" ? undefined : Number(kindFilter);
   const apiAcceptsQuestions =
-    acceptsQuestionsFilter === 'all'
+    acceptsQuestionsFilter === "all"
       ? undefined
-      : acceptsQuestionsFilter === 'true';
+      : acceptsQuestionsFilter === "true";
   const apiAcceptsAnswers =
-    acceptsAnswersFilter === 'all'
+    acceptsAnswersFilter === "all"
       ? undefined
-      : acceptsAnswersFilter === 'true';
+      : acceptsAnswersFilter === "true";
 
   const spaceQuery = useSpaceList({
     page,
@@ -126,14 +128,16 @@ export function SpaceListPage() {
       space.kind === SpaceKind.ControlledPublication ||
       space.kind === SpaceKind.ModeratedCollaboration,
   ).length;
-  const questionIntakeCount = spaceRows.filter((space) => space.acceptsQuestions).length;
+  const questionIntakeCount = spaceRows.filter(
+    (space) => space.acceptsQuestions,
+  ).length;
   const showMetricsLoadingState =
     spaceQuery.isLoading && spaceQuery.data === undefined;
 
   const columns: DataTableColumn<SpaceDto>[] = [
     {
-      key: 'name',
-      header: 'Space',
+      key: "name",
+      header: "Space",
       cell: (space) => (
         <div className="space-y-1">
           <div className="font-medium text-mono">{space.name}</div>
@@ -149,21 +153,29 @@ export function SpaceListPage() {
       ),
     },
     {
-      key: 'kind',
-      header: 'Model',
-      className: 'lg:w-[160px]',
+      key: "kind",
+      header: "Model",
+      className: "lg:w-[160px]",
       cell: (space) => (
         <div className="space-y-2">
           <SpaceKindBadge kind={space.kind} />
           <div className="flex flex-wrap gap-2">
-            <Badge variant={space.acceptsQuestions ? 'success' : 'mono'} appearance="outline">
+            <Badge
+              variant={space.acceptsQuestions ? "success" : "mono"}
+              appearance="outline"
+            >
               {translateText(
-                space.acceptsQuestions ? 'Questions enabled' : 'Questions disabled',
+                space.acceptsQuestions
+                  ? "Questions enabled"
+                  : "Questions disabled",
               )}
             </Badge>
-            <Badge variant={space.acceptsAnswers ? 'success' : 'mono'} appearance="outline">
+            <Badge
+              variant={space.acceptsAnswers ? "success" : "mono"}
+              appearance="outline"
+            >
               {translateText(
-                space.acceptsAnswers ? 'Answers enabled' : 'Answers disabled',
+                space.acceptsAnswers ? "Answers enabled" : "Answers disabled",
               )}
             </Badge>
           </div>
@@ -171,15 +183,15 @@ export function SpaceListPage() {
       ),
     },
     {
-      key: 'visibility',
-      header: 'Visibility',
-      className: 'lg:w-[180px]',
+      key: "visibility",
+      header: "Visibility",
+      className: "lg:w-[180px]",
       cell: (space) => <VisibilityBadge visibility={space.visibility} />,
     },
     {
-      key: 'questions',
-      header: 'Questions',
-      className: 'lg:w-[120px]',
+      key: "questions",
+      header: "Questions",
+      className: "lg:w-[120px]",
       cell: (space) => (
         <div className="text-sm font-medium text-foreground">
           {space.questionCount}
@@ -187,9 +199,9 @@ export function SpaceListPage() {
       ),
     },
     {
-      key: 'validated',
-      header: 'Last validated',
-      className: 'lg:w-[170px]',
+      key: "validated",
+      header: "Last validated",
+      className: "lg:w-[170px]",
       cell: (space) => (
         <span className="text-sm text-muted-foreground">
           {formatNumericDateTimeInTimeZone(
@@ -200,9 +212,9 @@ export function SpaceListPage() {
       ),
     },
     {
-      key: 'actions',
-      header: 'Actions',
-      className: 'lg:w-[120px]',
+      key: "actions",
+      header: "Actions",
+      className: "lg:w-[120px]",
       cell: (space) => (
         <div
           className="flex items-center justify-end gap-1"
@@ -218,9 +230,9 @@ export function SpaceListPage() {
               name: space.name,
             })}
             description={translateText(
-              'This removes the space, its workflow configuration, and any curated links from the portal.',
+              "This removes the space, its workflow configuration, and any curated links from the portal.",
             )}
-            confirmLabel={translateText('Delete space')}
+            confirmLabel={translateText("Delete space")}
             isPending={deleteSpace.isPending}
             onConfirm={() => deleteSpace.mutateAsync(space.id)}
             trigger={
@@ -237,19 +249,25 @@ export function SpaceListPage() {
   return (
     <ListLayout
       header={
-        <PageHeader
-          title="Spaces"
-          description="Operate QnA spaces by operating mode, visibility, and intake capability."
-          descriptionMode="inline"
-          actions={
-            <Button asChild>
-              <Link to="/app/spaces/new">
-                <Plus className="size-4" />
-                {translateText('New space')}
-              </Link>
-            </Button>
-          }
-        />
+        <>
+          <PageHeader
+            title="Spaces"
+            description="Operate QnA spaces by operating mode, visibility, and intake capability."
+            descriptionMode="inline"
+            actions={
+              <Button asChild>
+                <Link to="/app/spaces/new">
+                  <Plus className="size-4" />
+                  {translateText("New space")}
+                </Link>
+              </Button>
+            }
+          />
+          <QnaModuleNav
+            activeKey="spaces"
+            intent="Spaces are the parent boundary for every question, answer, source attachment, tag, and activity event."
+          />
+        </>
       }
     >
       {showMetricsLoadingState ? (
@@ -258,29 +276,33 @@ export function SpaceListPage() {
         <SectionGrid
           items={[
             {
-              title: 'Total',
+              title: "Total",
               value: spaceQuery.data?.totalCount ?? 0,
               description: debouncedSearch
-                ? translateText('Search: {value}', { value: debouncedSearch })
-                : translateText('Active QnA spaces in this workspace'),
+                ? translateText("Search: {value}", { value: debouncedSearch })
+                : translateText("Active QnA spaces in this workspace"),
               icon: FolderKanban,
             },
             {
-              title: 'Public',
+              title: "Public",
               value: publicCount,
-              description: translateText('Spaces visible outside internal operations'),
+              description: translateText(
+                "Spaces visible outside internal operations",
+              ),
               icon: Eye,
             },
             {
-              title: 'Moderated',
+              title: "Moderated",
               value: reviewGatedCount,
-              description: translateText('Controlled or moderated operating modes'),
+              description: translateText(
+                "Controlled or moderated operating modes",
+              ),
               icon: ShieldCheck,
             },
             {
-              title: 'Questions',
+              title: "Questions",
               value: questionIntakeCount,
-              description: translateText('Spaces accepting new questions'),
+              description: translateText("Spaces accepting new questions"),
               icon: MessageSquarePlus,
             },
           ]}
@@ -301,16 +323,16 @@ export function SpaceListPage() {
               <Input
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
-                placeholder={translateText('Search spaces')}
+                placeholder={translateText("Search spaces")}
                 className="w-full"
               />
             </div>
             <Select
               value={visibilityFilter}
-              onValueChange={(value) => setFilter('visibility', value)}
+              onValueChange={(value) => setFilter("visibility", value)}
             >
               <SelectTrigger className="w-full">
-                <SelectValue placeholder={translateText('Visibility')} />
+                <SelectValue placeholder={translateText("Visibility")} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All visibility</SelectItem>
@@ -321,12 +343,17 @@ export function SpaceListPage() {
                 ))}
               </SelectContent>
             </Select>
-            <Select value={kindFilter} onValueChange={(value) => setFilter('kind', value)}>
+            <Select
+              value={kindFilter}
+              onValueChange={(value) => setFilter("kind", value)}
+            >
               <SelectTrigger className="w-full">
-                <SelectValue placeholder={translateText('Operating mode')} />
+                <SelectValue placeholder={translateText("Operating mode")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">{translateText('All modes')}</SelectItem>
+                <SelectItem value="all">
+                  {translateText("All modes")}
+                </SelectItem>
                 {Object.entries(spaceKindLabels).map(([value, label]) => (
                   <SelectItem key={value} value={value}>
                     {translateText(label)}
@@ -336,10 +363,10 @@ export function SpaceListPage() {
             </Select>
             <Select
               value={acceptsQuestionsFilter}
-              onValueChange={(value) => setFilter('acceptsQuestions', value)}
+              onValueChange={(value) => setFilter("acceptsQuestions", value)}
             >
               <SelectTrigger className="w-full">
-                <SelectValue placeholder={translateText('Question intake')} />
+                <SelectValue placeholder={translateText("Question intake")} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All question states</SelectItem>
@@ -349,10 +376,10 @@ export function SpaceListPage() {
             </Select>
             <Select
               value={acceptsAnswersFilter}
-              onValueChange={(value) => setFilter('acceptsAnswers', value)}
+              onValueChange={(value) => setFilter("acceptsAnswers", value)}
             >
               <SelectTrigger className="w-full">
-                <SelectValue placeholder={translateText('Answer intake')} />
+                <SelectValue placeholder={translateText("Answer intake")} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All answer states</SelectItem>
@@ -362,7 +389,7 @@ export function SpaceListPage() {
             </Select>
             <Select value={sorting} onValueChange={setSorting}>
               <SelectTrigger className="w-full">
-                <SelectValue placeholder={translateText('Sort spaces')} />
+                <SelectValue placeholder={translateText("Sort spaces")} />
               </SelectTrigger>
               <SelectContent>
                 {sortingOptions.map((option) => (
@@ -378,7 +405,7 @@ export function SpaceListPage() {
           <EmptyState
             title="No spaces in view"
             description="Create the first QnA space to define mode, exposure, and thread ownership."
-            action={{ label: 'New space', to: '/app/spaces/new' }}
+            action={{ label: "New space", to: "/app/spaces/new" }}
           />
         }
         errorState={

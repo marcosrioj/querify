@@ -1,8 +1,13 @@
-import { zodResolver } from '@hookform/resolvers/zod';
-import { startTransition, useDeferredValue, useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { X } from 'lucide-react';
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { zodResolver } from "@hookform/resolvers/zod";
+import { startTransition, useDeferredValue, useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { X } from "lucide-react";
+import {
+  Link,
+  useNavigate,
+  useParams,
+  useSearchParams,
+} from "react-router-dom";
 import {
   AnswerKind,
   AnswerStatus,
@@ -10,12 +15,24 @@ import {
   answerKindLabels,
   answerStatusLabels,
   visibilityScopeLabels,
-} from '@/shared/constants/backend-enums';
-import { useAnswer, useCreateAnswer, useUpdateAnswer } from '@/domains/answers/hooks';
-import { answerFormSchema, type AnswerFormValues } from '@/domains/answers/schemas';
-import { useQuestion, useQuestionList } from '@/domains/questions/hooks';
-import { useSpace } from '@/domains/spaces/hooks';
-import { DetailLayout, KeyValueList, PageHeader } from '@/shared/layout/page-layouts';
+} from "@/shared/constants/backend-enums";
+import {
+  useAnswer,
+  useCreateAnswer,
+  useUpdateAnswer,
+} from "@/domains/answers/hooks";
+import {
+  answerFormSchema,
+  type AnswerFormValues,
+} from "@/domains/answers/schemas";
+import { QnaModuleNav } from "@/domains/qna/qna-module-nav";
+import { useQuestion, useQuestionList } from "@/domains/questions/hooks";
+import { useSpace } from "@/domains/spaces/hooks";
+import {
+  DetailLayout,
+  KeyValueList,
+  PageHeader,
+} from "@/shared/layout/page-layouts";
 import {
   Button,
   Card,
@@ -28,17 +45,21 @@ import {
   FormCardSkeleton,
   FormSectionHeading,
   SidebarSummarySkeleton,
-} from '@/shared/ui';
-import { ErrorState } from '@/shared/ui/placeholder-state';
+} from "@/shared/ui";
+import { ErrorState } from "@/shared/ui/placeholder-state";
 import {
   SearchSelectField,
   SelectField,
   TextField,
   TextareaField,
-} from '@/shared/ui/form-fields';
-import { translateText } from '@/shared/lib/i18n-core';
+} from "@/shared/ui/form-fields";
+import { translateText } from "@/shared/lib/i18n-core";
 
-function buildQuestionOption(question: { id: string; title: string; spaceKey: string }) {
+function buildQuestionOption(question: {
+  id: string;
+  title: string;
+  spaceKey: string;
+}) {
   return {
     value: question.id,
     label: question.title,
@@ -47,28 +68,28 @@ function buildQuestionOption(question: { id: string; title: string; spaceKey: st
   };
 }
 
-export function AnswerFormPage({ mode }: { mode: 'create' | 'edit' }) {
+export function AnswerFormPage({ mode }: { mode: "create" | "edit" }) {
   const navigate = useNavigate();
   const { id } = useParams();
   const [searchParams] = useSearchParams();
-  const preselectedQuestionId = searchParams.get('questionId') ?? '';
-  const [questionSearch, setQuestionSearch] = useState('');
+  const preselectedQuestionId = searchParams.get("questionId") ?? "";
+  const [questionSearch, setQuestionSearch] = useState("");
   const deferredQuestionSearch = useDeferredValue(questionSearch.trim());
-  const answerQuery = useAnswer(mode === 'edit' ? id : undefined);
+  const answerQuery = useAnswer(mode === "edit" ? id : undefined);
   const createAnswer = useCreateAnswer();
-  const updateAnswer = useUpdateAnswer(id ?? '');
+  const updateAnswer = useUpdateAnswer(id ?? "");
 
   const form = useForm<AnswerFormValues>({
     resolver: zodResolver(answerFormSchema),
     defaultValues: {
       questionId: preselectedQuestionId,
-      headline: '',
-      body: '',
+      headline: "",
+      body: "",
       kind: AnswerKind.Official,
       status: AnswerStatus.Draft,
       visibility: VisibilityScope.Internal,
-      contextNote: '',
-      authorLabel: '',
+      contextNote: "",
+      authorLabel: "",
       score: 1,
       sort: 1,
     },
@@ -82,24 +103,26 @@ export function AnswerFormPage({ mode }: { mode: 'create' | 'edit' }) {
     form.reset({
       questionId: answerQuery.data.questionId,
       headline: answerQuery.data.headline,
-      body: answerQuery.data.body ?? '',
+      body: answerQuery.data.body ?? "",
       kind: answerQuery.data.kind,
       status: answerQuery.data.status,
       visibility: answerQuery.data.visibility,
-      contextNote: answerQuery.data.contextNote ?? '',
-      authorLabel: answerQuery.data.authorLabel ?? '',
+      contextNote: answerQuery.data.contextNote ?? "",
+      authorLabel: answerQuery.data.authorLabel ?? "",
       score: answerQuery.data.score,
       sort: answerQuery.data.sort,
     });
   }, [answerQuery.data, form]);
 
   const selectedQuestionId =
-    form.watch('questionId') || answerQuery.data?.questionId || preselectedQuestionId;
+    form.watch("questionId") ||
+    answerQuery.data?.questionId ||
+    preselectedQuestionId;
   const selectedQuestionQuery = useQuestion(selectedQuestionId || undefined);
   const questionOptionsQuery = useQuestionList({
     page: 1,
     pageSize: 20,
-    sorting: 'Title ASC',
+    sorting: "Title ASC",
     searchText: deferredQuestionSearch || undefined,
   });
   const selectedQuestion =
@@ -107,8 +130,10 @@ export function AnswerFormPage({ mode }: { mode: 'create' | 'edit' }) {
       (question) => question.id === selectedQuestionId,
     ) ?? selectedQuestionQuery.data;
   const selectedSpaceQuery = useSpace(selectedQuestion?.spaceId);
-  const selectedVisibility = Number(form.watch('visibility')) as VisibilityScope;
-  const selectedStatus = Number(form.watch('status')) as AnswerStatus;
+  const selectedVisibility = Number(
+    form.watch("visibility"),
+  ) as VisibilityScope;
+  const selectedStatus = Number(form.watch("status")) as AnswerStatus;
   const publicVisibilitySelected =
     selectedVisibility === VisibilityScope.Public ||
     selectedVisibility === VisibilityScope.PublicIndexed;
@@ -125,36 +150,42 @@ export function AnswerFormPage({ mode }: { mode: 'create' | 'edit' }) {
     : null;
   const isSubmitting = createAnswer.isPending || updateAnswer.isPending;
   const backTo =
-    mode === 'edit' && id
+    mode === "edit" && id
       ? `/app/answers/${id}`
       : selectedQuestionId
         ? `/app/questions/${selectedQuestionId}`
-        : '/app/answers';
+        : "/app/answers";
 
   return (
     <DetailLayout
       header={
-        <PageHeader
-          title={mode === 'create' ? 'New answer' : 'Edit answer'}
-          description="Author the answer candidate, then tune rank, visibility, and trust cues."
-          descriptionMode="hint"
-          backTo={backTo}
-        />
+        <>
+          <PageHeader
+            title={mode === "create" ? "New answer" : "Edit answer"}
+            description="Author the answer candidate, then tune rank, visibility, and trust cues."
+            descriptionMode="hint"
+            backTo={backTo}
+          />
+          <QnaModuleNav
+            activeKey="answers"
+            intent="Answers are children of questions. Select the question first so accepted state, sources, and visibility remain traceable."
+          />
+        </>
       }
       sidebar={
-        mode === 'edit' && answerQuery.isLoading ? (
+        mode === "edit" && answerQuery.isLoading ? (
           <SidebarSummarySkeleton />
         ) : (
           <Card>
             <CardHeader>
               <CardHeading>
                 <CardTitle className="flex flex-wrap items-center gap-2">
-                  <span>{translateText('Quick notes')}</span>
+                  <span>{translateText("Quick notes")}</span>
                   <ContextHint
                     content={translateText(
-                      'Answers are ranked, validated, retired, and often grounded with evidence links after they are saved.',
+                      "Answers are ranked, validated, retired, and often grounded with evidence links after they are saved.",
                     )}
-                    label={translateText('Quick notes details')}
+                    label={translateText("Quick notes details")}
                   />
                 </CardTitle>
               </CardHeading>
@@ -163,11 +194,14 @@ export function AnswerFormPage({ mode }: { mode: 'create' | 'edit' }) {
               <KeyValueList
                 items={[
                   {
-                    label: 'Question',
-                    value: selectedQuestion?.title || 'Choose in form',
+                    label: "Question",
+                    value: selectedQuestion?.title || "Choose in form",
                   },
-                  { label: 'Ranking', value: 'Score, sort, and vote score shape answer order' },
-                  { label: 'Context', value: 'Context note is optional' },
+                  {
+                    label: "Ranking",
+                    value: "Score, sort, and vote score shape answer order",
+                  },
+                  { label: "Context", value: "Context note is optional" },
                 ]}
               />
             </CardContent>
@@ -181,19 +215,19 @@ export function AnswerFormPage({ mode }: { mode: 'create' | 'edit' }) {
           error={answerQuery.error}
           retry={() => void answerQuery.refetch()}
         />
-      ) : mode === 'edit' && answerQuery.isLoading ? (
+      ) : mode === "edit" && answerQuery.isLoading ? (
         <FormCardSkeleton fields={12} />
       ) : (
         <Card>
           <CardHeader>
             <CardHeading>
               <CardTitle className="flex flex-wrap items-center gap-2">
-                <span>{translateText('Answer details')}</span>
+                <span>{translateText("Answer details")}</span>
                 <ContextHint
                   content={translateText(
-                    'Write the answer first, then decide how visible and official it should be.',
+                    "Write the answer first, then decide how visible and official it should be.",
                   )}
-                  label={translateText('Form details')}
+                  label={translateText("Form details")}
                 />
               </CardTitle>
             </CardHeading>
@@ -216,8 +250,9 @@ export function AnswerFormPage({ mode }: { mode: 'create' | 'edit' }) {
                     sort: values.sort,
                   };
 
-                  if (mode === 'create') {
-                    const createdId = await createAnswer.mutateAsync(createBody);
+                  if (mode === "create") {
+                    const createdId =
+                      await createAnswer.mutateAsync(createBody);
                     navigate(`/app/answers/${createdId}`);
                     return;
                   }
@@ -249,8 +284,8 @@ export function AnswerFormPage({ mode }: { mode: 'create' | 'edit' }) {
                   searchPlaceholder="Search questions"
                   emptyMessage={
                     deferredQuestionSearch
-                      ? 'No questions match this search.'
-                      : 'No questions available.'
+                      ? "No questions match this search."
+                      : "No questions available."
                   }
                   options={questionOptions}
                   selectedOption={selectedQuestionOption}
@@ -286,28 +321,34 @@ export function AnswerFormPage({ mode }: { mode: 'create' | 'edit' }) {
                     control={form.control}
                     name="kind"
                     label="Answer kind"
-                    options={Object.entries(answerKindLabels).map(([value, label]) => ({
-                      value,
-                      label,
-                    }))}
+                    options={Object.entries(answerKindLabels).map(
+                      ([value, label]) => ({
+                        value,
+                        label,
+                      }),
+                    )}
                   />
                   <SelectField
                     control={form.control}
                     name="status"
                     label="Status"
-                    options={Object.entries(answerStatusLabels).map(([value, label]) => ({
-                      value,
-                      label,
-                    }))}
+                    options={Object.entries(answerStatusLabels).map(
+                      ([value, label]) => ({
+                        value,
+                        label,
+                      }),
+                    )}
                   />
                   <SelectField
                     control={form.control}
                     name="visibility"
                     label="Visibility"
-                    options={Object.entries(visibilityScopeLabels).map(([value, label]) => ({
-                      value,
-                      label,
-                    }))}
+                    options={Object.entries(visibilityScopeLabels).map(
+                      ([value, label]) => ({
+                        value,
+                        label,
+                      }),
+                    )}
                   />
                   <TextField
                     control={form.control}
@@ -317,8 +358,16 @@ export function AnswerFormPage({ mode }: { mode: 'create' | 'edit' }) {
                   />
                 </div>
                 <div className="grid gap-4 md:grid-cols-2">
-                  <TextField control={form.control} name="authorLabel" label="Author label" />
-                  <TextField control={form.control} name="score" label="Score" />
+                  <TextField
+                    control={form.control}
+                    name="authorLabel"
+                    label="Author label"
+                  />
+                  <TextField
+                    control={form.control}
+                    name="score"
+                    label="Score"
+                  />
                 </div>
                 <TextareaField
                   control={form.control}
@@ -328,25 +377,30 @@ export function AnswerFormPage({ mode }: { mode: 'create' | 'edit' }) {
                   description="Optional note explaining why, when, or how this answer applies."
                 />
                 <div className="flex flex-wrap items-center gap-3">
-                  <Button type="submit" disabled={isSubmitting || spaceBlocksAnswers}>
-                    {translateText(mode === 'create' ? 'Create answer' : 'Save changes')}
+                  <Button
+                    type="submit"
+                    disabled={isSubmitting || spaceBlocksAnswers}
+                  >
+                    {translateText(
+                      mode === "create" ? "Create answer" : "Save changes",
+                    )}
                   </Button>
                   <Button asChild variant="outline">
                     <Link to={backTo}>
                       <X className="size-4" />
-                      {translateText('Cancel')}
+                      {translateText("Cancel")}
                     </Link>
                   </Button>
                 </div>
                 {spaceBlocksAnswers ? (
                   <p className="text-sm text-muted-foreground">
-                    {translateText('This space does not accept new answers.')}
+                    {translateText("This space does not accept new answers.")}
                   </p>
                 ) : null}
                 {invalidPublicStatus ? (
                   <p className="text-sm text-muted-foreground">
                     {translateText(
-                      'Public visibility requires status Published or Validated.',
+                      "Public visibility requires status Published or Validated.",
                     )}
                   </p>
                 ) : null}

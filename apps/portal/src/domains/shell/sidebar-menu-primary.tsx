@@ -1,5 +1,5 @@
-import { useCallback } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useCallback } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   AccordionMenu,
   AccordionMenuClassNames,
@@ -9,10 +9,10 @@ import {
   AccordionMenuSub,
   AccordionMenuSubContent,
   AccordionMenuSubTrigger,
-} from '@/components/ui/accordion-menu';
-import type { NavigationItem } from '@/shared/constants/navigation';
-import { usePortalI18n } from '@/shared/lib/use-portal-i18n';
-import { portalNavigation } from '@/shared/constants/navigation';
+} from "@/components/ui/accordion-menu";
+import type { NavigationItem } from "@/shared/constants/navigation";
+import { usePortalI18n } from "@/shared/lib/use-portal-i18n";
+import { portalNavigation } from "@/shared/constants/navigation";
 
 export function SidebarMenuPrimary({
   onNavigate,
@@ -31,20 +31,25 @@ export function SidebarMenuPrimary({
   const activeRootItem = portalNavigation.find((item) =>
     item.children
       ? item.children.some((child) => matchPath(child.path))
-      : matchPath(item.path),
+      : item.activePaths?.some(matchPath)
+        ? true
+        : matchPath(item.path),
   );
   const activeRootValue = activeRootItem?.children
     ? `${activeRootItem.key}:${pathname}`
     : (activeRootItem?.key ?? pathname);
+  const selectedNavigationValue = activeRootItem?.children
+    ? pathname
+    : (activeRootItem?.path ?? pathname);
 
   const classNames: AccordionMenuClassNames = {
-    root: 'space-y-2.5 px-3.5',
-    group: 'gap-px',
+    root: "space-y-2.5 px-3.5",
+    group: "gap-px",
     label:
-      'pt-2.25 pb-px text-xs font-medium uppercase text-muted-foreground/70',
-    item: 'h-9 border border-transparent bg-transparent text-accent-foreground hover:bg-transparent hover:text-mono data-[selected=true]:border-border data-[selected=true]:bg-background data-[selected=true]:font-medium data-[selected=true]:text-mono',
+      "pt-2.25 pb-px text-xs font-medium uppercase text-muted-foreground/70",
+    item: "h-9 border border-transparent bg-transparent text-accent-foreground hover:bg-transparent hover:text-mono data-[selected=true]:border-border data-[selected=true]:bg-background data-[selected=true]:font-medium data-[selected=true]:text-mono",
     subTrigger:
-      'h-9 border border-transparent bg-transparent text-accent-foreground hover:bg-transparent hover:text-mono data-[state=open]:border-border data-[state=open]:bg-background data-[state=open]:font-medium data-[state=open]:text-mono',
+      "h-9 border border-transparent bg-transparent text-accent-foreground hover:bg-transparent hover:text-mono data-[state=open]:border-border data-[state=open]:bg-background data-[state=open]:font-medium data-[state=open]:text-mono",
   };
 
   const renderNavigationItem = (item: NavigationItem) => {
@@ -84,7 +89,7 @@ export function SidebarMenuPrimary({
     <AccordionMenu
       key={activeRootValue}
       type="single"
-      selectedValue={pathname}
+      selectedValue={selectedNavigationValue}
       matchPath={matchPath}
       collapsible
       classNames={classNames}
@@ -93,7 +98,7 @@ export function SidebarMenuPrimary({
         onNavigate?.();
       }}
     >
-      <AccordionMenuLabel>{t('Portal')}</AccordionMenuLabel>
+      <AccordionMenuLabel>{t("Portal")}</AccordionMenuLabel>
       <AccordionMenuGroup>
         {portalNavigation.map(renderNavigationItem)}
       </AccordionMenuGroup>

@@ -48,18 +48,29 @@ export function ProgressChecklistCard({
   return (
     <Card
       className={cn(
-        "border-emerald-500/20 bg-linear-to-br from-emerald-500/[0.08] via-background to-background",
+        "relative overflow-hidden border-primary/25 bg-linear-to-br from-primary/[0.10] via-background to-sky-500/[0.05]",
         className,
       )}
     >
+      {allStepsComplete ? (
+        <div
+          aria-hidden="true"
+          className="portal-confetti-burst pointer-events-none absolute right-6 top-6 hidden gap-1 sm:flex"
+        >
+          <span className="size-1.5 rounded-full bg-emerald-500" />
+          <span className="size-1.5 rounded-full bg-sky-500" />
+          <span className="size-1.5 rounded-full bg-amber-500" />
+          <span className="size-1.5 rounded-full bg-rose-500" />
+        </div>
+      ) : null}
       <CardContent className="space-y-5 p-5 lg:p-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="min-w-0 space-y-2">
-            <p className="text-xs font-medium uppercase tracking-[0.22em] text-emerald-700 dark:text-emerald-400">
+            <p className="text-xs font-medium uppercase tracking-[0.22em] text-primary">
               {t(eyebrow)}
             </p>
             <div className="space-y-1">
-              <h3 className="text-xl font-semibold tracking-tight text-mono">
+              <h3 className="text-xl font-semibold text-mono">
                 {translateMaybeString(title, t)}
               </h3>
               <p className="max-w-2xl text-sm leading-6 text-muted-foreground">
@@ -68,8 +79,8 @@ export function ProgressChecklistCard({
             </div>
           </div>
 
-          <div className="rounded-2xl border border-emerald-500/20 bg-background/90 px-4 py-3 text-left shadow-xs sm:min-w-[180px] sm:text-right">
-            <p className="text-2xl font-semibold tracking-tight text-mono">
+          <div className="rounded-lg border border-primary/20 bg-background/90 px-4 py-3 text-left shadow-xs sm:min-w-[180px] sm:text-right">
+            <p className="text-2xl font-semibold text-mono">
               {completeCount}/{steps.length}
             </p>
             <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
@@ -85,14 +96,12 @@ export function ProgressChecklistCard({
                 ? t("Next: {label}", { label: t(nextStep.label) })
                 : t("Everything is in place")}
             </span>
-            <span className="font-semibold text-emerald-700 dark:text-emerald-400">
-              {progressValue}%
-            </span>
+            <span className="font-semibold text-primary">{progressValue}%</span>
           </div>
           <Progress
             value={progressValue}
-            className="h-2 bg-emerald-500/12"
-            indicatorClassName="bg-emerald-500"
+            className="h-2 bg-primary/12"
+            indicatorClassName="bg-primary"
           />
         </div>
 
@@ -101,9 +110,9 @@ export function ProgressChecklistCard({
             <div
               key={step.id}
               className={cn(
-                "rounded-2xl border p-4",
+                "rounded-lg border p-4",
                 step.complete
-                  ? "border-emerald-500/20 bg-emerald-500/[0.06]"
+                  ? "border-primary/20 bg-primary/[0.06]"
                   : "border-border/80 bg-background/80",
               )}
             >
@@ -112,7 +121,7 @@ export function ProgressChecklistCard({
                   className={cn(
                     "mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full",
                     step.complete
-                      ? "bg-emerald-500/12 text-emerald-600 dark:text-emerald-400"
+                      ? "bg-primary/12 text-primary"
                       : "bg-muted text-muted-foreground",
                   )}
                 >
@@ -136,7 +145,7 @@ export function ProgressChecklistCard({
         {action || secondaryAction ? (
           <div className="flex flex-wrap gap-3">
             {action ? (
-              <Button asChild variant="mono">
+              <Button asChild>
                 <Link to={action.to}>
                   {t(action.label)}
                   <ArrowRight className="size-4" />

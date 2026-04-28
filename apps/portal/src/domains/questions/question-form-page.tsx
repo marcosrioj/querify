@@ -1,8 +1,14 @@
-import { zodResolver } from '@hookform/resolvers/zod';
-import { startTransition, useDeferredValue, useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { X } from 'lucide-react';
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { zodResolver } from "@hookform/resolvers/zod";
+import { startTransition, useDeferredValue, useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { X } from "lucide-react";
+import {
+  Link,
+  useNavigate,
+  useParams,
+  useSearchParams,
+} from "react-router-dom";
+import { QnaModuleNav } from "@/domains/qna/qna-module-nav";
 import {
   ChannelKind,
   QuestionStatus,
@@ -10,11 +16,22 @@ import {
   channelKindLabels,
   questionStatusLabels,
   visibilityScopeLabels,
-} from '@/shared/constants/backend-enums';
-import { useQuestion, useCreateQuestion, useUpdateQuestion } from '@/domains/questions/hooks';
-import { questionFormSchema, type QuestionFormValues } from '@/domains/questions/schemas';
-import { useSpace, useSpaceList } from '@/domains/spaces/hooks';
-import { DetailLayout, KeyValueList, PageHeader } from '@/shared/layout/page-layouts';
+} from "@/shared/constants/backend-enums";
+import {
+  useQuestion,
+  useCreateQuestion,
+  useUpdateQuestion,
+} from "@/domains/questions/hooks";
+import {
+  questionFormSchema,
+  type QuestionFormValues,
+} from "@/domains/questions/schemas";
+import { useSpace, useSpaceList } from "@/domains/spaces/hooks";
+import {
+  DetailLayout,
+  KeyValueList,
+  PageHeader,
+} from "@/shared/layout/page-layouts";
 import {
   Button,
   Card,
@@ -27,15 +44,15 @@ import {
   FormCardSkeleton,
   FormSectionHeading,
   SidebarSummarySkeleton,
-} from '@/shared/ui';
-import { ErrorState } from '@/shared/ui/placeholder-state';
+} from "@/shared/ui";
+import { ErrorState } from "@/shared/ui/placeholder-state";
 import {
   SearchSelectField,
   SelectField,
   TextField,
   TextareaField,
-} from '@/shared/ui/form-fields';
-import { translateText } from '@/shared/lib/i18n-core';
+} from "@/shared/ui/form-fields";
+import { translateText } from "@/shared/lib/i18n-core";
 
 function buildSpaceOption(space: { id: string; name: string; key: string }) {
   return {
@@ -46,24 +63,24 @@ function buildSpaceOption(space: { id: string; name: string; key: string }) {
   };
 }
 
-export function QuestionFormPage({ mode }: { mode: 'create' | 'edit' }) {
+export function QuestionFormPage({ mode }: { mode: "create" | "edit" }) {
   const navigate = useNavigate();
   const { id } = useParams();
   const [searchParams] = useSearchParams();
-  const preselectedSpaceId = searchParams.get('spaceId') ?? '';
-  const [spaceSearch, setSpaceSearch] = useState('');
+  const preselectedSpaceId = searchParams.get("spaceId") ?? "";
+  const [spaceSearch, setSpaceSearch] = useState("");
   const deferredSpaceSearch = useDeferredValue(spaceSearch.trim());
-  const questionQuery = useQuestion(mode === 'edit' ? id : undefined);
+  const questionQuery = useQuestion(mode === "edit" ? id : undefined);
   const createQuestion = useCreateQuestion();
-  const updateQuestion = useUpdateQuestion(id ?? '');
+  const updateQuestion = useUpdateQuestion(id ?? "");
 
   const form = useForm<QuestionFormValues>({
     resolver: zodResolver(questionFormSchema),
     defaultValues: {
       spaceId: preselectedSpaceId,
-      title: '',
-      summary: '',
-      contextNote: '',
+      title: "",
+      summary: "",
+      contextNote: "",
       status: QuestionStatus.Draft,
       visibility: VisibilityScope.Internal,
       originChannel: ChannelKind.Manual,
@@ -79,8 +96,8 @@ export function QuestionFormPage({ mode }: { mode: 'create' | 'edit' }) {
     form.reset({
       spaceId: questionQuery.data.spaceId,
       title: questionQuery.data.title,
-      summary: questionQuery.data.summary ?? '',
-      contextNote: questionQuery.data.contextNote ?? '',
+      summary: questionQuery.data.summary ?? "",
+      contextNote: questionQuery.data.contextNote ?? "",
       status: questionQuery.data.status,
       visibility: questionQuery.data.visibility,
       originChannel: questionQuery.data.originChannel,
@@ -88,19 +105,23 @@ export function QuestionFormPage({ mode }: { mode: 'create' | 'edit' }) {
     });
   }, [form, questionQuery.data]);
 
-  const selectedSpaceId = form.watch('spaceId') || questionQuery.data?.spaceId || preselectedSpaceId;
+  const selectedSpaceId =
+    form.watch("spaceId") || questionQuery.data?.spaceId || preselectedSpaceId;
   const selectedSpaceQuery = useSpace(selectedSpaceId || undefined);
   const spaceOptionsQuery = useSpaceList({
     page: 1,
     pageSize: 20,
-    sorting: 'Name ASC',
+    sorting: "Name ASC",
     searchText: deferredSpaceSearch || undefined,
   });
   const selectedSpace =
-    spaceOptionsQuery.data?.items.find((space) => space.id === selectedSpaceId) ??
-    selectedSpaceQuery.data;
-  const selectedVisibility = Number(form.watch('visibility')) as VisibilityScope;
-  const selectedStatus = Number(form.watch('status')) as QuestionStatus;
+    spaceOptionsQuery.data?.items.find(
+      (space) => space.id === selectedSpaceId,
+    ) ?? selectedSpaceQuery.data;
+  const selectedVisibility = Number(
+    form.watch("visibility"),
+  ) as VisibilityScope;
+  const selectedStatus = Number(form.watch("status")) as QuestionStatus;
   const publicVisibilitySelected =
     selectedVisibility === VisibilityScope.Public ||
     selectedVisibility === VisibilityScope.PublicIndexed;
@@ -110,36 +131,50 @@ export function QuestionFormPage({ mode }: { mode: 'create' | 'edit' }) {
     selectedStatus !== QuestionStatus.Answered &&
     selectedStatus !== QuestionStatus.Validated;
   const spaceBlocksQuestions = selectedSpace?.acceptsQuestions === false;
-  const spaceOptions = (spaceOptionsQuery.data?.items ?? []).map(buildSpaceOption);
-  const selectedSpaceOption = selectedSpace ? buildSpaceOption(selectedSpace) : null;
+  const spaceOptions = (spaceOptionsQuery.data?.items ?? []).map(
+    buildSpaceOption,
+  );
+  const selectedSpaceOption = selectedSpace
+    ? buildSpaceOption(selectedSpace)
+    : null;
   const isSubmitting = createQuestion.isPending || updateQuestion.isPending;
   const backTo =
-    mode === 'edit' && id ? `/app/questions/${id}` : selectedSpaceId ? `/app/spaces/${selectedSpaceId}` : '/app/questions';
+    mode === "edit" && id
+      ? `/app/questions/${id}`
+      : selectedSpaceId
+        ? `/app/spaces/${selectedSpaceId}`
+        : "/app/questions";
 
   return (
     <DetailLayout
       header={
-        <PageHeader
-          title={mode === 'create' ? 'New question' : 'Edit question'}
-          description="Capture the thread, its operational status, and the context needed for accurate answers."
-          descriptionMode="hint"
-          backTo={backTo}
-        />
+        <>
+          <PageHeader
+            title={mode === "create" ? "New question" : "Edit question"}
+            description="Capture the thread, its operational status, and the context needed for accurate answers."
+            descriptionMode="hint"
+            backTo={backTo}
+          />
+          <QnaModuleNav
+            activeKey="questions"
+            intent="Every question needs a space parent. Choose that space first so lifecycle, visibility, and answers inherit the right rules."
+          />
+        </>
       }
       sidebar={
-        mode === 'edit' && questionQuery.isLoading ? (
+        mode === "edit" && questionQuery.isLoading ? (
           <SidebarSummarySkeleton />
         ) : (
           <Card>
             <CardHeader>
               <CardHeading>
                 <CardTitle className="flex flex-wrap items-center gap-2">
-                  <span>{translateText('Quick notes')}</span>
+                  <span>{translateText("Quick notes")}</span>
                   <ContextHint
                     content={translateText(
-                      'Questions own workflow, accepted answers, duplicate routing, and public feedback.',
+                      "Questions own workflow, accepted answers, duplicate routing, and public feedback.",
                     )}
-                    label={translateText('Quick notes details')}
+                    label={translateText("Quick notes details")}
                   />
                 </CardTitle>
               </CardHeading>
@@ -147,9 +182,18 @@ export function QuestionFormPage({ mode }: { mode: 'create' | 'edit' }) {
             <CardContent>
               <KeyValueList
                 items={[
-                  { label: 'Space', value: selectedSpace?.name || 'Choose in form' },
-                  { label: 'Origin', value: 'Manual, widget, API, help center, and more' },
-                  { label: 'Workflow', value: 'Draft to validated, escalated, or duplicate' },
+                  {
+                    label: "Space",
+                    value: selectedSpace?.name || "Choose in form",
+                  },
+                  {
+                    label: "Origin",
+                    value: "Manual, widget, API, help center, and more",
+                  },
+                  {
+                    label: "Workflow",
+                    value: "Draft to validated, escalated, or duplicate",
+                  },
                 ]}
               />
             </CardContent>
@@ -163,19 +207,19 @@ export function QuestionFormPage({ mode }: { mode: 'create' | 'edit' }) {
           error={questionQuery.error}
           retry={() => void questionQuery.refetch()}
         />
-      ) : mode === 'edit' && questionQuery.isLoading ? (
+      ) : mode === "edit" && questionQuery.isLoading ? (
         <FormCardSkeleton fields={12} />
       ) : (
         <Card>
           <CardHeader>
             <CardHeading>
               <CardTitle className="flex flex-wrap items-center gap-2">
-                <span>{translateText('Thread details')}</span>
+                <span>{translateText("Thread details")}</span>
                 <ContextHint
                   content={translateText(
-                    'Start with the space, then set lifecycle, visibility, and thread context so downstream answers inherit the right guardrails.',
+                    "Start with the space, then set lifecycle, visibility, and thread context so downstream answers inherit the right guardrails.",
                   )}
-                  label={translateText('Form details')}
+                  label={translateText("Form details")}
                 />
               </CardTitle>
             </CardHeading>
@@ -196,8 +240,9 @@ export function QuestionFormPage({ mode }: { mode: 'create' | 'edit' }) {
                     sort: values.sort,
                   };
 
-                  if (mode === 'create') {
-                    const createdId = await createQuestion.mutateAsync(createBody);
+                  if (mode === "create") {
+                    const createdId =
+                      await createQuestion.mutateAsync(createBody);
                     navigate(`/app/questions/${createdId}`);
                     return;
                   }
@@ -210,7 +255,8 @@ export function QuestionFormPage({ mode }: { mode: 'create' | 'edit' }) {
                     visibility: createBody.visibility,
                     originChannel: createBody.originChannel,
                     sort: createBody.sort,
-                    acceptedAnswerId: questionQuery.data?.acceptedAnswerId || undefined,
+                    acceptedAnswerId:
+                      questionQuery.data?.acceptedAnswerId || undefined,
                     duplicateOfQuestionId:
                       questionQuery.data?.duplicateOfQuestionId || undefined,
                   });
@@ -229,13 +275,17 @@ export function QuestionFormPage({ mode }: { mode: 'create' | 'edit' }) {
                   placeholder="Search and choose the owning space"
                   searchPlaceholder="Search spaces"
                   emptyMessage={
-                    deferredSpaceSearch ? 'No spaces match this search.' : 'No spaces available.'
+                    deferredSpaceSearch
+                      ? "No spaces match this search."
+                      : "No spaces available."
                   }
                   options={spaceOptions}
                   selectedOption={selectedSpaceOption}
                   loading={spaceOptionsQuery.isFetching}
                   searchValue={spaceSearch}
-                  onSearchChange={(value) => startTransition(() => setSpaceSearch(value))}
+                  onSearchChange={(value) =>
+                    startTransition(() => setSpaceSearch(value))
+                  }
                 />
                 <FormSectionHeading
                   title="Identity"
@@ -279,50 +329,61 @@ export function QuestionFormPage({ mode }: { mode: 'create' | 'edit' }) {
                     control={form.control}
                     name="status"
                     label="Status"
-                    options={Object.entries(questionStatusLabels).map(([value, label]) => ({
-                      value,
-                      label,
-                    }))}
+                    options={Object.entries(questionStatusLabels).map(
+                      ([value, label]) => ({
+                        value,
+                        label,
+                      }),
+                    )}
                   />
                   <SelectField
                     control={form.control}
                     name="visibility"
                     label="Visibility"
-                    options={Object.entries(visibilityScopeLabels).map(([value, label]) => ({
-                      value,
-                      label,
-                    }))}
+                    options={Object.entries(visibilityScopeLabels).map(
+                      ([value, label]) => ({
+                        value,
+                        label,
+                      }),
+                    )}
                   />
                   <SelectField
                     control={form.control}
                     name="originChannel"
                     label="Origin channel"
-                    options={Object.entries(channelKindLabels).map(([value, label]) => ({
-                      value,
-                      label,
-                    }))}
+                    options={Object.entries(channelKindLabels).map(
+                      ([value, label]) => ({
+                        value,
+                        label,
+                      }),
+                    )}
                   />
                 </div>
                 <div className="flex flex-wrap items-center gap-3">
-                  <Button type="submit" disabled={isSubmitting || spaceBlocksQuestions}>
-                    {translateText(mode === 'create' ? 'Create question' : 'Save changes')}
+                  <Button
+                    type="submit"
+                    disabled={isSubmitting || spaceBlocksQuestions}
+                  >
+                    {translateText(
+                      mode === "create" ? "Create question" : "Save changes",
+                    )}
                   </Button>
                   <Button asChild variant="outline">
                     <Link to={backTo}>
                       <X className="size-4" />
-                      {translateText('Cancel')}
+                      {translateText("Cancel")}
                     </Link>
                   </Button>
                 </div>
                 {spaceBlocksQuestions ? (
                   <p className="text-sm text-muted-foreground">
-                    {translateText('This space does not accept new questions.')}
+                    {translateText("This space does not accept new questions.")}
                   </p>
                 ) : null}
                 {invalidPublicStatus ? (
                   <p className="text-sm text-muted-foreground">
                     {translateText(
-                      'Public visibility requires status Open, Answered, or Validated.',
+                      "Public visibility requires status Open, Answered, or Validated.",
                     )}
                   </p>
                 ) : null}

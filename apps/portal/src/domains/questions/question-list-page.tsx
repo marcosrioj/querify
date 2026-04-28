@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo } from "react";
 import {
   AlertTriangle,
   CheckCircle2,
@@ -7,25 +7,30 @@ import {
   Pencil,
   Plus,
   Trash2,
-} from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
-import { usePortalTimeZone } from '@/domains/settings/settings-hooks';
-import { useQuestionList, useDeleteQuestion } from '@/domains/questions/hooks';
-import type { QuestionDto } from '@/domains/questions/types';
-import { useSpaceList } from '@/domains/spaces/hooks';
+} from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { QnaModuleNav } from "@/domains/qna/qna-module-nav";
+import { usePortalTimeZone } from "@/domains/settings/settings-hooks";
+import { useQuestionList, useDeleteQuestion } from "@/domains/questions/hooks";
+import type { QuestionDto } from "@/domains/questions/types";
+import { useSpaceList } from "@/domains/spaces/hooks";
 import {
   QuestionStatus,
   questionStatusLabels,
   visibilityScopeLabels,
-} from '@/shared/constants/backend-enums';
-import { ListLayout, PageHeader, SectionGrid } from '@/shared/layout/page-layouts';
-import { clampPage } from '@/shared/lib/pagination';
-import { formatNumericDateTimeInTimeZone } from '@/shared/lib/time-zone';
-import { useListQueryState } from '@/shared/lib/use-list-query-state';
-import { translateText } from '@/shared/lib/i18n-core';
-import { DataTable, type DataTableColumn } from '@/shared/ui/data-table';
-import { PaginationControls } from '@/shared/ui/pagination-controls';
-import { EmptyState, ErrorState } from '@/shared/ui/placeholder-state';
+} from "@/shared/constants/backend-enums";
+import {
+  ListLayout,
+  PageHeader,
+  SectionGrid,
+} from "@/shared/layout/page-layouts";
+import { clampPage } from "@/shared/lib/pagination";
+import { formatNumericDateTimeInTimeZone } from "@/shared/lib/time-zone";
+import { useListQueryState } from "@/shared/lib/use-list-query-state";
+import { translateText } from "@/shared/lib/i18n-core";
+import { DataTable, type DataTableColumn } from "@/shared/ui/data-table";
+import { PaginationControls } from "@/shared/ui/pagination-controls";
+import { EmptyState, ErrorState } from "@/shared/ui/placeholder-state";
 import {
   Badge,
   Button,
@@ -37,21 +42,25 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/shared/ui';
-import { ChannelKindBadge, QuestionStatusBadge, VisibilityBadge } from '@/shared/ui/status-badges';
+} from "@/shared/ui";
+import {
+  ChannelKindBadge,
+  QuestionStatusBadge,
+  VisibilityBadge,
+} from "@/shared/ui/status-badges";
 
 const sortingOptions = [
-  { value: 'LastActivityAtUtc DESC', label: 'Latest activity' },
-  { value: 'Title ASC', label: 'Title A-Z' },
-  { value: 'FeedbackScore DESC', label: 'Feedback score' },
-  { value: 'AiConfidenceScore DESC', label: 'AI confidence' },
-  { value: 'Sort ASC', label: 'Sort' },
+  { value: "LastActivityAtUtc DESC", label: "Latest activity" },
+  { value: "Title ASC", label: "Title A-Z" },
+  { value: "FeedbackScore DESC", label: "Feedback score" },
+  { value: "AiConfidenceScore DESC", label: "AI confidence" },
+  { value: "Sort ASC", label: "Sort" },
 ];
 
 const QUESTION_FILTER_DEFAULTS = {
-  status: 'all',
-  visibility: 'all',
-  spaceId: 'all',
+  status: "all",
+  visibility: "all",
+  spaceId: "all",
 } as const;
 
 export function QuestionListPage() {
@@ -70,16 +79,16 @@ export function QuestionListPage() {
     setSorting,
     sorting,
   } = useListQueryState({
-    defaultSorting: 'LastActivityAtUtc DESC',
+    defaultSorting: "LastActivityAtUtc DESC",
     filterDefaults: QUESTION_FILTER_DEFAULTS,
   });
   const statusFilter = filters.status;
   const visibilityFilter = filters.visibility;
   const spaceFilter = filters.spaceId;
-  const apiStatus = statusFilter === 'all' ? undefined : Number(statusFilter);
+  const apiStatus = statusFilter === "all" ? undefined : Number(statusFilter);
   const apiVisibility =
-    visibilityFilter === 'all' ? undefined : Number(visibilityFilter);
-  const apiSpaceId = spaceFilter === 'all' ? undefined : spaceFilter;
+    visibilityFilter === "all" ? undefined : Number(visibilityFilter);
+  const apiSpaceId = spaceFilter === "all" ? undefined : spaceFilter;
 
   const questionQuery = useQuestionList({
     page,
@@ -93,7 +102,7 @@ export function QuestionListPage() {
   const spaceOptionsQuery = useSpaceList({
     page: 1,
     pageSize: 100,
-    sorting: 'Name ASC',
+    sorting: "Name ASC",
   });
 
   useEffect(() => {
@@ -125,7 +134,10 @@ export function QuestionListPage() {
   const spaceLookup = useMemo(
     () =>
       Object.fromEntries(
-        (spaceOptionsQuery.data?.items ?? []).map((space) => [space.id, space.name]),
+        (spaceOptionsQuery.data?.items ?? []).map((space) => [
+          space.id,
+          space.name,
+        ]),
       ),
     [spaceOptionsQuery.data?.items],
   );
@@ -134,8 +146,8 @@ export function QuestionListPage() {
 
   const columns: DataTableColumn<QuestionDto>[] = [
     {
-      key: 'title',
-      header: 'Question',
+      key: "title",
+      header: "Question",
       cell: (question) => (
         <div className="space-y-1">
           <div className="font-medium text-mono">{question.title}</div>
@@ -154,9 +166,9 @@ export function QuestionListPage() {
       ),
     },
     {
-      key: 'status',
-      header: 'Status',
-      className: 'lg:w-[160px]',
+      key: "status",
+      header: "Status",
+      className: "lg:w-[160px]",
       cell: (question) => (
         <div className="space-y-2">
           <QuestionStatusBadge status={question.status} />
@@ -165,34 +177,38 @@ export function QuestionListPage() {
       ),
     },
     {
-      key: 'signals',
-      header: 'Signals',
-      className: 'lg:w-[160px]',
+      key: "signals",
+      header: "Signals",
+      className: "lg:w-[160px]",
       cell: (question) => (
         <div className="space-y-1 text-sm text-muted-foreground">
-          <div>{translateText('Feedback {value}', { value: question.feedbackScore })}</div>
           <div>
-            {translateText('Confidence {value}', {
+            {translateText("Feedback {value}", {
+              value: question.feedbackScore,
+            })}
+          </div>
+          <div>
+            {translateText("Confidence {value}", {
               value: question.aiConfidenceScore,
             })}
           </div>
           {question.acceptedAnswerId ? (
             <Badge variant="success" appearance="outline">
-              {translateText('Accepted answer')}
+              {translateText("Accepted answer")}
             </Badge>
           ) : null}
           {question.duplicateOfQuestionId ? (
             <Badge variant="mono" appearance="outline">
-              {translateText('Duplicate')}
+              {translateText("Duplicate")}
             </Badge>
           ) : null}
         </div>
       ),
     },
     {
-      key: 'lastActivityAtUtc',
-      header: 'Last activity',
-      className: 'lg:w-[160px]',
+      key: "lastActivityAtUtc",
+      header: "Last activity",
+      className: "lg:w-[160px]",
       cell: (question) => (
         <span className="text-sm text-muted-foreground">
           {formatNumericDateTimeInTimeZone(
@@ -203,9 +219,9 @@ export function QuestionListPage() {
       ),
     },
     {
-      key: 'actions',
-      header: 'Actions',
-      className: 'lg:w-[120px]',
+      key: "actions",
+      header: "Actions",
+      className: "lg:w-[120px]",
       cell: (question) => (
         <div
           className="flex items-center justify-end gap-1"
@@ -221,9 +237,9 @@ export function QuestionListPage() {
               name: question.title,
             })}
             description={translateText(
-              'This removes the thread from the portal and breaks any accepted-answer linkage.',
+              "This removes the thread from the portal and breaks any accepted-answer linkage.",
             )}
-            confirmLabel={translateText('Delete question')}
+            confirmLabel={translateText("Delete question")}
             isPending={deleteQuestion.isPending}
             onConfirm={() => deleteQuestion.mutateAsync(question.id)}
             trigger={
@@ -240,19 +256,25 @@ export function QuestionListPage() {
   return (
     <ListLayout
       header={
-        <PageHeader
-          title="Questions"
-          description="Work the full thread lifecycle: intake, review, duplication, accepted answers, and public feedback."
-          descriptionMode="inline"
-          actions={
-            <Button asChild>
-              <Link to="/app/questions/new">
-                <Plus className="size-4" />
-                {translateText('New question')}
-              </Link>
-            </Button>
-          }
-        />
+        <>
+          <PageHeader
+            title="Questions"
+            description="Work the full thread lifecycle: intake, review, duplication, accepted answers, and public feedback."
+            descriptionMode="inline"
+            actions={
+              <Button asChild>
+                <Link to="/app/questions/new">
+                  <Plus className="size-4" />
+                  {translateText("New question")}
+                </Link>
+              </Button>
+            }
+          />
+          <QnaModuleNav
+            activeKey="questions"
+            intent="Questions are children of spaces, so review space context before changing workflow, visibility, or resolution."
+          />
+        </>
       }
     >
       {showMetricsLoadingState ? (
@@ -261,29 +283,35 @@ export function QuestionListPage() {
         <SectionGrid
           items={[
             {
-              title: 'Total',
+              title: "Total",
               value: questionQuery.data?.totalCount ?? 0,
               description: debouncedSearch
-                ? translateText('Search: {value}', { value: debouncedSearch })
-                : translateText('Threads currently in this workspace'),
+                ? translateText("Search: {value}", { value: debouncedSearch })
+                : translateText("Threads currently in this workspace"),
               icon: CircleDot,
             },
             {
-              title: 'Answered',
+              title: "Answered",
               value: answeredCount,
-              description: translateText('Questions already resolved enough to use'),
+              description: translateText(
+                "Questions already resolved enough to use",
+              ),
               icon: CheckCircle2,
             },
             {
-              title: 'Escalated',
+              title: "Escalated",
               value: escalatedCount,
-              description: translateText('Threads routed outside normal QnA resolution'),
+              description: translateText(
+                "Threads routed outside normal QnA resolution",
+              ),
               icon: AlertTriangle,
             },
             {
-              title: 'Duplicates',
+              title: "Duplicates",
               value: duplicateCount,
-              description: translateText('Threads redirected to a canonical question'),
+              description: translateText(
+                "Threads redirected to a canonical question",
+              ),
               icon: GitFork,
             },
           ]}
@@ -304,12 +332,15 @@ export function QuestionListPage() {
               <Input
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
-                placeholder={translateText('Search questions')}
+                placeholder={translateText("Search questions")}
               />
             </div>
-            <Select value={spaceFilter} onValueChange={(value) => setFilter('spaceId', value)}>
+            <Select
+              value={spaceFilter}
+              onValueChange={(value) => setFilter("spaceId", value)}
+            >
               <SelectTrigger className="w-full">
-                <SelectValue placeholder={translateText('Space')} />
+                <SelectValue placeholder={translateText("Space")} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All spaces</SelectItem>
@@ -320,9 +351,12 @@ export function QuestionListPage() {
                 ))}
               </SelectContent>
             </Select>
-            <Select value={statusFilter} onValueChange={(value) => setFilter('status', value)}>
+            <Select
+              value={statusFilter}
+              onValueChange={(value) => setFilter("status", value)}
+            >
               <SelectTrigger className="w-full">
-                <SelectValue placeholder={translateText('Status')} />
+                <SelectValue placeholder={translateText("Status")} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All statuses</SelectItem>
@@ -335,10 +369,10 @@ export function QuestionListPage() {
             </Select>
             <Select
               value={visibilityFilter}
-              onValueChange={(value) => setFilter('visibility', value)}
+              onValueChange={(value) => setFilter("visibility", value)}
             >
               <SelectTrigger className="w-full">
-                <SelectValue placeholder={translateText('Visibility')} />
+                <SelectValue placeholder={translateText("Visibility")} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All visibility</SelectItem>
@@ -352,7 +386,7 @@ export function QuestionListPage() {
             <div className="sm:col-span-2 xl:col-span-3">
               <Select value={sorting} onValueChange={setSorting}>
                 <SelectTrigger className="w-full xl:max-w-[240px]">
-                  <SelectValue placeholder={translateText('Sort questions')} />
+                  <SelectValue placeholder={translateText("Sort questions")} />
                 </SelectTrigger>
                 <SelectContent>
                   {sortingOptions.map((option) => (
@@ -369,7 +403,7 @@ export function QuestionListPage() {
           <EmptyState
             title="No questions in view"
             description="Create the first thread to start the QnA workflow."
-            action={{ label: 'New question', to: '/app/questions/new' }}
+            action={{ label: "New question", to: "/app/questions/new" }}
           />
         }
         errorState={

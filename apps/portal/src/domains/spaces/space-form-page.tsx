@@ -1,17 +1,29 @@
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { X } from 'lucide-react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { X } from "lucide-react";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { QnaModuleNav } from "@/domains/qna/qna-module-nav";
 import {
   spaceKindLabels,
   visibilityScopeLabels,
   SpaceKind,
   VisibilityScope,
-} from '@/shared/constants/backend-enums';
-import { useCreateSpace, useSpace, useUpdateSpace } from '@/domains/spaces/hooks';
-import { spaceFormSchema, type SpaceFormValues } from '@/domains/spaces/schemas';
-import { DetailLayout, KeyValueList, PageHeader } from '@/shared/layout/page-layouts';
+} from "@/shared/constants/backend-enums";
+import {
+  useCreateSpace,
+  useSpace,
+  useUpdateSpace,
+} from "@/domains/spaces/hooks";
+import {
+  spaceFormSchema,
+  type SpaceFormValues,
+} from "@/domains/spaces/schemas";
+import {
+  DetailLayout,
+  KeyValueList,
+  PageHeader,
+} from "@/shared/layout/page-layouts";
 import {
   Button,
   Card,
@@ -24,37 +36,37 @@ import {
   FormCardSkeleton,
   FormSectionHeading,
   SidebarSummarySkeleton,
-} from '@/shared/ui';
-import { ErrorState } from '@/shared/ui/placeholder-state';
+} from "@/shared/ui";
+import { ErrorState } from "@/shared/ui/placeholder-state";
 import {
   SearchSelectField,
   SelectField,
   SwitchField,
   TextField,
   TextareaField,
-} from '@/shared/ui/form-fields';
-import { translateText } from '@/shared/lib/i18n-core';
+} from "@/shared/ui/form-fields";
+import { translateText } from "@/shared/lib/i18n-core";
 import {
   DEFAULT_PORTAL_LANGUAGE,
   getStoredPortalLanguage,
   portalLanguageOptions,
-} from '@/shared/lib/language';
+} from "@/shared/lib/language";
 
-export function SpaceFormPage({ mode }: { mode: 'create' | 'edit' }) {
+export function SpaceFormPage({ mode }: { mode: "create" | "edit" }) {
   const navigate = useNavigate();
   const { id } = useParams();
-  const spaceQuery = useSpace(mode === 'edit' ? id : undefined);
+  const spaceQuery = useSpace(mode === "edit" ? id : undefined);
   const createSpace = useCreateSpace();
-  const updateSpace = useUpdateSpace(id ?? '');
+  const updateSpace = useUpdateSpace(id ?? "");
   const initialLanguage = getStoredPortalLanguage() ?? DEFAULT_PORTAL_LANGUAGE;
 
   const form = useForm<SpaceFormValues>({
     resolver: zodResolver(spaceFormSchema),
     defaultValues: {
-      name: '',
-      key: '',
+      name: "",
+      key: "",
       language: initialLanguage,
-      summary: '',
+      summary: "",
       kind: SpaceKind.ControlledPublication,
       visibility: VisibilityScope.Internal,
       acceptsQuestions: true,
@@ -72,7 +84,7 @@ export function SpaceFormPage({ mode }: { mode: 'create' | 'edit' }) {
       name: spaceQuery.data.name,
       key: spaceQuery.data.key,
       language: spaceQuery.data.language,
-      summary: spaceQuery.data.summary ?? '',
+      summary: spaceQuery.data.summary ?? "",
       kind: spaceQuery.data.kind,
       visibility: spaceQuery.data.visibility,
       acceptsQuestions: spaceQuery.data.acceptsQuestions,
@@ -87,37 +99,43 @@ export function SpaceFormPage({ mode }: { mode: 'create' | 'edit' }) {
     description: `${option.code} • ${option.direction.toUpperCase()}`,
     keywords: [option.code, option.label, option.direction],
   }));
-  const selectedLanguageValue = form.watch('language');
+  const selectedLanguageValue = form.watch("language");
   const selectedLanguageOption =
-    languageOptions.find((option) => option.value === selectedLanguageValue) ?? null;
+    languageOptions.find((option) => option.value === selectedLanguageValue) ??
+    null;
   const isSubmitting = createSpace.isPending || updateSpace.isPending;
-  const backTo =
-    mode === 'edit' && id ? `/app/spaces/${id}` : '/app/spaces';
+  const backTo = mode === "edit" && id ? `/app/spaces/${id}` : "/app/spaces";
 
   return (
     <DetailLayout
       header={
-        <PageHeader
-          title={mode === 'create' ? 'New space' : 'Edit space'}
-          description="Define the QnA operating mode and exposure before threads start accumulating."
-          descriptionMode="hint"
-          backTo={backTo}
-        />
+        <>
+          <PageHeader
+            title={mode === "create" ? "New space" : "Edit space"}
+            description="Define the QnA operating mode and exposure before threads start accumulating."
+            descriptionMode="hint"
+            backTo={backTo}
+          />
+          <QnaModuleNav
+            activeKey="spaces"
+            intent="Create the parent space first, then attach questions, answers, sources, tags, and activity to that boundary."
+          />
+        </>
       }
       sidebar={
-        mode === 'edit' && spaceQuery.isLoading ? (
+        mode === "edit" && spaceQuery.isLoading ? (
           <SidebarSummarySkeleton />
         ) : (
           <Card>
             <CardHeader>
               <CardHeading>
                 <CardTitle className="flex flex-wrap items-center gap-2">
-                  <span>{translateText('Quick notes')}</span>
+                  <span>{translateText("Quick notes")}</span>
                   <ContextHint
                     content={translateText(
-                      'Spaces define the operating mode, exposure, and how questions and answers behave operationally.',
+                      "Spaces define the operating mode, exposure, and how questions and answers behave operationally.",
                     )}
-                    label={translateText('Quick notes details')}
+                    label={translateText("Quick notes details")}
                   />
                 </CardTitle>
               </CardHeading>
@@ -125,8 +143,11 @@ export function SpaceFormPage({ mode }: { mode: 'create' | 'edit' }) {
             <CardContent>
               <KeyValueList
                 items={[
-                  { label: 'Mode', value: 'Controlled, moderated, or public validation' },
-                  { label: 'Visibility', value: 'Internal to public indexed' },
+                  {
+                    label: "Mode",
+                    value: "Controlled, moderated, or public validation",
+                  },
+                  { label: "Visibility", value: "Internal to public indexed" },
                 ]}
               />
             </CardContent>
@@ -140,19 +161,19 @@ export function SpaceFormPage({ mode }: { mode: 'create' | 'edit' }) {
           error={spaceQuery.error}
           retry={() => void spaceQuery.refetch()}
         />
-      ) : mode === 'edit' && spaceQuery.isLoading ? (
+      ) : mode === "edit" && spaceQuery.isLoading ? (
         <FormCardSkeleton fields={12} />
       ) : (
         <Card>
           <CardHeader>
             <CardHeading>
               <CardTitle className="flex flex-wrap items-center gap-2">
-                <span>{translateText('Configuration')}</span>
+                <span>{translateText("Configuration")}</span>
                 <ContextHint
                   content={translateText(
-                    'Start with the operating model, then decide who can see the space and how submissions move through review.',
+                    "Start with the operating model, then decide who can see the space and how submissions move through review.",
                   )}
-                  label={translateText('Form details')}
+                  label={translateText("Form details")}
                 />
               </CardTitle>
             </CardHeading>
@@ -169,7 +190,7 @@ export function SpaceFormPage({ mode }: { mode: 'create' | 'edit' }) {
                     visibility: Number(values.visibility) as VisibilityScope,
                   };
 
-                  if (mode === 'create') {
+                  if (mode === "create") {
                     const createdId = await createSpace.mutateAsync(body);
                     navigate(`/app/spaces/${createdId}`);
                     return;
@@ -209,19 +230,24 @@ export function SpaceFormPage({ mode }: { mode: 'create' | 'edit' }) {
                     selectedOption={selectedLanguageOption}
                     searchPlaceholder="Search languages"
                     emptyMessage="No languages found."
-                    resultCountHint={translateText('{count} languages available', {
-                      count: portalLanguageOptions.length,
-                    })}
+                    resultCountHint={translateText(
+                      "{count} languages available",
+                      {
+                        count: portalLanguageOptions.length,
+                      },
+                    )}
                   />
                   <SelectField
                     control={form.control}
                     name="kind"
                     label="Operating mode"
                     description="Pick the operating model that best matches how this space should gather and govern answers."
-                    options={Object.entries(spaceKindLabels).map(([value, label]) => ({
-                      value,
-                      label,
-                    }))}
+                    options={Object.entries(spaceKindLabels).map(
+                      ([value, label]) => ({
+                        value,
+                        label,
+                      }),
+                    )}
                   />
                 </div>
                 <TextareaField
@@ -241,10 +267,12 @@ export function SpaceFormPage({ mode }: { mode: 'create' | 'edit' }) {
                     name="visibility"
                     label="Visibility"
                     description="Choose the strongest audience exposure the space should allow."
-                    options={Object.entries(visibilityScopeLabels).map(([value, label]) => ({
-                      value,
-                      label,
-                    }))}
+                    options={Object.entries(visibilityScopeLabels).map(
+                      ([value, label]) => ({
+                        value,
+                        label,
+                      }),
+                    )}
                   />
                 </div>
                 <FormSectionHeading
@@ -273,12 +301,14 @@ export function SpaceFormPage({ mode }: { mode: 'create' | 'edit' }) {
                 </div>
                 <div className="flex flex-wrap items-center gap-3">
                   <Button type="submit" disabled={isSubmitting}>
-                    {translateText(mode === 'create' ? 'Create space' : 'Save changes')}
+                    {translateText(
+                      mode === "create" ? "Create space" : "Save changes",
+                    )}
                   </Button>
                   <Button asChild variant="outline">
                     <Link to={backTo}>
                       <X className="size-4" />
-                      {translateText('Cancel')}
+                      {translateText("Cancel")}
                     </Link>
                   </Button>
                 </div>
