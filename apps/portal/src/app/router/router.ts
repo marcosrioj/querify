@@ -1,7 +1,12 @@
+import { createElement } from 'react';
 import { createBrowserRouter } from 'react-router-dom';
 import type { RouteObject } from 'react-router-dom';
 import { PortalLayout } from '@/app/layouts/portal-layout';
-import { RootRedirectPage, RouterNotFoundPage } from '@/app/router/router-pages';
+import {
+  RootRedirectPage,
+  RouterErrorPage,
+  RouterNotFoundPage,
+} from '@/app/router/router-pages';
 import { ActivityRoutes } from '@/domains/activity/routes';
 import { AnswerRoutes } from '@/domains/answers/routes';
 import { RequirePortalAuth } from '@/domains/auth/require-portal-auth';
@@ -29,19 +34,24 @@ const protectedChildren: RouteObject[] = [
   ...SettingsRoutes,
 ];
 
+const routerErrorElement = createElement(RouterErrorPage);
+
 export const AppRouter = createBrowserRouter(
   [
     {
       path: '/',
       Component: RootRedirectPage,
+      errorElement: routerErrorElement,
     },
     ...AuthRoutes,
     {
       path: '/app',
       Component: RequirePortalAuth,
+      errorElement: routerErrorElement,
       children: [
         {
           Component: PortalLayout,
+          errorElement: routerErrorElement,
           children: protectedChildren,
         },
       ],
@@ -49,6 +59,7 @@ export const AppRouter = createBrowserRouter(
     {
       path: '*',
       Component: RouterNotFoundPage,
+      errorElement: routerErrorElement,
     },
   ],
   {
