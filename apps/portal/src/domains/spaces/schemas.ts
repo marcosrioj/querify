@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { SpaceKind, VisibilityScope } from '@/shared/constants/backend-enums';
+import { SpaceStatus, VisibilityScope } from '@/shared/constants/backend-enums';
 import { numericEnumSchema } from '@/shared/lib/zod';
 
 export const spaceFormSchema = z.object({
@@ -13,7 +13,7 @@ export const spaceFormSchema = z.object({
     .min(2, 'Language is required.')
     .max(16, 'Keep the language code within the backend limit.'),
   summary: z.string().max(1000, 'Keep the summary concise.').optional(),
-  kind: numericEnumSchema(SpaceKind),
+  status: numericEnumSchema(SpaceStatus),
   visibility: numericEnumSchema(VisibilityScope),
   acceptsQuestions: z.boolean(),
   acceptsAnswers: z.boolean(),

@@ -19,7 +19,7 @@ export function listSpaces(
     sorting,
     searchText,
     visibility,
-    kind,
+    status,
     acceptsQuestions,
     acceptsAnswers,
   }: {
@@ -28,7 +28,7 @@ export function listSpaces(
     sorting?: string;
     searchText?: string;
     visibility?: number;
-    kind?: number;
+    status?: number;
     acceptsQuestions?: boolean;
     acceptsAnswers?: boolean;
   },
@@ -42,7 +42,7 @@ export function listSpaces(
     query: toPagedQuery(page, pageSize, sorting, {
       SearchText: searchText,
       Visibility: visibility,
-      Kind: kind,
+      Status: status,
       AcceptsQuestions: acceptsQuestions,
       AcceptsAnswers: acceptsAnswers,
     }),

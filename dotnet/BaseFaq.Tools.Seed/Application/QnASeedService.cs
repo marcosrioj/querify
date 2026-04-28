@@ -144,9 +144,7 @@ public sealed class QnASeedService : IQnASeedService
                 Checksum = Convert.ToHexString(Guid.NewGuid().ToByteArray()),
                 MetadataJson =
                     $$"""{"catalog":"seed-qna","sourceName":"{{EscapeJson(item.SourceName)}}","sourceLabel":"{{EscapeJson(item.SourceLabel)}}"}""",
-                Visibility = VisibilityScope.PublicIndexed,
-                AllowsCitation = true,
-                CapturedAtUtc = SeedBaseTimeUtc.AddDays(-14),
+                Visibility = VisibilityScope.Public,
                 LastVerifiedAtUtc = SeedBaseTimeUtc.AddDays(-1),
                 CreatedBy = "seed",
                 UpdatedBy = "seed"
@@ -164,11 +162,10 @@ public sealed class QnASeedService : IQnASeedService
             Slug = NormalizeKey(definition.Name, $"space-{index + 1}"),
             Summary = BuildSpaceSummary(definition),
             Language = SeedLanguage,
-            Kind = SpaceKind.ModeratedCollaboration,
-            Visibility = VisibilityScope.PublicIndexed,
+            Status = SpaceStatus.Active,
+            Visibility = VisibilityScope.Public,
             AcceptsQuestions = true,
             AcceptsAnswers = true,
-            PublishedAtUtc = SeedBaseTimeUtc.AddDays(-(index + 30)),
             CreatedBy = "seed",
             UpdatedBy = "seed"
         };
@@ -270,14 +267,12 @@ public sealed class QnASeedService : IQnASeedService
                 Title = item.Question,
                 Summary = item.ShortAnswer,
                 ContextNote = $"Imported from {item.SourceName}. Snapshot refreshed on {SeedBaseTimeUtc:yyyy-MM-dd}.",
-                Status = isValidated ? QuestionStatus.Validated : QuestionStatus.Answered,
-                Visibility = VisibilityScope.PublicIndexed,
+                Status = isValidated ? QuestionStatus.Active : QuestionStatus.Active,
+                Visibility = VisibilityScope.Public,
                 OriginChannel = ChannelKind.Import,
                 AiConfidenceScore = Math.Clamp(item.AiConfidenceScore, 0, 100),
                 FeedbackScore = 0,
                 Sort = questionIndex + 1,
-                AnsweredAtUtc = resolvedAtUtc,
-                ValidatedAtUtc = validatedAtUtc,
                 CreatedBy = "seed",
                 UpdatedBy = "seed"
             };
@@ -350,7 +345,7 @@ public sealed class QnASeedService : IQnASeedService
             Body = item.Answer,
             Kind = AnswerKind.Official,
             Status = validatedAtUtc is not null ? AnswerStatus.Validated : AnswerStatus.Published,
-            Visibility = VisibilityScope.PublicIndexed,
+            Visibility = VisibilityScope.Public,
             ContextNote = $"Curated and reviewed from {item.SourceName}. Primary guidance derived from {item.SourceLabel}.",
             AuthorLabel = moderatedBy,
             AiConfidenceScore = Math.Clamp(item.AiConfidenceScore, 0, 100),
@@ -386,7 +381,7 @@ public sealed class QnASeedService : IQnASeedService
             Body = $"Legacy workflow retained for audit purposes before the validated answer from {item.SourceName} replaced it.",
             Kind = AnswerKind.Imported,
             Status = AnswerStatus.Archived,
-            Visibility = VisibilityScope.Internal,
+            Visibility = VisibilityScope.Authenticated,
             ContextNote = $"Retained for audit only. Superseded by the current operational answer based on {item.SourceLabel}.",
             AuthorLabel = moderatedBy,
             AiConfidenceScore = Math.Max(35, item.AiConfidenceScore - 25),
@@ -439,7 +434,7 @@ public sealed class QnASeedService : IQnASeedService
             Question = question,
             SourceId = source.Id,
             Source = source,
-            Role = SourceRole.QuestionOrigin,
+            Role = SourceRole.Origin,
             Order = 1,
             CreatedBy = "seed",
             UpdatedBy = "seed"
@@ -465,7 +460,7 @@ public sealed class QnASeedService : IQnASeedService
             Answer = answer,
             SourceId = source.Id,
             Source = source,
-            Role = SourceRole.CanonicalReference,
+            Role = SourceRole.Reference,
             Order = 1,
             CreatedBy = "seed",
             UpdatedBy = "seed"
@@ -479,7 +474,7 @@ public sealed class QnASeedService : IQnASeedService
             Answer = answer,
             SourceId = source.Id,
             Source = source,
-            Role = SourceRole.Citation,
+            Role = SourceRole.Reference,
             Order = 2,
             CreatedBy = "seed",
             UpdatedBy = "seed"
@@ -505,7 +500,7 @@ public sealed class QnASeedService : IQnASeedService
             Answer = answer,
             SourceId = source.Id,
             Source = source,
-            Role = SourceRole.SupportingContext,
+            Role = SourceRole.Context,
             Order = 1,
             CreatedBy = "seed",
             UpdatedBy = "seed"

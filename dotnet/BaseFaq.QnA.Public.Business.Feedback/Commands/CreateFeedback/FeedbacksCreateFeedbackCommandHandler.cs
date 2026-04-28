@@ -38,10 +38,8 @@ public sealed class FeedbacksCreateFeedbackCommandHandler(
                 entity =>
                     entity.TenantId == tenantId &&
                     entity.Id == request.Request.QuestionId &&
-                    (entity.Visibility == VisibilityScope.Public ||
-                     entity.Visibility == VisibilityScope.PublicIndexed) &&
-                    (entity.Status == QuestionStatus.Open || entity.Status == QuestionStatus.Answered ||
-                     entity.Status == QuestionStatus.Validated),
+                    entity.Visibility == VisibilityScope.Public &&
+                    entity.Status == QuestionStatus.Active,
                 cancellationToken);
 
         if (question is null)

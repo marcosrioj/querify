@@ -13,14 +13,7 @@ internal static class SourceTenantIntegrityExtension
         {
             var source = entry.Entity;
 
-            if (!source.Visibility.IsPubliclyVisible())
-            {
-                if (source.AllowsCitation)
-                    throw new InvalidOperationException(
-                        $"Source '{source.Id}' cannot allow citation while not publicly visible.");
-
-                continue;
-            }
+            if (!source.Visibility.IsPubliclyVisible()) continue;
 
             if (source.Kind == SourceKind.InternalNote)
                 throw new InvalidOperationException(

@@ -89,6 +89,7 @@ public class QnADbContext : BaseDbContext<QnADbContext>
     {
         var cache = new TenantIntegrityLookupCache(this);
 
+        this.EnsureSpaceTenantIntegrity();
         this.EnsureQuestionTenantIntegrity(cache);
         this.EnsureAnswerTenantIntegrity(cache);
         this.EnsureSourceTenantIntegrity();

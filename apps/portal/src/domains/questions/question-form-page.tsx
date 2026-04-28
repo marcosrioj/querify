@@ -83,8 +83,8 @@ export function QuestionFormPage({ mode }: { mode: "create" | "edit" }) {
       title: "",
       summary: "",
       contextNote: "",
-      status: QuestionStatus.Draft,
-      visibility: VisibilityScope.PublicIndexed,
+      status: QuestionStatus.Active,
+      visibility: VisibilityScope.Public,
       originChannel: ChannelKind.Manual,
       sort: 0,
     },
@@ -124,14 +124,21 @@ export function QuestionFormPage({ mode }: { mode: "create" | "edit" }) {
     form.watch("visibility"),
   ) as VisibilityScope;
   const selectedStatus = Number(form.watch("status")) as QuestionStatus;
-  const publicVisibilitySelected =
-    selectedVisibility === VisibilityScope.Public ||
-    selectedVisibility === VisibilityScope.PublicIndexed;
+  const publicVisibilitySelected = selectedVisibility === VisibilityScope.Public;
   const invalidPublicStatus =
     publicVisibilitySelected &&
-    selectedStatus !== QuestionStatus.Open &&
-    selectedStatus !== QuestionStatus.Answered &&
-    selectedStatus !== QuestionStatus.Validated;
+    selectedStatus !== QuestionStatus.Active;
+  const duplicateTargetLocked = Boolean(questionQuery.data?.duplicateOfQuestionId);
+  const questionStatusOptions = Object.entries(questionStatusLabels)
+    .filter(([value]) => {
+      const status = Number(value) as QuestionStatus;
+
+      return status !== QuestionStatus.Duplicate || duplicateTargetLocked;
+    })
+    .map(([value, label]) => ({
+      value,
+      label,
+    }));
   const spaceBlocksQuestions = selectedSpace?.acceptsQuestions === false;
   const spaceOptions = (spaceOptionsQuery.data?.items ?? []).map(
     buildSpaceOption,
@@ -243,7 +250,7 @@ export function QuestionFormPage({ mode }: { mode: "create" | "edit" }) {
                   },
                   {
                     label: "Workflow",
-                    value: "Draft to validated, escalated, or duplicate",
+                    value: "Draft, active, duplicate, or archived",
                   },
                 ]}
               />
@@ -319,13 +326,13 @@ export function QuestionFormPage({ mode }: { mode: "create" | "edit" }) {
                 >
                   <FormSectionHeading
                     title="Placement"
-                    description="Pick the owning space first so the thread inherits the right exposure and operating mode."
+                    description="Pick the owning space first so the thread inherits the right exposure and intake rules."
                   />
                   <SearchSelectField
                     control={form.control}
                     name="spaceId"
                     label="Space"
-                    description="The space controls exposure, operating mode, and how the question should be operated."
+                    description="The space controls exposure and how the question should be operated."
                     placeholder="Search and choose the owning space"
                     searchPlaceholder="Search spaces"
                     emptyMessage={
@@ -384,13 +391,13 @@ export function QuestionFormPage({ mode }: { mode: "create" | "edit" }) {
                       control={form.control}
                       name="status"
                       label="Status"
-                      description="Controls where the thread is in triage, review, publication, or closure."
-                      options={Object.entries(questionStatusLabels).map(
-                        ([value, label]) => ({
-                          value,
-                          label,
-                        }),
-                      )}
+                      description={
+                        duplicateTargetLocked
+                          ? "Duplicate status is managed together with its duplicate target."
+                          : "Controls whether the thread is draft, active, or archived."
+                      }
+                      options={questionStatusOptions}
+                      disabled={duplicateTargetLocked}
                     />
                     <SelectField
                       control={form.control}
@@ -420,7 +427,9 @@ export function QuestionFormPage({ mode }: { mode: "create" | "edit" }) {
                   <div className="flex flex-wrap items-center gap-3">
                     <Button
                       type="submit"
-                      disabled={isSubmitting || spaceBlocksQuestions}
+                      disabled={
+                        isSubmitting || spaceBlocksQuestions || invalidPublicStatus
+                      }
                     >
                       {translateText(
                         mode === "create" ? "Create question" : "Save changes",
@@ -443,7 +452,7 @@ export function QuestionFormPage({ mode }: { mode: "create" | "edit" }) {
                   {invalidPublicStatus ? (
                     <p className="text-sm text-muted-foreground">
                       {translateText(
-                        "Public visibility requires status Open, Answered, or Validated.",
+                        "Public visibility requires status Active.",
                       )}
                     </p>
                   ) : null}

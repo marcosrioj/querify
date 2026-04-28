@@ -15,7 +15,6 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { useActivityList } from "@/domains/activity/hooks";
 import { QnaModuleNav } from "@/domains/qna/qna-module-nav";
 import { useCreateQuestion, useQuestionList } from "@/domains/questions/hooks";
-import { usePortalTimeZone } from "@/domains/settings/settings-hooks";
 import { useSource, useSourceList } from "@/domains/sources/hooks";
 import {
   useSpace,
@@ -29,7 +28,6 @@ import { useTag, useTagList } from "@/domains/tags/hooks";
 import {
   ChannelKind,
   QuestionStatus,
-  SpaceKind,
   VisibilityScope,
 } from "@/shared/constants/backend-enums";
 import {
@@ -63,11 +61,11 @@ import {
   ActivityKindBadge,
   ActorKindBadge,
   QuestionStatusBadge,
+  SpaceStatusBadge,
   VisibilityBadge,
 } from "@/shared/ui/status-badges";
 import { translateText } from "@/shared/lib/i18n-core";
 import { useLocalPagination } from "@/shared/lib/use-local-pagination";
-import { formatOptionalDateTimeInTimeZone } from "@/shared/lib/time-zone";
 
 function buildTagOption(tag: {
   id: string;
@@ -109,7 +107,6 @@ function buildSourceOption(source: {
 
 export function SpaceDetailPage() {
   const navigate = useNavigate();
-  const portalTimeZone = usePortalTimeZone();
   const { id } = useParams();
   const spaceQuery = useSpace(id);
   const questionQuery = useQuestionList({
@@ -194,16 +191,10 @@ export function SpaceDetailPage() {
   const blocksAnswers = spaceQuery.data
     ? !spaceQuery.data.acceptsAnswers
     : false;
-  const reviewGated = spaceQuery.data
-    ? spaceQuery.data.kind === SpaceKind.ControlledPublication ||
-      spaceQuery.data.kind === SpaceKind.ModeratedCollaboration
-    : false;
   const spaceQuestions = questionQuery.data?.items ?? [];
   const questionsNeedingAction = spaceQuestions.filter(
     (question) =>
       question.status === QuestionStatus.Draft ||
-      question.status === QuestionStatus.PendingReview ||
-      question.status === QuestionStatus.Escalated ||
       (!question.acceptedAnswerId &&
         question.status !== QuestionStatus.Duplicate &&
         question.status !== QuestionStatus.Archived),
@@ -265,7 +256,7 @@ export function SpaceDetailPage() {
       ? {
           label: "Resolve first thread",
           tab: "questions",
-          text: "A question needs moderation, an accepted answer, duplicate routing, or escalation review.",
+          text: "A question needs an accepted answer or duplicate routing.",
         }
       : (spaceQuery.data?.curatedSources.length ?? 0) === 0
         ? {
@@ -350,7 +341,7 @@ export function SpaceDetailPage() {
                     <span>{translateText("Overview")}</span>
                     <ContextHint
                       content={translateText(
-                        "This summarizes the operating model and the major workflow gates.",
+                        "This summarizes status and the major workflow gates.",
                       )}
                       label={translateText("Overview details")}
                     />
@@ -420,36 +411,9 @@ export function SpaceDetailPage() {
                       ),
                     },
                     {
-                      label: "Review gate",
+                      label: "Status",
                       value: (
-                        <Badge variant={reviewGated ? "warning" : "secondary"}>
-                          {translateText(
-                            reviewGated ? "Required by mode" : "Open by mode",
-                          )}
-                        </Badge>
-                      ),
-                    },
-                  ]}
-                />
-              </CardContent>
-            </Card>
-          ) : null}
-          {showLoadingState ? null : spaceQuery.data ? (
-            <Card>
-              <CardHeader>
-                <CardHeading>
-                  <CardTitle>{translateText("Publishing")}</CardTitle>
-                </CardHeading>
-              </CardHeader>
-              <CardContent>
-                <KeyValueList
-                  items={[
-                    {
-                      label: "Published at",
-                      value: formatOptionalDateTimeInTimeZone(
-                        spaceQuery.data.publishedAtUtc,
-                        portalTimeZone,
-                        translateText("Not set"),
+                        <SpaceStatusBadge status={spaceQuery.data.status} />
                       ),
                     },
                   ]}
@@ -474,21 +438,7 @@ export function SpaceDetailPage() {
             items={[
               {
                 title: "State",
-                value: (
-                  <Badge
-                    variant={
-                      blocksQuestions && blocksAnswers
-                        ? "destructive"
-                        : "success"
-                    }
-                  >
-                    {translateText(
-                      blocksQuestions && blocksAnswers
-                        ? "Intake closed"
-                        : "Operational",
-                    )}
-                  </Badge>
-                ),
+                value: <SpaceStatusBadge status={spaceQuery.data.status} />,
                 icon: BookOpen,
               },
               {
@@ -719,11 +669,6 @@ export function SpaceDetailPage() {
                         </div>
                         <div className="flex flex-wrap gap-2">
                           <VisibilityBadge visibility={source.visibility} />
-                          {source.allowsCitation ? (
-                            <Badge variant="success" appearance="outline">
-                              {translateText("Citation allowed")}
-                            </Badge>
-                          ) : null}
                           <Button asChild variant="outline" size="sm">
                             <Link to={`/app/sources/${source.id}`}>
                               <Link2 className="size-4" />
@@ -823,8 +768,8 @@ export function SpaceDetailPage() {
                           title,
                           summary: newQuestionSummary.trim() || undefined,
                           contextNote: undefined,
-                          status: QuestionStatus.Draft,
-                          visibility: VisibilityScope.PublicIndexed,
+                          status: QuestionStatus.Active,
+                          visibility: VisibilityScope.Public,
                           originChannel: ChannelKind.Manual,
                           sort: spaceQuestions.length + 1,
                         })

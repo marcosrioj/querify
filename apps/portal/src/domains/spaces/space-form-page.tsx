@@ -4,9 +4,9 @@ import { useForm } from "react-hook-form";
 import { X } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
-  spaceKindLabels,
+  spaceStatusLabels,
   visibilityScopeLabels,
-  SpaceKind,
+  SpaceStatus,
   VisibilityScope,
 } from "@/shared/constants/backend-enums";
 import {
@@ -69,8 +69,8 @@ export function SpaceFormPage({ mode }: { mode: "create" | "edit" }) {
       slug: "",
       language: initialLanguage,
       summary: "",
-      kind: SpaceKind.ControlledPublication,
-      visibility: VisibilityScope.PublicIndexed,
+      status: SpaceStatus.Active,
+      visibility: VisibilityScope.Public,
       acceptsQuestions: true,
       acceptsAnswers: true,
     },
@@ -86,7 +86,7 @@ export function SpaceFormPage({ mode }: { mode: "create" | "edit" }) {
       slug: spaceQuery.data.slug,
       language: spaceQuery.data.language,
       summary: spaceQuery.data.summary ?? "",
-      kind: spaceQuery.data.kind,
+      status: spaceQuery.data.status,
       visibility: spaceQuery.data.visibility,
       acceptsQuestions: spaceQuery.data.acceptsQuestions,
       acceptsAnswers: spaceQuery.data.acceptsAnswers,
@@ -119,10 +119,10 @@ export function SpaceFormPage({ mode }: { mode: "create" | "edit" }) {
       complete: hasSetupText(setupValues.language, 2),
     },
     {
-      id: "operating-mode",
-      label: "Operating mode",
-      description: "Pick how this space gathers and governs answers.",
-      complete: hasSetupValue(setupValues.kind),
+      id: "status",
+      label: "Status",
+      description: "Choose whether the space is draft, active, or archived.",
+      complete: hasSetupValue(setupValues.status),
     },
     {
       id: "visibility",
@@ -139,7 +139,7 @@ export function SpaceFormPage({ mode }: { mode: "create" | "edit" }) {
       header={
         <PageHeader
           title={mode === "create" ? "New space" : "Edit space"}
-          description="Define the QnA operating mode and exposure before threads start accumulating."
+          description="Define the QnA status and exposure before threads start accumulating."
           descriptionMode="hint"
           backTo={backTo}
         />
@@ -155,7 +155,7 @@ export function SpaceFormPage({ mode }: { mode: "create" | "edit" }) {
                   <span>{translateText("Quick notes")}</span>
                   <ContextHint
                     content={translateText(
-                      "Spaces define the operating mode, exposure, and how questions and answers behave operationally.",
+                      "Spaces define status, exposure, and whether questions and answers can be collected.",
                     )}
                     label={translateText("Quick notes details")}
                   />
@@ -165,11 +165,8 @@ export function SpaceFormPage({ mode }: { mode: "create" | "edit" }) {
             <CardContent>
               <KeyValueList
                 items={[
-                  {
-                    label: "Mode",
-                    value: "Controlled, moderated, or public validation",
-                  },
-                  { label: "Visibility", value: "Internal to public indexed" },
+                  { label: "Status", value: "Draft, active, or archived" },
+                  { label: "Visibility", value: "Authenticated or public" },
                 ]}
               />
             </CardContent>
@@ -194,7 +191,7 @@ export function SpaceFormPage({ mode }: { mode: "create" | "edit" }) {
                   <span>{translateText("Configuration")}</span>
                   <ContextHint
                     content={translateText(
-                      "Start with the operating model, then decide who can see the space and how submissions move through review.",
+                      "Start with status, then decide who can see the space and whether it accepts submissions.",
                     )}
                     label={translateText("Form details")}
                   />
@@ -209,7 +206,7 @@ export function SpaceFormPage({ mode }: { mode: "create" | "edit" }) {
                     const body = {
                       ...values,
                       summary: values.summary || undefined,
-                      kind: Number(values.kind) as SpaceKind,
+                      status: Number(values.status) as SpaceStatus,
                       visibility: Number(values.visibility) as VisibilityScope,
                     };
 
@@ -262,10 +259,10 @@ export function SpaceFormPage({ mode }: { mode: "create" | "edit" }) {
                     />
                     <SelectField
                       control={form.control}
-                      name="kind"
-                      label="Operating mode"
-                      description="Pick the operating model that best matches how this space should gather and govern answers."
-                      options={Object.entries(spaceKindLabels).map(
+                      name="status"
+                      label="Status"
+                      description="Public spaces must be active before they are exposed."
+                      options={Object.entries(spaceStatusLabels).map(
                         ([value, label]) => ({
                           value,
                           label,
@@ -300,7 +297,7 @@ export function SpaceFormPage({ mode }: { mode: "create" | "edit" }) {
                   </div>
                   <FormSectionHeading
                     title="Workflow rules"
-                    description="Tune whether the space accepts new threads. Review behavior comes from the operating mode."
+                    description="Tune whether the space accepts new threads."
                   />
                   <div className="grid gap-4 md:grid-cols-2">
                     <SwitchField

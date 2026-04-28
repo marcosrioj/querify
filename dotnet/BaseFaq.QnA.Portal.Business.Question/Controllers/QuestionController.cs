@@ -61,13 +61,6 @@ public class QuestionController(IQuestionService questionService) : ControllerBa
         return Accepted(await questionService.Reject(id, notes, token));
     }
 
-    [HttpPost("{id:guid}/escalate")]
-    [ProducesResponseType(typeof(Guid), StatusCodes.Status202Accepted)]
-    public async Task<IActionResult> Escalate(Guid id, [FromBody] string? notes, CancellationToken token)
-    {
-        return Accepted(await questionService.Escalate(id, notes, token));
-    }
-
     [HttpDelete("{id:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> Delete(Guid id, CancellationToken token)

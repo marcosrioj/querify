@@ -3,7 +3,6 @@ using BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception;
 using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.QnA.Dtos.Source;
-using BaseFaq.Models.QnA.Enums;
 using BaseFaq.QnA.Common.Persistence.QnADb.DbContext;
 using BaseFaq.QnA.Portal.Business.Source.Helpers;
 using MediatR;
@@ -51,11 +50,7 @@ public sealed class SourcesUpdateSourceCommandHandler(
         entity.MediaType = request.MediaType;
         entity.Checksum = SourceChecksum.FromLocator(request.Locator);
         entity.MetadataJson = request.MetadataJson;
-        entity.CapturedAtUtc = request.CapturedAtUtc ?? entity.CapturedAtUtc;
         entity.Visibility = request.Visibility;
-        entity.AllowsCitation =
-            request.Visibility is VisibilityScope.Public or VisibilityScope.PublicIndexed &&
-            request.AllowsCitation;
 
         if (request.MarkVerified)
         {

@@ -89,16 +89,6 @@ public class Question : BaseEntity, IMustHaveTenant
     public Question? DuplicateOfQuestion { get; set; }
 
     /// <summary>
-    ///     Timestamp when the question received its primary answer.
-    /// </summary>
-    public DateTime? AnsweredAtUtc { get; set; }
-
-    /// <summary>
-    ///     Timestamp when the question was validated.
-    /// </summary>
-    public DateTime? ValidatedAtUtc { get; set; }
-
-    /// <summary>
     ///     Timestamp of the last relevant activity in the thread.
     /// </summary>
     public DateTime? LastActivityAtUtc { get; set; }

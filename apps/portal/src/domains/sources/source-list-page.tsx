@@ -64,7 +64,6 @@ const sortingOptions = [
 const SOURCE_FILTER_DEFAULTS = {
   kind: "all",
   visibility: "all",
-  citation: "all",
 } as const;
 
 type SourceRelationshipKind = "space" | "question" | "answer";
@@ -98,12 +97,10 @@ function sourceMatchesSearch(source: SourceListRow, searchText: string) {
 function sourceMatchesFilters(
   source: SourceListRow,
   {
-    citationFilter,
     kindFilter,
     searchText,
     visibilityFilter,
   }: {
-    citationFilter: string;
     kindFilter: string;
     searchText: string;
     visibilityFilter: string;
@@ -114,14 +111,10 @@ function sourceMatchesFilters(
   const matchesVisibility =
     visibilityFilter === "all" ||
     source.visibility === Number(visibilityFilter);
-  const matchesCitation =
-    citationFilter === "all" ||
-    source.allowsCitation === (citationFilter === "true");
 
   return (
     matchesKind &&
     matchesVisibility &&
-    matchesCitation &&
     sourceMatchesSearch(source, searchText)
   );
 }
@@ -159,12 +152,9 @@ export function SourceListPage() {
   });
   const kindFilter = filters.kind;
   const visibilityFilter = filters.visibility;
-  const citationFilter = filters.citation;
   const apiKind = kindFilter === "all" ? undefined : Number(kindFilter);
   const apiVisibility =
     visibilityFilter === "all" ? undefined : Number(visibilityFilter);
-  const apiAllowsCitation =
-    citationFilter === "all" ? undefined : citationFilter === "true";
 
   const spaceQuery = useSpace(spaceId || undefined);
   const questionQuery = useQuestion(questionId || undefined);
@@ -176,7 +166,6 @@ export function SourceListPage() {
     searchText: debouncedSearch || undefined,
     kind: apiKind,
     visibility: apiVisibility,
-    allowsCitation: apiAllowsCitation,
     enabled: !relationshipActive,
   });
   const deleteSource = useDeleteSource();
@@ -241,7 +230,6 @@ export function SourceListPage() {
   const sourceRows = relationshipActive
     ? relationshipRows.filter((source) =>
         sourceMatchesFilters(source, {
-          citationFilter,
           kindFilter,
           searchText: debouncedSearch,
           visibilityFilter,
@@ -299,10 +287,8 @@ export function SourceListPage() {
     sourceQuery.data?.totalCount,
   ]);
 
-  const citableSourceCount = sourceRows.filter(
-    (source) =>
-      source.allowsCitation &&
-      source.visibility >= VisibilityScope.Public,
+  const publicSourceCount = sourceRows.filter(
+    (source) => source.visibility === VisibilityScope.Public,
   ).length;
   const linkedRecordCount = sourceRows.reduce(
     (total, source) =>
@@ -365,20 +351,6 @@ export function SourceListPage() {
         <div className="space-y-2">
           <SourceKindBadge kind={source.kind} />
           <VisibilityBadge visibility={source.visibility} />
-        </div>
-      ),
-    },
-    {
-      key: "citation",
-      header: "Citation",
-      className: "xl:w-[150px]",
-      cell: (source) => (
-        <div className="space-y-2 text-sm text-muted-foreground">
-          <Badge variant={source.allowsCitation ? "success" : "outline"}>
-            {translateText(
-              source.allowsCitation ? "Citation allowed" : "Citation disabled",
-            )}
-          </Badge>
         </div>
       ),
     },
@@ -523,7 +495,7 @@ export function SourceListPage() {
                       },
                     )
                   : translateText("Showing only source links in this context.")
-                : "Maintain the evidence, citations, and reusable reference material behind questions and answers."
+                : "Maintain the evidence and reusable reference material behind questions and answers."
             }
             descriptionMode="inline"
             actions={
@@ -565,10 +537,10 @@ export function SourceListPage() {
               icon: Waypoints,
             },
             {
-              title: "Citable",
-              value: citableSourceCount,
+              title: "Public",
+              value: publicSourceCount,
               description: translateText(
-                "Publicly visible sources that allow citation",
+                "Sources visible without authentication",
               ),
               icon: CheckCircle2,
             },
@@ -592,7 +564,7 @@ export function SourceListPage() {
         description={
           relationshipActive
             ? "This list is scoped to the selected relationship. Detach removes the link, not the source record."
-            : "Open a source to review citation rules and external identifiers."
+            : "Open a source to review visibility and external identifiers."
         }
         descriptionMode="hint"
         columns={columns}
@@ -609,7 +581,7 @@ export function SourceListPage() {
         }
         onRowClick={(source) => navigate(`/app/sources/${source.id}`)}
         toolbar={
-          <div className="grid w-full gap-2 sm:grid-cols-2 2xl:grid-cols-[minmax(240px,1fr)_220px_220px_220px]">
+          <div className="grid w-full gap-2 sm:grid-cols-2 2xl:grid-cols-[minmax(240px,1fr)_220px_220px]">
             <div className="sm:col-span-2 2xl:col-span-1">
               <Input
                 value={search}
@@ -649,26 +621,7 @@ export function SourceListPage() {
                 ))}
               </SelectContent>
             </Select>
-            <Select
-              value={citationFilter}
-              onValueChange={(value) => setFilter("citation", value)}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder={translateText("Citation")} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">
-                  {translateText("All citation states")}
-                </SelectItem>
-                <SelectItem value="true">
-                  {translateText("Citation allowed")}
-                </SelectItem>
-                <SelectItem value="false">
-                  {translateText("Citation disabled")}
-                </SelectItem>
-              </SelectContent>
-            </Select>
-            <div className="sm:col-span-2 2xl:col-span-4">
+            <div className="sm:col-span-2 2xl:col-span-3">
               <Select value={sorting} onValueChange={setSorting}>
                 <SelectTrigger className="w-full 2xl:max-w-[240px]">
                   <SelectValue placeholder={translateText("Sort sources")} />

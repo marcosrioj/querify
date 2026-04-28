@@ -105,8 +105,6 @@ public sealed class QuestionsCreateQuestionCommandHandler(
         entity.Sort = request.Sort;
         entity.Status = request.Status;
 
-        if (request.Status == QuestionStatus.Validated) entity.ValidatedAtUtc = DateTime.UtcNow;
-
         EnsureVisibilityAllowed(entity, request.Visibility);
         entity.Visibility = request.Visibility;
         entity.UpdatedBy = userId;
@@ -114,10 +112,10 @@ public sealed class QuestionsCreateQuestionCommandHandler(
 
     private static void EnsureVisibilityAllowed(Common.Persistence.QnADb.Entities.Question entity, VisibilityScope visibility)
     {
-        if (visibility is not VisibilityScope.Public and not VisibilityScope.PublicIndexed) return;
+        if (visibility is not VisibilityScope.Public) return;
 
-        if (entity.Status is not QuestionStatus.Open and not QuestionStatus.Answered and not QuestionStatus.Validated)
+        if (entity.Status is not QuestionStatus.Active)
             throw new InvalidOperationException(
-                "Only open, answered, or validated questions can be exposed publicly.");
+                "Only active questions can be exposed publicly.");
     }
 }

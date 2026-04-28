@@ -30,7 +30,8 @@ public sealed class SpacesGetSpaceQueryHandler(
                 space =>
                     space.TenantId == tenantId &&
                     space.Id == request.Id &&
-                    (space.Visibility == VisibilityScope.Public || space.Visibility == VisibilityScope.PublicIndexed),
+                    space.Visibility == VisibilityScope.Public &&
+                    space.Status == SpaceStatus.Active,
                 cancellationToken);
 
         return entity is null

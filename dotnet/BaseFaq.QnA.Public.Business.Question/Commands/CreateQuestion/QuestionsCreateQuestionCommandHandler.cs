@@ -38,7 +38,8 @@ public sealed class QuestionsCreateQuestionCommandHandler(
                 entity =>
                     entity.TenantId == tenantId &&
                     entity.Id == request.Request.SpaceId &&
-                    (entity.Visibility == VisibilityScope.Public || entity.Visibility == VisibilityScope.PublicIndexed),
+                    entity.Visibility == VisibilityScope.Public &&
+                    entity.Status == SpaceStatus.Active,
                 cancellationToken);
 
         if (space is null)
@@ -63,8 +64,8 @@ public sealed class QuestionsCreateQuestionCommandHandler(
             AiConfidenceScore = 0,
             FeedbackScore = 0,
             Sort = request.Request.Sort,
-            Status = RequiresReview(space.Kind) ? QuestionStatus.PendingReview : QuestionStatus.Open,
-            Visibility = VisibilityScope.Internal,
+            Status = QuestionStatus.Active,
+            Visibility = VisibilityScope.Authenticated,
             CreatedBy = "public",
             UpdatedBy = "public"
         };
@@ -113,9 +114,6 @@ public sealed class QuestionsCreateQuestionCommandHandler(
         await dbContext.SaveChangesAsync(cancellationToken);
         return entity.Id;
     }
-
-    private static bool RequiresReview(SpaceKind kind) =>
-        kind is SpaceKind.ControlledPublication or SpaceKind.ModeratedCollaboration;
 
     private async Task<Guid> ResolveTenantIdAndSetContextAsync(CancellationToken cancellationToken)
     {

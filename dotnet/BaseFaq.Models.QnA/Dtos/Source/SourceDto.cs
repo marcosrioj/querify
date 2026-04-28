@@ -16,8 +16,6 @@ public class SourceDto
     public required string Checksum { get; set; }
     public string? MetadataJson { get; set; }
     public required VisibilityScope Visibility { get; set; }
-    public required bool AllowsCitation { get; set; }
-    public DateTime? CapturedAtUtc { get; set; }
     public DateTime? LastVerifiedAtUtc { get; set; }
     public int SpaceUsageCount { get; set; }
     public int QuestionUsageCount { get; set; }

@@ -31,7 +31,7 @@ public sealed class AnswersRetireAnswerCommandHandler(
             throw new ApiErrorException($"Answer '{request.Id}' was not found.", (int)HttpStatusCode.NotFound);
 
         entity.Status = AnswerStatus.Archived;
-        entity.Visibility = VisibilityScope.Internal;
+        entity.Visibility = VisibilityScope.Authenticated;
         entity.RetiredAtUtc = DateTime.UtcNow;
 
         var activityIdentity = ResolveActivityIdentity(userId);

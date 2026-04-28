@@ -1,4 +1,4 @@
-import { SpaceKind, VisibilityScope } from '@/shared/constants/backend-enums';
+import { SpaceStatus, VisibilityScope } from '@/shared/constants/backend-enums';
 import type { SourceDto } from '@/domains/sources/types';
 import type { TagDto } from '@/domains/tags/types';
 
@@ -9,11 +9,10 @@ export type SpaceDto = {
   slug: string;
   summary?: string | null;
   language: string;
-  kind: SpaceKind;
+  status: SpaceStatus;
   visibility: VisibilityScope;
   acceptsQuestions: boolean;
   acceptsAnswers: boolean;
-  publishedAtUtc?: string | null;
   questionCount: number;
 };
 
@@ -27,7 +26,7 @@ export type SpaceCreateRequestDto = {
   slug: string;
   language: string;
   summary?: string | null;
-  kind: SpaceKind;
+  status: SpaceStatus;
   visibility: VisibilityScope;
   acceptsQuestions: boolean;
   acceptsAnswers: boolean;

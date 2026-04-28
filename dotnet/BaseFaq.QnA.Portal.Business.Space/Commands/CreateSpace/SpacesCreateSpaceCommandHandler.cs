@@ -1,7 +1,6 @@
 using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.QnA.Dtos.Space;
-using BaseFaq.Models.QnA.Enums;
 using BaseFaq.QnA.Common.Persistence.QnADb.DbContext;
 using MediatR;
 
@@ -24,7 +23,7 @@ public sealed class SpacesCreateSpaceCommandHandler(
             Name = request.Request.Name,
             Slug = request.Request.Slug,
             Language = request.Request.Language,
-            Kind = request.Request.Kind,
+            Status = request.Request.Status,
             Visibility = request.Request.Visibility,
             AcceptsQuestions = request.Request.AcceptsQuestions,
             AcceptsAnswers = request.Request.AcceptsAnswers,
@@ -50,12 +49,8 @@ public sealed class SpacesCreateSpaceCommandHandler(
         entity.Summary = request.Summary;
         entity.AcceptsQuestions = request.AcceptsQuestions;
         entity.AcceptsAnswers = request.AcceptsAnswers;
-        entity.Kind = request.Kind;
+        entity.Status = request.Status;
         entity.Visibility = request.Visibility;
-        entity.PublishedAtUtc =
-            request.Visibility is VisibilityScope.Public or VisibilityScope.PublicIndexed
-                ? DateTime.UtcNow
-                : null;
 
         entity.UpdatedBy = userId;
     }

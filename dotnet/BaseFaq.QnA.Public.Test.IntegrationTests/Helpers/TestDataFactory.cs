@@ -12,7 +12,7 @@ public static class TestDataFactory
         Guid tenantId,
         string? name = null,
         string? slug = null,
-        VisibilityScope visibility = VisibilityScope.PublicIndexed)
+        VisibilityScope visibility = VisibilityScope.Public)
     {
         var entity = new Space
         {
@@ -20,14 +20,11 @@ public static class TestDataFactory
             Name = name ?? "Public Support",
             Slug = slug ?? $"public-{Guid.NewGuid():N}".Substring(0, 12),
             Language = "en-US",
-            Kind = SpaceKind.PublicValidation,
+            Status = SpaceStatus.Active,
             Summary = "Public knowledge",
             AcceptsQuestions = true,
             AcceptsAnswers = true,
             Visibility = visibility,
-            PublishedAtUtc = visibility is VisibilityScope.Public or VisibilityScope.PublicIndexed
-                ? DateTime.UtcNow
-                : null,
             CreatedBy = "test",
             UpdatedBy = "test"
         };
@@ -42,8 +39,8 @@ public static class TestDataFactory
         Guid spaceId,
         string? title = null,
         string? key = null,
-        QuestionStatus status = QuestionStatus.Open,
-        VisibilityScope visibility = VisibilityScope.PublicIndexed)
+        QuestionStatus status = QuestionStatus.Active,
+        VisibilityScope visibility = VisibilityScope.Public)
     {
         var space = await dbContext.Spaces
             .Include(entity => entity.Questions)
@@ -63,7 +60,6 @@ public static class TestDataFactory
             AiConfidenceScore = 90,
             FeedbackScore = 0,
             Sort = 0,
-            ValidatedAtUtc = status == QuestionStatus.Validated ? DateTime.UtcNow : null,
             CreatedBy = "test",
             UpdatedBy = "test"
         };
@@ -96,7 +92,7 @@ public static class TestDataFactory
         Guid questionId,
         string? headline = null,
         AnswerStatus status = AnswerStatus.Published,
-        VisibilityScope visibility = VisibilityScope.PublicIndexed,
+        VisibilityScope visibility = VisibilityScope.Public,
         bool accept = false,
         int rank = 1)
     {
@@ -167,10 +163,7 @@ public static class TestDataFactory
             var acceptedAtUtc = DateTime.UtcNow;
             question.AcceptedAnswerId = entity.Id;
             question.AcceptedAnswer = entity;
-            question.AnsweredAtUtc = acceptedAtUtc;
-            question.Status = question.Status == QuestionStatus.Validated
-                ? QuestionStatus.Validated
-                : QuestionStatus.Answered;
+            question.Status = QuestionStatus.Active;
             var acceptedActivity = new Activity
             {
                 TenantId = tenantId,

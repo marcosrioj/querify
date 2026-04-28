@@ -13,8 +13,6 @@ export type SourceDto = {
   checksum: string;
   metadataJson?: string | null;
   visibility: VisibilityScope;
-  allowsCitation: boolean;
-  capturedAtUtc?: string | null;
   lastVerifiedAtUtc?: string | null;
   spaceUsageCount: number;
   questionUsageCount: number;
@@ -31,8 +29,6 @@ export type SourceCreateRequestDto = {
   mediaType?: string | null;
   metadataJson?: string | null;
   visibility: VisibilityScope;
-  allowsCitation: boolean;
-  capturedAtUtc?: string | null;
   markVerified: boolean;
 };
 

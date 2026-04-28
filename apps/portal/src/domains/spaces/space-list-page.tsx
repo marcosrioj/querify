@@ -12,9 +12,9 @@ import { Link, useNavigate } from "react-router-dom";
 import { useDeleteSpace, useSpaceList } from "@/domains/spaces/hooks";
 import type { SpaceDto } from "@/domains/spaces/types";
 import {
-  SpaceKind,
+  SpaceStatus,
   VisibilityScope,
-  spaceKindLabels,
+  spaceStatusLabels,
   visibilityScopeLabels,
 } from "@/shared/constants/backend-enums";
 import {
@@ -40,35 +40,35 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shared/ui";
-import { SpaceKindBadge, VisibilityBadge } from "@/shared/ui/status-badges";
+import { SpaceStatusBadge, VisibilityBadge } from "@/shared/ui/status-badges";
 
 const sortingOptions = [
   { value: "Name ASC", label: "Name A-Z" },
   { value: "Slug ASC", label: "Slug A-Z" },
   { value: "QuestionCount DESC", label: "Question count" },
-  { value: "PublishedAtUtc DESC", label: "Recently published" },
+  { value: "Status ASC", label: "Status" },
 ];
 
 const SPACE_FILTER_DEFAULTS = {
   visibility: "all",
-  kind: "all",
+  status: "all",
   acceptsQuestions: "all",
   acceptsAnswers: "all",
 } as const;
 
-const spaceModeBuckets = [
+const spaceStatusBuckets = [
   { label: "All", value: "all" },
   {
-    label: "Controlled",
-    value: String(SpaceKind.ControlledPublication),
+    label: "Draft",
+    value: String(SpaceStatus.Draft),
   },
   {
-    label: "Moderated",
-    value: String(SpaceKind.ModeratedCollaboration),
+    label: "Active",
+    value: String(SpaceStatus.Active),
   },
   {
-    label: "Public validation",
-    value: String(SpaceKind.PublicValidation),
+    label: "Archived",
+    value: String(SpaceStatus.Archived),
   },
 ] as const;
 
@@ -91,12 +91,12 @@ export function SpaceListPage() {
     filterDefaults: SPACE_FILTER_DEFAULTS,
   });
   const visibilityFilter = filters.visibility;
-  const kindFilter = filters.kind;
+  const statusFilter = filters.status;
   const acceptsQuestionsFilter = filters.acceptsQuestions;
   const acceptsAnswersFilter = filters.acceptsAnswers;
   const apiVisibility =
     visibilityFilter === "all" ? undefined : Number(visibilityFilter);
-  const apiKind = kindFilter === "all" ? undefined : Number(kindFilter);
+  const apiStatus = statusFilter === "all" ? undefined : Number(statusFilter);
   const apiAcceptsQuestions =
     acceptsQuestionsFilter === "all"
       ? undefined
@@ -106,7 +106,7 @@ export function SpaceListPage() {
       ? undefined
       : acceptsAnswersFilter === "true";
   const quickAllActive =
-    kindFilter === "all" &&
+    statusFilter === "all" &&
     acceptsQuestionsFilter === "all" &&
     acceptsAnswersFilter === "all";
 
@@ -116,7 +116,7 @@ export function SpaceListPage() {
     sorting,
     searchText: debouncedSearch || undefined,
     visibility: apiVisibility,
-    kind: apiKind,
+    status: apiStatus,
     acceptsQuestions: apiAcceptsQuestions,
     acceptsAnswers: apiAcceptsAnswers,
   });
@@ -137,12 +137,10 @@ export function SpaceListPage() {
   const deleteSpace = useDeleteSpace();
   const spaceRows = spaceQuery.data?.items ?? [];
   const publicCount = spaceRows.filter(
-    (space) => space.visibility >= VisibilityScope.Public,
+    (space) => space.visibility === VisibilityScope.Public,
   ).length;
-  const reviewGatedCount = spaceRows.filter(
-    (space) =>
-      space.kind === SpaceKind.ControlledPublication ||
-      space.kind === SpaceKind.ModeratedCollaboration,
+  const activeCount = spaceRows.filter(
+    (space) => space.status === SpaceStatus.Active,
   ).length;
   const questionIntakeCount = spaceRows.filter(
     (space) => space.acceptsQuestions,
@@ -169,12 +167,12 @@ export function SpaceListPage() {
       ),
     },
     {
-      key: "kind",
-      header: "Model",
+      key: "status",
+      header: "Status",
       className: "lg:w-[160px]",
       cell: (space) => (
         <div className="space-y-2">
-          <SpaceKindBadge kind={space.kind} />
+          <SpaceStatusBadge status={space.status} />
           <div className="flex flex-wrap gap-2">
             <Badge
               variant={space.acceptsQuestions ? "success" : "mono"}
@@ -255,7 +253,7 @@ export function SpaceListPage() {
         <>
           <PageHeader
             title="Spaces"
-            description="Operate QnA spaces by operating mode, visibility, and intake capability."
+            description="Operate QnA spaces by status, visibility, and intake capability."
             descriptionMode="inline"
             actions={
               <Button asChild>
@@ -279,7 +277,7 @@ export function SpaceListPage() {
               value: spaceQuery.data?.totalCount ?? 0,
               description: debouncedSearch
                 ? translateText("Search: {value}", { value: debouncedSearch })
-                : translateText("Active QnA spaces in this workspace"),
+                : translateText("QnA spaces in this workspace"),
               icon: FolderKanban,
             },
             {
@@ -291,10 +289,10 @@ export function SpaceListPage() {
               icon: Eye,
             },
             {
-              title: "Moderated",
-              value: reviewGatedCount,
+              title: "Active",
+              value: activeCount,
               description: translateText(
-                "Controlled or moderated operating modes",
+                "Spaces available for active QnA work",
               ),
               icon: ShieldCheck,
             },
@@ -309,7 +307,7 @@ export function SpaceListPage() {
       )}
       <DataTable
         title="Spaces"
-        description="Open a space to review its operating mode, curated sources, and thread volume."
+        description="Open a space to review its status, curated sources, and thread volume."
         descriptionMode="hint"
         columns={columns}
         rows={spaceRows}
@@ -327,7 +325,7 @@ export function SpaceListPage() {
         toolbar={
           <div className="grid w-full gap-3 xl:min-w-[720px]">
             <div className="flex flex-wrap gap-1.5 rounded-xl border border-border/70 bg-muted/30 p-1">
-              {spaceModeBuckets.map((bucket) => (
+              {spaceStatusBuckets.map((bucket) => (
                 <Button
                   key={bucket.value}
                   type="button"
@@ -336,14 +334,14 @@ export function SpaceListPage() {
                       ? quickAllActive
                         ? "secondary"
                         : "ghost"
-                      : kindFilter === bucket.value
+                      : statusFilter === bucket.value
                         ? "secondary"
                         : "ghost"
                   }
                   size="sm"
                   className="shrink-0"
                   onClick={() => {
-                    setFilter("kind", bucket.value);
+                    setFilter("status", bucket.value);
 
                     if (bucket.value === "all") {
                       setFilter("acceptsQuestions", "all");
@@ -397,17 +395,17 @@ export function SpaceListPage() {
                 </SelectContent>
               </Select>
               <Select
-                value={kindFilter}
-                onValueChange={(value) => setFilter("kind", value)}
+                value={statusFilter}
+                onValueChange={(value) => setFilter("status", value)}
               >
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder={translateText("Operating mode")} />
+                  <SelectValue placeholder={translateText("Status")} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">
-                    {translateText("All modes")}
+                    {translateText("All statuses")}
                   </SelectItem>
-                  {Object.entries(spaceKindLabels).map(([value, label]) => (
+                  {Object.entries(spaceStatusLabels).map(([value, label]) => (
                     <SelectItem key={value} value={value}>
                       {translateText(label)}
                     </SelectItem>
@@ -458,7 +456,7 @@ export function SpaceListPage() {
         emptyState={
           <EmptyState
             title="No spaces in view"
-            description="Create the first QnA space to define mode, exposure, and thread ownership."
+            description="Create the first QnA space to define status, exposure, and thread ownership."
             action={{ label: "New space", to: "/app/spaces/new" }}
           />
         }

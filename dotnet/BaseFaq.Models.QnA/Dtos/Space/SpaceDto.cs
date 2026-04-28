@@ -10,10 +10,9 @@ public class SpaceDto
     public required string Slug { get; set; }
     public string? Summary { get; set; }
     public required string Language { get; set; }
-    public required SpaceKind Kind { get; set; }
+    public required SpaceStatus Status { get; set; }
     public required VisibilityScope Visibility { get; set; }
     public required bool AcceptsQuestions { get; set; }
     public required bool AcceptsAnswers { get; set; }
-    public DateTime? PublishedAtUtc { get; set; }
     public required int QuestionCount { get; set; }
 }

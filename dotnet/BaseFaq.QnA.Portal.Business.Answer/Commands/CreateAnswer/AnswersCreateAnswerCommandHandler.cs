@@ -129,7 +129,7 @@ public sealed class AnswersCreateAnswerCommandHandler(
                 break;
             case AnswerStatus.Rejected:
                 entity.Status = AnswerStatus.Rejected;
-                entity.Visibility = VisibilityScope.Internal;
+                entity.Visibility = VisibilityScope.Authenticated;
                 break;
             default:
                 entity.Status = request.Status;
@@ -144,7 +144,7 @@ public sealed class AnswersCreateAnswerCommandHandler(
     private static void EnsureVisibilityAllowed(Common.Persistence.QnADb.Entities.Answer entity,
         VisibilityScope visibility)
     {
-        if (visibility is not VisibilityScope.Public and not VisibilityScope.PublicIndexed) return;
+        if (visibility is not VisibilityScope.Public) return;
 
         if (entity.Status is not AnswerStatus.Published and not AnswerStatus.Validated)
             throw new InvalidOperationException("Only published or validated answers can be exposed publicly.");

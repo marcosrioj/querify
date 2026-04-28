@@ -30,7 +30,7 @@ public class AnswerCommandQueryTests
                 Body = "Open sign-in and request a password reset link.",
                 Kind = AnswerKind.Official,
                 Status = AnswerStatus.Published,
-                Visibility = VisibilityScope.PublicIndexed,
+                Visibility = VisibilityScope.Public,
                 ContextNote = "Portal",
                 Sort = 2
             }
@@ -42,6 +42,6 @@ public class AnswerCommandQueryTests
         Assert.Equal(question.Id, result.QuestionId);
         Assert.Equal("Reset password from portal", result.Headline);
         Assert.Equal(AnswerStatus.Published, result.Status);
-        Assert.Equal(VisibilityScope.PublicIndexed, result.Visibility);
+        Assert.Equal(VisibilityScope.Public, result.Visibility);
     }
 }

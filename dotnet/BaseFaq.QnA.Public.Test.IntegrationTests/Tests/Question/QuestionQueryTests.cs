@@ -26,7 +26,7 @@ public class QuestionQueryTests
             question.Id,
             "Internal draft answer",
             AnswerStatus.Draft,
-            VisibilityScope.Internal,
+            VisibilityScope.Authenticated,
             rank: 10);
 
         var handler = new QuestionsGetQuestionQueryHandler(

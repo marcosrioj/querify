@@ -9,5 +9,5 @@ public static class VisibilityScopeExtensions
     /// Returns true when the visibility can be exposed to any public visitor.
     /// </summary>
     public static bool IsPubliclyVisible(this VisibilityScope visibility) =>
-        visibility is VisibilityScope.Public or VisibilityScope.PublicIndexed;
+        visibility is VisibilityScope.Public;
 }

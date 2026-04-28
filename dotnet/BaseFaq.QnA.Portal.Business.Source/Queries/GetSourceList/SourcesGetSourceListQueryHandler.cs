@@ -34,9 +34,6 @@ public sealed class SourcesGetSourceListQueryHandler(
         if (request.Request.Visibility is not null)
             query = query.Where(source => source.Visibility == request.Request.Visibility);
 
-        if (request.Request.AllowsCitation is not null)
-            query = query.Where(source => source.AllowsCitation == request.Request.AllowsCitation);
-
         query = request.Request.Sorting?.Trim().ToLowerInvariant() switch
         {
             "kind" => query.OrderBy(source => source.Kind).ThenBy(source => source.Label),
@@ -71,8 +68,6 @@ public sealed class SourcesGetSourceListQueryHandler(
                 Checksum = entity.Checksum,
                 MetadataJson = entity.MetadataJson,
                 Visibility = entity.Visibility,
-                AllowsCitation = entity.AllowsCitation,
-                CapturedAtUtc = entity.CapturedAtUtc,
                 LastVerifiedAtUtc = entity.LastVerifiedAtUtc,
                 SpaceUsageCount = entity.Spaces.Count,
                 QuestionUsageCount = entity.Questions.Count,

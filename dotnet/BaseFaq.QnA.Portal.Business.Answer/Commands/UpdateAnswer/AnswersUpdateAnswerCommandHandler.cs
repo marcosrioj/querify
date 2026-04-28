@@ -91,7 +91,7 @@ public sealed class AnswersUpdateAnswerCommandHandler(
                 break;
             case AnswerStatus.Rejected:
                 entity.Status = AnswerStatus.Rejected;
-                entity.Visibility = VisibilityScope.Internal;
+                entity.Visibility = VisibilityScope.Authenticated;
                 break;
             default:
                 entity.Status = request.Status;
@@ -105,16 +105,15 @@ public sealed class AnswersUpdateAnswerCommandHandler(
 
     private static void EnsureVisibilityAllowed(Common.Persistence.QnADb.Entities.Answer entity, VisibilityScope visibility)
     {
-        if (visibility is not VisibilityScope.Public and not VisibilityScope.PublicIndexed) return;
+        if (visibility is not VisibilityScope.Public) return;
 
         if (entity.Status is not AnswerStatus.Published and not AnswerStatus.Validated)
             throw new InvalidOperationException("Only published or validated answers can be exposed publicly.");
 
         foreach (var sourceLink in entity.Sources)
-            if (sourceLink.Role is SourceRole.Citation or SourceRole.CanonicalReference &&
-                (sourceLink.Source.Visibility is not VisibilityScope.Public and not VisibilityScope.PublicIndexed ||
-                 !sourceLink.Source.AllowsCitation))
+            if (sourceLink.Role is SourceRole.Reference &&
+                sourceLink.Source.Visibility is not VisibilityScope.Public)
                 throw new InvalidOperationException(
-                    "Public citations require a publicly visible source that explicitly allows citation.");
+                    "Public references require a publicly visible source.");
     }
 }

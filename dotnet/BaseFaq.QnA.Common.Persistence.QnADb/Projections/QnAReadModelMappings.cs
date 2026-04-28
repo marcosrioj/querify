@@ -31,8 +31,6 @@ public static class QnAReadModelMappings
             Sort = entity.Sort,
             AcceptedAnswerId = entity.AcceptedAnswerId,
             DuplicateOfQuestionId = entity.DuplicateOfQuestionId,
-            AnsweredAtUtc = entity.AnsweredAtUtc,
-            ValidatedAtUtc = entity.ValidatedAtUtc,
             LastActivityAtUtc = entity.LastActivityAtUtc
         };
     }
@@ -56,8 +54,6 @@ public static class QnAReadModelMappings
             Sort = entity.Sort,
             AcceptedAnswerId = entity.AcceptedAnswerId,
             DuplicateOfQuestionId = entity.DuplicateOfQuestionId,
-            AnsweredAtUtc = entity.AnsweredAtUtc,
-            ValidatedAtUtc = entity.ValidatedAtUtc,
             LastActivityAtUtc = entity.LastActivityAtUtc,
             AcceptedAnswer = entity.AcceptedAnswer?.ToPortalAnswerDto(entity.Activities, entity.AcceptedAnswerId),
             Answers = entity.Answers
@@ -86,13 +82,13 @@ public static class QnAReadModelMappings
         var publicSources = entity.Sources
             .Where(link =>
                 link.Source is not null &&
-                link.Source.Visibility is VisibilityScope.Public or VisibilityScope.PublicIndexed)
+                link.Source.Visibility is VisibilityScope.Public)
             .OrderBy(source => source.Order)
             .Select(source => source.ToQuestionSourceLinkDto())
             .ToList();
         var publicAnswers = entity.Answers
             .Where(answer =>
-            answer.Visibility is VisibilityScope.Public or VisibilityScope.PublicIndexed &&
+            answer.Visibility is VisibilityScope.Public &&
             answer.Status is AnswerStatus.Published or AnswerStatus.Validated)
             .OrderByDescending(answer => answer.Id == entity.AcceptedAnswerId)
             .ThenBy(answer => answer.Sort)
@@ -119,8 +115,6 @@ public static class QnAReadModelMappings
             Sort = entity.Sort,
             AcceptedAnswerId = acceptedAnswer?.Id,
             DuplicateOfQuestionId = entity.DuplicateOfQuestionId,
-            AnsweredAtUtc = entity.AnsweredAtUtc,
-            ValidatedAtUtc = entity.ValidatedAtUtc,
             LastActivityAtUtc = entity.LastActivityAtUtc,
             AcceptedAnswer = request.IncludeAnswers ? acceptedAnswer : null,
             Answers = request.IncludeAnswers ? publicAnswers : [],
@@ -163,11 +157,10 @@ public static class QnAReadModelMappings
             Slug = entity.Slug,
             Summary = entity.Summary,
             Language = entity.Language,
-            Kind = entity.Kind,
+            Status = entity.Status,
             Visibility = entity.Visibility,
             AcceptsQuestions = entity.AcceptsQuestions,
             AcceptsAnswers = entity.AcceptsAnswers,
-            PublishedAtUtc = entity.PublishedAtUtc,
             QuestionCount = entity.Questions.Count
         };
     }
@@ -200,8 +193,6 @@ public static class QnAReadModelMappings
             Checksum = entity.Checksum,
             MetadataJson = entity.MetadataJson,
             Visibility = entity.Visibility,
-            AllowsCitation = entity.AllowsCitation,
-            CapturedAtUtc = entity.CapturedAtUtc,
             LastVerifiedAtUtc = entity.LastVerifiedAtUtc,
             SpaceUsageCount = entity.Spaces.Count,
             QuestionUsageCount = entity.Questions.Count,
@@ -265,7 +256,7 @@ public static class QnAReadModelMappings
         if (publicOnly)
             sources = sources.Where(link =>
                 link.Source is not null &&
-                link.Source.Visibility is VisibilityScope.Public or VisibilityScope.PublicIndexed);
+                link.Source.Visibility is VisibilityScope.Public);
 
         return new AnswerDto
         {

@@ -22,8 +22,7 @@ internal static class QuestionTenantIntegrityExtension
                 nameof(Question.SpaceId));
 
             if (question.Visibility.IsPubliclyVisible() &&
-                question.Status is not QuestionStatus.Open and not QuestionStatus.Answered
-                    and not QuestionStatus.Validated)
+                question.Status is not QuestionStatus.Active)
                 throw new InvalidOperationException(
                     $"Question '{question.Id}' cannot be public while in status '{question.Status}'.");
 
@@ -48,6 +47,10 @@ internal static class QuestionTenantIntegrityExtension
                     throw new InvalidOperationException(
                         $"Question '{question.Id}' cannot expose accepted answer '{acceptedAnswerId}' while the answer is not publicly visible.");
             }
+
+            if (question.Status == QuestionStatus.Duplicate != question.DuplicateOfQuestionId.HasValue)
+                throw new InvalidOperationException(
+                    $"Question '{question.Id}' must keep duplicate status and duplicate target together.");
 
             if (question.DuplicateOfQuestionId is Guid duplicateQuestionId)
             {

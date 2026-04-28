@@ -156,22 +156,6 @@ export function rejectQuestion(
   });
 }
 
-export function escalateQuestion(
-  accessToken: string | undefined,
-  tenantId: string | undefined,
-  id: string,
-  notes?: string,
-) {
-  return portalRequest<string>({
-    service: 'qna',
-    path: `/api/qna/question/${id}/escalate`,
-    method: 'POST',
-    accessToken: requireAccessToken(accessToken),
-    tenantId: requireTenantId(tenantId),
-    body: notes ?? '',
-  });
-}
-
 export function deleteQuestion(
   accessToken: string | undefined,
   tenantId: string | undefined,

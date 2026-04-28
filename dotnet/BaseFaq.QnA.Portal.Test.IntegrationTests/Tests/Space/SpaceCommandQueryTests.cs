@@ -24,8 +24,8 @@ public class SpaceCommandQueryTests
                 Slug = "portal-support",
                 Language = "en-US",
                 Summary = "Support questions for portal users.",
-                Kind = SpaceKind.PublicValidation,
-                Visibility = VisibilityScope.PublicIndexed,
+                Status = SpaceStatus.Active,
+                Visibility = VisibilityScope.Public,
                 AcceptsQuestions = true,
                 AcceptsAnswers = true
             }
@@ -37,10 +37,9 @@ public class SpaceCommandQueryTests
 
         Assert.Equal("Portal Support", result.Name);
         Assert.Equal("portal-support", result.Slug);
-        Assert.Equal(VisibilityScope.PublicIndexed, result.Visibility);
+        Assert.Equal(VisibilityScope.Public, result.Visibility);
         Assert.Equal("en-US", result.Language);
-        Assert.Equal(SpaceKind.PublicValidation, result.Kind);
+        Assert.Equal(SpaceStatus.Active, result.Status);
         Assert.True(result.AcceptsQuestions);
-        Assert.NotNull(result.PublishedAtUtc);
     }
 }

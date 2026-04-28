@@ -3,7 +3,6 @@ using BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception;
 using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.QnA.Dtos.Space;
-using BaseFaq.Models.QnA.Enums;
 using BaseFaq.QnA.Common.Persistence.QnADb.DbContext;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -46,12 +45,8 @@ public sealed class SpacesUpdateSpaceCommandHandler(
         entity.Summary = request.Summary;
         entity.AcceptsQuestions = request.AcceptsQuestions;
         entity.AcceptsAnswers = request.AcceptsAnswers;
-        entity.Kind = request.Kind;
+        entity.Status = request.Status;
         entity.Visibility = request.Visibility;
-        entity.PublishedAtUtc =
-            request.Visibility is VisibilityScope.Public or VisibilityScope.PublicIndexed
-                ? entity.PublishedAtUtc ?? DateTime.UtcNow
-                : null;
 
         entity.UpdatedBy = userId;
     }

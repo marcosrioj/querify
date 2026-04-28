@@ -30,10 +30,8 @@ public sealed class QuestionsGetQuestionListQueryHandler(
             .Include(question => question.Activities)
             .Where(question =>
                 question.TenantId == tenantId &&
-                (question.Visibility == VisibilityScope.Public ||
-                 question.Visibility == VisibilityScope.PublicIndexed) &&
-                (question.Status == QuestionStatus.Open || question.Status == QuestionStatus.Answered ||
-                 question.Status == QuestionStatus.Validated));
+                question.Visibility == VisibilityScope.Public &&
+                question.Status == QuestionStatus.Active);
 
         if (!string.IsNullOrWhiteSpace(request.Request.SearchText))
             query = query.Where(question =>
@@ -52,8 +50,7 @@ public sealed class QuestionsGetQuestionListQueryHandler(
             "sort desc" => query.OrderByDescending(question => question.Sort),
             "title" => query.OrderBy(question => question.Title),
             "title desc" => query.OrderByDescending(question => question.Title),
-            _ => query.OrderByDescending(question =>
-                question.AnsweredAtUtc ?? question.LastActivityAtUtc)
+            _ => query.OrderByDescending(question => question.LastActivityAtUtc)
         };
 
         var totalCount = await query.CountAsync(cancellationToken);

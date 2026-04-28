@@ -509,11 +509,6 @@ export function AnswerDetailPage() {
                                 <VisibilityBadge
                                   visibility={sourceLink.source.visibility}
                                 />
-                                {sourceLink.source.allowsCitation ? (
-                                  <Badge variant="success" appearance="outline">
-                                    {translateText("Citation allowed")}
-                                  </Badge>
-                                ) : null}
                               </>
                             ) : null}
                           </div>
@@ -544,7 +539,7 @@ export function AnswerDetailPage() {
                 ) : (
                   <EmptyState
                     title="No sources linked yet"
-                    description="Attach evidence, citations, or canonical references for this answer."
+                    description="Attach evidence or reusable references for this answer."
                   />
                 )}
                 <ChildListPagination

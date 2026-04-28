@@ -6,7 +6,6 @@ import {
   approveQuestion,
   createQuestion,
   deleteQuestion,
-  escalateQuestion,
   getQuestion,
   listQuestions,
   rejectQuestion,
@@ -179,22 +178,6 @@ export function useRejectQuestion() {
       rejectQuestion(session?.accessToken, currentTenantId, id, notes),
     onSuccess: async () => {
       toast.success(translateText("Question rejected."));
-      await invalidateQna();
-    },
-  });
-}
-
-export function useEscalateQuestion() {
-  const { session } = useAuth();
-  const { currentTenantId } = useTenant();
-  const invalidateQna = useInvalidateQna();
-
-  return useMutation({
-    mutationKey: [...questionKeys.all, "workflow", "escalate"],
-    mutationFn: ({ id, notes }: { id: string; notes?: string }) =>
-      escalateQuestion(session?.accessToken, currentTenantId, id, notes),
-    onSuccess: async () => {
-      toast.success(translateText("Question escalated."));
       await invalidateQna();
     },
   });

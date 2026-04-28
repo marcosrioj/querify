@@ -31,15 +31,11 @@ public sealed class QuestionsSubmitQuestionCommandHandler(
         if (entity is null)
             throw new ApiErrorException($"Question '{request.Id}' was not found.", (int)HttpStatusCode.NotFound);
 
-        var targetStatus = RequiresReview(entity.Space.Kind) ? QuestionStatus.PendingReview : QuestionStatus.Open;
-        entity.Status = targetStatus;
+        entity.Status = QuestionStatus.Active;
         AddActivity(entity, ActivityKind.QuestionSubmitted, userId);
         await dbContext.SaveChangesAsync(cancellationToken);
         return request.Id;
     }
-
-    private static bool RequiresReview(SpaceKind kind) =>
-        kind is SpaceKind.ControlledPublication or SpaceKind.ModeratedCollaboration;
 
     private void AddActivity(Common.Persistence.QnADb.Entities.Question question, ActivityKind kind, string userId)
     {

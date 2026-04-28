@@ -63,28 +63,22 @@ export enum TenantSubscriptionStatus {
   Paused = 8,
 }
 
-export enum SpaceKind {
-  ControlledPublication = 1,
-  ModeratedCollaboration = 2,
-  PublicValidation = 3,
+export enum SpaceStatus {
+  Draft = 0,
+  Active = 1,
+  Archived = 2,
 }
 
 export enum VisibilityScope {
-  Internal = 1,
-  Authenticated = 2,
-  Public = 3,
-  PublicIndexed = 4,
+  Authenticated = 1,
+  Public = 2,
 }
 
 export enum QuestionStatus {
   Draft = 0,
-  PendingReview = 1,
-  Open = 2,
-  Answered = 3,
-  Validated = 4,
-  Escalated = 5,
-  Duplicate = 6,
-  Archived = 7,
+  Active = 1,
+  Duplicate = 2,
+  Archived = 3,
 }
 
 export enum ChannelKind {
@@ -126,12 +120,10 @@ export enum SourceKind {
 }
 
 export enum SourceRole {
-  QuestionOrigin = 1,
-  SupportingContext = 2,
+  Origin = 1,
+  Context = 2,
   Evidence = 3,
-  Citation = 4,
-  CanonicalReference = 5,
-  AuditProof = 6,
+  Reference = 4,
 }
 
 export enum ActivityKind {
@@ -141,7 +133,6 @@ export enum ActivityKind {
   QuestionApproved = 4,
   QuestionRejected = 5,
   QuestionMarkedDuplicate = 6,
-  QuestionEscalated = 7,
   AnswerCreated = 8,
   AnswerUpdated = 9,
   AnswerPublished = 10,
@@ -220,26 +211,20 @@ export const tenantSubscriptionStatusLabels: Record<TenantSubscriptionStatus, st
     [TenantSubscriptionStatus.Paused]: 'Paused',
   };
 
-export const spaceKindLabels: Record<SpaceKind, string> = {
-  [SpaceKind.ControlledPublication]: 'Controlled publication',
-  [SpaceKind.ModeratedCollaboration]: 'Moderated collaboration',
-  [SpaceKind.PublicValidation]: 'Public validation',
+export const spaceStatusLabels: Record<SpaceStatus, string> = {
+  [SpaceStatus.Draft]: 'Draft',
+  [SpaceStatus.Active]: 'Active',
+  [SpaceStatus.Archived]: 'Archived',
 };
 
 export const visibilityScopeLabels: Record<VisibilityScope, string> = {
-  [VisibilityScope.Internal]: 'Internal',
   [VisibilityScope.Authenticated]: 'Authenticated',
   [VisibilityScope.Public]: 'Public',
-  [VisibilityScope.PublicIndexed]: 'Public indexed',
 };
 
 export const questionStatusLabels: Record<QuestionStatus, string> = {
   [QuestionStatus.Draft]: 'Draft',
-  [QuestionStatus.PendingReview]: 'Pending review',
-  [QuestionStatus.Open]: 'Open',
-  [QuestionStatus.Answered]: 'Answered',
-  [QuestionStatus.Validated]: 'Validated',
-  [QuestionStatus.Escalated]: 'Escalated',
+  [QuestionStatus.Active]: 'Active',
   [QuestionStatus.Duplicate]: 'Duplicate',
   [QuestionStatus.Archived]: 'Archived',
 };
@@ -283,12 +268,10 @@ export const sourceKindLabels: Record<SourceKind, string> = {
 };
 
 export const sourceRoleLabels: Record<SourceRole, string> = {
-  [SourceRole.QuestionOrigin]: 'Question origin',
-  [SourceRole.SupportingContext]: 'Supporting context',
+  [SourceRole.Origin]: 'Origin',
+  [SourceRole.Context]: 'Context',
   [SourceRole.Evidence]: 'Evidence',
-  [SourceRole.Citation]: 'Citation',
-  [SourceRole.CanonicalReference]: 'Canonical reference',
-  [SourceRole.AuditProof]: 'Audit proof',
+  [SourceRole.Reference]: 'Reference',
 };
 
 export const activityKindLabels: Record<ActivityKind, string> = {
@@ -298,7 +281,6 @@ export const activityKindLabels: Record<ActivityKind, string> = {
   [ActivityKind.QuestionApproved]: 'Question approved',
   [ActivityKind.QuestionRejected]: 'Question rejected',
   [ActivityKind.QuestionMarkedDuplicate]: 'Question marked duplicate',
-  [ActivityKind.QuestionEscalated]: 'Question escalated',
   [ActivityKind.AnswerCreated]: 'Answer created',
   [ActivityKind.AnswerUpdated]: 'Answer updated',
   [ActivityKind.AnswerPublished]: 'Answer published',

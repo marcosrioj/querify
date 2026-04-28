@@ -93,26 +93,25 @@ Use these dimensions for module behavior:
 | Dimension | Canonical location | Meaning |
 |---|---|---|
 | Module boundary | owning persistence project | Which BaseFaq module owns the behavior: Tenant, QnA, Direct, Broadcast, or Trust. |
-| Operating mode | `SpaceKind` | How participation works: controlled publication, moderated collaboration, or public validation. |
+| Space lifecycle state | `SpaceStatus` | Whether a QnA space is draft, active, or archived. Public spaces must be active. |
 | Lifecycle state | `QuestionStatus`, `AnswerStatus` | Where a question or answer is in workflow. |
-| Audience exposure | `VisibilityScope` | Who can see the item. This is not status and not moderation. |
+| Audience exposure | `VisibilityScope` | Who can see the item: authenticated users or the public. This is not status and not moderation. |
 | Channel | `ChannelKind` | Where a question, vote, feedback, or signal entered the system. |
 | Answer provenance | `AnswerKind` | Whether an answer is official, community-provided, or imported. |
 | Source material type | `SourceKind` | What artifact is linked: article, page, ticket, thread, audit record, and so on. |
-| Source relationship role | `SourceRole` | Why a source is attached: origin, evidence, citation, canonical reference, audit proof. |
-| Source citation permission | `Source.AllowsCitation` | Whether publicly visible QnA outputs may cite the source. |
+| Source relationship role | `SourceRole` | Why a source is attached: origin, context, evidence, or reference. |
 | Actor type | `ActorKind` | Who or what caused an activity event. |
 | Event journal | `ActivityKind` | What happened historically. This is not current state. |
 | Search rendering | `SearchMarkupMode` | How search-facing markup behaves for a space. |
 
 Common consolidation rules:
 
-- A mode enum should not be duplicated by policy enums plus boolean review flags.
+- A space status enum should not be duplicated by kind/mode enums plus publication timestamps.
 - A question type enum should not duplicate origin channel, lifecycle status, or the parent space mode.
-- A source kind should describe the artifact. A source role should describe why it is linked. `Source.AllowsCitation` should describe citation permission.
+- A source kind should describe the artifact. A source role should describe why it is linked. Visibility should describe whether the source is authenticated-only or public.
 - Source trust or validation behavior belongs to relationship context or Trust-owned validation, not a source-wide shortcut in QnA.
 - An activity kind should describe an event that happened, not a field that can be edited directly.
-- A visibility value should not imply moderation, approval, or indexing beyond audience exposure.
+- A visibility value should not imply moderation, approval, citation permission, or indexing beyond audience exposure.
 - Capability booleans are acceptable only when they represent an independent switch, such as whether a space accepts questions or answers.
 - Channel, source, or activity values may record where a module asset came from, but they must not become the persistence home for another module's workflow.
 - If a module behavior has no owning entity yet, stage the entity model before adding module-specific fields to another module as a shortcut.
@@ -141,7 +140,7 @@ Process:
 8. Preserve existing behavior semantics by moving callers to the canonical field.
 9. Keep entities state-only.
 10. Keep `required` semantics explicit. Do not set silent defaults to make construction easier.
-11. For `Source`, keep artifact identity, audience exposure, and citation permission separate: `Kind` and locator fields identify the material, `Visibility` controls who can see it, `AllowsCitation` controls whether it may be cited, and `SourceRole` explains why it is attached.
+11. For `Source`, keep artifact identity, audience exposure, and relationship context separate: `Kind` and locator fields identify the material, `Visibility` controls who can see it, and `SourceRole` explains why it is attached.
 12. Do not create placeholder module entities. If a needed owning entity is still missing and the stage does not explicitly introduce it, leave a handoff note instead.
 13. When a new or changed entity implements `IMustHaveTenant` and references another tenant-owned entity, update the owning `DbContext` to enforce tenant integrity before save.
 14. Follow the module `DbContext` pattern: call `EnsureTenantIntegrity()` from `OnBeforeSaveChangesRules()`, place one focused rule per checked entity or relationship under `DbContext/TenantIntegrity/<Entity>TenantIntegrityExtension.cs`, and keep `Extensions` folders for service registration only.
@@ -211,7 +210,7 @@ Process:
 5. Keep module write-side request DTOs flat and explicit.
 6. Keep link DTOs under the owning feature folder, such as `Dtos/Question`, `Dtos/Answer`, or `Dtos/Space`.
 7. Do not add one module's DTO fields to another module's contracts unless the field describes a reusable asset owned by that target module.
-8. Source DTOs should expose `AllowsCitation` as the citation permission field.
+8. Source DTOs should not expose duplicate citation permission fields. Use `Visibility` for audience exposure and link-level `SourceRole` for relationship meaning.
 
 Do not create catch-all DTO files.
 
@@ -286,10 +285,10 @@ Process:
 
 For the QnA operating model, seed examples demonstrate:
 
-- controlled QnA spaces and canonical questions
-- questions with approved answers and resolution-ready metadata
-- source links that explain origin, evidence, citation, and canonical references
-- source records with artifact identity, visibility, and the single `AllowsCitation` permission
+- active QnA spaces and canonical questions
+- questions with active lifecycle, accepted answers, and resolution-ready metadata
+- source links that explain origin, context, evidence, and reusable references
+- source records with artifact identity, visibility, valid metadata JSON, and verification metadata
 - moderated contribution and accepted-answer behavior when it belongs to QnA
 - auditable validation records where they are part of answer trust
 
@@ -366,7 +365,7 @@ Process:
 17. When changing dashboard activation criteria, update dashboard setup progress from real workspace data and ensure no setup-progress or completion surface renders after progress reaches 100%.
 18. Keep top-level list pages usable from 320 CSS pixels through tablet and desktop. Below `xl`, list records should use stacked card rows and the shell should use the header/drawer instead of the fixed sidebar.
 19. Prevent horizontal page overflow at the root, shell, page, card, filter, table, dialog, sheet, popover, pagination, and action levels. Use `min-w-0`, viewport constraints, and word breaking for long URLs, ids, checksums, user agents, and generated tokens.
-20. For Source screens, keep UI controls, filters, badges, metrics, and setup-progress steps aligned to canonical fields such as `allowsCitation`, `visibility`, usage counts, and relationship role.
+20. For Source screens, keep UI controls, filters, badges, metrics, and setup-progress steps aligned to canonical fields such as `visibility`, verification state, usage counts, and relationship role. If `MetadataJson` is editable, validate JSON before submit and provide a formatting affordance.
 21. Verify loading, empty, error, pending, success, and destructive-action states.
 22. Verify light and dark mode whenever the change touches layout, colors, cards, tables, forms, actions, or badges.
 

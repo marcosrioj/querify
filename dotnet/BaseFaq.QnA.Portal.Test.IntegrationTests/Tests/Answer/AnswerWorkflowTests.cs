@@ -22,7 +22,7 @@ public class AnswerWorkflowTests
             context.SessionService.TenantId,
             question.Id,
             status: AnswerStatus.Draft,
-            visibility: VisibilityScope.Internal,
+            visibility: VisibilityScope.Authenticated,
             accept: false);
 
         await new AnswersPublishAnswerCommandHandler(
@@ -70,14 +70,14 @@ public class AnswerWorkflowTests
             context.SessionService.TenantId,
             question.Id,
             status: AnswerStatus.Published,
-            visibility: VisibilityScope.PublicIndexed,
+            visibility: VisibilityScope.Public,
             accept: false);
         var retiredAnswer = await TestDataFactory.SeedAnswerAsync(
             context.DbContext,
             context.SessionService.TenantId,
             question.Id,
             status: AnswerStatus.Published,
-            visibility: VisibilityScope.PublicIndexed,
+            visibility: VisibilityScope.Public,
             accept: false,
             rank: 2);
 
@@ -119,11 +119,11 @@ public class AnswerWorkflowTests
             .ToList();
 
         Assert.Equal(AnswerStatus.Rejected, rejectedResult.Status);
-        Assert.Equal(VisibilityScope.Internal, rejectedResult.Visibility);
+        Assert.Equal(VisibilityScope.Authenticated, rejectedResult.Visibility);
         Assert.Contains(ActivityKind.AnswerRejected, rejectedActivityKinds);
 
         Assert.Equal(AnswerStatus.Archived, retiredResult.Status);
-        Assert.Equal(VisibilityScope.Internal, retiredResult.Visibility);
+        Assert.Equal(VisibilityScope.Authenticated, retiredResult.Visibility);
         Assert.NotNull(retiredResult.RetiredAtUtc);
         Assert.Contains(ActivityKind.AnswerRetired, retiredActivityKinds);
     }

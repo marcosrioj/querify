@@ -12,7 +12,7 @@ import {
   QuestionStatus,
   SourceKind,
   SourceRole,
-  SpaceKind,
+  SpaceStatus,
   TenantEdition,
   TenantSubscriptionStatus,
   TenantUserRoleType,
@@ -29,7 +29,7 @@ import {
   questionStatusLabels,
   sourceKindLabels,
   sourceRoleLabels,
-  spaceKindLabels,
+  spaceStatusLabels,
   tenantEditionLabels,
   tenantSubscriptionStatusLabels,
   tenantUserRoleTypeLabels,
@@ -286,51 +286,39 @@ export const tenantSubscriptionStatusPresentation: Record<
   },
 };
 
-export const spaceKindPresentation: Record<SpaceKind, EnumPresentation> = {
-  [SpaceKind.ControlledPublication]: {
-    label: spaceKindLabels[SpaceKind.ControlledPublication],
-    description: "Team-controlled publishing with review before exposure.",
-    badgeVariant: "primary",
-    sortGroup: 1,
-  },
-  [SpaceKind.ModeratedCollaboration]: {
-    label: spaceKindLabels[SpaceKind.ModeratedCollaboration],
-    description: "Collaborative intake with moderation before questions open.",
-    badgeVariant: "info",
+export const spaceStatusPresentation: Record<SpaceStatus, EnumPresentation> = {
+  [SpaceStatus.Draft]: {
+    label: spaceStatusLabels[SpaceStatus.Draft],
+    description: "Not ready for public use.",
+    badgeVariant: "warning",
     sortGroup: 2,
   },
-  [SpaceKind.PublicValidation]: {
-    label: spaceKindLabels[SpaceKind.PublicValidation],
-    description: "Public-facing validation and signal gathering.",
+  [SpaceStatus.Active]: {
+    label: spaceStatusLabels[SpaceStatus.Active],
+    description: "Available for active QnA work.",
     badgeVariant: "success",
+    sortGroup: 1,
+  },
+  [SpaceStatus.Archived]: {
+    label: spaceStatusLabels[SpaceStatus.Archived],
+    description: "No longer active.",
+    badgeVariant: "outline",
     sortGroup: 3,
   },
 };
 
 export const visibilityPresentation: Record<VisibilityScope, EnumPresentation> = {
-  [VisibilityScope.Internal]: {
-    label: visibilityScopeLabels[VisibilityScope.Internal],
-    description: "Visible only to internal operators.",
-    badgeVariant: "outline",
-    sortGroup: 1,
-  },
   [VisibilityScope.Authenticated]: {
     label: visibilityScopeLabels[VisibilityScope.Authenticated],
     description: "Visible to authenticated users.",
     badgeVariant: "info",
-    sortGroup: 2,
+    sortGroup: 1,
   },
   [VisibilityScope.Public]: {
     label: visibilityScopeLabels[VisibilityScope.Public],
     description: "Visible publicly.",
-    badgeVariant: "secondary",
-    sortGroup: 3,
-  },
-  [VisibilityScope.PublicIndexed]: {
-    label: visibilityScopeLabels[VisibilityScope.PublicIndexed],
-    description: "Visible publicly and eligible for indexing.",
     badgeVariant: "success",
-    sortGroup: 4,
+    sortGroup: 2,
   },
 };
 
@@ -340,51 +328,27 @@ export const questionStatusPresentation: Record<
 > = {
   [QuestionStatus.Draft]: {
     label: questionStatusLabels[QuestionStatus.Draft],
-    description: "Not submitted for review.",
+    description: "Not yet active.",
     badgeVariant: "warning",
     sortGroup: 2,
   },
-  [QuestionStatus.PendingReview]: {
-    label: questionStatusLabels[QuestionStatus.PendingReview],
-    description: "Waiting for moderation.",
-    badgeVariant: "info",
-    sortGroup: 0,
-  },
-  [QuestionStatus.Open]: {
-    label: questionStatusLabels[QuestionStatus.Open],
-    description: "Ready for answers.",
-    badgeVariant: "secondary",
-    sortGroup: 1,
-  },
-  [QuestionStatus.Answered]: {
-    label: questionStatusLabels[QuestionStatus.Answered],
-    description: "Has an answer.",
+  [QuestionStatus.Active]: {
+    label: questionStatusLabels[QuestionStatus.Active],
+    description: "Ready for answers and public exposure when visible.",
     badgeVariant: "success",
-    sortGroup: 3,
-  },
-  [QuestionStatus.Validated]: {
-    label: questionStatusLabels[QuestionStatus.Validated],
-    description: "Answer has been validated.",
-    badgeVariant: "primary",
-    sortGroup: 4,
-  },
-  [QuestionStatus.Escalated]: {
-    label: questionStatusLabels[QuestionStatus.Escalated],
-    description: "Requires attention outside normal review.",
-    badgeVariant: "destructive",
-    sortGroup: 0,
+    sortGroup: 1,
   },
   [QuestionStatus.Duplicate]: {
     label: questionStatusLabels[QuestionStatus.Duplicate],
     description: "Redirected to a canonical question.",
     badgeVariant: "outline",
-    sortGroup: 5,
+    sortGroup: 3,
   },
   [QuestionStatus.Archived]: {
     label: questionStatusLabels[QuestionStatus.Archived],
     description: "No longer active.",
     badgeVariant: "outline",
-    sortGroup: 6,
+    sortGroup: 4,
   },
 };
 
@@ -488,11 +452,7 @@ export const sourceRolePresentation = Object.fromEntries(
     {
       label,
       description: "How this source supports the record.",
-      badgeVariant:
-        Number(value) === SourceRole.CanonicalReference ||
-        Number(value) === SourceRole.AuditProof
-          ? "primary"
-          : "outline",
+      badgeVariant: Number(value) === SourceRole.Reference ? "primary" : "outline",
       sortGroup: Number(value),
     },
   ]),
@@ -505,7 +465,6 @@ export const activityKindPresentation = Object.fromEntries(
       label,
       description: "Workflow and signal event.",
       badgeVariant:
-        Number(value) === ActivityKind.QuestionEscalated ||
         Number(value) === ActivityKind.ReportReceived ||
         Number(value) === ActivityKind.AnswerRejected
           ? "destructive"

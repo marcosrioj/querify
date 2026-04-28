@@ -42,6 +42,7 @@ import {
   AnswerStatus,
   QuestionStatus,
   TenantSubscriptionStatus,
+  VisibilityScope,
 } from "@/shared/constants/backend-enums";
 import {
   billingInvoiceStatusPresentation,
@@ -580,37 +581,19 @@ export function DashboardPage() {
     page: 1,
     pageSize: 5,
     sorting: "LastActivityAtUtc DESC",
-    status: QuestionStatus.PendingReview,
+    status: QuestionStatus.Draft,
   });
   const openQuestionsQuery = useQuestionList({
     page: 1,
     pageSize: 5,
     sorting: "LastActivityAtUtc DESC",
-    status: QuestionStatus.Open,
+    status: QuestionStatus.Active,
   });
   const draftQuestionsQuery = useQuestionList({
     page: 1,
     pageSize: 1,
     sorting: "LastActivityAtUtc DESC",
     status: QuestionStatus.Draft,
-  });
-  const answeredQuestionsQuery = useQuestionList({
-    page: 1,
-    pageSize: 1,
-    sorting: "LastActivityAtUtc DESC",
-    status: QuestionStatus.Answered,
-  });
-  const validatedQuestionsQuery = useQuestionList({
-    page: 1,
-    pageSize: 1,
-    sorting: "LastActivityAtUtc DESC",
-    status: QuestionStatus.Validated,
-  });
-  const escalatedQuestionsQuery = useQuestionList({
-    page: 1,
-    pageSize: 1,
-    sorting: "LastActivityAtUtc DESC",
-    status: QuestionStatus.Escalated,
   });
   const duplicateQuestionsQuery = useQuestionList({
     page: 1,
@@ -657,11 +640,11 @@ export function DashboardPage() {
     pageSize: 100,
     sorting: "LastVerifiedAtUtc DESC",
   });
-  const citableSourcesQuery = useSourceList({
+  const publicSourcesQuery = useSourceList({
     page: 1,
     pageSize: 1,
     sorting: "LastVerifiedAtUtc DESC",
-    allowsCitation: true,
+    visibility: VisibilityScope.Public,
   });
   const activityQuery = useActivityList({
     page: 1,
@@ -675,9 +658,6 @@ export function DashboardPage() {
     pendingQuestionsQuery.isLoading ||
     openQuestionsQuery.isLoading ||
     draftQuestionsQuery.isLoading ||
-    answeredQuestionsQuery.isLoading ||
-    validatedQuestionsQuery.isLoading ||
-    escalatedQuestionsQuery.isLoading ||
     duplicateQuestionsQuery.isLoading ||
     archivedQuestionsQuery.isLoading ||
     recentQuestionsQuery.isLoading ||
@@ -686,7 +666,7 @@ export function DashboardPage() {
     validatedAnswersQuery.isLoading ||
     acceptedAnswersQuery.isLoading ||
     sourcesQuery.isLoading ||
-    citableSourcesQuery.isLoading ||
+    publicSourcesQuery.isLoading ||
     activityQuery.isLoading ||
     membersQuery.isLoading ||
     profileQuery.isLoading ||
@@ -698,9 +678,6 @@ export function DashboardPage() {
     pendingQuestionsQuery.isError ||
     openQuestionsQuery.isError ||
     draftQuestionsQuery.isError ||
-    answeredQuestionsQuery.isError ||
-    validatedQuestionsQuery.isError ||
-    escalatedQuestionsQuery.isError ||
     duplicateQuestionsQuery.isError ||
     archivedQuestionsQuery.isError ||
     recentQuestionsQuery.isError ||
@@ -709,7 +686,7 @@ export function DashboardPage() {
     validatedAnswersQuery.isError ||
     acceptedAnswersQuery.isError ||
     sourcesQuery.isError ||
-    citableSourcesQuery.isError ||
+    publicSourcesQuery.isError ||
     activityQuery.isError;
 
   if (isInitialDashboardLoading) {
@@ -723,9 +700,6 @@ export function DashboardPage() {
       pendingQuestionsQuery.error ??
       openQuestionsQuery.error ??
       draftQuestionsQuery.error ??
-      answeredQuestionsQuery.error ??
-      validatedQuestionsQuery.error ??
-      escalatedQuestionsQuery.error ??
       duplicateQuestionsQuery.error ??
       archivedQuestionsQuery.error ??
       recentQuestionsQuery.error ??
@@ -734,7 +708,7 @@ export function DashboardPage() {
       validatedAnswersQuery.error ??
       acceptedAnswersQuery.error ??
       sourcesQuery.error ??
-      citableSourcesQuery.error ??
+      publicSourcesQuery.error ??
       activityQuery.error;
 
     return (
@@ -752,9 +726,6 @@ export function DashboardPage() {
             void pendingQuestionsQuery.refetch();
             void openQuestionsQuery.refetch();
             void draftQuestionsQuery.refetch();
-            void answeredQuestionsQuery.refetch();
-            void validatedQuestionsQuery.refetch();
-            void escalatedQuestionsQuery.refetch();
             void duplicateQuestionsQuery.refetch();
             void archivedQuestionsQuery.refetch();
             void recentQuestionsQuery.refetch();
@@ -763,7 +734,7 @@ export function DashboardPage() {
             void validatedAnswersQuery.refetch();
             void acceptedAnswersQuery.refetch();
             void sourcesQuery.refetch();
-            void citableSourcesQuery.refetch();
+            void publicSourcesQuery.refetch();
             void activityQuery.refetch();
           }}
         />
@@ -784,27 +755,20 @@ export function DashboardPage() {
   const draftQuestionCount = draftQuestionsQuery.data?.totalCount ?? 0;
   const pendingQuestionCount = pendingQuestionsQuery.data?.totalCount ?? 0;
   const openQuestionCount = openQuestionsQuery.data?.totalCount ?? 0;
-  const answeredQuestionCount = answeredQuestionsQuery.data?.totalCount ?? 0;
-  const validatedQuestionCount = validatedQuestionsQuery.data?.totalCount ?? 0;
-  const escalatedQuestionCount = escalatedQuestionsQuery.data?.totalCount ?? 0;
   const duplicateQuestionCount = duplicateQuestionsQuery.data?.totalCount ?? 0;
   const archivedQuestionCount = archivedQuestionsQuery.data?.totalCount ?? 0;
   const answerCount = answersSummaryQuery.data?.totalCount ?? 0;
   const publishedAnswerCount = publishedAnswersQuery.data?.totalCount ?? 0;
   const acceptedAnswerCount = acceptedAnswersQuery.data?.totalCount ?? 0;
   const sourceCount = sourcesQuery.data?.totalCount ?? 0;
-  const citableSourceCount = citableSourcesQuery.data?.totalCount ?? 0;
+  const publicSourceCount = publicSourcesQuery.data?.totalCount ?? 0;
   const validatedAnswerCount = validatedAnswersQuery.data?.totalCount ?? 0;
   const billingSummary = billing.summaryQuery.data;
   const questionLifecycle = getQuestionLifecycleData({
-    answered: answeredQuestionCount,
     archived: archivedQuestionCount,
     draft: draftQuestionCount,
     duplicate: duplicateQuestionCount,
-    escalated: escalatedQuestionCount,
     open: openQuestionCount,
-    pending: pendingQuestionCount,
-    validated: validatedQuestionCount,
   });
   const answerTrustFunnel = getAnswerTrustFunnelData({
     acceptedAnswerCount,
@@ -813,7 +777,7 @@ export function DashboardPage() {
     validatedAnswerCount,
   });
   const evidenceReadiness = getEvidenceReadinessData({
-    citableSourceCount,
+    publicSourceCount,
     sourceCount,
   });
   const spaceWorkload = getSpaceWorkloadData(spaces);
@@ -839,9 +803,9 @@ export function DashboardPage() {
   });
   const kpis = getDashboardKpis({
     activity: recentActivity,
-    answeredQuestionCount: answeredQuestionCount + validatedQuestionCount,
-    citableSourceCount,
+    answeredQuestionCount: acceptedAnswerCount,
     openQuestionCount,
+    publicSourceCount,
     pendingQuestionCount,
     publishedAnswerCount,
     questionCount,
@@ -850,8 +814,8 @@ export function DashboardPage() {
     validatedAnswerCount,
   });
   const businessReadout = getBusinessReadout({
-    citableSourceCount,
     openQuestionCount,
+    publicSourceCount,
     publishedAnswerCount,
     questionCount,
     questionLifecycle,
@@ -972,7 +936,7 @@ export function DashboardPage() {
           <HorizontalValueChart
             data={questionLifecycle}
             emptyTitle="No question lifecycle yet"
-            emptyDescription="Create the first question to see draft, review, open, answered, and validated flow."
+            emptyDescription="Create the first question to see draft, active, duplicate, and archived flow."
             valueLabel="Questions"
           />
         </Panel>
@@ -998,7 +962,7 @@ export function DashboardPage() {
       <div className="grid gap-5 xl:grid-cols-[380px_minmax(0,1fr)] lg:gap-7.5">
         <Panel
           title="Evidence readiness"
-          description="Source catalog quality: citable material can support validated and official answers."
+          description="Source catalog quality: public material can support validated and official answers."
           action={
             <Badge variant="outline" appearance="outline">
               {translateText("{value}% ready", {
@@ -1008,11 +972,11 @@ export function DashboardPage() {
           }
         >
           <CompactBreakdownChart
-            centerLabel="Citation ready"
+            centerLabel="Public sources"
             centerValue={`${kpis.sourceReadiness}%`}
             data={evidenceReadiness}
             emptyTitle="No evidence catalog yet"
-            emptyDescription="Add reusable sources and mark them citable before scaling trusted answers."
+            emptyDescription="Add reusable sources and make them public before scaling trusted answers."
           />
         </Panel>
 
@@ -1076,11 +1040,11 @@ export function DashboardPage() {
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_380px] lg:gap-7.5">
         <Panel
           title="Work queue"
-          description="The highest-signal questions appear first: pending review, then open threads, then recent activity."
+          description="The highest-signal questions appear first: draft threads, then active threads, then recent activity."
           action={
             <Button asChild variant="outline" size="sm">
               <Link
-                to={`/app/questions?status=${QuestionStatus.PendingReview}`}
+                to={`/app/questions?status=${QuestionStatus.Draft}`}
               >
                 {translateText("Open queue")}
               </Link>

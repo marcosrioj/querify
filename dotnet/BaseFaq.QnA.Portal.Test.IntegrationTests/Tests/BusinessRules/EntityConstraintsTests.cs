@@ -23,8 +23,8 @@ public class EntityConstraintsTests
             Title = "Cross-tenant question",
             Summary = "Summary",
             ContextNote = "Context",
-            Status = QuestionStatus.Open,
-            Visibility = VisibilityScope.Internal,
+            Status = QuestionStatus.Active,
+            Visibility = VisibilityScope.Authenticated,
             OriginChannel = ChannelKind.Manual,
             AiConfidenceScore = 50,
             FeedbackScore = 0,
@@ -47,7 +47,7 @@ public class EntityConstraintsTests
             context.DbContext,
             context.SessionService.TenantId,
             space.Id,
-            visibility: VisibilityScope.PublicIndexed);
+            visibility: VisibilityScope.Public);
 
         var answer = new AnswerEntity
         {
@@ -84,7 +84,6 @@ public class EntityConstraintsTests
             Language = "en-US",
             Checksum = "sha256:internal-note-1",
             Visibility = VisibilityScope.Public,
-            AllowsCitation = true,
             LastVerifiedAtUtc = DateTime.UtcNow,
             CreatedBy = "test",
             UpdatedBy = "test"

@@ -30,7 +30,7 @@ public sealed class QuestionsApproveQuestionCommandHandler(
         if (entity is null)
             throw new ApiErrorException($"Question '{request.Id}' was not found.", (int)HttpStatusCode.NotFound);
 
-        entity.Status = QuestionStatus.Open;
+        entity.Status = QuestionStatus.Active;
 
         AddActivity(entity, ActivityKind.QuestionApproved, userId);
         await dbContext.SaveChangesAsync(cancellationToken);

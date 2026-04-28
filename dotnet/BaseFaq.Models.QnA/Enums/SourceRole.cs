@@ -8,30 +8,20 @@ public enum SourceRole
     /// <summary>
     /// The source explains where the question came from.
     /// </summary>
-    QuestionOrigin = 1,
+    Origin = 1,
 
     /// <summary>
-    /// The source adds background or interpretation, but is not the strongest proof.
+    /// The source adds background or interpretation for the question or answer.
     /// </summary>
-    SupportingContext = 2,
+    Context = 2,
 
     /// <summary>
-    /// The source directly supports the answer and should influence confidence.
+    /// The source directly supports the answer or thread and should influence confidence.
     /// </summary>
     Evidence = 3,
 
     /// <summary>
-    /// The source is intended to be shown or cited explicitly in user-facing trust surfaces.
+    /// The source is a user-facing reference for the current question or answer.
     /// </summary>
-    Citation = 4,
-
-    /// <summary>
-    /// The source acts as the canonical reference that should anchor the current answer.
-    /// </summary>
-    CanonicalReference = 5,
-
-    /// <summary>
-    /// The source provides audit evidence or a verification anchor.
-    /// </summary>
-    AuditProof = 6
+    Reference = 4
 }

@@ -31,7 +31,6 @@ export function useSourceList(params: {
   searchText?: string;
   kind?: number;
   visibility?: number;
-  allowsCitation?: boolean;
   enabled?: boolean;
 }) {
   const { session, status } = useAuth();

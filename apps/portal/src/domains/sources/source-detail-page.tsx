@@ -58,7 +58,7 @@ export function SourceDetailPage() {
       header={
         <PageHeader
           title={sourceQuery.data?.label || "Source"}
-          description="Review citation rules, verification metadata, and connector identifiers for this reusable source."
+          description="Review visibility, verification metadata, and connector identifiers for this reusable source."
           descriptionMode="hint"
           backTo="/app/sources"
         />
@@ -159,14 +159,6 @@ export function SourceDetailPage() {
                   <VisibilityBadge visibility={sourceQuery.data.visibility} />
                 ),
               },
-              {
-                title: "Citation",
-                value: translateText(
-                  sourceQuery.data.allowsCitation
-                    ? "Allowed"
-                    : "Internal only",
-                ),
-              },
             ]}
           />
           <Card>
@@ -252,14 +244,6 @@ export function SourceDetailPage() {
                   {
                     label: "Media type",
                     value: sourceQuery.data.mediaType || "Not set",
-                  },
-                  {
-                    label: "Captured at",
-                    value: formatOptionalDateTimeInTimeZone(
-                      sourceQuery.data.capturedAtUtc,
-                      portalTimeZone,
-                      translateText("Not set"),
-                    ),
                   },
                   {
                     label: "Last verified",

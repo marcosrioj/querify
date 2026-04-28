@@ -33,7 +33,7 @@ public sealed class SpacesGetSpaceListQueryHandler(
         if (request.Request.Visibility is not null)
             query = query.Where(space => space.Visibility == request.Request.Visibility);
 
-        if (request.Request.Kind is not null) query = query.Where(space => space.Kind == request.Request.Kind);
+        if (request.Request.Status is not null) query = query.Where(space => space.Status == request.Request.Status);
 
         if (request.Request.AcceptsQuestions is not null)
             query = query.Where(space => space.AcceptsQuestions == request.Request.AcceptsQuestions);
@@ -66,11 +66,10 @@ public sealed class SpacesGetSpaceListQueryHandler(
                     Slug = space.Slug,
                     Summary = space.Summary,
                     Language = space.Language,
-                    Kind = space.Kind,
+                    Status = space.Status,
                     Visibility = space.Visibility,
                     AcceptsQuestions = space.AcceptsQuestions,
                     AcceptsAnswers = space.AcceptsAnswers,
-                    PublishedAtUtc = space.PublishedAtUtc,
                     QuestionCount = space.Questions.Count
                 })
                 .ToList());

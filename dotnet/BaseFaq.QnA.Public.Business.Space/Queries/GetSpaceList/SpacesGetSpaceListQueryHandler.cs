@@ -29,7 +29,8 @@ public sealed class SpacesGetSpaceListQueryHandler(
             .Include(space => space.Questions)
             .Where(space =>
                 space.TenantId == tenantId &&
-                (space.Visibility == VisibilityScope.Public || space.Visibility == VisibilityScope.PublicIndexed));
+                space.Visibility == VisibilityScope.Public &&
+                space.Status == SpaceStatus.Active);
 
         if (!string.IsNullOrWhiteSpace(request.Request.SearchText))
             query = query.Where(space =>

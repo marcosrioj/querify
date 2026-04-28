@@ -8,7 +8,7 @@ import {
   QuestionStatus,
   SourceKind,
   SourceRole,
-  SpaceKind,
+  SpaceStatus,
   TenantEdition,
   TenantUserRoleType,
   VisibilityScope,
@@ -22,7 +22,7 @@ import {
   questionStatusPresentation,
   sourceKindPresentation,
   sourceRolePresentation,
-  spaceKindPresentation,
+  spaceStatusPresentation,
   tenantEditionPresentation,
   tenantUserRolePresentation,
   type BadgeVariant,
@@ -59,8 +59,8 @@ export function TenantEditionBadge({ edition }: { edition: TenantEdition }) {
   return <BadgeText text={presentation.label} variant={presentation.badgeVariant} />;
 }
 
-export function SpaceKindBadge({ kind }: { kind: SpaceKind }) {
-  const presentation = spaceKindPresentation[kind];
+export function SpaceStatusBadge({ status }: { status: SpaceStatus }) {
+  const presentation = spaceStatusPresentation[status];
 
   return <BadgeText text={presentation.label} variant={presentation.badgeVariant} />;
 }

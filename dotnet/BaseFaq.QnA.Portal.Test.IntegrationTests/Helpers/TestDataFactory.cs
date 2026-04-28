@@ -12,7 +12,7 @@ public static class TestDataFactory
         Guid tenantId,
         string? name = null,
         string? slug = null,
-        VisibilityScope visibility = VisibilityScope.Internal,
+        VisibilityScope visibility = VisibilityScope.Authenticated,
         bool acceptsQuestions = true,
         bool acceptsAnswers = true)
     {
@@ -22,14 +22,11 @@ public static class TestDataFactory
             Name = name ?? "Support Questions",
             Slug = slug ?? $"space-{Guid.NewGuid():N}".Substring(0, 12),
             Language = "en-US",
-            Kind = SpaceKind.ControlledPublication,
+            Status = SpaceStatus.Active,
             Summary = "Support knowledge",
             AcceptsQuestions = acceptsQuestions,
             AcceptsAnswers = acceptsAnswers,
             Visibility = visibility,
-            PublishedAtUtc = visibility is VisibilityScope.Public or VisibilityScope.PublicIndexed
-                ? DateTime.UtcNow
-                : null,
             CreatedBy = "test",
             UpdatedBy = "test"
         };
@@ -45,8 +42,8 @@ public static class TestDataFactory
         Guid spaceId,
         string? title = null,
         string? key = null,
-        QuestionStatus status = QuestionStatus.Open,
-        VisibilityScope visibility = VisibilityScope.Internal)
+        QuestionStatus status = QuestionStatus.Active,
+        VisibilityScope visibility = VisibilityScope.Authenticated)
     {
         var space = await dbContext.Spaces
             .Include(entity => entity.Questions)
@@ -66,7 +63,6 @@ public static class TestDataFactory
             AiConfidenceScore = 85,
             FeedbackScore = 0,
             Sort = 0,
-            ValidatedAtUtc = status == QuestionStatus.Validated ? DateTime.UtcNow : null,
             CreatedBy = "test",
             UpdatedBy = "test"
         };
@@ -99,7 +95,7 @@ public static class TestDataFactory
         Guid questionId,
         string? headline = null,
         AnswerStatus status = AnswerStatus.Published,
-        VisibilityScope visibility = VisibilityScope.Internal,
+        VisibilityScope visibility = VisibilityScope.Authenticated,
         bool accept = false,
         int rank = 1)
     {
@@ -170,10 +166,7 @@ public static class TestDataFactory
             var acceptedAtUtc = DateTime.UtcNow;
             question.AcceptedAnswerId = entity.Id;
             question.AcceptedAnswer = entity;
-            question.AnsweredAtUtc = acceptedAtUtc;
-            question.Status = question.Status == QuestionStatus.Validated
-                ? QuestionStatus.Validated
-                : QuestionStatus.Answered;
+            question.Status = QuestionStatus.Active;
             var acceptedActivity = new Activity
             {
                 TenantId = tenantId,
@@ -220,7 +213,7 @@ public static class TestDataFactory
         QnADbContext dbContext,
         Guid tenantId,
         string? locator = null,
-        VisibilityScope visibility = VisibilityScope.Internal)
+        VisibilityScope visibility = VisibilityScope.Authenticated)
     {
         var entity = new Source
         {
@@ -236,7 +229,6 @@ public static class TestDataFactory
             MetadataJson = "{\"type\":\"doc\"}",
             LastVerifiedAtUtc = DateTime.UtcNow,
             Visibility = visibility,
-            AllowsCitation = visibility != VisibilityScope.Internal,
             CreatedBy = "test",
             UpdatedBy = "test"
         };

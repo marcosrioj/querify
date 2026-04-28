@@ -36,9 +36,9 @@ public class Space : BaseEntity, IMustHaveTenant
     public required string Language { get; set; }
 
     /// <summary>
-    ///     Operating mode for controlled publication, moderated collaboration, or public validation.
+    ///     Current lifecycle state of the space.
     /// </summary>
-    public required SpaceKind Kind { get; set; }
+    public required SpaceStatus Status { get; set; }
 
     /// <summary>
     ///     Visibility scope for the space.
@@ -55,12 +55,6 @@ public class Space : BaseEntity, IMustHaveTenant
     /// </summary>
     public required bool AcceptsAnswers { get; set; }
 
-    /// <summary>
-    ///     Timestamp when the space was published for consumption.
-    /// </summary>
-    public DateTime? PublishedAtUtc { get; set; }
-
-    /// <summary>
     ///     Questions that belong to the space.
     /// </summary>
     public ICollection<Question> Questions { get; set; } = [];

@@ -12,7 +12,7 @@ public class Source : BaseEntity, IMustHaveTenant
 {
     public const int MaxLocatorLength = 1000;
     public const int MaxLabelLength = 200;
-    public const int MaxContextNoteLength = 1000;
+    public const int MaxContextNoteLength = 2000;
     public const int MaxExternalIdLength = 250;
     public const int MaxLanguageLength = 50;
     public const int MaxMediaTypeLength = 100;
@@ -68,16 +68,6 @@ public class Source : BaseEntity, IMustHaveTenant
     ///     Allowed visibility scope for the source.
     /// </summary>
     public required VisibilityScope Visibility { get; set; }
-
-    /// <summary>
-    ///     Indicates whether publicly visible QnA outputs can cite the source.
-    /// </summary>
-    public required bool AllowsCitation { get; set; }
-
-    /// <summary>
-    ///     Timestamp when the source was captured.
-    /// </summary>
-    public DateTime? CapturedAtUtc { get; set; }
 
     /// <summary>
     ///     Timestamp of the last trust or freshness verification.

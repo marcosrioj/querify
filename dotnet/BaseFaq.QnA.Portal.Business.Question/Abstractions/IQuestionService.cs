@@ -13,7 +13,6 @@ public interface IQuestionService
     Task<Guid> Submit(Guid id, CancellationToken token);
     Task<Guid> Approve(Guid id, CancellationToken token);
     Task<Guid> Reject(Guid id, string? notes, CancellationToken token);
-    Task<Guid> Escalate(Guid id, string? notes, CancellationToken token);
     Task<Guid> AddTag(QuestionTagCreateRequestDto dto, CancellationToken token);
     Task RemoveTag(Guid questionId, Guid tagId, CancellationToken token);
     Task<Guid> AddSource(QuestionSourceLinkCreateRequestDto dto, CancellationToken token);

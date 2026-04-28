@@ -29,12 +29,7 @@ function pickChartFill(index: number) {
 }
 
 function hasQuestionWorkflowPressure(status: QuestionStatus) {
-  return (
-    status === QuestionStatus.Draft ||
-    status === QuestionStatus.PendingReview ||
-    status === QuestionStatus.Open ||
-    status === QuestionStatus.Escalated
-  );
+  return status === QuestionStatus.Draft || status === QuestionStatus.Active;
 }
 
 export type PortalActivationState = {
@@ -128,9 +123,9 @@ export function getRoleAwareNextAction({
 
   if (pendingQuestionCount > 0) {
     return {
-      label: "Review pending questions",
-      description: "Clear moderation decisions before the queue grows.",
-      to: `/app/questions?status=${QuestionStatus.PendingReview}`,
+      label: "Review draft questions",
+      description: "Activate or archive draft threads before the queue grows.",
+      to: `/app/questions?status=${QuestionStatus.Draft}`,
     };
   }
 
@@ -174,7 +169,7 @@ export function getDashboardKpis({
   answeredQuestionCount,
   openQuestionCount,
   publishedAnswerCount,
-  citableSourceCount,
+  publicSourceCount,
   pendingQuestionCount,
   questionCount,
   spaces,
@@ -185,7 +180,7 @@ export function getDashboardKpis({
   answeredQuestionCount: number;
   openQuestionCount: number;
   publishedAnswerCount: number;
-  citableSourceCount: number;
+  publicSourceCount: number;
   pendingQuestionCount: number;
   questionCount: number;
   spaces: SpaceDto[];
@@ -201,69 +196,33 @@ export function getDashboardKpis({
     pendingQuestionCount,
     openQuestionCount,
     validatedAnswerCount,
-    citableSourceCount,
+    publicSourceCount,
     recentActivityCount: activity.length,
     publishedAnswers: publishedAnswerCount,
     sourceCount,
     answeredCoverage: percentage(answeredQuestionCount, questionCount),
-    sourceReadiness: percentage(citableSourceCount, sourceCount),
+    sourceReadiness: percentage(publicSourceCount, sourceCount),
   };
 }
 
 export function getQuestionLifecycleData({
   draft,
-  pending,
   open,
-  answered,
-  validated,
-  escalated,
   duplicate,
   archived,
 }: {
   draft: number;
-  pending: number;
   open: number;
-  answered: number;
-  validated: number;
-  escalated: number;
   duplicate: number;
   archived: number;
 }) {
   const rows = [
     {
-      key: "pending",
-      label: "Pending review",
-      status: QuestionStatus.PendingReview,
-      value: pending,
-      fill: "var(--color-info)",
-    },
-    {
       key: "open",
-      label: "Open",
-      status: QuestionStatus.Open,
+      label: "Active",
+      status: QuestionStatus.Active,
       value: open,
       fill: "var(--chart-2)",
-    },
-    {
-      key: "answered",
-      label: "Answered",
-      status: QuestionStatus.Answered,
-      value: answered,
-      fill: "var(--chart-1)",
-    },
-    {
-      key: "validated",
-      label: "Validated",
-      status: QuestionStatus.Validated,
-      value: validated,
-      fill: "var(--chart-5)",
-    },
-    {
-      key: "escalated",
-      label: "Escalated",
-      status: QuestionStatus.Escalated,
-      value: escalated,
-      fill: "var(--color-destructive-accent)",
     },
     {
       key: "draft",
@@ -331,25 +290,25 @@ export function getAnswerTrustFunnelData({
 }
 
 export function getEvidenceReadinessData({
-  citableSourceCount,
+  publicSourceCount,
   sourceCount,
 }: {
-  citableSourceCount: number;
+  publicSourceCount: number;
   sourceCount: number;
 }) {
-  const nonCitableSourceCount = Math.max(sourceCount - citableSourceCount, 0);
+  const authenticatedSourceCount = Math.max(sourceCount - publicSourceCount, 0);
 
   return [
     {
-      key: "citable",
-      label: "Citable",
-      value: citableSourceCount,
+      key: "public",
+      label: "Public",
+      value: publicSourceCount,
       fill: "var(--chart-1)",
     },
     {
-      key: "non-citable",
-      label: "Needs citation approval",
-      value: nonCitableSourceCount,
+      key: "authenticated",
+      label: "Authenticated",
+      value: authenticatedSourceCount,
       fill: "var(--chart-3)",
     },
   ].filter((row) => row.value > 0);
@@ -371,14 +330,14 @@ export function getSpaceWorkloadData(spaces: SpaceDto[]) {
 
 export function getSourceUtilizationData(sources: SourceDto[]) {
   return [...sources]
-    .map((source) => ({
+    .map((source, index) => ({
       key: source.id,
       label: source.label || source.locator,
       value:
         source.spaceUsageCount +
         source.questionUsageCount +
         source.answerUsageCount,
-      fill: source.allowsCitation ? "var(--chart-1)" : "var(--chart-3)",
+      fill: pickChartFill(index),
       to: `/app/sources/${source.id}`,
     }))
     .filter((source) => source.value > 0)
@@ -416,7 +375,6 @@ export function getActivityMixData(activity: ActivityDto[]) {
 
   for (const entry of activity) {
     if (
-      entry.kind === ActivityKind.QuestionEscalated ||
       entry.kind === ActivityKind.ReportReceived ||
       entry.kind === ActivityKind.AnswerRejected
     ) {
@@ -440,7 +398,7 @@ export function getActivityMixData(activity: ActivityDto[]) {
 }
 
 export function getBusinessReadout({
-  citableSourceCount,
+  publicSourceCount,
   openQuestionCount,
   publishedAnswerCount,
   questionLifecycle,
@@ -449,7 +407,7 @@ export function getBusinessReadout({
   spaces,
   validatedAnswerCount,
 }: {
-  citableSourceCount: number;
+  publicSourceCount: number;
   openQuestionCount: number;
   publishedAnswerCount: number;
   questionLifecycle: Array<{ status: QuestionStatus; value: number }>;
@@ -474,7 +432,7 @@ export function getBusinessReadout({
       value: `${workflowPressure}`,
       detail:
         workflowPressure > 0
-          ? "Draft, pending, open, or escalated threads need operator action."
+          ? "Draft and active threads need operator attention."
           : "No visible workflow pressure in the current workspace.",
     },
     {
@@ -487,10 +445,10 @@ export function getBusinessReadout({
     },
     {
       label: "Evidence readiness",
-      value: `${percentage(citableSourceCount, sourceCount)}%`,
+      value: `${percentage(publicSourceCount, sourceCount)}%`,
       detail:
         sourceCount > 0
-          ? "Share of sources already approved for citation."
+          ? "Share of sources visible publicly."
           : "Add sources before scaling answer publication.",
     },
     {

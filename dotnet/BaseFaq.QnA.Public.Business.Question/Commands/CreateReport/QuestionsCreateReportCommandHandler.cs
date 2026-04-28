@@ -38,10 +38,8 @@ public sealed class QuestionsCreateReportCommandHandler(
                 entity =>
                     entity.TenantId == tenantId &&
                     entity.Id == request.Request.QuestionId &&
-                    (entity.Visibility == VisibilityScope.Public ||
-                     entity.Visibility == VisibilityScope.PublicIndexed) &&
-                    (entity.Status == QuestionStatus.Open || entity.Status == QuestionStatus.Answered ||
-                     entity.Status == QuestionStatus.Validated),
+                    entity.Visibility == VisibilityScope.Public &&
+                    entity.Status == QuestionStatus.Active,
                 cancellationToken);
 
         if (question is null)
@@ -58,8 +56,7 @@ public sealed class QuestionsCreateReportCommandHandler(
                         entity.TenantId == tenantId &&
                         entity.Id == answerId &&
                         entity.QuestionId == question.Id &&
-                        (entity.Visibility == VisibilityScope.Public ||
-                         entity.Visibility == VisibilityScope.PublicIndexed) &&
+                        entity.Visibility == VisibilityScope.Public &&
                         (entity.Status == AnswerStatus.Published || entity.Status == AnswerStatus.Validated),
                     cancellationToken);
 

@@ -34,8 +34,6 @@ public sealed class SourcesGetSourceQueryHandler(
                 Checksum = source.Checksum,
                 MetadataJson = source.MetadataJson,
                 Visibility = source.Visibility,
-                AllowsCitation = source.AllowsCitation,
-                CapturedAtUtc = source.CapturedAtUtc,
                 LastVerifiedAtUtc = source.LastVerifiedAtUtc,
                 SpaceUsageCount = source.Spaces.Count,
                 QuestionUsageCount = source.Questions.Count,

@@ -6,7 +6,6 @@ using BaseFaq.QnA.Portal.Business.Question.Commands.AddTag;
 using BaseFaq.QnA.Portal.Business.Question.Commands.ApproveQuestion;
 using BaseFaq.QnA.Portal.Business.Question.Commands.CreateQuestion;
 using BaseFaq.QnA.Portal.Business.Question.Commands.DeleteQuestion;
-using BaseFaq.QnA.Portal.Business.Question.Commands.EscalateQuestion;
 using BaseFaq.QnA.Portal.Business.Question.Commands.RejectQuestion;
 using BaseFaq.QnA.Portal.Business.Question.Commands.RemoveSource;
 using BaseFaq.QnA.Portal.Business.Question.Commands.RemoveTag;
@@ -61,11 +60,6 @@ public sealed class QuestionService(IMediator mediator) : IQuestionService
     public Task<Guid> Reject(Guid id, string? notes, CancellationToken token)
     {
         return mediator.Send(new QuestionsRejectQuestionCommand { Id = id, Notes = notes }, token);
-    }
-
-    public Task<Guid> Escalate(Guid id, string? notes, CancellationToken token)
-    {
-        return mediator.Send(new QuestionsEscalateQuestionCommand { Id = id, Notes = notes }, token);
     }
 
     public Task<Guid> AddTag(QuestionTagCreateRequestDto dto, CancellationToken token)

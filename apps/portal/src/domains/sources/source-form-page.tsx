@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect } from "react";
-import { useForm } from "react-hook-form";
-import { X } from "lucide-react";
+import { useForm, type UseFormReturn } from "react-hook-form";
+import { Braces, X } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   SourceKind,
@@ -32,12 +32,19 @@ import {
   CardTitle,
   ContextHint,
   Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
   FormSetupProgressCard,
   FormCardSkeleton,
   FormSectionHeading,
   hasSetupText,
   hasSetupValue,
   SidebarSummarySkeleton,
+  Textarea,
 } from "@/shared/ui";
 import { ErrorState } from "@/shared/ui/placeholder-state";
 import {
@@ -53,6 +60,67 @@ import {
   getStoredPortalLanguage,
   portalLanguageOptions,
 } from "@/shared/lib/language";
+
+function MetadataJsonEditor({
+  form,
+}: {
+  form: UseFormReturn<SourceFormValues>;
+}) {
+  return (
+    <FormField
+      control={form.control}
+      name="metadataJson"
+      render={({ field }) => (
+        <FormItem>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <FormLabel>{translateText("Metadata JSON")}</FormLabel>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                const value = String(field.value ?? "").trim();
+
+                if (!value) {
+                  return;
+                }
+
+                try {
+                  const formatted = JSON.stringify(JSON.parse(value), null, 2);
+                  form.setValue("metadataJson", formatted, {
+                    shouldDirty: true,
+                    shouldValidate: true,
+                  });
+                } catch {
+                  form.setError("metadataJson", {
+                    message: translateText("Enter valid JSON."),
+                  });
+                }
+              }}
+            >
+              <Braces className="size-4" />
+              {translateText("Format")}
+            </Button>
+          </div>
+          <FormControl>
+            <Textarea
+              {...field}
+              className="min-h-48 font-mono text-sm"
+              placeholder='{"sourceSystem": "docs", "owner": "support"}'
+              spellCheck={false}
+            />
+          </FormControl>
+          <FormDescription>
+            {translateText(
+              "Optional structured metadata. The form only saves valid JSON.",
+            )}
+          </FormDescription>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  );
+}
 
 export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
   const navigate = useNavigate();
@@ -74,9 +142,7 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
       mediaType: "",
       checksum: "",
       metadataJson: "",
-      visibility: VisibilityScope.PublicIndexed,
-      allowsCitation: false,
-      capturedAtUtc: "",
+      visibility: VisibilityScope.Authenticated,
       markVerified: false,
     },
   });
@@ -97,8 +163,6 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
       checksum: sourceQuery.data.checksum,
       metadataJson: sourceQuery.data.metadataJson ?? "",
       visibility: sourceQuery.data.visibility,
-      allowsCitation: sourceQuery.data.allowsCitation,
-      capturedAtUtc: sourceQuery.data.capturedAtUtc ?? "",
       markVerified: false,
     });
   }, [form, sourceQuery.data]);
@@ -148,7 +212,7 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
       header={
         <PageHeader
           title={mode === "create" ? "New source" : "Edit source"}
-          description="Capture locator, visibility, citation, and verification metadata for reusable evidence."
+          description="Capture locator, visibility, and verification metadata for reusable evidence."
           descriptionMode="hint"
           backTo={backTo}
         />
@@ -164,7 +228,7 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
                   <span>{translateText("Quick notes")}</span>
                   <ContextHint
                     content={translateText(
-                      "Good sources are durable, clearly classified, and explicit about when they can be cited.",
+                      "Good sources are durable, clearly classified, and explicit about who can see them.",
                     )}
                     label={translateText("Quick notes details")}
                   />
@@ -179,11 +243,8 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
                     value:
                       "Article, web page, ticket, repository, chat, and more",
                   },
-                  { label: "Visibility", value: "Internal to public indexed" },
-                  {
-                    label: "Citation",
-                    value: "Citation permission stays separate from visibility",
-                  },
+                  { label: "Visibility", value: "Authenticated or public" },
+                  { label: "Metadata", value: "Optional valid JSON object" },
                 ]}
               />
             </CardContent>
@@ -208,7 +269,7 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
                   <span>{translateText("Source details")}</span>
                   <ContextHint
                     content={translateText(
-                      "Start with the locator and classification, then capture visibility, citation, and verification metadata.",
+                      "Start with the locator and classification, then capture visibility and verification metadata.",
                     )}
                     label={translateText("Form details")}
                   />
@@ -228,10 +289,8 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
                       externalId: values.externalId || undefined,
                       language: values.language,
                       mediaType: values.mediaType || undefined,
-                      metadataJson: values.metadataJson || undefined,
+                      metadataJson: values.metadataJson?.trim() || undefined,
                       visibility: Number(values.visibility) as VisibilityScope,
-                      allowsCitation: values.allowsCitation,
-                      capturedAtUtc: values.capturedAtUtc || undefined,
                       markVerified: values.markVerified,
                     };
 
@@ -288,10 +347,11 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
                       label="Label"
                       description="Human-readable name shown when operators choose this source."
                     />
-                    <TextField
+                    <TextareaField
                       control={form.control}
                       name="contextNote"
                       label="Context note"
+                      rows={5}
                       description="Internal note describing why this source matters or where it applies."
                     />
                     <TextField
@@ -329,31 +389,13 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
                       description="Read-only value generated by the backend from the locator."
                       readOnly
                     />
-                    <TextField
-                      control={form.control}
-                      name="capturedAtUtc"
-                      label="Captured at (ISO)"
-                      description="Optional ISO timestamp such as 2026-04-16T12:00:00Z."
-                    />
                   </div>
-                  <TextareaField
-                    control={form.control}
-                    name="metadataJson"
-                    label="Metadata JSON"
-                    rows={5}
-                    description="Optional structured metadata for connectors, ingestion, or future audit needs."
-                  />
+                  <MetadataJsonEditor form={form} />
                   <FormSectionHeading
-                    title="Citation and verification"
-                    description="Control whether answers may cite this source and whether this save should refresh verification time."
+                    title="Verification"
+                    description="Choose whether this save should refresh the verification time."
                   />
                   <div className="grid gap-4 md:grid-cols-2">
-                    <SwitchField
-                      control={form.control}
-                      name="allowsCitation"
-                      label="Allows citation"
-                      description="Allow eligible answers to cite this source as a reference."
-                    />
                     <SwitchField
                       control={form.control}
                       name="markVerified"

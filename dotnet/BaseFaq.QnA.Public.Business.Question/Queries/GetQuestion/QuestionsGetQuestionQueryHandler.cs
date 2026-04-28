@@ -59,9 +59,7 @@ public sealed class QuestionsGetQuestionQueryHandler(
             .Include(question => question.Activities)
             .Where(question =>
                 question.TenantId == tenantId &&
-                (question.Visibility == VisibilityScope.Public ||
-                 question.Visibility == VisibilityScope.PublicIndexed) &&
-                (question.Status == QuestionStatus.Open || question.Status == QuestionStatus.Answered ||
-                 question.Status == QuestionStatus.Validated));
+                question.Visibility == VisibilityScope.Public &&
+                question.Status == QuestionStatus.Active);
     }
 }

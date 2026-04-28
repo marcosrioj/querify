@@ -36,7 +36,7 @@ export function useSpaceList(params: {
   sorting?: string;
   searchText?: string;
   visibility?: number;
-  kind?: number;
+  status?: number;
   acceptsQuestions?: boolean;
   acceptsAnswers?: boolean;
   enabled?: boolean;

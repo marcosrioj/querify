@@ -25,8 +25,6 @@ export type QuestionDto = {
   sort: number;
   acceptedAnswerId?: string | null;
   duplicateOfQuestionId?: string | null;
-  answeredAtUtc?: string | null;
-  validatedAtUtc?: string | null;
   lastActivityAtUtc?: string | null;
 };
 

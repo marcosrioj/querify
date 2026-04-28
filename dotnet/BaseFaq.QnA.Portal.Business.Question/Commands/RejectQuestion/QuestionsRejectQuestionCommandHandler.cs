@@ -31,7 +31,7 @@ public sealed class QuestionsRejectQuestionCommandHandler(
             throw new ApiErrorException($"Question '{request.Id}' was not found.", (int)HttpStatusCode.NotFound);
 
         entity.Status = QuestionStatus.Draft;
-        entity.Visibility = VisibilityScope.Internal;
+        entity.Visibility = VisibilityScope.Authenticated;
         AddActivity(entity, ActivityKind.QuestionRejected, userId, request.Notes);
         await dbContext.SaveChangesAsync(cancellationToken);
         return request.Id;

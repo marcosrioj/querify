@@ -63,12 +63,11 @@ public sealed class QuestionsAddSourceCommandHandler(
         Source source,
         SourceRole role)
     {
-        if (questionVisibility is not VisibilityScope.Public and not VisibilityScope.PublicIndexed) return;
+        if (questionVisibility is not VisibilityScope.Public) return;
 
-        if (role is SourceRole.Citation or SourceRole.CanonicalReference &&
-            (source.Visibility is not VisibilityScope.Public and not VisibilityScope.PublicIndexed ||
-             !source.AllowsCitation))
+        if (role is SourceRole.Reference &&
+            source.Visibility is not VisibilityScope.Public)
             throw new InvalidOperationException(
-                "Public citations require a publicly visible source that explicitly allows citation.");
+                "Public references require a publicly visible source.");
     }
 }

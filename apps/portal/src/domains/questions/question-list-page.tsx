@@ -6,7 +6,6 @@ import {
   useState,
 } from "react";
 import {
-  AlertTriangle,
   CheckCircle2,
   CircleDot,
   GitFork,
@@ -70,11 +69,9 @@ const QUESTION_FILTER_DEFAULTS = {
 
 const statusBuckets = [
   { label: "All", value: "all" },
-  { label: "Pending review", value: String(QuestionStatus.PendingReview) },
-  { label: "Open", value: String(QuestionStatus.Open) },
-  { label: "Answered", value: String(QuestionStatus.Answered) },
-  { label: "Validated", value: String(QuestionStatus.Validated) },
-  { label: "Escalated", value: String(QuestionStatus.Escalated) },
+  { label: "Draft", value: String(QuestionStatus.Draft) },
+  { label: "Active", value: String(QuestionStatus.Active) },
+  { label: "Duplicate", value: String(QuestionStatus.Duplicate) },
   { label: "Archived", value: String(QuestionStatus.Archived) },
 ] as const;
 
@@ -186,13 +183,11 @@ export function QuestionListPage() {
 
     return matchesSource && matchesTag;
   });
-  const answeredCount = questionRows.filter(
-    (question) =>
-      question.status === QuestionStatus.Answered ||
-      question.status === QuestionStatus.Validated,
+  const acceptedAnswerCount = questionRows.filter(
+    (question) => Boolean(question.acceptedAnswerId),
   ).length;
-  const escalatedCount = questionRows.filter(
-    (question) => question.status === QuestionStatus.Escalated,
+  const activeCount = questionRows.filter(
+    (question) => question.status === QuestionStatus.Active,
   ).length;
   const duplicateCount = questionRows.filter(
     (question) => question.status === QuestionStatus.Duplicate,
@@ -370,20 +365,20 @@ export function QuestionListPage() {
               icon: CircleDot,
             },
             {
-              title: "Answered",
-              value: answeredCount,
+              title: "Active",
+              value: activeCount,
               description: translateText(
-                "Questions already resolved enough to use",
+                "Questions available for normal QnA work",
               ),
               icon: CheckCircle2,
             },
             {
-              title: "Escalated",
-              value: escalatedCount,
+              title: "Accepted",
+              value: acceptedAnswerCount,
               description: translateText(
-                "Threads routed outside normal QnA resolution",
+                "Questions with an accepted answer",
               ),
-              icon: AlertTriangle,
+              icon: CheckCircle2,
             },
             {
               title: "Duplicates",

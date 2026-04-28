@@ -89,7 +89,7 @@ export function AnswerFormPage({ mode }: { mode: "create" | "edit" }) {
       body: "",
       kind: AnswerKind.Official,
       status: AnswerStatus.Draft,
-      visibility: VisibilityScope.PublicIndexed,
+      visibility: VisibilityScope.Authenticated,
       contextNote: "",
       authorLabel: "",
       sort: 1,
@@ -134,9 +134,7 @@ export function AnswerFormPage({ mode }: { mode: "create" | "edit" }) {
     form.watch("visibility"),
   ) as VisibilityScope;
   const selectedStatus = Number(form.watch("status")) as AnswerStatus;
-  const publicVisibilitySelected =
-    selectedVisibility === VisibilityScope.Public ||
-    selectedVisibility === VisibilityScope.PublicIndexed;
+  const publicVisibilitySelected = selectedVisibility === VisibilityScope.Public;
   const invalidPublicStatus =
     publicVisibilitySelected &&
     selectedStatus !== AnswerStatus.Published &&
@@ -427,7 +425,9 @@ export function AnswerFormPage({ mode }: { mode: "create" | "edit" }) {
                   <div className="flex flex-wrap items-center gap-3">
                     <Button
                       type="submit"
-                      disabled={isSubmitting || spaceBlocksAnswers}
+                      disabled={
+                        isSubmitting || spaceBlocksAnswers || invalidPublicStatus
+                      }
                     >
                       {translateText(
                         mode === "create" ? "Create answer" : "Save changes",

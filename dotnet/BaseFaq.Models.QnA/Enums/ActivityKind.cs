@@ -36,11 +36,6 @@ public enum ActivityKind
     QuestionMarkedDuplicate = 6,
 
     /// <summary>
-    /// The thread required escalation outside the normal Q&amp;A resolution path.
-    /// </summary>
-    QuestionEscalated = 7,
-
-    /// <summary>
     /// A new answer candidate was created.
     /// </summary>
     AnswerCreated = 8,

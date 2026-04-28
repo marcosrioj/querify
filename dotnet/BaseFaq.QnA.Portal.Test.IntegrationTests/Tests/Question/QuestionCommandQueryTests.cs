@@ -18,12 +18,12 @@ public class QuestionCommandQueryTests
             context.DbContext,
             context.SessionService.TenantId,
             space.Id,
-            visibility: VisibilityScope.PublicIndexed);
+            visibility: VisibilityScope.Public);
         var acceptedAnswer = await TestDataFactory.SeedAnswerAsync(
             context.DbContext,
             context.SessionService.TenantId,
             question.Id,
-            visibility: VisibilityScope.PublicIndexed,
+            visibility: VisibilityScope.Public,
             accept: false);
         var updateHandler = new QuestionsUpdateQuestionCommandHandler(
             context.DbContext,
@@ -50,7 +50,7 @@ public class QuestionCommandQueryTests
             await getHandler.Handle(new QuestionsGetQuestionQuery { Id = question.Id }, CancellationToken.None);
 
         Assert.Equal(acceptedAnswer.Id, result.AcceptedAnswerId);
-        Assert.Equal(QuestionStatus.Answered, result.Status);
+        Assert.Equal(QuestionStatus.Active, result.Status);
         Assert.NotNull(result.AcceptedAnswer);
         Assert.True(result.AcceptedAnswer!.IsAccepted);
         Assert.Contains(result.Activity, activity => activity.Kind == ActivityKind.AnswerAccepted);

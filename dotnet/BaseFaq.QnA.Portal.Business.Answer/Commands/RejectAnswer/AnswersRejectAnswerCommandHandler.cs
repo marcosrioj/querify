@@ -31,7 +31,7 @@ public sealed class AnswersRejectAnswerCommandHandler(
             throw new ApiErrorException($"Answer '{request.Id}' was not found.", (int)HttpStatusCode.NotFound);
 
         entity.Status = AnswerStatus.Rejected;
-        entity.Visibility = VisibilityScope.Internal;
+        entity.Visibility = VisibilityScope.Authenticated;
 
         var activityIdentity = ResolveActivityIdentity(userId);
         var activity = new Activity

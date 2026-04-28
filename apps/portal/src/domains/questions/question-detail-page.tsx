@@ -9,7 +9,6 @@ import {
   Plus,
   Tags,
   Trash2,
-  TriangleAlert,
 } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useActivityList } from "@/domains/activity/hooks";
@@ -23,7 +22,6 @@ import {
   useAddQuestionTag,
   useApproveQuestion,
   useDeleteQuestion,
-  useEscalateQuestion,
   useRejectQuestion,
   useRemoveQuestionSource,
   useRemoveQuestionTag,
@@ -43,7 +41,6 @@ import {
   AnswerStatus,
   QuestionStatus,
   SourceRole,
-  SpaceKind,
   VisibilityScope,
   answerStatusLabels,
   sourceRoleLabels,
@@ -117,16 +114,10 @@ function getQuestionStatusAfterClearingResolution(question: QuestionDetailDto) {
   }
 
   if (question.acceptedAnswerId) {
-    return question.validatedAtUtc
-      ? QuestionStatus.Validated
-      : QuestionStatus.Answered;
+    return QuestionStatus.Active;
   }
 
-  if (question.validatedAtUtc) {
-    return QuestionStatus.Validated;
-  }
-
-  return QuestionStatus.Open;
+  return QuestionStatus.Active;
 }
 
 function buildTagOption(tag: {
@@ -210,7 +201,6 @@ export function QuestionDetailPage() {
   const submitQuestion = useSubmitQuestion();
   const approveQuestion = useApproveQuestion();
   const rejectQuestion = useRejectQuestion();
-  const escalateQuestion = useEscalateQuestion();
   const addTag = useAddQuestionTag(id ?? "");
   const removeTag = useRemoveQuestionTag(id ?? "");
   const addSource = useAddQuestionSource(id ?? "");
@@ -221,7 +211,7 @@ export function QuestionDetailPage() {
   const [sourceSearch, setSourceSearch] = useState("");
   const [duplicateSearch, setDuplicateSearch] = useState("");
   const [selectedSourceRole, setSelectedSourceRole] = useState(
-    String(SourceRole.SupportingContext),
+    String(SourceRole.Context),
   );
   const [selectedAnswerId, setSelectedAnswerId] = useState("");
   const [selectedDuplicateId, setSelectedDuplicateId] = useState("");
@@ -386,24 +376,13 @@ export function QuestionDetailPage() {
     ? !spaceQuery.data.acceptsAnswers
     : false;
   const canSubmit = questionQuery.data?.status === QuestionStatus.Draft;
-  const canApprove =
-    questionQuery.data?.status === QuestionStatus.PendingReview ||
-    questionQuery.data?.status === QuestionStatus.Escalated;
+  const canApprove = questionQuery.data?.status === QuestionStatus.Draft;
   const canReject =
-    questionQuery.data?.status !== QuestionStatus.Draft ||
-    questionQuery.data?.visibility !== VisibilityScope.Internal;
-  const canEscalate =
-    questionQuery.data?.status !== QuestionStatus.Escalated &&
-    questionQuery.data?.status !== QuestionStatus.Duplicate &&
-    questionQuery.data?.status !== QuestionStatus.Archived;
+    questionQuery.data?.status === QuestionStatus.Active &&
+    questionQuery.data?.visibility === VisibilityScope.Public;
   const workflowSummary =
     questionQuery.data?.status === QuestionStatus.Draft
-      ? spaceQuery.data?.kind === SpaceKind.ControlledPublication ||
-        spaceQuery.data?.kind === SpaceKind.ModeratedCollaboration
-        ? translateText(
-            "Submitting this question will move it into pending review.",
-          )
-        : translateText("Submitting this question will open it immediately.")
+      ? translateText("Submitting or approving this question activates it.")
       : translateText(
           "Current status controls which workflow actions are available.",
         );
@@ -572,37 +551,6 @@ export function QuestionDetailPage() {
               </CardContent>
             </Card>
           ) : null}
-          {showLoadingState ? null : questionQuery.data ? (
-            <Card>
-              <CardHeader>
-                <CardHeading>
-                  <CardTitle>{translateText("Context and timing")}</CardTitle>
-                </CardHeading>
-              </CardHeader>
-              <CardContent>
-                <KeyValueList
-                  items={[
-                    {
-                      label: "Answered at",
-                      value: formatOptionalDateTimeInTimeZone(
-                        questionQuery.data.answeredAtUtc,
-                        portalTimeZone,
-                        translateText("Not set"),
-                      ),
-                    },
-                    {
-                      label: "Validated at",
-                      value: formatOptionalDateTimeInTimeZone(
-                        questionQuery.data.validatedAtUtc,
-                        portalTimeZone,
-                        translateText("Not set"),
-                      ),
-                    },
-                  ]}
-                />
-              </CardContent>
-            </Card>
-          ) : null}
         </>
       }
     >
@@ -661,7 +609,7 @@ export function QuestionDetailPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-sm text-muted-foreground">{workflowSummary}</p>
-              <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+              <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
                 <ActionButton
                   tone="primary"
                   onClick={() => void submitQuestion.mutateAsync(id)}
@@ -682,14 +630,6 @@ export function QuestionDetailPage() {
                   disabled={!canReject || rejectQuestion.isPending}
                 >
                   {translateText("Reject")}
-                </ActionButton>
-                <ActionButton
-                  tone="danger"
-                  onClick={() => void escalateQuestion.mutateAsync({ id })}
-                  disabled={!canEscalate || escalateQuestion.isPending}
-                >
-                  <TriangleAlert className="size-4" />
-                  {translateText("Escalate")}
                 </ActionButton>
               </div>
             </CardContent>
@@ -832,6 +772,7 @@ export function QuestionDetailPage() {
                         .mutateAsync(
                           buildQuestionUpdateBody(questionQuery.data, {
                             duplicateOfQuestionId: selectedDuplicateId,
+                            status: QuestionStatus.Duplicate,
                           }),
                         )
                         .then(() => setSelectedDuplicateId(""))
@@ -1030,11 +971,6 @@ export function QuestionDetailPage() {
                                 <VisibilityBadge
                                   visibility={sourceLink.source.visibility}
                                 />
-                                {sourceLink.source.allowsCitation ? (
-                                  <Badge variant="success" appearance="outline">
-                                    {translateText("Citation allowed")}
-                                  </Badge>
-                                ) : null}
                               </>
                             ) : null}
                           </div>
@@ -1065,7 +1001,7 @@ export function QuestionDetailPage() {
                 ) : (
                   <EmptyState
                     title="No sources linked yet"
-                    description="Attach origin, evidence, or citation material to strengthen the thread."
+                    description="Attach origin, evidence, or reusable reference material to strengthen the thread."
                   />
                 )}
                 <ChildListPagination
@@ -1166,7 +1102,7 @@ export function QuestionDetailPage() {
                           body: newAnswerBody.trim() || undefined,
                           kind: AnswerKind.Official,
                           status: AnswerStatus.Draft,
-                          visibility: VisibilityScope.PublicIndexed,
+                          visibility: VisibilityScope.Authenticated,
                           contextNote: undefined,
                           authorLabel: undefined,
                           sort: questionQuery.data.answers.length + 1,

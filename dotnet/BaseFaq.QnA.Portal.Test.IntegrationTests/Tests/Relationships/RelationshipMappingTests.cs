@@ -40,7 +40,7 @@ public class RelationshipMappingTests
             {
                 QuestionId = question.Id,
                 SourceId = source.Id,
-                Role = SourceRole.SupportingContext,
+                Role = SourceRole.Context,
                 Order = 1
             }
         }, CancellationToken.None);
@@ -53,7 +53,7 @@ public class RelationshipMappingTests
         Assert.Equal(tag.Id, result.Tags[0].Id);
         Assert.Single(result.Sources);
         Assert.Equal(source.Id, result.Sources[0].SourceId);
-        Assert.Equal(SourceRole.SupportingContext, result.Sources[0].Role);
+        Assert.Equal(SourceRole.Context, result.Sources[0].Role);
     }
 
     [Fact]

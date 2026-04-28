@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Activity, Eye, ShieldCheck, TriangleAlert } from "lucide-react";
+import { Activity, Eye, ShieldCheck } from "lucide-react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { usePortalTimeZone } from "@/domains/settings/settings-hooks";
 import { useActivityList } from "@/domains/activity/hooks";
@@ -121,8 +121,14 @@ export function ActivityListPage() {
       event.kind === ActivityKind.VoteReceived ||
       event.kind === ActivityKind.ReportReceived,
   ).length;
-  const escalationCount = rows.filter(
-    (event) => event.kind === ActivityKind.QuestionEscalated,
+  const workflowCount = rows.filter(
+    (event) =>
+      event.kind === ActivityKind.QuestionCreated ||
+      event.kind === ActivityKind.QuestionUpdated ||
+      event.kind === ActivityKind.QuestionSubmitted ||
+      event.kind === ActivityKind.QuestionApproved ||
+      event.kind === ActivityKind.QuestionRejected ||
+      event.kind === ActivityKind.QuestionMarkedDuplicate,
   ).length;
 
   const columns: DataTableColumn<ActivityDto>[] = [
@@ -230,12 +236,10 @@ export function ActivityListPage() {
               icon: Eye,
             },
             {
-              title: "Escalations",
-              value: escalationCount,
-              description: translateText(
-                "Threads that left normal QnA resolution",
-              ),
-              icon: TriangleAlert,
+              title: "Workflow",
+              value: workflowCount,
+              description: translateText("Question lifecycle events"),
+              icon: Activity,
             },
           ]}
         />

@@ -40,11 +40,10 @@ public sealed class SpacesGetSpaceQueryHandler(
             Slug = entity.Slug,
             Summary = entity.Summary,
             Language = entity.Language,
-            Kind = entity.Kind,
+            Status = entity.Status,
             Visibility = entity.Visibility,
             AcceptsQuestions = entity.AcceptsQuestions,
             AcceptsAnswers = entity.AcceptsAnswers,
-            PublishedAtUtc = entity.PublishedAtUtc,
             QuestionCount = entity.Questions.Count,
             Tags = entity.Tags
                 .Select(link => link.Tag)
@@ -71,8 +70,6 @@ public sealed class SpacesGetSpaceQueryHandler(
                     Checksum = source.Checksum,
                     MetadataJson = source.MetadataJson,
                     Visibility = source.Visibility,
-                    AllowsCitation = source.AllowsCitation,
-                    CapturedAtUtc = source.CapturedAtUtc,
                     LastVerifiedAtUtc = source.LastVerifiedAtUtc
                 })
                 .ToList()

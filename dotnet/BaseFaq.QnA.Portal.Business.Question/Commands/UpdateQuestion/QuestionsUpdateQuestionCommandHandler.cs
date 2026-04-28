@@ -91,17 +91,14 @@ public sealed class QuestionsUpdateQuestionCommandHandler(
             if (answer.Status is not AnswerStatus.Published and not AnswerStatus.Validated)
                 throw new InvalidOperationException("Only published or validated answers can be accepted.");
 
-            if (entity.Visibility is VisibilityScope.Public or VisibilityScope.PublicIndexed &&
-                answer.Visibility is not VisibilityScope.Public and not VisibilityScope.PublicIndexed)
-                throw new InvalidOperationException("Public questions cannot accept internal-only answers.");
+            if (entity.Visibility is VisibilityScope.Public &&
+                answer.Visibility is not VisibilityScope.Public)
+                throw new InvalidOperationException("Public questions cannot accept authenticated-only answers.");
 
-            var acceptedAtUtc = DateTime.UtcNow;
             entity.AcceptedAnswerId = answer.Id;
             entity.AcceptedAnswer = answer;
-            entity.AnsweredAtUtc ??= acceptedAtUtc;
-            entity.Status = entity.Status == QuestionStatus.Validated
-                ? QuestionStatus.Validated
-                : QuestionStatus.Answered;
+            if (entity.Status is QuestionStatus.Draft)
+                entity.Status = QuestionStatus.Active;
 
             AddActivity(entity, ActivityKind.AnswerAccepted, userId, answer);
         }
@@ -164,8 +161,6 @@ public sealed class QuestionsUpdateQuestionCommandHandler(
         entity.Sort = request.Sort;
         entity.Status = request.Status;
 
-        if (request.Status == QuestionStatus.Validated) entity.ValidatedAtUtc = DateTime.UtcNow;
-
         EnsureVisibilityAllowed(entity, request.Visibility);
         entity.Visibility = request.Visibility;
         entity.UpdatedBy = userId;
@@ -174,21 +169,20 @@ public sealed class QuestionsUpdateQuestionCommandHandler(
     private static void EnsureVisibilityAllowed(Common.Persistence.QnADb.Entities.Question entity,
         VisibilityScope visibility)
     {
-        if (visibility is not VisibilityScope.Public and not VisibilityScope.PublicIndexed) return;
+        if (visibility is not VisibilityScope.Public) return;
 
-        if (entity.Status is not QuestionStatus.Open and not QuestionStatus.Answered and not QuestionStatus.Validated)
+        if (entity.Status is not QuestionStatus.Active)
             throw new InvalidOperationException(
-                "Only open, answered, or validated questions can be exposed publicly.");
+                "Only active questions can be exposed publicly.");
 
         foreach (var sourceLink in entity.Sources)
-            if (sourceLink.Role is SourceRole.Citation or SourceRole.CanonicalReference &&
-                (sourceLink.Source.Visibility is not VisibilityScope.Public and not VisibilityScope.PublicIndexed ||
-                 !sourceLink.Source.AllowsCitation))
+            if (sourceLink.Role is SourceRole.Reference &&
+                sourceLink.Source.Visibility is not VisibilityScope.Public)
                 throw new InvalidOperationException(
-                    "Public citations require a publicly visible source that explicitly allows citation.");
+                    "Public references require a publicly visible source.");
 
         if (entity.AcceptedAnswer is not null &&
-            entity.AcceptedAnswer.Visibility is not VisibilityScope.Public and not VisibilityScope.PublicIndexed)
+            entity.AcceptedAnswer.Visibility is not VisibilityScope.Public)
             throw new InvalidOperationException("Public questions require a publicly visible accepted answer.");
     }
 }

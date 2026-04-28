@@ -40,14 +40,13 @@ public sealed class VotesCreateVoteCommandHandler(
                     entity.TenantId == tenantId &&
                     entity.Id == request.Request.AnswerId &&
                     entity.QuestionId == request.Request.QuestionId &&
-                    (entity.Visibility == VisibilityScope.Public ||
-                     entity.Visibility == VisibilityScope.PublicIndexed) &&
+                    entity.Visibility == VisibilityScope.Public &&
                     (entity.Status == AnswerStatus.Published || entity.Status == AnswerStatus.Validated),
                 cancellationToken);
 
         if (answer is null ||
             answer.Question.TenantId != tenantId ||
-            answer.Question.Visibility is not (VisibilityScope.Public or VisibilityScope.PublicIndexed))
+            answer.Question.Visibility is not VisibilityScope.Public)
             throw new ApiErrorException(
                 $"Answer '{request.Request.AnswerId}' was not found.",
                 (int)HttpStatusCode.NotFound);

@@ -13,7 +13,5 @@ public class SourceCreateRequestDto
     public string? MediaType { get; set; }
     public string? MetadataJson { get; set; }
     public required VisibilityScope Visibility { get; set; }
-    public required bool AllowsCitation { get; set; }
-    public DateTime? CapturedAtUtc { get; set; }
     public required bool MarkVerified { get; set; }
 }
