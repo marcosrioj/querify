@@ -37,7 +37,9 @@ If a shared primitive already matches the use case, do not replace it with ad ho
 
 - Primary navigation belongs in the left sidebar.
 - The workspace switcher belongs in the sidebar header.
-- The top toolbar is for breadcrumbs, command search, language, notifications, and the user menu.
+- The top toolbar is for the unified page trail, command search, language, notifications, and the user menu.
+- The unified page trail combines parent breadcrumbs, the current page title, optional back navigation, and compact title hints. Do not render a second page title in the content header.
+- Breadcrumb/title text must truncate inside the toolbar instead of wrapping or widening the shell.
 - Do not use the QnA module navigation as primary app navigation.
 - Use the QnA module visual language only for in-screen child and relationship management.
 - The left sidebar belongs to desktop only. Mobile and tablet widths use the header plus drawer through the `xl` breakpoint.

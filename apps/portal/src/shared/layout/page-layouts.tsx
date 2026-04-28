@@ -1,35 +1,12 @@
 import { Fragment, PropsWithChildren, ReactNode } from "react";
-import { ArrowLeft, type LucideIcon } from "lucide-react";
-import { Link, useMatches } from "react-router-dom";
-import { AppRouteHandle } from "@/app/router/route-types";
+import { type LucideIcon } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Container } from "@/shared/layout/container";
+import { useRegisterPageChrome } from "@/shared/layout/page-chrome-context";
 import { translateMaybeString } from "@/shared/lib/i18n-render";
 import { usePortalI18n } from "@/shared/lib/use-portal-i18n";
 import { Button, Card, CardContent, ContextHint } from "@/shared/ui";
 import { cn } from "@/lib/utils";
-
-function useCurrentRouteHandle() {
-  return useMatches()
-    .map((match) => match.handle as AppRouteHandle | undefined)
-    .filter((handle): handle is AppRouteHandle => Boolean(handle?.title))
-    .at(-1);
-}
-
-function shouldRenderPageTitle(
-  title: ReactNode,
-  handle: AppRouteHandle | undefined,
-  backTo: string | undefined,
-) {
-  if (backTo || typeof title !== "string" || !handle) {
-    return true;
-  }
-
-  const normalizedTitle = title.trim().toLowerCase();
-  const routeTitle = handle.title.trim().toLowerCase();
-  const routeBreadcrumb = handle.breadcrumb?.trim().toLowerCase();
-
-  return normalizedTitle !== routeTitle && normalizedTitle !== routeBreadcrumb;
-}
 
 export function PageHeader({
   title,
@@ -45,46 +22,26 @@ export function PageHeader({
   backTo?: string;
 }) {
   const { t } = usePortalI18n();
-  const currentHandle = useCurrentRouteHandle();
-  const renderTitle = shouldRenderPageTitle(title, currentHandle, backTo);
-  const descriptionHint =
-    description && descriptionMode === "hint" ? (
-      <ContextHint
-        content={translateMaybeString(description, t)}
-        label={t("Page details")}
-        className="mt-0.5"
-      />
-    ) : null;
+  const inlineDescription = description && descriptionMode === "inline";
+
+  useRegisterPageChrome({
+    title,
+    description,
+    descriptionMode,
+    backTo,
+  });
+
+  if (!inlineDescription && !actions) {
+    return null;
+  }
 
   return (
-    <div className="flex min-w-0 flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
-      <div className="min-w-0 space-y-2.5">
-        {renderTitle ? (
-          <div className="flex flex-wrap items-start gap-3">
-            {backTo ? (
-              <Button asChild mode="icon" variant="outline" size="sm">
-                <Link to={backTo}>
-                  <ArrowLeft className="size-4" />
-                </Link>
-              </Button>
-            ) : null}
-            <div className="flex min-w-0 flex-1 flex-wrap items-start gap-2">
-              <h2 className="min-w-0 max-w-full break-words text-2xl font-semibold tracking-normal text-mono lg:text-[2rem]">
-                {translateMaybeString(title, t)}
-              </h2>
-              {descriptionHint}
-            </div>
-          </div>
-        ) : null}
-
-        {description && descriptionMode === "inline" ? (
-          <p className="max-w-2xl text-sm leading-6 text-muted-foreground">
-            {translateMaybeString(description, t)}
-          </p>
-        ) : !renderTitle ? (
-          descriptionHint
-        ) : null}
-      </div>
+    <div className="flex min-w-0 flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+      {inlineDescription ? (
+        <p className="max-w-2xl text-sm leading-6 text-muted-foreground">
+          {translateMaybeString(description, t)}
+        </p>
+      ) : null}
 
       {actions ? (
         <div className="flex w-full min-w-0 flex-col gap-3 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center lg:justify-end [&>*]:w-full sm:[&>*]:w-auto [&_[data-slot=button]]:min-w-0 [&_[data-slot=button]]:whitespace-normal">

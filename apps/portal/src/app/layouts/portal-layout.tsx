@@ -9,6 +9,11 @@ import { PortalToolbar } from "@/domains/shell/portal-toolbar";
 import { useBodyClass } from "@/hooks/use-body-class";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
+import { PageChromeProvider } from "@/shared/layout/page-chrome-provider";
+import {
+  getPageChromeText,
+  usePageChrome,
+} from "@/shared/layout/page-chrome-context";
 import { usePortalI18n } from "@/shared/lib/use-portal-i18n";
 
 function useRouteTitle() {
@@ -21,8 +26,18 @@ function useRouteTitle() {
 }
 
 export function PortalLayout() {
+  return (
+    <PageChromeProvider>
+      <PortalLayoutShell />
+    </PageChromeProvider>
+  );
+}
+
+function PortalLayoutShell() {
   const { t } = usePortalI18n();
-  const title = t(useRouteTitle());
+  const pageChrome = usePageChrome();
+  const routeTitle = useRouteTitle();
+  const title = t(getPageChromeText(pageChrome.title) ?? routeTitle);
   const isMobile = useIsMobile();
 
   useBodyClass(`

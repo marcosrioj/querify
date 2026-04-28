@@ -69,6 +69,8 @@ The Portal shell uses a stable left sidebar for primary navigation and workspace
 - Do not move the workspace switcher into the top toolbar.
 - Keep primary navigation grouped by user mental model: Workspace, Administration, and Account.
 - The top toolbar is for route context and global utilities: breadcrumbs, command search, language, notifications, and user menu.
+- Render page location as one toolbar trail: parent navigation links plus the current page title. Page headers register the current title, back target, and hint text for that trail instead of rendering a second competing title in the page body.
+- Toolbar breadcrumb labels must stay on one line, use `min-w-0`, and truncate long record names instead of wrapping or forcing page overflow at mobile, tablet, or desktop widths.
 - The QnA module navigation pattern is not a primary app navigation replacement. Use it only inside a domain screen when the user is managing children or related records in the current context.
 - The fixed sidebar is a desktop pattern only. Below the `xl` breakpoint, including tablet widths, use the mobile/tablet header and drawer so content keeps the full viewport width.
 - Keep the JavaScript shell breakpoint in `useIsMobile` aligned with the Tailwind breakpoint used by the sidebar and mobile header. Do not let React render one shell mode while CSS displays another.
