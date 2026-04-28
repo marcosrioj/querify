@@ -23,29 +23,33 @@ public static class AutoHistoryDbContextExtension
         where TAutoHistory : Core.AutoHistory.AutoHistory
     {
         var entries = context.ChangeTracker.Entries()
-            .Where(e => e.State == EntityState.Modified || e.State == EntityState.Deleted)
+            .Where(e => e.State is EntityState.Added or EntityState.Modified or EntityState.Deleted)
+            .Where(e => !typeof(Core.AutoHistory.AutoHistory).IsAssignableFrom(e.Metadata.ClrType))
             .ToArray();
         foreach (var entry in entries)
         {
             var autoHistory = entry.AutoHistory(createHistoryFactory);
-            context.Add((object)autoHistory);
+            if (autoHistory is not null)
+            {
+                context.Add(autoHistory);
+            }
         }
     }
 
-    internal static TAutoHistory AutoHistory<TAutoHistory>(this EntityEntry entry,
+    internal static TAutoHistory? AutoHistory<TAutoHistory>(this EntityEntry entry,
         Func<TAutoHistory> createHistoryFactory)
         where TAutoHistory : Core.AutoHistory.AutoHistory
     {
         if (IsEntityExcluded(entry))
         {
-            return null!;
+            return null;
         }
 
         var properties = GetPropertiesWithoutExcluded(entry).ToList();
 
-        if (!(properties.Any(p => p.IsModified) || entry.State == EntityState.Deleted))
+        if (entry.State == EntityState.Modified && !properties.Any(p => p.IsModified))
         {
-            return null!;
+            return null;
         }
 
         var history = createHistoryFactory();
@@ -53,7 +57,7 @@ public static class AutoHistoryDbContextExtension
         switch (entry.State)
         {
             case EntityState.Added:
-                WriteHistoryAddedState(history, properties);
+                WriteHistoryAddedState(history, entry, properties);
                 break;
             case EntityState.Modified:
                 WriteHistoryModifiedState(history, entry, properties);
@@ -64,7 +68,7 @@ public static class AutoHistoryDbContextExtension
             case EntityState.Detached:
             case EntityState.Unchanged:
             default:
-                throw new NotSupportedException("AutoHistory only support Deleted and Modified entity.");
+                throw new NotSupportedException("AutoHistory only supports Added, Modified, and Deleted entities.");
         }
 
         return history;
@@ -106,34 +110,26 @@ public static class AutoHistoryDbContextExtension
         foreach (var entry in addedEntries)
         {
             var autoHistory = entry.AutoHistory(createHistoryFactory);
-            context.Add(autoHistory);
+            if (autoHistory is not null)
+            {
+                context.Add(autoHistory);
+            }
         }
     }
 
-    internal static TAutoHistory AddedHistory<TAutoHistory>(
+    internal static TAutoHistory? AddedHistory<TAutoHistory>(
         this EntityEntry entry,
         Func<TAutoHistory> createHistoryFactory)
         where TAutoHistory : Core.AutoHistory.AutoHistory
     {
         if (IsEntityExcluded(entry))
         {
-            return null!;
-        }
-
-        var properties = GetPropertiesWithoutExcluded(entry);
-
-        dynamic json = new ExpandoObject();
-        foreach (var prop in properties)
-        {
-            ((IDictionary<string, object>)json)[prop.Metadata.Name] = prop.OriginalValue!;
+            return null;
         }
 
         var history = createHistoryFactory();
         history.TableName = entry.Metadata.GetTableName()!;
-        history.KeyId = entry.PrimaryKey();
-        history.Kind = EntityState.Added;
-        history.ChangedFrom = JsonSerializer.Serialize(json, AutoHistoryOption.Instance.JsonSerializerOptions);
-        history.ChangedTo = JsonSerializer.Serialize(json, AutoHistoryOption.Instance.JsonSerializerOptions);
+        WriteHistoryAddedState(history, entry, GetPropertiesWithoutExcluded(entry));
         return history;
     }
 
@@ -150,24 +146,19 @@ public static class AutoHistoryDbContextExtension
     }
 
     private static void WriteHistoryAddedState(Core.AutoHistory.AutoHistory history,
+        EntityEntry entry,
         IEnumerable<PropertyEntry> properties)
     {
         dynamic json = new ExpandoObject();
 
         foreach (var prop in properties)
         {
-            if (prop.Metadata.IsKey() || prop.Metadata.IsForeignKey())
-            {
-                continue;
-            }
-
             ((IDictionary<String, Object>)json)[prop.Metadata.Name] = prop.CurrentValue!;
         }
 
-        // REVIEW: what's the best way to set the KeyId?
-        history.KeyId = "0";
+        history.KeyId = entry.PrimaryKey();
         history.Kind = EntityState.Added;
-        history.ChangedTo = JsonSerializer.Serialize(json);
+        history.ChangedTo = JsonSerializer.Serialize(json, AutoHistoryOption.Instance.JsonSerializerOptions);
     }
 
     private static void WriteHistoryModifiedState(Core.AutoHistory.AutoHistory history,

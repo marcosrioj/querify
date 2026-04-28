@@ -1,8 +1,10 @@
+using BaseFaq.Common.EntityFramework.Core.AutoHistory;
 using BaseFaq.Models.QnA.Dtos.Source;
 using BaseFaq.Models.QnA.Enums;
 using BaseFaq.QnA.Portal.Business.Source.Commands.CreateSource;
 using BaseFaq.QnA.Portal.Business.Source.Queries.GetSource;
 using BaseFaq.QnA.Portal.Test.IntegrationTests.Helpers;
+using Microsoft.EntityFrameworkCore;
 using Xunit;
 
 namespace BaseFaq.QnA.Portal.Test.IntegrationTests.Tests.Source;
@@ -45,5 +47,12 @@ public class SourceCommandQueryTests
         Assert.Equal("Reset password guide", result.Label);
         Assert.Equal(VisibilityScope.Internal, result.Visibility);
         Assert.False(result.AllowsPublicCitation);
+
+        var history = await context.DbContext.Set<AutoHistory>().SingleAsync();
+        Assert.Equal(id.ToString(), history.KeyId);
+        Assert.Equal("Sources", history.TableName);
+        Assert.Equal(EntityState.Added, history.Kind);
+        Assert.Null(history.ChangedFrom);
+        Assert.Contains("https://docs.example.test/qna/reset-password", history.ChangedTo);
     }
 }
