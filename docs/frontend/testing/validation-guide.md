@@ -72,6 +72,11 @@ Verify:
 - responsive behavior works on narrow and wide viewports
 - skeletons, empty states, and error states still fit the surrounding layout
 - focus flow and keyboard activation remain intact for dialogs, buttons, and confirms
+- light and dark themes both use readable contrast and token-based surfaces
+- `ActionPanel` and `ActionButton` surfaces keep the square, lightly rounded action identity
+- relationship sections behave as local tabs, not anchors or global-list redirects
+- child lists with more than five items use the local 5, 10, and 20 item pagination pattern
+- API-backed relationship selects use `SearchSelect` or `SearchSelectField`
 
 ## Change-driven checklists
 
@@ -81,12 +86,16 @@ Verify:
 - data loads through the expected hook or API path
 - empty and error states are explicit
 - navigation back to list and detail flows still works
+- relationship tabs stay scoped to the current record
+- destructive actions require confirmation
+- right-rail actions, metadata, workflow rules, and timing summaries remain readable in dark mode
 
 ### If you changed shared UI primitives
 
 - at least one representative consumer page was manually checked
 - no layout regression was introduced in list, detail, and settings contexts
 - lint and build still pass
+- light and dark theme behavior was checked on every affected primitive
 
 ### If you changed localization logic
 

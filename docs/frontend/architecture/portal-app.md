@@ -61,6 +61,16 @@ Operational constraints reflected in the frontend:
 
 ## Architecture and implementation rules
 
+### Product shell
+
+The Portal shell uses a stable left sidebar for primary navigation and workspace context.
+
+- Keep the tenant/workspace switcher in the sidebar header.
+- Do not move the workspace switcher into the top toolbar.
+- Keep primary navigation grouped by user mental model: Workspace, Administration, and Account.
+- The top toolbar is for route context and global utilities: breadcrumbs, command search, language, notifications, and user menu.
+- The QnA module navigation pattern is not a primary app navigation replacement. Use it only inside a domain screen when the user is managing children or related records in the current context.
+
 ### Shared layouts and primitives
 
 Default building blocks in `apps/portal`:
@@ -69,10 +79,15 @@ Default building blocks in `apps/portal`:
 - `Card`
 - `FormSectionHeading` and shared field components from `form-fields.tsx`
 - `ProgressChecklistCard`
+- `ActionPanel` and `ActionButton`
 - `ConfirmAction`
 - `ContextHint`
+- `SearchSelect` and `SearchSelectField`
+- `ChildListPagination`
 - `EmptyState` and `ErrorState` from `src/shared/ui/placeholder-state.tsx`
 - shared skeletons from `src/shared/ui/loading-states.tsx`
+- status badges from `src/shared/ui/status-badges.tsx`
+- enum presentation metadata from `src/shared/constants/enum-ui.ts`
 
 If a shared primitive already matches the use case, do not replace it with ad hoc utility-heavy markup.
 
@@ -87,14 +102,31 @@ If a shared primitive already matches the use case, do not replace it with ad ho
 #### Detail pages
 
 - use `DetailLayout`
-- keep the main workflow in the left column
-- keep the sidebar limited to overview, notes, or summary information
-- keep onboarding or progress checklists in the main column, usually as the last block
+- keep primary narrative, rich content, and relationship tabs in the main column
+- keep the right rail for actions, summary, workflow rules, publishing state, settings, metadata, and timing context
+- do not place relationship tab selectors above the detail header
+- do not use anchor links for child or relationship areas
+- keep relationship management scoped to the origin screen instead of redirecting users to global lists whenever the relationship can be managed in place
+- keep onboarding or progress checklists in the main content flow unless the page specifically needs a compact right-rail status summary
 
 #### Settings pages
 
 - use `SettingsLayout`
 - preserve the existing navigation rail unless the task is a deliberate settings redesign
+
+### Relationship section standards
+
+Relationship sections are local management surfaces for child records and related entities.
+
+- Render relationship areas as tabs with the current QnA module visual language.
+- Tabs should reveal one scoped list at a time.
+- Do not render them as anchor links.
+- Do not include broken or speculative create links.
+- Do not show repeated section titles such as "Manage child records from this Space" when the page context is already clear.
+- A concise contextual hint is allowed when it helps explain the scope.
+- Filter child lists by the current parent entity, including tags and sources.
+- Use `ChildListPagination` for child lists with more than five items, with page sizes 5, 10, and 20.
+- Do not apply this local child pagination rule to top-level list pages unless that page already owns its own pagination contract.
 
 ### Form standards
 
@@ -102,6 +134,9 @@ If a shared primitive already matches the use case, do not replace it with ad ho
 - prefer tooltip-based contextual help over large paragraphs under every heading
 - reuse shared field components before introducing custom wrappers
 - keep copy concise and action-oriented
+- any select or dropdown whose options come from a backend list endpoint must use `SearchSelect` or `SearchSelectField`
+- use the same searchable pattern whether the field accepts one selection or participates in a multi-selection/linking flow
+- keep static enum fields on the normal `Select` primitive unless they are backed by an API list
 
 ### Confirmation standards
 
@@ -109,17 +144,29 @@ If a shared primitive already matches the use case, do not replace it with ad ho
 - long-running or other meaningful run actions should also use an explicit confirmation step
 - do not fire irreversible or expensive actions immediately on click
 
+### Action standards
+
+- Use `ActionPanel` for screen-level and right-rail actions.
+- Action controls should use the shared square, lightly rounded identity from `ActionButton`.
+- Keep labels explicit and action-oriented.
+- Use panel descriptions as compact hints, not as loose explanatory paragraphs.
+- Avoid mixing unrelated action styles inside the same surface.
+
 ### Domain-specific UI rules
 
-#### Question CTA inheritance
+#### QnA workflow and relationship surfaces
 
-- question-level CTA fields inherit from the parent space CTA setting when the flow uses shared CTAs
-- if the space-level CTA is disabled, question CTA controls should be visibly disabled and explained
+- Spaces, questions, answers, sources, tags, and activity should expose child and related records in local relationship tabs where practical.
+- Question detail should keep accepted answer, duplicate routing, source links, tags, answers, and activity scoped to the thread.
+- Space detail should keep questions, tags, sources, and activity scoped to the space.
+- Answer detail should keep source evidence scoped to the answer.
+- Accepted answer selection should use the searchable selection pattern and should only expose answers that are eligible to be accepted.
 
-#### Progress checklist placement
+#### First-run and progress guidance
 
-- space, question, answer, and source pages should keep progress guidance in the main content column
-- the sidebar should not become the primary onboarding surface
+- Dashboard activation should infer progress from real Portal data where possible.
+- First-run guidance should make the next action obvious without hiding operational surfaces.
+- Progress guidance may appear in the main content column or as a compact right-rail status summary when that placement better supports the page.
 
 ### Visual hierarchy rules
 
@@ -127,6 +174,9 @@ If a shared primitive already matches the use case, do not replace it with ad ho
 - use muted supporting copy and stronger titles
 - avoid flat pages made only of repeated bordered boxes
 - do not let decorative icons change the width allocation of card content
+- keep cards, action panels, tabs, forms, and tables visually consistent across domains
+- support dark mode by using semantic tokens and CSS variables instead of hardcoded light-only colors
+- all new UI work must be checked in both light and dark themes
 
 ### State handling
 
@@ -134,6 +184,8 @@ If a shared primitive already matches the use case, do not replace it with ad ho
 - use explicit empty states for empty collections or optional content
 - use explicit error states for page-level failures
 - never leave blank sections with raw fallback text
+- use skeletons that match the final layout
+- keep row-level and button-level pending states visible for mutations
 
 ## Localization and direction
 
@@ -186,13 +238,13 @@ For browser-facing local hostnames such as `dev.portal.basefaq.com`, use [`../to
 
 For the required frontend validation pass before merge, use [`../testing/validation-guide.md`](../testing/validation-guide.md).
 
-## Current functional gaps
+## Current implementation notes
 
-The repository has these Portal gaps:
+The Portal currently has these behavior notes:
 
-- member creation requires an already-existing BaseFAQ user email
-- billing and invoice flows remain placeholder areas where the backend surface is missing
-- some QnA list filtering still depends on backend-specific contracts and may remain page-scoped where the API surface is intentionally narrow
+- member creation depends on the Tenant Portal member API and may require an already-existing BaseFAQ user account depending on backend validation
+- billing is backed by the Tenant Portal billing summary, subscription, invoice, and payment endpoints
+- some QnA filtering remains constrained by backend list contracts and should stay page-scoped where the API surface is intentionally narrow
 
 ## Vendor baseline note
 

@@ -144,7 +144,7 @@ When the local subdomain proxy is active, the frontend Docker compose file point
 ## Current gaps
 
 - member adds require an already-existing BaseFAQ user email; invitation acceptance is not exposed yet
-- billing and invoice flows remain placeholder areas where the backend surface is still limited
+- billing uses the Tenant Portal billing summary, subscription, invoice, and payment endpoints
 
 ## Useful validation commands
 

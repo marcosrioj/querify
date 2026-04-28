@@ -337,6 +337,7 @@ Relevant locations:
 - Domain routes: `apps/portal/src/domains/<domain>/routes.tsx`
 - Domain pages: `apps/portal/src/domains/<domain>/*-page.tsx`
 - Shared backend enum labels: `apps/portal/src/shared/constants/backend-enums.ts`
+- Shared enum presentation metadata: `apps/portal/src/shared/constants/enum-ui.ts`
 - Shared UI primitives: `apps/portal/src/shared/ui`
 - Layout primitives: `apps/portal/src/shared/layout/page-layouts.tsx`
 
@@ -349,7 +350,15 @@ Process:
 5. Remove UI controls for deleted backend fields.
 6. Prefer existing shared layouts, state components, field components, confirms, and status badges.
 7. Keep workflows task-oriented and avoid explanatory copy that compensates for unclear UX.
-8. Verify loading, empty, error, pending, success, and destructive-action states.
+8. Keep the tenant/workspace switcher in the sidebar header and keep the top toolbar focused on route context and global utilities.
+9. Use `ActionPanel` and `ActionButton` for screen-level and right-rail actions.
+10. Use relationship tabs for child and related records that should be managed in the current screen context.
+11. Keep relationship lists scoped to the current parent entity, including related tags and sources.
+12. Use `ChildListPagination` for local child lists with more than five items; keep top-level list pagination governed by the page API contract.
+13. Use `SearchSelect` or `SearchSelectField` for any select or dropdown backed by a backend list endpoint, including single-selection and relationship-linking flows.
+14. Keep enum-only controls on the normal `Select` primitive and route labels, descriptions, and badge variants through the centralized enum presentation layer.
+15. Verify loading, empty, error, pending, success, and destructive-action states.
+16. Verify light and dark mode whenever the change touches layout, colors, cards, tables, forms, actions, or badges.
 
 For large frontend changes, update one domain at a time and keep each domain buildable before moving to the next.
 
@@ -444,6 +453,15 @@ cd apps/portal
 npm run lint
 npm run build
 ```
+
+Frontend manual validation should also confirm:
+
+- the workspace switcher remains in the sidebar header
+- relationship sections behave as local tabs, not anchors or redirects to global list pages
+- child lists with more than five items expose 5, 10, and 20 item pagination
+- backend-list selects use the searchable select pattern
+- action panels use the shared square, lightly rounded action identity
+- affected screens remain readable in light and dark themes
 
 Localization validation should also confirm:
 
