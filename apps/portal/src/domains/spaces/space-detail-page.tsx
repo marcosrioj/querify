@@ -223,6 +223,29 @@ export function SpaceDetailPage() {
   const questionsPagination = useLocalPagination({ items: spaceQuestions });
   const activityPagination = useLocalPagination({ items: contextualActivity });
 
+  const activateRelationshipTab = (tab: string, focusTargetId?: string) => {
+    setRelationshipTab(tab);
+
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        const section = document.getElementById(`space-${tab}-section`);
+        const focusTarget = focusTargetId
+          ? document.getElementById(focusTargetId)
+          : null;
+        const scrollTarget = focusTarget ?? section;
+
+        scrollTarget?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+
+        if (focusTarget instanceof HTMLElement) {
+          focusTarget.focus({ preventScroll: true });
+        }
+      });
+    });
+  };
+
   if (!id) {
     return (
       <ErrorState
@@ -278,7 +301,9 @@ export function SpaceDetailPage() {
               <ActionButton
                 type="button"
                 tone="primary"
-                onClick={() => setRelationshipTab("questions")}
+                onClick={() =>
+                  activateRelationshipTab("questions", "new-question-title")
+                }
               >
                 <Plus className="size-4" />
                 {translateText("New question")}
@@ -522,7 +547,17 @@ export function SpaceDetailPage() {
               ) : (
                 <Button
                   type="button"
-                  onClick={() => setRelationshipTab(nextAction.tab)}
+                  onClick={() =>
+                    activateRelationshipTab(
+                      nextAction.tab,
+                      nextAction.tab === "questions" &&
+                        nextAction.label === "Create question"
+                        ? "new-question-title"
+                        : nextAction.tab === "sources"
+                          ? "space-source-picker"
+                          : undefined,
+                    )
+                  }
                 >
                   {translateText(nextAction.label)}
                 </Button>
@@ -571,7 +606,7 @@ export function SpaceDetailPage() {
           />
 
           {relationshipTab === "tags" ? (
-            <Card>
+            <Card id="space-tags-section">
               <CardHeader>
                 <CardHeading>
                   <CardTitle className="flex items-center gap-2">
@@ -653,7 +688,7 @@ export function SpaceDetailPage() {
           ) : null}
 
           {relationshipTab === "sources" ? (
-            <Card>
+            <Card id="space-sources-section">
               <CardHeader>
                 <CardHeading>
                   <CardTitle className="flex items-center gap-2">
@@ -724,6 +759,7 @@ export function SpaceDetailPage() {
                 />
                 <div className="flex flex-col gap-3 sm:flex-row">
                   <SearchSelect
+                    id="space-source-picker"
                     value={selectedSourceId}
                     onValueChange={setSelectedSourceId}
                     options={sourceOptions}
@@ -761,7 +797,7 @@ export function SpaceDetailPage() {
           ) : null}
 
           {relationshipTab === "questions" ? (
-            <Card>
+            <Card id="space-questions-section">
               <CardHeader>
                 <CardHeading>
                   <CardTitle>
@@ -934,7 +970,7 @@ export function SpaceDetailPage() {
           ) : null}
 
           {relationshipTab === "activity" ? (
-            <Card>
+            <Card id="space-activity-section">
               <CardHeader>
                 <CardHeading>
                   <CardTitle className="flex items-center gap-2">

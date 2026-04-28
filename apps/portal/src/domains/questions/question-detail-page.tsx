@@ -350,6 +350,29 @@ export function QuestionDetailPage() {
   });
   const activityPagination = useLocalPagination({ items: questionActivity });
 
+  const activateRelationshipTab = (tab: string, focusTargetId?: string) => {
+    setRelationshipTab(tab);
+
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        const section = document.getElementById(`question-${tab}-section`);
+        const focusTarget = focusTargetId
+          ? document.getElementById(focusTargetId)
+          : null;
+        const scrollTarget = focusTarget ?? section;
+
+        scrollTarget?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+
+        if (focusTarget instanceof HTMLElement) {
+          focusTarget.focus({ preventScroll: true });
+        }
+      });
+    });
+  };
+
   if (!id) {
     return (
       <ErrorState
@@ -411,7 +434,9 @@ export function QuestionDetailPage() {
               <ActionButton
                 type="button"
                 tone="primary"
-                onClick={() => setRelationshipTab("answers")}
+                onClick={() =>
+                  activateRelationshipTab("answers", "new-answer-headline")
+                }
               >
                 <Plus className="size-4" />
                 {translateText("New answer")}
@@ -883,7 +908,7 @@ export function QuestionDetailPage() {
           />
 
           {relationshipTab === "tags" ? (
-            <Card>
+            <Card id="question-tags-section">
               <CardHeader>
                 <CardHeading>
                   <CardTitle className="flex items-center gap-2">
@@ -966,7 +991,7 @@ export function QuestionDetailPage() {
           ) : null}
 
           {relationshipTab === "sources" ? (
-            <Card>
+            <Card id="question-sources-section">
               <CardHeader>
                 <CardHeading>
                   <CardTitle className="flex items-center gap-2">
@@ -1052,6 +1077,7 @@ export function QuestionDetailPage() {
                 />
                 <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_220px_160px]">
                   <SearchSelect
+                    id="question-source-picker"
                     value={selectedSourceId}
                     onValueChange={setSelectedSourceId}
                     options={sourceOptions}
@@ -1108,7 +1134,7 @@ export function QuestionDetailPage() {
           ) : null}
 
           {relationshipTab === "answers" ? (
-            <Card>
+            <Card id="question-answers-section">
               <CardHeader>
                 <CardHeading>
                   <CardTitle className="flex items-center gap-2">
@@ -1304,7 +1330,7 @@ export function QuestionDetailPage() {
           ) : null}
 
           {relationshipTab === "activity" ? (
-            <Card>
+            <Card id="question-activity-section">
               <CardHeader>
                 <CardHeading>
                   <CardTitle className="flex items-center gap-2">
