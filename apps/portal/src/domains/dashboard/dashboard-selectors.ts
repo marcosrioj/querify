@@ -51,7 +51,7 @@ export function getActivationState({
 }
 
 export function getRoleAwareNextAction({
-  spaceCount,
+  spaces,
   sourceCount,
   questionCount,
   pendingQuestionCount,
@@ -59,7 +59,7 @@ export function getRoleAwareNextAction({
   billingSummary,
   memberCount,
 }: {
-  spaceCount: number;
+  spaces: SpaceDto[];
   sourceCount: number;
   questionCount: number;
   pendingQuestionCount: number;
@@ -69,13 +69,15 @@ export function getRoleAwareNextAction({
 }) {
   const subscriptionStatus = billingSummary?.subscriptionStatus;
 
-  if (spaceCount === 0) {
+  if (spaces.length === 0) {
     return {
       label: "Start here",
       description: "Create the first space so questions and answers have a home.",
       to: "/app/spaces/new",
     };
   }
+
+  const questionSpace = spaces.find((space) => space.acceptsQuestions) ?? spaces[0];
 
   if (sourceCount === 0) {
     return {
@@ -87,9 +89,9 @@ export function getRoleAwareNextAction({
 
   if (questionCount === 0) {
     return {
-      label: "Create first question",
-      description: "Capture the first workflow thread and route it to an answer.",
-      to: "/app/questions/new",
+      label: "Open Space",
+      description: "Create the first question inside a Space so it inherits intake rules.",
+      to: `/app/spaces/${questionSpace.id}`,
     };
   }
 

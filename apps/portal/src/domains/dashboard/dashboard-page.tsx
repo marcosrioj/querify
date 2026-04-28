@@ -4,7 +4,6 @@ import {
   Clock3,
   FileCheck2,
   FolderKanban,
-  Plus,
   ShieldCheck,
   Sparkles,
   Users,
@@ -29,7 +28,6 @@ import type { QuestionDto } from "@/domains/questions/types";
 import { usePortalTimeZone, useUserProfile } from "@/domains/settings/settings-hooks";
 import { useSourceList } from "@/domains/sources/hooks";
 import { useSpaceList } from "@/domains/spaces/hooks";
-import { useCurrentWorkspace } from "@/domains/tenants/hooks";
 import {
   AnswerStatus,
   QuestionStatus,
@@ -90,13 +88,9 @@ function DashboardLoadingState() {
 function HomeHero({
   nextAction,
   setupProgress,
-  workspaceName,
-  activationMode,
 }: {
   nextAction: { label: string; description: string; to: string };
   setupProgress: number;
-  workspaceName?: string;
-  activationMode: boolean;
 }) {
   const showSetupProgress = setupProgress < 100;
 
@@ -117,22 +111,15 @@ function HomeHero({
           <div className="min-w-0 space-y-5">
             <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
               <Sparkles className="size-3.5" />
-              {translateText(activationMode ? "Activation mode" : "Attention first")}
+              {translateText("Activation mode")}
             </div>
             <div className="max-w-3xl space-y-3">
               <h2 className="text-3xl font-semibold tracking-normal text-mono lg:text-4xl">
-                {translateText(
-                  activationMode
-                    ? "Start with a clean QnA foundation"
-                    : "Workspace overview",
-                )}
+                {translateText("Start with a clean QnA foundation")}
               </h2>
               <p className="text-sm leading-6 text-muted-foreground lg:text-base">
                 {translateText(
-                  activationMode
-                    ? "Create the first space, attach evidence, and publish the first validated answer without exposing the full enterprise dashboard too early."
-                    : "BaseFAQ is showing the queue, progress, trust signals, and the next action for {workspaceName}.",
-                  { workspaceName: workspaceName || "this workspace" },
+                  "Create the first space, attach evidence, and publish the first validated answer without exposing the full enterprise dashboard too early.",
                 )}
               </p>
             </div>
@@ -321,7 +308,6 @@ function BillingNotice({
 
 export function DashboardPage() {
   const timeZone = usePortalTimeZone();
-  const workspace = useCurrentWorkspace();
   const profileQuery = useUserProfile();
   const membersQuery = useTenantMembers();
   const billing = useBillingWorkspace();
@@ -481,7 +467,7 @@ export function DashboardPage() {
     pendingQuestionCount,
     questionCount,
     sourceCount,
-    spaceCount: spacesQuery.data?.totalCount ?? 0,
+    spaces,
   });
   const kpis = getDashboardKpis({
     activity: recentActivity,
@@ -504,29 +490,21 @@ export function DashboardPage() {
         title="Home"
         description="A focused command center for setup, moderation throughput, source trust, and answer quality."
         actions={
-          <>
-            <Button asChild>
-              <Link to={nextAction.to}>
-                <ArrowRight className="size-4" />
-                {translateText(nextAction.label)}
-              </Link>
-            </Button>
-            <Button asChild variant="outline">
-              <Link to="/app/questions/new">
-                <Plus className="size-4" />
-                {translateText("New question")}
-              </Link>
-            </Button>
-          </>
+          <Button asChild>
+            <Link to={nextAction.to}>
+              <ArrowRight className="size-4" />
+              {translateText(nextAction.label)}
+            </Link>
+          </Button>
         }
       />
 
-      <HomeHero
-        activationMode={activationMode}
-        nextAction={nextAction}
-        setupProgress={setupProgress}
-        workspaceName={workspace?.name}
-      />
+      {activationMode ? (
+        <HomeHero
+          nextAction={nextAction}
+          setupProgress={setupProgress}
+        />
+      ) : null}
 
       {setupProgress < 100 ? (
         <ProgressChecklistCard
@@ -640,7 +618,6 @@ export function DashboardPage() {
             <EmptyState
               title="No questions need attention"
               description="When a space receives questions, review-ready and open threads will appear here."
-              action={{ label: "Create question", to: "/app/questions/new" }}
             />
           )}
         </Panel>
