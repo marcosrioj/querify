@@ -22,8 +22,8 @@ export function PortalSidebar({
   }
 
   return (
-    <div className="fixed inset-y-0 z-20 hidden w-[var(--sidebar-width)] shrink-0 flex-col bg-muted lg:flex">
+    <aside className="fixed inset-y-0 z-20 hidden w-[var(--sidebar-width)] shrink-0 flex-col border-r border-border/70 bg-muted/55 backdrop-blur lg:flex">
       {content}
-    </div>
+    </aside>
   );
 }

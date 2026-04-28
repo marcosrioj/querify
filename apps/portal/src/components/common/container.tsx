@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils';
 const containerVariants = cva('w-full mx-auto px-4 lg:px-6', {
   variants: {
     width: {
-      fixed: 'max-w-[1320px]',
+      fixed: 'max-w-[var(--portal-page-max-width)]',
       fluid: '',
     },
   },

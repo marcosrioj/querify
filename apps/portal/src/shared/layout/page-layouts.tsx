@@ -58,7 +58,7 @@ export function PageHeader({
 
   return (
     <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
-      <div className="min-w-0 space-y-3">
+      <div className="min-w-0 space-y-2.5">
         {renderTitle ? (
           <div className="flex flex-wrap items-start gap-3">
             {backTo ? (
@@ -69,7 +69,7 @@ export function PageHeader({
               </Button>
             ) : null}
             <div className="flex min-w-0 flex-wrap items-start gap-2">
-              <h2 className="text-2xl font-semibold text-mono lg:text-3xl">
+              <h2 className="text-2xl font-semibold tracking-normal text-mono lg:text-[2rem]">
                 {translateMaybeString(title, t)}
               </h2>
               {descriptionHint}
@@ -99,7 +99,11 @@ export function PageSurface({
   children,
   className,
 }: PropsWithChildren<{ className?: string }>) {
-  return <Container className={cn("pb-10", className)}>{children}</Container>;
+  return (
+    <Container className={cn("pb-10 pt-5 lg:pt-6", className)}>
+      {children}
+    </Container>
+  );
 }
 
 export function ListLayout({
@@ -116,7 +120,7 @@ export function ListLayout({
     <PageSurface className="space-y-5 lg:space-y-7.5">
       {header}
       {filters ? (
-        <Card className="border-dashed bg-muted/15">
+        <Card className="border-dashed bg-muted/20 shadow-none">
           <CardContent className="space-y-3 p-4 lg:p-5">
             <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
               {t("Refine view")}
@@ -141,7 +145,7 @@ export function DetailLayout({
   return (
     <PageSurface className="space-y-5 lg:space-y-7.5">
       {header}
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_320px] lg:gap-7.5">
+      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_340px] lg:gap-7.5">
         <div className="space-y-5 lg:space-y-7.5">{children}</div>
         {sidebar ? (
           <div className="min-w-0 space-y-5 lg:space-y-7.5">{sidebar}</div>
@@ -225,7 +229,7 @@ export function SectionGrid({
   ];
 
   return (
-    <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4 lg:gap-7.5">
+    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4 lg:gap-5">
       {items.map((item, index) => (
         <Card
           key={
@@ -234,7 +238,7 @@ export function SectionGrid({
               ? item.title
               : `section-grid-${index}`)
           }
-          className="group overflow-hidden bg-linear-to-b from-background to-muted/10"
+          className="group overflow-hidden bg-linear-to-b from-background to-muted/10 transition-transform duration-200 hover:-translate-y-0.5 hover:shadow-[var(--shadow-premium-elevated)]"
         >
           <CardContent className="relative min-w-0 p-5">
             <div className="flex items-start justify-between gap-4">
@@ -251,7 +255,7 @@ export function SectionGrid({
                 </p>
                 <div
                   className={cn(
-                    "break-words text-2xl font-semibold text-mono sm:text-3xl",
+                    "break-words text-[1.7rem] font-semibold leading-none text-mono sm:text-3xl",
                     valueClassName,
                   )}
                 >

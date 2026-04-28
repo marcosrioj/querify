@@ -3,7 +3,6 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { X } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { QnaModuleNav } from "@/domains/qna/qna-module-nav";
 import { useCreateTag, useTag, useUpdateTag } from "@/domains/tags/hooks";
 import { tagFormSchema, type TagFormValues } from "@/domains/tags/schemas";
 import {
@@ -55,18 +54,12 @@ export function TagFormPage({ mode }: { mode: "create" | "edit" }) {
   return (
     <DetailLayout
       header={
-        <>
-          <PageHeader
-            title={mode === "create" ? "New tag" : "Edit tag"}
-            description="Keep the taxonomy concise and reusable across spaces and questions."
-            descriptionMode="hint"
-            backTo={backTo}
-          />
-          <QnaModuleNav
-            activeKey="tags"
-            intent="Tags should help users scan space and question context without creating one-off labels."
-          />
-        </>
+        <PageHeader
+          title={mode === "create" ? "New tag" : "Edit tag"}
+          description="Keep the taxonomy concise and reusable across spaces and questions."
+          descriptionMode="hint"
+          backTo={backTo}
+        />
       }
       sidebar={
         mode === "edit" && tagQuery.isLoading ? (

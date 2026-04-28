@@ -1,11 +1,14 @@
 import {
+  Activity,
   CircleDollarSign,
-  BarChart3,
   FolderKanban,
+  Home,
   MessagesSquare,
+  SearchCheck,
   Settings,
   Tags,
   Users,
+  UserRound,
   Waypoints,
   type LucideIcon,
 } from "lucide-react";
@@ -20,86 +23,108 @@ export type NavigationItem = {
   children?: NavigationItem[];
 };
 
-const qnaContextKeys = new Set(["questions", "answers", "activity"]);
+export type NavigationGroup = {
+  key: string;
+  label: string;
+  items: NavigationItem[];
+};
 
-export const portalNavigation: NavigationItem[] = [
+export const portalNavigationGroups: NavigationGroup[] = [
   {
-    key: "qna",
-    label: "QnA",
-    description:
-      "Dashboard, spaces, reusable tags, and reusable sources.",
-    path: "/app/dashboard",
-    icon: MessagesSquare,
-    activePaths: [
-      "/app/dashboard",
-      "/app/spaces",
-      "/app/questions",
-      "/app/answers",
-      "/app/sources",
-      "/app/tags",
-      "/app/activity",
-    ],
-    children: [
+    key: "workspace",
+    label: "Workspace",
+    items: [
       {
         key: "dashboard",
-        label: "Dashboard",
-        description: "QnA overview and operational risks",
+        label: "Home",
+        description: "Attention queue and value proof",
         path: "/app/dashboard",
-        icon: BarChart3,
+        icon: Home,
       },
       {
         key: "spaces",
         label: "Spaces",
-        description: "Daily operational entry point",
+        description: "Operating boundaries",
         path: "/app/spaces",
         icon: FolderKanban,
       },
       {
-        key: "tags",
-        label: "Tags",
-        description: "Reusable QnA taxonomy",
-        path: "/app/tags",
-        icon: Tags,
+        key: "questions",
+        label: "Questions",
+        description: "Moderation and resolution queue",
+        path: "/app/questions",
+        icon: MessagesSquare,
       },
       {
         key: "sources",
         label: "Sources",
-        description: "Reusable evidence catalog",
+        description: "Evidence and trust catalog",
         path: "/app/sources",
         icon: Waypoints,
+      },
+      {
+        key: "tags",
+        label: "Tags",
+        description: "Reusable taxonomy",
+        path: "/app/tags",
+        icon: Tags,
+      },
+      {
+        key: "activity",
+        label: "Activity",
+        description: "Audit trail and signals",
+        path: "/app/activity",
+        icon: Activity,
       },
     ],
   },
   {
-    key: "members",
-    label: "Members",
-    description: "People and workspace roles",
-    path: "/app/members",
-    icon: Users,
+    key: "administration",
+    label: "Administration",
+    items: [
+      {
+        key: "members",
+        label: "Members",
+        description: "People and workspace roles",
+        path: "/app/members",
+        icon: Users,
+      },
+      {
+        key: "billing",
+        label: "Billing",
+        description: "Plan, invoices, and payments",
+        path: "/app/billing",
+        icon: CircleDollarSign,
+      },
+      {
+        key: "settings",
+        label: "Settings",
+        description: "Workspace and client key",
+        path: "/app/settings/tenant",
+        icon: Settings,
+        activePaths: ["/app/settings/tenant", "/app/settings/general", "/app/settings/security"],
+      },
+    ],
   },
   {
-    key: "billing",
-    label: "Billing",
-    description: "Plan, contact, and invoices",
-    path: "/app/billing",
-    icon: CircleDollarSign,
-  },
-  {
-    key: "settings",
-    label: "Settings",
-    description: "Appearance, profile, and workspace",
-    path: "/app/settings/general",
-    icon: Settings,
+    key: "account",
+    label: "Account",
+    items: [
+      {
+        key: "profile",
+        label: "Profile",
+        description: "Language, time zone, and contact info",
+        path: "/app/settings/profile",
+        icon: UserRound,
+        activePaths: ["/app/settings/profile"],
+      },
+    ],
   },
 ];
 
-function getQnaNavigationItem() {
-  return portalNavigation.find((item) => item.key === "qna");
-}
-
-function getQnaChildNavigationItem(key: string) {
-  return getQnaNavigationItem()?.children?.find((item) => item.key === key);
-}
+export const portalNavigation = portalNavigationGroups.flatMap(
+  (group) => group.items,
+);
 
 export function findPortalNavigationPath(
   key: string,
@@ -119,29 +144,21 @@ export function findPortalNavigationPath(
     }
   }
 
-  if (items === portalNavigation && qnaContextKeys.has(key)) {
-    const qna = getQnaNavigationItem();
-    const spaces = getQnaChildNavigationItem("spaces");
+  if (items === portalNavigation && key === "answers") {
+    const questions = portalNavigation.find((item) => item.key === "questions");
 
-    if (!qna || !spaces) {
-      return [];
-    }
-
-    if (key === "answers") {
-      return [
-        qna,
-        spaces,
-        {
-          key: "questions-context",
-          label: "Question",
-          description: "Parent question context",
-          path: "/app/spaces",
-          icon: MessagesSquare,
-        },
-      ];
-    }
-
-    return [qna, spaces];
+    return questions
+      ? [
+          questions,
+          {
+            key: "answers-context",
+            label: "Answers",
+            description: "Answer workflow context",
+            path: "/app/answers",
+            icon: SearchCheck,
+          },
+        ]
+      : [];
   }
 
   return [];

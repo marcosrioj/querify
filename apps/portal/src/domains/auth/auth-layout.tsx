@@ -22,7 +22,7 @@ export function AuthLayout() {
         </title>
       </Helmet>
 
-      <div className="grid grow bg-muted lg:grid-cols-[minmax(0,0.88fr)_minmax(0,1.12fr)]">
+      <div className="portal-body-background grid grow lg:grid-cols-[minmax(0,0.88fr)_minmax(0,1.12fr)]">
         <div className="order-2 flex min-w-0 items-center justify-center p-4 sm:p-8 lg:order-1 lg:p-10">
           <Card className="w-full max-w-[440px] min-w-0">
             <CardContent className="p-6 lg:p-8">

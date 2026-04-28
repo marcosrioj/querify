@@ -1,6 +1,5 @@
 import { Link, useParams } from "react-router-dom";
 import { useActivity } from "@/domains/activity/hooks";
-import { QnaModuleNav } from "@/domains/qna/qna-module-nav";
 import { usePortalTimeZone } from "@/domains/settings/settings-hooks";
 import {
   DetailLayout,
@@ -9,7 +8,8 @@ import {
   SectionGrid,
 } from "@/shared/layout/page-layouts";
 import {
-  Button,
+  ActionButton,
+  ActionPanel,
   Card,
   CardContent,
   CardHeader,
@@ -41,58 +41,40 @@ export function ActivityDetailPage() {
   return (
     <DetailLayout
       header={
-        <>
-          <PageHeader
-            title="Activity event"
-            description="Inspect actor context, notes, metadata, and the thread identifiers behind this audit entry."
-            descriptionMode="hint"
-            backTo={
-              activityQuery.data?.answerId
-                ? `/app/answers/${activityQuery.data.answerId}`
-                : activityQuery.data?.questionId
-                  ? `/app/questions/${activityQuery.data.questionId}`
-                  : "/app/spaces"
-            }
-          />
-          <QnaModuleNav
-            activeKey="spaces"
-            intent="Activity is child evidence for question and answer operations. Jump to the subject before changing related records."
-          />
-        </>
+        <PageHeader
+          title="Activity event"
+          description="Inspect actor context, notes, metadata, and the thread identifiers behind this audit entry."
+          descriptionMode="hint"
+          backTo={
+            activityQuery.data?.answerId
+              ? `/app/answers/${activityQuery.data.answerId}`
+              : activityQuery.data?.questionId
+                ? `/app/questions/${activityQuery.data.questionId}`
+                : "/app/spaces"
+          }
+        />
       }
       sidebar={
         activityQuery.isLoading ? (
           <SidebarSummarySkeleton />
         ) : activityQuery.data ? (
-          <Card>
-            <CardHeader>
-              <CardHeading>
-                <CardTitle>{translateText("Jump to subject")}</CardTitle>
-              </CardHeading>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <Button
-                asChild
-                variant="outline"
-                className="w-full justify-start"
-              >
-                <Link to={`/app/questions/${activityQuery.data.questionId}`}>
-                  {translateText("Open question")}
+          <ActionPanel
+            title="Jump to subject"
+            description="Open the record connected to this event."
+          >
+            <ActionButton asChild tone="primary">
+              <Link to={`/app/questions/${activityQuery.data.questionId}`}>
+                {translateText("Open question")}
+              </Link>
+            </ActionButton>
+            {activityQuery.data.answerId ? (
+              <ActionButton asChild tone="secondary">
+                <Link to={`/app/answers/${activityQuery.data.answerId}`}>
+                  {translateText("Open answer")}
                 </Link>
-              </Button>
-              {activityQuery.data.answerId ? (
-                <Button
-                  asChild
-                  variant="outline"
-                  className="w-full justify-start"
-                >
-                  <Link to={`/app/answers/${activityQuery.data.answerId}`}>
-                    {translateText("Open answer")}
-                  </Link>
-                </Button>
-              ) : null}
-            </CardContent>
-          </Card>
+              </ActionButton>
+            ) : null}
+          </ActionPanel>
         ) : null
       }
     >

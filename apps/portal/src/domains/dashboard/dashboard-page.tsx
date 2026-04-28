@@ -1,37 +1,46 @@
 import {
   Activity,
   ArrowRight,
+  CheckCircle2,
   Clock3,
+  FileCheck2,
   FolderKanban,
-  MessageSquareText,
   Plus,
   ShieldCheck,
+  Sparkles,
+  Users,
   Waypoints,
-  type LucideIcon,
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
+import {
+  getActivationState,
+  getBillingNeedsAttention,
+  getDashboardKpis,
+  getRoleAwareNextAction,
+  getSetupProgress,
+} from "@/domains/dashboard/dashboard-selectors";
 import { useActivityList } from "@/domains/activity/hooks";
 import type { ActivityDto } from "@/domains/activity/types";
 import { useAnswerList } from "@/domains/answers/hooks";
-import type { AnswerDto } from "@/domains/answers/types";
-import { QnaModuleNav } from "@/domains/qna/qna-module-nav";
+import { useBillingWorkspace } from "@/domains/billing/hooks";
+import { useTenantMembers } from "@/domains/members/hooks";
 import { useQuestionList } from "@/domains/questions/hooks";
 import type { QuestionDto } from "@/domains/questions/types";
-import { usePortalTimeZone } from "@/domains/settings/settings-hooks";
+import { usePortalTimeZone, useUserProfile } from "@/domains/settings/settings-hooks";
 import { useSourceList } from "@/domains/sources/hooks";
 import { useSpaceList } from "@/domains/spaces/hooks";
-import type { SpaceDto } from "@/domains/spaces/types";
-import {
-  useCurrentWorkspace,
-  useTenantWorkspace,
-} from "@/domains/tenants/hooks";
+import { useCurrentWorkspace } from "@/domains/tenants/hooks";
 import {
   AnswerStatus,
   QuestionStatus,
-  VisibilityScope,
+  TenantSubscriptionStatus,
 } from "@/shared/constants/backend-enums";
-import { PageHeader, PageSurface } from "@/shared/layout/page-layouts";
+import {
+  billingInvoiceStatusPresentation,
+  tenantSubscriptionStatusPresentation,
+} from "@/shared/constants/enum-ui";
+import { PageHeader, PageSurface, SectionGrid } from "@/shared/layout/page-layouts";
 import { formatNumericDateTimeInTimeZone } from "@/shared/lib/time-zone";
 import { translateText } from "@/shared/lib/i18n-core";
 import {
@@ -39,7 +48,6 @@ import {
   ActorKindBadge,
   AnswerStatusBadge,
   QuestionStatusBadge,
-  SpaceKindBadge,
   VisibilityBadge,
 } from "@/shared/ui/status-badges";
 import {
@@ -57,179 +65,139 @@ import {
 } from "@/shared/ui";
 import { EmptyState, ErrorState } from "@/shared/ui/placeholder-state";
 
-type DashboardActionCardProps = {
-  title: string;
-  value: ReactNode;
-  description: string;
-  actionLabel: string;
-  to: string;
-  icon: LucideIcon;
-  tone: "emerald" | "amber" | "sky" | "rose";
-};
-
-const toneClasses: Record<
-  DashboardActionCardProps["tone"],
-  {
-    card: string;
-    icon: string;
-    line: string;
-  }
-> = {
-  emerald: {
-    card: "border-emerald-500/20 bg-linear-to-br from-background via-background to-emerald-500/[0.08]",
-    icon: "bg-emerald-500/10 text-emerald-600 ring-emerald-500/20 dark:text-emerald-300",
-    line: "bg-emerald-500",
-  },
-  amber: {
-    card: "border-amber-500/20 bg-linear-to-br from-background via-background to-amber-500/[0.08]",
-    icon: "bg-amber-500/10 text-amber-600 ring-amber-500/20 dark:text-amber-300",
-    line: "bg-amber-500",
-  },
-  sky: {
-    card: "border-sky-500/20 bg-linear-to-br from-background via-background to-sky-500/[0.08]",
-    icon: "bg-sky-500/10 text-sky-600 ring-sky-500/20 dark:text-sky-300",
-    line: "bg-sky-500",
-  },
-  rose: {
-    card: "border-rose-500/20 bg-linear-to-br from-background via-background to-rose-500/[0.08]",
-    icon: "bg-rose-500/10 text-rose-600 ring-rose-500/20 dark:text-rose-300",
-    line: "bg-rose-500",
-  },
-};
-
-function DashboardActionCard({
-  title,
-  value,
-  description,
-  actionLabel,
-  to,
-  icon: Icon,
-  tone,
-}: DashboardActionCardProps) {
-  const classes = toneClasses[tone];
-
+function DashboardLoadingState() {
   return (
-    <Card className={classes.card}>
-      <CardContent className="relative flex min-h-48 flex-col justify-between gap-5 p-5">
-        <span
-          aria-hidden="true"
-          className={`absolute inset-x-5 top-0 h-1 rounded-b-full ${classes.line}`}
-        />
-        <div className="flex items-start justify-between gap-4 pt-2">
-          <div className="min-w-0 space-y-2">
-            <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
-              {translateText(title)}
-            </p>
-            <div className="text-3xl font-semibold text-mono">{value}</div>
+    <PageSurface className="space-y-5 lg:space-y-7.5">
+      <div className="rounded-2xl border border-border/70 bg-card p-5 shadow-[var(--shadow-premium-card)]">
+        <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_280px]">
+          <div className="space-y-3">
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-9 w-72" />
+            <Skeleton className="h-4 w-full max-w-2xl" />
+            <Skeleton className="h-4 w-full max-w-xl" />
           </div>
-          <div
-            className={`flex size-10 shrink-0 items-center justify-center rounded-lg ring-1 ring-inset ${classes.icon}`}
-          >
-            <Icon className="size-5" />
-          </div>
+          <Skeleton className="h-28 rounded-xl" />
         </div>
-        <div className="space-y-4">
-          <p className="text-sm leading-6 text-muted-foreground">
-            {translateText(description)}
-          </p>
-          <Button asChild variant="outline" size="sm">
-            <Link to={to}>
-              {translateText(actionLabel)}
-              <ArrowRight className="size-4" />
-            </Link>
-          </Button>
+      </div>
+      <SectionGridSkeleton items={4} />
+      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_380px]">
+        <Skeleton className="h-96 rounded-2xl" />
+        <Skeleton className="h-96 rounded-2xl" />
+      </div>
+    </PageSurface>
+  );
+}
+
+function HomeHero({
+  nextAction,
+  setupProgress,
+  workspaceName,
+  activationMode,
+}: {
+  nextAction: { label: string; description: string; to: string };
+  setupProgress: number;
+  workspaceName?: string;
+  activationMode: boolean;
+}) {
+  return (
+    <Card className="overflow-hidden border-primary/15 bg-linear-to-br from-card via-card to-emerald-500/[0.07]">
+      <CardContent className="relative p-5 lg:p-7">
+        <div
+          aria-hidden="true"
+          className="absolute inset-x-0 top-0 h-1 bg-linear-to-r from-emerald-500 via-sky-500 to-indigo-500"
+        />
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-center">
+          <div className="min-w-0 space-y-5">
+            <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+              <Sparkles className="size-3.5" />
+              {translateText(activationMode ? "Activation mode" : "Attention first")}
+            </div>
+            <div className="max-w-3xl space-y-3">
+              <h2 className="text-3xl font-semibold tracking-normal text-mono lg:text-4xl">
+                {translateText(
+                  activationMode
+                    ? "Start with a clean QnA foundation"
+                    : "Keep trusted answers moving",
+                )}
+              </h2>
+              <p className="text-sm leading-6 text-muted-foreground lg:text-base">
+                {translateText(
+                  activationMode
+                    ? "Create the first space, attach evidence, and publish the first validated answer without exposing the full enterprise dashboard too early."
+                    : "BaseFAQ is showing the queue, progress, trust signals, and the next action for {workspaceName}.",
+                  { workspaceName: workspaceName || "this workspace" },
+                )}
+              </p>
+            </div>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <Button asChild size="lg">
+                <Link to={nextAction.to}>
+                  {translateText(nextAction.label)}
+                  <ArrowRight className="size-4" />
+                </Link>
+              </Button>
+              <Button asChild variant="outline" size="lg">
+                <Link to="/app/questions">
+                  {translateText("Review questions")}
+                </Link>
+              </Button>
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-border/70 bg-background/80 p-4 shadow-xs">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+              {translateText("Setup progress")}
+            </p>
+            <div className="mt-3 flex items-end justify-between gap-4">
+              <div className="text-4xl font-semibold leading-none text-mono">
+                {setupProgress}%
+              </div>
+              <Badge variant={setupProgress === 100 ? "success" : "primary"} appearance="outline">
+                {translateText(setupProgress === 100 ? "Complete" : "In progress")}
+              </Badge>
+            </div>
+            <div className="mt-4 h-2 overflow-hidden rounded-full bg-muted">
+              <div
+                className="h-full rounded-full bg-primary transition-[width] duration-500"
+                style={{ width: `${setupProgress}%` }}
+              />
+            </div>
+            <p className="mt-4 text-sm leading-6 text-muted-foreground">
+              {translateText(nextAction.description)}
+            </p>
+          </div>
         </div>
       </CardContent>
     </Card>
   );
 }
 
-function DashboardPanel({
+function Panel({
   title,
   description,
+  action,
   children,
 }: {
   title: string;
   description: string;
+  action?: ReactNode;
   children: ReactNode;
 }) {
   return (
     <Card className="min-h-full">
-      <CardHeader>
+      <CardHeader className="gap-4">
         <CardHeading>
           <CardTitle>{translateText(title)}</CardTitle>
           <CardDescription>{translateText(description)}</CardDescription>
         </CardHeading>
+        {action}
       </CardHeader>
       <CardContent className="space-y-3">{children}</CardContent>
     </Card>
   );
 }
 
-function SpaceAttentionRow({ space }: { space: SpaceDto }) {
-  const blocksWork = !space.acceptsQuestions && !space.acceptsAnswers;
-  const needsValidation = !space.lastValidatedAtUtc;
-
-  return (
-    <div className="rounded-lg border border-border/70 bg-background/75 p-4">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div className="min-w-0 space-y-2">
-          <Link
-            to={`/app/spaces/${space.id}`}
-            className="font-medium text-mono hover:text-primary"
-          >
-            {space.name}
-          </Link>
-          <p className="line-clamp-2 text-sm text-muted-foreground">
-            {space.summary || translateText("No summary recorded.")}
-          </p>
-          <div className="flex flex-wrap gap-2">
-            <SpaceKindBadge kind={space.kind} />
-            <VisibilityBadge visibility={space.visibility} />
-            <Badge
-              variant={space.acceptsQuestions ? "success" : "mono"}
-              appearance="outline"
-            >
-              {translateText(
-                space.acceptsQuestions
-                  ? "Questions enabled"
-                  : "Questions disabled",
-              )}
-            </Badge>
-            <Badge
-              variant={space.acceptsAnswers ? "success" : "mono"}
-              appearance="outline"
-            >
-              {translateText(
-                space.acceptsAnswers ? "Answers enabled" : "Answers disabled",
-              )}
-            </Badge>
-          </div>
-        </div>
-        <div className="flex shrink-0 flex-col gap-2 sm:items-end">
-          <Badge
-            variant={blocksWork ? "destructive" : needsValidation ? "warning" : "success"}
-          >
-            {translateText(
-              blocksWork
-                ? "Intake closed"
-                : needsValidation
-                  ? "Needs validation"
-                  : "Ready",
-            )}
-          </Badge>
-          <Button asChild size="sm">
-            <Link to={`/app/spaces/${space.id}`}>
-              {translateText("Open space")}
-            </Link>
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function QuestionAttentionRow({
+function QuestionQueueRow({
   question,
   timeZone,
 }: {
@@ -237,84 +205,37 @@ function QuestionAttentionRow({
   timeZone: string;
 }) {
   return (
-    <div className="rounded-lg border border-border/70 bg-background/75 p-4">
+    <Link
+      to={`/app/questions/${question.id}`}
+      className="group block rounded-xl border border-border/70 bg-background/75 p-4 transition-colors hover:border-primary/25 hover:bg-primary/[0.025]"
+    >
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0 space-y-2">
-          <Link
-            to={`/app/questions/${question.id}`}
-            className="font-medium text-mono hover:text-primary"
-          >
-            {question.title}
-          </Link>
-          <p className="line-clamp-2 text-sm text-muted-foreground">
-            {question.summary || translateText("No summary provided.")}
-          </p>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <QuestionStatusBadge status={question.status} />
             <VisibilityBadge visibility={question.visibility} />
-            {question.duplicateOfQuestionId ? (
-              <Badge variant="mono" appearance="outline">
-                {translateText("Duplicate")}
+            {question.acceptedAnswerId ? (
+              <Badge variant="success" appearance="outline">
+                {translateText("Accepted answer")}
               </Badge>
             ) : null}
           </div>
-        </div>
-        <div className="flex shrink-0 flex-col gap-2 sm:items-end">
-          <p className="text-xs text-muted-foreground">
-            {formatNumericDateTimeInTimeZone(
-              question.lastActivityAtUtc,
-              timeZone,
-            )}
+          <p className="font-medium text-mono group-hover:text-primary">
+            {question.title}
           </p>
-          <Button asChild size="sm">
-            <Link to={`/app/questions/${question.id}`}>
-              {translateText("Resolve thread")}
-            </Link>
-          </Button>
+          <p className="line-clamp-2 text-sm leading-6 text-muted-foreground">
+            {question.summary || translateText("No summary provided.")}
+          </p>
+        </div>
+        <div className="shrink-0 text-sm text-muted-foreground">
+          {formatNumericDateTimeInTimeZone(question.lastActivityAtUtc, timeZone)}
         </div>
       </div>
-    </div>
+    </Link>
   );
 }
 
-function AnswerAttentionRow({ answer }: { answer: AnswerDto }) {
-  return (
-    <div className="rounded-lg border border-border/70 bg-background/75 p-4">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div className="min-w-0 space-y-2">
-          <Link
-            to={`/app/answers/${answer.id}`}
-            className="font-medium text-mono hover:text-primary"
-          >
-            {answer.headline}
-          </Link>
-          <p className="line-clamp-2 text-sm text-muted-foreground">
-            {answer.body || translateText("No answer body recorded.")}
-          </p>
-          <div className="flex flex-wrap gap-2">
-            <AnswerStatusBadge status={answer.status} />
-            <VisibilityBadge visibility={answer.visibility} />
-            {answer.isAccepted ? (
-              <Badge variant="success">{translateText("Accepted")}</Badge>
-            ) : null}
-            <Badge variant="outline">
-              {translateText("{count} sources", {
-                count: answer.sources.length,
-              })}
-            </Badge>
-          </div>
-        </div>
-        <Button asChild size="sm" className="shrink-0">
-          <Link to={`/app/answers/${answer.id}`}>
-            {translateText("Validate answer")}
-          </Link>
-        </Button>
-      </div>
-    </div>
-  );
-}
-
-function ActivitySignalRow({
+function ActivityRow({
   entry,
   timeZone,
 }: {
@@ -326,78 +247,85 @@ function ActivitySignalRow({
     : `/app/questions/${entry.questionId}`;
 
   return (
-    <div className="rounded-lg border border-border/70 bg-background/75 p-4">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div className="min-w-0 space-y-2">
-          <div className="flex flex-wrap gap-2">
-            <ActivityKindBadge kind={entry.kind} />
-            <ActorKindBadge kind={entry.actorKind} />
-          </div>
-          <p className="line-clamp-2 text-sm text-muted-foreground">
-            {entry.notes || entry.actorLabel || entry.userPrint}
-          </p>
-          <p className="text-xs text-muted-foreground">
-            {formatNumericDateTimeInTimeZone(entry.occurredAtUtc, timeZone)}
-          </p>
-        </div>
-        <Button asChild variant="outline" size="sm" className="shrink-0">
-          <Link to={target}>{translateText("Open context")}</Link>
-        </Button>
+    <Link
+      to={target}
+      className="block rounded-xl border border-border/70 bg-background/75 p-4 transition-colors hover:border-primary/25 hover:bg-primary/[0.025]"
+    >
+      <div className="flex flex-wrap items-center gap-2">
+        <ActivityKindBadge kind={entry.kind} />
+        <ActorKindBadge kind={entry.actorKind} />
       </div>
-    </div>
+      <p className="mt-2 line-clamp-2 text-sm leading-6 text-muted-foreground">
+        {entry.notes || entry.actorLabel || entry.userPrint}
+      </p>
+      <p className="mt-2 text-xs text-muted-foreground">
+        {formatNumericDateTimeInTimeZone(entry.occurredAtUtc, timeZone)}
+      </p>
+    </Link>
   );
 }
 
-function DashboardLoadingState() {
+function BillingNotice({
+  status,
+  invoiceStatus,
+}: {
+  status?: TenantSubscriptionStatus;
+  invoiceStatus?: number;
+}) {
+  if (!status) {
+    return null;
+  }
+
+  const presentation = tenantSubscriptionStatusPresentation[status];
+  const invoicePresentation =
+    invoiceStatus !== undefined
+      ? billingInvoiceStatusPresentation[invoiceStatus]
+      : undefined;
+
   return (
-    <PageSurface className="space-y-5 lg:space-y-7.5">
-      <PageHeader
-        title="Dashboard"
-        description="QnA overview focused on operational action."
-      />
-      <Card className="border-emerald-500/20 bg-linear-to-br from-background via-background to-emerald-500/[0.06]">
-        <CardContent className="space-y-5 p-5 lg:p-6">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-            <div className="space-y-3">
-              <Skeleton className="h-3 w-24" />
-              <Skeleton className="h-6 w-56" />
-              <Skeleton className="h-4 w-full max-w-xl" />
-            </div>
-            <Skeleton className="h-16 w-36 rounded-lg" />
+    <Card className="border-warning/25 bg-warning/5">
+      <CardContent className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0 space-y-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge variant={presentation.badgeVariant} appearance="outline">
+              {translateText(presentation.label)}
+            </Badge>
+            {invoicePresentation ? (
+              <Badge variant={invoicePresentation.badgeVariant} appearance="outline">
+                {translateText(invoicePresentation.label)}
+              </Badge>
+            ) : null}
           </div>
-          <Skeleton className="h-2 w-full" />
-          <div className="grid gap-3 lg:grid-cols-2">
-            {Array.from({ length: 4 }, (_, index) => (
-              <Skeleton
-                key={`readiness-step-skeleton-${index}`}
-                className="h-20 rounded-lg"
-              />
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-      <SectionGridSkeleton items={4} />
-      <div className="grid gap-5 xl:grid-cols-3 lg:gap-7.5">
-        {Array.from({ length: 3 }, (_, index) => (
-          <Skeleton
-            key={`dashboard-panel-skeleton-${index}`}
-            className="h-80 rounded-lg"
-          />
-        ))}
-      </div>
-    </PageSurface>
+          <p className="text-sm leading-6 text-muted-foreground">
+            {translateText(
+              "Billing needs attention so entitlement and workspace access stay predictable.",
+            )}
+          </p>
+        </div>
+        <Button asChild variant="outline">
+          <Link to="/app/billing">{translateText("Review billing")}</Link>
+        </Button>
+      </CardContent>
+    </Card>
   );
 }
 
 export function DashboardPage() {
   const timeZone = usePortalTimeZone();
   const workspace = useCurrentWorkspace();
-  const { clientKeyQuery } = useTenantWorkspace();
+  const profileQuery = useUserProfile();
+  const membersQuery = useTenantMembers();
+  const billing = useBillingWorkspace();
 
   const spacesQuery = useSpaceList({
     page: 1,
     pageSize: 100,
     sorting: "Name ASC",
+  });
+  const questionsSummaryQuery = useQuestionList({
+    page: 1,
+    pageSize: 1,
+    sorting: "LastActivityAtUtc DESC",
   });
   const pendingQuestionsQuery = useQuestionList({
     page: 1,
@@ -405,12 +333,18 @@ export function DashboardPage() {
     sorting: "LastActivityAtUtc DESC",
     status: QuestionStatus.PendingReview,
   });
+  const openQuestionsQuery = useQuestionList({
+    page: 1,
+    pageSize: 5,
+    sorting: "LastActivityAtUtc DESC",
+    status: QuestionStatus.Open,
+  });
   const recentQuestionsQuery = useQuestionList({
     page: 1,
     pageSize: 5,
     sorting: "LastActivityAtUtc DESC",
   });
-  const unvalidatedAnswersQuery = useAnswerList({
+  const publishedAnswersQuery = useAnswerList({
     page: 1,
     pageSize: 5,
     sorting: "PublishedAtUtc DESC",
@@ -427,6 +361,12 @@ export function DashboardPage() {
     pageSize: 1,
     sorting: "LastVerifiedAtUtc DESC",
   });
+  const authoritativeSourcesQuery = useSourceList({
+    page: 1,
+    pageSize: 1,
+    sorting: "LastVerifiedAtUtc DESC",
+    isAuthoritative: true,
+  });
   const activityQuery = useActivityList({
     page: 1,
     pageSize: 6,
@@ -435,20 +375,29 @@ export function DashboardPage() {
 
   const isInitialDashboardLoading =
     spacesQuery.isLoading ||
+    questionsSummaryQuery.isLoading ||
     pendingQuestionsQuery.isLoading ||
+    openQuestionsQuery.isLoading ||
     recentQuestionsQuery.isLoading ||
-    unvalidatedAnswersQuery.isLoading ||
+    publishedAnswersQuery.isLoading ||
     validatedAnswersQuery.isLoading ||
     sourcesQuery.isLoading ||
+    authoritativeSourcesQuery.isLoading ||
     activityQuery.isLoading ||
-    clientKeyQuery.isLoading;
+    membersQuery.isLoading ||
+    profileQuery.isLoading ||
+    billing.summaryQuery.isLoading;
+
   const hasCriticalError =
     spacesQuery.isError ||
+    questionsSummaryQuery.isError ||
     pendingQuestionsQuery.isError ||
+    openQuestionsQuery.isError ||
     recentQuestionsQuery.isError ||
-    unvalidatedAnswersQuery.isError ||
+    publishedAnswersQuery.isError ||
     validatedAnswersQuery.isError ||
     sourcesQuery.isError ||
+    authoritativeSourcesQuery.isError ||
     activityQuery.isError;
 
   if (isInitialDashboardLoading) {
@@ -458,29 +407,35 @@ export function DashboardPage() {
   if (hasCriticalError) {
     const error =
       spacesQuery.error ??
+      questionsSummaryQuery.error ??
       pendingQuestionsQuery.error ??
+      openQuestionsQuery.error ??
       recentQuestionsQuery.error ??
-      unvalidatedAnswersQuery.error ??
+      publishedAnswersQuery.error ??
       validatedAnswersQuery.error ??
       sourcesQuery.error ??
+      authoritativeSourcesQuery.error ??
       activityQuery.error;
 
     return (
       <PageSurface>
         <PageHeader
-          title="Dashboard"
-          description="QnA overview focused on operational action."
+          title="Home"
+          description="Attention, activation, value proof, and recent workflow signals."
         />
         <ErrorState
-          title="Unable to load the QnA dashboard"
+          title="Unable to load Home"
           error={error}
           retry={() => {
             void spacesQuery.refetch();
+            void questionsSummaryQuery.refetch();
             void pendingQuestionsQuery.refetch();
+            void openQuestionsQuery.refetch();
             void recentQuestionsQuery.refetch();
-            void unvalidatedAnswersQuery.refetch();
+            void publishedAnswersQuery.refetch();
             void validatedAnswersQuery.refetch();
             void sourcesQuery.refetch();
+            void authoritativeSourcesQuery.refetch();
             void activityQuery.refetch();
           }}
         />
@@ -490,355 +445,347 @@ export function DashboardPage() {
 
   const spaces = spacesQuery.data?.items ?? [];
   const pendingQuestions = pendingQuestionsQuery.data?.items ?? [];
+  const openQuestions = openQuestionsQuery.data?.items ?? [];
   const recentQuestions = recentQuestionsQuery.data?.items ?? [];
-  const unvalidatedAnswers = unvalidatedAnswersQuery.data?.items ?? [];
+  const publishedAnswers = publishedAnswersQuery.data?.items ?? [];
   const recentActivity = activityQuery.data?.items ?? [];
-  const workspaceReady = Boolean(workspace);
-  const clientKeyReady = Boolean(clientKeyQuery.data);
-  const spaceCount = spacesQuery.data?.totalCount ?? 0;
-  const activeSpaceCount = spaces.filter(
-    (space) => space.acceptsQuestions || space.acceptsAnswers,
-  ).length;
-  const intakeClosedCount = spaces.filter(
-    (space) => !space.acceptsQuestions && !space.acceptsAnswers,
-  ).length;
-  const publicSpaceCount = spaces.filter(
-    (space) => space.visibility >= VisibilityScope.Public,
-  ).length;
+  const memberCount = membersQuery.data?.length ?? 0;
+  const questionCount = questionsSummaryQuery.data?.totalCount ?? 0;
   const pendingQuestionCount = pendingQuestionsQuery.data?.totalCount ?? 0;
-  const unvalidatedAnswerCount =
-    unvalidatedAnswersQuery.data?.totalCount ?? 0;
-  const validatedAnswerCount = validatedAnswersQuery.data?.totalCount ?? 0;
   const sourceCount = sourcesQuery.data?.totalCount ?? 0;
-  const signalTarget = recentActivity[0]
-    ? recentActivity[0].answerId
-      ? `/app/answers/${recentActivity[0].answerId}`
-      : `/app/questions/${recentActivity[0].questionId}`
-    : "/app/spaces";
-  const readinessActionTarget =
-    spaceCount === 0
-      ? "/app/spaces/new"
-      : pendingQuestionCount > 0
-        ? `/app/questions?status=${QuestionStatus.PendingReview}`
-        : unvalidatedAnswerCount > 0
-          ? `/app/answers?status=${AnswerStatus.Published}`
-          : sourceCount === 0
-            ? "/app/sources/new"
-            : "/app/spaces";
-  const riskItems = [
-    {
-      title: "Questions waiting for decision",
-      value: pendingQuestionCount,
-      description:
-        "Moderation backlog blocks reusable answers and public confidence.",
-      to: `/app/questions?status=${QuestionStatus.PendingReview}`,
-      action: "Review threads",
-      tone: pendingQuestionCount > 0 ? "warning" : "success",
-    },
-    {
-      title: "Published answers not validated",
-      value: unvalidatedAnswerCount,
-      description:
-        "Published answers need validation before they become trusted knowledge.",
-      to: `/app/answers?status=${AnswerStatus.Published}`,
-      action: "Validate answers",
-      tone: unvalidatedAnswerCount > 0 ? "warning" : "success",
-    },
-    {
-      title: "Spaces with intake closed",
-      value: intakeClosedCount,
-      description:
-        "Closed intake can be intentional, but it should be visible before operators route work.",
-      to: "/app/spaces?acceptsQuestions=false&acceptsAnswers=false",
-      action: "Review spaces",
-      tone: intakeClosedCount > 0 ? "warning" : "success",
-    },
-    {
-      title: "Evidence catalog",
-      value: sourceCount,
-      description:
-        "Answers need reusable sources before citation and audit can scale.",
-      to: sourceCount > 0 ? "/app/sources" : "/app/sources/new",
-      action: sourceCount > 0 ? "Open sources" : "Create source",
-      tone: sourceCount > 0 ? "success" : "warning",
-    },
-  ] as const;
+  const authoritativeSourceCount =
+    authoritativeSourcesQuery.data?.totalCount ?? 0;
+  const validatedAnswerCount = validatedAnswersQuery.data?.totalCount ?? 0;
+  const billingSummary = billing.summaryQuery.data;
+  const activation = getActivationState({
+    hasProfile: Boolean(profileQuery.data?.givenName),
+    memberCount,
+    questionCount,
+    sourceCount,
+    spaceCount: spacesQuery.data?.totalCount ?? 0,
+    trustedAnswerCount: validatedAnswerCount,
+  });
+  const setupProgress = getSetupProgress(activation);
+  const nextAction = getRoleAwareNextAction({
+    billingSummary,
+    memberCount,
+    openQuestions,
+    pendingQuestionCount,
+    questionCount,
+    sourceCount,
+    spaceCount: spacesQuery.data?.totalCount ?? 0,
+  });
+  const kpis = getDashboardKpis({
+    activity: recentActivity,
+    answers: publishedAnswers,
+    authoritativeSourceCount,
+    openQuestions,
+    pendingQuestionCount,
+    questionCount,
+    spaces,
+    sourceCount,
+    validatedAnswerCount,
+  });
+  const queueQuestions = pendingQuestions.length ? pendingQuestions : openQuestions.length ? openQuestions : recentQuestions;
+  const billingNeedsAttention = getBillingNeedsAttention(billingSummary);
+  const activationMode = !activation.hasSpace;
 
   return (
     <PageSurface className="space-y-5 lg:space-y-7.5">
       <PageHeader
-        title="Dashboard"
-        description="QnA overview: active Spaces, pending decisions, unvalidated answers, recent signals, and operational risk."
+        title="Home"
+        description="A focused command center for setup, moderation throughput, source trust, and answer quality."
         actions={
           <>
             <Button asChild>
-              <Link to="/app/spaces">
-                <FolderKanban className="size-4" />
-                {translateText("Start with Spaces")}
+              <Link to={nextAction.to}>
+                <ArrowRight className="size-4" />
+                {translateText(nextAction.label)}
               </Link>
             </Button>
             <Button asChild variant="outline">
-              <Link to="/app/spaces/new">
+              <Link to="/app/questions/new">
                 <Plus className="size-4" />
-                {translateText("New space")}
+                {translateText("New question")}
               </Link>
             </Button>
           </>
         }
       />
 
-      <QnaModuleNav
-        activeKey="dashboard"
-        intent="This is the QnA macro view. It only shows what helps an operator decide where to act next."
+      <HomeHero
+        activationMode={activationMode}
+        nextAction={nextAction}
+        setupProgress={setupProgress}
+        workspaceName={workspace?.name}
       />
 
-      <ProgressChecklistCard
-        hideWhenComplete={false}
-        eyebrow="Start here"
-        title="Workspace path to trusted answers"
-        description="Progress is measured by business readiness: context exists, intake works, questions are handled, answers are validated, and sources can be cited."
-        steps={[
+      {setupProgress < 100 ? (
+        <ProgressChecklistCard
+          eyebrow="Start here"
+          title="Setup path to trusted answers"
+          description="Each step comes from real workspace data where the API exposes it. When all steps are complete, the portal shifts toward daily operations."
+          steps={[
+            {
+              id: "profile",
+              label: "Confirm profile and time zone",
+              description: "Your profile controls language, time zone, and teammate context.",
+              complete: activation.hasProfile,
+            },
+            {
+              id: "space",
+              label: "Create first space",
+              description: "Spaces define where questions, answers, tags, sources, and activity belong.",
+              complete: activation.hasSpace,
+            },
+            {
+              id: "source",
+              label: "Add first source",
+              description: "Sources make answers defensible and reusable.",
+              complete: activation.hasSource,
+            },
+            {
+              id: "member",
+              label: "Invite teammate",
+              description: "Bring another operator into the workspace before volume grows.",
+              complete: activation.hasTeammate,
+            },
+            {
+              id: "question",
+              label: "Create first question",
+              description: "Capture the first thread and move it through review.",
+              complete: activation.hasQuestion,
+            },
+            {
+              id: "answer",
+              label: "Publish or validate first answer",
+              description: "Validated answers become trusted knowledge.",
+              complete: activation.hasTrustedAnswer,
+            },
+          ]}
+          action={{
+            label: nextAction.label,
+            to: nextAction.to,
+          }}
+          secondaryAction={{ label: "Open profile", to: "/app/settings/profile" }}
+          hideWhenComplete
+        />
+      ) : (
+        <Card className="border-success/25 bg-success/5">
+          <CardContent className="flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex min-w-0 items-start gap-3">
+              <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                <CheckCircle2 className="size-5" />
+              </span>
+              <div className="min-w-0">
+                <p className="font-semibold text-mono">
+                  {translateText("Setup is complete")}
+                </p>
+                <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                  {translateText(
+                    "Home now prioritizes moderation throughput, validation, evidence coverage, and recent signals.",
+                  )}
+                </p>
+              </div>
+            </div>
+            <Button asChild variant="outline">
+              <Link to="/app/settings/profile">{translateText("Review setup")}</Link>
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {billingNeedsAttention ? (
+        <BillingNotice
+          status={billingSummary?.subscriptionStatus}
+          invoiceStatus={billingSummary?.lastInvoice?.status}
+        />
+      ) : null}
+
+      <SectionGrid
+        items={[
           {
-            id: "workspace",
-            label: "Workspace selected",
-            description: workspaceReady
-              ? "Current workspace context is available."
-              : "Pick a workspace before operating QnA records.",
-            complete: workspaceReady,
+            title: "Questions needing review",
+            value: kpis.pendingQuestionCount,
+            description: "Moderation decisions that block answer throughput.",
+            icon: Clock3,
           },
           {
-            id: "client-key",
-            label: "Public client key",
-            description: clientKeyReady
-              ? "Public feedback and widget flows can authenticate."
-              : "Generate a client key before relying on public QnA signals.",
-            complete: clientKeyReady,
+            title: "Answers validated",
+            value: kpis.validatedAnswerCount,
+            description: `${kpis.answeredCoverage}% question coverage from current data.`,
+            icon: ShieldCheck,
           },
           {
-            id: "spaces",
-            label: "Active Spaces",
-            description:
-              "Spaces define where questions, answers, tags, sources, and activity belong.",
-            complete: activeSpaceCount > 0,
+            title: "Authoritative sources",
+            value: kpis.authoritativeSourceCount,
+            description: `${kpis.sourceCount} total sources in the evidence catalog.`,
+            icon: Waypoints,
           },
           {
-            id: "trusted-answers",
-            label: "Validated answers",
-            description:
-              "Validated answers are ready to be reused as trusted knowledge.",
-            complete: validatedAnswerCount > 0,
+            title: "Active spaces",
+            value: kpis.activeSpaces,
+            description: "Spaces accepting questions or answers.",
+            icon: FolderKanban,
           },
         ]}
-        action={{
-          label:
-            spaceCount === 0
-              ? "Start here"
-              : pendingQuestionCount > 0
-                ? "Review queue"
-                : "Open spaces",
-          to: readinessActionTarget,
-        }}
-        secondaryAction={{ label: "Manage sources", to: "/app/sources" }}
       />
 
-      <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4 lg:gap-7.5">
-        <DashboardActionCard
-          title="Active Spaces"
-          value={activeSpaceCount}
-          description={`${publicSpaceCount} public or indexed. Open a Space to see rules, questions, sources, tags, and next action.`}
-          actionLabel="Open spaces"
-          to="/app/spaces"
-          icon={FolderKanban}
-          tone="emerald"
-        />
-        <DashboardActionCard
-          title="Pending questions"
-          value={pendingQuestionCount}
-          description="These threads need moderation, approval, duplicate routing, or an accepted answer decision."
-          actionLabel="Review by Space"
-          to={`/app/questions?status=${QuestionStatus.PendingReview}`}
-          icon={Clock3}
-          tone={pendingQuestionCount > 0 ? "amber" : "emerald"}
-        />
-        <DashboardActionCard
-          title="Answers without validation"
-          value={unvalidatedAnswerCount}
-          description="Published answers are useful, but validation turns them into trusted reusable knowledge."
-          actionLabel="Validate answers"
-          to={`/app/answers?status=${AnswerStatus.Published}`}
-          icon={MessageSquareText}
-          tone={unvalidatedAnswerCount > 0 ? "rose" : "emerald"}
-        />
-        <DashboardActionCard
-          title="Recent signals"
-          value={recentActivity.length}
-          description="Feedback, votes, moderation, and workflow events. Open the latest signal in its own Question or Answer context."
-          actionLabel="Open latest context"
-          to={signalTarget}
-          icon={Activity}
-          tone="sky"
-        />
+      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_380px] lg:gap-7.5">
+        <Panel
+          title="Work queue"
+          description="The highest-signal questions appear first: pending review, then open threads, then recent activity."
+          action={
+            <Button asChild variant="outline" size="sm">
+              <Link to={`/app/questions?status=${QuestionStatus.PendingReview}`}>
+                {translateText("Open queue")}
+              </Link>
+            </Button>
+          }
+        >
+          {queueQuestions.length ? (
+            queueQuestions.map((question) => (
+              <QuestionQueueRow
+                key={question.id}
+                question={question}
+                timeZone={timeZone}
+              />
+            ))
+          ) : (
+            <EmptyState
+              title="No questions need attention"
+              description="When a space receives questions, review-ready and open threads will appear here."
+              action={{ label: "Create question", to: "/app/questions/new" }}
+            />
+          )}
+        </Panel>
+
+        <Panel
+          title="Quick actions"
+          description="Role-aware paths for owners, moderators, contributors, and operations."
+        >
+          <div className="grid gap-3">
+            {[
+              {
+                label: nextAction.label,
+                description: nextAction.description,
+                to: nextAction.to,
+                icon: Sparkles,
+              },
+              {
+                label: "Add source",
+                description: "Attach authoritative evidence before publishing.",
+                to: "/app/sources/new",
+                icon: FileCheck2,
+              },
+              {
+                label: "Invite teammate",
+                description: "Share moderation and authoring responsibility.",
+                to: "/app/members",
+                icon: Users,
+              },
+              {
+                label: "Review activity",
+                description: "Audit workflow changes and public signals.",
+                to: "/app/activity",
+                icon: Activity,
+              },
+            ].map((action) => {
+              const Icon = action.icon;
+
+              return (
+                <Link
+                  key={action.label}
+                  to={action.to}
+                  className="group flex items-start gap-3 rounded-xl border border-border/70 bg-background/75 p-4 transition-colors hover:border-primary/25 hover:bg-primary/[0.025]"
+                >
+                  <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary ring-1 ring-inset ring-primary/15">
+                    <Icon className="size-4" />
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block font-medium text-mono group-hover:text-primary">
+                      {translateText(action.label)}
+                    </span>
+                    <span className="mt-1 block text-sm leading-6 text-muted-foreground">
+                      {translateText(action.description)}
+                    </span>
+                  </span>
+                </Link>
+              );
+            })}
+          </div>
+        </Panel>
       </div>
 
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-7.5">
-        <DashboardPanel
-          title="Spaces needing attention"
-          description="Open the Space first. It is the operating boundary for questions, answers, sources, tags, and activity."
+        <Panel
+          title="Answers awaiting validation"
+          description="Published answers are useful. Validated answers become trusted reusable knowledge."
+          action={
+            <Button asChild variant="outline" size="sm">
+              <Link to={`/app/answers?status=${AnswerStatus.Published}`}>
+                {translateText("Validate answers")}
+              </Link>
+            </Button>
+          }
         >
-          {spaces.length ? (
-            spaces
-              .slice()
-              .sort((first, second) => {
-                const firstScore =
-                  (!first.acceptsQuestions && !first.acceptsAnswers ? 2 : 0) +
-                  (!first.lastValidatedAtUtc ? 1 : 0);
-                const secondScore =
-                  (!second.acceptsQuestions && !second.acceptsAnswers ? 2 : 0) +
-                  (!second.lastValidatedAtUtc ? 1 : 0);
-
-                return secondScore - firstScore;
-              })
-              .slice(0, 4)
-              .map((space) => (
-                <SpaceAttentionRow key={space.id} space={space} />
-              ))
-          ) : (
-            <EmptyState
-              title="No Spaces yet"
-              description="Create a Space before questions, answers, tags, sources, or activity can be operated safely."
-              action={{ label: "Create Space", to: "/app/spaces/new" }}
-            />
-          )}
-        </DashboardPanel>
-
-        <DashboardPanel
-          title="Questions needing action"
-          description="Pending review comes first; recent unresolved threads remain visible as secondary context."
-        >
-          {(pendingQuestions.length ? pendingQuestions : recentQuestions).length ? (
-            (pendingQuestions.length ? pendingQuestions : recentQuestions).map(
-              (question) => (
-                <QuestionAttentionRow
-                  key={question.id}
-                  question={question}
-                  timeZone={timeZone}
-                />
-              ),
-            )
-          ) : (
-            <EmptyState
-              title="No question action needed"
-              description="When a Space receives questions, pending review and unresolved threads will appear here."
-              action={{ label: "Open spaces", to: "/app/spaces" }}
-            />
-          )}
-        </DashboardPanel>
-      </div>
-
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_380px] lg:gap-7.5">
-        <DashboardPanel
-          title="Answers waiting for validation"
-          description="An Answer becomes reliable only when publication, validation, quality, and sources line up."
-        >
-          {unvalidatedAnswers.length ? (
-            unvalidatedAnswers.map((answer) => (
-              <AnswerAttentionRow key={answer.id} answer={answer} />
+          {publishedAnswers.length ? (
+            publishedAnswers.map((answer) => (
+              <Link
+                key={answer.id}
+                to={`/app/answers/${answer.id}`}
+                className="block rounded-xl border border-border/70 bg-background/75 p-4 transition-colors hover:border-primary/25 hover:bg-primary/[0.025]"
+              >
+                <div className="flex flex-wrap items-center gap-2">
+                  <AnswerStatusBadge status={answer.status} />
+                  {answer.isAccepted ? (
+                    <Badge variant="success" appearance="outline">
+                      {translateText("Accepted")}
+                    </Badge>
+                  ) : null}
+                  {answer.isOfficial ? (
+                    <Badge variant="primary" appearance="outline">
+                      {translateText("Official")}
+                    </Badge>
+                  ) : null}
+                </div>
+                <p className="mt-2 font-medium text-mono">{answer.headline}</p>
+                <p className="mt-1 line-clamp-2 text-sm leading-6 text-muted-foreground">
+                  {answer.body || translateText("No answer body recorded.")}
+                </p>
+              </Link>
             ))
           ) : (
             <EmptyState
               title="No validation backlog"
-              description="Published answers that still need validation will appear here."
+              description="Published answers that need validation will appear here."
             />
           )}
-        </DashboardPanel>
+        </Panel>
 
-        <DashboardPanel
-          title="Operational risks"
-          description="Only risks that can change an operator decision are shown."
+        <Panel
+          title="Recent activity"
+          description="Workflow changes, moderation decisions, and customer signals."
+          action={
+            <Badge variant="outline" appearance="outline">
+              {translateText("{count} recent", {
+                count: kpis.recentActivityCount,
+              })}
+            </Badge>
+          }
         >
-          <div className="space-y-3">
-            {riskItems.map((risk) => (
-              <div
-                key={risk.title}
-                className="rounded-lg border border-border/70 bg-background/75 p-4"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0 space-y-1">
-                    <p className="text-sm font-medium text-mono">
-                      {translateText(risk.title)}
-                    </p>
-                    <p className="text-sm leading-6 text-muted-foreground">
-                      {translateText(risk.description)}
-                    </p>
-                  </div>
-                  <Badge
-                    variant={risk.tone === "warning" ? "warning" : "success"}
-                  >
-                    {risk.value}
-                  </Badge>
-                </div>
-                <Button asChild variant="ghost" size="sm" className="mt-3 px-0">
-                  <Link to={risk.to}>
-                    {translateText(risk.action)}
-                    <ArrowRight className="size-4" />
-                  </Link>
-                </Button>
-              </div>
-            ))}
-          </div>
-        </DashboardPanel>
+          {recentActivity.length ? (
+            recentActivity.map((entry) => (
+              <ActivityRow key={entry.id} entry={entry} timeZone={timeZone} />
+            ))
+          ) : (
+            <EmptyState
+              title="No recent activity"
+              description="Question, answer, feedback, vote, and report events will appear here."
+            />
+          )}
+        </Panel>
       </div>
-
-      <DashboardPanel
-        title="Recent signals"
-        description="Macro feed only. Every item sends the operator back to the Question or Answer that owns the event."
-      >
-        {recentActivity.length ? (
-          <div className="grid gap-3 lg:grid-cols-2">
-            {recentActivity.map((entry) => (
-              <ActivitySignalRow
-                key={entry.id}
-                entry={entry}
-                timeZone={timeZone}
-              />
-            ))}
-          </div>
-        ) : (
-          <EmptyState
-            title="No recent signals"
-            description="Feedback, votes, reports, moderation, and workflow transitions will appear here once operators start working."
-          />
-        )}
-      </DashboardPanel>
-
-      <Card className="border-dashed bg-muted/20">
-        <CardContent className="flex flex-col gap-4 p-5 lg:flex-row lg:items-center lg:justify-between">
-          <div className="space-y-1">
-            <p className="text-sm font-semibold text-mono">
-              {translateText("Business rule")}
-            </p>
-            <p className="text-sm text-muted-foreground">
-              {translateText(
-                "Questions are created from Spaces. Answers are created from Questions. Activity is audit context, not a standalone work queue.",
-              )}
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-3">
-            <Button asChild variant="outline">
-              <Link to="/app/tags">
-                <ShieldCheck className="size-4" />
-                {translateText("Manage tags")}
-              </Link>
-            </Button>
-            <Button asChild>
-              <Link to="/app/sources">
-                <Waypoints className="size-4" />
-                {translateText("Manage sources")}
-              </Link>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
     </PageSurface>
   );
 }

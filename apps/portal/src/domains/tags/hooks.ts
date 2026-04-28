@@ -1,23 +1,27 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import {
   createTag,
   deleteTag,
   getTag,
   listTags,
   updateTag,
-} from '@/domains/tags/api';
-import { useAuth } from '@/platform/auth/use-auth';
-import { useTenant } from '@/platform/tenant/use-tenant';
-import { translateText } from '@/shared/lib/i18n-core';
-import type { TagCreateRequestDto, TagUpdateRequestDto } from '@/domains/tags/types';
+} from "@/domains/tags/api";
+import { useAuth } from "@/platform/auth/use-auth";
+import { useTenant } from "@/platform/tenant/use-tenant";
+import { translateText } from "@/shared/lib/i18n-core";
+import type {
+  TagCreateRequestDto,
+  TagUpdateRequestDto,
+} from "@/domains/tags/types";
 
-const qnaRootKey = ['portal', 'qna'] as const;
+const qnaRootKey = ["portal", "qna"] as const;
 
 export const tagKeys = {
-  all: [...qnaRootKey, 'tags'] as const,
-  list: (params: Record<string, unknown>) => [...tagKeys.all, 'list', params] as const,
-  detail: (id: string) => [...tagKeys.all, 'detail', id] as const,
+  all: [...qnaRootKey, "tags"] as const,
+  list: (params: Record<string, unknown>) =>
+    [...tagKeys.all, "list", params] as const,
+  detail: (id: string) => [...tagKeys.all, "detail", id] as const,
 };
 
 export function useTagList(params: {
@@ -25,14 +29,17 @@ export function useTagList(params: {
   pageSize: number;
   sorting?: string;
   searchText?: string;
+  enabled?: boolean;
 }) {
   const { session, status } = useAuth();
   const { currentTenantId } = useTenant();
+  const { enabled = true, ...requestParams } = params;
 
   return useQuery({
-    queryKey: tagKeys.list(params),
-    queryFn: ({ signal }) => listTags(session?.accessToken, currentTenantId, params, signal),
-    enabled: status === 'ready' && Boolean(currentTenantId),
+    queryKey: tagKeys.list(requestParams),
+    queryFn: ({ signal }) =>
+      listTags(session?.accessToken, currentTenantId, requestParams, signal),
+    enabled: enabled && status === "ready" && Boolean(currentTenantId),
     placeholderData: (previous) => previous,
   });
 }
@@ -42,9 +49,9 @@ export function useTag(id: string | undefined) {
   const { currentTenantId } = useTenant();
 
   return useQuery({
-    queryKey: tagKeys.detail(id ?? 'unknown'),
-    queryFn: () => getTag(session?.accessToken, currentTenantId, id ?? ''),
-    enabled: status === 'ready' && Boolean(currentTenantId) && Boolean(id),
+    queryKey: tagKeys.detail(id ?? "unknown"),
+    queryFn: () => getTag(session?.accessToken, currentTenantId, id ?? ""),
+    enabled: status === "ready" && Boolean(currentTenantId) && Boolean(id),
   });
 }
 
@@ -62,11 +69,11 @@ export function useCreateTag() {
   const invalidateQna = useInvalidateQna();
 
   return useMutation({
-    mutationKey: [...tagKeys.all, 'create'],
+    mutationKey: [...tagKeys.all, "create"],
     mutationFn: (body: TagCreateRequestDto) =>
       createTag(session?.accessToken, currentTenantId, body),
     onSuccess: async () => {
-      toast.success(translateText('Tag created.'));
+      toast.success(translateText("Tag created."));
       await invalidateQna();
     },
   });
@@ -78,11 +85,11 @@ export function useUpdateTag(id: string) {
   const invalidateQna = useInvalidateQna();
 
   return useMutation({
-    mutationKey: [...tagKeys.all, 'update', id],
+    mutationKey: [...tagKeys.all, "update", id],
     mutationFn: (body: TagUpdateRequestDto) =>
       updateTag(session?.accessToken, currentTenantId, id, body),
     onSuccess: async () => {
-      toast.success(translateText('Tag updated.'));
+      toast.success(translateText("Tag updated."));
       await invalidateQna();
     },
   });
@@ -94,10 +101,11 @@ export function useDeleteTag() {
   const invalidateQna = useInvalidateQna();
 
   return useMutation({
-    mutationKey: [...tagKeys.all, 'delete'],
-    mutationFn: (id: string) => deleteTag(session?.accessToken, currentTenantId, id),
+    mutationKey: [...tagKeys.all, "delete"],
+    mutationFn: (id: string) =>
+      deleteTag(session?.accessToken, currentTenantId, id),
     onSuccess: async () => {
-      toast.success(translateText('Tag deleted.'));
+      toast.success(translateText("Tag deleted."));
       await invalidateQna();
     },
   });

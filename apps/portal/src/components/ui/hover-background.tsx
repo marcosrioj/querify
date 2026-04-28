@@ -1,10 +1,15 @@
-'use client';
+"use client";
 
-import * as React from 'react';
-import { HTMLMotionProps, motion, useMotionValue, useSpring } from 'motion/react';
-import { cn } from '@/lib/utils';
+import * as React from "react";
+import {
+  HTMLMotionProps,
+  motion,
+  useMotionValue,
+  useSpring,
+} from "motion/react";
+import { cn } from "@/lib/utils";
 
-type HoverBackgroundProps = HTMLMotionProps<'div'> & {
+type HoverBackgroundProps = HTMLMotionProps<"div"> & {
   objectCount?: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
   children?: React.ReactNode;
   colors?: {
@@ -14,18 +19,24 @@ type HoverBackgroundProps = HTMLMotionProps<'div'> & {
   };
 };
 
-function HoverBackground({ className, objectCount = 12, children, colors = {}, ...props }: HoverBackgroundProps) {
+function HoverBackground({
+  className,
+  objectCount = 12,
+  children,
+  colors = {},
+  ...props
+}: HoverBackgroundProps) {
   const {
-    background = 'bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900',
+    background = "bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900",
     objects = [
-      'bg-cyan-400/20',
-      'bg-purple-400/20',
-      'bg-fuchsia-400/20',
-      'bg-violet-400/20',
-      'bg-blue-400/20',
-      'bg-indigo-400/20',
+      "bg-cyan-400/20",
+      "bg-purple-400/20",
+      "bg-fuchsia-400/20",
+      "bg-violet-400/20",
+      "bg-blue-400/20",
+      "bg-indigo-400/20",
     ],
-    glow = 'shadow-cyan-400/50',
+    glow = "shadow-cyan-400/50",
   } = colors;
 
   const [isHovered, setIsHovered] = React.useState(false);
@@ -52,7 +63,7 @@ function HoverBackground({ className, objectCount = 12, children, colors = {}, .
   const animatedObjects = React.useMemo(
     () =>
       Array.from({ length: objectCount }, (_, i) => {
-        const shape = Math.random() > 0.5 ? 'circle' : 'square';
+        const shape = Math.random() > 0.5 ? "circle" : "square";
         return {
           id: i,
           x: Math.random() * 90 + 5, // 5-95% to avoid edges
@@ -99,17 +110,21 @@ function HoverBackground({ className, objectCount = 12, children, colors = {}, .
   return (
     <motion.div
       data-slot="hover-background"
-      className={cn('relative size-full overflow-hidden', background, className)}
+      className={cn(
+        "relative size-full overflow-hidden",
+        background,
+        className,
+      )}
       onHoverStart={handleHoverStart}
       onHoverEnd={handleHoverEnd}
       onMouseMove={handleMouseMove}
       whileHover={{ scale: 1.02 }}
-      transition={{ duration: 0.3, ease: 'easeOut' }}
+      transition={{ duration: 0.3, ease: "easeOut" }}
       animate={{
-        backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
+        backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
       }}
       style={{
-        backgroundSize: '200% 200%',
+        backgroundSize: "200% 200%",
       }}
       {...props}
     >
@@ -123,7 +138,7 @@ function HoverBackground({ className, objectCount = 12, children, colors = {}, .
         transition={{
           duration: 4,
           repeat: Infinity,
-          ease: 'easeInOut',
+          ease: "easeInOut",
         }}
       />
 
@@ -132,9 +147,9 @@ function HoverBackground({ className, objectCount = 12, children, colors = {}, .
         <motion.div
           key={obj.id}
           className={cn(
-            'absolute backdrop-blur-sm border border-white/10',
+            "absolute backdrop-blur-sm border border-white/10",
             obj.color,
-            obj.shape === 'circle' ? 'rounded-full' : 'rounded-lg rotate-45',
+            obj.shape === "circle" ? "rounded-full" : "rounded-lg rotate-45",
           )}
           style={{
             left: `${obj.x}%`,
@@ -155,7 +170,7 @@ function HoverBackground({ className, objectCount = 12, children, colors = {}, .
             scale: [0.6, 0.8, 0.6],
             opacity: [0.4, 0.6, 0.4],
             rotate:
-              obj.shape === 'circle'
+              obj.shape === "circle"
                 ? [obj.baseRotation, obj.baseRotation + 10, obj.baseRotation]
                 : [obj.baseRotation, obj.baseRotation + 5, obj.baseRotation],
             y: [0, obj.floatDirection * 15, 0],
@@ -164,13 +179,13 @@ function HoverBackground({ className, objectCount = 12, children, colors = {}, .
           transition={{
             duration: obj.breathDuration,
             delay: obj.delay,
-            ease: 'easeInOut',
+            ease: "easeInOut",
             repeat: Infinity,
-            repeatType: 'reverse',
+            repeatType: "reverse",
           }}
           whileHover={{
             scale: 1.5,
-            boxShadow: `0 0 30px ${glow.replace('shadow-', '').replace('/50', '')}`,
+            boxShadow: `0 0 30px ${glow.replace("shadow-", "").replace("/50", "")}`,
           }}
         />
       ))}
@@ -181,7 +196,7 @@ function HoverBackground({ className, objectCount = 12, children, colors = {}, .
           {Array.from({ length: 20 }).map((_, i) => (
             <motion.div
               key={`particle-${i}`}
-              className="absolute w-1 h-1 bg-white/60 rounded-full"
+              className="absolute w-1 h-1 bg-primary-foreground/60 rounded-full"
               style={{
                 left: `${Math.random() * 100}%`,
                 top: `${Math.random() * 100}%`,
@@ -196,7 +211,7 @@ function HoverBackground({ className, objectCount = 12, children, colors = {}, .
                 duration: 3,
                 delay: Math.random() * 2,
                 repeat: Infinity,
-                ease: 'easeOut',
+                ease: "easeOut",
               }}
             />
           ))}

@@ -1,6 +1,5 @@
 import { MessageSquareText } from "lucide-react";
 import { Link } from "react-router-dom";
-import { PortalCommandDialog } from "@/domains/shell/portal-command-dialog";
 import { TenantSwitcher } from "@/domains/shell/tenant-switcher";
 import { usePortalI18n } from "@/shared/lib/use-portal-i18n";
 
@@ -8,8 +7,8 @@ export function SidebarHeader({ onNavigate }: { onNavigate?: () => void }) {
   const { t } = usePortalI18n();
 
   return (
-    <div className="mb-3.5">
-      <div className="flex h-[70px] items-center gap-2.5 px-3.5">
+    <div className="mb-4">
+      <div className="flex h-[76px] items-center gap-2.5 px-4">
         <Link
           to="/app/dashboard"
           onClick={onNavigate}
@@ -25,12 +24,8 @@ export function SidebarHeader({ onNavigate }: { onNavigate?: () => void }) {
         </Link>
       </div>
 
-      <div className="px-3.5 pt-2.5">
+      <div className="px-3.5 pt-1">
         <TenantSwitcher />
-      </div>
-
-      <div className="mb-1 px-3.5 pt-2.5">
-        <PortalCommandDialog variant="sidebar" />
       </div>
     </div>
   );

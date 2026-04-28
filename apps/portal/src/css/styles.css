@@ -7,11 +7,16 @@
 /** Global Styles **/
 @layer base {
   html {
-    @apply bg-muted text-foreground;
+    @apply bg-background text-foreground;
   }
 
   body {
-    @apply bg-muted text-foreground antialiased;
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings:
+      "cv02" 1,
+      "cv03" 1,
+      "cv04" 1,
+      "cv11" 1;
   }
 
   * {
@@ -20,6 +25,10 @@
 
   *:focus-visible {
     @apply outline-ring rounded-xs shadow-none outline-2 outline-offset-3 transition-none!;
+  }
+
+  ::selection {
+    background: color-mix(in oklab, var(--primary) 22%, transparent);
   }
 }
 
@@ -39,9 +48,70 @@
   }
 }
 
+@keyframes portal-skeleton-sheen {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
 @layer utilities {
   .portal-confetti-burst {
     animation: portal-confetti-burst 1.4s ease-out both;
+  }
+
+  .portal-card {
+    @apply border-border/70 bg-card shadow-[var(--shadow-premium-card)] ring-1 ring-black/[0.015] dark:ring-white/[0.035];
+  }
+
+  .portal-body-background {
+    background:
+      radial-gradient(
+        circle at 20% 0%,
+        color-mix(in oklab, var(--primary) 10%, transparent),
+        transparent 32rem
+      ),
+      linear-gradient(
+        180deg,
+        color-mix(in oklab, var(--background) 96%, var(--muted)),
+        var(--muted)
+      );
+  }
+
+  .dark .portal-body-background {
+    background:
+      radial-gradient(
+        circle at 20% 0%,
+        color-mix(in oklab, var(--primary) 9%, transparent),
+        transparent 32rem
+      ),
+      linear-gradient(
+        180deg,
+        var(--background),
+        color-mix(in oklab, var(--background) 82%, var(--muted))
+      );
+  }
+
+  .portal-elevated {
+    @apply shadow-[var(--shadow-premium-elevated)] ring-1 ring-black/[0.02] dark:ring-white/[0.035];
+  }
+
+  .portal-focus-panel {
+    @apply border-border/70 bg-linear-to-br from-card via-card to-emerald-500/[0.055] shadow-[var(--shadow-premium-card)];
+  }
+
+  .portal-muted-panel {
+    @apply border-border/70 bg-muted/30;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
   }
 }
 

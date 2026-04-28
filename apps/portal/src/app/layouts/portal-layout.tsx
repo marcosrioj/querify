@@ -26,10 +26,10 @@ export function PortalLayout() {
   const isMobile = useIsMobile();
 
   useBodyClass(`
-    [--header-height:60px]
-    [--sidebar-width:270px]
+    [--header-height:var(--portal-header-height)]
+    [--sidebar-width:var(--portal-sidebar-width)]
     lg:overflow-hidden
-    bg-muted!
+    portal-body-background
   `);
 
   return (
@@ -40,15 +40,15 @@ export function PortalLayout() {
         </title>
       </Helmet>
 
-      <div className="flex grow">
+      <div className="flex min-h-screen grow">
         {!isMobile && <PortalSidebar />}
         {isMobile && <MobileHeader />}
 
         <div className="flex grow flex-col pt-[var(--header-height)] lg:flex-row lg:pt-0">
-          <div className="relative m-[15px] mt-0 flex grow flex-col items-stretch rounded-lg border border-border/70 bg-background shadow-[0_28px_80px_-48px_rgba(24,24,27,0.55)] lg:ms-[var(--sidebar-width)] lg:mt-[15px]">
+          <div className="portal-elevated relative m-3 mt-0 flex grow flex-col items-stretch overflow-hidden rounded-2xl border border-border/70 bg-background/95 backdrop-blur lg:ms-[calc(var(--sidebar-width)+0.25rem)] lg:mt-3">
             <PortalActivityBar />
             <div className="kt-scrollable-y-auto flex grow flex-col pt-5 [--kt-scrollbar-width:auto]">
-              <main className="grow" role="content">
+              <main className="grow" role="main">
                 <PortalToolbar />
                 <Outlet />
               </main>

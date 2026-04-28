@@ -1,34 +1,38 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import {
   CheckCircle2,
+  Link2,
   Pencil,
   Plus,
   ShieldCheck,
   Trash2,
   Waypoints,
 } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { useAnswer, useRemoveAnswerSource } from "@/domains/answers/hooks";
+import {
+  useQuestion,
+  useRemoveQuestionSource,
+} from "@/domains/questions/hooks";
 import { usePortalTimeZone } from "@/domains/settings/settings-hooks";
 import { useDeleteSource, useSourceList } from "@/domains/sources/hooks";
 import type { SourceDto } from "@/domains/sources/types";
+import { useRemoveSpaceSource, useSpace } from "@/domains/spaces/hooks";
 import {
+  SourceRole,
   VisibilityScope,
   sourceKindLabels,
   visibilityScopeLabels,
 } from "@/shared/constants/backend-enums";
-import { QnaModuleNav } from "@/domains/qna/qna-module-nav";
 import {
   ListLayout,
   PageHeader,
   SectionGrid,
 } from "@/shared/layout/page-layouts";
+import { translateText } from "@/shared/lib/i18n-core";
 import { clampPage } from "@/shared/lib/pagination";
 import { formatNumericDateTimeInTimeZone } from "@/shared/lib/time-zone";
 import { useListQueryState } from "@/shared/lib/use-list-query-state";
-import { translateText } from "@/shared/lib/i18n-core";
-import { DataTable, type DataTableColumn } from "@/shared/ui/data-table";
-import { PaginationControls } from "@/shared/ui/pagination-controls";
-import { EmptyState, ErrorState } from "@/shared/ui/placeholder-state";
 import {
   Badge,
   Button,
@@ -41,7 +45,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shared/ui";
-import { SourceKindBadge, VisibilityBadge } from "@/shared/ui/status-badges";
+import { DataTable, type DataTableColumn } from "@/shared/ui/data-table";
+import { PaginationControls } from "@/shared/ui/pagination-controls";
+import { EmptyState, ErrorState } from "@/shared/ui/placeholder-state";
+import {
+  SourceKindBadge,
+  SourceRoleBadge,
+  VisibilityBadge,
+} from "@/shared/ui/status-badges";
 
 const sortingOptions = [
   { value: "Label ASC", label: "Label A-Z" },
@@ -56,9 +67,80 @@ const SOURCE_FILTER_DEFAULTS = {
   authoritative: "all",
 } as const;
 
+type SourceRelationshipKind = "space" | "question" | "answer";
+
+type SourceListRow = SourceDto & {
+  relationship?: {
+    parentKind: SourceRelationshipKind;
+    linkId?: string;
+    role?: SourceRole;
+    order?: number;
+  };
+};
+
+function sourceMatchesSearch(source: SourceListRow, searchText: string) {
+  if (!searchText) {
+    return true;
+  }
+
+  const normalizedSearch = searchText.toLowerCase();
+  return [
+    source.label,
+    source.locator,
+    source.language,
+    source.contextNote,
+    source.externalId,
+  ]
+    .filter(Boolean)
+    .some((value) => String(value).toLowerCase().includes(normalizedSearch));
+}
+
+function sourceMatchesFilters(
+  source: SourceListRow,
+  {
+    authoritativeFilter,
+    kindFilter,
+    searchText,
+    visibilityFilter,
+  }: {
+    authoritativeFilter: string;
+    kindFilter: string;
+    searchText: string;
+    visibilityFilter: string;
+  },
+) {
+  const matchesKind =
+    kindFilter === "all" || source.kind === Number(kindFilter);
+  const matchesVisibility =
+    visibilityFilter === "all" ||
+    source.visibility === Number(visibilityFilter);
+  const matchesAuthoritative =
+    authoritativeFilter === "all" ||
+    source.isAuthoritative === (authoritativeFilter === "true");
+
+  return (
+    matchesKind &&
+    matchesVisibility &&
+    matchesAuthoritative &&
+    sourceMatchesSearch(source, searchText)
+  );
+}
+
 export function SourceListPage() {
   const navigate = useNavigate();
   const portalTimeZone = usePortalTimeZone();
+  const [searchParams] = useSearchParams();
+  const spaceId = searchParams.get("spaceId") ?? "";
+  const questionId = searchParams.get("questionId") ?? "";
+  const answerId = searchParams.get("answerId") ?? "";
+  const relationshipKind: SourceRelationshipKind | undefined = spaceId
+    ? "space"
+    : questionId
+      ? "question"
+      : answerId
+        ? "answer"
+        : undefined;
+  const relationshipActive = Boolean(relationshipKind);
   const {
     debouncedSearch,
     filters,
@@ -84,6 +166,9 @@ export function SourceListPage() {
   const apiAuthoritative =
     authoritativeFilter === "all" ? undefined : authoritativeFilter === "true";
 
+  const spaceQuery = useSpace(spaceId || undefined);
+  const questionQuery = useQuestion(questionId || undefined);
+  const answerQuery = useAnswer(answerId || undefined);
   const sourceQuery = useSourceList({
     page,
     pageSize,
@@ -92,9 +177,110 @@ export function SourceListPage() {
     kind: apiKind,
     visibility: apiVisibility,
     isAuthoritative: apiAuthoritative,
+    enabled: !relationshipActive,
   });
+  const deleteSource = useDeleteSource();
+  const removeSpaceSource = useRemoveSpaceSource(spaceId);
+  const removeQuestionSource = useRemoveQuestionSource(questionId);
+  const removeAnswerSource = useRemoveAnswerSource(answerId);
+
+  const relationshipRows = useMemo<SourceListRow[]>(() => {
+    if (spaceId) {
+      return (spaceQuery.data?.curatedSources ?? []).map((source) => ({
+        ...source,
+        relationship: { parentKind: "space" },
+      }));
+    }
+
+    if (questionId) {
+      return (questionQuery.data?.sources ?? [])
+        .map((link) =>
+          link.source
+            ? {
+                ...link.source,
+                relationship: {
+                  parentKind: "question" as const,
+                  linkId: link.id,
+                  role: link.role,
+                  order: link.order,
+                },
+              }
+            : null,
+        )
+        .filter((source): source is SourceListRow => Boolean(source));
+    }
+
+    if (answerId) {
+      return (answerQuery.data?.sources ?? [])
+        .map((link) =>
+          link.source
+            ? {
+                ...link.source,
+                relationship: {
+                  parentKind: "answer" as const,
+                  linkId: link.id,
+                  role: link.role,
+                  order: link.order,
+                },
+              }
+            : null,
+        )
+        .filter((source): source is SourceListRow => Boolean(source));
+    }
+
+    return [];
+  }, [
+    answerId,
+    answerQuery.data?.sources,
+    questionId,
+    questionQuery.data?.sources,
+    spaceId,
+    spaceQuery.data?.curatedSources,
+  ]);
+
+  const sourceRows = relationshipActive
+    ? relationshipRows.filter((source) =>
+        sourceMatchesFilters(source, {
+          authoritativeFilter,
+          kindFilter,
+          searchText: debouncedSearch,
+          visibilityFilter,
+        }),
+      )
+    : ((sourceQuery.data?.items ?? []) as SourceListRow[]);
+  const relationshipLoading =
+    (spaceId && spaceQuery.isLoading && !spaceQuery.data) ||
+    (questionId && questionQuery.isLoading && !questionQuery.data) ||
+    (answerId && answerQuery.isLoading && !answerQuery.data);
+  const relationshipError =
+    (spaceId && spaceQuery.isError) ||
+    (questionId && questionQuery.isError) ||
+    (answerId && answerQuery.isError);
+  const scopeName =
+    spaceQuery.data?.name ??
+    questionQuery.data?.title ??
+    answerQuery.data?.headline ??
+    "";
+  const scopeParentTo = spaceId
+    ? `/app/spaces/${spaceId}`
+    : questionId
+      ? `/app/questions/${questionId}`
+      : answerId
+        ? `/app/answers/${answerId}`
+        : undefined;
+  const scopeLabel = spaceId
+    ? "Space"
+    : questionId
+      ? "Question"
+      : answerId
+        ? "Answer"
+        : undefined;
 
   useEffect(() => {
+    if (relationshipActive) {
+      return;
+    }
+
     const totalCount = sourceQuery.data?.totalCount;
 
     if (totalCount === undefined) {
@@ -105,10 +291,14 @@ export function SourceListPage() {
     if (nextPage !== page) {
       setPage(nextPage, { replace: true });
     }
-  }, [page, pageSize, setPage, sourceQuery.data?.totalCount]);
+  }, [
+    page,
+    pageSize,
+    relationshipActive,
+    setPage,
+    sourceQuery.data?.totalCount,
+  ]);
 
-  const deleteSource = useDeleteSource();
-  const sourceRows = sourceQuery.data?.items ?? [];
   const authoritativeCount = sourceRows.filter(
     (source) => source.isAuthoritative,
   ).length;
@@ -125,10 +315,33 @@ export function SourceListPage() {
       source.answerUsageCount,
     0,
   );
-  const showMetricsLoadingState =
-    sourceQuery.isLoading && sourceQuery.data === undefined;
+  const showMetricsLoadingState = relationshipActive
+    ? relationshipLoading
+    : sourceQuery.isLoading && sourceQuery.data === undefined;
 
-  const columns: DataTableColumn<SourceDto>[] = [
+  const detachSource = (source: SourceListRow) => {
+    if (source.relationship?.parentKind === "space") {
+      return removeSpaceSource.mutateAsync(source.id);
+    }
+
+    if (
+      source.relationship?.parentKind === "question" &&
+      source.relationship.linkId
+    ) {
+      return removeQuestionSource.mutateAsync(source.relationship.linkId);
+    }
+
+    if (
+      source.relationship?.parentKind === "answer" &&
+      source.relationship.linkId
+    ) {
+      return removeAnswerSource.mutateAsync(source.relationship.linkId);
+    }
+
+    return Promise.resolve();
+  };
+
+  const columns: DataTableColumn<SourceListRow>[] = [
     {
       key: "source",
       header: "Source",
@@ -182,29 +395,48 @@ export function SourceListPage() {
     },
     {
       key: "usage",
-      header: "Where used",
+      header: relationshipActive ? "Relationship" : "Where used",
       className: "lg:w-[220px]",
-      cell: (source) => (
-        <div className="flex flex-wrap gap-2">
-          <Badge variant={source.spaceUsageCount > 0 ? "primary" : "outline"}>
-            {translateText("{count} spaces", {
-              count: source.spaceUsageCount,
-            })}
-          </Badge>
-          <Badge
-            variant={source.questionUsageCount > 0 ? "secondary" : "outline"}
-          >
-            {translateText("{count} questions", {
-              count: source.questionUsageCount,
-            })}
-          </Badge>
-          <Badge variant={source.answerUsageCount > 0 ? "success" : "outline"}>
-            {translateText("{count} answers", {
-              count: source.answerUsageCount,
-            })}
-          </Badge>
-        </div>
-      ),
+      cell: (source) =>
+        source.relationship ? (
+          <div className="flex flex-wrap gap-2">
+            <Badge variant="primary" appearance="outline">
+              {translateText(scopeLabel ?? "Scoped")}
+            </Badge>
+            {source.relationship.role !== undefined ? (
+              <SourceRoleBadge role={source.relationship.role} />
+            ) : null}
+            {source.relationship.order !== undefined ? (
+              <Badge variant="outline">
+                {translateText("Order {value}", {
+                  value: source.relationship.order,
+                })}
+              </Badge>
+            ) : null}
+          </div>
+        ) : (
+          <div className="flex flex-wrap gap-2">
+            <Badge variant={source.spaceUsageCount > 0 ? "primary" : "outline"}>
+              {translateText("{count} spaces", {
+                count: source.spaceUsageCount,
+              })}
+            </Badge>
+            <Badge
+              variant={source.questionUsageCount > 0 ? "secondary" : "outline"}
+            >
+              {translateText("{count} questions", {
+                count: source.questionUsageCount,
+              })}
+            </Badge>
+            <Badge
+              variant={source.answerUsageCount > 0 ? "success" : "outline"}
+            >
+              {translateText("{count} answers", {
+                count: source.answerUsageCount,
+              })}
+            </Badge>
+          </div>
+        ),
     },
     {
       key: "lastVerifiedAtUtc",
@@ -222,33 +454,59 @@ export function SourceListPage() {
     {
       key: "actions",
       header: "Actions",
-      className: "lg:w-[120px]",
+      className: "lg:w-[140px]",
       cell: (source) => (
         <div
           className="flex items-center justify-end gap-1"
           onClick={(event) => event.stopPropagation()}
         >
-          <Button asChild variant="ghost" mode="icon">
-            <Link to={`/app/sources/${source.id}/edit`}>
-              <Pencil className="size-4" />
-            </Link>
-          </Button>
-          <ConfirmAction
-            title={translateText('Delete source "{name}"?', {
-              name: source.label || source.locator,
-            })}
-            description={translateText(
-              "This removes the source from the portal catalog and from future attachment flows.",
-            )}
-            confirmLabel={translateText("Delete source")}
-            isPending={deleteSource.isPending}
-            onConfirm={() => deleteSource.mutateAsync(source.id)}
-            trigger={
-              <Button variant="ghost" mode="icon">
-                <Trash2 className="size-4 text-destructive" />
+          {relationshipActive ? (
+            <>
+              <Button asChild variant="outline" size="sm">
+                <Link to={`/app/sources/${source.id}`}>
+                  <Link2 className="size-4" />
+                  {translateText("Open")}
+                </Link>
               </Button>
-            }
-          />
+              <Button
+                variant="ghost"
+                size="sm"
+                disabled={
+                  removeSpaceSource.isPending ||
+                  removeQuestionSource.isPending ||
+                  removeAnswerSource.isPending
+                }
+                onClick={() => void detachSource(source)}
+              >
+                <Trash2 className="size-4" />
+                {translateText("Detach")}
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button asChild variant="ghost" mode="icon">
+                <Link to={`/app/sources/${source.id}/edit`}>
+                  <Pencil className="size-4" />
+                </Link>
+              </Button>
+              <ConfirmAction
+                title={translateText('Delete source "{name}"?', {
+                  name: source.label || source.locator,
+                })}
+                description={translateText(
+                  "This removes the source from the portal catalog and from future attachment flows.",
+                )}
+                confirmLabel={translateText("Delete source")}
+                isPending={deleteSource.isPending}
+                onConfirm={() => deleteSource.mutateAsync(source.id)}
+                trigger={
+                  <Button variant="ghost" mode="icon">
+                    <Trash2 className="size-4 text-destructive" />
+                  </Button>
+                }
+              />
+            </>
+          )}
         </div>
       ),
     },
@@ -259,21 +517,43 @@ export function SourceListPage() {
       header={
         <>
           <PageHeader
-            title="Sources"
-            description="Maintain the evidence, citations, and reusable reference material behind questions and answers."
+            title={
+              relationshipActive
+                ? translateText("Sources for this {kind}", {
+                    kind: scopeLabel?.toLowerCase() ?? "record",
+                  })
+                : "Sources"
+            }
+            description={
+              relationshipActive
+                ? scopeName
+                  ? translateText(
+                      "Showing only source links attached to {name}.",
+                      {
+                        name: scopeName,
+                      },
+                    )
+                  : translateText("Showing only source links in this context.")
+                : "Maintain the evidence, citations, and reusable reference material behind questions and answers."
+            }
             descriptionMode="inline"
             actions={
-              <Button asChild>
-                <Link to="/app/sources/new">
-                  <Plus className="size-4" />
-                  {translateText("New source")}
-                </Link>
-              </Button>
+              relationshipActive && scopeParentTo ? (
+                <Button asChild>
+                  <Link to={scopeParentTo}>
+                    <Link2 className="size-4" />
+                    {translateText("Manage relationship")}
+                  </Link>
+                </Button>
+              ) : (
+                <Button asChild>
+                  <Link to="/app/sources/new">
+                    <Plus className="size-4" />
+                    {translateText("New source")}
+                  </Link>
+                </Button>
+              )
             }
-          />
-          <QnaModuleNav
-            activeKey="sources"
-            intent="Sources prove answers and spaces. Keep locator, visibility, and public-citation rules explicit before attaching them downstream."
           />
         </>
       }
@@ -284,11 +564,15 @@ export function SourceListPage() {
         <SectionGrid
           items={[
             {
-              title: "Total",
-              value: sourceQuery.data?.totalCount ?? 0,
-              description: debouncedSearch
-                ? translateText("Search: {value}", { value: debouncedSearch })
-                : translateText("Reusable source records in this workspace"),
+              title: relationshipActive ? "Related" : "Total",
+              value: relationshipActive
+                ? sourceRows.length
+                : (sourceQuery.data?.totalCount ?? 0),
+              description: relationshipActive
+                ? translateText("Source links in the current context")
+                : debouncedSearch
+                  ? translateText("Search: {value}", { value: debouncedSearch })
+                  : translateText("Reusable source records in this workspace"),
               icon: Waypoints,
             },
             {
@@ -306,24 +590,40 @@ export function SourceListPage() {
               icon: CheckCircle2,
             },
             {
-              title: "Linked records",
-              value: linkedRecordCount,
-              description: translateText(
-                "Attachments across spaces, questions, and answers",
-              ),
+              title: relationshipActive ? "Context" : "Linked records",
+              value: relationshipActive
+                ? translateText(scopeLabel ?? "Scoped")
+                : linkedRecordCount,
+              description: relationshipActive
+                ? translateText("Filtered from a relationship section")
+                : translateText(
+                    "Attachments across spaces, questions, and answers",
+                  ),
               icon: ShieldCheck,
             },
           ]}
         />
       )}
       <DataTable
-        title="Sources"
-        description="Open a source to review trust metadata and external identifiers."
+        title={relationshipActive ? "Related sources" : "Sources"}
+        description={
+          relationshipActive
+            ? "This list is scoped to the selected relationship. Detach removes the link, not the source record."
+            : "Open a source to review trust metadata and external identifiers."
+        }
         descriptionMode="hint"
         columns={columns}
         rows={sourceRows}
-        getRowId={(row) => row.id}
-        loading={sourceQuery.isLoading}
+        getRowId={(row) =>
+          row.relationship?.linkId
+            ? `${row.relationship.parentKind}:${row.relationship.linkId}`
+            : row.id
+        }
+        loading={
+          relationshipActive
+            ? Boolean(relationshipLoading)
+            : sourceQuery.isLoading
+        }
         onRowClick={(source) => navigate(`/app/sources/${source.id}`)}
         toolbar={
           <div className="grid w-full gap-2 sm:grid-cols-2 xl:grid-cols-[minmax(240px,1fr)_220px_220px_220px]">
@@ -399,13 +699,30 @@ export function SourceListPage() {
         }
         emptyState={
           <EmptyState
-            title="No sources in view"
-            description="Create a source record so questions and answers can cite stable evidence."
-            action={{ label: "New source", to: "/app/sources/new" }}
+            title={
+              relationshipActive
+                ? "No sources linked here"
+                : "No sources in view"
+            }
+            description={
+              relationshipActive
+                ? "Open the parent record to attach an existing source to this relationship."
+                : "Create a source record so questions and answers can cite stable evidence."
+            }
+            action={
+              relationshipActive && scopeParentTo
+                ? { label: "Manage relationship", to: scopeParentTo }
+                : { label: "New source", to: "/app/sources/new" }
+            }
           />
         }
         errorState={
-          sourceQuery.isError ? (
+          relationshipActive && relationshipError ? (
+            <ErrorState
+              title="Unable to load related sources"
+              description="The parent record could not be loaded for this relationship view."
+            />
+          ) : !relationshipActive && sourceQuery.isError ? (
             <ErrorState
               title="Unable to load sources"
               error={sourceQuery.error}
@@ -414,7 +731,7 @@ export function SourceListPage() {
           ) : undefined
         }
         footer={
-          sourceQuery.data ? (
+          !relationshipActive && sourceQuery.data ? (
             <PaginationControls
               page={page}
               pageSize={pageSize}

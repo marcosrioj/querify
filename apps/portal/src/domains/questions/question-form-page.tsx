@@ -8,7 +8,6 @@ import {
   useParams,
   useSearchParams,
 } from "react-router-dom";
-import { QnaModuleNav } from "@/domains/qna/qna-module-nav";
 import {
   ChannelKind,
   QuestionStatus,
@@ -149,18 +148,12 @@ export function QuestionFormPage({ mode }: { mode: "create" | "edit" }) {
     return (
       <DetailLayout
         header={
-          <>
-            <PageHeader
-              title="New question"
-              description="A question needs a Space before it can inherit intake, visibility, tags, sources, and activity context."
-              descriptionMode="hint"
-              backTo="/app/spaces"
-            />
-            <QnaModuleNav
-              activeKey="spaces"
-              intent="Create questions from a Space so operators do not have to choose business context twice."
-            />
-          </>
+          <PageHeader
+            title="New question"
+            description="A question needs a Space before it can inherit intake, visibility, tags, sources, and activity context."
+            descriptionMode="hint"
+            backTo="/app/spaces"
+          />
         }
       >
         <EmptyState
@@ -175,18 +168,12 @@ export function QuestionFormPage({ mode }: { mode: "create" | "edit" }) {
   return (
     <DetailLayout
       header={
-        <>
-          <PageHeader
-            title={mode === "create" ? "New question" : "Edit question"}
-            description="Capture the thread, its operational status, and the context needed for accurate answers."
-            descriptionMode="hint"
-            backTo={backTo}
-          />
-          <QnaModuleNav
-            activeKey="spaces"
-            intent="Every question needs a Space parent. When the Space is already known, keep it fixed and focus only on the thread to resolve."
-          />
-        </>
+        <PageHeader
+          title={mode === "create" ? "New question" : "Edit question"}
+          description="Capture the thread, its operational status, and the context needed for accurate answers."
+          descriptionMode="hint"
+          backTo={backTo}
+        />
       }
       sidebar={
         mode === "edit" && questionQuery.isLoading ? (

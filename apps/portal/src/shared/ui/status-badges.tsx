@@ -12,19 +12,22 @@ import {
   TenantEdition,
   TenantUserRoleType,
   VisibilityScope,
-  activityKindLabels,
-  actorKindLabels,
-  answerKindLabels,
-  answerStatusLabels,
-  channelKindLabels,
-  questionStatusLabels,
-  sourceKindLabels,
-  sourceRoleLabels,
-  spaceKindLabels,
-  tenantEditionLabels,
-  tenantUserRoleTypeLabels,
-  visibilityScopeLabels,
 } from '@/shared/constants/backend-enums';
+import {
+  activityKindPresentation,
+  actorKindPresentation,
+  answerKindPresentation,
+  answerStatusPresentation,
+  channelKindPresentation,
+  questionStatusPresentation,
+  sourceKindPresentation,
+  sourceRolePresentation,
+  spaceKindPresentation,
+  tenantEditionPresentation,
+  tenantUserRolePresentation,
+  type BadgeVariant,
+  visibilityPresentation,
+} from '@/shared/constants/enum-ui';
 import { usePortalI18n } from '@/shared/lib/use-portal-i18n';
 import { Badge } from '@/shared/ui';
 
@@ -33,20 +36,11 @@ function BadgeText({
   variant,
 }: {
   text: string;
-  variant:
-    | 'default'
-    | 'primary'
-    | 'secondary'
-    | 'outline'
-    | 'mono'
-    | 'destructive'
-    | 'warning'
-    | 'success'
-    | 'info';
+  variant: BadgeVariant;
 }) {
   const { t } = usePortalI18n();
 
-  return <Badge variant={variant}>{t(text)}</Badge>;
+  return <Badge variant={variant} appearance="outline">{t(text)}</Badge>;
 }
 
 export function RoleBadge({ role }: { role: PortalRole }) {
@@ -54,138 +48,73 @@ export function RoleBadge({ role }: { role: PortalRole }) {
 }
 
 export function TenantUserRoleBadge({ role }: { role: TenantUserRoleType }) {
-  return (
-    <BadgeText
-      text={tenantUserRoleTypeLabels[role]}
-      variant={role === TenantUserRoleType.Owner ? 'primary' : 'secondary'}
-    />
-  );
+  const presentation = tenantUserRolePresentation[role];
+
+  return <BadgeText text={presentation.label} variant={presentation.badgeVariant} />;
 }
 
 export function TenantEditionBadge({ edition }: { edition: TenantEdition }) {
-  return <BadgeText text={tenantEditionLabels[edition]} variant="outline" />;
+  const presentation = tenantEditionPresentation[edition];
+
+  return <BadgeText text={presentation.label} variant={presentation.badgeVariant} />;
 }
 
 export function SpaceKindBadge({ kind }: { kind: SpaceKind }) {
-  return <BadgeText text={spaceKindLabels[kind]} variant="primary" />;
+  const presentation = spaceKindPresentation[kind];
+
+  return <BadgeText text={presentation.label} variant={presentation.badgeVariant} />;
 }
 
 export function VisibilityBadge({ visibility }: { visibility: VisibilityScope }) {
-  const variant =
-    visibility === VisibilityScope.Internal
-      ? 'mono'
-      : visibility === VisibilityScope.Authenticated
-        ? 'info'
-        : visibility === VisibilityScope.Public
-          ? 'secondary'
-          : 'success';
+  const presentation = visibilityPresentation[visibility];
 
-  return <BadgeText text={visibilityScopeLabels[visibility]} variant={variant} />;
+  return <BadgeText text={presentation.label} variant={presentation.badgeVariant} />;
 }
 
 export function QuestionStatusBadge({ status }: { status: QuestionStatus }) {
-  let variant:
-    | 'default'
-    | 'primary'
-    | 'secondary'
-    | 'outline'
-    | 'mono'
-    | 'destructive'
-    | 'warning'
-    | 'success'
-    | 'info' = 'outline';
+  const presentation = questionStatusPresentation[status];
 
-  switch (status) {
-    case QuestionStatus.Draft:
-      variant = 'warning';
-      break;
-    case QuestionStatus.PendingReview:
-      variant = 'info';
-      break;
-    case QuestionStatus.Open:
-      variant = 'secondary';
-      break;
-    case QuestionStatus.Answered:
-      variant = 'success';
-      break;
-    case QuestionStatus.Validated:
-      variant = 'primary';
-      break;
-    case QuestionStatus.Escalated:
-      variant = 'destructive';
-      break;
-    case QuestionStatus.Duplicate:
-      variant = 'mono';
-      break;
-    case QuestionStatus.Archived:
-      variant = 'outline';
-      break;
-  }
-
-  return <BadgeText text={questionStatusLabels[status]} variant={variant} />;
+  return <BadgeText text={presentation.label} variant={presentation.badgeVariant} />;
 }
 
 export function ChannelKindBadge({ kind }: { kind: ChannelKind }) {
-  return <BadgeText text={channelKindLabels[kind]} variant="outline" />;
+  const presentation = channelKindPresentation[kind];
+
+  return <BadgeText text={presentation.label} variant={presentation.badgeVariant} />;
 }
 
 export function AnswerKindBadge({ kind }: { kind: AnswerKind }) {
-  return <BadgeText text={answerKindLabels[kind]} variant="secondary" />;
+  const presentation = answerKindPresentation[kind];
+
+  return <BadgeText text={presentation.label} variant={presentation.badgeVariant} />;
 }
 
 export function AnswerStatusBadge({ status }: { status: AnswerStatus }) {
-  let variant:
-    | 'default'
-    | 'primary'
-    | 'secondary'
-    | 'outline'
-    | 'mono'
-    | 'destructive'
-    | 'warning'
-    | 'success'
-    | 'info' = 'outline';
+  const presentation = answerStatusPresentation[status];
 
-  switch (status) {
-    case AnswerStatus.Draft:
-      variant = 'warning';
-      break;
-    case AnswerStatus.PendingReview:
-      variant = 'info';
-      break;
-    case AnswerStatus.Published:
-      variant = 'success';
-      break;
-    case AnswerStatus.Validated:
-      variant = 'primary';
-      break;
-    case AnswerStatus.Rejected:
-      variant = 'destructive';
-      break;
-    case AnswerStatus.Obsolete:
-      variant = 'mono';
-      break;
-    case AnswerStatus.Archived:
-      variant = 'outline';
-      break;
-  }
-
-  return <BadgeText text={answerStatusLabels[status]} variant={variant} />;
+  return <BadgeText text={presentation.label} variant={presentation.badgeVariant} />;
 }
 
 export function SourceKindBadge({ kind }: { kind: SourceKind }) {
-  return <BadgeText text={sourceKindLabels[kind]} variant="secondary" />;
+  const presentation = sourceKindPresentation[kind];
+
+  return <BadgeText text={presentation.label} variant={presentation.badgeVariant} />;
 }
 
 export function SourceRoleBadge({ role }: { role: SourceRole }) {
-  return <BadgeText text={sourceRoleLabels[role]} variant="outline" />;
+  const presentation = sourceRolePresentation[role];
+
+  return <BadgeText text={presentation.label} variant={presentation.badgeVariant} />;
 }
 
 export function ActivityKindBadge({ kind }: { kind: ActivityKind }) {
-  return <BadgeText text={activityKindLabels[kind]} variant="outline" />;
+  const presentation = activityKindPresentation[kind];
+
+  return <BadgeText text={presentation.label} variant={presentation.badgeVariant} />;
 }
 
 export function ActorKindBadge({ kind }: { kind: ActorKind }) {
-  const variant = kind === ActorKind.Moderator ? 'primary' : kind === ActorKind.System ? 'mono' : 'secondary';
+  const presentation = actorKindPresentation[kind];
 
-  return <BadgeText text={actorKindLabels[kind]} variant={variant} />;
+  return <BadgeText text={presentation.label} variant={presentation.badgeVariant} />;
 }

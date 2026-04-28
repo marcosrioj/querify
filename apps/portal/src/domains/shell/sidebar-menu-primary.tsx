@@ -12,7 +12,10 @@ import {
 } from "@/components/ui/accordion-menu";
 import type { NavigationItem } from "@/shared/constants/navigation";
 import { usePortalI18n } from "@/shared/lib/use-portal-i18n";
-import { portalNavigation } from "@/shared/constants/navigation";
+import {
+  portalNavigation,
+  portalNavigationGroups,
+} from "@/shared/constants/navigation";
 
 export function SidebarMenuPrimary({
   onNavigate,
@@ -45,13 +48,13 @@ export function SidebarMenuPrimary({
     : (activeRootItem?.path ?? pathname);
 
   const classNames: AccordionMenuClassNames = {
-    root: "space-y-2.5 px-3.5",
+    root: "space-y-5 px-3.5",
     group: "gap-px",
     label:
-      "pt-2.25 pb-px text-xs font-medium uppercase text-muted-foreground/70",
-    item: "h-9 border border-transparent bg-transparent text-accent-foreground hover:bg-transparent hover:text-mono data-[selected=true]:border-border data-[selected=true]:bg-background data-[selected=true]:font-medium data-[selected=true]:text-mono",
+      "pt-1 pb-1 text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-muted-foreground/75",
+    item: "h-9.5 rounded-lg border border-transparent bg-transparent text-accent-foreground hover:border-border/60 hover:bg-background/70 hover:text-mono data-[selected=true]:border-primary/20 data-[selected=true]:bg-primary/[0.08] data-[selected=true]:font-semibold data-[selected=true]:text-mono",
     subTrigger:
-      "h-9 border border-transparent bg-transparent text-accent-foreground hover:bg-transparent hover:text-mono data-[state=open]:border-border data-[state=open]:bg-background data-[state=open]:font-medium data-[state=open]:text-mono",
+      "h-9.5 rounded-lg border border-transparent bg-transparent text-accent-foreground hover:border-border/60 hover:bg-background/70 hover:text-mono data-[state=open]:border-primary/20 data-[state=open]:bg-primary/[0.08] data-[state=open]:font-semibold data-[state=open]:text-mono",
   };
 
   const renderNavigationItem = (item: NavigationItem) => {
@@ -100,10 +103,12 @@ export function SidebarMenuPrimary({
         onNavigate?.();
       }}
     >
-      <AccordionMenuLabel>{t("Portal")}</AccordionMenuLabel>
-      <AccordionMenuGroup>
-        {portalNavigation.map(renderNavigationItem)}
-      </AccordionMenuGroup>
+      {portalNavigationGroups.map((group) => (
+        <AccordionMenuGroup key={group.key}>
+          <AccordionMenuLabel>{t(group.label)}</AccordionMenuLabel>
+          {group.items.map(renderNavigationItem)}
+        </AccordionMenuGroup>
+      ))}
     </AccordionMenu>
   );
 }

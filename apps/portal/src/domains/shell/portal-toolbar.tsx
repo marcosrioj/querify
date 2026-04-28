@@ -55,7 +55,7 @@ function ToolbarBreadcrumbs() {
         <Fragment key={item.key}>
           <Link
             to={item.path}
-            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            className="text-sm text-muted-foreground transition-colors hover:text-foreground"
           >
             {t(item.label)}
           </Link>
@@ -74,8 +74,8 @@ function ToolbarHeading() {
   const title = t(current?.title ?? "BaseFAQ QnA Portal");
 
   return (
-    <div className="flex flex-col flex-wrap gap-1 md:flex-row md:items-center lg:gap-5">
-      <h1 className="inline-flex w-fit border border-primary/15 bg-primary/8 px-3 py-1 text-sm font-medium uppercase tracking-[0.2em] text-primary">
+    <div className="flex min-w-0 flex-col gap-1.5">
+      <h1 className="truncate text-xl font-semibold tracking-normal text-mono">
         {title}
       </h1>
       <ToolbarBreadcrumbs />
@@ -85,7 +85,7 @@ function ToolbarHeading() {
 
 function ToolbarActions() {
   return (
-    <div className="flex items-center gap-1.5 lg:gap-3.5">
+    <div className="flex w-full min-w-0 flex-wrap items-center justify-end gap-2 lg:gap-3 xl:w-auto xl:flex-nowrap">
       <PortalCommandDialog />
       <LanguageSelector />
       <NotificationsMenu />
@@ -96,8 +96,8 @@ function ToolbarActions() {
 
 export function PortalToolbar() {
   return (
-    <div className="pb-5">
-      <Container className="flex flex-wrap items-center justify-between gap-3">
+    <div className="sticky top-0 z-10 border-b border-border/60 bg-background/88 pb-4 pt-0 backdrop-blur supports-[backdrop-filter]:bg-background/78">
+      <Container className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
         <ToolbarHeading />
         <ToolbarActions />
       </Container>

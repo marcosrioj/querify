@@ -1,9 +1,9 @@
-import * as Popover from '@radix-ui/react-popover';
-import { TriangleAlert } from 'lucide-react';
-import { toast } from 'sonner';
-import { useRecaptchaV2 } from '@/hooks/use-recaptcha-v2';
-import { Alert, AlertIcon, AlertTitle } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
+import * as Popover from "@radix-ui/react-popover";
+import { TriangleAlert } from "lucide-react";
+import { toast } from "sonner";
+import { useRecaptchaV2 } from "@/hooks/use-recaptcha-v2";
+import { Alert, AlertIcon, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 
 interface RecaptchaPopoverProps {
   open: boolean;
@@ -18,10 +18,10 @@ export function RecaptchaPopover({
   onOpenChange,
   onVerify,
   trigger,
-  verifyButtonText = 'Verify & Submit',
+  verifyButtonText = "Verify & Submit",
 }: RecaptchaPopoverProps) {
   const { containerRef, getToken, resetCaptcha, initializeRecaptcha } =
-    useRecaptchaV2(import.meta.env.VITE_RECAPTCHA_SITE_KEY || '');
+    useRecaptchaV2(import.meta.env.VITE_RECAPTCHA_SITE_KEY || "");
 
   const handleOpenChange = (newOpen: boolean) => {
     onOpenChange(newOpen);
@@ -50,14 +50,14 @@ export function RecaptchaPopover({
             </Alert>
           ),
           {
-            position: 'top-center',
+            position: "top-center",
           },
         );
         return;
       }
       onVerify(token);
     } catch (error) {
-      console.error('Error getting reCAPTCHA token:', error);
+      console.error("Error getting reCAPTCHA token:", error);
       toast.custom(
         () => (
           <Alert variant="mono" icon="destructive">
@@ -68,7 +68,7 @@ export function RecaptchaPopover({
           </Alert>
         ),
         {
-          position: 'top-center',
+          position: "top-center",
         },
       );
       return;
@@ -81,12 +81,12 @@ export function RecaptchaPopover({
 
       <Popover.Portal>
         <Popover.Content
-          className="bg-white p-4 rounded-lg shadow-lg z-50"
+          className="z-50 rounded-lg border border-border bg-popover p-4 text-popover-foreground shadow-lg shadow-black/10 dark:shadow-black/40"
           sideOffset={5}
           align="end"
           onInteractOutside={(e) => {
             // Prevent closing when interacting with reCAPTCHA iframe
-            if ((e.target as HTMLElement).tagName === 'IFRAME') {
+            if ((e.target as HTMLElement).tagName === "IFRAME") {
               e.preventDefault();
             }
           }}
@@ -102,7 +102,7 @@ export function RecaptchaPopover({
               {verifyButtonText}
             </Button>
           </div>
-          <Popover.Arrow className="fill-white" />
+          <Popover.Arrow className="fill-popover" />
         </Popover.Content>
       </Popover.Portal>
     </Popover.Root>

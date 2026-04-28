@@ -1,7 +1,16 @@
-import { useEffect } from "react";
-import { FolderKanban, MessageSquareText, Pencil, Plus, Tags, Trash2 } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
-import { QnaModuleNav } from "@/domains/qna/qna-module-nav";
+import { useEffect, useMemo } from "react";
+import {
+  FolderKanban,
+  Link2,
+  MessageSquareText,
+  Pencil,
+  Plus,
+  Tags,
+  Trash2,
+} from "lucide-react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { useQuestion, useRemoveQuestionTag } from "@/domains/questions/hooks";
+import { useRemoveSpaceTag, useSpace } from "@/domains/spaces/hooks";
 import { useDeleteTag, useTagList } from "@/domains/tags/hooks";
 import type { TagDto } from "@/domains/tags/types";
 import {
@@ -9,12 +18,9 @@ import {
   PageHeader,
   SectionGrid,
 } from "@/shared/layout/page-layouts";
+import { translateText } from "@/shared/lib/i18n-core";
 import { clampPage } from "@/shared/lib/pagination";
 import { useListQueryState } from "@/shared/lib/use-list-query-state";
-import { translateText } from "@/shared/lib/i18n-core";
-import { DataTable, type DataTableColumn } from "@/shared/ui/data-table";
-import { PaginationControls } from "@/shared/ui/pagination-controls";
-import { EmptyState, ErrorState } from "@/shared/ui/placeholder-state";
 import {
   Badge,
   Button,
@@ -22,11 +28,39 @@ import {
   Input,
   SectionGridSkeleton,
 } from "@/shared/ui";
+import { DataTable, type DataTableColumn } from "@/shared/ui/data-table";
+import { PaginationControls } from "@/shared/ui/pagination-controls";
+import { EmptyState, ErrorState } from "@/shared/ui/placeholder-state";
 
 const TAG_FILTER_DEFAULTS = {} as const;
 
+type TagRelationshipKind = "space" | "question";
+
+type TagListRow = TagDto & {
+  relationship?: {
+    parentKind: TagRelationshipKind;
+  };
+};
+
+function tagMatchesSearch(tag: TagListRow, searchText: string) {
+  if (!searchText) {
+    return true;
+  }
+
+  return tag.name.toLowerCase().includes(searchText.toLowerCase());
+}
+
 export function TagListPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const spaceId = searchParams.get("spaceId") ?? "";
+  const questionId = searchParams.get("questionId") ?? "";
+  const relationshipKind: TagRelationshipKind | undefined = spaceId
+    ? "space"
+    : questionId
+      ? "question"
+      : undefined;
+  const relationshipActive = Boolean(relationshipKind);
   const {
     debouncedSearch,
     page,
@@ -40,14 +74,57 @@ export function TagListPage() {
     filterDefaults: TAG_FILTER_DEFAULTS,
   });
 
+  const spaceQuery = useSpace(spaceId || undefined);
+  const questionQuery = useQuestion(questionId || undefined);
   const tagQuery = useTagList({
     page,
     pageSize,
     sorting: "Name ASC",
     searchText: debouncedSearch || undefined,
+    enabled: !relationshipActive,
   });
+  const deleteTag = useDeleteTag();
+  const removeSpaceTag = useRemoveSpaceTag(spaceId);
+  const removeQuestionTag = useRemoveQuestionTag(questionId);
+
+  const relationshipRows = useMemo<TagListRow[]>(() => {
+    if (spaceId) {
+      return (spaceQuery.data?.tags ?? []).map((tag) => ({
+        ...tag,
+        relationship: { parentKind: "space" },
+      }));
+    }
+
+    if (questionId) {
+      return (questionQuery.data?.tags ?? []).map((tag) => ({
+        ...tag,
+        relationship: { parentKind: "question" },
+      }));
+    }
+
+    return [];
+  }, [questionId, questionQuery.data?.tags, spaceId, spaceQuery.data?.tags]);
+  const tagRows = relationshipActive
+    ? relationshipRows.filter((tag) => tagMatchesSearch(tag, debouncedSearch))
+    : ((tagQuery.data?.items ?? []) as TagListRow[]);
+  const relationshipLoading =
+    (spaceId && spaceQuery.isLoading && !spaceQuery.data) ||
+    (questionId && questionQuery.isLoading && !questionQuery.data);
+  const relationshipError =
+    (spaceId && spaceQuery.isError) || (questionId && questionQuery.isError);
+  const scopeName = spaceQuery.data?.name ?? questionQuery.data?.title ?? "";
+  const scopeParentTo = spaceId
+    ? `/app/spaces/${spaceId}`
+    : questionId
+      ? `/app/questions/${questionId}`
+      : undefined;
+  const scopeLabel = spaceId ? "Space" : questionId ? "Question" : undefined;
 
   useEffect(() => {
+    if (relationshipActive) {
+      return;
+    }
+
     const totalCount = tagQuery.data?.totalCount;
 
     if (totalCount === undefined) {
@@ -58,10 +135,8 @@ export function TagListPage() {
     if (nextPage !== page) {
       setPage(nextPage, { replace: true });
     }
-  }, [page, pageSize, setPage, tagQuery.data?.totalCount]);
+  }, [page, pageSize, relationshipActive, setPage, tagQuery.data?.totalCount]);
 
-  const deleteTag = useDeleteTag();
-  const tagRows = tagQuery.data?.items ?? [];
   const spaceUsageCount = tagRows.reduce(
     (total, tag) => total + tag.spaceUsageCount,
     0,
@@ -70,8 +145,23 @@ export function TagListPage() {
     (total, tag) => total + tag.questionUsageCount,
     0,
   );
+  const showMetricsLoadingState = relationshipActive
+    ? relationshipLoading
+    : tagQuery.isLoading && tagQuery.data === undefined;
 
-  const columns: DataTableColumn<TagDto>[] = [
+  const detachTag = (tag: TagListRow) => {
+    if (tag.relationship?.parentKind === "space") {
+      return removeSpaceTag.mutateAsync(tag.id);
+    }
+
+    if (tag.relationship?.parentKind === "question") {
+      return removeQuestionTag.mutateAsync(tag.id);
+    }
+
+    return Promise.resolve();
+  };
+
+  const columns: DataTableColumn<TagListRow>[] = [
     {
       key: "name",
       header: "Tag",
@@ -79,51 +169,86 @@ export function TagListPage() {
     },
     {
       key: "usage",
-      header: "Where used",
+      header: relationshipActive ? "Relationship" : "Where used",
       className: "lg:w-[260px]",
-      cell: (tag) => (
-        <div className="flex flex-wrap gap-2">
-          <Badge variant={tag.spaceUsageCount > 0 ? "primary" : "outline"}>
-            {translateText("{count} spaces", {
-              count: tag.spaceUsageCount,
-            })}
-          </Badge>
-          <Badge variant={tag.questionUsageCount > 0 ? "secondary" : "outline"}>
-            {translateText("{count} questions", {
-              count: tag.questionUsageCount,
-            })}
-          </Badge>
-        </div>
-      ),
+      cell: (tag) =>
+        tag.relationship ? (
+          <div className="flex flex-wrap gap-2">
+            <Badge variant="primary" appearance="outline">
+              {translateText(scopeLabel ?? "Scoped")}
+            </Badge>
+          </div>
+        ) : (
+          <div className="flex flex-wrap gap-2">
+            <Badge variant={tag.spaceUsageCount > 0 ? "primary" : "outline"}>
+              {translateText("{count} spaces", {
+                count: tag.spaceUsageCount,
+              })}
+            </Badge>
+            <Badge
+              variant={tag.questionUsageCount > 0 ? "secondary" : "outline"}
+            >
+              {translateText("{count} questions", {
+                count: tag.questionUsageCount,
+              })}
+            </Badge>
+          </div>
+        ),
     },
     {
       key: "actions",
       header: "Actions",
-      className: "lg:w-[120px]",
+      className: "lg:w-[140px]",
       cell: (tag) => (
         <div
           className="flex items-center justify-end gap-1"
           onClick={(event) => event.stopPropagation()}
         >
-          <Button asChild variant="ghost" mode="icon">
-            <Link to={`/app/tags/${tag.id}/edit`}>
-              <Pencil className="size-4" />
-            </Link>
-          </Button>
-          <ConfirmAction
-            title={translateText('Delete tag "{name}"?', { name: tag.name })}
-            description={translateText(
-              "This removes the reusable tag from the workspace taxonomy.",
-            )}
-            confirmLabel={translateText("Delete tag")}
-            isPending={deleteTag.isPending}
-            onConfirm={() => deleteTag.mutateAsync(tag.id)}
-            trigger={
-              <Button variant="ghost" mode="icon">
-                <Trash2 className="size-4 text-destructive" />
+          {relationshipActive ? (
+            <>
+              <Button asChild variant="outline" size="sm">
+                <Link to={`/app/tags/${tag.id}/edit`}>
+                  <Pencil className="size-4" />
+                  {translateText("Rename")}
+                </Link>
               </Button>
-            }
-          />
+              <Button
+                variant="ghost"
+                size="sm"
+                disabled={
+                  removeSpaceTag.isPending || removeQuestionTag.isPending
+                }
+                onClick={() => void detachTag(tag)}
+              >
+                <Trash2 className="size-4" />
+                {translateText("Detach")}
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button asChild variant="ghost" mode="icon">
+                <Link to={`/app/tags/${tag.id}/edit`}>
+                  <Pencil className="size-4" />
+                </Link>
+              </Button>
+              <ConfirmAction
+                title={translateText('Delete tag "{name}"?', {
+                  name: tag.name,
+                })}
+                description={translateText(
+                  "This removes the reusable tag from the workspace taxonomy.",
+                )}
+                confirmLabel={translateText("Delete tag")}
+                isPending={deleteTag.isPending}
+                onConfirm={() => deleteTag.mutateAsync(tag.id)}
+                trigger={
+                  <Button variant="ghost" mode="icon">
+                    <Trash2 className="size-4 text-destructive" />
+                  </Button>
+                }
+              />
+            </>
+          )}
         </div>
       ),
     },
@@ -134,36 +259,59 @@ export function TagListPage() {
       header={
         <>
           <PageHeader
-            title="Tags"
-            description="Maintain the reusable taxonomy that groups spaces and questions."
+            title={
+              relationshipActive
+                ? translateText("Tags for this {kind}", {
+                    kind: scopeLabel?.toLowerCase() ?? "record",
+                  })
+                : "Tags"
+            }
+            description={
+              relationshipActive
+                ? scopeName
+                  ? translateText("Showing only tags attached to {name}.", {
+                      name: scopeName,
+                    })
+                  : translateText("Showing only tags in this context.")
+                : "Maintain the reusable taxonomy that groups spaces and questions."
+            }
             descriptionMode="inline"
             actions={
-              <Button asChild>
-                <Link to="/app/tags/new">
-                  <Plus className="size-4" />
-                  {translateText("New tag")}
-                </Link>
-              </Button>
+              relationshipActive && scopeParentTo ? (
+                <Button asChild>
+                  <Link to={scopeParentTo}>
+                    <Link2 className="size-4" />
+                    {translateText("Manage relationship")}
+                  </Link>
+                </Button>
+              ) : (
+                <Button asChild>
+                  <Link to="/app/tags/new">
+                    <Plus className="size-4" />
+                    {translateText("New tag")}
+                  </Link>
+                </Button>
+              )
             }
-          />
-          <QnaModuleNav
-            activeKey="tags"
-            intent="Tags are shared taxonomy. Keep labels reusable so spaces and questions stay easy to scan."
           />
         </>
       }
     >
-      {tagQuery.isLoading && tagQuery.data === undefined ? (
+      {showMetricsLoadingState ? (
         <SectionGridSkeleton />
       ) : (
         <SectionGrid
           items={[
             {
-              title: "Total",
-              value: tagQuery.data?.totalCount ?? 0,
-              description: debouncedSearch
-                ? translateText("Search: {value}", { value: debouncedSearch })
-                : translateText("Reusable taxonomy labels"),
+              title: relationshipActive ? "Related" : "Total",
+              value: relationshipActive
+                ? tagRows.length
+                : (tagQuery.data?.totalCount ?? 0),
+              description: relationshipActive
+                ? translateText("Tags in the current context")
+                : debouncedSearch
+                  ? translateText("Search: {value}", { value: debouncedSearch })
+                  : translateText("Reusable taxonomy labels"),
               icon: Tags,
             },
             {
@@ -182,13 +330,21 @@ export function TagListPage() {
         />
       )}
       <DataTable
-        title="Tags"
-        description="Open a tag to rename it before attaching it elsewhere."
+        title={relationshipActive ? "Related tags" : "Tags"}
+        description={
+          relationshipActive
+            ? "This list is scoped to the selected relationship. Detach removes the link, not the tag."
+            : "Open a tag to rename it before attaching it elsewhere."
+        }
         descriptionMode="hint"
         columns={columns}
         rows={tagRows}
-        getRowId={(row) => row.id}
-        loading={tagQuery.isLoading}
+        getRowId={(row) =>
+          row.relationship ? `${row.relationship.parentKind}:${row.id}` : row.id
+        }
+        loading={
+          relationshipActive ? Boolean(relationshipLoading) : tagQuery.isLoading
+        }
         onRowClick={(tag) => navigate(`/app/tags/${tag.id}/edit`)}
         toolbar={
           <Input
@@ -200,13 +356,28 @@ export function TagListPage() {
         }
         emptyState={
           <EmptyState
-            title="No tags in view"
-            description="Create the first reusable tag for space and question taxonomy."
-            action={{ label: "New tag", to: "/app/tags/new" }}
+            title={
+              relationshipActive ? "No tags attached here" : "No tags in view"
+            }
+            description={
+              relationshipActive
+                ? "Open the parent record to attach a reusable tag to this relationship."
+                : "Create the first reusable tag for space and question taxonomy."
+            }
+            action={
+              relationshipActive && scopeParentTo
+                ? { label: "Manage relationship", to: scopeParentTo }
+                : { label: "New tag", to: "/app/tags/new" }
+            }
           />
         }
         errorState={
-          tagQuery.isError ? (
+          relationshipActive && relationshipError ? (
+            <ErrorState
+              title="Unable to load related tags"
+              description="The parent record could not be loaded for this relationship view."
+            />
+          ) : !relationshipActive && tagQuery.isError ? (
             <ErrorState
               title="Unable to load tags"
               error={tagQuery.error}
@@ -215,7 +386,7 @@ export function TagListPage() {
           ) : undefined
         }
         footer={
-          tagQuery.data ? (
+          !relationshipActive && tagQuery.data ? (
             <PaginationControls
               page={page}
               pageSize={pageSize}

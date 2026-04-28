@@ -3,7 +3,6 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { X } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { QnaModuleNav } from "@/domains/qna/qna-module-nav";
 import {
   spaceKindLabels,
   visibilityScopeLabels,
@@ -109,18 +108,12 @@ export function SpaceFormPage({ mode }: { mode: "create" | "edit" }) {
   return (
     <DetailLayout
       header={
-        <>
-          <PageHeader
-            title={mode === "create" ? "New space" : "Edit space"}
-            description="Define the QnA operating mode and exposure before threads start accumulating."
-            descriptionMode="hint"
-            backTo={backTo}
-          />
-          <QnaModuleNav
-            activeKey="spaces"
-            intent="Create the parent space first, then attach questions, answers, sources, tags, and activity to that boundary."
-          />
-        </>
+        <PageHeader
+          title={mode === "create" ? "New space" : "Edit space"}
+          description="Define the QnA operating mode and exposure before threads start accumulating."
+          descriptionMode="hint"
+          backTo={backTo}
+        />
       }
       sidebar={
         mode === "edit" && spaceQuery.isLoading ? (

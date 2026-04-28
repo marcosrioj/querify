@@ -123,6 +123,14 @@ export function MembersPage() {
           );
         }
 
+        if (member.isCurrentUser) {
+          return (
+            <span className="text-sm text-muted-foreground">
+              {translateText('Cannot remove yourself')}
+            </span>
+          );
+        }
+
         return (
           <div
             className="flex items-center justify-end gap-2"

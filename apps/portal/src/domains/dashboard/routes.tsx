@@ -6,8 +6,8 @@ export const DashboardRoutes: RouteObject[] = [
     path: 'dashboard',
     element: <DashboardPage />,
     handle: {
-      title: 'Dashboard',
-      breadcrumb: 'Dashboard',
+      title: 'Home',
+      breadcrumb: 'Home',
       navKey: 'dashboard',
     },
   },

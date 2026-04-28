@@ -9,7 +9,6 @@ import {
   Trash2,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-import { QnaModuleNav } from "@/domains/qna/qna-module-nav";
 import { usePortalTimeZone } from "@/domains/settings/settings-hooks";
 import { useDeleteSpace, useSpaceList } from "@/domains/spaces/hooks";
 import type { SpaceDto } from "@/domains/spaces/types";
@@ -262,10 +261,6 @@ export function SpaceListPage() {
                 </Link>
               </Button>
             }
-          />
-          <QnaModuleNav
-            activeKey="spaces"
-            intent="Spaces are the parent boundary for every question, answer, source attachment, tag, and activity event."
           />
         </>
       }

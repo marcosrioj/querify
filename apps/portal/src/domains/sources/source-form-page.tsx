@@ -3,7 +3,6 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { X } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { QnaModuleNav } from "@/domains/qna/qna-module-nav";
 import {
   SourceKind,
   VisibilityScope,
@@ -104,18 +103,12 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
   return (
     <DetailLayout
       header={
-        <>
-          <PageHeader
-            title={mode === "create" ? "New source" : "Edit source"}
-            description="Capture locator, trust metadata, and public-citation rules for reusable evidence."
-            descriptionMode="hint"
-            backTo={backTo}
-          />
-          <QnaModuleNav
-            activeKey="sources"
-            intent="Sources become useful when attached to spaces, questions, or answers with clear public-use rules."
-          />
-        </>
+        <PageHeader
+          title={mode === "create" ? "New source" : "Edit source"}
+          description="Capture locator, trust metadata, and public-citation rules for reusable evidence."
+          descriptionMode="hint"
+          backTo={backTo}
+        />
       }
       sidebar={
         mode === "edit" && sourceQuery.isLoading ? (

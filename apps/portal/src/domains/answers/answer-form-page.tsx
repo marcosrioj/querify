@@ -25,7 +25,6 @@ import {
   answerFormSchema,
   type AnswerFormValues,
 } from "@/domains/answers/schemas";
-import { QnaModuleNav } from "@/domains/qna/qna-module-nav";
 import { useQuestion, useQuestionList } from "@/domains/questions/hooks";
 import { useSpace } from "@/domains/spaces/hooks";
 import {
@@ -160,18 +159,12 @@ export function AnswerFormPage({ mode }: { mode: "create" | "edit" }) {
     return (
       <DetailLayout
         header={
-          <>
-            <PageHeader
-              title="New answer"
-              description="An answer needs a parent Question before publication, validation, sources, and accepted state are meaningful."
-              descriptionMode="hint"
-              backTo="/app/spaces"
-            />
-            <QnaModuleNav
-              activeKey="spaces"
-              intent="Create answers from a Question so the candidate is tied to a real thread and its Space rules."
-            />
-          </>
+          <PageHeader
+            title="New answer"
+            description="An answer needs a parent Question before publication, validation, sources, and accepted state are meaningful."
+            descriptionMode="hint"
+            backTo="/app/spaces"
+          />
         }
       >
         <EmptyState
@@ -186,18 +179,12 @@ export function AnswerFormPage({ mode }: { mode: "create" | "edit" }) {
   return (
     <DetailLayout
       header={
-        <>
-          <PageHeader
-            title={mode === "create" ? "New answer" : "Edit answer"}
-            description="Author the answer candidate, then tune rank, visibility, and trust cues."
-            descriptionMode="hint"
-            backTo={backTo}
-          />
-          <QnaModuleNav
-            activeKey="spaces"
-            intent="Answers are children of Questions. Keep the parent thread fixed so accepted state, sources, and visibility remain traceable."
-          />
-        </>
+        <PageHeader
+          title={mode === "create" ? "New answer" : "Edit answer"}
+          description="Author the answer candidate, then tune rank, visibility, and trust cues."
+          descriptionMode="hint"
+          backTo={backTo}
+        />
       }
       sidebar={
         mode === "edit" && answerQuery.isLoading ? (

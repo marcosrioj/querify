@@ -1,4 +1,10 @@
-import { useEffect, useMemo } from "react";
+import {
+  startTransition,
+  useDeferredValue,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import {
   CheckCircle2,
   Medal,
@@ -7,11 +13,10 @@ import {
   Trash2,
   Vote,
 } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAnswerList, useDeleteAnswer } from "@/domains/answers/hooks";
 import type { AnswerDto } from "@/domains/answers/types";
-import { QnaModuleNav } from "@/domains/qna/qna-module-nav";
-import { useQuestionList } from "@/domains/questions/hooks";
+import { useQuestion, useQuestionList } from "@/domains/questions/hooks";
 import {
   AnswerStatus,
   answerStatusLabels,
@@ -33,6 +38,7 @@ import {
   Button,
   ConfirmAction,
   SectionGridSkeleton,
+  SearchSelect,
   Select,
   SelectContent,
   SelectItem,
@@ -60,8 +66,26 @@ const ANSWER_FILTER_DEFAULTS = {
   visibility: "all",
 } as const;
 
+function buildQuestionOption(question: {
+  id: string;
+  title: string;
+  spaceKey?: string;
+}) {
+  return {
+    value: question.id,
+    label: question.title,
+    description: question.spaceKey,
+    keywords: [question.title, question.spaceKey ?? ""],
+  };
+}
+
 export function AnswerListPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const sourceId = searchParams.get("sourceId") ?? undefined;
+  const scopedToSource = Boolean(sourceId);
+  const [questionSearch, setQuestionSearch] = useState("");
+  const deferredQuestionSearch = useDeferredValue(questionSearch.trim());
   const {
     filters,
     page,
@@ -87,8 +111,8 @@ export function AnswerListPage() {
     visibilityFilter === "all" ? undefined : Number(visibilityFilter);
 
   const answerQuery = useAnswerList({
-    page,
-    pageSize,
+    page: scopedToSource ? 1 : page,
+    pageSize: scopedToSource ? 100 : pageSize,
     sorting,
     status: apiStatus,
     questionId: apiQuestionId,
@@ -100,8 +124,20 @@ export function AnswerListPage() {
     pageSize: 100,
     sorting: "Title ASC",
   });
+  const questionSearchOptionsQuery = useQuestionList({
+    page: 1,
+    pageSize: 20,
+    sorting: "Title ASC",
+    searchText: deferredQuestionSearch || undefined,
+    enabled: Boolean(deferredQuestionSearch),
+  });
+  const selectedQuestionQuery = useQuestion(apiQuestionId);
 
   useEffect(() => {
+    if (scopedToSource) {
+      return;
+    }
+
     const totalCount = answerQuery.data?.totalCount;
 
     if (totalCount === undefined) {
@@ -112,10 +148,14 @@ export function AnswerListPage() {
     if (nextPage !== page) {
       setPage(nextPage, { replace: true });
     }
-  }, [answerQuery.data?.totalCount, page, pageSize, setPage]);
+  }, [answerQuery.data?.totalCount, page, pageSize, scopedToSource, setPage]);
 
   const deleteAnswer = useDeleteAnswer();
-  const answerRows = answerQuery.data?.items ?? [];
+  const answerRows = scopedToSource
+    ? (answerQuery.data?.items ?? []).filter((answer) =>
+        answer.sources.some((link) => link.sourceId === sourceId),
+      )
+    : (answerQuery.data?.items ?? []);
   const publishedCount = answerRows.filter(
     (answer) =>
       answer.status === AnswerStatus.Published ||
@@ -133,6 +173,16 @@ export function AnswerListPage() {
       ),
     [questionOptionsQuery.data?.items],
   );
+  const questionOptionItems = deferredQuestionSearch
+    ? (questionSearchOptionsQuery.data?.items ?? [])
+    : (questionOptionsQuery.data?.items ?? []);
+  const questionOptions = questionOptionItems.map(buildQuestionOption);
+  const selectedQuestion =
+    questionOptionItems.find((question) => question.id === apiQuestionId) ??
+    selectedQuestionQuery.data;
+  const selectedQuestionOption = selectedQuestion
+    ? buildQuestionOption(selectedQuestion)
+    : null;
   const showMetricsLoadingState =
     answerQuery.isLoading && answerQuery.data === undefined;
 
@@ -237,14 +287,14 @@ export function AnswerListPage() {
       header={
         <>
           <PageHeader
-            title="Answers"
-            description="Answers are operated from their parent Question. Use this scoped view only to triage candidates that already belong to a thread."
+            title={scopedToSource ? "Answers linked to source" : "Answers"}
+            description={
+              scopedToSource
+                ? "Showing only answer candidates that cite the selected Source."
+                : "Answers are operated from their parent Question. Use this scoped view only to triage candidates that already belong to a thread."
+            }
             descriptionMode="inline"
             backTo="/app/spaces"
-          />
-          <QnaModuleNav
-            activeKey="spaces"
-            intent="Answers are not created globally. Open a Space, choose the Question, then author or validate the answer in that thread."
           />
         </>
       }
@@ -256,8 +306,12 @@ export function AnswerListPage() {
           items={[
             {
               title: "Total",
-              value: answerQuery.data?.totalCount ?? 0,
-              description: translateText("Answer candidates in this workspace"),
+              value: scopedToSource
+                ? answerRows.length
+                : (answerQuery.data?.totalCount ?? 0),
+              description: scopedToSource
+                ? translateText("Filtered by source relationship")
+                : translateText("Answer candidates in this workspace"),
               icon: Medal,
             },
             {
@@ -294,22 +348,30 @@ export function AnswerListPage() {
         onRowClick={(answer) => navigate(`/app/answers/${answer.id}`)}
         toolbar={
           <div className="grid w-full gap-2 sm:grid-cols-2 xl:grid-cols-[220px_220px_220px_220px]">
-            <Select
-              value={questionFilter}
-              onValueChange={(value) => setFilter("questionId", value)}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder={translateText("Question")} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All questions</SelectItem>
-                {(questionOptionsQuery.data?.items ?? []).map((question) => (
-                  <SelectItem key={question.id} value={question.id}>
-                    {question.title}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <SearchSelect
+              value={apiQuestionId ?? ""}
+              onValueChange={(value) => setFilter("questionId", value || "all")}
+              options={questionOptions}
+              selectedOption={selectedQuestionOption}
+              placeholder={translateText("All questions")}
+              searchPlaceholder={translateText("Search questions")}
+              emptyMessage={
+                deferredQuestionSearch
+                  ? translateText("No questions match this search.")
+                  : translateText("No questions available.")
+              }
+              loading={
+                deferredQuestionSearch
+                  ? questionSearchOptionsQuery.isFetching
+                  : questionOptionsQuery.isFetching
+              }
+              searchValue={questionSearch}
+              onSearchChange={(value) =>
+                startTransition(() => setQuestionSearch(value))
+              }
+              allowClear
+              clearLabel={translateText("All questions")}
+            />
             <Select
               value={statusFilter}
               onValueChange={(value) => setFilter("status", value)}
@@ -388,7 +450,7 @@ export function AnswerListPage() {
           ) : undefined
         }
         footer={
-          answerQuery.data ? (
+          !scopedToSource && answerQuery.data ? (
             <PaginationControls
               page={page}
               pageSize={pageSize}

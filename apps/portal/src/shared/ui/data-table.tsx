@@ -78,7 +78,7 @@ export function DataTable<T>({
     ) : null;
 
   return (
-    <Card>
+    <Card className="overflow-hidden">
       {title || description || toolbar ? (
         <CardHeader className="gap-4 md:flex-row md:items-center md:justify-between">
           <CardHeading>
@@ -95,7 +95,9 @@ export function DataTable<T>({
             ) : null}
           </CardHeading>
           {toolbar ? (
-            <CardToolbar className="flex-wrap gap-2">{toolbar}</CardToolbar>
+            <CardToolbar className="w-full flex-wrap gap-2 md:w-auto">
+              {toolbar}
+            </CardToolbar>
           ) : null}
         </CardHeader>
       ) : null}
@@ -125,7 +127,7 @@ export function DataTable<T>({
                 : rows.map((row) => (
                     <div
                       key={getRowId(row)}
-                      className="rounded-xl border border-border/80 bg-card p-4"
+                      className="rounded-xl border border-border/80 bg-card p-4 transition-colors hover:border-primary/25 hover:bg-primary/[0.025]"
                       onClick={() => onRowClick?.(row)}
                       onKeyDown={(event) => {
                         if (!onRowClick) {
@@ -163,7 +165,7 @@ export function DataTable<T>({
 
             <div className="hidden overflow-hidden rounded-xl border border-border/80 bg-card lg:block">
               <Table>
-                <TableHeader className="bg-muted/40">
+                <TableHeader className="bg-muted/45">
                   <TableRow>
                     {columns.map((column) => (
                       <TableHead key={column.key} className={column.className}>
@@ -186,8 +188,24 @@ export function DataTable<T>({
                     : rows.map((row) => (
                         <TableRow
                           key={getRowId(row)}
-                          className={onRowClick ? "cursor-pointer" : undefined}
+                          className={
+                            onRowClick
+                              ? "cursor-pointer transition-colors hover:bg-primary/[0.025] focus-visible:bg-primary/[0.035]"
+                              : undefined
+                          }
                           onClick={() => onRowClick?.(row)}
+                          onKeyDown={(event) => {
+                            if (!onRowClick) {
+                              return;
+                            }
+
+                            if (event.key === "Enter" || event.key === " ") {
+                              event.preventDefault();
+                              onRowClick(row);
+                            }
+                          }}
+                          role={onRowClick ? "button" : undefined}
+                          tabIndex={onRowClick ? 0 : undefined}
                         >
                           {columns.map((column) => (
                             <TableCell

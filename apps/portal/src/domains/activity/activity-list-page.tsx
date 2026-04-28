@@ -1,10 +1,10 @@
 import { useEffect } from "react";
 import { Activity, Eye, ShieldCheck, TriangleAlert } from "lucide-react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { QnaModuleNav } from "@/domains/qna/qna-module-nav";
 import { usePortalTimeZone } from "@/domains/settings/settings-hooks";
 import { useActivityList } from "@/domains/activity/hooks";
 import type { ActivityDto } from "@/domains/activity/types";
+import { useQuestionList } from "@/domains/questions/hooks";
 import {
   ActivityKind,
   ActorKind,
@@ -67,18 +67,31 @@ export function ActivityListPage() {
     actorKindFilter === "all" ? undefined : Number(actorKindFilter);
   const questionId = searchParams.get("questionId") ?? undefined;
   const answerId = searchParams.get("answerId") ?? undefined;
+  const spaceId = searchParams.get("spaceId") ?? undefined;
+  const scopedToSpace = Boolean(spaceId);
+  const spaceQuestionsQuery = useQuestionList({
+    page: 1,
+    pageSize: 100,
+    sorting: "Title ASC",
+    spaceId,
+    enabled: scopedToSpace,
+  });
 
   const activityQuery = useActivityList({
-    page,
-    pageSize,
+    page: scopedToSpace ? 1 : page,
+    pageSize: scopedToSpace ? 200 : pageSize,
     sorting,
-    questionId,
-    answerId,
+    questionId: scopedToSpace ? undefined : questionId,
+    answerId: scopedToSpace ? undefined : answerId,
     kind: apiKind,
     actorKind: apiActorKind,
   });
 
   useEffect(() => {
+    if (scopedToSpace) {
+      return;
+    }
+
     const totalCount = activityQuery.data?.totalCount;
 
     if (totalCount === undefined) {
@@ -89,9 +102,16 @@ export function ActivityListPage() {
     if (nextPage !== page) {
       setPage(nextPage, { replace: true });
     }
-  }, [activityQuery.data?.totalCount, page, pageSize, setPage]);
+  }, [activityQuery.data?.totalCount, page, pageSize, scopedToSpace, setPage]);
 
-  const rows = activityQuery.data?.items ?? [];
+  const spaceQuestionIds = new Set(
+    (spaceQuestionsQuery.data?.items ?? []).map((question) => question.id),
+  );
+  const rows = scopedToSpace
+    ? (activityQuery.data?.items ?? []).filter((event) =>
+        spaceQuestionIds.has(event.questionId),
+      )
+    : (activityQuery.data?.items ?? []);
   const moderationCount = rows.filter(
     (event) => event.actorKind === ActorKind.Moderator,
   ).length;
@@ -165,29 +185,36 @@ export function ActivityListPage() {
         <>
           <PageHeader
             title="Activity"
-            description="Review moderation actions, workflow transitions, and public signals across QnA threads."
+            description={
+              spaceId
+                ? "Review events from questions that belong to this Space."
+                : "Review moderation actions, workflow transitions, and public signals across QnA threads."
+            }
             descriptionMode="inline"
-          />
-          <QnaModuleNav
-            activeKey="spaces"
-            intent="Activity is contextual evidence. Use this audit view to jump back to the Space, Question, or Answer that needs action."
           />
         </>
       }
     >
-      {activityQuery.isLoading && activityQuery.data === undefined ? (
+      {(activityQuery.isLoading && activityQuery.data === undefined) ||
+      (scopedToSpace &&
+        spaceQuestionsQuery.isLoading &&
+        spaceQuestionsQuery.data === undefined) ? (
         <SectionGridSkeleton />
       ) : (
         <SectionGrid
           items={[
             {
               title: "Total",
-              value: activityQuery.data?.totalCount ?? 0,
-              description: questionId
-                ? translateText("Scoped to the current question thread")
-                : answerId
-                  ? translateText("Scoped to the current answer")
-                  : translateText("Audit trail and public-signal events"),
+              value: scopedToSpace
+                ? rows.length
+                : (activityQuery.data?.totalCount ?? 0),
+              description: spaceId
+                ? translateText("Scoped to the current Space")
+                : questionId
+                  ? translateText("Scoped to the current question thread")
+                  : answerId
+                    ? translateText("Scoped to the current answer")
+                    : translateText("Audit trail and public-signal events"),
               icon: Activity,
             },
             {
@@ -220,7 +247,10 @@ export function ActivityListPage() {
         columns={columns}
         rows={rows}
         getRowId={(row) => row.id}
-        loading={activityQuery.isLoading}
+        loading={
+          activityQuery.isLoading ||
+          (scopedToSpace && spaceQuestionsQuery.isLoading)
+        }
         onRowClick={(row) => navigate(`/app/activity/${row.id}`)}
         toolbar={
           <div className="grid w-full gap-2 sm:grid-cols-2 xl:grid-cols-[220px_220px_220px]">
@@ -277,16 +307,21 @@ export function ActivityListPage() {
           />
         }
         errorState={
-          activityQuery.isError ? (
+          activityQuery.isError || spaceQuestionsQuery.isError ? (
             <ErrorState
               title="Unable to load activity"
-              error={activityQuery.error}
-              retry={() => void activityQuery.refetch()}
+              error={activityQuery.error ?? spaceQuestionsQuery.error}
+              retry={() => {
+                void activityQuery.refetch();
+                if (scopedToSpace) {
+                  void spaceQuestionsQuery.refetch();
+                }
+              }}
             />
           ) : undefined
         }
         footer={
-          activityQuery.data ? (
+          !scopedToSpace && activityQuery.data ? (
             <PaginationControls
               page={page}
               pageSize={pageSize}

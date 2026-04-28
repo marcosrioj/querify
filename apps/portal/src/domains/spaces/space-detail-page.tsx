@@ -1,20 +1,22 @@
-import { useMemo, useState } from "react";
+import { startTransition, useDeferredValue, useMemo, useState } from "react";
 import {
   Activity,
   BookOpen,
   CheckCircle2,
   Link2,
+  MessageSquareText,
   Pencil,
   Plus,
+  Tags,
   Trash2,
   Waypoints,
 } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useActivityList } from "@/domains/activity/hooks";
 import { QnaModuleNav } from "@/domains/qna/qna-module-nav";
-import { useQuestionList } from "@/domains/questions/hooks";
+import { useCreateQuestion, useQuestionList } from "@/domains/questions/hooks";
 import { usePortalTimeZone } from "@/domains/settings/settings-hooks";
-import { useSourceList } from "@/domains/sources/hooks";
+import { useSource, useSourceList } from "@/domains/sources/hooks";
 import {
   useSpace,
   useAddSpaceSource,
@@ -23,8 +25,13 @@ import {
   useRemoveSpaceSource,
   useRemoveSpaceTag,
 } from "@/domains/spaces/hooks";
-import { useTagList } from "@/domains/tags/hooks";
-import { QuestionStatus, SpaceKind } from "@/shared/constants/backend-enums";
+import { useTag, useTagList } from "@/domains/tags/hooks";
+import {
+  ChannelKind,
+  QuestionStatus,
+  SpaceKind,
+  VisibilityScope,
+} from "@/shared/constants/backend-enums";
 import {
   DetailLayout,
   KeyValueList,
@@ -32,6 +39,8 @@ import {
   SectionGrid,
 } from "@/shared/layout/page-layouts";
 import {
+  ActionButton,
+  ActionPanel,
   Badge,
   Button,
   Card,
@@ -39,26 +48,63 @@ import {
   CardHeader,
   CardHeading,
   CardTitle,
+  ChildListPagination,
   ConfirmAction,
   ContextHint,
   DetailPageSkeleton,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  Input,
+  SearchSelect,
   SidebarSummarySkeleton,
+  Textarea,
 } from "@/shared/ui";
 import { EmptyState, ErrorState } from "@/shared/ui/placeholder-state";
 import {
   ActivityKindBadge,
   ActorKindBadge,
   QuestionStatusBadge,
-  SpaceKindBadge,
   VisibilityBadge,
 } from "@/shared/ui/status-badges";
 import { translateText } from "@/shared/lib/i18n-core";
+import { useLocalPagination } from "@/shared/lib/use-local-pagination";
 import { formatOptionalDateTimeInTimeZone } from "@/shared/lib/time-zone";
+
+function buildTagOption(tag: {
+  id: string;
+  name: string;
+  spaceUsageCount?: number;
+  questionUsageCount?: number;
+}) {
+  const description =
+    tag.spaceUsageCount !== undefined || tag.questionUsageCount !== undefined
+      ? translateText("{spaces} spaces • {questions} questions", {
+          spaces: tag.spaceUsageCount ?? 0,
+          questions: tag.questionUsageCount ?? 0,
+        })
+      : undefined;
+
+  return {
+    value: tag.id,
+    label: tag.name,
+    description,
+    keywords: [tag.name],
+  };
+}
+
+function buildSourceOption(source: {
+  id: string;
+  label?: string | null;
+  locator: string;
+  kind?: number;
+}) {
+  const label = source.label || source.locator;
+
+  return {
+    value: source.id,
+    label,
+    description: source.locator,
+    keywords: [label, source.locator],
+  };
+}
 
 export function SpaceDetailPage() {
   const navigate = useNavigate();
@@ -67,32 +113,44 @@ export function SpaceDetailPage() {
   const spaceQuery = useSpace(id);
   const questionQuery = useQuestionList({
     page: 1,
-    pageSize: 8,
+    pageSize: 100,
     sorting: "LastActivityAtUtc DESC",
     spaceId: id,
   });
   const activityQuery = useActivityList({
     page: 1,
-    pageSize: 20,
+    pageSize: 100,
     sorting: "OccurredAtUtc DESC",
   });
-  const sourceOptionsQuery = useSourceList({
-    page: 1,
-    pageSize: 100,
-    sorting: "Label ASC",
-  });
-  const tagOptionsQuery = useTagList({
-    page: 1,
-    pageSize: 100,
-    sorting: "Name ASC",
-  });
   const deleteSpace = useDeleteSpace();
+  const createQuestion = useCreateQuestion();
   const addTag = useAddSpaceTag(id ?? "");
   const removeTag = useRemoveSpaceTag(id ?? "");
   const addSource = useAddSpaceSource(id ?? "");
   const removeSource = useRemoveSpaceSource(id ?? "");
   const [selectedTagId, setSelectedTagId] = useState("");
   const [selectedSourceId, setSelectedSourceId] = useState("");
+  const [tagSearch, setTagSearch] = useState("");
+  const [sourceSearch, setSourceSearch] = useState("");
+  const [newQuestionTitle, setNewQuestionTitle] = useState("");
+  const [newQuestionSummary, setNewQuestionSummary] = useState("");
+  const [relationshipTab, setRelationshipTab] = useState("questions");
+  const deferredTagSearch = useDeferredValue(tagSearch.trim());
+  const deferredSourceSearch = useDeferredValue(sourceSearch.trim());
+  const sourceOptionsQuery = useSourceList({
+    page: 1,
+    pageSize: 20,
+    sorting: "Label ASC",
+    searchText: deferredSourceSearch || undefined,
+  });
+  const tagOptionsQuery = useTagList({
+    page: 1,
+    pageSize: 20,
+    sorting: "Name ASC",
+    searchText: deferredTagSearch || undefined,
+  });
+  const selectedTagQuery = useTag(selectedTagId || undefined);
+  const selectedSourceQuery = useSource(selectedSourceId || undefined);
 
   const availableTags = useMemo(() => {
     const existing = new Set(
@@ -111,15 +169,18 @@ export function SpaceDetailPage() {
       (source) => !existing.has(source.id),
     );
   }, [sourceOptionsQuery.data?.items, spaceQuery.data?.curatedSources]);
-
-  if (!id) {
-    return (
-      <ErrorState
-        title="Invalid space route"
-        description="Space detail routes need an identifier."
-      />
-    );
-  }
+  const tagOptions = availableTags.map(buildTagOption);
+  const sourceOptions = availableSources.map(buildSourceOption);
+  const selectedTag =
+    availableTags.find((tag) => tag.id === selectedTagId) ??
+    selectedTagQuery.data;
+  const selectedSource =
+    availableSources.find((source) => source.id === selectedSourceId) ??
+    selectedSourceQuery.data;
+  const selectedTagOption = selectedTag ? buildTagOption(selectedTag) : null;
+  const selectedSourceOption = selectedSource
+    ? buildSourceOption(selectedSource)
+    : null;
 
   const showLoadingState =
     !spaceQuery.data &&
@@ -129,7 +190,9 @@ export function SpaceDetailPage() {
   const blocksQuestions = spaceQuery.data
     ? !spaceQuery.data.acceptsQuestions
     : false;
-  const blocksAnswers = spaceQuery.data ? !spaceQuery.data.acceptsAnswers : false;
+  const blocksAnswers = spaceQuery.data
+    ? !spaceQuery.data.acceptsAnswers
+    : false;
   const reviewGated = spaceQuery.data
     ? spaceQuery.data.kind === SpaceKind.ControlledPublication ||
       spaceQuery.data.kind === SpaceKind.ModeratedCollaboration
@@ -144,10 +207,30 @@ export function SpaceDetailPage() {
         question.status !== QuestionStatus.Duplicate &&
         question.status !== QuestionStatus.Archived),
   );
-  const visibleQuestionIds = new Set(spaceQuestions.map((question) => question.id));
+  const visibleQuestionIds = new Set(
+    spaceQuestions.map((question) => question.id),
+  );
   const contextualActivity = (activityQuery.data?.items ?? []).filter((entry) =>
     visibleQuestionIds.has(entry.questionId),
   );
+  const tagsPagination = useLocalPagination({
+    items: spaceQuery.data?.tags ?? [],
+  });
+  const sourcesPagination = useLocalPagination({
+    items: spaceQuery.data?.curatedSources ?? [],
+  });
+  const questionsPagination = useLocalPagination({ items: spaceQuestions });
+  const activityPagination = useLocalPagination({ items: contextualActivity });
+
+  if (!id) {
+    return (
+      <ErrorState
+        title="Invalid space route"
+        description="Space detail routes need an identifier."
+      />
+    );
+  }
+
   const nextAction = blocksQuestions
     ? {
         label: "Review intake rules",
@@ -157,97 +240,80 @@ export function SpaceDetailPage() {
     : questionsNeedingAction.length > 0
       ? {
           label: "Resolve first thread",
-          to: `/app/questions/${questionsNeedingAction[0].id}`,
+          tab: "questions",
           text: "A question needs moderation, an accepted answer, duplicate routing, or escalation review.",
         }
       : (spaceQuery.data?.curatedSources.length ?? 0) === 0
         ? {
             label: "Attach source",
-            to: "/app/sources",
+            tab: "sources",
             text: "This Space has no curated evidence yet. Attach a reusable Source before scaling answers.",
           }
         : {
             label: "Create question",
-            to: `/app/questions/new?spaceId=${id}`,
+            tab: "questions",
             text: "The Space is ready for the next operational thread.",
           };
 
   return (
     <DetailLayout
       header={
-        <>
-          <PageHeader
-            title={spaceQuery.data?.name ?? "Space"}
-            description="Review state, intake rules, questions needing action, connected tags and sources, and the next recommended move."
-            descriptionMode="hint"
-            backTo="/app/spaces"
-          />
-          <QnaModuleNav
-            activeKey="spaces"
-            intent="This space is the parent context. Review its rules before creating child questions, curation links, or taxonomy."
-          />
-        </>
+        <PageHeader
+          title={spaceQuery.data?.name ?? "Space"}
+          description="Review state, intake rules, questions needing action, connected tags and sources, and the next recommended move."
+          descriptionMode="hint"
+          backTo="/app/spaces"
+        />
       }
       sidebar={
         <>
-          <Card>
-            <CardContent className="grid grid-cols-2 gap-2 p-3">
-              {blocksQuestions ? (
-                <Button size="sm" className="w-full justify-start" disabled>
-                  <Plus className="size-4" />
-                  {translateText("New question")}
-                </Button>
-              ) : (
-                <Button asChild size="sm" className="w-full justify-start">
-                  <Link to={`/app/questions/new?spaceId=${id}`}>
-                    <Plus className="size-4" />
-                    {translateText("New question")}
-                  </Link>
-                </Button>
-              )}
-              <Button
-                asChild
-                variant="outline"
-                size="sm"
-                className="w-full justify-start"
+          <ActionPanel description="Record-level actions for this Space.">
+            {blocksQuestions ? (
+              <ActionButton disabled>
+                <Plus className="size-4" />
+                {translateText("New question")}
+              </ActionButton>
+            ) : (
+              <ActionButton
+                type="button"
+                tone="primary"
+                onClick={() => setRelationshipTab("questions")}
               >
-                <Link to={`/app/spaces/${id}/edit`}>
-                  <Pencil className="size-4" />
-                  {translateText("Edit")}
-                </Link>
-              </Button>
-              <ConfirmAction
-                title={translateText('Delete space "{name}"?', {
-                  name: spaceQuery.data?.name ?? translateText("this space"),
-                })}
-                description={translateText(
-                  "This removes the space and its operating rules from the workspace.",
-                )}
-                confirmLabel={translateText("Delete space")}
-                isPending={deleteSpace.isPending}
-                onConfirm={() =>
-                  deleteSpace
-                    .mutateAsync(id)
-                    .then(() => navigate("/app/spaces"))
-                }
-                trigger={
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    className="col-span-2 w-full justify-start"
-                  >
-                    <Trash2 className="size-4" />
-                    {translateText("Delete")}
-                  </Button>
-                }
-              />
-              {blocksQuestions ? (
-                <p className="col-span-2 text-xs text-muted-foreground">
-                  {translateText("This space does not accept new questions.")}
-                </p>
-              ) : null}
-            </CardContent>
-          </Card>
+                <Plus className="size-4" />
+                {translateText("New question")}
+              </ActionButton>
+            )}
+            <ActionButton asChild tone="secondary">
+              <Link to={`/app/spaces/${id}/edit`}>
+                <Pencil className="size-4" />
+                {translateText("Edit")}
+              </Link>
+            </ActionButton>
+            <ConfirmAction
+              title={translateText('Delete space "{name}"?', {
+                name: spaceQuery.data?.name ?? translateText("this space"),
+              })}
+              description={translateText(
+                "This removes the space and its operating rules from the workspace.",
+              )}
+              confirmLabel={translateText("Delete space")}
+              isPending={deleteSpace.isPending}
+              onConfirm={() =>
+                deleteSpace.mutateAsync(id).then(() => navigate("/app/spaces"))
+              }
+              trigger={
+                <ActionButton tone="danger" span="full">
+                  <Trash2 className="size-4" />
+                  {translateText("Delete")}
+                </ActionButton>
+              }
+            />
+            {blocksQuestions ? (
+              <p className="col-span-2 text-xs text-muted-foreground">
+                {translateText("This space does not accept new questions.")}
+              </p>
+            ) : null}
+          </ActionPanel>
           {showLoadingState ? (
             <SidebarSummarySkeleton />
           ) : spaceQuery.data ? (
@@ -278,10 +344,92 @@ export function SpaceDetailPage() {
                       label: "Curated sources",
                       value: String(spaceQuery.data.curatedSources.length),
                     },
+                  ]}
+                />
+              </CardContent>
+            </Card>
+          ) : null}
+          {showLoadingState ? null : spaceQuery.data ? (
+            <Card>
+              <CardHeader>
+                <CardHeading>
+                  <CardTitle>{translateText("Workflow rules")}</CardTitle>
+                </CardHeading>
+              </CardHeader>
+              <CardContent>
+                <KeyValueList
+                  items={[
+                    {
+                      label: "Accepts questions",
+                      value: (
+                        <Badge
+                          variant={
+                            spaceQuery.data.acceptsQuestions
+                              ? "success"
+                              : "mono"
+                          }
+                        >
+                          {translateText(
+                            spaceQuery.data.acceptsQuestions
+                              ? "Enabled"
+                              : "Disabled",
+                          )}
+                        </Badge>
+                      ),
+                    },
+                    {
+                      label: "Accepts answers",
+                      value: (
+                        <Badge
+                          variant={
+                            spaceQuery.data.acceptsAnswers ? "success" : "mono"
+                          }
+                        >
+                          {translateText(
+                            spaceQuery.data.acceptsAnswers
+                              ? "Enabled"
+                              : "Disabled",
+                          )}
+                        </Badge>
+                      ),
+                    },
+                    {
+                      label: "Review gate",
+                      value: (
+                        <Badge variant={reviewGated ? "warning" : "secondary"}>
+                          {translateText(
+                            reviewGated ? "Required by mode" : "Open by mode",
+                          )}
+                        </Badge>
+                      ),
+                    },
+                  ]}
+                />
+              </CardContent>
+            </Card>
+          ) : null}
+          {showLoadingState ? null : spaceQuery.data ? (
+            <Card>
+              <CardHeader>
+                <CardHeading>
+                  <CardTitle>{translateText("Publishing")}</CardTitle>
+                </CardHeading>
+              </CardHeader>
+              <CardContent>
+                <KeyValueList
+                  items={[
                     {
                       label: "Published at",
                       value: formatOptionalDateTimeInTimeZone(
                         spaceQuery.data.publishedAtUtc,
+                        portalTimeZone,
+                        translateText("Not set"),
+                      ),
+                    },
+                    {
+                      label: "Last validated",
+                      value: formatOptionalDateTimeInTimeZone(
+                        spaceQuery.data.lastValidatedAtUtc,
                         portalTimeZone,
                         translateText("Not set"),
                       ),
@@ -311,7 +459,9 @@ export function SpaceDetailPage() {
                 value: (
                   <Badge
                     variant={
-                      blocksQuestions && blocksAnswers ? "destructive" : "success"
+                      blocksQuestions && blocksAnswers
+                        ? "destructive"
+                        : "success"
                     }
                   >
                     {translateText(
@@ -328,7 +478,9 @@ export function SpaceDetailPage() {
                 value: (
                   <div className="flex flex-wrap gap-2">
                     <Badge variant={blocksQuestions ? "mono" : "success"}>
-                      {translateText(blocksQuestions ? "No questions" : "Questions")}
+                      {translateText(
+                        blocksQuestions ? "No questions" : "Questions",
+                      )}
                     </Badge>
                     <Badge variant={blocksAnswers ? "mono" : "success"}>
                       {translateText(blocksAnswers ? "No answers" : "Answers")}
@@ -368,392 +520,469 @@ export function SpaceDetailPage() {
                   {translateText(nextAction.text)}
                 </p>
               </div>
-              <Button asChild className="bg-emerald-600 text-white shadow-lg shadow-emerald-600/25 hover:bg-emerald-700">
-                <Link to={nextAction.to}>
-                  {translateText(nextAction.label)}
-                </Link>
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardHeading>
-                <CardTitle>{translateText("Workflow rules")}</CardTitle>
-              </CardHeading>
-            </CardHeader>
-            <CardContent>
-              <KeyValueList
-                items={[
-                  {
-                    label: "Accepts questions",
-                    value: (
-                      <Badge
-                        variant={
-                          spaceQuery.data.acceptsQuestions ? "success" : "mono"
-                        }
-                      >
-                        {translateText(
-                          spaceQuery.data.acceptsQuestions
-                            ? "Enabled"
-                            : "Disabled",
-                        )}
-                      </Badge>
-                    ),
-                  },
-                  {
-                    label: "Accepts answers",
-                    value: (
-                      <Badge
-                        variant={
-                          spaceQuery.data.acceptsAnswers ? "success" : "mono"
-                        }
-                      >
-                        {translateText(
-                          spaceQuery.data.acceptsAnswers
-                            ? "Enabled"
-                            : "Disabled",
-                        )}
-                      </Badge>
-                    ),
-                  },
-                  {
-                    label: "Review gate",
-                    value: (
-                      <Badge variant={reviewGated ? "warning" : "secondary"}>
-                        {translateText(
-                          reviewGated ? "Required by mode" : "Open by mode",
-                        )}
-                      </Badge>
-                    ),
-                  },
-                ]}
-              />
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardHeading>
-                <CardTitle>{translateText("Publishing")}</CardTitle>
-              </CardHeading>
-            </CardHeader>
-            <CardContent>
-              <KeyValueList
-                items={[
-                  {
-                    label: "Published at",
-                    value: formatOptionalDateTimeInTimeZone(
-                      spaceQuery.data.publishedAtUtc,
-                      portalTimeZone,
-                      translateText("Not set"),
-                    ),
-                  },
-                  {
-                    label: "Last validated",
-                    value: formatOptionalDateTimeInTimeZone(
-                      spaceQuery.data.lastValidatedAtUtc,
-                      portalTimeZone,
-                      translateText("Not set"),
-                    ),
-                  },
-                ]}
-              />
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardHeading>
-                <CardTitle className="flex items-center gap-2">
-                  <span>{translateText("Tags")}</span>
-                  <Badge variant="outline">
-                    {translateText("{count} tags", {
-                      count: spaceQuery.data.tags.length,
-                    })}
-                  </Badge>
-                </CardTitle>
-              </CardHeading>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {spaceQuery.data.tags.length ? (
-                <div className="flex flex-wrap gap-2">
-                  {spaceQuery.data.tags.map((tag) => (
-                    <Badge
-                      key={tag.id}
-                      variant="outline"
-                      className="gap-2 px-3 py-1.5"
-                    >
-                      <span>{tag.name}</span>
-                      <button
-                        type="button"
-                        className="text-muted-foreground hover:text-foreground"
-                        onClick={() => void removeTag.mutateAsync(tag.id)}
-                      >
-                        ×
-                      </button>
-                    </Badge>
-                  ))}
-                </div>
-              ) : (
-                <EmptyState
-                  title="No tags yet"
-                  description="Attach reusable taxonomy so operators can group and find the space faster."
-                />
-              )}
-              <div className="flex flex-col gap-3 sm:flex-row">
-                <Select value={selectedTagId} onValueChange={setSelectedTagId}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue
-                      placeholder={translateText("Attach existing tag")}
-                    />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {availableTags.map((tag) => (
-                      <SelectItem key={tag.id} value={tag.id}>
-                        {tag.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Button
-                  disabled={!selectedTagId || addTag.isPending}
-                  onClick={() =>
-                    addTag
-                      .mutateAsync({ spaceId: id, tagId: selectedTagId })
-                      .then(() => setSelectedTagId(""))
-                  }
-                >
-                  {translateText("Attach tag")}
+              {"to" in nextAction ? (
+                <Button asChild>
+                  <Link to={nextAction.to}>
+                    {translateText(nextAction.label)}
+                  </Link>
                 </Button>
-              </div>
+              ) : (
+                <Button
+                  type="button"
+                  onClick={() => setRelationshipTab(nextAction.tab)}
+                >
+                  {translateText(nextAction.label)}
+                </Button>
+              )}
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardHeading>
-                <CardTitle className="flex items-center gap-2">
-                  <span>{translateText("Curated sources")}</span>
-                  <Badge variant="outline">
-                    {translateText("{count} sources", {
-                      count: spaceQuery.data.curatedSources.length,
-                    })}
-                  </Badge>
-                </CardTitle>
-              </CardHeading>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {spaceQuery.data.curatedSources.length ? (
-                <div className="space-y-3">
-                  {spaceQuery.data.curatedSources.map((source) => (
+          <QnaModuleNav
+            eyebrow="Space relationships"
+            activeKey={relationshipTab}
+            onActiveKeyChange={setRelationshipTab}
+            items={[
+              {
+                key: "questions",
+                label: "Questions",
+                description:
+                  "Review and create threads that inherit this Space's intake and visibility rules.",
+                icon: MessageSquareText,
+                count: questionQuery.data?.totalCount ?? 0,
+              },
+              {
+                key: "sources",
+                label: "Curated sources",
+                description:
+                  "Attach reusable evidence that should be trusted inside this Space.",
+                icon: Waypoints,
+                count: spaceQuery.data?.curatedSources.length ?? 0,
+              },
+              {
+                key: "tags",
+                label: "Tags",
+                description:
+                  "Attach reusable taxonomy so this Space stays easy to scan and route.",
+                icon: Tags,
+                count: spaceQuery.data?.tags.length ?? 0,
+              },
+              {
+                key: "activity",
+                label: "Activity",
+                description:
+                  "Inspect events from questions that belong to this Space.",
+                icon: Activity,
+                count: contextualActivity.length,
+              },
+            ]}
+          />
+
+          {relationshipTab === "tags" ? (
+            <Card>
+              <CardHeader>
+                <CardHeading>
+                  <CardTitle className="flex items-center gap-2">
+                    <span>{translateText("Tags")}</span>
+                    <Badge variant="outline">
+                      {translateText("{count} tags", {
+                        count: spaceQuery.data.tags.length,
+                      })}
+                    </Badge>
+                  </CardTitle>
+                </CardHeading>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {spaceQuery.data.tags.length ? (
+                  <div className="flex flex-wrap gap-2">
+                    {tagsPagination.pagedItems.map((tag) => (
+                      <Badge
+                        key={tag.id}
+                        variant="outline"
+                        className="gap-2 px-3 py-1.5"
+                      >
+                        <span>{tag.name}</span>
+                        <button
+                          type="button"
+                          className="text-muted-foreground hover:text-foreground"
+                          onClick={() => void removeTag.mutateAsync(tag.id)}
+                        >
+                          ×
+                        </button>
+                      </Badge>
+                    ))}
+                  </div>
+                ) : (
+                  <EmptyState
+                    title="No tags yet"
+                    description="Attach reusable taxonomy so operators can group and find the space faster."
+                  />
+                )}
+                <ChildListPagination
+                  page={tagsPagination.page}
+                  pageSize={tagsPagination.pageSize}
+                  totalCount={tagsPagination.totalCount}
+                  onPageChange={tagsPagination.setPage}
+                  onPageSizeChange={tagsPagination.setPageSize}
+                />
+                <div className="flex flex-col gap-3 sm:flex-row">
+                  <SearchSelect
+                    value={selectedTagId}
+                    onValueChange={setSelectedTagId}
+                    options={tagOptions}
+                    selectedOption={selectedTagOption}
+                    placeholder={translateText("Attach existing tag")}
+                    searchPlaceholder={translateText("Search tags")}
+                    emptyMessage={
+                      deferredTagSearch
+                        ? translateText("No tags match this search.")
+                        : translateText("No tags available.")
+                    }
+                    loading={tagOptionsQuery.isFetching}
+                    searchValue={tagSearch}
+                    onSearchChange={(value) =>
+                      startTransition(() => setTagSearch(value))
+                    }
+                    allowClear
+                  />
+                  <Button
+                    disabled={!selectedTagId || addTag.isPending}
+                    onClick={() =>
+                      addTag
+                        .mutateAsync({ spaceId: id, tagId: selectedTagId })
+                        .then(() => setSelectedTagId(""))
+                    }
+                  >
+                    {translateText("Attach tag")}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ) : null}
+
+          {relationshipTab === "sources" ? (
+            <Card>
+              <CardHeader>
+                <CardHeading>
+                  <CardTitle className="flex items-center gap-2">
+                    <span>{translateText("Curated sources")}</span>
+                    <Badge variant="outline">
+                      {translateText("{count} sources", {
+                        count: spaceQuery.data.curatedSources.length,
+                      })}
+                    </Badge>
+                  </CardTitle>
+                </CardHeading>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {spaceQuery.data.curatedSources.length ? (
+                  <div className="space-y-3">
+                    {sourcesPagination.pagedItems.map((source) => (
+                      <div
+                        key={source.id}
+                        className="flex flex-col gap-3 rounded-lg border border-border bg-muted/10 p-4 sm:flex-row sm:items-start sm:justify-between"
+                      >
+                        <div className="min-w-0">
+                          <p className="font-medium text-mono">
+                            {source.label || translateText("Untitled source")}
+                          </p>
+                          <p className="mt-1 break-all text-sm text-muted-foreground">
+                            {source.locator}
+                          </p>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          <VisibilityBadge visibility={source.visibility} />
+                          {source.isAuthoritative ? (
+                            <Badge variant="primary">
+                              {translateText("Authoritative")}
+                            </Badge>
+                          ) : null}
+                          {source.allowsPublicCitation ? (
+                            <Badge variant="success" appearance="outline">
+                              {translateText("Public citation")}
+                            </Badge>
+                          ) : null}
+                          {source.allowsPublicExcerpt ? (
+                            <Badge variant="outline">
+                              {translateText("Public excerpt")}
+                            </Badge>
+                          ) : null}
+                          <Button asChild variant="outline" size="sm">
+                            <Link to={`/app/sources/${source.id}`}>
+                              <Link2 className="size-4" />
+                              {translateText("Open source")}
+                            </Link>
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() =>
+                              void removeSource.mutateAsync(source.id)
+                            }
+                          >
+                            <Trash2 className="size-4" />
+                            {translateText("Detach")}
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <EmptyState
+                    title="No curated sources yet"
+                    description="Attach authoritative or reusable material that should anchor this space."
+                  />
+                )}
+                <ChildListPagination
+                  page={sourcesPagination.page}
+                  pageSize={sourcesPagination.pageSize}
+                  totalCount={sourcesPagination.totalCount}
+                  onPageChange={sourcesPagination.setPage}
+                  onPageSizeChange={sourcesPagination.setPageSize}
+                />
+                <div className="flex flex-col gap-3 sm:flex-row">
+                  <SearchSelect
+                    value={selectedSourceId}
+                    onValueChange={setSelectedSourceId}
+                    options={sourceOptions}
+                    selectedOption={selectedSourceOption}
+                    placeholder={translateText("Attach existing source")}
+                    searchPlaceholder={translateText("Search sources")}
+                    emptyMessage={
+                      deferredSourceSearch
+                        ? translateText("No sources match this search.")
+                        : translateText("No sources available.")
+                    }
+                    loading={sourceOptionsQuery.isFetching}
+                    searchValue={sourceSearch}
+                    onSearchChange={(value) =>
+                      startTransition(() => setSourceSearch(value))
+                    }
+                    allowClear
+                  />
+                  <Button
+                    disabled={!selectedSourceId || addSource.isPending}
+                    onClick={() =>
+                      addSource
+                        .mutateAsync({
+                          spaceId: id,
+                          sourceId: selectedSourceId,
+                        })
+                        .then(() => setSelectedSourceId(""))
+                    }
+                  >
+                    {translateText("Attach source")}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ) : null}
+
+          {relationshipTab === "questions" ? (
+            <Card>
+              <CardHeader>
+                <CardHeading>
+                  <CardTitle>
+                    {translateText("Questions in this Space")}
+                  </CardTitle>
+                </CardHeading>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {!blocksQuestions ? (
+                  <form
+                    className="rounded-xl border border-primary/15 bg-primary/[0.025] p-4"
+                    onSubmit={(event) => {
+                      event.preventDefault();
+                      const title = newQuestionTitle.trim();
+
+                      if (!title) {
+                        return;
+                      }
+
+                      void createQuestion
+                        .mutateAsync({
+                          spaceId: id,
+                          title,
+                          summary: newQuestionSummary.trim() || undefined,
+                          contextNote: undefined,
+                          status: QuestionStatus.Draft,
+                          visibility: VisibilityScope.Internal,
+                          originChannel: ChannelKind.Manual,
+                          sort: spaceQuestions.length + 1,
+                        })
+                        .then(() => {
+                          setNewQuestionTitle("");
+                          setNewQuestionSummary("");
+                        });
+                    }}
+                  >
+                    <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto]">
+                      <div className="space-y-3">
+                        <div>
+                          <p className="text-sm font-semibold text-mono">
+                            {translateText("Create question in this Space")}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            {translateText(
+                              "Capture the thread here so it inherits this Space's intake and visibility rules.",
+                            )}
+                          </p>
+                        </div>
+                        <Input
+                          value={newQuestionTitle}
+                          onChange={(event) =>
+                            setNewQuestionTitle(event.target.value)
+                          }
+                          placeholder={translateText("Question title")}
+                          aria-label={translateText("Question title")}
+                        />
+                        <Textarea
+                          value={newQuestionSummary}
+                          onChange={(event) =>
+                            setNewQuestionSummary(event.target.value)
+                          }
+                          placeholder={translateText("Optional summary")}
+                          aria-label={translateText("Question summary")}
+                          rows={3}
+                        />
+                      </div>
+                      <div className="flex items-end">
+                        <Button
+                          type="submit"
+                          disabled={
+                            !newQuestionTitle.trim() || createQuestion.isPending
+                          }
+                        >
+                          <Plus className="size-4" />
+                          {translateText("Create question")}
+                        </Button>
+                      </div>
+                    </div>
+                  </form>
+                ) : null}
+                {spaceQuestions.length ? (
+                  questionsPagination.pagedItems.map((question) => (
                     <div
-                      key={source.id}
+                      key={question.id}
                       className="flex flex-col gap-3 rounded-lg border border-border bg-muted/10 p-4 sm:flex-row sm:items-start sm:justify-between"
                     >
                       <div className="min-w-0">
-                        <p className="font-medium text-mono">
-                          {source.label || translateText("Untitled source")}
+                        <Link
+                          to={`/app/questions/${question.id}`}
+                          className="font-medium text-mono hover:text-primary"
+                        >
+                          {question.title}
+                        </Link>
+                        <p className="mt-1 text-sm text-muted-foreground">
+                          {question.summary ||
+                            translateText("No summary provided.")}
                         </p>
-                        <p className="mt-1 break-all text-sm text-muted-foreground">
-                          {source.locator}
-                        </p>
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          {!question.acceptedAnswerId &&
+                          question.status !== QuestionStatus.Duplicate ? (
+                            <Badge variant="warning" appearance="outline">
+                              {translateText("Needs answer decision")}
+                            </Badge>
+                          ) : null}
+                          {question.duplicateOfQuestionId ? (
+                            <Badge variant="mono" appearance="outline">
+                              {translateText("Duplicate")}
+                            </Badge>
+                          ) : null}
+                        </div>
                       </div>
-                      <div className="flex flex-wrap gap-2">
-                        <VisibilityBadge visibility={source.visibility} />
-                        {source.isAuthoritative ? (
-                          <Badge variant="primary">
-                            {translateText("Authoritative")}
-                          </Badge>
-                        ) : null}
-                        {source.allowsPublicCitation ? (
-                          <Badge variant="success" appearance="outline">
-                            {translateText("Public citation")}
-                          </Badge>
-                        ) : null}
-                        {source.allowsPublicExcerpt ? (
-                          <Badge variant="outline">
-                            {translateText("Public excerpt")}
-                          </Badge>
-                        ) : null}
+                      <div className="flex shrink-0 flex-col gap-2 sm:items-end">
+                        <QuestionStatusBadge status={question.status} />
                         <Button asChild variant="outline" size="sm">
-                          <Link to={`/app/sources/${source.id}`}>
-                            <Link2 className="size-4" />
-                            {translateText("Open source")}
+                          <Link to={`/app/questions/${question.id}`}>
+                            {translateText("Open thread")}
                           </Link>
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() =>
-                            void removeSource.mutateAsync(source.id)
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <EmptyState
+                    title="No questions yet"
+                    description={
+                      blocksQuestions
+                        ? "Question intake is disabled for this space."
+                        : "Create the first thread in this space to start the QnA workflow."
+                    }
+                  />
+                )}
+                <ChildListPagination
+                  page={questionsPagination.page}
+                  pageSize={questionsPagination.pageSize}
+                  totalCount={questionsPagination.totalCount}
+                  isFetching={questionQuery.isFetching}
+                  onPageChange={questionsPagination.setPage}
+                  onPageSizeChange={questionsPagination.setPageSize}
+                />
+              </CardContent>
+            </Card>
+          ) : null}
+
+          {relationshipTab === "activity" ? (
+            <Card>
+              <CardHeader>
+                <CardHeading>
+                  <CardTitle className="flex items-center gap-2">
+                    <span>{translateText("Activity in this Space")}</span>
+                    <Badge variant="outline">
+                      {translateText("{count} events", {
+                        count: contextualActivity.length,
+                      })}
+                    </Badge>
+                  </CardTitle>
+                </CardHeading>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {contextualActivity.length ? (
+                  activityPagination.pagedItems.map((event) => (
+                    <div
+                      key={event.id}
+                      className="flex flex-col gap-3 rounded-lg border border-border bg-muted/10 p-4 sm:flex-row sm:items-start sm:justify-between"
+                    >
+                      <div className="min-w-0 space-y-2">
+                        <div className="flex flex-wrap gap-2">
+                          <ActivityKindBadge kind={event.kind} />
+                          <ActorKindBadge kind={event.actorKind} />
+                        </div>
+                        <p className="line-clamp-2 text-sm text-muted-foreground">
+                          {event.notes || event.actorLabel || event.userPrint}
+                        </p>
+                      </div>
+                      <Button asChild variant="outline" size="sm">
+                        <Link
+                          to={
+                            event.answerId
+                              ? `/app/answers/${event.answerId}`
+                              : `/app/questions/${event.questionId}`
                           }
                         >
-                          <Trash2 className="size-4" />
-                          {translateText("Detach")}
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <EmptyState
-                  title="No curated sources yet"
-                  description="Attach authoritative or reusable material that should anchor this space."
-                />
-              )}
-              <div className="flex flex-col gap-3 sm:flex-row">
-                <Select
-                  value={selectedSourceId}
-                  onValueChange={setSelectedSourceId}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue
-                      placeholder={translateText("Attach existing source")}
-                    />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {availableSources.map((source) => (
-                      <SelectItem key={source.id} value={source.id}>
-                        {source.label || source.locator}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Button
-                  disabled={!selectedSourceId || addSource.isPending}
-                  onClick={() =>
-                    addSource
-                      .mutateAsync({ spaceId: id, sourceId: selectedSourceId })
-                      .then(() => setSelectedSourceId(""))
-                  }
-                >
-                  {translateText("Attach source")}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardHeading>
-                <CardTitle>{translateText("Questions in this Space")}</CardTitle>
-              </CardHeading>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {spaceQuestions.length ? (
-                spaceQuestions.map((question) => (
-                  <div
-                    key={question.id}
-                    className="flex flex-col gap-3 rounded-lg border border-border bg-muted/10 p-4 sm:flex-row sm:items-start sm:justify-between"
-                  >
-                    <div className="min-w-0">
-                      <Link
-                        to={`/app/questions/${question.id}`}
-                        className="font-medium text-mono hover:text-primary"
-                      >
-                        {question.title}
-                      </Link>
-                      <p className="mt-1 text-sm text-muted-foreground">
-                        {question.summary ||
-                          translateText("No summary provided.")}
-                      </p>
-                      <div className="mt-2 flex flex-wrap gap-2">
-                        {!question.acceptedAnswerId &&
-                        question.status !== QuestionStatus.Duplicate ? (
-                          <Badge variant="warning" appearance="outline">
-                            {translateText("Needs answer decision")}
-                          </Badge>
-                        ) : null}
-                        {question.duplicateOfQuestionId ? (
-                          <Badge variant="mono" appearance="outline">
-                            {translateText("Duplicate")}
-                          </Badge>
-                        ) : null}
-                      </div>
-                    </div>
-                    <div className="flex shrink-0 flex-col gap-2 sm:items-end">
-                      <QuestionStatusBadge status={question.status} />
-                      <Button asChild variant="outline" size="sm">
-                        <Link to={`/app/questions/${question.id}`}>
-                          {translateText("Open thread")}
+                          <Activity className="size-4" />
+                          {translateText("Open context")}
                         </Link>
                       </Button>
                     </div>
-                  </div>
-                ))
-              ) : (
-                <EmptyState
-                  title="No questions yet"
-                  description={
-                    blocksQuestions
-                      ? "Question intake is disabled for this space."
-                      : "Create the first thread in this space to start the QnA workflow."
-                  }
-                  action={
-                    blocksQuestions
-                      ? undefined
-                      : {
-                          label: "New question",
-                          to: `/app/questions/new?spaceId=${id}`,
-                        }
-                  }
+                  ))
+                ) : (
+                  <EmptyState
+                    title="No contextual activity yet"
+                    description="Activity appears here after questions in this Space receive workflow changes, moderation, votes, feedback, or reports."
+                  />
+                )}
+                <ChildListPagination
+                  page={activityPagination.page}
+                  pageSize={activityPagination.pageSize}
+                  totalCount={activityPagination.totalCount}
+                  isFetching={activityQuery.isFetching}
+                  onPageChange={activityPagination.setPage}
+                  onPageSizeChange={activityPagination.setPageSize}
                 />
-              )}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardHeading>
-                <CardTitle className="flex items-center gap-2">
-                  <span>{translateText("Activity in this Space")}</span>
-                  <Badge variant="outline">
-                    {translateText("{count} events", {
-                      count: contextualActivity.length,
-                    })}
-                  </Badge>
-                </CardTitle>
-              </CardHeading>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {contextualActivity.length ? (
-                contextualActivity.slice(0, 6).map((event) => (
-                  <div
-                    key={event.id}
-                    className="flex flex-col gap-3 rounded-lg border border-border bg-muted/10 p-4 sm:flex-row sm:items-start sm:justify-between"
-                  >
-                    <div className="min-w-0 space-y-2">
-                      <div className="flex flex-wrap gap-2">
-                        <ActivityKindBadge kind={event.kind} />
-                        <ActorKindBadge kind={event.actorKind} />
-                      </div>
-                      <p className="line-clamp-2 text-sm text-muted-foreground">
-                        {event.notes || event.actorLabel || event.userPrint}
-                      </p>
-                    </div>
-                    <Button asChild variant="outline" size="sm">
-                      <Link
-                        to={
-                          event.answerId
-                            ? `/app/answers/${event.answerId}`
-                            : `/app/questions/${event.questionId}`
-                        }
-                      >
-                        <Activity className="size-4" />
-                        {translateText("Open context")}
-                      </Link>
-                    </Button>
-                  </div>
-                ))
-              ) : (
-                <EmptyState
-                  title="No contextual activity yet"
-                  description="Activity appears here after questions in this Space receive workflow changes, moderation, votes, feedback, or reports."
-                />
-              )}
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          ) : null}
         </>
       ) : null}
     </DetailLayout>

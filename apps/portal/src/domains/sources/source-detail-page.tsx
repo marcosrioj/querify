@@ -1,4 +1,12 @@
-import { ExternalLink, Pencil, Trash2 } from "lucide-react";
+import { useState } from "react";
+import {
+  CheckCircle2,
+  ExternalLink,
+  FolderKanban,
+  MessageSquareText,
+  Pencil,
+  Trash2,
+} from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { QnaModuleNav } from "@/domains/qna/qna-module-nav";
 import { usePortalTimeZone } from "@/domains/settings/settings-hooks";
@@ -10,6 +18,8 @@ import {
   SectionGrid,
 } from "@/shared/layout/page-layouts";
 import {
+  ActionButton,
+  ActionPanel,
   Button,
   Card,
   CardContent,
@@ -32,6 +42,7 @@ export function SourceDetailPage() {
   const { id } = useParams();
   const sourceQuery = useSource(id);
   const deleteSource = useDeleteSource();
+  const [relationshipTab, setRelationshipTab] = useState("spaces");
 
   if (!id) {
     return (
@@ -45,59 +56,47 @@ export function SourceDetailPage() {
   return (
     <DetailLayout
       header={
-        <>
-          <PageHeader
-            title={sourceQuery.data?.label || "Source"}
-            description="Review trust metadata, public-use rules, and connector identifiers for this reusable source."
-            descriptionMode="hint"
-            backTo="/app/sources"
-          />
-          <QnaModuleNav
-            activeKey="sources"
-            intent="Use this source as evidence only when its locator, trust level, and public-use rules match the parent space or thread."
-          />
-        </>
+        <PageHeader
+          title={sourceQuery.data?.label || "Source"}
+          description="Review trust metadata, public-use rules, and connector identifiers for this reusable source."
+          descriptionMode="hint"
+          backTo="/app/sources"
+        />
       }
       sidebar={
         <>
-          <Card>
-            <CardContent className="grid grid-cols-2 gap-2 p-3">
-              <Button asChild size="sm" className="w-full justify-start">
-                <Link to={`/app/sources/${id}/edit`}>
-                  <Pencil className="size-4" />
-                  {translateText("Edit")}
-                </Link>
-              </Button>
-              <ConfirmAction
-                title={translateText('Delete source "{name}"?', {
-                  name:
-                    sourceQuery.data?.label ||
-                    sourceQuery.data?.locator ||
-                    translateText("this source"),
-                })}
-                description={translateText(
-                  "This removes the source from the portal catalog and future linking flows.",
-                )}
-                confirmLabel={translateText("Delete source")}
-                isPending={deleteSource.isPending}
-                onConfirm={() =>
-                  deleteSource
-                    .mutateAsync(id)
-                    .then(() => navigate("/app/sources"))
-                }
-                trigger={
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    className="col-span-2 w-full justify-start"
-                  >
-                    <Trash2 className="size-4" />
-                    {translateText("Delete")}
-                  </Button>
-                }
-              />
-            </CardContent>
-          </Card>
+          <ActionPanel description="Source actions and risk controls.">
+            <ActionButton asChild tone="primary">
+              <Link to={`/app/sources/${id}/edit`}>
+                <Pencil className="size-4" />
+                {translateText("Edit")}
+              </Link>
+            </ActionButton>
+            <ConfirmAction
+              title={translateText('Delete source "{name}"?', {
+                name:
+                  sourceQuery.data?.label ||
+                  sourceQuery.data?.locator ||
+                  translateText("this source"),
+              })}
+              description={translateText(
+                "This removes the source from the portal catalog and future linking flows.",
+              )}
+              confirmLabel={translateText("Delete source")}
+              isPending={deleteSource.isPending}
+              onConfirm={() =>
+                deleteSource
+                  .mutateAsync(id)
+                  .then(() => navigate("/app/sources"))
+              }
+              trigger={
+                <ActionButton tone="danger">
+                  <Trash2 className="size-4" />
+                  {translateText("Delete")}
+                </ActionButton>
+              }
+            />
+          </ActionPanel>
           {sourceQuery.isLoading ? (
             <SidebarSummarySkeleton />
           ) : sourceQuery.data ? (
@@ -218,10 +217,45 @@ export function SourceDetailPage() {
               ) : null}
             </CardContent>
           </Card>
+
+          <QnaModuleNav
+            eyebrow="Source relationships"
+            activeKey={relationshipTab}
+            onActiveKeyChange={setRelationshipTab}
+            items={[
+              {
+                key: "spaces",
+                label: "Spaces",
+                description:
+                  "Spaces curating this source as reusable evidence.",
+                icon: FolderKanban,
+                count: sourceQuery.data?.spaceUsageCount ?? 0,
+              },
+              {
+                key: "questions",
+                label: "Questions",
+                description:
+                  "Questions linked to this source for context or origin.",
+                icon: MessageSquareText,
+                count: sourceQuery.data?.questionUsageCount ?? 0,
+              },
+              {
+                key: "answers",
+                label: "Answers",
+                description:
+                  "Answers citing this source as supporting evidence.",
+                icon: CheckCircle2,
+                count: sourceQuery.data?.answerUsageCount ?? 0,
+              },
+            ]}
+          />
+
           <Card>
             <CardHeader>
               <CardHeading>
-                <CardTitle>{translateText("Metadata")}</CardTitle>
+                <CardTitle>
+                  {translateText("Usage impact and metadata")}
+                </CardTitle>
               </CardHeading>
             </CardHeader>
             <CardContent className="space-y-4">

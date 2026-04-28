@@ -111,7 +111,9 @@ export function TenantSwitcher() {
               {t("No workspaces available")}
             </p>
             <p className="mt-1 text-xs text-muted-foreground">
-              {t("Add or request access to a workspace to enable Portal features.")}
+              {t(
+                "Add or request access to a workspace to enable Portal features.",
+              )}
             </p>
           </div>
         </div>
@@ -163,7 +165,7 @@ export function TenantSwitcher() {
       <PopoverContent
         align="start"
         sideOffset={8}
-        className="w-[min(24rem,calc(100vw-1.5rem))] overflow-hidden rounded-2xl border-border/80 bg-background p-0 shadow-[0_20px_60px_-24px_rgba(15,23,42,0.38)] ring-1 ring-black/5"
+        className="w-[min(24rem,calc(100vw-1.5rem))] overflow-hidden rounded-2xl border-border/80 bg-background p-0 shadow-[var(--shadow-premium-elevated)] ring-1 ring-black/5 dark:ring-white/[0.035]"
       >
         <Command className="[&_[cmdk-input-wrapper]]:mx-3 [&_[cmdk-input-wrapper]]:mb-3 [&_[cmdk-input-wrapper]]:mt-3 [&_[cmdk-input-wrapper]]:rounded-xl [&_[cmdk-input-wrapper]]:border [&_[cmdk-input-wrapper]]:border-border/70 [&_[cmdk-input-wrapper]]:bg-muted/30 [&_[cmdk-input-wrapper]]:px-3 [&_[cmdk-input-wrapper]_svg]:size-4 [&_[cmdk-input-wrapper]_svg]:text-muted-foreground [&_[cmdk-input]]:h-10 [&_[cmdk-input]]:py-0">
           <div className="border-b border-border/70 bg-muted/20 px-4 py-3.5">

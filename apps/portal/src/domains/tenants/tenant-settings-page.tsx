@@ -34,6 +34,7 @@ import {
   CardHeading,
   CardTitle,
   CardToolbar,
+  ConfirmAction,
   Form,
 } from '@/shared/ui';
 import { SelectField, TextField } from '@/shared/ui/form-fields';
@@ -248,15 +249,23 @@ export function TenantSettingsPage() {
                   translateText('No client key has been generated yet.')}
               </p>
             </div>
-            <Button
-              variant="outline"
-              disabled={!canManageTenant || regenerateClientKey.isPending}
-              onClick={() => {
-                void regenerateClientKey.mutateAsync();
-              }}
-            >
-              {translateText('Generate new client key')}
-            </Button>
+            <ConfirmAction
+              title={translateText('Generate a new public client key?')}
+              description={translateText(
+                'Existing embeds, previews, or public integrations using the current key may need to be updated after this change.',
+              )}
+              confirmLabel={translateText('Generate key')}
+              isPending={regenerateClientKey.isPending}
+              onConfirm={() => regenerateClientKey.mutateAsync()}
+              trigger={
+                <Button
+                  variant="outline"
+                  disabled={!canManageTenant || regenerateClientKey.isPending}
+                >
+                  {translateText('Generate new client key')}
+                </Button>
+              }
+            />
           </CardContent>
         </Card>
       </div>

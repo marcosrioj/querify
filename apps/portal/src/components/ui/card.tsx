@@ -25,13 +25,13 @@ const useCardContext = () => {
 
 // Variants
 const cardVariants = cva(
-  "flex flex-col items-stretch rounded-lg text-card-foreground",
+  "flex flex-col items-stretch rounded-xl text-card-foreground",
   {
     variants: {
       variant: {
         default:
-          "border border-border/70 bg-card shadow-[0_18px_50px_-34px_rgba(24,24,27,0.38)] ring-1 ring-black/[0.015]",
-        accent: "bg-muted shadow-xs p-1",
+          "border border-border/70 bg-card shadow-[var(--shadow-premium-card)] ring-1 ring-black/[0.015] dark:ring-white/[0.035]",
+        accent: "bg-muted/60 shadow-xs p-1",
       },
     },
     defaultVariants: {
@@ -59,7 +59,7 @@ const cardContentVariants = cva("grow p-5", {
   variants: {
     variant: {
       default: "",
-      accent: "bg-card rounded-t-lg [&:last-child]:rounded-b-lg",
+      accent: "bg-card rounded-t-xl [&:last-child]:rounded-b-xl",
     },
   },
   defaultVariants: {
@@ -71,7 +71,7 @@ const cardTableVariants = cva("grid grow", {
   variants: {
     variant: {
       default: "",
-      accent: "bg-card rounded-lg",
+      accent: "bg-card rounded-xl",
     },
   },
   defaultVariants: {
