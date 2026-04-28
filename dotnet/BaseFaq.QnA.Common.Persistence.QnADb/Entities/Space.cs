@@ -11,7 +11,7 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Entities;
 public class Space : BaseEntity, IMustHaveTenant
 {
     public const int MaxNameLength = 200;
-    public const int MaxKeyLength = 160;
+    public const int MaxSlugLength = 160;
     public const int MaxSummaryLength = 2000;
     public const int MaxLanguageLength = 50;
 
@@ -21,9 +21,9 @@ public class Space : BaseEntity, IMustHaveTenant
     public required string Name { get; set; }
 
     /// <summary>
-    ///     Stable key used in routes, APIs, and integrations.
+    ///     Stable slug used in routes, APIs, and integrations.
     /// </summary>
-    public required string Key { get; set; }
+    public required string Slug { get; set; }
 
     /// <summary>
     ///     Description of the type of question and context expected in the space.
@@ -59,11 +59,6 @@ public class Space : BaseEntity, IMustHaveTenant
     ///     Timestamp when the space was published for consumption.
     /// </summary>
     public DateTime? PublishedAtUtc { get; set; }
-
-    /// <summary>
-    ///     Timestamp of the last operational or editorial validation of the space.
-    /// </summary>
-    public DateTime? LastValidatedAtUtc { get; set; }
 
     /// <summary>
     ///     Questions that belong to the space.

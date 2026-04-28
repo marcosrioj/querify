@@ -11,7 +11,7 @@ public class QuestionGetAllRequestDto : PagedAndSortedResultRequestDto
     public Guid? DuplicateOfQuestionId { get; set; }
     public QuestionStatus? Status { get; set; }
     public VisibilityScope? Visibility { get; set; }
-    public string? SpaceKey { get; set; }
+    public string? SpaceSlug { get; set; }
     public bool IncludeAnswers { get; set; }
     public bool IncludeTags { get; set; }
     public bool IncludeSources { get; set; }

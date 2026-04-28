@@ -43,8 +43,8 @@ public sealed class QuestionsGetQuestionListQueryHandler(
         if (request.Request.SpaceId is not null)
             query = query.Where(question => question.SpaceId == request.Request.SpaceId);
 
-        if (!string.IsNullOrWhiteSpace(request.Request.SpaceKey))
-            query = query.Where(question => question.Space.Key == request.Request.SpaceKey);
+        if (!string.IsNullOrWhiteSpace(request.Request.SpaceSlug))
+            query = query.Where(question => question.Space.Slug == request.Request.SpaceSlug);
 
         query = request.Request.Sorting?.Trim().ToLowerInvariant() switch
         {

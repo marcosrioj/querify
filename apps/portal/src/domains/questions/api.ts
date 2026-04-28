@@ -23,7 +23,7 @@ export function listQuestions(
     duplicateOfQuestionId,
     status,
     visibility,
-    spaceKey,
+    spaceSlug,
     includeAnswers,
     includeTags,
     includeSources,
@@ -38,7 +38,7 @@ export function listQuestions(
     duplicateOfQuestionId?: string;
     status?: number;
     visibility?: number;
-    spaceKey?: string;
+    spaceSlug?: string;
     includeAnswers?: boolean;
     includeTags?: boolean;
     includeSources?: boolean;
@@ -58,7 +58,7 @@ export function listQuestions(
       DuplicateOfQuestionId: duplicateOfQuestionId,
       Status: status,
       Visibility: visibility,
-      SpaceKey: spaceKey,
+      SpaceSlug: spaceSlug,
       IncludeAnswers: includeAnswers,
       IncludeTags: includeTags,
       IncludeSources: includeSources,

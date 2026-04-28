@@ -19,7 +19,7 @@ public static class QnAReadModelMappings
             Id = entity.Id,
             TenantId = entity.TenantId,
             SpaceId = entity.SpaceId,
-            SpaceKey = GetRequiredSpaceKey(entity),
+            SpaceSlug = GetRequiredSpaceSlug(entity),
             Title = entity.Title,
             Summary = entity.Summary,
             ContextNote = entity.ContextNote,
@@ -44,7 +44,7 @@ public static class QnAReadModelMappings
             Id = entity.Id,
             TenantId = entity.TenantId,
             SpaceId = entity.SpaceId,
-            SpaceKey = GetRequiredSpaceKey(entity),
+            SpaceSlug = GetRequiredSpaceSlug(entity),
             Title = entity.Title,
             Summary = entity.Summary,
             ContextNote = entity.ContextNote,
@@ -107,7 +107,7 @@ public static class QnAReadModelMappings
             Id = entity.Id,
             TenantId = entity.TenantId,
             SpaceId = entity.SpaceId,
-            SpaceKey = GetRequiredSpaceKey(entity),
+            SpaceSlug = GetRequiredSpaceSlug(entity),
             Title = entity.Title,
             Summary = entity.Summary,
             ContextNote = entity.ContextNote,
@@ -160,7 +160,7 @@ public static class QnAReadModelMappings
             Id = entity.Id,
             TenantId = entity.TenantId,
             Name = entity.Name,
-            Key = entity.Key,
+            Slug = entity.Slug,
             Summary = entity.Summary,
             Language = entity.Language,
             Kind = entity.Kind,
@@ -168,7 +168,6 @@ public static class QnAReadModelMappings
             AcceptsQuestions = entity.AcceptsQuestions,
             AcceptsAnswers = entity.AcceptsAnswers,
             PublishedAtUtc = entity.PublishedAtUtc,
-            LastValidatedAtUtc = entity.LastValidatedAtUtc,
             QuestionCount = entity.Questions.Count
         };
     }
@@ -308,10 +307,10 @@ public static class QnAReadModelMappings
             entity.MetadataJson);
     }
 
-    private static string GetRequiredSpaceKey(Question entity)
+    private static string GetRequiredSpaceSlug(Question entity)
     {
-        return !string.IsNullOrWhiteSpace(entity.Space?.Key)
-            ? entity.Space.Key
-            : throw new InvalidOperationException($"Question '{entity.Id}' is missing the required space key.");
+        return !string.IsNullOrWhiteSpace(entity.Space?.Slug)
+            ? entity.Space.Slug
+            : throw new InvalidOperationException($"Question '{entity.Id}' is missing the required space slug.");
     }
 }

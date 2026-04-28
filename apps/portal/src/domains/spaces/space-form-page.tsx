@@ -63,14 +63,13 @@ export function SpaceFormPage({ mode }: { mode: "create" | "edit" }) {
     resolver: zodResolver(spaceFormSchema),
     defaultValues: {
       name: "",
-      key: "",
+      slug: "",
       language: initialLanguage,
       summary: "",
       kind: SpaceKind.ControlledPublication,
       visibility: VisibilityScope.Internal,
       acceptsQuestions: true,
       acceptsAnswers: true,
-      markValidated: false,
     },
   });
 
@@ -81,14 +80,13 @@ export function SpaceFormPage({ mode }: { mode: "create" | "edit" }) {
 
     form.reset({
       name: spaceQuery.data.name,
-      key: spaceQuery.data.key,
+      slug: spaceQuery.data.slug,
       language: spaceQuery.data.language,
       summary: spaceQuery.data.summary ?? "",
       kind: spaceQuery.data.kind,
       visibility: spaceQuery.data.visibility,
       acceptsQuestions: spaceQuery.data.acceptsQuestions,
       acceptsAnswers: spaceQuery.data.acceptsAnswers,
-      markValidated: false,
     });
   }, [form, spaceQuery.data]);
 
@@ -207,10 +205,10 @@ export function SpaceFormPage({ mode }: { mode: "create" | "edit" }) {
                   />
                   <TextField
                     control={form.control}
-                    name="key"
-                    label="Key"
+                    name="slug"
+                    label="Slug"
                     placeholder="product-support"
-                    description="Use a stable slug-style key for routing and integrations."
+                    description="Use a stable slug for routing and integrations."
                   />
                 </div>
                 <div className="grid gap-4 md:grid-cols-2">
@@ -284,12 +282,6 @@ export function SpaceFormPage({ mode }: { mode: "create" | "edit" }) {
                     name="acceptsAnswers"
                     label="Accept answers"
                     description="Disable this if questions should route elsewhere instead of collecting answers."
-                  />
-                  <SwitchField
-                    control={form.control}
-                    name="markValidated"
-                    label="Mark validated now"
-                    description="Use this when the operational setup is already trusted enough to count as validated."
                   />
                 </div>
                 <div className="flex flex-wrap items-center gap-3">

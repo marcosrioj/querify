@@ -11,7 +11,7 @@ public static class TestDataFactory
         QnADbContext dbContext,
         Guid tenantId,
         string? name = null,
-        string? key = null,
+        string? slug = null,
         VisibilityScope visibility = VisibilityScope.Internal,
         bool acceptsQuestions = true,
         bool acceptsAnswers = true)
@@ -20,7 +20,7 @@ public static class TestDataFactory
         {
             TenantId = tenantId,
             Name = name ?? "Support Questions",
-            Key = key ?? $"space-{Guid.NewGuid():N}".Substring(0, 12),
+            Slug = slug ?? $"space-{Guid.NewGuid():N}".Substring(0, 12),
             Language = "en-US",
             Kind = SpaceKind.ControlledPublication,
             Summary = "Support knowledge",

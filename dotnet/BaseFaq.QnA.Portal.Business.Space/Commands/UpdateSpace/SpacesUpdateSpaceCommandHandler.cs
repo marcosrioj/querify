@@ -41,7 +41,7 @@ public sealed class SpacesUpdateSpaceCommandHandler(
         string userId)
     {
         entity.Name = request.Name;
-        entity.Key = request.Key;
+        entity.Slug = request.Slug;
         entity.Language = request.Language;
         entity.Summary = request.Summary;
         entity.AcceptsQuestions = request.AcceptsQuestions;
@@ -52,8 +52,6 @@ public sealed class SpacesUpdateSpaceCommandHandler(
             request.Visibility is VisibilityScope.Public or VisibilityScope.PublicIndexed
                 ? entity.PublishedAtUtc ?? DateTime.UtcNow
                 : null;
-
-        if (request.MarkValidated) entity.LastValidatedAtUtc = DateTime.UtcNow;
 
         entity.UpdatedBy = userId;
     }

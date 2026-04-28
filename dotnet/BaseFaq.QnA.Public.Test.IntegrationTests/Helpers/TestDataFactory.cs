@@ -11,14 +11,14 @@ public static class TestDataFactory
         QnADbContext dbContext,
         Guid tenantId,
         string? name = null,
-        string? key = null,
+        string? slug = null,
         VisibilityScope visibility = VisibilityScope.PublicIndexed)
     {
         var entity = new Space
         {
             TenantId = tenantId,
             Name = name ?? "Public Support",
-            Key = key ?? $"public-{Guid.NewGuid():N}".Substring(0, 12),
+            Slug = slug ?? $"public-{Guid.NewGuid():N}".Substring(0, 12),
             Language = "en-US",
             Kind = SpaceKind.PublicValidation,
             Summary = "Public knowledge",

@@ -22,7 +22,7 @@ public sealed class SpacesCreateSpaceCommandHandler(
         {
             TenantId = tenantId,
             Name = request.Request.Name,
-            Key = request.Request.Key,
+            Slug = request.Request.Slug,
             Language = request.Request.Language,
             Kind = request.Request.Kind,
             Visibility = request.Request.Visibility,
@@ -45,7 +45,7 @@ public sealed class SpacesCreateSpaceCommandHandler(
         string userId)
     {
         entity.Name = request.Name;
-        entity.Key = request.Key;
+        entity.Slug = request.Slug;
         entity.Language = request.Language;
         entity.Summary = request.Summary;
         entity.AcceptsQuestions = request.AcceptsQuestions;
@@ -56,8 +56,6 @@ public sealed class SpacesCreateSpaceCommandHandler(
             request.Visibility is VisibilityScope.Public or VisibilityScope.PublicIndexed
                 ? DateTime.UtcNow
                 : null;
-
-        if (request.MarkValidated) entity.LastValidatedAtUtc = DateTime.UtcNow;
 
         entity.UpdatedBy = userId;
     }

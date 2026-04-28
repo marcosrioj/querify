@@ -53,12 +53,12 @@ import {
 } from "@/shared/ui/form-fields";
 import { translateText } from "@/shared/lib/i18n-core";
 
-function buildSpaceOption(space: { id: string; name: string; key: string }) {
+function buildSpaceOption(space: { id: string; name: string; slug: string }) {
   return {
     value: space.id,
     label: space.name,
-    description: space.key,
-    keywords: [space.name, space.key],
+    description: space.slug,
+    keywords: [space.name, space.slug],
   };
 }
 

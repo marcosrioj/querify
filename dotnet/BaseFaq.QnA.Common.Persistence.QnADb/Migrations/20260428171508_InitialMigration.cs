@@ -68,7 +68,7 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Name = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
-                    Key = table.Column<string>(type: "character varying(160)", maxLength: 160, nullable: false),
+                    Slug = table.Column<string>(type: "character varying(160)", maxLength: 160, nullable: false),
                     Summary = table.Column<string>(type: "character varying(2000)", maxLength: 2000, nullable: true),
                     Language = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
                     Kind = table.Column<int>(type: "integer", nullable: false),
@@ -76,7 +76,6 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
                     AcceptsQuestions = table.Column<bool>(type: "boolean", nullable: false),
                     AcceptsAnswers = table.Column<bool>(type: "boolean", nullable: false),
                     PublishedAtUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    LastValidatedAtUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     TenantId = table.Column<Guid>(type: "uuid", nullable: false),
                     CreatedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     CreatedBy = table.Column<string>(type: "text", nullable: true),
@@ -539,9 +538,9 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
                 column: "TenantId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Space_TenantId_Key",
+                name: "IX_Space_TenantId_Slug",
                 table: "Spaces",
-                columns: new[] { "TenantId", "Key" },
+                columns: new[] { "TenantId", "Slug" },
                 unique: true);
 
             migrationBuilder.CreateIndex(

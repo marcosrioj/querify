@@ -17,8 +17,8 @@ public class SpaceConfiguration : BaseConfiguration<Space>
             .HasMaxLength(Space.MaxNameLength)
             .IsRequired();
 
-        builder.Property(space => space.Key)
-            .HasMaxLength(Space.MaxKeyLength)
+        builder.Property(space => space.Slug)
+            .HasMaxLength(Space.MaxSlugLength)
             .IsRequired();
 
         builder.Property(space => space.Summary)
@@ -31,8 +31,8 @@ public class SpaceConfiguration : BaseConfiguration<Space>
         builder.Property(space => space.TenantId)
             .IsRequired();
 
-        builder.HasIndex(space => new { space.TenantId, space.Key })
-            .HasDatabaseName("IX_Space_TenantId_Key")
+        builder.HasIndex(space => new { space.TenantId, space.Slug })
+            .HasDatabaseName("IX_Space_TenantId_Slug")
             .IsUnique();
 
         builder.HasMany(space => space.Questions)

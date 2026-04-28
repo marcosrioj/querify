@@ -28,7 +28,7 @@ public sealed class SpacesGetSpaceListQueryHandler(
         if (!string.IsNullOrWhiteSpace(request.Request.SearchText))
             query = query.Where(space =>
                 EF.Functions.ILike(space.Name, $"%{request.Request.SearchText}%") ||
-                EF.Functions.ILike(space.Key, $"%{request.Request.SearchText}%"));
+                EF.Functions.ILike(space.Slug, $"%{request.Request.SearchText}%"));
 
         if (request.Request.Visibility is not null)
             query = query.Where(space => space.Visibility == request.Request.Visibility);
@@ -44,8 +44,8 @@ public sealed class SpacesGetSpaceListQueryHandler(
         query = request.Request.Sorting?.Trim().ToLowerInvariant() switch
         {
             "name desc" => query.OrderByDescending(space => space.Name),
-            "key" => query.OrderBy(space => space.Key),
-            "key desc" => query.OrderByDescending(space => space.Key),
+            "slug" => query.OrderBy(space => space.Slug),
+            "slug desc" => query.OrderByDescending(space => space.Slug),
             _ => query.OrderBy(space => space.Name)
         };
 
@@ -63,7 +63,7 @@ public sealed class SpacesGetSpaceListQueryHandler(
                     Id = space.Id,
                     TenantId = space.TenantId,
                     Name = space.Name,
-                    Key = space.Key,
+                    Slug = space.Slug,
                     Summary = space.Summary,
                     Language = space.Language,
                     Kind = space.Kind,
@@ -71,7 +71,6 @@ public sealed class SpacesGetSpaceListQueryHandler(
                     AcceptsQuestions = space.AcceptsQuestions,
                     AcceptsAnswers = space.AcceptsAnswers,
                     PublishedAtUtc = space.PublishedAtUtc,
-                    LastValidatedAtUtc = space.LastValidatedAtUtc,
                     QuestionCount = space.Questions.Count
                 })
                 .ToList());

@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
 {
     [DbContext(typeof(QnADbContext))]
-    [Migration("20260428011824_InitialMigration")]
+    [Migration("20260428171508_InitialMigration")]
     partial class InitialMigration
     {
         /// <inheritdoc />
@@ -632,11 +632,6 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 
-                    b.Property<string>("Key")
-                        .IsRequired()
-                        .HasMaxLength(160)
-                        .HasColumnType("character varying(160)");
-
                     b.Property<int>("Kind")
                         .HasColumnType("integer");
 
@@ -645,9 +640,6 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
-                    b.Property<DateTime?>("LastValidatedAtUtc")
-                        .HasColumnType("timestamp with time zone");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -655,6 +647,11 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
 
                     b.Property<DateTime?>("PublishedAtUtc")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Slug")
+                        .IsRequired()
+                        .HasMaxLength(160)
+                        .HasColumnType("character varying(160)");
 
                     b.Property<string>("Summary")
                         .HasMaxLength(2000)
@@ -680,9 +677,9 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
                     b.HasIndex("TenantId")
                         .HasDatabaseName("IX_Space_TenantId");
 
-                    b.HasIndex("TenantId", "Key")
+                    b.HasIndex("TenantId", "Slug")
                         .IsUnique()
-                        .HasDatabaseName("IX_Space_TenantId_Key");
+                        .HasDatabaseName("IX_Space_TenantId_Slug");
 
                     b.ToTable("Spaces", (string)null);
                 });

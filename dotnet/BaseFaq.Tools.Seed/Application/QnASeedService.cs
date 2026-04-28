@@ -163,7 +163,7 @@ public sealed class QnASeedService : IQnASeedService
             Id = Guid.NewGuid(),
             TenantId = tenantId,
             Name = definition.Name,
-            Key = NormalizeKey(definition.Name, $"space-{index + 1}"),
+            Slug = NormalizeKey(definition.Name, $"space-{index + 1}"),
             Summary = BuildSpaceSummary(definition),
             Language = SeedLanguage,
             Kind = SpaceKind.ModeratedCollaboration,
@@ -171,7 +171,6 @@ public sealed class QnASeedService : IQnASeedService
             AcceptsQuestions = true,
             AcceptsAnswers = true,
             PublishedAtUtc = SeedBaseTimeUtc.AddDays(-(index + 30)),
-            LastValidatedAtUtc = SeedBaseTimeUtc.AddDays(-(index % 7 + 1)),
             CreatedBy = "seed",
             UpdatedBy = "seed"
         };

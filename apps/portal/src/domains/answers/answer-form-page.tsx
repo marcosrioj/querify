@@ -57,13 +57,13 @@ import { translateText } from "@/shared/lib/i18n-core";
 function buildQuestionOption(question: {
   id: string;
   title: string;
-  spaceKey: string;
+  spaceSlug: string;
 }) {
   return {
     value: question.id,
     label: question.title,
-    description: question.spaceKey,
-    keywords: [question.title, question.spaceKey],
+    description: question.spaceSlug,
+    keywords: [question.title, question.spaceSlug],
   };
 }
 

@@ -19,11 +19,11 @@ public class SpaceController(ISpaceService spaceService) : ControllerBase
         return Ok(await spaceService.GetById(id, token));
     }
 
-    [HttpGet("by-key/{key}")]
+    [HttpGet("by-slug/{slug}")]
     [ProducesResponseType(typeof(SpaceDto), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetByKey(string key, CancellationToken token)
+    public async Task<IActionResult> GetBySlug(string slug, CancellationToken token)
     {
-        return Ok(await spaceService.GetByKey(key, token));
+        return Ok(await spaceService.GetBySlug(slug, token));
     }
 
     [HttpGet]

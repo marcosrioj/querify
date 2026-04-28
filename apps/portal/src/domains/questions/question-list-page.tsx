@@ -83,12 +83,12 @@ type QuestionListRow = QuestionDto & {
   tags?: Array<{ id: string }>;
 };
 
-function buildSpaceOption(space: { id: string; name: string; key: string }) {
+function buildSpaceOption(space: { id: string; name: string; slug: string }) {
   return {
     value: space.id,
     label: space.name,
-    description: space.key,
-    keywords: [space.name, space.key],
+    description: space.slug,
+    keywords: [space.name, space.slug],
   };
 }
 
@@ -230,7 +230,7 @@ export function QuestionListPage() {
             {question.title}
           </div>
           <div className="min-w-0 break-words text-sm text-muted-foreground [overflow-wrap:anywhere]">
-            {spaceLookup[question.spaceId] ?? question.spaceKey}
+            {spaceLookup[question.spaceId] ?? question.spaceSlug}
           </div>
           <div className="flex flex-wrap gap-2">
             <ChannelKindBadge kind={question.originChannel} />

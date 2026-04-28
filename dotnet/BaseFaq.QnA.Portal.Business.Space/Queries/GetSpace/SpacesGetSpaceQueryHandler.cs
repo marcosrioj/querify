@@ -37,7 +37,7 @@ public sealed class SpacesGetSpaceQueryHandler(
             Id = entity.Id,
             TenantId = entity.TenantId,
             Name = entity.Name,
-            Key = entity.Key,
+            Slug = entity.Slug,
             Summary = entity.Summary,
             Language = entity.Language,
             Kind = entity.Kind,
@@ -45,7 +45,6 @@ public sealed class SpacesGetSpaceQueryHandler(
             AcceptsQuestions = entity.AcceptsQuestions,
             AcceptsAnswers = entity.AcceptsAnswers,
             PublishedAtUtc = entity.PublishedAtUtc,
-            LastValidatedAtUtc = entity.LastValidatedAtUtc,
             QuestionCount = entity.Questions.Count,
             Tags = entity.Tags
                 .Select(link => link.Tag)

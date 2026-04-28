@@ -13,7 +13,7 @@ export type QuestionDto = {
   id: string;
   tenantId: string;
   spaceId: string;
-  spaceKey: string;
+  spaceSlug: string;
   title: string;
   summary?: string | null;
   contextNote?: string | null;

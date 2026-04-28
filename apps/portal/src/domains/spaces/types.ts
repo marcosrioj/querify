@@ -6,7 +6,7 @@ export type SpaceDto = {
   id: string;
   tenantId: string;
   name: string;
-  key: string;
+  slug: string;
   summary?: string | null;
   language: string;
   kind: SpaceKind;
@@ -14,7 +14,6 @@ export type SpaceDto = {
   acceptsQuestions: boolean;
   acceptsAnswers: boolean;
   publishedAtUtc?: string | null;
-  lastValidatedAtUtc?: string | null;
   questionCount: number;
 };
 
@@ -25,14 +24,13 @@ export type SpaceDetailDto = SpaceDto & {
 
 export type SpaceCreateRequestDto = {
   name: string;
-  key: string;
+  slug: string;
   language: string;
   summary?: string | null;
   kind: SpaceKind;
   visibility: VisibilityScope;
   acceptsQuestions: boolean;
   acceptsAnswers: boolean;
-  markValidated: boolean;
 };
 
 export type SpaceUpdateRequestDto = SpaceCreateRequestDto;

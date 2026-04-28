@@ -21,14 +21,13 @@ public class SpaceCommandQueryTests
             Request = new SpaceCreateRequestDto
             {
                 Name = "Portal Support",
-                Key = "portal-support",
+                Slug = "portal-support",
                 Language = "en-US",
                 Summary = "Support questions for portal users.",
                 Kind = SpaceKind.PublicValidation,
                 Visibility = VisibilityScope.PublicIndexed,
                 AcceptsQuestions = true,
-                AcceptsAnswers = true,
-                MarkValidated = true
+                AcceptsAnswers = true
             }
         }, CancellationToken.None);
 
@@ -37,11 +36,11 @@ public class SpaceCommandQueryTests
             await getHandler.Handle(new SpacesGetSpaceQuery { Id = id }, CancellationToken.None);
 
         Assert.Equal("Portal Support", result.Name);
-        Assert.Equal("portal-support", result.Key);
+        Assert.Equal("portal-support", result.Slug);
         Assert.Equal(VisibilityScope.PublicIndexed, result.Visibility);
         Assert.Equal("en-US", result.Language);
         Assert.Equal(SpaceKind.PublicValidation, result.Kind);
         Assert.True(result.AcceptsQuestions);
-        Assert.NotNull(result.LastValidatedAtUtc);
+        Assert.NotNull(result.PublishedAtUtc);
     }
 }

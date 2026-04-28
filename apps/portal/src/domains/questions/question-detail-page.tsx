@@ -168,13 +168,13 @@ function buildSourceOption(source: {
 function buildQuestionOption(question: {
   id: string;
   title: string;
-  spaceKey?: string;
+  spaceSlug?: string;
 }) {
   return {
     value: question.id,
     label: question.title,
-    description: question.spaceKey,
-    keywords: [question.title, question.spaceKey ?? ""],
+    description: question.spaceSlug,
+    keywords: [question.title, question.spaceSlug ?? ""],
   };
 }
 
@@ -479,7 +479,7 @@ export function QuestionDetailPage() {
                     {
                       label: "Space",
                       value:
-                        spaceQuery.data?.name ?? questionQuery.data.spaceKey,
+                        spaceQuery.data?.name ?? questionQuery.data.spaceSlug,
                     },
                     {
                       label: "Feedback score",

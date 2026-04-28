@@ -34,7 +34,7 @@ public sealed class SpacesGetSpaceListQueryHandler(
         if (!string.IsNullOrWhiteSpace(request.Request.SearchText))
             query = query.Where(space =>
                 EF.Functions.ILike(space.Name, $"%{request.Request.SearchText}%") ||
-                EF.Functions.ILike(space.Key, $"%{request.Request.SearchText}%"));
+                EF.Functions.ILike(space.Slug, $"%{request.Request.SearchText}%"));
 
         query = request.Request.Sorting?.Trim().ToLowerInvariant() switch
         {

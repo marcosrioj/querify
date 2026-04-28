@@ -2,7 +2,7 @@ using BaseFaq.Models.Common.Dtos;
 using BaseFaq.Models.QnA.Dtos.Space;
 using BaseFaq.QnA.Public.Business.Space.Abstractions;
 using BaseFaq.QnA.Public.Business.Space.Queries.GetSpace;
-using BaseFaq.QnA.Public.Business.Space.Queries.GetSpaceByKey;
+using BaseFaq.QnA.Public.Business.Space.Queries.GetSpaceBySlug;
 using BaseFaq.QnA.Public.Business.Space.Queries.GetSpaceList;
 using MediatR;
 
@@ -22,9 +22,9 @@ public sealed class SpaceService(IMediator mediator) : ISpaceService
         return mediator.Send(new SpacesGetSpaceQuery { Id = id }, token);
     }
 
-    public Task<SpaceDto> GetByKey(string key, CancellationToken token)
+    public Task<SpaceDto> GetBySlug(string slug, CancellationToken token)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(key);
-        return mediator.Send(new SpacesGetSpaceByKeyQuery { Key = key }, token);
+        ArgumentException.ThrowIfNullOrWhiteSpace(slug);
+        return mediator.Send(new SpacesGetSpaceBySlugQuery { Slug = slug }, token);
     }
 }

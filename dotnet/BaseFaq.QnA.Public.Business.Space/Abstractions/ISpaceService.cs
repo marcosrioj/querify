@@ -7,5 +7,5 @@ public interface ISpaceService
 {
     Task<PagedResultDto<SpaceDto>> GetAll(SpaceGetAllRequestDto requestDto, CancellationToken token);
     Task<SpaceDto> GetById(Guid id, CancellationToken token);
-    Task<SpaceDto> GetByKey(string key, CancellationToken token);
+    Task<SpaceDto> GetBySlug(string slug, CancellationToken token);
 }

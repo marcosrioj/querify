@@ -10,16 +10,16 @@ using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 
-namespace BaseFaq.QnA.Public.Business.Space.Queries.GetSpaceByKey;
+namespace BaseFaq.QnA.Public.Business.Space.Queries.GetSpaceBySlug;
 
-public sealed class SpacesGetSpaceByKeyQueryHandler(
+public sealed class SpacesGetSpaceBySlugQueryHandler(
     QnADbContext dbContext,
     IClientKeyContextService clientKeyContextService,
     ITenantClientKeyResolver tenantClientKeyResolver,
     IHttpContextAccessor httpContextAccessor)
-    : IRequestHandler<SpacesGetSpaceByKeyQuery, SpaceDto>
+    : IRequestHandler<SpacesGetSpaceBySlugQuery, SpaceDto>
 {
-    public async Task<SpaceDto> Handle(SpacesGetSpaceByKeyQuery request,
+    public async Task<SpaceDto> Handle(SpacesGetSpaceBySlugQuery request,
         CancellationToken cancellationToken)
     {
         var tenantId = await ResolveTenantIdAndSetContextAsync(cancellationToken);
@@ -29,12 +29,12 @@ public sealed class SpacesGetSpaceByKeyQueryHandler(
             .SingleOrDefaultAsync(
                 space =>
                     space.TenantId == tenantId &&
-                    space.Key == request.Key &&
+                    space.Slug == request.Slug &&
                     (space.Visibility == VisibilityScope.Public || space.Visibility == VisibilityScope.PublicIndexed),
                 cancellationToken);
 
         return entity is null
-            ? throw new ApiErrorException($"Space '{request.Key}' was not found.",
+            ? throw new ApiErrorException($"Space '{request.Slug}' was not found.",
                 (int)HttpStatusCode.NotFound)
             : entity.ToSpaceDto();
     }

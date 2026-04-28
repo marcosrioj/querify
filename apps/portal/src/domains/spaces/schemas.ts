@@ -4,10 +4,10 @@ import { numericEnumSchema } from '@/shared/lib/zod';
 
 export const spaceFormSchema = z.object({
   name: z.string().min(2, 'Space name is required.'),
-  key: z
+  slug: z
     .string()
-    .min(2, 'Space key is required.')
-    .max(64, 'Keep the key within the backend limit.'),
+    .min(2, 'Space slug is required.')
+    .max(64, 'Keep the slug within the backend limit.'),
   language: z
     .string()
     .min(2, 'Language is required.')
@@ -17,7 +17,6 @@ export const spaceFormSchema = z.object({
   visibility: numericEnumSchema(VisibilityScope),
   acceptsQuestions: z.boolean(),
   acceptsAnswers: z.boolean(),
-  markValidated: z.boolean(),
 });
 
 export type SpaceFormValues = z.infer<typeof spaceFormSchema>;

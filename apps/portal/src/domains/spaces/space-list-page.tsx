@@ -9,7 +9,6 @@ import {
   Trash2,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-import { usePortalTimeZone } from "@/domains/settings/settings-hooks";
 import { useDeleteSpace, useSpaceList } from "@/domains/spaces/hooks";
 import type { SpaceDto } from "@/domains/spaces/types";
 import {
@@ -24,7 +23,6 @@ import {
   SectionGrid,
 } from "@/shared/layout/page-layouts";
 import { clampPage } from "@/shared/lib/pagination";
-import { formatNumericDateTimeInTimeZone } from "@/shared/lib/time-zone";
 import { useListQueryState } from "@/shared/lib/use-list-query-state";
 import { DataTable, type DataTableColumn } from "@/shared/ui/data-table";
 import { PaginationControls } from "@/shared/ui/pagination-controls";
@@ -46,9 +44,9 @@ import { SpaceKindBadge, VisibilityBadge } from "@/shared/ui/status-badges";
 
 const sortingOptions = [
   { value: "Name ASC", label: "Name A-Z" },
+  { value: "Slug ASC", label: "Slug A-Z" },
   { value: "QuestionCount DESC", label: "Question count" },
   { value: "PublishedAtUtc DESC", label: "Recently published" },
-  { value: "LastValidatedAtUtc DESC", label: "Recently validated" },
 ];
 
 const SPACE_FILTER_DEFAULTS = {
@@ -76,7 +74,6 @@ const spaceModeBuckets = [
 
 export function SpaceListPage() {
   const navigate = useNavigate();
-  const portalTimeZone = usePortalTimeZone();
   const {
     debouncedSearch,
     filters,
@@ -161,7 +158,7 @@ export function SpaceListPage() {
         <div className="space-y-1">
           <div className="font-medium text-mono">{space.name}</div>
           <div className="text-sm text-muted-foreground">
-            {space.key} • {space.language}
+            {space.slug} • {space.language}
           </div>
           {space.summary ? (
             <div className="line-clamp-2 text-sm text-muted-foreground">
@@ -215,19 +212,6 @@ export function SpaceListPage() {
         <div className="text-sm font-medium text-foreground">
           {space.questionCount}
         </div>
-      ),
-    },
-    {
-      key: "validated",
-      header: "Last validated",
-      className: "lg:w-[170px]",
-      cell: (space) => (
-        <span className="text-sm text-muted-foreground">
-          {formatNumericDateTimeInTimeZone(
-            space.lastValidatedAtUtc,
-            portalTimeZone,
-          )}
-        </span>
       ),
     },
     {

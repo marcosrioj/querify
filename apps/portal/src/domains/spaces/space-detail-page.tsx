@@ -334,7 +334,7 @@ export function SpaceDetailPage() {
               <CardContent>
                 <KeyValueList
                   items={[
-                    { label: "Key", value: spaceQuery.data.key },
+                    { label: "Slug", value: spaceQuery.data.slug },
                     { label: "Language", value: spaceQuery.data.language },
                     {
                       label: "Questions",
@@ -422,14 +422,6 @@ export function SpaceDetailPage() {
                       label: "Published at",
                       value: formatOptionalDateTimeInTimeZone(
                         spaceQuery.data.publishedAtUtc,
-                        portalTimeZone,
-                        translateText("Not set"),
-                      ),
-                    },
-                    {
-                      label: "Last validated",
-                      value: formatOptionalDateTimeInTimeZone(
-                        spaceQuery.data.lastValidatedAtUtc,
                         portalTimeZone,
                         translateText("Not set"),
                       ),
