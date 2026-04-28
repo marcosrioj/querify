@@ -85,6 +85,8 @@ Choose `5` when you want to clear only `QnADb`.
 - the tool logs the tenant and module connection info it is using
 - it applies EF Core migrations before seeding
 - it asks for confirmation before appending data into non-empty databases
+- seeded module rows must satisfy the same `DbContext/TenantIntegrity` rules as runtime writes
+- sample data that creates tenant-owned relationships must use referenced records from the same tenant
 
 ## Recommended order of operations
 

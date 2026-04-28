@@ -112,7 +112,7 @@ BaseFAQ uses separate EF Core context boundaries for module data responsibilitie
 | Module | Context | Responsibility |
 |---|---|---|
 | Tenant | `TenantDbContext` | global tenant metadata, users, tenant memberships, module connection mapping, billing, entitlements, and control-plane background-processing state |
-| QnA | `QnADbContext` | tenant-specific QnA module data such as spaces, questions, answers, source links, tag links, workflow state, and activity |
+| QnA | QnA module `DbContext` | tenant-specific QnA module data such as spaces, questions, answers, source links, tag links, workflow state, and activity |
 | Direct | `DirectDbContext` | tenant-specific Direct module data such as conversations and conversation messages |
 | Broadcast | `BroadcastDbContext` | tenant-specific Broadcast module data such as external/community threads and captured items |
 | Trust | no active EF context | validation, governance, decision history, and auditability records belong to the Trust module boundary |
@@ -123,6 +123,12 @@ The split matters operationally:
 - control-plane operational workloads belong with tenant metadata
 - module data lives behind its owning module context
 - migration and seed tooling must coordinate tenant metadata plus the active module store
+
+Module contexts share the same default `DbContext` pattern. The context class lives under `DbContext/<Module>DbContext.cs`; save-time persistence concerns live under focused `DbContext/<Concern>` folders; and `Extensions` folders are reserved for service registration. `BaseDbContext<TContext>` owns the shared EF behavior: tenant connection resolution, tenant filters and indexes, soft-delete filters and rules, audit rules, UTC date normalization, and save hooks.
+
+Module persistence uses `OnBeforeSaveChangesRules()` for pre-save invariants and tenant integrity, then lets `BaseDbContext<TContext>` apply soft delete, audit, and date normalization, and finally uses `OnBeforeSaveChanges()` for auto history so history rows include audit state.
+
+Tenant integrity is a mandatory `DbContext` responsibility for tenant module data. When an `IMustHaveTenant` entity references another tenant-owned record, the owning context must validate the relationship before save. The default shape is `DbContext/TenantIntegrity/<Entity>TenantIntegrityExtension.cs`, one focused extension per checked entity or relationship, backed by `TenantIntegrityGuard` and `TenantIntegrityLookupCacheBase` or a module-specific lookup cache that reads referenced records with `IgnoreQueryFilters()`.
 
 `BaseFaq.Direct.Common.Persistence.DirectDb` and `BaseFaq.Broadcast.Common.Persistence.BroadcastDb` contain the current Direct and Broadcast entity, enum, configuration, DbContext, and registration-extension scope. API hosts, business modules, migrations, additional workflow entities, and seed flows for those behaviors belong in the same module boundaries.
 
@@ -152,6 +158,8 @@ The `BaseFaq.Common.Infrastructure.*` and `BaseFaq.Common.EntityFramework.*` pro
 
 - authentication and session access
 - tenant resolution
+- tenant filters and tenant-integrity helpers for module `DbContext` implementations
+- audit, soft-delete, and auto-history persistence concerns
 - Swagger/OpenAPI
 - API error handling
 - Sentry integration
@@ -204,5 +212,6 @@ The testing strategy is documented in [`../testing/integration-testing-strategy.
 - Keep write flows simple and aligned with the CQRS rules.
 - Treat Tenant, QnA, Direct, Broadcast, and Trust as separate module ownership boundaries.
 - Keep behavior inside its owning BaseFaq module boundary instead of folding it into a module with a similar enum, source, channel, or activity value.
+- Add or update tenant-integrity rules in the owning module `DbContext` whenever tenant-owned relationships change.
 - Put public tenant ingress endpoints such as billing webhooks in `BaseFaq.Tenant.Public.Api`, not in authenticated portal hosts.
 - Update the specific docs in `docs/` when boundaries, startup steps, or operational assumptions change.

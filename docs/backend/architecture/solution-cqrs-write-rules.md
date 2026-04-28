@@ -132,6 +132,7 @@ When the work belongs to a module persistence entity folder such as `QnADb/Entit
 - do not add convenience projection properties such as computed tag or source collections
 - do not use `[NotMapped]` computed properties to hide query shaping inside entities
 - keep relation creation, validation, status transitions, and DTO shaping inside commands, queries, and feature-local private methods
+- keep tenant-owned relationship integrity in the owning module `DbContext/TenantIntegrity` rules, not in entities or repeated command-handler checks
 
 Extend module entity models only for concrete behavior owned by that module; do not create placeholder entities or move one module's workflow into another module's entities as a shortcut.
 
@@ -152,6 +153,7 @@ Extend module entity models only for concrete behavior owned by that module; do 
 - tests were updated for the real dependencies
 - large handler logic was extracted where necessary
 - module persistence entities stayed state-only
+- tenant-owned relationship changes update the owning module `DbContext/TenantIntegrity` rule
 
 ## Anti-patterns
 
@@ -167,3 +169,4 @@ Extend module entity models only for concrete behavior owned by that module; do 
 - keeping generic module helper files instead of placing logic in command/query handlers
 - introducing a pseudo-entity DTO folder such as `BaseFaq.Models.QnA/Dtos/Link`
 - adding behavior or computed projection properties to module persistence entities
+- enforcing tenant-owned relationship integrity only in command handlers instead of the owning module `DbContext`

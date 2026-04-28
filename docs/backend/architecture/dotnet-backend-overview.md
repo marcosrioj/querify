@@ -71,6 +71,8 @@ Current API/business implementation in this solution:
 
 Current module persistence implementation:
 
+- QnA:
+  - `BaseFaq.QnA.Common.Persistence.QnADb`
 - Direct:
   - `BaseFaq.Direct.Common.Persistence.DirectDb`
 - Broadcast:
@@ -80,8 +82,12 @@ Current module persistence implementation:
 
 ### Shared infrastructure and persistence
 
-- `BaseFaq.Common.EntityFramework.Core`: shared EF Core helpers and database infrastructure used across the solution
-- `BaseFaq.Common.EntityFramework.Tenant`: tenant database context, tenant resolution helpers, and shared tenant infrastructure
+- `BaseFaq.Common.EntityFramework.Core`: base EF Core context, shared model loading, connection resolution, and database infrastructure used across the solution
+- `BaseFaq.Common.EntityFramework.Core.Audit`: auditable entity state, audit model configuration, and audit write rules
+- `BaseFaq.Common.EntityFramework.Core.AutoHistory`: auto history model configuration and history capture helpers
+- `BaseFaq.Common.EntityFramework.Core.SoftDelete`: soft-delete abstractions, model filters, indexes, and write rules
+- `BaseFaq.Common.EntityFramework.Core.Tenant`: tenant-scoped entity abstractions, tenant filters, tenant indexes, and module `DbContext` tenant-integrity helpers
+- `BaseFaq.Common.EntityFramework.Tenant`: tenant database context, tenant resolution helpers, and shared tenant infrastructure for the control-plane database
 - `BaseFaq.QnA.Common.Persistence.QnADb`: QnA module database context and persistence
 - `BaseFaq.Direct.Common.Persistence.DirectDb`: Direct module tenant persistence for conversations and conversation messages
 - `BaseFaq.Broadcast.Common.Persistence.BroadcastDb`: Broadcast module tenant persistence for public/community threads and captured items
@@ -159,7 +165,7 @@ That also means these responsibilities belong in `TenantDbContext` and not in te
 
 ### QnA database
 
-`QnADbContext` stores tenant module data for the QnA module:
+The QnA module database stores tenant module data for the QnA module:
 
 - spaces
 - questions
@@ -169,6 +175,31 @@ That also means these responsibilities belong in `TenantDbContext` and not in te
 - workflow state for question moderation and answer publication or validation
 
 Each tenant can point to its own module database connection, which is why module migration and seed tooling must resolve tenant metadata first.
+
+### Module DbContext standards
+
+Tenant module persistence should follow these default conventions unless a module has a documented reason not to:
+
+- place the context class in `DbContext/<Module>DbContext.cs`
+- place save-time module rules under `DbContext/<Concern>`
+- keep `Extensions` folders for service registration only
+- load entity configuration through `ConfigurationNamespaces`
+- let `BaseDbContext<TContext>` apply soft-delete rules, audit rules, UTC date normalization, tenant filters, and tenant indexes
+- put module invariants that must run before audit/history in `OnBeforeSaveChangesRules()`
+- put auto-history capture in `OnBeforeSaveChanges()` so it runs after soft-delete and audit fields are applied
+
+Tenant integrity is a `DbContext` responsibility, not a command-handler convention. If an `IMustHaveTenant` entity references another tenant-owned record, the owning module context must enforce the relationship before save.
+
+The default tenant-integrity pattern is:
+
+- add a private `EnsureTenantIntegrity()` method on the owning context
+- call it from `OnBeforeSaveChangesRules()`
+- create one focused extension per checked entity or relationship under `DbContext/TenantIntegrity/<Entity>TenantIntegrityExtension.cs`
+- use `TenantIntegrityGuard` for tenant comparisons
+- use `TenantIntegrityLookupCacheBase` or a module-specific `TenantIntegrityLookupCache` to resolve referenced tenant ids with `IgnoreQueryFilters()`
+- validate added and modified relationship rows, plus explicit append-only restrictions where the entity requires them
+- throw when a referenced record is missing or belongs to another tenant
+- avoid empty tenant-integrity extensions when an entity has no tenant-owned relationships
 
 ### Direct and Broadcast databases
 
@@ -234,5 +265,6 @@ For worker-specific configuration and feature guidance, see [`basefaq-tenant-wor
 - Keep controllers and services thin; push actual use-case behavior into handlers and domain-specific services.
 - Prefer lowercase kebab-case in route path segments when a controller exposes named actions beyond plain resource ids.
 - Treat tenant, QnA, Direct, Broadcast, and Trust data as separate ownership boundaries.
+- Treat tenant integrity as a module `DbContext` save-time responsibility whenever tenant-owned entities reference each other.
 - Put public tenant ingress endpoints such as billing webhooks in `BaseFaq.Tenant.Public.Api`, not in authenticated portal hosts.
 - Update the corresponding docs when request headers, ports, startup requirements, or operational assumptions change.

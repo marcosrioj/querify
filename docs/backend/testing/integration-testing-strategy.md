@@ -51,6 +51,7 @@ The current test suite is strongest on:
 
 - command and query correctness
 - tenant-aware persistence rules
+- `DbContext` tenant-integrity rules for tenant-owned relationships
 - soft-delete and filter behavior
 - background worker and platform-flow integration coverage
 - repository rule-compliance checks for command and write conventions
@@ -164,6 +165,8 @@ dotnet test dotnet/BaseFaq.Common.Architecture.Test.IntegrationTest/BaseFaq.Comm
 - use real infrastructure unless the dependency is intentionally outside the test boundary
 - keep assertions tied to business behavior, not only implementation details
 - cover both happy paths and security or tenancy negative paths
+- when an `IMustHaveTenant` relationship is added or changed, cover the owning `DbContext/TenantIntegrity` rule with same-tenant success and cross-tenant failure cases
+- assert missing referenced tenant-owned records when that failure mode is possible
 - when a production dependency becomes mandatory, update the tests instead of weakening production code
 - add architecture-rule assertions when the repository introduces new cross-cutting standards
 

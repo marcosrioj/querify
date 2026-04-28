@@ -89,6 +89,21 @@ Apply these rules to:
 - Query request DTOs for paged or sorted list reads may inherit the shared pagination base used by the project pattern.
 - Each write-side request DTO must declare its own properties explicitly.
 
+### 7. Module DbContext and tenant integrity defaults
+
+- Module `DbContext` classes live under `DbContext/<Module>DbContext.cs`.
+- Save-time persistence concerns live under focused `DbContext/<Concern>` folders.
+- `Extensions` folders are reserved for service collection registration and composition wiring.
+- These rules are the default pattern for tenant module persistence.
+- Module invariants and tenant-integrity checks that must run before audit/history belong in `OnBeforeSaveChangesRules()`.
+- Auto-history capture belongs in `OnBeforeSaveChanges()` so it runs after soft-delete and audit rules.
+- Tenant integrity is enforced by the owning module `DbContext`, not repeated in every command handler.
+- When an `IMustHaveTenant` entity references another tenant-owned record, add or update a focused extension under `DbContext/TenantIntegrity/<Entity>TenantIntegrityExtension.cs`.
+- Use one tenant-integrity extension per checked entity or relationship.
+- Use `TenantIntegrityGuard` plus `TenantIntegrityLookupCacheBase` or a module-specific lookup cache for referenced tenant ids.
+- Tenant lookup code must read referenced rows with `IgnoreQueryFilters()` so soft-delete and tenant filters do not hide invalid or missing relationships.
+- Do not add empty tenant-integrity extensions for entities with no tenant-owned relationships; record that no rule is needed in the change notes or tests instead.
+
 ## Folder Ownership Rules
 
 | Location | Allowed | Not allowed |
@@ -99,6 +114,8 @@ Apply these rules to:
 | `Service` | use-case orchestration and coordination | HTTP concerns, DTO projection for reads after write |
 | `Abstractions` | interfaces and contracts only | implementations or behavior |
 | `Extensions` | DI and composition wiring only | business logic |
+| `DbContext` | context classes and save-time persistence concerns such as tenant integrity, audit, soft delete, and auto history | command/query orchestration or feature business workflow |
+| `DbContext/TenantIntegrity` | one focused tenant relationship guard per entity or relationship | generic helpers unrelated to tenant-owned relationships |
 | `Dtos`, `Enums`, `Models` | data shape and types only | domain or orchestration behavior |
 | `Helpers` | generic pure helpers | use-case workflows or feature business rules |
 
@@ -163,5 +180,6 @@ Never solve a big command by moving behavior to unrelated folders.
 - behavior stays in the owning command or query flow or feature-local collaborators, not controllers, generic helpers, or module persistence entities
 - action structure follows the standard slicing pattern for commands and queries
 - new behavior was added only to the correct folder ownership boundary
+- tenant-owned relationship changes update the owning `DbContext/TenantIntegrity` rule
 - tests were updated for dependency and contract changes
 - no command response wrapper DTO was introduced

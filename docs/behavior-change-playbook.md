@@ -33,7 +33,7 @@ If those documents do not describe the behavior you are changing, inspect the cl
 - Do not add a new enum, property, DTO field, or UI concept if an existing one already represents the same business dimension.
 - Do not keep deprecated behavior alive by retaining duplicate fields. Preserve behavior by mapping it to the canonical concept.
 - Product persistence entities stay anemic. They contain state only, not behavior methods, factory methods, transition methods, or computed projection helpers.
-- `TenantDbContext`, `QnADbContext`, `DirectDbContext`, and `BroadcastDbContext` are separate module ownership boundaries.
+- Tenant and module `DbContext` implementations are separate ownership boundaries.
 - Do not add Direct conversation, handoff, ticket-resolution, or agent-assist workflow state to QnA entities.
 - Do not add Broadcast social, public-comment, mention, community-thread, or campaign interaction workflow state to QnA entities.
 - Do not add Trust validation, governance, decision-history, or auditability state to QnA, Direct, Broadcast, or Tenant entities.
@@ -140,8 +140,10 @@ Process:
 9. Keep entities state-only.
 10. Keep `required` semantics explicit. Do not set silent defaults to make construction easier.
 11. Do not create placeholder module entities. If a needed owning entity is still missing and the stage does not explicitly introduce it, leave a handoff note instead.
-12. When a new or changed entity implements `IMustHaveTenant` and references another tenant-owned entity, update the owning `DbContext` to enforce tenant integrity before save. Follow the existing `EnsureTenantIntegrity` pattern: validate added and modified relationship rows, look up referenced tenants with `IgnoreQueryFilters()`, and throw on cross-tenant links or missing references.
-13. If a tenant-owned entity has no tenant-owned relationships, record that no additional `EnsureTenantIntegrity` rule is needed instead of adding empty validation code.
+12. When a new or changed entity implements `IMustHaveTenant` and references another tenant-owned entity, update the owning `DbContext` to enforce tenant integrity before save.
+13. Follow the module `DbContext` pattern: call `EnsureTenantIntegrity()` from `OnBeforeSaveChangesRules()`, place one focused rule per checked entity or relationship under `DbContext/TenantIntegrity/<Entity>TenantIntegrityExtension.cs`, and keep `Extensions` folders for service registration only.
+14. Resolve referenced tenant ids with `TenantIntegrityLookupCacheBase` or a module-specific `TenantIntegrityLookupCache`, using `IgnoreQueryFilters()` so tenant filters and soft-delete do not hide invalid relationships.
+15. Throw on cross-tenant links or missing references. If a tenant-owned entity has no tenant-owned relationships, record that no additional tenant-integrity rule is needed instead of adding empty validation code.
 
 When deleting a property or enum, immediately search for all compile-time and string references:
 
@@ -156,7 +158,8 @@ Historical EF migration files may still mention old schema. Do not edit or regen
 Relevant locations:
 
 - QnA configurations: `dotnet/BaseFaq.QnA.Common.Persistence.QnADb/Configurations`
-- QnA DbContext: `dotnet/BaseFaq.QnA.Common.Persistence.QnADb/QnADbContext.cs`
+- Module DbContext folder: `dotnet/BaseFaq.<Module>.Common.Persistence.<Module>Db/DbContext`
+- Module tenant-integrity rules: `dotnet/BaseFaq.<Module>.Common.Persistence.<Module>Db/DbContext/TenantIntegrity`
 - QnA read mappings: `dotnet/BaseFaq.QnA.Common.Persistence.QnADb/Projections/QnAReadModelMappings.cs`
 - Direct configurations, DbContext, and mappings under `dotnet/BaseFaq.Direct.Common.Persistence.DirectDb`
 - Broadcast configurations, DbContext, and mappings under `dotnet/BaseFaq.Broadcast.Common.Persistence.BroadcastDb`
@@ -170,7 +173,10 @@ Process:
 4. Update relationships only when ownership changed.
 5. Update projection mappings so DTOs and query handlers receive the canonical shape.
 6. Update `EnsureTenantIntegrity` when a new or changed relationship can connect two tenant-owned records.
-7. Run a targeted build of the persistence project when the stage is meant to compile.
+7. Keep the tenant-integrity rule in the owning module `DbContext/TenantIntegrity` folder, not in command handlers or service-registration extensions.
+8. Use `OnBeforeSaveChangesRules()` for tenant integrity and other pre-audit invariants.
+9. Use `OnBeforeSaveChanges()` for auto history after audit fields are applied.
+10. Run a targeted build of the persistence project when the stage is meant to compile.
 
 Do not run migration commands here. Leave a manual migration note that lists the intended schema operations, for example:
 

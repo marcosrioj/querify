@@ -151,6 +151,8 @@ Start with the owning surface:
 - API, worker, persistence, or public ingress: backend docs
 - Portal rendering, browser behavior, forms, or localization: frontend docs
 
+For cross-tenant data exposure, inspect the owning module `DbContext/TenantIntegrity` rules as part of the backend review. Tenant-owned relationships should be guarded in the `DbContext`, not only by request handlers.
+
 Primary references:
 
 - [`backend/architecture/solution-architecture.md`](backend/architecture/solution-architecture.md)

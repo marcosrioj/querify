@@ -71,9 +71,12 @@ dotnet ef database update \
 ### When introducing a schema change
 
 1. make the EF model change in the correct persistence project
-2. add the migration with `migrations-add`
-3. apply the update locally
-4. run the relevant integration tests
+2. update the owning module `DbContext/TenantIntegrity` rule when the schema adds or changes a tenant-owned relationship
+3. add the migration with `migrations-add`
+4. apply the update locally
+5. run the relevant integration tests
+
+Tenant-integrity code is part of the model change, not a later command-handler task. The migration should represent the schema; the owning `DbContext` should enforce cross-tenant relationship validity before the changed schema is used.
 
 ## Common failure cases
 
