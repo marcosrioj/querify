@@ -242,10 +242,8 @@ public sealed class QnASeedService : IQnASeedService
             var item = definition.Items[questionIndex];
             var moderatorIdentity = BuildModeratorIdentity(spaceIndex, questionIndex);
             var createdAtUtc = SeedBaseTimeUtc.AddDays(-(spaceIndex * 3 + questionIndex + 1));
-            var publishedAtUtc = createdAtUtc.AddHours(2);
-            var resolvedAtUtc = publishedAtUtc.AddHours(2);
-            var isValidated = item.AiConfidenceScore >= 90;
-            var validatedAtUtc = isValidated ? resolvedAtUtc.AddHours(3) : (DateTime?)null;
+            var activatedAtUtc = createdAtUtc.AddHours(2);
+            var resolvedAtUtc = activatedAtUtc.AddHours(2);
             var questionId = Guid.NewGuid();
 
             var primaryAnswer = CreatePrimaryAnswer(
@@ -254,9 +252,7 @@ public sealed class QnASeedService : IQnASeedService
                 item,
                 moderatedBy: moderatorIdentity.UserPrint,
                 createdAtUtc,
-                publishedAtUtc,
-                resolvedAtUtc,
-                validatedAtUtc);
+                activatedAtUtc);
 
             var question = new Question
             {
@@ -266,7 +262,7 @@ public sealed class QnASeedService : IQnASeedService
                 Space = space,
                 Title = item.Question,
                 Summary = item.ShortAnswer,
-                ContextNote = BuildQuestionContextNote(item, isValidated),
+                ContextNote = BuildQuestionContextNote(item),
                 Status = QuestionStatus.Active,
                 Visibility = VisibilityScope.Public,
                 OriginChannel = ResolveOriginChannel(item, questionIndex),
@@ -286,7 +282,7 @@ public sealed class QnASeedService : IQnASeedService
                 question,
                 item,
                 questionIndex,
-                publishedAtUtc,
+                activatedAtUtc,
                 moderatorIdentity.UserPrint);
             if (alternateAnswer is not null)
             {
@@ -308,9 +304,8 @@ public sealed class QnASeedService : IQnASeedService
                 counts.SignalsPerQuestion,
                 moderatorIdentity,
                 createdAtUtc,
-                publishedAtUtc,
+                activatedAtUtc,
                 resolvedAtUtc,
-                validatedAtUtc,
                 spaceIndex,
                 questionIndex);
 
@@ -332,9 +327,7 @@ public sealed class QnASeedService : IQnASeedService
         SeedQuestionDefinition item,
         string moderatedBy,
         DateTime createdAtUtc,
-        DateTime publishedAtUtc,
-        DateTime resolvedAtUtc,
-        DateTime? validatedAtUtc)
+        DateTime activatedAtUtc)
     {
         return new Answer
         {
@@ -344,15 +337,14 @@ public sealed class QnASeedService : IQnASeedService
             Headline = item.ShortAnswer,
             Body = BuildPrimaryAnswerBody(item),
             Kind = AnswerKind.Official,
-            Status = validatedAtUtc is not null ? AnswerStatus.Validated : AnswerStatus.Published,
+            Status = AnswerStatus.Active,
             Visibility = VisibilityScope.Public,
             ContextNote = $"Curated and reviewed from {item.SourceName}. Primary guidance derived from {item.SourceLabel}.",
             AuthorLabel = moderatedBy,
             AiConfidenceScore = Math.Clamp(item.AiConfidenceScore, 0, 100),
             Score = Math.Max(1, item.HelpfulFeedbackPercent / 10),
             Sort = 1,
-            PublishedAtUtc = publishedAtUtc,
-            ValidatedAtUtc = validatedAtUtc,
+            ActivatedAtUtc = activatedAtUtc,
             CreatedBy = "seed",
             UpdatedBy = "seed"
         };
@@ -363,7 +355,7 @@ public sealed class QnASeedService : IQnASeedService
         Question question,
         SeedQuestionDefinition item,
         int questionIndex,
-        DateTime publishedAtUtc,
+        DateTime activatedAtUtc,
         string moderatedBy)
     {
         if (questionIndex % 4 != 0)
@@ -378,7 +370,7 @@ public sealed class QnASeedService : IQnASeedService
             QuestionId = question.Id,
             Question = question,
             Headline = $"Earlier escalation path for {item.SourceName}",
-            Body = $"Legacy workflow retained for audit purposes before the validated answer from {item.SourceName} replaced it.",
+            Body = $"Legacy workflow retained for audit purposes before the active answer from {item.SourceName} replaced it.",
             Kind = AnswerKind.Imported,
             Status = AnswerStatus.Archived,
             Visibility = VisibilityScope.Authenticated,
@@ -387,8 +379,8 @@ public sealed class QnASeedService : IQnASeedService
             AiConfidenceScore = Math.Max(35, item.AiConfidenceScore - 25),
             Score = 1,
             Sort = 2,
-            PublishedAtUtc = publishedAtUtc.AddMinutes(-30),
-            RetiredAtUtc = publishedAtUtc.AddHours(8),
+            ActivatedAtUtc = activatedAtUtc.AddMinutes(-30),
+            RetiredAtUtc = activatedAtUtc.AddHours(8),
             CreatedBy = "seed",
             UpdatedBy = "seed"
         };
@@ -501,9 +493,8 @@ public sealed class QnASeedService : IQnASeedService
         int signalCount,
         SeedActorIdentity moderatorIdentity,
         DateTime createdAtUtc,
-        DateTime publishedAtUtc,
+        DateTime activatedAtUtc,
         DateTime resolvedAtUtc,
-        DateTime? validatedAtUtc,
         int spaceIndex,
         int questionIndex)
     {
@@ -536,9 +527,9 @@ public sealed class QnASeedService : IQnASeedService
             CreateInternalActivity(
                 question,
                 primaryAnswer,
-                ActivityKind.AnswerPublished,
+                ActivityKind.AnswerActivated,
                 moderatorIdentity,
-                publishedAtUtc),
+                activatedAtUtc),
             CreateInternalActivity(
                 question,
                 primaryAnswer,
@@ -546,17 +537,6 @@ public sealed class QnASeedService : IQnASeedService
                 moderatorIdentity,
                 resolvedAtUtc)
         };
-
-        if (validatedAtUtc is not null)
-        {
-            activities.Add(
-                CreateInternalActivity(
-                    question,
-                    primaryAnswer,
-                    ActivityKind.AnswerValidated,
-                    moderatorIdentity,
-                    validatedAtUtc.Value));
-        }
 
         if (alternateAnswer is not null)
         {
@@ -574,7 +554,7 @@ public sealed class QnASeedService : IQnASeedService
                     ActivityKind.AnswerRetired,
                     moderatorIdentity,
                     alternateAnswer.RetiredAtUtc ?? resolvedAtUtc.AddHours(4),
-                    notes: "Retired after the validated canonical answer was published."));
+                    notes: "Retired after the active canonical answer replaced it."));
         }
 
         activities.AddRange(BuildFeedbackActivities(question, item, signalCount, resolvedAtUtc, spaceIndex, questionIndex));
@@ -825,10 +805,9 @@ public sealed class QnASeedService : IQnASeedService
         return hash[0] % Math.Max(1, modulo);
     }
 
-    private static string BuildQuestionContextNote(SeedQuestionDefinition item, bool isValidated)
+    private static string BuildQuestionContextNote(SeedQuestionDefinition item)
     {
-        var confidence = isValidated ? "validated" : "published pending a stronger validation pass";
-        return $"Imported from {item.SourceName} for {ResolveBusinessArea(item)}. Snapshot refreshed on {SeedBaseTimeUtc:yyyy-MM-dd}; confidence is {confidence}.";
+        return $"Imported from {item.SourceName} for {ResolveBusinessArea(item)}. Snapshot refreshed on {SeedBaseTimeUtc:yyyy-MM-dd}; active answer confidence is {item.AiConfidenceScore}%.";
     }
 
     private static string BuildPrimaryAnswerBody(SeedQuestionDefinition item)
@@ -840,7 +819,7 @@ public sealed class QnASeedService : IQnASeedService
             Environment.NewLine + Environment.NewLine,
             item.Answer,
             $"Operational guidance: treat this as the canonical {product} answer for {businessArea} when the customer is asking the same policy or workflow question. Confirm account-specific state, eligibility, dates, regional availability, and any irreversible action before applying it.",
-            $"Source handling: cite \"{item.SourceLabel}\" as the primary public reference. Re-check the source when feedback turns negative, confidence drops below the validation threshold, or the upstream product flow changes.");
+            $"Source handling: cite \"{item.SourceLabel}\" as the primary public reference. Re-check the source when feedback turns negative, confidence drops below the confidence threshold, or the upstream product flow changes.");
     }
 
     private static SourceKind ResolveSourceKind(SeedQuestionDefinition item)

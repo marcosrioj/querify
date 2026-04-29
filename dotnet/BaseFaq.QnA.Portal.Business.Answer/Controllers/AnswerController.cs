@@ -40,25 +40,11 @@ public class AnswerController(IAnswerService answerService) : ControllerBase
         return Ok(await answerService.Update(id, dto, token));
     }
 
-    [HttpPost("{id:guid}/publish")]
+    [HttpPost("{id:guid}/activate")]
     [ProducesResponseType(typeof(Guid), StatusCodes.Status202Accepted)]
-    public async Task<IActionResult> Publish(Guid id, CancellationToken token)
+    public async Task<IActionResult> Activate(Guid id, CancellationToken token)
     {
-        return Accepted(await answerService.Publish(id, token));
-    }
-
-    [HttpPost("{id:guid}/validate")]
-    [ProducesResponseType(typeof(Guid), StatusCodes.Status202Accepted)]
-    public async Task<IActionResult> Validate(Guid id, CancellationToken token)
-    {
-        return Accepted(await answerService.Validate(id, token));
-    }
-
-    [HttpPost("{id:guid}/reject")]
-    [ProducesResponseType(typeof(Guid), StatusCodes.Status202Accepted)]
-    public async Task<IActionResult> Reject(Guid id, CancellationToken token)
-    {
-        return Accepted(await answerService.Reject(id, token));
+        return Accepted(await answerService.Activate(id, token));
     }
 
     [HttpPost("{id:guid}/retire")]

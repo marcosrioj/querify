@@ -79,10 +79,13 @@ Capture these facts before editing:
 - which seed files create examples
 - which tests assert the affected behavior
 - which Portal screens and translations expose it
+- which feature helpers, business extensions, service registrations, route actions, and workflow classes exist only to support the behavior being removed or consolidated
 - which documentation already describes the pattern
 - whether the owning module already has the owning entity; if it does not, record a staged follow-up instead of storing that behavior in another module
 
 If two names describe the same business dimension, consolidate them before propagating the model.
+
+When the change removes or consolidates behavior, treat the inventory as a deletion search, not just a reference search. Check for obsolete command/query folders, handlers, service methods, controller actions, helper classes, extension methods, validators, factories, seed builders, UI hooks, API clients, presentation metadata, and tests that no longer have a live caller after the canonical behavior is changed.
 
 ## Step 2: Normalize The Business Concept
 
@@ -258,7 +261,7 @@ Rules:
 - Portal flows use authenticated tenant context, usually `X-Tenant-Id`.
 - Public QnA flows resolve tenant through `X-Client-Key`.
 
-When deleting behavior, remove the obsolete endpoint, service method, command, query, handler, and tests together. Do not leave dead API surface that writes ignored fields.
+When deleting behavior, remove the obsolete endpoint, service method, command, query, handler, helper, extension method, registration, factory path, seed branch, UI hook, API client method, and tests together. Do not leave dead API surface or support classes that write ignored fields, wrap deleted enum values, or preserve workflows that no longer exist.
 
 ## Step 7: Update Seed Data
 
@@ -290,7 +293,7 @@ For the QnA operating model, seed examples demonstrate:
 - source links that explain origin, context, evidence, and reusable references
 - source records with artifact identity, visibility, valid metadata JSON, and verification metadata
 - moderated contribution and accepted-answer behavior when it belongs to QnA
-- auditable validation records where they are part of answer trust
+- answer activation and retirement behavior where it is part of QnA lifecycle
 
 The seed tool may apply EF migrations when it is executed, as described in [`backend/tools/seed-tool.md`](backend/tools/seed-tool.md). Do not use that runtime behavior as a substitute for the manual migration step during model work.
 

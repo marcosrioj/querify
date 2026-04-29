@@ -98,11 +98,7 @@ export enum AnswerKind {
 
 export enum AnswerStatus {
   Draft = 0,
-  PendingReview = 1,
-  Published = 2,
-  Validated = 3,
-  Rejected = 4,
-  Obsolete = 5,
+  Active = 2,
   Archived = 6,
 }
 
@@ -135,10 +131,8 @@ export enum ActivityKind {
   QuestionMarkedDuplicate = 6,
   AnswerCreated = 8,
   AnswerUpdated = 9,
-  AnswerPublished = 10,
+  AnswerActivated = 10,
   AnswerAccepted = 11,
-  AnswerValidated = 12,
-  AnswerRejected = 13,
   FeedbackReceived = 14,
   VoteReceived = 15,
   AnswerRetired = 16,
@@ -246,11 +240,7 @@ export const answerKindLabels: Record<AnswerKind, string> = {
 
 export const answerStatusLabels: Record<AnswerStatus, string> = {
   [AnswerStatus.Draft]: 'Draft',
-  [AnswerStatus.PendingReview]: 'Pending review',
-  [AnswerStatus.Published]: 'Published',
-  [AnswerStatus.Validated]: 'Validated',
-  [AnswerStatus.Rejected]: 'Rejected',
-  [AnswerStatus.Obsolete]: 'Obsolete',
+  [AnswerStatus.Active]: 'Active',
   [AnswerStatus.Archived]: 'Archived',
 };
 
@@ -283,10 +273,8 @@ export const activityKindLabels: Record<ActivityKind, string> = {
   [ActivityKind.QuestionMarkedDuplicate]: 'Question marked duplicate',
   [ActivityKind.AnswerCreated]: 'Answer created',
   [ActivityKind.AnswerUpdated]: 'Answer updated',
-  [ActivityKind.AnswerPublished]: 'Answer published',
+  [ActivityKind.AnswerActivated]: 'Answer activated',
   [ActivityKind.AnswerAccepted]: 'Answer accepted',
-  [ActivityKind.AnswerValidated]: 'Answer validated',
-  [ActivityKind.AnswerRejected]: 'Answer rejected',
   [ActivityKind.FeedbackReceived]: 'Feedback received',
   [ActivityKind.VoteReceived]: 'Vote received',
   [ActivityKind.AnswerRetired]: 'Answer retired',

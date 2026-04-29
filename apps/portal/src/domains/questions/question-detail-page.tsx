@@ -311,9 +311,7 @@ export function QuestionDetailPage() {
     ? buildQuestionOption(selectedDuplicateQuestion)
     : null;
   const acceptedAnswerOptions = (questionQuery.data?.answers ?? []).filter(
-    (answer) =>
-      answer.status === AnswerStatus.Published ||
-      answer.status === AnswerStatus.Validated,
+    (answer) => answer.status === AnswerStatus.Active,
   );
   const acceptedAnswerSelectValue =
     selectedAnswerId || questionQuery.data?.acceptedAnswerId || "";
@@ -687,10 +685,10 @@ export function QuestionDetailPage() {
                     placeholder={translateText("Select accepted answer")}
                     searchPlaceholder={translateText("Search answers...")}
                     emptyMessage={translateText(
-                      "No published or validated answers found.",
+                      "No active answers found.",
                     )}
                     resultCountHint={translateText(
-                      "Only published and validated answers can become accepted.",
+                      "Only active answers can become accepted.",
                     )}
                   />
                   {acceptedAnswerOptions.length ? (
@@ -716,7 +714,7 @@ export function QuestionDetailPage() {
                   ) : (
                     <p className="text-sm text-muted-foreground">
                       {translateText(
-                        "Publish or validate an answer before it can be accepted.",
+                        "Activate an answer before it can be accepted.",
                       )}
                     </p>
                   )}
@@ -814,7 +812,7 @@ export function QuestionDetailPage() {
                 key: "answers",
                 label: "Answers",
                 description:
-                  "Write, publish, validate, or retire answer candidates for this thread.",
+                  "Write, activate, or retire answer candidates for this thread.",
                 icon: CheckCircle2,
                 count: questionQuery.data?.answers.length ?? 0,
               },
@@ -1121,7 +1119,7 @@ export function QuestionDetailPage() {
                           </p>
                           <p className="text-sm text-muted-foreground">
                             {translateText(
-                              "Write the answer here, then publish or validate it from this same thread.",
+                              "Write the answer here, then activate it from this same thread.",
                             )}
                           </p>
                         </div>

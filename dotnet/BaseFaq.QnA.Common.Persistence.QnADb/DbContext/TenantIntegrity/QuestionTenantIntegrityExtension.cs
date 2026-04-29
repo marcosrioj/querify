@@ -38,7 +38,7 @@ internal static class QuestionTenantIntegrityExtension
                     throw new InvalidOperationException(
                         $"Question '{question.Id}' accepts answer '{acceptedAnswerId}' from a different thread.");
 
-                if (acceptedAnswer.Status is not AnswerStatus.Published and not AnswerStatus.Validated)
+                if (acceptedAnswer.Status is not AnswerStatus.Active)
                     throw new InvalidOperationException(
                         $"Question '{question.Id}' cannot accept answer '{acceptedAnswerId}' while it is in status '{acceptedAnswer.Status}'.");
 

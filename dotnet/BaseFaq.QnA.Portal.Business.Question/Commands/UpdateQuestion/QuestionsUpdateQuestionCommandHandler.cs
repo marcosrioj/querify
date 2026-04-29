@@ -94,9 +94,9 @@ public sealed class QuestionsUpdateQuestionCommandHandler(
                     $"Accepted answer '{acceptedAnswerId}' belongs to a different question.",
                     (int)HttpStatusCode.UnprocessableEntity);
 
-            if (answer.Status is not AnswerStatus.Published and not AnswerStatus.Validated)
+            if (answer.Status is not AnswerStatus.Active)
                 throw new ApiErrorException(
-                    "Only published or validated answers can be accepted.",
+                    "Only active answers can be accepted.",
                     (int)HttpStatusCode.UnprocessableEntity);
 
             if (entity.Visibility is VisibilityScope.Public &&

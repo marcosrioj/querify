@@ -91,7 +91,7 @@ public static class TestDataFactory
         Guid tenantId,
         Guid questionId,
         string? headline = null,
-        AnswerStatus status = AnswerStatus.Published,
+        AnswerStatus status = AnswerStatus.Active,
         VisibilityScope visibility = VisibilityScope.Public,
         bool accept = false,
         int rank = 1)
@@ -122,13 +122,9 @@ public static class TestDataFactory
 
         switch (status)
         {
-            case AnswerStatus.Validated:
-                entity.Status = AnswerStatus.Validated;
-                entity.ValidatedAtUtc = DateTime.UtcNow;
-                break;
-            case AnswerStatus.Published:
-                entity.Status = AnswerStatus.Published;
-                entity.PublishedAtUtc = DateTime.UtcNow;
+            case AnswerStatus.Active:
+                entity.Status = AnswerStatus.Active;
+                entity.ActivatedAtUtc = DateTime.UtcNow;
                 break;
             default:
                 entity.Status = status;

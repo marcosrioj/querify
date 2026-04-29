@@ -80,7 +80,7 @@ export function AuthLayout() {
                       tone: "text-amber-500 bg-amber-500/10",
                     },
                     {
-                      label: "Published answers",
+                      label: "Active answers",
                       value: "48",
                       icon: CheckCircle2,
                       tone: "text-primary bg-primary/10",
@@ -92,7 +92,7 @@ export function AuthLayout() {
                       tone: "text-sky-500 bg-sky-500/10",
                     },
                     {
-                      label: "Validated answers",
+                      label: "Accepted answers",
                       value: "26",
                       icon: ShieldCheck,
                       tone: "text-violet-500 bg-violet-500/10",

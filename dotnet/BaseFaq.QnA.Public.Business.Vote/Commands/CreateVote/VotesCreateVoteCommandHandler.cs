@@ -41,7 +41,7 @@ public sealed class VotesCreateVoteCommandHandler(
                     entity.Id == request.Request.AnswerId &&
                     entity.QuestionId == request.Request.QuestionId &&
                     entity.Visibility == VisibilityScope.Public &&
-                    (entity.Status == AnswerStatus.Published || entity.Status == AnswerStatus.Validated),
+                    entity.Status == AnswerStatus.Active,
                 cancellationToken);
 
         if (answer is null ||

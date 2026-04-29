@@ -75,14 +75,9 @@ public class Answer : BaseEntity, IMustHaveTenant
     public Question Question { get; set; } = null!;
 
     /// <summary>
-    ///     Timestamp when the answer was published.
+    ///     Timestamp when the answer became active for operational use.
     /// </summary>
-    public DateTime? PublishedAtUtc { get; set; }
-
-    /// <summary>
-    ///     Timestamp when the answer was validated.
-    /// </summary>
-    public DateTime? ValidatedAtUtc { get; set; }
+    public DateTime? ActivatedAtUtc { get; set; }
 
     /// <summary>
     ///     Timestamp when the answer was retired.

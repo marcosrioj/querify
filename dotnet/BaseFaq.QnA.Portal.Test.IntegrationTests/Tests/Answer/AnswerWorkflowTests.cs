@@ -1,8 +1,6 @@
 using BaseFaq.Models.QnA.Enums;
-using BaseFaq.QnA.Portal.Business.Answer.Commands.PublishAnswer;
-using BaseFaq.QnA.Portal.Business.Answer.Commands.RejectAnswer;
+using BaseFaq.QnA.Portal.Business.Answer.Commands.ActivateAnswer;
 using BaseFaq.QnA.Portal.Business.Answer.Commands.RetireAnswer;
-using BaseFaq.QnA.Portal.Business.Answer.Commands.ValidateAnswer;
 using BaseFaq.QnA.Portal.Business.Answer.Queries.GetAnswer;
 using BaseFaq.QnA.Portal.Test.IntegrationTests.Helpers;
 using Xunit;
@@ -12,7 +10,7 @@ namespace BaseFaq.QnA.Portal.Test.IntegrationTests.Tests.Answer;
 public class AnswerWorkflowTests
 {
     [Fact]
-    public async Task PublishAndValidateAnswer_TransitionsLifecycleAndAppendsActivity()
+    public async Task ActivateAnswer_TransitionsLifecycleAndAppendsActivity()
     {
         using var context = TestContext.Create();
         var space = await TestDataFactory.SeedSpaceAsync(context.DbContext, context.SessionService.TenantId);
@@ -25,18 +23,10 @@ public class AnswerWorkflowTests
             visibility: VisibilityScope.Authenticated,
             accept: false);
 
-        await new AnswersPublishAnswerCommandHandler(
+        await new AnswersActivateAnswerCommandHandler(
             context.DbContext,
             context.SessionService,
-            context.HttpContextAccessor).Handle(new AnswersPublishAnswerCommand
-        {
-            Id = answer.Id
-        }, CancellationToken.None);
-
-        await new AnswersValidateAnswerCommandHandler(
-            context.DbContext,
-            context.SessionService,
-            context.HttpContextAccessor).Handle(new AnswersValidateAnswerCommand
+            context.HttpContextAccessor).Handle(new AnswersActivateAnswerCommand
         {
             Id = answer.Id
         }, CancellationToken.None);
@@ -52,42 +42,25 @@ public class AnswerWorkflowTests
             .Select(activity => activity.Kind)
             .ToList();
 
-        Assert.Equal(AnswerStatus.Validated, result.Status);
-        Assert.NotNull(result.PublishedAtUtc);
-        Assert.NotNull(result.ValidatedAtUtc);
-        Assert.Contains(ActivityKind.AnswerPublished, activityKinds);
-        Assert.Contains(ActivityKind.AnswerValidated, activityKinds);
+        Assert.Equal(AnswerStatus.Active, result.Status);
+        Assert.NotNull(result.ActivatedAtUtc);
+        Assert.Contains(ActivityKind.AnswerActivated, activityKinds);
     }
 
     [Fact]
-    public async Task RejectAndRetireAnswer_EnforcesInternalVisibilityAndRetirementTrail()
+    public async Task RetireAnswer_EnforcesInternalVisibilityAndRetirementTrail()
     {
         using var context = TestContext.Create();
         var space = await TestDataFactory.SeedSpaceAsync(context.DbContext, context.SessionService.TenantId);
         var question = await TestDataFactory.SeedQuestionAsync(context.DbContext, context.SessionService.TenantId, space.Id);
-        var rejectedAnswer = await TestDataFactory.SeedAnswerAsync(
-            context.DbContext,
-            context.SessionService.TenantId,
-            question.Id,
-            status: AnswerStatus.Published,
-            visibility: VisibilityScope.Public,
-            accept: false);
         var retiredAnswer = await TestDataFactory.SeedAnswerAsync(
             context.DbContext,
             context.SessionService.TenantId,
             question.Id,
-            status: AnswerStatus.Published,
+            status: AnswerStatus.Active,
             visibility: VisibilityScope.Public,
             accept: false,
             rank: 2);
-
-        await new AnswersRejectAnswerCommandHandler(
-            context.DbContext,
-            context.SessionService,
-            context.HttpContextAccessor).Handle(new AnswersRejectAnswerCommand
-        {
-            Id = rejectedAnswer.Id
-        }, CancellationToken.None);
 
         await new AnswersRetireAnswerCommandHandler(
             context.DbContext,
@@ -97,30 +70,16 @@ public class AnswerWorkflowTests
             Id = retiredAnswer.Id
         }, CancellationToken.None);
 
-        var rejectedResult = await new AnswersGetAnswerQueryHandler(
-            context.DbContext,
-            context.SessionService).Handle(new AnswersGetAnswerQuery
-        {
-            Id = rejectedAnswer.Id
-        }, CancellationToken.None);
         var retiredResult = await new AnswersGetAnswerQueryHandler(
             context.DbContext,
             context.SessionService).Handle(new AnswersGetAnswerQuery
         {
             Id = retiredAnswer.Id
         }, CancellationToken.None);
-        var rejectedActivityKinds = context.DbContext.Activities
-            .Where(activity => activity.AnswerId == rejectedAnswer.Id)
-            .Select(activity => activity.Kind)
-            .ToList();
         var retiredActivityKinds = context.DbContext.Activities
             .Where(activity => activity.AnswerId == retiredAnswer.Id)
             .Select(activity => activity.Kind)
             .ToList();
-
-        Assert.Equal(AnswerStatus.Rejected, rejectedResult.Status);
-        Assert.Equal(VisibilityScope.Authenticated, rejectedResult.Visibility);
-        Assert.Contains(ActivityKind.AnswerRejected, rejectedActivityKinds);
 
         Assert.Equal(AnswerStatus.Archived, retiredResult.Status);
         Assert.Equal(VisibilityScope.Authenticated, retiredResult.Visibility);

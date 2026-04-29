@@ -388,39 +388,15 @@ export const answerKindPresentation: Record<AnswerKind, EnumPresentation> = {
 export const answerStatusPresentation: Record<AnswerStatus, EnumPresentation> = {
   [AnswerStatus.Draft]: {
     label: answerStatusLabels[AnswerStatus.Draft],
-    description: "Not published.",
+    description: "Not active yet.",
     badgeVariant: "warning",
     sortGroup: 2,
   },
-  [AnswerStatus.PendingReview]: {
-    label: answerStatusLabels[AnswerStatus.PendingReview],
-    description: "Waiting for review.",
-    badgeVariant: "info",
-    sortGroup: 0,
-  },
-  [AnswerStatus.Published]: {
-    label: answerStatusLabels[AnswerStatus.Published],
-    description: "Published and awaiting validation.",
+  [AnswerStatus.Active]: {
+    label: answerStatusLabels[AnswerStatus.Active],
+    description: "Ready for operational use.",
     badgeVariant: "success",
     sortGroup: 1,
-  },
-  [AnswerStatus.Validated]: {
-    label: answerStatusLabels[AnswerStatus.Validated],
-    description: "Validated as trusted.",
-    badgeVariant: "primary",
-    sortGroup: 3,
-  },
-  [AnswerStatus.Rejected]: {
-    label: answerStatusLabels[AnswerStatus.Rejected],
-    description: "Rejected during review.",
-    badgeVariant: "destructive",
-    sortGroup: 0,
-  },
-  [AnswerStatus.Obsolete]: {
-    label: answerStatusLabels[AnswerStatus.Obsolete],
-    description: "Retired in favor of newer content.",
-    badgeVariant: "outline",
-    sortGroup: 4,
   },
   [AnswerStatus.Archived]: {
     label: answerStatusLabels[AnswerStatus.Archived],
@@ -465,10 +441,9 @@ export const activityKindPresentation = Object.fromEntries(
       label,
       description: "Workflow and signal event.",
       badgeVariant:
-        Number(value) === ActivityKind.ReportReceived ||
-        Number(value) === ActivityKind.AnswerRejected
+        Number(value) === ActivityKind.ReportReceived
           ? "destructive"
-          : Number(value) === ActivityKind.AnswerValidated ||
+          : Number(value) === ActivityKind.AnswerActivated ||
               Number(value) === ActivityKind.AnswerAccepted
             ? "success"
             : "outline",

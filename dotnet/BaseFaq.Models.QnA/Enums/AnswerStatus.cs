@@ -12,33 +12,9 @@ public enum AnswerStatus
     Draft = 0,
 
     /// <summary>
-    /// The answer is waiting for moderation or editorial review.
+    /// The answer is ready for operational use and can be exposed when visibility allows it.
     /// </summary>
-    PendingReview = 1,
-
-    /// <summary>
-    /// The answer is visible for use.
-    /// It may be published without yet being strongly validated.
-    /// </summary>
-    Published = 2,
-
-    /// <summary>
-    /// The answer has passed a stronger quality or governance check.
-    /// This is the best candidate for accepted or canonical behavior.
-    /// </summary>
-    Validated = 3,
-
-    /// <summary>
-    /// The answer was reviewed and explicitly not accepted for use.
-    /// The data remains for traceability.
-    /// </summary>
-    Rejected = 4,
-
-    /// <summary>
-    /// The answer was once useful but should no longer be served as current guidance.
-    /// Typical causes include product change or policy drift.
-    /// </summary>
-    Obsolete = 5,
+    Active = 2,
 
     /// <summary>
     /// The answer is retired from active operations.

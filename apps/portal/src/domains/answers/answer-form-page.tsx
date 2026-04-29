@@ -138,8 +138,7 @@ export function AnswerFormPage({ mode }: { mode: "create" | "edit" }) {
     selectedVisibility === VisibilityScope.Public;
   const invalidPublicStatus =
     publicVisibilitySelected &&
-    selectedStatus !== AnswerStatus.Published &&
-    selectedStatus !== AnswerStatus.Validated;
+    selectedStatus !== AnswerStatus.Active;
   const spaceBlocksAnswers = selectedSpaceQuery.data?.acceptsAnswers === false;
   const questionOptions = (questionOptionsQuery.data?.items ?? []).map(
     buildQuestionOption,
@@ -201,7 +200,7 @@ export function AnswerFormPage({ mode }: { mode: "create" | "edit" }) {
         header={
           <PageHeader
             title="New answer"
-            description="An answer needs a parent Question before publication, validation, sources, and accepted state are meaningful."
+            description="An answer needs a parent Question before activation, sources, and accepted state are meaningful."
             descriptionMode="hint"
             backTo="/app/spaces"
           />
@@ -237,7 +236,7 @@ export function AnswerFormPage({ mode }: { mode: "create" | "edit" }) {
                   <span>{translateText("Quick notes")}</span>
                   <ContextHint
                     content={translateText(
-                      "Answers are ranked, validated, retired, and often grounded with evidence links after they are saved.",
+                      "Answers are ranked, activated, retired, and often grounded with evidence links after they are saved.",
                     )}
                     label={translateText("Quick notes details")}
                   />
@@ -387,7 +386,7 @@ export function AnswerFormPage({ mode }: { mode: "create" | "edit" }) {
                       control={form.control}
                       name="status"
                       label="Status"
-                      description="Controls where the answer is in draft, review, publication, or retirement."
+                      description="Controls whether the answer is draft, active, or archived."
                       options={Object.entries(answerStatusLabels).map(
                         ([value, label]) => ({
                           value,
@@ -457,7 +456,7 @@ export function AnswerFormPage({ mode }: { mode: "create" | "edit" }) {
                   {invalidPublicStatus ? (
                     <p className="text-sm text-muted-foreground">
                       {translateText(
-                        "Public visibility requires status Published or Validated.",
+                        "Public visibility requires status Active.",
                       )}
                     </p>
                   ) : null}

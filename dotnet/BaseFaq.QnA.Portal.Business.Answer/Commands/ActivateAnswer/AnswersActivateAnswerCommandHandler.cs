@@ -10,15 +10,15 @@ using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 
-namespace BaseFaq.QnA.Portal.Business.Answer.Commands.PublishAnswer;
+namespace BaseFaq.QnA.Portal.Business.Answer.Commands.ActivateAnswer;
 
-public sealed class AnswersPublishAnswerCommandHandler(
+public sealed class AnswersActivateAnswerCommandHandler(
     QnADbContext dbContext,
     ISessionService sessionService,
     IHttpContextAccessor httpContextAccessor)
-    : IRequestHandler<AnswersPublishAnswerCommand, Guid>
+    : IRequestHandler<AnswersActivateAnswerCommand, Guid>
 {
-    public async Task<Guid> Handle(AnswersPublishAnswerCommand request, CancellationToken cancellationToken)
+    public async Task<Guid> Handle(AnswersActivateAnswerCommand request, CancellationToken cancellationToken)
     {
         var tenantId = sessionService.GetTenantId(ModuleEnum.QnA);
         var userId = sessionService.GetUserId().ToString();
@@ -30,8 +30,8 @@ public sealed class AnswersPublishAnswerCommandHandler(
         if (entity is null)
             throw new ApiErrorException($"Answer '{request.Id}' was not found.", (int)HttpStatusCode.NotFound);
 
-        entity.Status = AnswerStatus.Published;
-        entity.PublishedAtUtc = DateTime.UtcNow;
+        entity.Status = AnswerStatus.Active;
+        entity.ActivatedAtUtc = DateTime.UtcNow;
 
         var activityIdentity = ResolveActivityIdentity(userId);
         var activity = new Activity
@@ -41,7 +41,7 @@ public sealed class AnswersPublishAnswerCommandHandler(
             Question = entity.Question,
             AnswerId = entity.Id,
             Answer = entity,
-            Kind = ActivityKind.AnswerPublished,
+            Kind = ActivityKind.AnswerActivated,
             ActorKind = ActorKind.Moderator,
             ActorLabel = userId,
             UserPrint = activityIdentity.UserPrint,

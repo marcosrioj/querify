@@ -32,7 +32,7 @@ export type PortalActivationState = {
   hasSource: boolean;
   hasTeammate: boolean;
   hasQuestion: boolean;
-  hasTrustedAnswer: boolean;
+  hasActiveAnswer: boolean;
 };
 
 export function getSetupProgress(state: PortalActivationState) {
@@ -48,14 +48,14 @@ export function getActivationState({
   sourceCount,
   spaceCount,
   questionCount,
-  trustedAnswerCount,
+  activeAnswerCount,
 }: {
   hasProfile: boolean;
   memberCount: number;
   sourceCount: number;
   spaceCount: number;
   questionCount: number;
-  trustedAnswerCount: number;
+  activeAnswerCount: number;
 }): PortalActivationState {
   return {
     hasProfile,
@@ -63,7 +63,7 @@ export function getActivationState({
     hasSource: sourceCount > 0,
     hasTeammate: memberCount > 1,
     hasQuestion: questionCount > 0,
-    hasTrustedAnswer: trustedAnswerCount > 0,
+    hasActiveAnswer: activeAnswerCount > 0,
   };
 }
 
@@ -177,7 +177,7 @@ export function getBusinessReadout({
   publicSourceCount,
   openQuestionCount,
   pendingQuestionCount,
-  publishedAnswerCount,
+  activeAnswerCount,
   questionCount,
   sourceCount,
 }: {
@@ -185,7 +185,7 @@ export function getBusinessReadout({
   publicSourceCount: number;
   openQuestionCount: number;
   pendingQuestionCount: number;
-  publishedAnswerCount: number;
+  activeAnswerCount: number;
   questionCount: number;
   sourceCount: number;
 }) {
@@ -207,13 +207,13 @@ export function getBusinessReadout({
           : "/app/questions",
     },
     {
-      label: "Validation backlog",
-      value: `${publishedAnswerCount}`,
+      label: "Active answers",
+      value: `${activeAnswerCount}`,
       detail:
-        publishedAnswerCount > 0
-          ? "Published answers should be validated before they become trusted knowledge."
-          : "No published answers are waiting for validation.",
-      to: `/app/answers?status=${AnswerStatus.Published}`,
+        activeAnswerCount > 0
+          ? "Active answers are ready for reuse across customer journeys."
+          : "No active answers are ready for reuse yet.",
+      to: `/app/answers?status=${AnswerStatus.Active}`,
     },
     {
       label: "Trusted coverage",
@@ -230,7 +230,7 @@ export function getBusinessReadout({
       detail:
         sourceCount > 0
           ? "Share of sources visible publicly for reusable answers."
-          : "Add sources before scaling answer publication.",
+          : "Add sources before scaling active answers.",
       to: "/app/sources",
     },
   ];

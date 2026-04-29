@@ -54,7 +54,7 @@ import {
 const sortingOptions = [
   { value: "Sort ASC", label: "Sort" },
   { value: "Score DESC", label: "Score" },
-  { value: "PublishedAtUtc DESC", label: "Recently published" },
+  { value: "ActivatedAtUtc DESC", label: "Recently activated" },
   { value: "VoteScore DESC", label: "Vote score" },
   { value: "AiConfidenceScore DESC", label: "AI confidence" },
 ];
@@ -156,10 +156,8 @@ export function AnswerListPage() {
         answer.sources.some((link) => link.sourceId === sourceId),
       )
     : (answerQuery.data?.items ?? []);
-  const publishedCount = answerRows.filter(
-    (answer) =>
-      answer.status === AnswerStatus.Published ||
-      answer.status === AnswerStatus.Validated,
+  const activeCount = answerRows.filter(
+    (answer) => answer.status === AnswerStatus.Active,
   ).length;
   const acceptedCount = answerRows.filter((answer) => answer.isAccepted).length;
   const officialCount = answerRows.filter((answer) => answer.isOfficial).length;
@@ -315,9 +313,9 @@ export function AnswerListPage() {
               icon: Medal,
             },
             {
-              title: "Published",
-              value: publishedCount,
-              description: translateText("Visible or validated answers"),
+              title: "Active",
+              value: activeCount,
+              description: translateText("Active answers ready for use"),
               icon: ShieldCheck,
             },
             {
@@ -339,7 +337,7 @@ export function AnswerListPage() {
       )}
       <DataTable
         title="Answers"
-        description="Open an answer to manage source links, validation, retirement, and question context."
+        description="Open an answer to manage source links, activation, retirement, and question context."
         descriptionMode="hint"
         columns={columns}
         rows={answerRows}

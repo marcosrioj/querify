@@ -11,13 +11,11 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { useActivityList } from "@/domains/activity/hooks";
 import {
   useAnswer,
+  useActivateAnswer,
   useAddAnswerSource,
   useDeleteAnswer,
-  usePublishAnswer,
-  useRejectAnswer,
   useRemoveAnswerSource,
   useRetireAnswer,
-  useValidateAnswer,
 } from "@/domains/answers/hooks";
 import { QnaModuleNav } from "@/domains/qna/qna-module-nav";
 import { useQuestion } from "@/domains/questions/hooks";
@@ -97,9 +95,7 @@ export function AnswerDetailPage() {
     answerId: id,
   });
   const deleteAnswer = useDeleteAnswer();
-  const publishAnswer = usePublishAnswer();
-  const validateAnswer = useValidateAnswer();
-  const rejectAnswer = useRejectAnswer();
+  const activateAnswer = useActivateAnswer();
   const retireAnswer = useRetireAnswer();
   const addSource = useAddAnswerSource(id ?? "");
   const removeSource = useRemoveAnswerSource(id ?? "");
@@ -144,21 +140,13 @@ export function AnswerDetailPage() {
     (answerQuery.isLoading ||
       questionQuery.isLoading ||
       sourceOptionsQuery.isLoading);
-  const canPublish =
-    answerQuery.data?.status === AnswerStatus.Draft ||
-    answerQuery.data?.status === AnswerStatus.PendingReview ||
-    answerQuery.data?.status === AnswerStatus.Rejected;
-  const canValidate = answerQuery.data?.status === AnswerStatus.Published;
-  const canReject = answerQuery.data?.status !== AnswerStatus.Rejected;
+  const canActivate = answerQuery.data?.status === AnswerStatus.Draft;
   const canRetire =
-    answerQuery.data?.status === AnswerStatus.Published ||
-    answerQuery.data?.status === AnswerStatus.Validated ||
-    answerQuery.data?.status === AnswerStatus.Rejected;
+    answerQuery.data?.status === AnswerStatus.Active;
   const lifecycleSummary =
-    answerQuery.data?.status === AnswerStatus.Draft ||
-    answerQuery.data?.status === AnswerStatus.PendingReview
+    answerQuery.data?.status === AnswerStatus.Draft
       ? translateText(
-          "Publish the answer before exposing it publicly or accepting it.",
+          "Activate the answer before exposing it publicly or accepting it.",
         )
       : translateText(
           "Current status controls which lifecycle actions are available.",
@@ -176,10 +164,10 @@ export function AnswerDetailPage() {
   return (
     <DetailLayout
       header={
-        <PageHeader
-          title={answerQuery.data?.headline ?? "Answer"}
-          description="Manage publication, validation, evidence links, and retirement for this answer candidate."
-          descriptionMode="hint"
+          <PageHeader
+            title={answerQuery.data?.headline ?? "Answer"}
+            description="Manage activation, evidence links, and retirement for this answer candidate."
+            descriptionMode="hint"
           backTo={
             answerQuery.data?.questionId
               ? `/app/questions/${answerQuery.data.questionId}`
@@ -285,17 +273,9 @@ export function AnswerDetailPage() {
                       value: String(answerQuery.data.score),
                     },
                     {
-                      label: "Published at",
+                      label: "Activated at",
                       value: formatOptionalDateTimeInTimeZone(
-                        answerQuery.data.publishedAtUtc,
-                        portalTimeZone,
-                        translateText("Not set"),
-                      ),
-                    },
-                    {
-                      label: "Validated at",
-                      value: formatOptionalDateTimeInTimeZone(
-                        answerQuery.data.validatedAtUtc,
+                        answerQuery.data.activatedAtUtc,
                         portalTimeZone,
                         translateText("Not set"),
                       ),
@@ -365,7 +345,7 @@ export function AnswerDetailPage() {
                   <span>{translateText("Lifecycle actions")}</span>
                   <ContextHint
                     content={translateText(
-                      "Publish, validate, reject, or retire the answer as product truth evolves.",
+                      "Activate or retire the answer as product truth evolves.",
                     )}
                     label={translateText("Lifecycle details")}
                   />
@@ -376,27 +356,13 @@ export function AnswerDetailPage() {
               <p className="text-sm text-muted-foreground">
                 {lifecycleSummary}
               </p>
-              <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+              <div className="grid gap-2 sm:grid-cols-2">
                 <ActionButton
                   tone="primary"
-                  onClick={() => void publishAnswer.mutateAsync(id)}
-                  disabled={!canPublish || publishAnswer.isPending}
+                  onClick={() => void activateAnswer.mutateAsync(id)}
+                  disabled={!canActivate || activateAnswer.isPending}
                 >
-                  {translateText("Publish")}
-                </ActionButton>
-                <ActionButton
-                  tone="primary"
-                  onClick={() => void validateAnswer.mutateAsync(id)}
-                  disabled={!canValidate || validateAnswer.isPending}
-                >
-                  {translateText("Validate")}
-                </ActionButton>
-                <ActionButton
-                  tone="danger"
-                  onClick={() => void rejectAnswer.mutateAsync(id)}
-                  disabled={!canReject || rejectAnswer.isPending}
-                >
-                  {translateText("Reject")}
+                  {translateText("Activate")}
                 </ActionButton>
                 <ActionButton
                   tone="danger"
@@ -454,7 +420,7 @@ export function AnswerDetailPage() {
                 key: "sources",
                 label: "Sources",
                 description:
-                  "Attach evidence before validating this answer as trusted knowledge.",
+                  "Attach evidence before using this answer as active knowledge.",
                 icon: ShieldCheck,
                 count: answerQuery.data?.sources.length ?? 0,
               },
@@ -462,7 +428,7 @@ export function AnswerDetailPage() {
                 key: "activity",
                 label: "Activity",
                 description:
-                  "Review events scoped to this answer when validation or retirement needs context.",
+                  "Review events scoped to this answer when activation or retirement needs context.",
                 icon: Activity,
                 count: activityQuery.data?.totalCount ?? 0,
               },
@@ -654,7 +620,7 @@ export function AnswerDetailPage() {
                 ) : (
                   <EmptyState
                     title="No answer activity yet"
-                    description="Publication, validation, rejection, retirement, and source changes will appear here."
+                    description="Activation, retirement, and source changes will appear here."
                   />
                 )}
                 <ChildListPagination

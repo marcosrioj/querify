@@ -31,7 +31,7 @@ public class AnswerCommandQueryTests
                 Headline = "Reset password from portal",
                 Body = "Open sign-in and request a password reset link.",
                 Kind = AnswerKind.Official,
-                Status = AnswerStatus.Published,
+                Status = AnswerStatus.Active,
                 Visibility = VisibilityScope.Public,
                 ContextNote = "Portal",
                 Sort = 2
@@ -43,7 +43,7 @@ public class AnswerCommandQueryTests
 
         Assert.Equal(question.Id, result.QuestionId);
         Assert.Equal("Reset password from portal", result.Headline);
-        Assert.Equal(AnswerStatus.Published, result.Status);
+        Assert.Equal(AnswerStatus.Active, result.Status);
         Assert.Equal(VisibilityScope.Public, result.Visibility);
     }
 
@@ -71,6 +71,39 @@ public class AnswerCommandQueryTests
                     Kind = AnswerKind.Official,
                     Status = AnswerStatus.Draft,
                     Visibility = VisibilityScope.Public,
+                    ContextNote = null,
+                    Sort = 0
+                }
+            },
+            CancellationToken.None));
+
+        Assert.Equal((int)HttpStatusCode.UnprocessableEntity, exception.ErrorCode);
+    }
+
+    [Fact]
+    public async Task CreateAnswer_ReturnsApiErrorWhenStatusIsUnsupported()
+    {
+        using var context = TestContext.Create();
+        var space = await TestDataFactory.SeedSpaceAsync(context.DbContext, context.SessionService.TenantId);
+        var question =
+            await TestDataFactory.SeedQuestionAsync(context.DbContext, context.SessionService.TenantId, space.Id);
+
+        var createHandler = new AnswersCreateAnswerCommandHandler(
+            context.DbContext,
+            context.SessionService,
+            context.HttpContextAccessor);
+
+        var exception = await Assert.ThrowsAsync<ApiErrorException>(() => createHandler.Handle(
+            new AnswersCreateAnswerCommand
+            {
+                Request = new AnswerCreateRequestDto
+                {
+                    QuestionId = question.Id,
+                    Headline = "Legacy answer status",
+                    Body = "Legacy body",
+                    Kind = AnswerKind.Official,
+                    Status = (AnswerStatus)3,
+                    Visibility = VisibilityScope.Authenticated,
                     ContextNote = null,
                     Sort = 0
                 }

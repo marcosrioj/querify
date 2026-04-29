@@ -279,7 +279,7 @@ const businessReadoutIcons: Record<
   ComponentType<{ className?: string }>
 > = {
   "Demand to resolve": Clock3,
-  "Validation backlog": FileCheck2,
+  "Active answers": FileCheck2,
   "Evidence readiness": Waypoints,
   "Trusted coverage": ShieldCheck,
 };
@@ -396,9 +396,9 @@ function AnswerQueueRow({
             {answer.headline}
           </p>
         </div>
-        {answer.publishedAtUtc ? (
+        {answer.activatedAtUtc ? (
           <div className="shrink-0 text-sm text-muted-foreground">
-            {formatNumericDateTimeInTimeZone(answer.publishedAtUtc, timeZone)}
+            {formatNumericDateTimeInTimeZone(answer.activatedAtUtc, timeZone)}
           </div>
         ) : null}
       </div>
@@ -530,22 +530,16 @@ export function DashboardPage() {
     sorting: "LastActivityAtUtc DESC",
     status: QuestionStatus.Active,
   });
-  const publishedAnswersQuery = useAnswerList({
+  const activeAnswersQuery = useAnswerList({
     page: 1,
     pageSize: 5,
-    sorting: "PublishedAtUtc DESC",
-    status: AnswerStatus.Published,
-  });
-  const validatedAnswersQuery = useAnswerList({
-    page: 1,
-    pageSize: 1,
-    sorting: "ValidatedAtUtc DESC",
-    status: AnswerStatus.Validated,
+    sorting: "ActivatedAtUtc DESC",
+    status: AnswerStatus.Active,
   });
   const acceptedAnswersQuery = useAnswerList({
     page: 1,
     pageSize: 1,
-    sorting: "PublishedAtUtc DESC",
+    sorting: "ActivatedAtUtc DESC",
     isAccepted: true,
   });
   const sourcesQuery = useSourceList({
@@ -565,8 +559,7 @@ export function DashboardPage() {
     questionsSummaryQuery.isLoading ||
     pendingQuestionsQuery.isLoading ||
     openQuestionsQuery.isLoading ||
-    publishedAnswersQuery.isLoading ||
-    validatedAnswersQuery.isLoading ||
+    activeAnswersQuery.isLoading ||
     acceptedAnswersQuery.isLoading ||
     sourcesQuery.isLoading ||
     publicSourcesQuery.isLoading ||
@@ -579,8 +572,7 @@ export function DashboardPage() {
     questionsSummaryQuery.isError ||
     pendingQuestionsQuery.isError ||
     openQuestionsQuery.isError ||
-    publishedAnswersQuery.isError ||
-    validatedAnswersQuery.isError ||
+    activeAnswersQuery.isError ||
     acceptedAnswersQuery.isError ||
     sourcesQuery.isError ||
     publicSourcesQuery.isError;
@@ -595,8 +587,7 @@ export function DashboardPage() {
       questionsSummaryQuery.error ??
       pendingQuestionsQuery.error ??
       openQuestionsQuery.error ??
-      publishedAnswersQuery.error ??
-      validatedAnswersQuery.error ??
+      activeAnswersQuery.error ??
       acceptedAnswersQuery.error ??
       sourcesQuery.error ??
       publicSourcesQuery.error;
@@ -615,8 +606,7 @@ export function DashboardPage() {
             void questionsSummaryQuery.refetch();
             void pendingQuestionsQuery.refetch();
             void openQuestionsQuery.refetch();
-            void publishedAnswersQuery.refetch();
-            void validatedAnswersQuery.refetch();
+            void activeAnswersQuery.refetch();
             void acceptedAnswersQuery.refetch();
             void sourcesQuery.refetch();
             void publicSourcesQuery.refetch();
@@ -629,16 +619,15 @@ export function DashboardPage() {
   const spaces = spacesQuery.data?.items ?? [];
   const pendingQuestions = pendingQuestionsQuery.data?.items ?? [];
   const openQuestions = openQuestionsQuery.data?.items ?? [];
-  const publishedAnswers = publishedAnswersQuery.data?.items ?? [];
+  const activeAnswers = activeAnswersQuery.data?.items ?? [];
   const memberCount = membersQuery.data?.length ?? 0;
   const questionCount = questionsSummaryQuery.data?.totalCount ?? 0;
   const pendingQuestionCount = pendingQuestionsQuery.data?.totalCount ?? 0;
   const openQuestionCount = openQuestionsQuery.data?.totalCount ?? 0;
-  const publishedAnswerCount = publishedAnswersQuery.data?.totalCount ?? 0;
+  const activeAnswerCount = activeAnswersQuery.data?.totalCount ?? 0;
   const acceptedAnswerCount = acceptedAnswersQuery.data?.totalCount ?? 0;
   const sourceCount = sourcesQuery.data?.totalCount ?? 0;
   const publicSourceCount = publicSourcesQuery.data?.totalCount ?? 0;
-  const validatedAnswerCount = validatedAnswersQuery.data?.totalCount ?? 0;
   const billingSummary = billing.summaryQuery.data;
   const spaceWorkload = getSpaceWorkloadData(spaces);
   const activation = getActivationState({
@@ -647,7 +636,7 @@ export function DashboardPage() {
     questionCount,
     sourceCount,
     spaceCount: spacesQuery.data?.totalCount ?? 0,
-    trustedAnswerCount: validatedAnswerCount,
+    activeAnswerCount,
   });
   const setupProgress = getSetupProgress(activation);
   const nextAction = getRoleAwareNextAction({
@@ -664,7 +653,7 @@ export function DashboardPage() {
     openQuestionCount,
     pendingQuestionCount,
     publicSourceCount,
-    publishedAnswerCount,
+    activeAnswerCount,
     questionCount,
     sourceCount,
   });
@@ -702,7 +691,7 @@ export function DashboardPage() {
 
       <Panel
         title="Business priorities"
-        description="The few signals that decide where the team should spend time: unresolved demand, answer validation, trusted coverage, and evidence readiness."
+        description="The few signals that decide where the team should spend time: unresolved demand, active answers, trusted coverage, and evidence readiness."
       >
         <BusinessReadout items={businessReadout} />
       </Panel>
@@ -748,12 +737,12 @@ export function DashboardPage() {
 
             <div className="space-y-3">
               <QueueSectionHeader
-                count={publishedAnswerCount}
-                title="Answers to validate"
-                to={`/app/answers?status=${AnswerStatus.Published}`}
+                count={activeAnswerCount}
+                title="Active answers"
+                to={`/app/answers?status=${AnswerStatus.Active}`}
               />
-              {publishedAnswers.length ? (
-                publishedAnswers.map((answer) => (
+              {activeAnswers.length ? (
+                activeAnswers.map((answer) => (
                   <AnswerQueueRow
                     key={answer.id}
                     answer={answer}
@@ -762,8 +751,8 @@ export function DashboardPage() {
                 ))
               ) : (
                 <InlineEmptyState
-                  title="No validation backlog"
-                  description="Published answers awaiting validation will appear here."
+                  title="No active answers yet"
+                  description="Active answers ready for reuse will appear here."
                 />
               )}
             </div>

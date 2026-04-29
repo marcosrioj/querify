@@ -46,24 +46,14 @@ public enum ActivityKind
     AnswerUpdated = 9,
 
     /// <summary>
-    /// An answer became visible for use.
+    /// An answer became active for use.
     /// </summary>
-    AnswerPublished = 10,
+    AnswerActivated = 10,
 
     /// <summary>
     /// An answer was chosen as the accepted resolution for the thread.
     /// </summary>
     AnswerAccepted = 11,
-
-    /// <summary>
-    /// An answer passed a stronger validation gate.
-    /// </summary>
-    AnswerValidated = 12,
-
-    /// <summary>
-    /// An answer was reviewed and rejected.
-    /// </summary>
-    AnswerRejected = 13,
 
     /// <summary>
     /// A thread-level usefulness signal was received.

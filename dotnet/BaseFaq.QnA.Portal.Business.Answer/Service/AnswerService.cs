@@ -2,14 +2,12 @@ using BaseFaq.Models.Common.Dtos;
 using BaseFaq.Models.QnA.Dtos.Answer;
 using BaseFaq.QnA.Portal.Business.Answer.Abstractions;
 using BaseFaq.QnA.Portal.Business.Answer.Commands.AddSource;
+using BaseFaq.QnA.Portal.Business.Answer.Commands.ActivateAnswer;
 using BaseFaq.QnA.Portal.Business.Answer.Commands.CreateAnswer;
 using BaseFaq.QnA.Portal.Business.Answer.Commands.DeleteAnswer;
-using BaseFaq.QnA.Portal.Business.Answer.Commands.PublishAnswer;
-using BaseFaq.QnA.Portal.Business.Answer.Commands.RejectAnswer;
 using BaseFaq.QnA.Portal.Business.Answer.Commands.RemoveSource;
 using BaseFaq.QnA.Portal.Business.Answer.Commands.RetireAnswer;
 using BaseFaq.QnA.Portal.Business.Answer.Commands.UpdateAnswer;
-using BaseFaq.QnA.Portal.Business.Answer.Commands.ValidateAnswer;
 using BaseFaq.QnA.Portal.Business.Answer.Queries.GetAnswer;
 using BaseFaq.QnA.Portal.Business.Answer.Queries.GetAnswerList;
 using MediatR;
@@ -46,19 +44,9 @@ public sealed class AnswerService(IMediator mediator) : IAnswerService
         return mediator.Send(new AnswersDeleteAnswerCommand { Id = id }, token);
     }
 
-    public Task<Guid> Publish(Guid id, CancellationToken token)
+    public Task<Guid> Activate(Guid id, CancellationToken token)
     {
-        return mediator.Send(new AnswersPublishAnswerCommand { Id = id }, token);
-    }
-
-    public Task<Guid> Validate(Guid id, CancellationToken token)
-    {
-        return mediator.Send(new AnswersValidateAnswerCommand { Id = id }, token);
-    }
-
-    public Task<Guid> Reject(Guid id, CancellationToken token)
-    {
-        return mediator.Send(new AnswersRejectAnswerCommand { Id = id }, token);
+        return mediator.Send(new AnswersActivateAnswerCommand { Id = id }, token);
     }
 
     public Task<Guid> Retire(Guid id, CancellationToken token)

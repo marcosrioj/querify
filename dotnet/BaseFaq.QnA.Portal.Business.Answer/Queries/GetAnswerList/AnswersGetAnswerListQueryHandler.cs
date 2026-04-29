@@ -46,6 +46,8 @@ public sealed class AnswersGetAnswerListQueryHandler(
             "score desc" => query.OrderByDescending(answer => answer.Score),
             "sort" => query.OrderBy(answer => answer.Sort),
             "sort desc" => query.OrderByDescending(answer => answer.Sort),
+            "activatedatutc" => query.OrderBy(answer => answer.ActivatedAtUtc),
+            "activatedatutc desc" => query.OrderByDescending(answer => answer.ActivatedAtUtc),
             _ => query.OrderByDescending(answer =>
                     answer.Question != null && answer.Question.AcceptedAnswerId == answer.Id)
                 .ThenBy(answer => answer.Sort)

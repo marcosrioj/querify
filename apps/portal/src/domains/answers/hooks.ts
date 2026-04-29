@@ -2,16 +2,14 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import {
   addAnswerSource,
+  activateAnswer,
   createAnswer,
   deleteAnswer,
   getAnswer,
   listAnswers,
-  publishAnswer,
-  rejectAnswer,
   removeAnswerSource,
   retireAnswer,
   updateAnswer,
-  validateAnswer,
 } from '@/domains/answers/api';
 import { useAuth } from '@/platform/auth/use-auth';
 import { useTenant } from '@/platform/tenant/use-tenant';
@@ -116,46 +114,16 @@ export function useDeleteAnswer() {
   });
 }
 
-export function usePublishAnswer() {
+export function useActivateAnswer() {
   const { session } = useAuth();
   const { currentTenantId } = useTenant();
   const invalidateQna = useInvalidateQna();
 
   return useMutation({
-    mutationKey: [...answerKeys.all, 'workflow', 'publish'],
-    mutationFn: (id: string) => publishAnswer(session?.accessToken, currentTenantId, id),
+    mutationKey: [...answerKeys.all, 'workflow', 'activate'],
+    mutationFn: (id: string) => activateAnswer(session?.accessToken, currentTenantId, id),
     onSuccess: async () => {
-      toast.success(translateText('Answer published.'));
-      await invalidateQna();
-    },
-  });
-}
-
-export function useValidateAnswer() {
-  const { session } = useAuth();
-  const { currentTenantId } = useTenant();
-  const invalidateQna = useInvalidateQna();
-
-  return useMutation({
-    mutationKey: [...answerKeys.all, 'workflow', 'validate'],
-    mutationFn: (id: string) => validateAnswer(session?.accessToken, currentTenantId, id),
-    onSuccess: async () => {
-      toast.success(translateText('Answer validated.'));
-      await invalidateQna();
-    },
-  });
-}
-
-export function useRejectAnswer() {
-  const { session } = useAuth();
-  const { currentTenantId } = useTenant();
-  const invalidateQna = useInvalidateQna();
-
-  return useMutation({
-    mutationKey: [...answerKeys.all, 'workflow', 'reject'],
-    mutationFn: (id: string) => rejectAnswer(session?.accessToken, currentTenantId, id),
-    onSuccess: async () => {
-      toast.success(translateText('Answer rejected.'));
+      toast.success(translateText('Answer activated.'));
       await invalidateQna();
     },
   });

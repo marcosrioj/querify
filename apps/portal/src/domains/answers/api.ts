@@ -89,42 +89,14 @@ export function updateAnswer(
   });
 }
 
-export function publishAnswer(
+export function activateAnswer(
   accessToken: string | undefined,
   tenantId: string | undefined,
   id: string,
 ) {
   return portalRequest<string>({
     service: 'qna',
-    path: `/api/qna/answer/${id}/publish`,
-    method: 'POST',
-    accessToken: requireAccessToken(accessToken),
-    tenantId: requireTenantId(tenantId),
-  });
-}
-
-export function validateAnswer(
-  accessToken: string | undefined,
-  tenantId: string | undefined,
-  id: string,
-) {
-  return portalRequest<string>({
-    service: 'qna',
-    path: `/api/qna/answer/${id}/validate`,
-    method: 'POST',
-    accessToken: requireAccessToken(accessToken),
-    tenantId: requireTenantId(tenantId),
-  });
-}
-
-export function rejectAnswer(
-  accessToken: string | undefined,
-  tenantId: string | undefined,
-  id: string,
-) {
-  return portalRequest<string>({
-    service: 'qna',
-    path: `/api/qna/answer/${id}/reject`,
+    path: `/api/qna/answer/${id}/activate`,
     method: 'POST',
     accessToken: requireAccessToken(accessToken),
     tenantId: requireTenantId(tenantId),

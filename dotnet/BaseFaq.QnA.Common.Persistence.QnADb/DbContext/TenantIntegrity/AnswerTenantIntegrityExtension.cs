@@ -21,7 +21,7 @@ internal static class AnswerTenantIntegrityExtension
                 nameof(Answer.QuestionId));
 
             if (answer.Visibility is VisibilityScope.Public &&
-                answer.Status is not AnswerStatus.Published and not AnswerStatus.Validated)
+                answer.Status is not AnswerStatus.Active)
                 throw new InvalidOperationException(
                     $"Answer '{answer.Id}' cannot be public while in status '{answer.Status}'.");
         }

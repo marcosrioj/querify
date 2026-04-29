@@ -89,7 +89,7 @@ public static class QnAReadModelMappings
         var publicAnswers = entity.Answers
             .Where(answer =>
             answer.Visibility is VisibilityScope.Public &&
-            answer.Status is AnswerStatus.Published or AnswerStatus.Validated)
+            answer.Status is AnswerStatus.Active)
             .OrderByDescending(answer => answer.Id == entity.AcceptedAnswerId)
             .ThenBy(answer => answer.Sort)
             .ThenByDescending(answer => answer.Score)
@@ -275,8 +275,7 @@ public static class QnAReadModelMappings
             Sort = entity.Sort,
             IsAccepted = entity.Id == acceptedAnswerId,
             IsOfficial = entity.Kind == AnswerKind.Official,
-            PublishedAtUtc = entity.PublishedAtUtc,
-            ValidatedAtUtc = entity.ValidatedAtUtc,
+            ActivatedAtUtc = entity.ActivatedAtUtc,
             RetiredAtUtc = entity.RetiredAtUtc,
             VoteScore = ActivitySignals.ComputeVoteScore(questionActivity.Select(ToSignalEntry), entity.Id),
             Sources = sources

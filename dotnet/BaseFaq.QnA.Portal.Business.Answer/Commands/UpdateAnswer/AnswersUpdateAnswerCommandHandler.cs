@@ -83,21 +83,21 @@ public sealed class AnswersUpdateAnswerCommandHandler(
 
         switch (request.Status)
         {
-            case AnswerStatus.Published:
-                entity.Status = AnswerStatus.Published;
-                entity.PublishedAtUtc = DateTime.UtcNow;
+            case AnswerStatus.Active:
+                entity.Status = AnswerStatus.Active;
+                entity.ActivatedAtUtc = DateTime.UtcNow;
                 break;
-            case AnswerStatus.Validated:
-                entity.Status = AnswerStatus.Validated;
-                entity.ValidatedAtUtc = DateTime.UtcNow;
+            case AnswerStatus.Archived:
+                entity.Status = AnswerStatus.Archived;
+                entity.RetiredAtUtc ??= DateTime.UtcNow;
                 break;
-            case AnswerStatus.Rejected:
-                entity.Status = AnswerStatus.Rejected;
-                entity.Visibility = VisibilityScope.Authenticated;
-                break;
-            default:
+            case AnswerStatus.Draft:
                 entity.Status = request.Status;
                 break;
+            default:
+                throw new ApiErrorException(
+                    "Unsupported answer status.",
+                    (int)HttpStatusCode.UnprocessableEntity);
         }
 
         EnsureVisibilityAllowed(entity, request.Visibility);
@@ -109,9 +109,9 @@ public sealed class AnswersUpdateAnswerCommandHandler(
     {
         if (visibility is not VisibilityScope.Public) return;
 
-        if (entity.Status is not AnswerStatus.Published and not AnswerStatus.Validated)
+        if (entity.Status is not AnswerStatus.Active)
             throw new ApiErrorException(
-                "Only published or validated answers can be exposed publicly.",
+                "Only active answers can be exposed publicly.",
                 (int)HttpStatusCode.UnprocessableEntity);
 
         foreach (var sourceLink in entity.Sources)

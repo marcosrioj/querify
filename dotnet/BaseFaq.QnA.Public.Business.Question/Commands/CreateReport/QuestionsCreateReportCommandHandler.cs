@@ -57,7 +57,7 @@ public sealed class QuestionsCreateReportCommandHandler(
                         entity.Id == answerId &&
                         entity.QuestionId == question.Id &&
                         entity.Visibility == VisibilityScope.Public &&
-                        (entity.Status == AnswerStatus.Published || entity.Status == AnswerStatus.Validated),
+                        entity.Status == AnswerStatus.Active,
                     cancellationToken);
 
             if (answer is null)
