@@ -122,17 +122,14 @@ export enum SourceRole {
 }
 
 export enum ActivityKind {
-  QuestionCreated = 1,
-  QuestionUpdated = 2,
-  QuestionMarkedDuplicate = 6,
-  AnswerCreated = 8,
-  AnswerUpdated = 9,
-  AnswerActivated = 10,
-  AnswerAccepted = 11,
+  QuestionDraft = 20,
+  QuestionActive = 21,
+  QuestionArchived = 22,
+  AnswerDraft = 30,
+  AnswerActive = 31,
+  AnswerArchived = 32,
   FeedbackReceived = 14,
   VoteReceived = 15,
-  AnswerRetired = 16,
-  ReportReceived = 17,
 }
 
 export enum ActorKind {
@@ -260,17 +257,14 @@ export const sourceRoleLabels: Record<SourceRole, string> = {
 };
 
 export const activityKindLabels: Record<ActivityKind, string> = {
-  [ActivityKind.QuestionCreated]: 'Question created',
-  [ActivityKind.QuestionUpdated]: 'Question updated',
-  [ActivityKind.QuestionMarkedDuplicate]: 'Question marked duplicate',
-  [ActivityKind.AnswerCreated]: 'Answer created',
-  [ActivityKind.AnswerUpdated]: 'Answer updated',
-  [ActivityKind.AnswerActivated]: 'Answer activated',
-  [ActivityKind.AnswerAccepted]: 'Answer accepted',
+  [ActivityKind.QuestionDraft]: 'Question draft',
+  [ActivityKind.QuestionActive]: 'Question active',
+  [ActivityKind.QuestionArchived]: 'Question archived',
+  [ActivityKind.AnswerDraft]: 'Answer draft',
+  [ActivityKind.AnswerActive]: 'Answer active',
+  [ActivityKind.AnswerArchived]: 'Answer archived',
   [ActivityKind.FeedbackReceived]: 'Feedback received',
   [ActivityKind.VoteReceived]: 'Vote received',
-  [ActivityKind.AnswerRetired]: 'Answer retired',
-  [ActivityKind.ReportReceived]: 'Report received',
 };
 
 export const actorKindLabels: Record<ActorKind, string> = {

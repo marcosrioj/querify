@@ -107,36 +107,6 @@ public static class ActivitySignals
         }
     }
 
-    public static string CreateReportMetadata(
-        string userPrint,
-        string ip,
-        string userAgent,
-        string? reason)
-    {
-        return JsonSerializer.Serialize(new ReportSignalMetadata
-        {
-            UserPrint = userPrint,
-            Ip = ip,
-            UserAgent = userAgent,
-            Reason = reason
-        });
-    }
-
-    public static ReportSignalMetadata? ParseReport(string? metadataJson)
-    {
-        if (string.IsNullOrWhiteSpace(metadataJson))
-            return null;
-
-        try
-        {
-            return JsonSerializer.Deserialize<ReportSignalMetadata>(metadataJson);
-        }
-        catch (JsonException)
-        {
-            return null;
-        }
-    }
-
     public sealed class FeedbackSignalMetadata
     {
         public required string UserPrint { get; init; }
@@ -154,11 +124,4 @@ public static class ActivitySignals
         public required int VoteValue { get; init; }
     }
 
-    public sealed class ReportSignalMetadata
-    {
-        public required string UserPrint { get; init; }
-        public string? Ip { get; init; }
-        public string? UserAgent { get; init; }
-        public string? Reason { get; init; }
-    }
 }

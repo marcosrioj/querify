@@ -38,7 +38,7 @@ public class Activity : BaseEntity, IMustHaveTenant
     public Answer? Answer { get; set; }
 
     /// <summary>
-    ///     Type of event recorded in the thread.
+    ///     Type of event recorded for the question.
     /// </summary>
     public required ActivityKind Kind { get; set; }
 

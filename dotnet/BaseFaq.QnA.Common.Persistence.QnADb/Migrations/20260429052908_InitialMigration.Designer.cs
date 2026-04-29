@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
 {
     [DbContext(typeof(QnADbContext))]
-    [Migration("20260428183025_InitialMigration")]
+    [Migration("20260429052908_InitialMigration")]
     partial class InitialMigration
     {
         /// <inheritdoc />
@@ -153,6 +153,10 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<DateTime?>("ActivatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("PublishedAtUtc");
+
                     b.Property<int>("AiConfidenceScore")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
@@ -193,9 +197,6 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
                     b.Property<int>("Kind")
                         .HasColumnType("integer");
 
-                    b.Property<DateTime?>("PublishedAtUtc")
-                        .HasColumnType("timestamp with time zone");
-
                     b.Property<Guid>("QuestionId")
                         .HasColumnType("uuid");
 
@@ -218,9 +219,6 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
                         .HasColumnType("text");
 
                     b.Property<DateTime?>("UpdatedDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime?>("ValidatedAtUtc")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("Visibility")
@@ -312,9 +310,6 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
                         .HasColumnType("integer")
                         .HasDefaultValue(0);
 
-                    b.Property<DateTime?>("AnsweredAtUtc")
-                        .HasColumnType("timestamp with time zone");
-
                     b.Property<string>("ContextNote")
                         .HasMaxLength(2000)
                         .HasColumnType("character varying(2000)");
@@ -371,9 +366,6 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
                         .HasColumnType("text");
 
                     b.Property<DateTime?>("UpdatedDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime?>("ValidatedAtUtc")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("Visibility")
@@ -514,20 +506,14 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<bool>("AllowsCitation")
-                        .HasColumnType("boolean");
-
-                    b.Property<DateTime?>("CapturedAtUtc")
-                        .HasColumnType("timestamp with time zone");
-
                     b.Property<string>("Checksum")
                         .IsRequired()
                         .HasMaxLength(128)
                         .HasColumnType("character varying(128)");
 
                     b.Property<string>("ContextNote")
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)");
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
@@ -626,9 +612,6 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 
-                    b.Property<int>("Kind")
-                        .HasColumnType("integer");
-
                     b.Property<string>("Language")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -639,13 +622,13 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
-                    b.Property<DateTime?>("PublishedAtUtc")
-                        .HasColumnType("timestamp with time zone");
-
                     b.Property<string>("Slug")
                         .IsRequired()
                         .HasMaxLength(160)
                         .HasColumnType("character varying(160)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
 
                     b.Property<string>("Summary")
                         .HasMaxLength(2000)

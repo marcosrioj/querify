@@ -16,7 +16,7 @@ public enum SourceRole
     Context = 2,
 
     /// <summary>
-    /// The source directly supports the answer or thread and should influence confidence.
+    /// The source directly supports the question or answer and should influence confidence.
     /// </summary>
     Evidence = 3,
 

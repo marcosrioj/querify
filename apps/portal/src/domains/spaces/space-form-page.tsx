@@ -192,7 +192,7 @@ export function SpaceFormPage({ mode }: { mode: "create" | "edit" }) {
       header={
         <PageHeader
           title={pageTitle}
-          description="Define the QnA status and exposure before threads start accumulating."
+          description="Define the QnA status and exposure before questions start accumulating."
           descriptionMode="hint"
           backTo={backTo}
         />
@@ -381,7 +381,7 @@ export function SpaceFormPage({ mode }: { mode: "create" | "edit" }) {
                   </div>
                   <FormSectionHeading
                     title="Workflow rules"
-                    description="Tune whether the space accepts new threads."
+                    description="Tune whether the space accepts new questions."
                   />
                   <div className="grid gap-4 md:grid-cols-2">
                     <SwitchField

@@ -101,10 +101,10 @@ Use these dimensions for module behavior:
 | Audience exposure | `VisibilityScope` | Who can see the item: authenticated users or the public. This is not status and not moderation. |
 | Channel | `ChannelKind` | Where a question, vote, feedback, or signal entered the system. |
 | Answer provenance | `AnswerKind` | Whether an answer is official, community-provided, or imported. |
-| Source material type | `SourceKind` | What artifact is linked: article, page, ticket, thread, audit record, and so on. |
+| Source material type | `SourceKind` | What artifact is linked: article, page, ticket, transcript, audit record, and so on. |
 | Source relationship role | `SourceRole` | Why a source is attached: origin, context, evidence, or reference. |
 | Actor type | `ActorKind` | Who or what caused an activity event. |
-| Event journal | `ActivityKind` | What happened historically. This is not current state. |
+| Event journal | `ActivityKind` | Question status events, answer status events, feedback signals, and vote signals. This is not current state. |
 | Search rendering | `SearchMarkupMode` | How search-facing markup behaves for a space. |
 
 Common consolidation rules:
@@ -114,7 +114,8 @@ Common consolidation rules:
 - Duplicate question routing is represented by `DuplicateOfQuestionId`; it is relationship context, not a `QuestionStatus` lifecycle value.
 - A source kind should describe the artifact. A source role should describe why it is linked. Visibility should describe whether the source is authenticated-only or public.
 - Source trust or validation behavior belongs to relationship context or Trust-owned validation, not a source-wide shortcut in QnA.
-- An activity kind should describe an event that happened, not a field that can be edited directly.
+- An activity kind should describe a supported status event or public signal, not a field that can be edited directly.
+- Generic edits, accepted-answer selection, duplicate routing, reports, and creation shortcuts should rely on entity state, relationship state, or audit fields instead of broad activity values.
 - A visibility value should not imply moderation, approval, citation permission, or indexing beyond audience exposure.
 - Capability booleans are acceptable only when they represent an independent switch, such as whether a space accepts questions or answers.
 - Channel, source, or activity values may record where a module asset came from, but they must not become the persistence home for another module's workflow.

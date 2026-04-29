@@ -44,7 +44,7 @@ public class AnswerWorkflowTests
 
         Assert.Equal(AnswerStatus.Active, result.Status);
         Assert.NotNull(result.ActivatedAtUtc);
-        Assert.Contains(ActivityKind.AnswerActivated, activityKinds);
+        Assert.Contains(ActivityKind.AnswerActive, activityKinds);
     }
 
     [Fact]
@@ -84,6 +84,6 @@ public class AnswerWorkflowTests
         Assert.Equal(AnswerStatus.Archived, retiredResult.Status);
         Assert.Equal(VisibilityScope.Authenticated, retiredResult.Visibility);
         Assert.NotNull(retiredResult.RetiredAtUtc);
-        Assert.Contains(ActivityKind.AnswerRetired, retiredActivityKinds);
+        Assert.Contains(ActivityKind.AnswerArchived, retiredActivityKinds);
     }
 }

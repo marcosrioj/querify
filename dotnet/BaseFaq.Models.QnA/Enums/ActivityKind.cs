@@ -1,47 +1,42 @@
 namespace BaseFaq.Models.QnA.Enums;
 
 /// <summary>
-/// Describes operational events recorded in the thread journal.
+/// Describes lifecycle and signal events recorded in the question activity journal.
 /// </summary>
 public enum ActivityKind
 {
     /// <summary>
-    /// A new question thread was created.
+    /// A question entered draft status and is not ready for normal operational or public use.
     /// </summary>
-    QuestionCreated = 1,
+    QuestionDraft = 20,
 
     /// <summary>
-    /// The question content or metadata changed.
+    /// A question entered active status and can receive answers or user interaction.
     /// </summary>
-    QuestionUpdated = 2,
+    QuestionActive = 21,
 
     /// <summary>
-    /// The question was redirected to another canonical question.
+    /// A question entered archived status and is preserved as historical knowledge.
     /// </summary>
-    QuestionMarkedDuplicate = 6,
+    QuestionArchived = 22,
 
     /// <summary>
-    /// A new answer candidate was created.
+    /// An answer entered draft status and is still being prepared.
     /// </summary>
-    AnswerCreated = 8,
+    AnswerDraft = 30,
 
     /// <summary>
-    /// An answer candidate was modified.
+    /// An answer entered active status and is ready for operational use.
     /// </summary>
-    AnswerUpdated = 9,
+    AnswerActive = 31,
 
     /// <summary>
-    /// An answer became active for use.
+    /// An answer entered archived status and is no longer active.
     /// </summary>
-    AnswerActivated = 10,
+    AnswerArchived = 32,
 
     /// <summary>
-    /// An answer was chosen as the accepted resolution for the thread.
-    /// </summary>
-    AnswerAccepted = 11,
-
-    /// <summary>
-    /// A thread-level usefulness signal was received.
+    /// A question-level usefulness signal was received.
     /// </summary>
     FeedbackReceived = 14,
 
@@ -49,14 +44,4 @@ public enum ActivityKind
     /// An answer-level ranking vote was received.
     /// </summary>
     VoteReceived = 15,
-
-    /// <summary>
-    /// An answer was retired from active use.
-    /// </summary>
-    AnswerRetired = 16,
-
-    /// <summary>
-    /// A public report signal was received for the thread or a visible answer.
-    /// </summary>
-    ReportReceived = 17
 }

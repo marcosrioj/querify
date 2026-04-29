@@ -5,7 +5,7 @@ using BaseFaq.Models.QnA.Enums;
 namespace BaseFaq.QnA.Common.Persistence.QnADb.Entities;
 
 /// <summary>
-///     Represents the main thread for a question inside a Q&amp;A space.
+///     Represents a canonical question inside a Q&amp;A space.
 /// </summary>
 public class Question : BaseEntity, IMustHaveTenant
 {
@@ -84,12 +84,12 @@ public class Question : BaseEntity, IMustHaveTenant
     public Guid? DuplicateOfQuestionId { get; set; }
 
     /// <summary>
-    ///     Canonical question when this thread was marked as a duplicate.
+    ///     Canonical question when this question was marked as a duplicate.
     /// </summary>
     public Question? DuplicateOfQuestion { get; set; }
 
     /// <summary>
-    ///     Timestamp of the last relevant activity in the thread.
+    ///     Timestamp of the last relevant activity for the question.
     /// </summary>
     public DateTime? LastActivityAtUtc { get; set; }
 
@@ -114,7 +114,7 @@ public class Question : BaseEntity, IMustHaveTenant
     public ICollection<QuestionTag> Tags { get; set; } = [];
 
     /// <summary>
-    ///     History of thread events and changes.
+    ///     History of question events and changes.
     /// </summary>
     public ICollection<Activity> Activities { get; set; } = [];
 

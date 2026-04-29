@@ -118,14 +118,16 @@ export function ActivityListPage() {
   const signalCount = rows.filter(
     (event) =>
       event.kind === ActivityKind.FeedbackReceived ||
-      event.kind === ActivityKind.VoteReceived ||
-      event.kind === ActivityKind.ReportReceived,
+      event.kind === ActivityKind.VoteReceived,
   ).length;
   const workflowCount = rows.filter(
     (event) =>
-      event.kind === ActivityKind.QuestionCreated ||
-      event.kind === ActivityKind.QuestionUpdated ||
-      event.kind === ActivityKind.QuestionMarkedDuplicate,
+      event.kind === ActivityKind.QuestionDraft ||
+      event.kind === ActivityKind.QuestionActive ||
+      event.kind === ActivityKind.QuestionArchived ||
+      event.kind === ActivityKind.AnswerDraft ||
+      event.kind === ActivityKind.AnswerActive ||
+      event.kind === ActivityKind.AnswerArchived,
   ).length;
 
   const columns: DataTableColumn<ActivityDto>[] = [
@@ -191,7 +193,7 @@ export function ActivityListPage() {
             description={
               spaceId
                 ? "Review events from questions that belong to this Space."
-                : "Review moderation actions, workflow transitions, and public signals across QnA threads."
+                : "Review moderation actions, workflow transitions, and public signals across QnA questions."
             }
             descriptionMode="inline"
           />
@@ -214,7 +216,7 @@ export function ActivityListPage() {
               description: spaceId
                 ? translateText("Scoped to the current Space")
                 : questionId
-                  ? translateText("Scoped to the current question thread")
+                  ? translateText("Scoped to the current question")
                   : answerId
                     ? translateText("Scoped to the current answer")
                     : translateText("Audit trail and public-signal events"),
@@ -229,7 +231,7 @@ export function ActivityListPage() {
             {
               title: "Signals",
               value: signalCount,
-              description: translateText("Feedback, votes, and reports"),
+              description: translateText("Feedback and votes"),
               icon: Eye,
             },
             {
@@ -304,7 +306,7 @@ export function ActivityListPage() {
         emptyState={
           <EmptyState
             title="No activity in view"
-            description="Workflow transitions, moderation, votes, feedback, and reports will appear here."
+            description="Status changes, votes, and feedback will appear here."
           />
         }
         errorState={

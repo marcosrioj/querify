@@ -33,6 +33,6 @@ public class ActivityQueryTests
 
         Assert.NotEmpty(result.Items);
         Assert.All(result.Items, item => Assert.Equal(question.Id, item.QuestionId));
-        Assert.Contains(result.Items, item => item.Kind == ActivityKind.AnswerAccepted);
+        Assert.Contains(result.Items, item => item.Kind == ActivityKind.AnswerActive);
     }
 }

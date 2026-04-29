@@ -30,32 +30,36 @@ public sealed class AnswersRetireAnswerCommandHandler(
         if (entity is null)
             throw new ApiErrorException($"Answer '{request.Id}' was not found.", (int)HttpStatusCode.NotFound);
 
+        var originalStatus = entity.Status;
         entity.Status = AnswerStatus.Archived;
         entity.Visibility = VisibilityScope.Authenticated;
         entity.RetiredAtUtc = DateTime.UtcNow;
 
-        var activityIdentity = ResolveActivityIdentity(userId);
-        var activity = new Activity
+        if (originalStatus != entity.Status)
         {
-            TenantId = entity.TenantId,
-            QuestionId = entity.QuestionId,
-            Question = entity.Question,
-            AnswerId = entity.Id,
-            Answer = entity,
-            Kind = ActivityKind.AnswerRetired,
-            ActorKind = ActorKind.Moderator,
-            ActorLabel = userId,
-            UserPrint = activityIdentity.UserPrint,
-            Ip = activityIdentity.Ip,
-            UserAgent = activityIdentity.UserAgent,
-            OccurredAtUtc = DateTime.UtcNow,
-            CreatedBy = userId,
-            UpdatedBy = userId
-        };
+            var activityIdentity = ResolveActivityIdentity(userId);
+            var activity = new Activity
+            {
+                TenantId = entity.TenantId,
+                QuestionId = entity.QuestionId,
+                Question = entity.Question,
+                AnswerId = entity.Id,
+                Answer = entity,
+                Kind = ActivityKindStatusMap.ForAnswerStatus(entity.Status),
+                ActorKind = ActorKind.Moderator,
+                ActorLabel = userId,
+                UserPrint = activityIdentity.UserPrint,
+                Ip = activityIdentity.Ip,
+                UserAgent = activityIdentity.UserAgent,
+                OccurredAtUtc = DateTime.UtcNow,
+                CreatedBy = userId,
+                UpdatedBy = userId
+            };
 
-        entity.Question.Activities.Add(activity);
-        entity.Question.LastActivityAtUtc = activity.OccurredAtUtc;
-        dbContext.Activities.Add(activity);
+            entity.Question.Activities.Add(activity);
+            entity.Question.LastActivityAtUtc = activity.OccurredAtUtc;
+            dbContext.Activities.Add(activity);
+        }
 
         await dbContext.SaveChangesAsync(cancellationToken);
         return request.Id;

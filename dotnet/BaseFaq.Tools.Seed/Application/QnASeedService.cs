@@ -503,27 +503,15 @@ public sealed class QnASeedService : IQnASeedService
             CreateInternalActivity(
                 question,
                 null,
-                ActivityKind.QuestionCreated,
+                ActivityKindStatusMap.ForQuestionStatus(question.Status),
                 moderatorIdentity,
                 createdAtUtc),
             CreateInternalActivity(
                 question,
                 primaryAnswer,
-                ActivityKind.AnswerCreated,
+                ActivityKindStatusMap.ForAnswerStatus(primaryAnswer.Status),
                 moderatorIdentity,
-                createdAtUtc.AddMinutes(40)),
-            CreateInternalActivity(
-                question,
-                primaryAnswer,
-                ActivityKind.AnswerActivated,
-                moderatorIdentity,
-                activatedAtUtc),
-            CreateInternalActivity(
-                question,
-                primaryAnswer,
-                ActivityKind.AnswerAccepted,
-                moderatorIdentity,
-                resolvedAtUtc)
+                activatedAtUtc)
         };
 
         if (alternateAnswer is not null)
@@ -532,26 +520,14 @@ public sealed class QnASeedService : IQnASeedService
                 CreateInternalActivity(
                     question,
                     alternateAnswer,
-                    ActivityKind.AnswerCreated,
-                    moderatorIdentity,
-                    createdAtUtc.AddMinutes(45)));
-            activities.Add(
-                CreateInternalActivity(
-                    question,
-                    alternateAnswer,
-                    ActivityKind.AnswerRetired,
+                    ActivityKindStatusMap.ForAnswerStatus(alternateAnswer.Status),
                     moderatorIdentity,
                     alternateAnswer.RetiredAtUtc ?? resolvedAtUtc.AddHours(4),
-                    notes: "Retired after the active canonical answer replaced it."));
+                    notes: "Archived after the active canonical answer replaced it."));
         }
 
         activities.AddRange(BuildFeedbackActivities(question, item, signalCount, resolvedAtUtc, spaceIndex, questionIndex));
         activities.AddRange(BuildVoteActivities(question, primaryAnswer, item, signalCount, resolvedAtUtc, spaceIndex, questionIndex));
-
-        if (item.HelpfulFeedbackPercent < 75)
-        {
-            activities.Add(BuildReportActivity(question, primaryAnswer, spaceIndex, questionIndex, resolvedAtUtc.AddHours(18)));
-        }
 
         return activities;
     }
@@ -654,40 +630,6 @@ public sealed class QnASeedService : IQnASeedService
                 UpdatedBy = identity.UserPrint
             };
         }
-    }
-
-    private static Activity BuildReportActivity(
-        Question question,
-        Answer answer,
-        int spaceIndex,
-        int questionIndex,
-        DateTime occurredAtUtc)
-    {
-        var identity = BuildCustomerIdentity("report", spaceIndex, questionIndex, 0);
-        return new Activity
-        {
-            Id = Guid.NewGuid(),
-            TenantId = question.TenantId,
-            QuestionId = question.Id,
-            Question = question,
-            AnswerId = answer.Id,
-            Answer = answer,
-            Kind = ActivityKind.ReportReceived,
-            ActorKind = ActorKind.Customer,
-            ActorLabel = identity.UserPrint,
-            UserPrint = identity.UserPrint,
-            Ip = identity.Ip,
-            UserAgent = identity.UserAgent,
-            Notes = "Seeded moderation signal for a public thread.",
-            MetadataJson = ActivitySignals.CreateReportMetadata(
-                identity.UserPrint,
-                identity.Ip,
-                identity.UserAgent,
-                "Needs moderator review after a policy change."),
-            OccurredAtUtc = occurredAtUtc,
-            CreatedBy = identity.UserPrint,
-            UpdatedBy = identity.UserPrint
-        };
     }
 
     private static Activity CreateInternalActivity(

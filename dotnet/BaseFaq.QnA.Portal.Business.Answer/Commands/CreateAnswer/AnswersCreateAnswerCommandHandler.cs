@@ -61,7 +61,7 @@ public sealed class AnswersCreateAnswerCommandHandler(
         dbContext.Answers.Add(entity);
 
         Apply(entity, request.Request, userId);
-        AddActivity(question, entity, ActivityKind.AnswerCreated, userId);
+        AddActivity(question, entity, ActivityKindStatusMap.ForAnswerStatus(entity.Status), userId);
 
         await dbContext.SaveChangesAsync(cancellationToken);
         return entity.Id;

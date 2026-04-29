@@ -89,7 +89,7 @@ export function TagFormPage({ mode }: { mode: "create" | "edit" }) {
                   <span>{translateText("Quick notes")}</span>
                   <ContextHint
                     content={translateText(
-                      "Tags should be reusable across multiple spaces and question threads, so avoid overly specific names.",
+                      "Tags should be reusable across multiple spaces and questions, so avoid overly specific names.",
                     )}
                     label={translateText("Quick notes details")}
                   />

@@ -435,11 +435,12 @@ export const activityKindPresentation = Object.fromEntries(
       label,
       description: "Workflow and signal event.",
       badgeVariant:
-        Number(value) === ActivityKind.ReportReceived
-          ? "destructive"
-          : Number(value) === ActivityKind.AnswerActivated ||
-              Number(value) === ActivityKind.AnswerAccepted
-            ? "success"
+        Number(value) === ActivityKind.QuestionActive ||
+        Number(value) === ActivityKind.AnswerActive
+          ? "success"
+          : Number(value) === ActivityKind.QuestionArchived ||
+              Number(value) === ActivityKind.AnswerArchived
+            ? "secondary"
             : "outline",
       sortGroup: Number(value),
     },

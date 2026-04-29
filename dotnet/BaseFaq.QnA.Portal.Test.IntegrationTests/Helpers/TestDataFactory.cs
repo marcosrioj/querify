@@ -1,4 +1,5 @@
 using BaseFaq.Models.QnA.Enums;
+using BaseFaq.QnA.Common.Helper.Activities;
 using BaseFaq.QnA.Common.Persistence.QnADb.DbContext;
 using BaseFaq.QnA.Common.Persistence.QnADb.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -72,7 +73,7 @@ public static class TestDataFactory
             TenantId = tenantId,
             Question = entity,
             QuestionId = entity.Id,
-            Kind = ActivityKind.QuestionCreated,
+            Kind = ActivityKindStatusMap.ForQuestionStatus(entity.Status),
             ActorKind = ActorKind.Moderator,
             ActorLabel = "tester",
             UserPrint = "tester",
@@ -143,7 +144,7 @@ public static class TestDataFactory
             Question = question,
             AnswerId = entity.Id,
             Answer = entity,
-            Kind = ActivityKind.AnswerCreated,
+            Kind = ActivityKindStatusMap.ForAnswerStatus(entity.Status),
             ActorKind = ActorKind.Moderator,
             ActorLabel = "tester",
             UserPrint = "tester",
@@ -163,26 +164,7 @@ public static class TestDataFactory
             question.AcceptedAnswerId = entity.Id;
             question.AcceptedAnswer = entity;
             question.Status = QuestionStatus.Active;
-            var acceptedActivity = new Activity
-            {
-                TenantId = tenantId,
-                QuestionId = question.Id,
-                Question = question,
-                AnswerId = entity.Id,
-                Answer = entity,
-                Kind = ActivityKind.AnswerAccepted,
-                ActorKind = ActorKind.Moderator,
-                ActorLabel = "tester",
-                UserPrint = "tester",
-                Ip = "127.0.0.1",
-                UserAgent = "QnATest/1.0",
-                OccurredAtUtc = acceptedAtUtc,
-                CreatedBy = "test",
-                UpdatedBy = "test"
-            };
-            question.Activities.Add(acceptedActivity);
-            question.LastActivityAtUtc = acceptedActivity.OccurredAtUtc;
-            dbContext.Activities.Add(acceptedActivity);
+            question.LastActivityAtUtc = acceptedAtUtc;
         }
 
         dbContext.Answers.Add(entity);

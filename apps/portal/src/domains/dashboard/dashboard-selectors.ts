@@ -118,7 +118,7 @@ export function getRoleAwareNextAction({
   if (draftQuestionCount > 0) {
     return {
       label: "Review draft questions",
-      description: "Activate or archive draft threads before the queue grows.",
+      description: "Activate or archive draft questions before the queue grows.",
       to: `/app/questions?status=${QuestionStatus.Draft}`,
     };
   }

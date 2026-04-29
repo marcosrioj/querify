@@ -151,7 +151,7 @@ export function AnswerFormPage({ mode }: { mode: "create" | "edit" }) {
     {
       id: "question",
       label: "Question",
-      description: "Attach the answer to the right thread.",
+      description: "Attach the answer to the right question.",
       complete: hasSetupText(setupValues.questionId),
     },
     {
@@ -202,7 +202,7 @@ export function AnswerFormPage({ mode }: { mode: "create" | "edit" }) {
       >
         <EmptyState
           title="Open a Question before creating an answer"
-          description="Start in a Space, choose the question thread, then author the answer candidate with the right context already locked."
+          description="Start in a Space, choose the question, then author the answer candidate with the right context already locked."
           action={{ label: "Open spaces", to: "/app/spaces" }}
         />
       </DetailLayout>
@@ -319,13 +319,13 @@ export function AnswerFormPage({ mode }: { mode: "create" | "edit" }) {
                 >
                   <FormSectionHeading
                     title="Placement"
-                    description="Attach the answer to the right thread before tuning visibility or trust."
+                    description="Attach the answer to the right question before tuning visibility or trust."
                   />
                   <SearchSelectField
                     control={form.control}
                     name="questionId"
                     label="Question"
-                    description="The question thread this answer candidate belongs to."
+                    description="The question this answer candidate belongs to."
                     placeholder="Search and choose a question"
                     searchPlaceholder="Search questions"
                     emptyMessage={

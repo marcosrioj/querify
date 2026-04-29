@@ -43,7 +43,7 @@ export function ActivityDetailPage() {
       header={
         <PageHeader
           title="Activity event"
-          description="Inspect actor context, notes, metadata, and the thread identifiers behind this audit entry."
+          description="Inspect actor context, notes, metadata, and the question identifiers behind this audit entry."
           descriptionMode="hint"
           backTo={
             activityQuery.data?.answerId

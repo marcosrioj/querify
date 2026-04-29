@@ -1,13 +1,9 @@
-using System.Net;
-using BaseFaq.Common.Infrastructure.Core.Services;
 using BaseFaq.Models.QnA.Dtos.Question;
 using BaseFaq.Models.QnA.Enums;
 using BaseFaq.QnA.Common.Helper.Activities;
 using BaseFaq.QnA.Common.Persistence.QnADb.Entities;
-using BaseFaq.QnA.Public.Business.Question.Commands.CreateReport;
 using BaseFaq.QnA.Public.Business.Question.Queries.GetQuestion;
 using BaseFaq.QnA.Public.Test.IntegrationTests.Helpers;
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
 
@@ -15,56 +11,6 @@ namespace BaseFaq.QnA.Public.Test.IntegrationTests.Tests.Question;
 
 public class QuestionSignalTests
 {
-    [Fact]
-    public async Task CreateReport_PersistsReportReceivedWithUserPrint()
-    {
-        var httpContext = new DefaultHttpContext();
-        httpContext.Connection.RemoteIpAddress = IPAddress.Parse("192.0.2.48");
-        httpContext.Request.Headers.UserAgent = "QnAPublicReport/1.0";
-
-        using var context = TestContext.Create(httpContext: httpContext);
-        var space = await TestDataFactory.SeedSpaceAsync(context.DbContext, context.TenantId);
-        var question = await TestDataFactory.SeedQuestionAsync(context.DbContext, context.TenantId, space.Id);
-        var expectedIdentity = ActivityIdentityResolver.ResolveActivityIdentity(
-            context.SessionService,
-            ActivityRequestInfo.GetRequiredIp(context.HttpContextAccessor.HttpContext!),
-            ActivityRequestInfo.GetRequiredUserAgent(context.HttpContextAccessor.HttpContext!),
-            new ClaimService(context.HttpContextAccessor).GetExternalUserId());
-
-        var reportId = await new QuestionsCreateReportCommandHandler(
-            context.DbContext,
-            new TestClientKeyContextService(context.ClientKey),
-            new TestTenantClientKeyResolver(context.TenantId, context.ClientKey),
-            context.SessionService,
-            new ClaimService(context.HttpContextAccessor),
-            context.HttpContextAccessor).Handle(new QuestionsCreateReportCommand
-        {
-            Request = new QuestionReportCreateRequestDto
-            {
-                QuestionId = question.Id,
-                Reason = "Incorrect content",
-                Notes = "Needs moderation review"
-            }
-        }, CancellationToken.None);
-
-        var result = await new QuestionsGetQuestionQueryHandler(
-            context.DbContext,
-            new TestClientKeyContextService(context.ClientKey),
-            new TestTenantClientKeyResolver(context.TenantId, context.ClientKey),
-            context.HttpContextAccessor).Handle(new QuestionsGetQuestionQuery
-        {
-            Id = question.Id,
-            Request = new QuestionGetRequestDto { IncludeActivity = true }
-        }, CancellationToken.None);
-
-        var reportActivity = Assert.Single(result.Activity, item => item.Id == reportId);
-        Assert.Equal(ActivityKind.ReportReceived, reportActivity.Kind);
-        Assert.Equal(expectedIdentity.UserPrint, reportActivity.UserPrint);
-        Assert.Equal(expectedIdentity.Ip, reportActivity.Ip);
-        Assert.Equal(expectedIdentity.UserAgent, reportActivity.UserAgent);
-        Assert.Equal(expectedIdentity.UserPrint, ActivitySignals.ParseReport(reportActivity.MetadataJson)?.UserPrint);
-    }
-
     [Fact]
     public async Task GetQuestion_DeduplicatesVoteAndFeedbackByExplicitUserPrint()
     {

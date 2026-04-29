@@ -359,7 +359,7 @@ export function QuestionDetailPage() {
       header={
         <PageHeader
           title={questionQuery.data?.title ?? "Question"}
-          description="Operate thread workflow, accepted answers, duplicate routing, source links, and activity from one place."
+          description="Operate question workflow, accepted answers, duplicate routing, source links, and activity from one place."
           descriptionMode="hint"
           backTo={
             questionQuery.data?.spaceId
@@ -370,7 +370,7 @@ export function QuestionDetailPage() {
       }
       sidebar={
         <>
-          <ActionPanel description="Thread actions and navigation.">
+          <ActionPanel description="Question actions and navigation.">
             {spaceBlocksAnswers ? (
               <ActionButton disabled>
                 <Plus className="size-4" />
@@ -408,7 +408,7 @@ export function QuestionDetailPage() {
                   questionQuery.data?.title ?? translateText("this question"),
               })}
               description={translateText(
-                "This removes the thread, its accepted-answer state, and any public-signal aggregation from the portal view.",
+                "This removes the question, its accepted-answer state, and any public-signal aggregation from the portal view.",
               )}
               confirmLabel={translateText("Delete question")}
               isPending={deleteQuestion.isPending}
@@ -442,7 +442,7 @@ export function QuestionDetailPage() {
             <Card>
               <CardHeader>
                 <CardHeading>
-                  <CardTitle>{translateText("Thread overview")}</CardTitle>
+                  <CardTitle>{translateText("Question overview")}</CardTitle>
                 </CardHeading>
               </CardHeader>
               <CardContent>
@@ -480,12 +480,12 @@ export function QuestionDetailPage() {
               <CardHeader>
                 <CardHeading>
                   <CardTitle className="flex items-center gap-2">
-                    <span>{translateText("Thread settings")}</span>
+                    <span>{translateText("Question settings")}</span>
                     <ContextHint
                       content={translateText(
-                        "These values describe the thread and the intake path that created it.",
+                        "These values describe the question and the intake path that created it.",
                       )}
-                      label={translateText("Thread settings details")}
+                      label={translateText("Question settings details")}
                     />
                   </CardTitle>
                 </CardHeading>
@@ -609,7 +609,7 @@ export function QuestionDetailPage() {
                 <div className="space-y-3">
                   <p className="text-sm text-muted-foreground">
                     {translateText(
-                      "Choose the accepted answer that should anchor the canonical resolution for this thread.",
+                      "Choose the accepted answer that should anchor the canonical resolution for this question.",
                     )}
                   </p>
                   <SearchSelect
@@ -672,7 +672,7 @@ export function QuestionDetailPage() {
                 <div className="space-y-3">
                   <p className="text-sm text-muted-foreground">
                     {translateText(
-                      "Mark this thread as a duplicate when another canonical question should own the resolution.",
+                      "Mark this question as a duplicate when another canonical question should own the resolution.",
                     )}
                   </p>
                   <SearchSelect
@@ -739,7 +739,7 @@ export function QuestionDetailPage() {
                 key: "answers",
                 label: "Answers",
                 description:
-                  "Write, activate, or retire answer candidates for this thread.",
+                  "Write, activate, or retire answer candidates for this question.",
                 icon: CheckCircle2,
                 count: questionQuery.data?.answers.length ?? 0,
               },
@@ -755,7 +755,7 @@ export function QuestionDetailPage() {
                 key: "tags",
                 label: "Tags",
                 description:
-                  "Attach taxonomy that helps operators find related threads.",
+                  "Attach taxonomy that helps operators find related questions.",
                 icon: Tags,
                 count: questionQuery.data?.tags.length ?? 0,
               },
@@ -763,7 +763,7 @@ export function QuestionDetailPage() {
                 key: "activity",
                 label: "Activity",
                 description:
-                  "Review moderation, reports, votes, feedback, and workflow history.",
+                  "Review status changes, votes, feedback, and workflow history.",
                 icon: Activity,
                 count:
                   activityListQuery.data?.totalCount ??
@@ -810,7 +810,7 @@ export function QuestionDetailPage() {
                 ) : (
                   <EmptyState
                     title="No tags yet"
-                    description="Attach tags so operators can group and find related threads faster."
+                    description="Attach tags so operators can group and find related questions faster."
                   />
                 )}
                 <ChildListPagination
@@ -926,7 +926,7 @@ export function QuestionDetailPage() {
                 ) : (
                   <EmptyState
                     title="No sources linked yet"
-                    description="Attach origin, evidence, or reusable reference material to strengthen the thread."
+                    description="Attach origin, evidence, or reusable reference material to strengthen the question."
                   />
                 )}
                 <ChildListPagination
@@ -1042,11 +1042,11 @@ export function QuestionDetailPage() {
                       <div className="space-y-3">
                         <div>
                           <p className="text-sm font-semibold text-mono">
-                            {translateText("Draft answer in this thread")}
+                            {translateText("Draft answer for this question")}
                           </p>
                           <p className="text-sm text-muted-foreground">
                             {translateText(
-                              "Write the answer here, then activate it from this same thread.",
+                              "Write the answer here, then activate it from this same question.",
                             )}
                           </p>
                         </div>
@@ -1057,7 +1057,7 @@ export function QuestionDetailPage() {
                             </Label>
                             <ContextHint
                               content={translateText(
-                                "Short answer title saved into this thread.",
+                                "Short answer title saved into this question.",
                               )}
                               label={translateText("Field details")}
                             />
@@ -1175,7 +1175,7 @@ export function QuestionDetailPage() {
                     description={
                       spaceBlocksAnswers
                         ? "This space currently blocks new answer creation."
-                        : "Create the first answer candidate for this thread."
+                        : "Create the first answer candidate for this question."
                     }
                   />
                 )}

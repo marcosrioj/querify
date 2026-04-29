@@ -150,6 +150,10 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<DateTime?>("ActivatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("PublishedAtUtc");
+
                     b.Property<int>("AiConfidenceScore")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
@@ -190,9 +194,6 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
                     b.Property<int>("Kind")
                         .HasColumnType("integer");
 
-                    b.Property<DateTime?>("PublishedAtUtc")
-                        .HasColumnType("timestamp with time zone");
-
                     b.Property<Guid>("QuestionId")
                         .HasColumnType("uuid");
 
@@ -215,9 +216,6 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
                         .HasColumnType("text");
 
                     b.Property<DateTime?>("UpdatedDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime?>("ValidatedAtUtc")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("Visibility")

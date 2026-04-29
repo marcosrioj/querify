@@ -145,7 +145,7 @@ export function QuestionFormPage({ mode }: { mode: "create" | "edit" }) {
     {
       id: "space",
       label: "Space",
-      description: "Attach the thread to its owning operating space.",
+      description: "Attach the question to its owning operating space.",
       complete: hasSetupText(setupValues.spaceId),
     },
     {
@@ -157,7 +157,7 @@ export function QuestionFormPage({ mode }: { mode: "create" | "edit" }) {
     {
       id: "status",
       label: "Status",
-      description: "Set the starting lifecycle for the thread.",
+      description: "Set the starting lifecycle for the question.",
       complete: hasSetupValue(setupValues.status),
     },
     {
@@ -202,7 +202,7 @@ export function QuestionFormPage({ mode }: { mode: "create" | "edit" }) {
       >
         <EmptyState
           title="Open a Space before creating a question"
-          description="Choose the operating Space first. The creation form will then keep the parent context fixed and only ask for thread details."
+          description="Choose the operating Space first. The creation form will then keep the parent context fixed and only ask for question details."
           action={{ label: "Open spaces", to: "/app/spaces" }}
         />
       </DetailLayout>
@@ -214,7 +214,7 @@ export function QuestionFormPage({ mode }: { mode: "create" | "edit" }) {
       header={
         <PageHeader
           title={pageTitle}
-          description="Capture the thread, its operational status, and the context needed for accurate answers."
+          description="Capture the question, its operational status, and the context needed for accurate answers."
           descriptionMode="hint"
           backTo={backTo}
         />
@@ -273,10 +273,10 @@ export function QuestionFormPage({ mode }: { mode: "create" | "edit" }) {
             <CardHeader>
               <CardHeading>
                 <CardTitle className="flex flex-wrap items-center gap-2">
-                  <span>{translateText("Thread details")}</span>
+                  <span>{translateText("Question details")}</span>
                   <ContextHint
                     content={translateText(
-                      "Start with the space, then set lifecycle, visibility, and thread context so downstream answers inherit the right guardrails.",
+                      "Start with the space, then set lifecycle, visibility, and question context so downstream answers inherit the right guardrails.",
                     )}
                     label={translateText("Form details")}
                   />
@@ -326,7 +326,7 @@ export function QuestionFormPage({ mode }: { mode: "create" | "edit" }) {
                 >
                   <FormSectionHeading
                     title="Placement"
-                    description="Pick the owning space first so the thread inherits the right exposure and intake rules."
+                    description="Pick the owning space first so the question inherits the right exposure and intake rules."
                   />
                   <SearchSelectField
                     control={form.control}
@@ -373,7 +373,7 @@ export function QuestionFormPage({ mode }: { mode: "create" | "edit" }) {
                     name="summary"
                     label="Summary"
                     rows={3}
-                    description="A compact explanation of the thread before the full context."
+                    description="A compact explanation of the question before the full context."
                   />
                   <TextareaField
                     control={form.control}
@@ -391,7 +391,7 @@ export function QuestionFormPage({ mode }: { mode: "create" | "edit" }) {
                       control={form.control}
                       name="status"
                       label="Status"
-                      description="Controls whether the thread is draft, active, or archived."
+                      description="Controls whether the question is draft, active, or archived."
                       options={questionStatusOptions}
                     />
                     <SelectField
@@ -459,7 +459,7 @@ export function QuestionFormPage({ mode }: { mode: "create" | "edit" }) {
           </Card>
           <FormSetupProgressCard
             title={mode === "create" ? "Question setup" : "Question edit setup"}
-            description="Complete the required thread fields before saving this question."
+            description="Complete the required question fields before saving this question."
             steps={setupSteps}
           />
         </>

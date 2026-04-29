@@ -289,7 +289,7 @@ export function AnswerListPage() {
             description={
               scopedToSource
                 ? "Showing only answer candidates that cite the selected Source."
-                : "Answers are operated from their parent Question. Use this scoped view only to triage candidates that already belong to a thread."
+                : "Answers are operated from their parent Question. Use this scoped view only to triage candidates that already belong to a question."
             }
             descriptionMode="inline"
             backTo="/app/spaces"
@@ -321,7 +321,7 @@ export function AnswerListPage() {
             {
               title: "Accepted",
               value: acceptedCount,
-              description: translateText("Currently chosen thread resolutions"),
+              description: translateText("Currently chosen question resolutions"),
               icon: CheckCircle2,
             },
             {

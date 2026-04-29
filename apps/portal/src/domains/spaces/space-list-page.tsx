@@ -307,7 +307,7 @@ export function SpaceListPage() {
       )}
       <DataTable
         title="Spaces"
-        description="Open a space to review its status, curated sources, and thread volume."
+        description="Open a space to review its status, curated sources, and question volume."
         descriptionMode="hint"
         columns={columns}
         rows={spaceRows}
@@ -456,7 +456,7 @@ export function SpaceListPage() {
         emptyState={
           <EmptyState
             title="No spaces in view"
-            description="Create the first QnA space to define status, exposure, and thread ownership."
+            description="Create the first QnA space to define status, exposure, and question ownership."
             action={{ label: "New space", to: "/app/spaces/new" }}
           />
         }

@@ -6,7 +6,7 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Entities;
 
 /// <summary>
 ///     Connects a question to a source, describing the role of that source
-///     in the thread.
+///     for the question.
 /// </summary>
 public class QuestionSourceLink : BaseEntity, IMustHaveTenant
 {

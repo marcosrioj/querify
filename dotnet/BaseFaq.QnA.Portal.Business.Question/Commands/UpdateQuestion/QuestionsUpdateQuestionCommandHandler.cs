@@ -37,6 +37,7 @@ public sealed class QuestionsUpdateQuestionCommandHandler(
 
         EnsureSupportedStatus(request.Request.Status);
         EnsureDuplicateRequestAllowed(request.Id, request.Request);
+        var originalStatus = entity.Status;
         Apply(entity, request.Request, userId);
 
         if (!request.Request.DuplicateOfQuestionId.HasValue && entity.DuplicateOfQuestionId.HasValue)
@@ -61,10 +62,6 @@ public sealed class QuestionsUpdateQuestionCommandHandler(
             if (canonical.DuplicateQuestions.All(existing => existing.Id != entity.Id))
                 canonical.DuplicateQuestions.Add(entity);
 
-            AddActivity(
-                entity,
-                ActivityKind.QuestionMarkedDuplicate,
-                userId);
         }
         else if (request.Request.DuplicateOfQuestionId.HasValue)
             entity.Visibility = VisibilityScope.Authenticated;
@@ -108,11 +105,11 @@ public sealed class QuestionsUpdateQuestionCommandHandler(
             entity.AcceptedAnswer = answer;
             if (entity.Status is QuestionStatus.Draft)
                 entity.Status = QuestionStatus.Active;
-
-            AddActivity(entity, ActivityKind.AnswerAccepted, userId, answer);
         }
 
-        AddActivity(entity, ActivityKind.QuestionUpdated, userId);
+        if (entity.Status != originalStatus)
+            AddActivity(entity, ActivityKindStatusMap.ForQuestionStatus(entity.Status), userId);
+
         await dbContext.SaveChangesAsync(cancellationToken);
         return request.Id;
     }
@@ -128,8 +125,7 @@ public sealed class QuestionsUpdateQuestionCommandHandler(
     private void AddActivity(
         Common.Persistence.QnADb.Entities.Question question,
         ActivityKind kind,
-        string userId,
-        Answer? answer = null)
+        string userId)
     {
         var activityIdentity = ResolveActivityIdentity(userId);
         var activity = new Activity
@@ -137,8 +133,6 @@ public sealed class QuestionsUpdateQuestionCommandHandler(
             TenantId = question.TenantId,
             QuestionId = question.Id,
             Question = question,
-            AnswerId = answer?.Id,
-            Answer = answer,
             Kind = kind,
             ActorKind = ActorKind.Moderator,
             ActorLabel = userId,
@@ -149,10 +143,6 @@ public sealed class QuestionsUpdateQuestionCommandHandler(
             CreatedBy = userId,
             UpdatedBy = userId
         };
-
-        if (kind == ActivityKind.QuestionMarkedDuplicate &&
-            question.DuplicateOfQuestionId is Guid duplicateOfQuestionId)
-            activity.MetadataJson = $"{{\"duplicateOfQuestionId\":\"{duplicateOfQuestionId}\"}}";
 
         question.Activities.Add(activity);
         question.LastActivityAtUtc = activity.OccurredAtUtc;

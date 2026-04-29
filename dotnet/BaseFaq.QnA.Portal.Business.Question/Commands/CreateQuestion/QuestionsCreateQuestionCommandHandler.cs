@@ -59,7 +59,7 @@ public sealed class QuestionsCreateQuestionCommandHandler(
         dbContext.Questions.Add(entity);
 
         Apply(entity, request.Request, userId);
-        AddActivity(entity, ActivityKind.QuestionCreated, userId);
+        AddActivity(entity, ActivityKindStatusMap.ForQuestionStatus(entity.Status), userId);
 
         await dbContext.SaveChangesAsync(cancellationToken);
         return entity.Id;

@@ -313,7 +313,7 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
                 >
                   <FormSectionHeading
                     title="Core identity"
-                    description="Define the locator and source kind first so the record can be reused across threads."
+                    description="Define the locator and source kind first so the record can be reused across questions."
                   />
                   <div className="grid gap-4 md:grid-cols-2">
                     <SelectField

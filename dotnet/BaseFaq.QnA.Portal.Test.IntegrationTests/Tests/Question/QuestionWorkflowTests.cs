@@ -55,6 +55,5 @@ public class QuestionWorkflowTests
         Assert.Equal(QuestionStatus.Active, result.Status);
         Assert.Equal(VisibilityScope.Authenticated, result.Visibility);
         Assert.Equal(canonical.Id, result.DuplicateOfQuestionId);
-        Assert.Contains(result.Activity, activity => activity.Kind == ActivityKind.QuestionMarkedDuplicate);
     }
 }

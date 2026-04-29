@@ -309,7 +309,7 @@ export function QuestionListPage() {
               name: question.title,
             })}
             description={translateText(
-              "This removes the thread from the portal and breaks any accepted-answer linkage.",
+              "This removes the question from the portal and breaks any accepted-answer linkage.",
             )}
             confirmLabel={translateText("Delete question")}
             isPending={deleteQuestion.isPending}
@@ -333,10 +333,10 @@ export function QuestionListPage() {
             title={scopedToRelationship ? "Related questions" : "Questions"}
             description={
               sourceId
-                ? "Showing only question threads linked to the selected Source."
+                ? "Showing only questions linked to the selected Source."
                 : tagId
-                  ? "Showing only question threads attached to the selected Tag."
-                  : "Questions are operated from their owning Space. Use this scoped view only to triage threads that already have parent context."
+                  ? "Showing only questions attached to the selected Tag."
+                  : "Questions are operated from their owning Space. Use this scoped view only to triage questions that already have parent context."
             }
             descriptionMode="inline"
             backTo="/app/spaces"
@@ -360,7 +360,7 @@ export function QuestionListPage() {
                   ? translateText("Search: {value}", {
                       value: debouncedSearch,
                     })
-                  : translateText("Threads currently in this workspace"),
+                  : translateText("Questions currently in this workspace"),
               icon: CircleDot,
             },
             {
@@ -383,7 +383,7 @@ export function QuestionListPage() {
               title: "Duplicates",
               value: duplicateCount,
               description: translateText(
-                "Threads redirected to a canonical question",
+                "Questions redirected to a canonical question",
               ),
               icon: GitFork,
             },
@@ -503,7 +503,7 @@ export function QuestionListPage() {
         emptyState={
           <EmptyState
             title="No questions in view"
-            description="Open a Space and create the first thread from there so intake rules, visibility, tags, and sources stay attached."
+            description="Open a Space and create the first question from there so intake rules, visibility, tags, and sources stay attached."
             action={{ label: "Open spaces", to: "/app/spaces" }}
           />
         }

@@ -1,7 +1,7 @@
 namespace BaseFaq.Models.QnA.Enums;
 
 /// <summary>
-/// Defines the lifecycle of a question thread.
+/// Defines the lifecycle of a question.
 /// </summary>
 public enum QuestionStatus
 {

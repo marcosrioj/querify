@@ -254,7 +254,7 @@ export function SpaceDetailPage() {
       }
     : questionsNeedingAction.length > 0
       ? {
-          label: "Resolve first thread",
+          label: "Resolve first question",
           tab: "questions",
           text: "A question needs an accepted answer or duplicate routing.",
         }
@@ -267,7 +267,7 @@ export function SpaceDetailPage() {
         : {
             label: "Create question",
             tab: "questions",
-            text: "The Space is ready for the next operational thread.",
+            text: "The Space is ready for the next operational question.",
           };
 
   return (
@@ -524,7 +524,7 @@ export function SpaceDetailPage() {
                 key: "questions",
                 label: "Questions",
                 description:
-                  "Review and create threads that inherit this Space's intake and visibility rules.",
+                  "Review and create questions that inherit this Space's intake and visibility rules.",
                 icon: MessageSquareText,
                 count: questionQuery.data?.totalCount ?? 0,
               },
@@ -787,7 +787,7 @@ export function SpaceDetailPage() {
                           </p>
                           <p className="text-sm text-muted-foreground">
                             {translateText(
-                              "Capture the thread here so it inherits this Space's intake and visibility rules.",
+                              "Capture the question here so it inherits this Space's intake and visibility rules.",
                             )}
                           </p>
                         </div>
@@ -798,7 +798,7 @@ export function SpaceDetailPage() {
                             </Label>
                             <ContextHint
                               content={translateText(
-                                "Canonical thread wording saved into this Space.",
+                                "Canonical question wording saved into this Space.",
                               )}
                               label={translateText("Field details")}
                             />
@@ -886,7 +886,7 @@ export function SpaceDetailPage() {
                         <QuestionStatusBadge status={question.status} />
                         <Button asChild variant="outline" size="sm">
                           <Link to={`/app/questions/${question.id}`}>
-                            {translateText("Open thread")}
+                            {translateText("Open question")}
                           </Link>
                         </Button>
                       </div>
@@ -898,7 +898,7 @@ export function SpaceDetailPage() {
                     description={
                       blocksQuestions
                         ? "Question intake is disabled for this space."
-                        : "Create the first thread in this space to start the QnA workflow."
+                        : "Create the first question in this space to start the QnA workflow."
                     }
                   />
                 )}
@@ -961,7 +961,7 @@ export function SpaceDetailPage() {
                 ) : (
                   <EmptyState
                     title="No contextual activity yet"
-                    description="Activity appears here after questions in this Space receive workflow changes, moderation, votes, feedback, or reports."
+                    description="Activity appears here after questions in this Space receive status changes, votes, or feedback."
                   />
                 )}
                 <ChildListPagination

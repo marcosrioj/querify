@@ -13,7 +13,7 @@ namespace BaseFaq.QnA.Portal.Test.IntegrationTests.Tests.Question;
 public class QuestionCommandQueryTests
 {
     [Fact]
-    public async Task UpdateQuestion_AcceptsAnswerAndWritesActivity()
+    public async Task UpdateQuestion_AcceptsAnswer()
     {
         using var context = TestContext.Create();
         var space = await TestDataFactory.SeedSpaceAsync(context.DbContext, context.SessionService.TenantId);
@@ -56,7 +56,6 @@ public class QuestionCommandQueryTests
         Assert.Equal(QuestionStatus.Active, result.Status);
         Assert.NotNull(result.AcceptedAnswer);
         Assert.True(result.AcceptedAnswer!.IsAccepted);
-        Assert.Contains(result.Activity, activity => activity.Kind == ActivityKind.AnswerAccepted);
     }
 
     [Fact]

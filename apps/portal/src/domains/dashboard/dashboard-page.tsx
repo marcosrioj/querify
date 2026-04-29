@@ -771,7 +771,7 @@ export function DashboardPage() {
           <HorizontalValueChart
             data={spaceWorkload}
             emptyTitle="No space demand yet"
-            emptyDescription="Questions by space will appear after teams begin routing threads."
+            emptyDescription="Questions by space will appear after teams begin routing questions."
             valueLabel="Questions"
           />
         </Panel>

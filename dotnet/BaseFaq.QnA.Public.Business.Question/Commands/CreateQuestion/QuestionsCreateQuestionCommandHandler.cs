@@ -78,7 +78,7 @@ public sealed class QuestionsCreateQuestionCommandHandler(
             TenantId = entity.TenantId,
             QuestionId = entity.Id,
             Question = entity,
-            Kind = ActivityKind.QuestionCreated,
+            Kind = ActivityKindStatusMap.ForQuestionStatus(entity.Status),
             ActorKind = ActorKind.Customer,
             ActorLabel = identity.UserPrint,
             UserPrint = identity.UserPrint,

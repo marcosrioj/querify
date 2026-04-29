@@ -2,7 +2,6 @@ using BaseFaq.Models.Common.Dtos;
 using BaseFaq.Models.QnA.Dtos.Question;
 using BaseFaq.QnA.Public.Business.Question.Abstractions;
 using BaseFaq.QnA.Public.Business.Question.Commands.CreateQuestion;
-using BaseFaq.QnA.Public.Business.Question.Commands.CreateReport;
 using BaseFaq.QnA.Public.Business.Question.Queries.GetQuestion;
 using BaseFaq.QnA.Public.Business.Question.Queries.GetQuestionList;
 using MediatR;
@@ -31,11 +30,5 @@ public sealed class QuestionService(IMediator mediator) : IQuestionService
     {
         ArgumentNullException.ThrowIfNull(dto);
         return mediator.Send(new QuestionsCreateQuestionCommand { Request = dto }, token);
-    }
-
-    public Task<Guid> Report(QuestionReportCreateRequestDto dto, CancellationToken token)
-    {
-        ArgumentNullException.ThrowIfNull(dto);
-        return mediator.Send(new QuestionsCreateReportCommand { Request = dto }, token);
     }
 }
