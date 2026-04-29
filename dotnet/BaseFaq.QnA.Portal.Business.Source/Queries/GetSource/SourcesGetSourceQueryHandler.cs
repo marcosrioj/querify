@@ -67,7 +67,7 @@ public sealed class SourcesGetSourceQueryHandler(
                         SpaceSlug = link.Question.Space.Slug,
                         Title = link.Question.Title,
                         Summary = link.Question.Summary,
-                        Status = QnAReadModelMappings.NormalizeQuestionStatus(link.Question.Status),
+                        Status = link.Question.Status,
                         Visibility = link.Question.Visibility,
                         Role = link.Role,
                         Order = link.Order,

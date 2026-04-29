@@ -86,6 +86,7 @@ export function AnswerDetailPage() {
   const navigate = useNavigate();
   const portalTimeZone = usePortalTimeZone();
   const { id } = useParams();
+  const answerId = id ?? "";
   const answerQuery = useAnswer(id);
   const questionQuery = useQuestion(answerQuery.data?.questionId);
   const activityQuery = useActivityList({
@@ -97,8 +98,8 @@ export function AnswerDetailPage() {
   const deleteAnswer = useDeleteAnswer();
   const activateAnswer = useActivateAnswer();
   const retireAnswer = useRetireAnswer();
-  const addSource = useAddAnswerSource(id ?? "");
-  const removeSource = useRemoveAnswerSource(id ?? "");
+  const addSource = useAddAnswerSource(answerId);
+  const removeSource = useRemoveAnswerSource(answerId);
   const [selectedSourceId, setSelectedSourceId] = useState("");
   const [sourceSearch, setSourceSearch] = useState("");
   const [selectedSourceRole, setSelectedSourceRole] = useState(
@@ -140,11 +141,25 @@ export function AnswerDetailPage() {
     (answerQuery.isLoading ||
       questionQuery.isLoading ||
       sourceOptionsQuery.isLoading);
-  const canActivate = answerQuery.data?.status === AnswerStatus.Draft;
-  const canRetire =
-    answerQuery.data?.status === AnswerStatus.Active;
+  const currentAnswerStatus = answerQuery.data?.status;
+  const lifecycleActionOptions = [
+    {
+      status: AnswerStatus.Active,
+      label: "Activate",
+      variant: "primary" as const,
+      isPending: activateAnswer.isPending,
+      run: () => activateAnswer.mutateAsync(answerId),
+    },
+    {
+      status: AnswerStatus.Archived,
+      label: "Retire",
+      variant: "destructive" as const,
+      isPending: retireAnswer.isPending,
+      run: () => retireAnswer.mutateAsync(answerId),
+    },
+  ].filter((option) => option.status !== currentAnswerStatus);
   const lifecycleSummary =
-    answerQuery.data?.status === AnswerStatus.Draft
+    currentAnswerStatus === AnswerStatus.Draft
       ? translateText(
           "Activate the answer before exposing it publicly or accepting it.",
         )
@@ -356,22 +371,21 @@ export function AnswerDetailPage() {
               <p className="text-sm text-muted-foreground">
                 {lifecycleSummary}
               </p>
-              <div className="grid gap-2 sm:grid-cols-2">
-                <ActionButton
-                  tone="primary"
-                  onClick={() => void activateAnswer.mutateAsync(id)}
-                  disabled={!canActivate || activateAnswer.isPending}
-                >
-                  {translateText("Activate")}
-                </ActionButton>
-                <ActionButton
-                  tone="danger"
-                  onClick={() => void retireAnswer.mutateAsync(id)}
-                  disabled={!canRetire || retireAnswer.isPending}
-                >
-                  {translateText("Retire")}
-                </ActionButton>
-              </div>
+              {lifecycleActionOptions.length ? (
+                <div className="flex flex-wrap gap-2">
+                  {lifecycleActionOptions.map((option) => (
+                    <Button
+                      key={option.status}
+                      size="sm"
+                      variant={option.variant}
+                      onClick={() => void option.run()}
+                      disabled={option.isPending}
+                    >
+                      {translateText(option.label)}
+                    </Button>
+                  ))}
+                </div>
+              ) : null}
             </CardContent>
           </Card>
 

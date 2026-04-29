@@ -46,6 +46,34 @@ public class SpaceCommandQueryTests
     }
 
     [Fact]
+    public async Task CreateSpace_GeneratesSlugWhenRequestOmitsSlug()
+    {
+        using var context = TestContext.Create();
+        var createHandler =
+            new SpacesCreateSpaceCommandHandler(context.DbContext, context.SessionService);
+
+        var id = await createHandler.Handle(new SpacesCreateSpaceCommand
+        {
+            Request = new SpaceCreateRequestDto
+            {
+                Name = "Customer Success & Support",
+                Language = "en-US",
+                Summary = "Customer success questions.",
+                Status = SpaceStatus.Active,
+                Visibility = VisibilityScope.Authenticated,
+                AcceptsQuestions = true,
+                AcceptsAnswers = true
+            }
+        }, CancellationToken.None);
+
+        var getHandler = new SpacesGetSpaceQueryHandler(context.DbContext, context.SessionService);
+        var result =
+            await getHandler.Handle(new SpacesGetSpaceQuery { Id = id }, CancellationToken.None);
+
+        Assert.Equal("customer-success-support", result.Slug);
+    }
+
+    [Fact]
     public async Task CreateSpace_ReturnsApiErrorWhenPublicVisibilityUsesDraftStatus()
     {
         using var context = TestContext.Create();

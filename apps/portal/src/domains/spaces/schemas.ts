@@ -6,8 +6,8 @@ export const spaceFormSchema = z.object({
   name: z.string().min(2, 'Space name is required.'),
   slug: z
     .string()
-    .min(2, 'Space slug is required.')
-    .max(64, 'Keep the slug within the backend limit.'),
+    .max(64, 'Keep the slug within the backend limit.')
+    .optional(),
   language: z
     .string()
     .min(2, 'Language is required.')

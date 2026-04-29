@@ -5,6 +5,7 @@ using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.QnA.Dtos.Space;
 using BaseFaq.Models.QnA.Enums;
 using BaseFaq.QnA.Common.Persistence.QnADb.DbContext;
+using BaseFaq.QnA.Portal.Business.Space.Helpers;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -30,7 +31,16 @@ public sealed class SpacesUpdateSpaceCommandHandler(
         if (entity is null)
             throw new ApiErrorException($"Space '{request.Id}' was not found.", (int)HttpStatusCode.NotFound);
 
-        Apply(entity, request.Request, userId);
+        var slug = await SpaceSlugHelper.ResolveSlugAsync(
+            dbContext,
+            tenantId,
+            request.Id,
+            request.Request.Slug,
+            request.Request.Name,
+            entity.Slug,
+            cancellationToken);
+
+        Apply(entity, request.Request, userId, slug);
         await dbContext.SaveChangesAsync(cancellationToken);
         return request.Id;
     }
@@ -38,10 +48,11 @@ public sealed class SpacesUpdateSpaceCommandHandler(
     private static void Apply(
         Common.Persistence.QnADb.Entities.Space entity,
         SpaceUpdateRequestDto request,
-        string userId)
+        string userId,
+        string slug)
     {
         entity.Name = request.Name;
-        entity.Slug = request.Slug;
+        entity.Slug = slug;
         entity.Language = request.Language;
         entity.Summary = request.Summary;
         entity.AcceptsQuestions = request.AcceptsQuestions;

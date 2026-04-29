@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { X } from "lucide-react";
+import { RefreshCw, X } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   spaceStatusLabels,
@@ -32,11 +32,18 @@ import {
   CardTitle,
   ContextHint,
   Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
   FormSetupProgressCard,
   FormCardSkeleton,
   FormSectionHeading,
+  FormMessage,
   hasSetupText,
   hasSetupValue,
+  Input,
   SidebarSummarySkeleton,
 } from "@/shared/ui";
 import { ErrorState } from "@/shared/ui/placeholder-state";
@@ -54,6 +61,17 @@ import {
   portalLanguageOptions,
 } from "@/shared/lib/language";
 
+function slugify(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 64);
+}
+
 export function SpaceFormPage({ mode }: { mode: "create" | "edit" }) {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -61,6 +79,7 @@ export function SpaceFormPage({ mode }: { mode: "create" | "edit" }) {
   const createSpace = useCreateSpace();
   const updateSpace = useUpdateSpace(id ?? "");
   const initialLanguage = getStoredPortalLanguage() ?? DEFAULT_PORTAL_LANGUAGE;
+  const [autoSlugFromName, setAutoSlugFromName] = useState(mode === "create");
 
   const form = useForm<SpaceFormValues>({
     resolver: zodResolver(spaceFormSchema),
@@ -81,9 +100,12 @@ export function SpaceFormPage({ mode }: { mode: "create" | "edit" }) {
       return;
     }
 
+    const loadedSlug = spaceQuery.data.slug ?? "";
+    setAutoSlugFromName(!loadedSlug.trim());
+
     form.reset({
       name: spaceQuery.data.name,
-      slug: spaceQuery.data.slug,
+      slug: loadedSlug,
       language: spaceQuery.data.language,
       summary: spaceQuery.data.summary ?? "",
       status: spaceQuery.data.status,
@@ -92,6 +114,31 @@ export function SpaceFormPage({ mode }: { mode: "create" | "edit" }) {
       acceptsAnswers: spaceQuery.data.acceptsAnswers,
     });
   }, [form, spaceQuery.data]);
+
+  const nameValue = form.watch("name");
+  const slugValue = form.watch("slug") ?? "";
+
+  useEffect(() => {
+    if (!autoSlugFromName) {
+      return;
+    }
+
+    const nextSlug = slugify(nameValue);
+    if (slugValue !== nextSlug) {
+      form.setValue("slug", nextSlug, {
+        shouldDirty: mode === "create",
+        shouldValidate: true,
+      });
+    }
+  }, [autoSlugFromName, form, mode, nameValue, slugValue]);
+
+  const slugifyFromName = () => {
+    setAutoSlugFromName(false);
+    form.setValue("slug", slugify(form.getValues("name")), {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+  };
 
   const languageOptions = portalLanguageOptions.map((option) => ({
     value: option.code,
@@ -211,6 +258,7 @@ export function SpaceFormPage({ mode }: { mode: "create" | "edit" }) {
                   onSubmit={form.handleSubmit(async (values) => {
                     const body = {
                       ...values,
+                      slug: values.slug?.trim() || undefined,
                       summary: values.summary || undefined,
                       status: Number(values.status) as SpaceStatus,
                       visibility: Number(values.visibility) as VisibilityScope,
@@ -238,12 +286,42 @@ export function SpaceFormPage({ mode }: { mode: "create" | "edit" }) {
                       placeholder="Product support space"
                       description="Use the operational name teammates will recognize."
                     />
-                    <TextField
+                    <FormField
                       control={form.control}
                       name="slug"
-                      label="Slug"
-                      placeholder="product-support"
-                      description="Use a stable slug for routing and integrations."
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{translateText("Slug")}</FormLabel>
+                          <div className="flex flex-col gap-2 sm:flex-row">
+                            <FormControl>
+                              <Input
+                                {...field}
+                                value={field.value ?? ""}
+                                placeholder="product-support"
+                                onChange={(event) => {
+                                  setAutoSlugFromName(false);
+                                  field.onChange(event);
+                                }}
+                              />
+                            </FormControl>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={slugifyFromName}
+                              className="shrink-0"
+                            >
+                              <RefreshCw className="size-4" />
+                              {translateText("Slugify from name")}
+                            </Button>
+                          </div>
+                          <FormDescription className="sr-only">
+                            {translateText(
+                              "Use a stable slug for routing and integrations.",
+                            )}
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
                     />
                   </div>
                   <div className="grid gap-4 md:grid-cols-2">

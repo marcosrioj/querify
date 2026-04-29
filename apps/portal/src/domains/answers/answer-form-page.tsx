@@ -13,7 +13,6 @@ import {
   AnswerStatus,
   VisibilityScope,
   answerKindLabels,
-  answerStatusLabels,
   visibilityScopeLabels,
 } from "@/shared/constants/backend-enums";
 import {
@@ -88,7 +87,6 @@ export function AnswerFormPage({ mode }: { mode: "create" | "edit" }) {
       headline: "",
       body: "",
       kind: AnswerKind.Official,
-      status: AnswerStatus.Draft,
       visibility: VisibilityScope.Authenticated,
       contextNote: "",
       authorLabel: "",
@@ -106,7 +104,6 @@ export function AnswerFormPage({ mode }: { mode: "create" | "edit" }) {
       headline: answerQuery.data.headline,
       body: answerQuery.data.body ?? "",
       kind: answerQuery.data.kind,
-      status: answerQuery.data.status,
       visibility: answerQuery.data.visibility,
       contextNote: answerQuery.data.contextNote ?? "",
       authorLabel: answerQuery.data.authorLabel ?? "",
@@ -133,12 +130,15 @@ export function AnswerFormPage({ mode }: { mode: "create" | "edit" }) {
   const selectedVisibility = Number(
     form.watch("visibility"),
   ) as VisibilityScope;
-  const selectedStatus = Number(form.watch("status")) as AnswerStatus;
+  const currentAnswerStatus =
+    mode === "create"
+      ? AnswerStatus.Draft
+      : (answerQuery.data?.status ?? AnswerStatus.Draft);
   const publicVisibilitySelected =
     selectedVisibility === VisibilityScope.Public;
   const invalidPublicStatus =
     publicVisibilitySelected &&
-    selectedStatus !== AnswerStatus.Active;
+    currentAnswerStatus !== AnswerStatus.Active;
   const spaceBlocksAnswers = selectedSpaceQuery.data?.acceptsAnswers === false;
   const questionOptions = (questionOptionsQuery.data?.items ?? []).map(
     buildQuestionOption,
@@ -165,12 +165,6 @@ export function AnswerFormPage({ mode }: { mode: "create" | "edit" }) {
       label: "Answer kind",
       description: "Classify how official or contextual this answer is.",
       complete: hasSetupValue(setupValues.kind),
-    },
-    {
-      id: "status",
-      label: "Status",
-      description: "Set where the answer is in the lifecycle.",
-      complete: hasSetupValue(setupValues.status),
     },
     {
       id: "visibility",
@@ -298,7 +292,7 @@ export function AnswerFormPage({ mode }: { mode: "create" | "edit" }) {
                       contextNote: values.contextNote || undefined,
                       authorLabel: values.authorLabel || undefined,
                       kind: Number(values.kind) as AnswerKind,
-                      status: Number(values.status) as AnswerStatus,
+                      status: currentAnswerStatus,
                       visibility: Number(values.visibility) as VisibilityScope,
                       sort: values.sort,
                     };
@@ -367,27 +361,15 @@ export function AnswerFormPage({ mode }: { mode: "create" | "edit" }) {
                   />
                   <FormSectionHeading
                     title="Lifecycle and trust"
-                    description="Control visibility, official status, and operational rank."
+                    description="Control visibility, answer kind, and operational rank."
                   />
-                  <div className="grid gap-4 md:grid-cols-4">
+                  <div className="grid gap-4 md:grid-cols-3">
                     <SelectField
                       control={form.control}
                       name="kind"
                       label="Answer kind"
                       description="Classifies the answer so workflow and badges present it correctly."
                       options={Object.entries(answerKindLabels).map(
-                        ([value, label]) => ({
-                          value,
-                          label,
-                        }),
-                      )}
-                    />
-                    <SelectField
-                      control={form.control}
-                      name="status"
-                      label="Status"
-                      description="Controls whether the answer is draft, active, or archived."
-                      options={Object.entries(answerStatusLabels).map(
                         ([value, label]) => ({
                           value,
                           label,
@@ -456,7 +438,7 @@ export function AnswerFormPage({ mode }: { mode: "create" | "edit" }) {
                   {invalidPublicStatus ? (
                     <p className="text-sm text-muted-foreground">
                       {translateText(
-                        "Public visibility requires status Active.",
+                        "Only active answers can be exposed publicly.",
                       )}
                     </p>
                   ) : null}

@@ -85,7 +85,7 @@ public sealed class AnswersUpdateAnswerCommandHandler(
         {
             case AnswerStatus.Active:
                 entity.Status = AnswerStatus.Active;
-                entity.ActivatedAtUtc = DateTime.UtcNow;
+                entity.ActivatedAtUtc ??= DateTime.UtcNow;
                 break;
             case AnswerStatus.Archived:
                 entity.Status = AnswerStatus.Archived;

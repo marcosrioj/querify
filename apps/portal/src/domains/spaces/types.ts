@@ -23,7 +23,7 @@ export type SpaceDetailDto = SpaceDto & {
 
 export type SpaceCreateRequestDto = {
   name: string;
-  slug: string;
+  slug?: string | null;
   language: string;
   summary?: string | null;
   status: SpaceStatus;
