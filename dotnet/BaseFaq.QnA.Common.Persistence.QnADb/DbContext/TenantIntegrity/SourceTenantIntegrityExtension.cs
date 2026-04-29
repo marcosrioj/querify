@@ -13,7 +13,7 @@ internal static class SourceTenantIntegrityExtension
         {
             var source = entry.Entity;
 
-            if (!source.Visibility.IsPubliclyVisible()) continue;
+            if (source.Visibility is not VisibilityScope.Public) continue;
 
             if (source.Kind == SourceKind.InternalNote)
                 throw new InvalidOperationException(

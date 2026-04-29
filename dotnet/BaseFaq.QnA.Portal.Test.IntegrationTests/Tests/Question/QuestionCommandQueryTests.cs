@@ -1,5 +1,8 @@
+using System.Net;
+using BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception;
 using BaseFaq.Models.QnA.Dtos.Question;
 using BaseFaq.Models.QnA.Enums;
+using BaseFaq.QnA.Portal.Business.Question.Commands.CreateQuestion;
 using BaseFaq.QnA.Portal.Business.Question.Commands.UpdateQuestion;
 using BaseFaq.QnA.Portal.Business.Question.Queries.GetQuestion;
 using BaseFaq.QnA.Portal.Test.IntegrationTests.Helpers;
@@ -54,5 +57,35 @@ public class QuestionCommandQueryTests
         Assert.NotNull(result.AcceptedAnswer);
         Assert.True(result.AcceptedAnswer!.IsAccepted);
         Assert.Contains(result.Activity, activity => activity.Kind == ActivityKind.AnswerAccepted);
+    }
+
+    [Fact]
+    public async Task CreateQuestion_ReturnsApiErrorWhenPublicVisibilityUsesDraftStatus()
+    {
+        using var context = TestContext.Create();
+        var space = await TestDataFactory.SeedSpaceAsync(context.DbContext, context.SessionService.TenantId);
+        var createHandler = new QuestionsCreateQuestionCommandHandler(
+            context.DbContext,
+            context.SessionService,
+            context.HttpContextAccessor);
+
+        var exception = await Assert.ThrowsAsync<ApiErrorException>(() => createHandler.Handle(
+            new QuestionsCreateQuestionCommand
+            {
+                Request = new QuestionCreateRequestDto
+                {
+                    SpaceId = space.Id,
+                    Title = "Draft public question",
+                    Summary = null,
+                    ContextNote = null,
+                    Status = QuestionStatus.Draft,
+                    Visibility = VisibilityScope.Public,
+                    OriginChannel = ChannelKind.Manual,
+                    Sort = 0
+                }
+            },
+            CancellationToken.None));
+
+        Assert.Equal((int)HttpStatusCode.UnprocessableEntity, exception.ErrorCode);
     }
 }

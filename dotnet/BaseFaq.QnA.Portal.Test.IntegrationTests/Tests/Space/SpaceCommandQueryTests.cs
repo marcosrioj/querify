@@ -1,3 +1,5 @@
+using System.Net;
+using BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception;
 using BaseFaq.Models.QnA.Dtos.Space;
 using BaseFaq.Models.QnA.Enums;
 using BaseFaq.QnA.Portal.Business.Space.Commands.CreateSpace;
@@ -41,5 +43,32 @@ public class SpaceCommandQueryTests
         Assert.Equal("en-US", result.Language);
         Assert.Equal(SpaceStatus.Active, result.Status);
         Assert.True(result.AcceptsQuestions);
+    }
+
+    [Fact]
+    public async Task CreateSpace_ReturnsApiErrorWhenPublicVisibilityUsesDraftStatus()
+    {
+        using var context = TestContext.Create();
+        var createHandler =
+            new SpacesCreateSpaceCommandHandler(context.DbContext, context.SessionService);
+
+        var exception = await Assert.ThrowsAsync<ApiErrorException>(() => createHandler.Handle(
+            new SpacesCreateSpaceCommand
+            {
+                Request = new SpaceCreateRequestDto
+                {
+                    Name = "Draft space",
+                    Slug = "draft-space",
+                    Language = "en-US",
+                    Summary = "Not ready for public exposure.",
+                    Status = SpaceStatus.Draft,
+                    Visibility = VisibilityScope.Public,
+                    AcceptsQuestions = false,
+                    AcceptsAnswers = false
+                }
+            },
+            CancellationToken.None));
+
+        Assert.Equal((int)HttpStatusCode.UnprocessableEntity, exception.ErrorCode);
     }
 }

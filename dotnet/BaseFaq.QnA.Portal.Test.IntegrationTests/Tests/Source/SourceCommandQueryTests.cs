@@ -1,3 +1,5 @@
+using System.Net;
+using BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception;
 using BaseFaq.Common.EntityFramework.Core.AutoHistory;
 using BaseFaq.Models.QnA.Dtos.Source;
 using BaseFaq.Models.QnA.Enums;
@@ -84,5 +86,35 @@ public class SourceCommandQueryTests
         Assert.NotEqual("sha256:test-source", source.Checksum);
         Assert.StartsWith("sha256:", source.Checksum);
         Assert.Equal(71, source.Checksum.Length);
+    }
+
+    [Fact]
+    public async Task CreateSource_ReturnsApiErrorWhenPublicSourceIsUnverified()
+    {
+        using var context = TestContext.Create();
+
+        var createHandler =
+            new SourcesCreateSourceCommandHandler(context.DbContext, context.SessionService);
+
+        var exception = await Assert.ThrowsAsync<ApiErrorException>(() => createHandler.Handle(
+            new SourcesCreateSourceCommand
+            {
+                Request = new SourceCreateRequestDto
+                {
+                    Kind = SourceKind.Article,
+                    Locator = "https://docs.example.test/qna/unverified",
+                    Label = "Unverified source",
+                    ContextNote = null,
+                    ExternalId = null,
+                    Language = "en-US",
+                    MediaType = "text/html",
+                    MetadataJson = null,
+                    Visibility = VisibilityScope.Public,
+                    MarkVerified = false
+                }
+            },
+            CancellationToken.None));
+
+        Assert.Equal((int)HttpStatusCode.UnprocessableEntity, exception.ErrorCode);
     }
 }

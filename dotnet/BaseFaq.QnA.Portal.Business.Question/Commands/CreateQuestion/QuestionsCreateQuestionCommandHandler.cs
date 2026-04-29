@@ -90,7 +90,9 @@ public sealed class QuestionsCreateQuestionCommandHandler(
     private ActivityUserIdentity ResolveActivityIdentity(string userId)
     {
         var httpContext = httpContextAccessor.HttpContext
-                          ?? throw new InvalidOperationException("HttpContext is missing from the current request.");
+                          ?? throw new ApiErrorException(
+                              "HttpContext is missing from the current request.",
+                              (int)HttpStatusCode.Unauthorized);
         return ActivityIdentityResolver.ResolveActivityIdentity(
             userId,
             ActivityRequestInfo.GetRequiredIp(httpContext),
@@ -115,7 +117,8 @@ public sealed class QuestionsCreateQuestionCommandHandler(
         if (visibility is not VisibilityScope.Public) return;
 
         if (entity.Status is not QuestionStatus.Active)
-            throw new InvalidOperationException(
-                "Only active questions can be exposed publicly.");
+            throw new ApiErrorException(
+                "Only active questions can be exposed publicly.",
+                (int)HttpStatusCode.UnprocessableEntity);
     }
 }

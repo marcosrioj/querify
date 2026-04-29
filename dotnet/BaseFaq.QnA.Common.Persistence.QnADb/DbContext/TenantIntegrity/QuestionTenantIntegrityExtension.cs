@@ -21,7 +21,7 @@ internal static class QuestionTenantIntegrityExtension
                 cache.GetSpaceTenant(question.SpaceId),
                 nameof(Question.SpaceId));
 
-            if (question.Visibility.IsPubliclyVisible() &&
+            if (question.Visibility is VisibilityScope.Public &&
                 question.Status is not QuestionStatus.Active)
                 throw new InvalidOperationException(
                     $"Question '{question.Id}' cannot be public while in status '{question.Status}'.");
@@ -42,8 +42,8 @@ internal static class QuestionTenantIntegrityExtension
                     throw new InvalidOperationException(
                         $"Question '{question.Id}' cannot accept answer '{acceptedAnswerId}' while it is in status '{acceptedAnswer.Status}'.");
 
-                if (question.Visibility.IsPubliclyVisible() &&
-                    !acceptedAnswer.Visibility.IsPubliclyVisible())
+                if (question.Visibility is VisibilityScope.Public &&
+                    acceptedAnswer.Visibility is not VisibilityScope.Public)
                     throw new InvalidOperationException(
                         $"Question '{question.Id}' cannot expose accepted answer '{acceptedAnswerId}' while the answer is not publicly visible.");
             }

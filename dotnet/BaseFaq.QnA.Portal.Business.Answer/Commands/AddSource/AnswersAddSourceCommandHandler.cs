@@ -69,7 +69,8 @@ public sealed class AnswersAddSourceCommandHandler(
 
         if (role is SourceRole.Reference &&
             source.Visibility is not VisibilityScope.Public)
-            throw new InvalidOperationException(
-                "Public references require a publicly visible source.");
+            throw new ApiErrorException(
+                "Public references require a publicly visible source.",
+                (int)HttpStatusCode.UnprocessableEntity);
     }
 }

@@ -63,7 +63,9 @@ public sealed class AnswersRejectAnswerCommandHandler(
     private ActivityUserIdentity ResolveActivityIdentity(string userId)
     {
         var httpContext = httpContextAccessor.HttpContext
-                          ?? throw new InvalidOperationException("HttpContext is missing from the current request.");
+                          ?? throw new ApiErrorException(
+                              "HttpContext is missing from the current request.",
+                              (int)HttpStatusCode.Unauthorized);
         return ActivityIdentityResolver.ResolveActivityIdentity(
             userId,
             ActivityRequestInfo.GetRequiredIp(httpContext),

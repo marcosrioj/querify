@@ -63,7 +63,9 @@ public sealed class AnswersUpdateAnswerCommandHandler(
     private ActivityUserIdentity ResolveActivityIdentity(string userId)
     {
         var httpContext = httpContextAccessor.HttpContext
-                          ?? throw new InvalidOperationException("HttpContext is missing from the current request.");
+                          ?? throw new ApiErrorException(
+                              "HttpContext is missing from the current request.",
+                              (int)HttpStatusCode.Unauthorized);
         return ActivityIdentityResolver.ResolveActivityIdentity(
             userId,
             ActivityRequestInfo.GetRequiredIp(httpContext),
@@ -108,12 +110,15 @@ public sealed class AnswersUpdateAnswerCommandHandler(
         if (visibility is not VisibilityScope.Public) return;
 
         if (entity.Status is not AnswerStatus.Published and not AnswerStatus.Validated)
-            throw new InvalidOperationException("Only published or validated answers can be exposed publicly.");
+            throw new ApiErrorException(
+                "Only published or validated answers can be exposed publicly.",
+                (int)HttpStatusCode.UnprocessableEntity);
 
         foreach (var sourceLink in entity.Sources)
             if (sourceLink.Role is SourceRole.Reference &&
                 sourceLink.Source.Visibility is not VisibilityScope.Public)
-                throw new InvalidOperationException(
-                    "Public references require a publicly visible source.");
+                throw new ApiErrorException(
+                    "Public references require a publicly visible source.",
+                    (int)HttpStatusCode.UnprocessableEntity);
     }
 }

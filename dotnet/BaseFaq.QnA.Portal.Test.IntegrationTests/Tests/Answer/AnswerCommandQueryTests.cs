@@ -1,3 +1,5 @@
+using System.Net;
+using BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception;
 using BaseFaq.Models.QnA.Dtos.Answer;
 using BaseFaq.Models.QnA.Enums;
 using BaseFaq.QnA.Portal.Business.Answer.Commands.CreateAnswer;
@@ -43,5 +45,38 @@ public class AnswerCommandQueryTests
         Assert.Equal("Reset password from portal", result.Headline);
         Assert.Equal(AnswerStatus.Published, result.Status);
         Assert.Equal(VisibilityScope.Public, result.Visibility);
+    }
+
+    [Fact]
+    public async Task CreateAnswer_ReturnsApiErrorWhenPublicVisibilityUsesDraftStatus()
+    {
+        using var context = TestContext.Create();
+        var space = await TestDataFactory.SeedSpaceAsync(context.DbContext, context.SessionService.TenantId);
+        var question =
+            await TestDataFactory.SeedQuestionAsync(context.DbContext, context.SessionService.TenantId, space.Id);
+
+        var createHandler = new AnswersCreateAnswerCommandHandler(
+            context.DbContext,
+            context.SessionService,
+            context.HttpContextAccessor);
+
+        var exception = await Assert.ThrowsAsync<ApiErrorException>(() => createHandler.Handle(
+            new AnswersCreateAnswerCommand
+            {
+                Request = new AnswerCreateRequestDto
+                {
+                    QuestionId = question.Id,
+                    Headline = "Draft public answer",
+                    Body = "Draft body",
+                    Kind = AnswerKind.Official,
+                    Status = AnswerStatus.Draft,
+                    Visibility = VisibilityScope.Public,
+                    ContextNote = null,
+                    Sort = 0
+                }
+            },
+            CancellationToken.None));
+
+        Assert.Equal((int)HttpStatusCode.UnprocessableEntity, exception.ErrorCode);
     }
 }

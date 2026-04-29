@@ -35,6 +35,7 @@ public sealed class QuestionsUpdateQuestionCommandHandler(
         if (entity is null)
             throw new ApiErrorException($"Question '{request.Id}' was not found.", (int)HttpStatusCode.NotFound);
 
+        EnsureDuplicateRequestAllowed(request.Id, request.Request);
         Apply(entity, request.Request, userId);
 
         if (!request.Request.DuplicateOfQuestionId.HasValue && entity.DuplicateOfQuestionId.HasValue)
@@ -64,6 +65,10 @@ public sealed class QuestionsUpdateQuestionCommandHandler(
                 ActivityKind.QuestionMarkedDuplicate,
                 userId);
         }
+        else if (request.Request.DuplicateOfQuestionId.HasValue)
+        {
+            entity.Status = QuestionStatus.Duplicate;
+        }
 
         if (!request.Request.AcceptedAnswerId.HasValue && entity.AcceptedAnswerId.HasValue)
         {
@@ -85,15 +90,20 @@ public sealed class QuestionsUpdateQuestionCommandHandler(
                     (int)HttpStatusCode.NotFound);
 
             if (answer.QuestionId != entity.Id)
-                throw new InvalidOperationException(
-                    $"Accepted answer '{acceptedAnswerId}' belongs to a different question.");
+                throw new ApiErrorException(
+                    $"Accepted answer '{acceptedAnswerId}' belongs to a different question.",
+                    (int)HttpStatusCode.UnprocessableEntity);
 
             if (answer.Status is not AnswerStatus.Published and not AnswerStatus.Validated)
-                throw new InvalidOperationException("Only published or validated answers can be accepted.");
+                throw new ApiErrorException(
+                    "Only published or validated answers can be accepted.",
+                    (int)HttpStatusCode.UnprocessableEntity);
 
             if (entity.Visibility is VisibilityScope.Public &&
                 answer.Visibility is not VisibilityScope.Public)
-                throw new InvalidOperationException("Public questions cannot accept authenticated-only answers.");
+                throw new ApiErrorException(
+                    "Public questions cannot accept authenticated-only answers.",
+                    (int)HttpStatusCode.UnprocessableEntity);
 
             entity.AcceptedAnswerId = answer.Id;
             entity.AcceptedAnswer = answer;
@@ -106,6 +116,20 @@ public sealed class QuestionsUpdateQuestionCommandHandler(
         AddActivity(entity, ActivityKind.QuestionUpdated, userId);
         await dbContext.SaveChangesAsync(cancellationToken);
         return request.Id;
+    }
+
+    private static void EnsureDuplicateRequestAllowed(Guid questionId, QuestionUpdateRequestDto request)
+    {
+        if (request.Status is QuestionStatus.Duplicate &&
+            !request.DuplicateOfQuestionId.HasValue)
+            throw new ApiErrorException(
+                "Duplicate questions must identify the canonical question.",
+                (int)HttpStatusCode.UnprocessableEntity);
+
+        if (request.DuplicateOfQuestionId == questionId)
+            throw new ApiErrorException(
+                "Questions cannot point to themselves as duplicates.",
+                (int)HttpStatusCode.UnprocessableEntity);
     }
 
     private void AddActivity(
@@ -145,7 +169,9 @@ public sealed class QuestionsUpdateQuestionCommandHandler(
     private ActivityUserIdentity ResolveActivityIdentity(string userId)
     {
         var httpContext = httpContextAccessor.HttpContext
-                          ?? throw new InvalidOperationException("HttpContext is missing from the current request.");
+                          ?? throw new ApiErrorException(
+                              "HttpContext is missing from the current request.",
+                              (int)HttpStatusCode.Unauthorized);
         return ActivityIdentityResolver.ResolveActivityIdentity(
             userId,
             ActivityRequestInfo.GetRequiredIp(httpContext),
@@ -172,17 +198,21 @@ public sealed class QuestionsUpdateQuestionCommandHandler(
         if (visibility is not VisibilityScope.Public) return;
 
         if (entity.Status is not QuestionStatus.Active)
-            throw new InvalidOperationException(
-                "Only active questions can be exposed publicly.");
+            throw new ApiErrorException(
+                "Only active questions can be exposed publicly.",
+                (int)HttpStatusCode.UnprocessableEntity);
 
         foreach (var sourceLink in entity.Sources)
             if (sourceLink.Role is SourceRole.Reference &&
                 sourceLink.Source.Visibility is not VisibilityScope.Public)
-                throw new InvalidOperationException(
-                    "Public references require a publicly visible source.");
+                throw new ApiErrorException(
+                    "Public references require a publicly visible source.",
+                    (int)HttpStatusCode.UnprocessableEntity);
 
         if (entity.AcceptedAnswer is not null &&
             entity.AcceptedAnswer.Visibility is not VisibilityScope.Public)
-            throw new InvalidOperationException("Public questions require a publicly visible accepted answer.");
+            throw new ApiErrorException(
+                "Public questions require a publicly visible accepted answer.",
+                (int)HttpStatusCode.UnprocessableEntity);
     }
 }

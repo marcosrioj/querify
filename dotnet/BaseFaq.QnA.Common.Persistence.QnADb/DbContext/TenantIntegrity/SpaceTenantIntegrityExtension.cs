@@ -13,7 +13,7 @@ internal static class SpaceTenantIntegrityExtension
         {
             var space = entry.Entity;
 
-            if (space.Visibility.IsPubliclyVisible() &&
+            if (space.Visibility is VisibilityScope.Public &&
                 space.Status is not SpaceStatus.Active)
                 throw new InvalidOperationException(
                     $"Space '{space.Id}' cannot be public while in status '{space.Status}'.");
