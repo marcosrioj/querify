@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.Json;
 using BaseFaq.Models.QnA.Enums;
 using BaseFaq.QnA.Common.Helper.Activities;
 using BaseFaq.QnA.Common.Persistence.QnADb.DbContext;
@@ -134,18 +135,17 @@ public sealed class QnASeedService : IQnASeedService
             {
                 Id = Guid.NewGuid(),
                 TenantId = tenantId,
-                Kind = ResolveSourceKind(item.SourceName),
+                Kind = ResolveSourceKind(item),
                 Locator = item.SourceUrl,
                 Label = item.SourceLabel,
-                ContextNote = $"Curated evidence for {item.Question}",
-                ExternalId = NormalizeKey($"{item.SourceName}-{item.Question}", "seed-source"),
+                ContextNote = BuildSourceContextNote(item),
+                ExternalId = BuildSourceExternalId(item),
                 Language = SeedLanguage,
-                MediaType = "text/html",
-                Checksum = Convert.ToHexString(Guid.NewGuid().ToByteArray()),
-                MetadataJson =
-                    $$"""{"catalog":"seed-qna","sourceName":"{{EscapeJson(item.SourceName)}}","sourceLabel":"{{EscapeJson(item.SourceLabel)}}"}""",
+                MediaType = ResolveMediaType(item),
+                Checksum = BuildChecksum(item),
+                MetadataJson = BuildSourceMetadataJson(item),
                 Visibility = VisibilityScope.Public,
-                LastVerifiedAtUtc = SeedBaseTimeUtc.AddDays(-1),
+                LastVerifiedAtUtc = BuildVerifiedAtUtc(item),
                 CreatedBy = "seed",
                 UpdatedBy = "seed"
             })
@@ -266,10 +266,10 @@ public sealed class QnASeedService : IQnASeedService
                 Space = space,
                 Title = item.Question,
                 Summary = item.ShortAnswer,
-                ContextNote = $"Imported from {item.SourceName}. Snapshot refreshed on {SeedBaseTimeUtc:yyyy-MM-dd}.",
-                Status = isValidated ? QuestionStatus.Active : QuestionStatus.Active,
+                ContextNote = BuildQuestionContextNote(item, isValidated),
+                Status = QuestionStatus.Active,
                 Visibility = VisibilityScope.Public,
-                OriginChannel = ChannelKind.Import,
+                OriginChannel = ResolveOriginChannel(item, questionIndex),
                 AiConfidenceScore = Math.Clamp(item.AiConfidenceScore, 0, 100),
                 FeedbackScore = 0,
                 Sort = questionIndex + 1,
@@ -342,7 +342,7 @@ public sealed class QnASeedService : IQnASeedService
             TenantId = tenantId,
             QuestionId = questionId,
             Headline = item.ShortAnswer,
-            Body = item.Answer,
+            Body = BuildPrimaryAnswerBody(item),
             Kind = AnswerKind.Official,
             Status = validatedAtUtc is not null ? AnswerStatus.Validated : AnswerStatus.Published,
             Visibility = VisibilityScope.Public,
@@ -460,22 +460,8 @@ public sealed class QnASeedService : IQnASeedService
             Answer = answer,
             SourceId = source.Id,
             Source = source,
-            Role = SourceRole.Reference,
+            Role = SourceRole.Evidence,
             Order = 1,
-            CreatedBy = "seed",
-            UpdatedBy = "seed"
-        });
-
-        answer.Sources.Add(new AnswerSourceLink
-        {
-            Id = Guid.NewGuid(),
-            TenantId = tenantId,
-            AnswerId = answer.Id,
-            Answer = answer,
-            SourceId = source.Id,
-            Source = source,
-            Role = SourceRole.Reference,
-            Order = 2,
             CreatedBy = "seed",
             UpdatedBy = "seed"
         });
@@ -781,25 +767,255 @@ public sealed class QnASeedService : IQnASeedService
             UserAgent: $"BaseFaq.QnA.Seed.{prefix}/1.0");
     }
 
-    private static SourceKind ResolveSourceKind(string sourceName)
+    private static string BuildSourceContextNote(SeedQuestionDefinition item)
     {
-        if (sourceName.Contains("GitHub", StringComparison.OrdinalIgnoreCase))
+        var product = ResolveProductName(item);
+        var businessArea = ResolveBusinessArea(item);
+        var trustTier = ResolveTrustTier(item);
+
+        return $"{trustTier} {product} reference for {businessArea}. Curated as reusable evidence for: {item.Question}";
+    }
+
+    private static string BuildSourceExternalId(SeedQuestionDefinition item)
+    {
+        var productKey = NormalizeKey(ResolveProductName(item), "product");
+        var labelKey = NormalizeKey(item.SourceLabel, "source");
+        return $"seed-qna:{productKey}:{labelKey}";
+    }
+
+    private static string BuildChecksum(SeedQuestionDefinition item)
+    {
+        var payload = string.Join('|', item.SourceName, item.SourceLabel, item.SourceUrl, item.Question, item.Answer);
+        return Convert
+            .ToHexString(System.Security.Cryptography.SHA256.HashData(Encoding.UTF8.GetBytes(payload)))
+            .ToLowerInvariant();
+    }
+
+    private static string BuildSourceMetadataJson(SeedQuestionDefinition item)
+    {
+        var metadata = new Dictionary<string, object?>
         {
-            return SourceKind.Repository;
+            ["catalog"] = "seed-qna",
+            ["sourceName"] = item.SourceName,
+            ["sourceLabel"] = item.SourceLabel,
+            ["product"] = ResolveProductName(item),
+            ["businessArea"] = ResolveBusinessArea(item),
+            ["audience"] = ResolveAudience(item),
+            ["trustTier"] = ResolveTrustTier(item),
+            ["canonicalQuestion"] = item.Question,
+            ["answerPreview"] = item.ShortAnswer,
+            ["helpfulFeedbackPercent"] = Math.Clamp(item.HelpfulFeedbackPercent, 0, 100),
+            ["aiConfidenceScore"] = Math.Clamp(item.AiConfidenceScore, 0, 100),
+            ["sourceKind"] = ResolveSourceKind(item).ToString(),
+            ["mediaType"] = ResolveMediaType(item),
+            ["lastCatalogRefreshUtc"] = SeedBaseTimeUtc.ToString("O")
+        };
+
+        return JsonSerializer.Serialize(metadata);
+    }
+
+    private static DateTime BuildVerifiedAtUtc(SeedQuestionDefinition item)
+    {
+        return SeedBaseTimeUtc.AddDays(-(BuildStableOffset(item.SourceUrl, 21) + 1));
+    }
+
+    private static int BuildStableOffset(string value, int modulo)
+    {
+        var hash = System.Security.Cryptography.SHA256.HashData(Encoding.UTF8.GetBytes(value));
+        return hash[0] % Math.Max(1, modulo);
+    }
+
+    private static string BuildQuestionContextNote(SeedQuestionDefinition item, bool isValidated)
+    {
+        var confidence = isValidated ? "validated" : "published pending a stronger validation pass";
+        return $"Imported from {item.SourceName} for {ResolveBusinessArea(item)}. Snapshot refreshed on {SeedBaseTimeUtc:yyyy-MM-dd}; confidence is {confidence}.";
+    }
+
+    private static string BuildPrimaryAnswerBody(SeedQuestionDefinition item)
+    {
+        var product = ResolveProductName(item);
+        var businessArea = ResolveBusinessArea(item).ToLowerInvariant();
+
+        return string.Join(
+            Environment.NewLine + Environment.NewLine,
+            item.Answer,
+            $"Operational guidance: treat this as the canonical {product} answer for {businessArea} when the customer is asking the same policy or workflow question. Confirm account-specific state, eligibility, dates, regional availability, and any irreversible action before applying it.",
+            $"Source handling: cite \"{item.SourceLabel}\" as the primary public reference. Re-check the source when feedback turns negative, confidence drops below the validation threshold, or the upstream product flow changes.");
+    }
+
+    private static SourceKind ResolveSourceKind(SeedQuestionDefinition item)
+    {
+        var source = $"{item.SourceName} {item.SourceLabel} {item.SourceUrl}";
+
+        if (ContainsAny(source, "terms", "policy", "policies", "real id", "identification", "signature services"))
+        {
+            return SourceKind.GovernanceRecord;
         }
 
-        if (sourceName.Contains("Slack", StringComparison.OrdinalIgnoreCase))
-        {
-            return SourceKind.Article;
-        }
-
-        if (sourceName.Contains("USPS", StringComparison.OrdinalIgnoreCase) ||
-            sourceName.Contains("TSA", StringComparison.OrdinalIgnoreCase))
+        if (ContainsAny(source, "whatcanibring/items", "premium plans", "basic plans", "managed accounts", "package intercept"))
         {
             return SourceKind.ProductNote;
         }
 
+        if (ContainsAny(source, "docs.github.com", "support.google.com", "support.apple.com", "support.spotify.com", "slack.com/help", "airbnb.com/help"))
+        {
+            return SourceKind.Article;
+        }
+
+        if (ContainsAny(source, "tsa.gov", "usps.com", "airbnb.com"))
+        {
+            return SourceKind.WebPage;
+        }
+
         return SourceKind.Article;
+    }
+
+    private static string ResolveMediaType(SeedQuestionDefinition item)
+    {
+        return item.SourceUrl.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase)
+            ? "application/pdf"
+            : "text/html";
+    }
+
+    private static string ResolveProductName(SeedQuestionDefinition item)
+    {
+        var sourceName = item.SourceName;
+
+        if (sourceName.Contains("GitHub", StringComparison.OrdinalIgnoreCase))
+        {
+            return "GitHub";
+        }
+
+        if (sourceName.Contains("Google", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Google Account";
+        }
+
+        if (sourceName.Contains("Apple", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Apple";
+        }
+
+        if (sourceName.Contains("Spotify", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Spotify";
+        }
+
+        if (sourceName.Contains("Slack", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Slack";
+        }
+
+        if (sourceName.Contains("TSA", StringComparison.OrdinalIgnoreCase))
+        {
+            return "TSA";
+        }
+
+        if (sourceName.Contains("USPS", StringComparison.OrdinalIgnoreCase))
+        {
+            return "USPS";
+        }
+
+        if (sourceName.Contains("Airbnb", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Airbnb";
+        }
+
+        return sourceName;
+    }
+
+    private static string ResolveBusinessArea(SeedQuestionDefinition item)
+    {
+        var text = $"{item.Question} {item.SourceLabel}".ToLowerInvariant();
+
+        if (ContainsAny(text, "2fa", "two-step", "password", "passkey", "recovery", "hacked", "suspicious", "secure"))
+        {
+            return "Account security";
+        }
+
+        if (ContainsAny(text, "subscription", "billing", "refund", "payment", "charge", "purchase", "premium", "plan", "cancel"))
+        {
+            return "Billing and subscriptions";
+        }
+
+        if (ContainsAny(text, "repository", "repo", "fork", "archive", "transfer", "visibility"))
+        {
+            return "Repository operations";
+        }
+
+        if (ContainsAny(text, "notification", "watch", "mention", "huddle", "canvas", "channel", "guest", "workspace", "playlist", "family", "duo"))
+        {
+            return "Collaboration and access";
+        }
+
+        if (ContainsAny(text, "icloud", "backup", "restore", "storage"))
+        {
+            return "Backup and storage";
+        }
+
+        if (ContainsAny(text, "tsa", "travel", "checkpoint", "real id", "laptop", "liquid", "medication", "battery", "precheck"))
+        {
+            return "Travel screening";
+        }
+
+        if (ContainsAny(text, "mail", "package", "forward", "redelivery", "po box", "signature", "hold mail"))
+        {
+            return "Mail and package operations";
+        }
+
+        if (ContainsAny(text, "airbnb", "reservation", "booking", "host", "monthly stay", "experience"))
+        {
+            return "Reservations and cancellations";
+        }
+
+        return "Customer support knowledge";
+    }
+
+    private static string ResolveAudience(SeedQuestionDefinition item)
+    {
+        var text = $"{item.Question} {item.Answer}".ToLowerInvariant();
+
+        if (ContainsAny(text, "owner", "admin", "manager", "host", "plan manager"))
+        {
+            return "operators and account admins";
+        }
+
+        if (ContainsAny(text, "guest", "traveler", "passenger", "member", "customer", "users"))
+        {
+            return "customers and end users";
+        }
+
+        return "support agents";
+    }
+
+    private static string ResolveTrustTier(SeedQuestionDefinition item)
+    {
+        if (item.AiConfidenceScore >= 95 && item.HelpfulFeedbackPercent >= 92)
+        {
+            return "High-trust";
+        }
+
+        if (item.AiConfidenceScore >= 90)
+        {
+            return "Reviewed";
+        }
+
+        return "Monitor";
+    }
+
+    private static ChannelKind ResolveOriginChannel(SeedQuestionDefinition item, int questionIndex)
+    {
+        if (ContainsAny(item.SourceName, "Help", "Support", "Docs"))
+        {
+            return questionIndex % 5 == 0 ? ChannelKind.Import : ChannelKind.HelpCenter;
+        }
+
+        return questionIndex % 4 == 0 ? ChannelKind.Api : ChannelKind.Import;
+    }
+
+    private static bool ContainsAny(string value, params string[] needles)
+    {
+        return needles.Any(needle => value.Contains(needle, StringComparison.OrdinalIgnoreCase));
     }
 
     private static string NormalizeKey(string value, string fallback)
@@ -837,13 +1053,6 @@ public sealed class QnASeedService : IQnASeedService
         return string.IsNullOrWhiteSpace(normalized)
             ? fallback
             : normalized;
-    }
-
-    private static string EscapeJson(string value)
-    {
-        return value
-            .Replace("\\", "\\\\", StringComparison.Ordinal)
-            .Replace("\"", "\\\"", StringComparison.Ordinal);
     }
 
     private static ActivitySignalEntry ToSignalEntry(Activity activity)

@@ -116,7 +116,7 @@ public sealed class BillingSeedService : IBillingSeedService
     {
         EnsureTenant(dbContext, seedTenantId,
             slug: SeedTenantSlug,
-            name: Tenant.DefaultTenantName,
+            name: "BaseFaq Seed Workspace",
             edition: TenantEdition.Free,
             productConnectionString: productConnectionString);
 

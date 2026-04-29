@@ -13,7 +13,7 @@ public sealed record SeedCounts(
     int SignalsPerQuestion)
 {
     public static SeedCounts Default => new(
-        UserCount: 1,
+        UserCount: 6,
         TenantCount: 1,
         TenantConnectionsPerModule: 1,
         SpaceCount: 16,
@@ -21,6 +21,6 @@ public sealed record SeedCounts(
         TagCount: 64,
         SourceCount: 128,
         TagsPerSpace: 4,
-        SourcesPerSpace: 8,
+        SourcesPerSpace: 10,
         SignalsPerQuestion: 6);
 }

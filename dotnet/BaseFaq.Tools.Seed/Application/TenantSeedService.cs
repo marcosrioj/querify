@@ -1,7 +1,6 @@
 using BaseFaq.Common.EntityFramework.Core.Entities;
 using BaseFaq.Common.EntityFramework.Tenant;
 using BaseFaq.Common.EntityFramework.Tenant.Entities;
-using BaseFaq.Common.EntityFramework.Tenant.Helpers;
 using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.Tenant.Enums;
 using BaseFaq.Models.User.Enums;
@@ -14,6 +13,18 @@ namespace BaseFaq.Tools.Seed.Application;
 public sealed class TenantSeedService : ITenantSeedService
 {
     private const string SeedTenantSlug = "tenant-001";
+    private const string SeedTenantName = "BaseFaq Seed Workspace";
+    private const string SeedTenantClientKey = "seed-qna-public";
+
+    private static readonly SeedUserProfile[] SeedUserProfiles =
+    [
+        new("Ava", "Chen", "ava.chen@seed.basefaq.local", "+1-555-010-0101", "en-US", "America/Vancouver", UserRoleType.Admin),
+        new("Mateo", "Silva", "mateo.silva@seed.basefaq.local", "+1-555-010-0102", "en-US", "America/Toronto", UserRoleType.Member),
+        new("Priya", "Raman", "priya.raman@seed.basefaq.local", "+1-555-010-0103", "en-US", "America/New_York", UserRoleType.Admin),
+        new("Noah", "Brooks", "noah.brooks@seed.basefaq.local", "+1-555-010-0104", "en-US", "America/Chicago", UserRoleType.Member),
+        new("Sofia", "Patel", "sofia.patel@seed.basefaq.local", "+1-555-010-0105", "en-US", "America/Los_Angeles", UserRoleType.Member),
+        new("Lena", "Park", "lena.park@seed.basefaq.local", "+1-555-010-0106", "en-US", "America/Vancouver", UserRoleType.Member)
+    ];
 
     public bool HasEssentialData(TenantDbContext dbContext, TenantSeedRequest request, SeedCounts counts)
     {
@@ -42,32 +53,24 @@ public sealed class TenantSeedService : ITenantSeedService
         if (seedTenant is null ||
             seedTenant.IsDeleted ||
             !seedTenant.IsActive ||
+            seedTenant.Name != SeedTenantName ||
+            seedTenant.ClientKey != SeedTenantClientKey ||
             seedTenant.Module != ModuleEnum.QnA ||
             !string.Equals(seedTenant.ConnectionString, request.QnAConnectionString, StringComparison.Ordinal))
         {
             return false;
         }
 
-        var ownerUser = seedUsers[BuildSeedUserExternalId(1)];
-        var hasOwnerMembership = seedTenant.TenantUsers.Any(tenantUser =>
-            !tenantUser.IsDeleted &&
-            tenantUser.UserId == ownerUser.Id &&
-            tenantUser.Role == TenantUserRoleType.Owner);
-
-        if (!hasOwnerMembership)
+        for (var index = 1; index <= normalizedUserCount; index++)
         {
-            return false;
-        }
-
-        if (normalizedUserCount > 1)
-        {
-            var memberUser = seedUsers[BuildSeedUserExternalId(2)];
-            var hasMemberMembership = seedTenant.TenantUsers.Any(tenantUser =>
+            var seedUser = seedUsers[BuildSeedUserExternalId(index)];
+            var expectedRole = index == 1 ? TenantUserRoleType.Owner : TenantUserRoleType.Member;
+            var hasMembership = seedTenant.TenantUsers.Any(tenantUser =>
                 !tenantUser.IsDeleted &&
-                tenantUser.UserId == memberUser.Id &&
-                tenantUser.Role == TenantUserRoleType.Member);
+                tenantUser.UserId == seedUser.Id &&
+                tenantUser.Role == expectedRole);
 
-            if (!hasMemberMembership)
+            if (!hasMembership)
             {
                 return false;
             }
@@ -114,11 +117,12 @@ public sealed class TenantSeedService : ITenantSeedService
             var externalId = BuildSeedUserExternalId(index);
             if (!existingUsers.TryGetValue(externalId, out var user))
             {
+                var profile = ResolveUserProfile(index);
                 user = new User
                 {
                     Id = Guid.NewGuid(),
-                    GivenName = $"User {index:000}",
-                    Email = $"user{index:000}@seed.basefaq.local",
+                    GivenName = profile.GivenName,
+                    Email = profile.Email,
                     ExternalId = externalId
                 };
 
@@ -138,9 +142,6 @@ public sealed class TenantSeedService : ITenantSeedService
         TenantSeedRequest request,
         IReadOnlyList<User> users)
     {
-        var ownerUser = users.FirstOrDefault();
-        var memberUser = users.Skip(1).FirstOrDefault();
-
         var tenant = dbContext.Tenants
             .IgnoreQueryFilters()
             .Include(entity => entity.TenantUsers)
@@ -152,10 +153,11 @@ public sealed class TenantSeedService : ITenantSeedService
             {
                 Id = Guid.NewGuid(),
                 Slug = SeedTenantSlug,
-                Name = Tenant.DefaultTenantName,
+                Name = SeedTenantName,
                 Edition = TenantEdition.Free,
                 Module = ModuleEnum.QnA,
-                ConnectionString = request.QnAConnectionString
+                ConnectionString = request.QnAConnectionString,
+                ClientKey = SeedTenantClientKey
             };
 
             dbContext.Tenants.Add(tenant);
@@ -163,37 +165,17 @@ public sealed class TenantSeedService : ITenantSeedService
 
         RestoreEntity(tenant);
         tenant.Slug = SeedTenantSlug;
-        tenant.Name = Tenant.DefaultTenantName;
+        tenant.Name = SeedTenantName;
         tenant.Edition = TenantEdition.Free;
         tenant.Module = ModuleEnum.QnA;
         tenant.ConnectionString = request.QnAConnectionString;
+        tenant.ClientKey = SeedTenantClientKey;
         tenant.IsActive = true;
 
-        if (ownerUser is not null)
+        for (var index = 0; index < users.Count; index++)
         {
-            TenantUserHelper.SetOwner(tenant.TenantUsers, tenant.Id, ownerUser.Id);
-        }
-
-        if (memberUser is not null && memberUser.Id != ownerUser?.Id)
-        {
-            var existingMember = tenant.TenantUsers
-                .FirstOrDefault(tenantUser => tenantUser.UserId == memberUser.Id);
-
-            if (existingMember is null)
-            {
-                tenant.TenantUsers.Add(new TenantUser
-                {
-                    Id = Guid.NewGuid(),
-                    TenantId = tenant.Id,
-                    UserId = memberUser.Id,
-                    Role = TenantUserRoleType.Member
-                });
-            }
-            else
-            {
-                RestoreEntity(existingMember);
-                existingMember.Role = TenantUserRoleType.Member;
-            }
+            var role = index == 0 ? TenantUserRoleType.Owner : TenantUserRoleType.Member;
+            EnsureTenantMembership(tenant, users[index], role);
         }
 
         return tenant;
@@ -240,12 +222,55 @@ public sealed class TenantSeedService : ITenantSeedService
 
     private static void ApplySeedUserValues(User user, int index)
     {
-        user.GivenName = $"User {index:000}";
-        user.SurName = index % 3 == 0 ? null : $"Seed {index:000}";
-        user.Email = $"user{index:000}@seed.basefaq.local";
+        var profile = ResolveUserProfile(index);
+        user.GivenName = profile.GivenName;
+        user.SurName = profile.SurName;
+        user.Email = profile.Email;
         user.ExternalId = BuildSeedUserExternalId(index);
-        user.PhoneNumber = index % 4 == 0 ? string.Empty : $"+1-555-01{index:000}";
-        user.Role = index % 7 == 0 ? UserRoleType.Admin : UserRoleType.Member;
+        user.PhoneNumber = profile.PhoneNumber;
+        user.Language = profile.Language;
+        user.TimeZone = profile.TimeZone;
+        user.Role = profile.Role;
+    }
+
+    private static void EnsureTenantMembership(Tenant tenant, User user, TenantUserRoleType role)
+    {
+        var existingMembership = tenant.TenantUsers
+            .FirstOrDefault(tenantUser => tenantUser.UserId == user.Id);
+
+        if (existingMembership is null)
+        {
+            tenant.TenantUsers.Add(new TenantUser
+            {
+                Id = Guid.NewGuid(),
+                TenantId = tenant.Id,
+                UserId = user.Id,
+                Role = role
+            });
+            return;
+        }
+
+        RestoreEntity(existingMembership);
+        existingMembership.TenantId = tenant.Id;
+        existingMembership.UserId = user.Id;
+        existingMembership.Role = role;
+    }
+
+    private static SeedUserProfile ResolveUserProfile(int index)
+    {
+        if (index <= SeedUserProfiles.Length)
+        {
+            return SeedUserProfiles[index - 1];
+        }
+
+        return new SeedUserProfile(
+            GivenName: $"Seed User {index:000}",
+            SurName: "Operator",
+            Email: $"user{index:000}@seed.basefaq.local",
+            PhoneNumber: $"+1-555-010-{index:0000}",
+            Language: "en-US",
+            TimeZone: "America/Vancouver",
+            Role: index % 5 == 0 ? UserRoleType.Admin : UserRoleType.Member);
     }
 
     private static void RestoreEntity(BaseEntity entity)
@@ -254,4 +279,13 @@ public sealed class TenantSeedService : ITenantSeedService
         entity.DeletedBy = null;
         entity.DeletedDate = null;
     }
+
+    private sealed record SeedUserProfile(
+        string GivenName,
+        string? SurName,
+        string Email,
+        string PhoneNumber,
+        string Language,
+        string TimeZone,
+        UserRoleType Role);
 }
