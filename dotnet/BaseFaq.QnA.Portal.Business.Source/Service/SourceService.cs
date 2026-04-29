@@ -25,7 +25,7 @@ public sealed class SourceService(IMediator mediator) : ISourceService
         return mediator.Send(new SourcesGetSourceListQuery { Request = requestDto }, token);
     }
 
-    public Task<SourceDto> GetById(Guid id, CancellationToken token)
+    public Task<SourceDetailDto> GetById(Guid id, CancellationToken token)
     {
         return mediator.Send(new SourcesGetSourceQuery { Id = id }, token);
     }

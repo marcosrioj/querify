@@ -13,7 +13,7 @@ namespace BaseFaq.QnA.Portal.Business.Source.Controllers;
 public class SourceController(ISourceService sourceService) : ControllerBase
 {
     [HttpGet("{id:guid}")]
-    [ProducesResponseType(typeof(SourceDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(SourceDetailDto), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetById(Guid id, CancellationToken token)
     {
         return Ok(await sourceService.GetById(id, token));

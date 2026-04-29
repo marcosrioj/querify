@@ -3,6 +3,7 @@ import {
   CheckCircle2,
   ExternalLink,
   FolderKanban,
+  Link2,
   MessageSquareText,
   Pencil,
   Trash2,
@@ -20,20 +21,31 @@ import {
 import {
   ActionButton,
   ActionPanel,
+  Badge,
   Button,
   Card,
   CardContent,
   CardHeader,
   CardHeading,
   CardTitle,
+  ChildListPagination,
   ConfirmAction,
   ContextHint,
   DetailPageSkeleton,
   SidebarSummarySkeleton,
 } from "@/shared/ui";
 import { EmptyState, ErrorState } from "@/shared/ui/placeholder-state";
-import { SourceKindBadge, VisibilityBadge } from "@/shared/ui/status-badges";
+import {
+  AnswerKindBadge,
+  AnswerStatusBadge,
+  QuestionStatusBadge,
+  SourceKindBadge,
+  SourceRoleBadge,
+  SpaceStatusBadge,
+  VisibilityBadge,
+} from "@/shared/ui/status-badges";
 import { translateText } from "@/shared/lib/i18n-core";
+import { useLocalPagination } from "@/shared/lib/use-local-pagination";
 import { formatOptionalDateTimeInTimeZone } from "@/shared/lib/time-zone";
 
 export function SourceDetailPage() {
@@ -43,6 +55,15 @@ export function SourceDetailPage() {
   const sourceQuery = useSource(id);
   const deleteSource = useDeleteSource();
   const [relationshipTab, setRelationshipTab] = useState("spaces");
+  const spacesPagination = useLocalPagination({
+    items: sourceQuery.data?.spaces ?? [],
+  });
+  const questionsPagination = useLocalPagination({
+    items: sourceQuery.data?.questions ?? [],
+  });
+  const answersPagination = useLocalPagination({
+    items: sourceQuery.data?.answers ?? [],
+  });
 
   if (!id) {
     return (
@@ -225,6 +246,263 @@ export function SourceDetailPage() {
               },
             ]}
           />
+
+          {relationshipTab === "spaces" ? (
+            <Card id="source-spaces-section">
+              <CardHeader>
+                <CardHeading>
+                  <CardTitle className="flex items-center gap-2">
+                    <span>{translateText("Spaces")}</span>
+                    <Badge variant="outline">
+                      {translateText("{count} spaces", {
+                        count: sourceQuery.data.spaces.length,
+                      })}
+                    </Badge>
+                  </CardTitle>
+                </CardHeading>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {sourceQuery.data.spaces.length ? (
+                  <div className="space-y-3">
+                    {spacesPagination.pagedItems.map((space) => (
+                      <div
+                        key={space.id}
+                        className="flex flex-col gap-3 rounded-lg border border-border bg-muted/10 p-4 sm:flex-row sm:items-start sm:justify-between"
+                      >
+                        <div className="min-w-0 space-y-2">
+                          <div>
+                            <p className="font-medium text-mono">
+                              {space.name}
+                            </p>
+                            <p className="mt-1 break-words text-sm text-muted-foreground">
+                              {space.slug}
+                            </p>
+                          </div>
+                          {space.summary ? (
+                            <p className="line-clamp-2 text-sm text-muted-foreground">
+                              {space.summary}
+                            </p>
+                          ) : null}
+                          <div className="flex flex-wrap items-center gap-2">
+                            <SpaceStatusBadge status={space.status} />
+                            <VisibilityBadge visibility={space.visibility} />
+                            <Badge variant="outline">
+                              {translateText("{count} questions", {
+                                count: space.questionCount,
+                              })}
+                            </Badge>
+                            <Badge
+                              variant={
+                                space.acceptsQuestions ? "success" : "mono"
+                              }
+                              appearance="outline"
+                            >
+                              {translateText(
+                                space.acceptsQuestions
+                                  ? "Questions enabled"
+                                  : "Questions disabled",
+                              )}
+                            </Badge>
+                            <Badge
+                              variant={space.acceptsAnswers ? "success" : "mono"}
+                              appearance="outline"
+                            >
+                              {translateText(
+                                space.acceptsAnswers
+                                  ? "Answers enabled"
+                                  : "Answers disabled",
+                              )}
+                            </Badge>
+                          </div>
+                        </div>
+                        <Button asChild variant="outline" size="sm">
+                          <Link to={`/app/spaces/${space.spaceId}`}>
+                            <Link2 className="size-4" />
+                            {translateText("Open space")}
+                          </Link>
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <EmptyState
+                    title="No spaces curate this source yet"
+                    description="Attach this source from a Space when it should be trusted in that operating boundary."
+                  />
+                )}
+                <ChildListPagination
+                  page={spacesPagination.page}
+                  pageSize={spacesPagination.pageSize}
+                  totalCount={spacesPagination.totalCount}
+                  onPageChange={spacesPagination.setPage}
+                  onPageSizeChange={spacesPagination.setPageSize}
+                />
+              </CardContent>
+            </Card>
+          ) : null}
+
+          {relationshipTab === "questions" ? (
+            <Card id="source-questions-section">
+              <CardHeader>
+                <CardHeading>
+                  <CardTitle className="flex items-center gap-2">
+                    <span>{translateText("Question links")}</span>
+                    <Badge variant="outline">
+                      {translateText("{count} questions", {
+                        count: sourceQuery.data.questions.length,
+                      })}
+                    </Badge>
+                  </CardTitle>
+                </CardHeading>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {sourceQuery.data.questions.length ? (
+                  <div className="space-y-3">
+                    {questionsPagination.pagedItems.map((question) => (
+                      <div
+                        key={question.id}
+                        className="flex flex-col gap-3 rounded-lg border border-border bg-muted/10 p-4 sm:flex-row sm:items-start sm:justify-between"
+                      >
+                        <div className="min-w-0 space-y-2">
+                          <div>
+                            <p className="font-medium text-mono">
+                              {question.title}
+                            </p>
+                            <p className="mt-1 break-words text-sm text-muted-foreground">
+                              {question.spaceSlug}
+                            </p>
+                          </div>
+                          {question.summary ? (
+                            <p className="line-clamp-2 text-sm text-muted-foreground">
+                              {question.summary}
+                            </p>
+                          ) : null}
+                          <div className="flex flex-wrap items-center gap-2">
+                            <QuestionStatusBadge status={question.status} />
+                            <VisibilityBadge
+                              visibility={question.visibility}
+                            />
+                            <SourceRoleBadge role={question.role} />
+                            <Badge variant="outline">
+                              {translateText("Order {value}", {
+                                value: question.order,
+                              })}
+                            </Badge>
+                            <Badge variant="outline">
+                              {formatOptionalDateTimeInTimeZone(
+                                question.lastActivityAtUtc,
+                                portalTimeZone,
+                                translateText("No activity"),
+                              )}
+                            </Badge>
+                          </div>
+                        </div>
+                        <Button asChild variant="outline" size="sm">
+                          <Link to={`/app/questions/${question.questionId}`}>
+                            <Link2 className="size-4" />
+                            {translateText("Open question")}
+                          </Link>
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <EmptyState
+                    title="No question links yet"
+                    description="Attach this source from a Question when it explains origin, context, or supporting evidence."
+                  />
+                )}
+                <ChildListPagination
+                  page={questionsPagination.page}
+                  pageSize={questionsPagination.pageSize}
+                  totalCount={questionsPagination.totalCount}
+                  onPageChange={questionsPagination.setPage}
+                  onPageSizeChange={questionsPagination.setPageSize}
+                />
+              </CardContent>
+            </Card>
+          ) : null}
+
+          {relationshipTab === "answers" ? (
+            <Card id="source-answers-section">
+              <CardHeader>
+                <CardHeading>
+                  <CardTitle className="flex items-center gap-2">
+                    <span>{translateText("Answer links")}</span>
+                    <Badge variant="outline">
+                      {translateText("{count} answers", {
+                        count: sourceQuery.data.answers.length,
+                      })}
+                    </Badge>
+                  </CardTitle>
+                </CardHeading>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {sourceQuery.data.answers.length ? (
+                  <div className="space-y-3">
+                    {answersPagination.pagedItems.map((answer) => (
+                      <div
+                        key={answer.id}
+                        className="flex flex-col gap-3 rounded-lg border border-border bg-muted/10 p-4 sm:flex-row sm:items-start sm:justify-between"
+                      >
+                        <div className="min-w-0 space-y-2">
+                          <div>
+                            <p className="font-medium text-mono">
+                              {answer.headline}
+                            </p>
+                            <p className="mt-1 break-words text-sm text-muted-foreground">
+                              {answer.questionTitle}
+                            </p>
+                          </div>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <AnswerStatusBadge status={answer.status} />
+                            <AnswerKindBadge kind={answer.kind} />
+                            <VisibilityBadge visibility={answer.visibility} />
+                            <SourceRoleBadge role={answer.role} />
+                            <Badge variant="outline">
+                              {translateText("Order {value}", {
+                                value: answer.order,
+                              })}
+                            </Badge>
+                            {answer.isAccepted ? (
+                              <Badge variant="success">
+                                {translateText("Accepted")}
+                              </Badge>
+                            ) : null}
+                          </div>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          <Button asChild variant="outline" size="sm">
+                            <Link to={`/app/answers/${answer.answerId}`}>
+                              <Link2 className="size-4" />
+                              {translateText("Open answer")}
+                            </Link>
+                          </Button>
+                          <Button asChild variant="ghost" size="sm">
+                            <Link to={`/app/questions/${answer.questionId}`}>
+                              {translateText("Open question")}
+                            </Link>
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <EmptyState
+                    title="No answer links yet"
+                    description="Attach this source from an Answer when it should be cited as evidence or a canonical reference."
+                  />
+                )}
+                <ChildListPagination
+                  page={answersPagination.page}
+                  pageSize={answersPagination.pageSize}
+                  totalCount={answersPagination.totalCount}
+                  onPageChange={answersPagination.setPage}
+                  onPageSizeChange={answersPagination.setPageSize}
+                />
+              </CardContent>
+            </Card>
+          ) : null}
 
           <Card>
             <CardHeader>

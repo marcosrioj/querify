@@ -3,6 +3,7 @@ import { toPagedQuery } from '@/shared/lib/pagination';
 import type { PagedResultDto } from '@/shared/types/api';
 import type {
   SourceCreateRequestDto,
+  SourceDetailDto,
   SourceDto,
   SourceUpdateRequestDto,
 } from '@/domains/sources/types';
@@ -46,7 +47,7 @@ export function getSource(
   tenantId: string | undefined,
   id: string,
 ) {
-  return portalRequest<SourceDto>({
+  return portalRequest<SourceDetailDto>({
     service: 'qna',
     path: `/api/qna/source/${id}`,
     accessToken: requireAccessToken(accessToken),

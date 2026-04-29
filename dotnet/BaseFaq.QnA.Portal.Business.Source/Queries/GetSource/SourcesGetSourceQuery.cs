@@ -3,7 +3,7 @@ using MediatR;
 
 namespace BaseFaq.QnA.Portal.Business.Source.Queries.GetSource;
 
-public sealed class SourcesGetSourceQuery : IRequest<SourceDto>
+public sealed class SourcesGetSourceQuery : IRequest<SourceDetailDto>
 {
     public required Guid Id { get; set; }
 }

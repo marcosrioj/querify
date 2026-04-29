@@ -11,6 +11,6 @@ public interface ISourceService
     Task<PagedResultDto<SourceDto>>
         GetAll(SourceGetAllRequestDto requestDto, CancellationToken token);
 
-    Task<SourceDto> GetById(Guid id, CancellationToken token);
+    Task<SourceDetailDto> GetById(Guid id, CancellationToken token);
     Task<Guid> Update(Guid id, SourceUpdateRequestDto dto, CancellationToken token);
 }
