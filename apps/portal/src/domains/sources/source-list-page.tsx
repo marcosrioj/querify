@@ -37,7 +37,9 @@ import {
   Badge,
   Button,
   ConfirmAction,
-  Input,
+  ListFilterField,
+  ListFilterSearch,
+  ListFilterToolbar,
   SectionGridSkeleton,
   Select,
   SelectContent,
@@ -113,9 +115,7 @@ function sourceMatchesFilters(
     source.visibility === Number(visibilityFilter);
 
   return (
-    matchesKind &&
-    matchesVisibility &&
-    sourceMatchesSearch(source, searchText)
+    matchesKind && matchesVisibility && sourceMatchesSearch(source, searchText)
   );
 }
 
@@ -139,6 +139,7 @@ export function SourceListPage() {
     filters,
     page,
     pageSize,
+    resetFilters,
     search,
     setFilter,
     setPage,
@@ -155,6 +156,12 @@ export function SourceListPage() {
   const apiKind = kindFilter === "all" ? undefined : Number(kindFilter);
   const apiVisibility =
     visibilityFilter === "all" ? undefined : Number(visibilityFilter);
+  const activeFilterCount = [
+    search.trim(),
+    kindFilter !== "all",
+    visibilityFilter !== "all",
+  ].filter(Boolean).length;
+  const clearFilters = () => resetFilters();
 
   const spaceQuery = useSpace(spaceId || undefined);
   const questionQuery = useQuestion(questionId || undefined);
@@ -240,6 +247,13 @@ export function SourceListPage() {
     (spaceId && spaceQuery.isLoading && !spaceQuery.data) ||
     (questionId && questionQuery.isLoading && !questionQuery.data) ||
     (answerId && answerQuery.isLoading && !answerQuery.data);
+  const relationshipFetching =
+    (spaceId && spaceQuery.isFetching) ||
+    (questionId && questionQuery.isFetching) ||
+    (answerId && answerQuery.isFetching);
+  const filtersLoading = relationshipActive
+    ? Boolean(relationshipFetching)
+    : sourceQuery.isFetching;
   const relationshipError =
     (spaceId && spaceQuery.isError) ||
     (questionId && questionQuery.isError) ||
@@ -580,62 +594,76 @@ export function SourceListPage() {
             : sourceQuery.isLoading
         }
         onRowClick={(source) => navigate(`/app/sources/${source.id}`)}
+        headingControl={
+          <ListFilterSearch
+            value={search}
+            onChange={setSearch}
+            placeholder="Search sources"
+            activeFilterCount={activeFilterCount}
+            onClear={clearFilters}
+            isLoading={filtersLoading}
+          />
+        }
         toolbar={
-          <div className="grid w-full gap-2 sm:grid-cols-2 2xl:grid-cols-[minmax(240px,1fr)_220px_220px]">
-            <div className="sm:col-span-2 2xl:col-span-1">
-              <Input
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-                placeholder={translateText("Search sources")}
-              />
+          <ListFilterToolbar isLoading={filtersLoading}>
+            <div className="grid w-full gap-3 md:grid-cols-2 xl:grid-cols-3">
+              <ListFilterField label="Source kind">
+                <Select
+                  value={kindFilter}
+                  onValueChange={(value) => setFilter("kind", value)}
+                >
+                  <SelectTrigger className="w-full" size="lg">
+                    <SelectValue placeholder={translateText("Source kind")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All kinds</SelectItem>
+                    {Object.entries(sourceKindLabels).map(([value, label]) => (
+                      <SelectItem key={value} value={value}>
+                        {translateText(label)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </ListFilterField>
+              <ListFilterField label="Visibility">
+                <Select
+                  value={visibilityFilter}
+                  onValueChange={(value) => setFilter("visibility", value)}
+                >
+                  <SelectTrigger className="w-full" size="lg">
+                    <SelectValue placeholder={translateText("Visibility")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All visibility</SelectItem>
+                    {Object.entries(visibilityScopeLabels).map(
+                      ([value, label]) => (
+                        <SelectItem key={value} value={value}>
+                          {translateText(label)}
+                        </SelectItem>
+                      ),
+                    )}
+                  </SelectContent>
+                </Select>
+              </ListFilterField>
+              <ListFilterField
+                label="Sort"
+                className="md:col-span-2 xl:col-span-1"
+              >
+                <Select value={sorting} onValueChange={setSorting}>
+                  <SelectTrigger className="w-full" size="lg">
+                    <SelectValue placeholder={translateText("Sort sources")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {sortingOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {translateText(option.label)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </ListFilterField>
             </div>
-            <Select
-              value={kindFilter}
-              onValueChange={(value) => setFilter("kind", value)}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder={translateText("Source kind")} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All kinds</SelectItem>
-                {Object.entries(sourceKindLabels).map(([value, label]) => (
-                  <SelectItem key={value} value={value}>
-                    {translateText(label)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select
-              value={visibilityFilter}
-              onValueChange={(value) => setFilter("visibility", value)}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder={translateText("Visibility")} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All visibility</SelectItem>
-                {Object.entries(visibilityScopeLabels).map(([value, label]) => (
-                  <SelectItem key={value} value={value}>
-                    {translateText(label)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <div className="sm:col-span-2 2xl:col-span-3">
-              <Select value={sorting} onValueChange={setSorting}>
-                <SelectTrigger className="w-full 2xl:max-w-[240px]">
-                  <SelectValue placeholder={translateText("Sort sources")} />
-                </SelectTrigger>
-                <SelectContent>
-                  {sortingOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {translateText(option.label)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+          </ListFilterToolbar>
         }
         emptyState={
           <EmptyState

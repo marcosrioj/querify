@@ -24,6 +24,10 @@ import { PaginationControls } from "@/shared/ui/pagination-controls";
 import { EmptyState, ErrorState } from "@/shared/ui/placeholder-state";
 import { translateText } from "@/shared/lib/i18n-core";
 import {
+  ListFilterClearButton,
+  ListFilterField,
+  ListFilterSection,
+  ListFilterToolbar,
   SectionGridSkeleton,
   Select,
   SelectContent,
@@ -51,6 +55,7 @@ export function ActivityListPage() {
     filters,
     page,
     pageSize,
+    resetFilters,
     setFilter,
     setPage,
     setPageSize,
@@ -65,6 +70,11 @@ export function ActivityListPage() {
   const apiKind = kindFilter === "all" ? undefined : Number(kindFilter);
   const apiActorKind =
     actorKindFilter === "all" ? undefined : Number(actorKindFilter);
+  const activeFilterCount = [
+    kindFilter !== "all",
+    actorKindFilter !== "all",
+  ].filter(Boolean).length;
+  const clearFilters = () => resetFilters();
   const questionId = searchParams.get("questionId") ?? undefined;
   const answerId = searchParams.get("answerId") ?? undefined;
   const spaceId = searchParams.get("spaceId") ?? undefined;
@@ -86,6 +96,9 @@ export function ActivityListPage() {
     kind: apiKind,
     actorKind: apiActorKind,
   });
+  const filtersLoading =
+    activityQuery.isFetching ||
+    (scopedToSpace && spaceQuestionsQuery.isFetching);
 
   useEffect(() => {
     if (scopedToSpace) {
@@ -256,52 +269,79 @@ export function ActivityListPage() {
         }
         onRowClick={(row) => navigate(`/app/activity/${row.id}`)}
         toolbar={
-          <div className="grid w-full gap-2 sm:grid-cols-2 xl:grid-cols-[220px_220px_220px]">
-            <Select
-              value={kindFilter}
-              onValueChange={(value) => setFilter("kind", value)}
+          <ListFilterToolbar isLoading={filtersLoading}>
+            <ListFilterSection
+              label="Filters"
+              activeFilterCount={activeFilterCount}
+              emptyLabel="All activity"
+              action={
+                <ListFilterClearButton
+                  activeFilterCount={activeFilterCount}
+                  onClear={clearFilters}
+                  size="sm"
+                  className="w-auto"
+                />
+              }
             >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder={translateText("Event kind")} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All event kinds</SelectItem>
-                {Object.entries(activityKindLabels).map(([value, label]) => (
-                  <SelectItem key={value} value={value}>
-                    {translateText(label)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select
-              value={actorKindFilter}
-              onValueChange={(value) => setFilter("actorKind", value)}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder={translateText("Actor kind")} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All actors</SelectItem>
-                {Object.entries(actorKindLabels).map(([value, label]) => (
-                  <SelectItem key={value} value={value}>
-                    {translateText(label)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={sorting} onValueChange={setSorting}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder={translateText("Sort events")} />
-              </SelectTrigger>
-              <SelectContent>
-                {sortingOptions.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {translateText(option.label)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+              <div className="grid w-full gap-3 md:grid-cols-2 xl:grid-cols-3">
+                <ListFilterField label="Event kind">
+                  <Select
+                    value={kindFilter}
+                    onValueChange={(value) => setFilter("kind", value)}
+                  >
+                    <SelectTrigger className="w-full" size="lg">
+                      <SelectValue placeholder={translateText("Event kind")} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All event kinds</SelectItem>
+                      {Object.entries(activityKindLabels).map(
+                        ([value, label]) => (
+                          <SelectItem key={value} value={value}>
+                            {translateText(label)}
+                          </SelectItem>
+                        ),
+                      )}
+                    </SelectContent>
+                  </Select>
+                </ListFilterField>
+                <ListFilterField label="Actor kind">
+                  <Select
+                    value={actorKindFilter}
+                    onValueChange={(value) => setFilter("actorKind", value)}
+                  >
+                    <SelectTrigger className="w-full" size="lg">
+                      <SelectValue placeholder={translateText("Actor kind")} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All actors</SelectItem>
+                      {Object.entries(actorKindLabels).map(([value, label]) => (
+                        <SelectItem key={value} value={value}>
+                          {translateText(label)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </ListFilterField>
+                <ListFilterField
+                  label="Sort"
+                  className="md:col-span-2 xl:col-span-1"
+                >
+                  <Select value={sorting} onValueChange={setSorting}>
+                    <SelectTrigger className="w-full" size="lg">
+                      <SelectValue placeholder={translateText("Sort events")} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {sortingOptions.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {translateText(option.label)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </ListFilterField>
+              </div>
+            </ListFilterSection>
+          </ListFilterToolbar>
         }
         emptyState={
           <EmptyState

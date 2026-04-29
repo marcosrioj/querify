@@ -94,6 +94,7 @@ Default building blocks in `apps/portal`:
 - `ConfirmAction`
 - `ContextHint`
 - `SearchSelect` and `SearchSelectField`
+- list filter controls from `src/shared/ui/list-filter-controls.tsx`
 - `ChildListPagination`
 - `EmptyState` and `ErrorState` from `src/shared/ui/placeholder-state.tsx`
 - shared skeletons from `src/shared/ui/loading-states.tsx`
@@ -111,6 +112,8 @@ If a shared primitive already matches the use case, do not replace it with ad ho
 - keep the main record surface in the shared table pattern
 - Top-level list pages must remain fully usable from mobile through tablet and desktop. Use card rows below `xl` and the table surface from `xl` upward unless a page has a deliberate alternate responsive pattern.
 - List headers, filter bars, toolbar actions, pagination, and API-backed selects must wrap or stack instead of forcing horizontal page overflow.
+- Top-level filters should use the shared list filter controls. Put free-text search in the table `headingControl` with `ListFilterSearch`; put enum, relationship, and sort controls in `ListFilterToolbar`; use `ListFilterField` labels around selects; use chips for high-frequency status filters.
+- Filter surfaces must expose active filter count, one clear action when active, and a skeleton loading signal while related requests are refreshing through `isFetching`.
 - Cells, card rows, badges, long URLs, ids, checksums, user agents, and generated tokens must use `min-w-0` plus explicit word breaking where needed.
 - Horizontal scrolling is acceptable only inside an intentionally scrollable component such as a table wrapper. The page, shell, and card surface must not become wider than the viewport.
 

@@ -25,7 +25,7 @@ import {
   Badge,
   Button,
   ConfirmAction,
-  Input,
+  ListFilterSearch,
   SectionGridSkeleton,
 } from "@/shared/ui";
 import { DataTable, type DataTableColumn } from "@/shared/ui/data-table";
@@ -65,6 +65,7 @@ export function TagListPage() {
     debouncedSearch,
     page,
     pageSize,
+    resetFilters,
     search,
     setPage,
     setPageSize,
@@ -73,6 +74,8 @@ export function TagListPage() {
     defaultSorting: "Name ASC",
     filterDefaults: TAG_FILTER_DEFAULTS,
   });
+  const activeFilterCount = search.trim() ? 1 : 0;
+  const clearFilters = () => resetFilters();
 
   const spaceQuery = useSpace(spaceId || undefined);
   const questionQuery = useQuestion(questionId || undefined);
@@ -110,6 +113,12 @@ export function TagListPage() {
   const relationshipLoading =
     (spaceId && spaceQuery.isLoading && !spaceQuery.data) ||
     (questionId && questionQuery.isLoading && !questionQuery.data);
+  const relationshipFetching =
+    (spaceId && spaceQuery.isFetching) ||
+    (questionId && questionQuery.isFetching);
+  const filtersLoading = relationshipActive
+    ? Boolean(relationshipFetching)
+    : tagQuery.isFetching;
   const relationshipError =
     (spaceId && spaceQuery.isError) || (questionId && questionQuery.isError);
   const scopeName = spaceQuery.data?.name ?? questionQuery.data?.title ?? "";
@@ -350,12 +359,14 @@ export function TagListPage() {
           relationshipActive ? Boolean(relationshipLoading) : tagQuery.isLoading
         }
         onRowClick={(tag) => navigate(`/app/tags/${tag.id}/edit`)}
-        toolbar={
-          <Input
+        headingControl={
+          <ListFilterSearch
             value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder={translateText("Search tags")}
-            className="w-full max-w-sm"
+            onChange={setSearch}
+            placeholder="Search tags"
+            activeFilterCount={activeFilterCount}
+            onClear={clearFilters}
+            isLoading={filtersLoading}
           />
         }
         emptyState={

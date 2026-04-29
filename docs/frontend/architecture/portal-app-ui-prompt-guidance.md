@@ -25,6 +25,7 @@ Default building blocks in `apps/portal`:
 - `ConfirmAction`
 - `ContextHint`
 - `SearchSelect` and `SearchSelectField`
+- list filter controls from `src/shared/ui/list-filter-controls.tsx`
 - `ChildListPagination`
 - `EmptyState` and `ErrorState` from `src/shared/ui/placeholder-state.tsx`
 - shared skeletons from `src/shared/ui/loading-states.tsx`
@@ -56,6 +57,9 @@ If a shared primitive already matches the use case, do not replace it with ad ho
 - keep list pages usable at 320, 360, 375, 414, 768, 1024, 1279, 1280, and desktop widths
 - render list records as stacked cards below `xl`; render the table surface at `xl` and above unless the page intentionally owns a different pattern
 - make filters, search inputs, sort controls, pagination, and actions stack or wrap before they overflow
+- use the shared list filter controls for top-level filter surfaces: put free-text search in `headingControl` with `ListFilterSearch`, put enum and relationship filters in `ListFilterToolbar`, use chips for high-frequency status buckets, and wrap every select in `ListFilterField`
+- every filter surface must show active filter count and a single clear action when filters are active
+- filter controls must show a skeleton loading signal during request refreshes using `isFetching`, not only during first-page `isLoading`
 - long unbroken values such as URLs, external ids, checksums, user agents, and generated keys must wrap inside their card or cell
 - never fix a list overflow only in the page component if the cause is a shared primitive, shell container, or root flex width
 

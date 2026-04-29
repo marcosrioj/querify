@@ -1,6 +1,12 @@
-import { startTransition, useCallback, useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { useDebouncedValue } from '@/shared/lib/use-debounced-value';
+import {
+  startTransition,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+import { useSearchParams } from "react-router-dom";
+import { useDebouncedValue } from "@/shared/lib/use-debounced-value";
 
 type NavigationOptions = {
   replace?: boolean;
@@ -49,16 +55,21 @@ export function useListQueryState<TFilters extends Record<string, string>>({
 }: UseListQueryStateOptions<TFilters>) {
   const [searchParams, setSearchParams] = useSearchParams();
   const resolvedFilterDefaults = useMemo(
-    () => (filterDefaults ?? ({} as TFilters)),
+    () => filterDefaults ?? ({} as TFilters),
     [filterDefaults],
   );
-  const page = parsePositiveInteger(searchParams.get('page'), 1);
-  const rawPageSize = searchParams.get('pageSize');
-  const pageSize = resolvePageSize(rawPageSize, defaultPageSize, allowedPageSizes);
-  const sorting = searchParams.get('sort') ?? defaultSorting;
-  const searchFromUrl = searchParams.get('search') ?? '';
+  const page = parsePositiveInteger(searchParams.get("page"), 1);
+  const rawPageSize = searchParams.get("pageSize");
+  const pageSize = resolvePageSize(
+    rawPageSize,
+    defaultPageSize,
+    allowedPageSizes,
+  );
+  const sorting = searchParams.get("sort") ?? defaultSorting;
+  const searchFromUrl = searchParams.get("search") ?? "";
   const [search, setSearch] = useState(searchFromUrl);
-  const debouncedSearch = useDebouncedValue(normalizeSearchValue(search), searchDebounceMs);
+  const normalizedSearch = normalizeSearchValue(search);
+  const debouncedSearch = useDebouncedValue(normalizedSearch, searchDebounceMs);
 
   const filters = useMemo(() => {
     return Object.fromEntries(
@@ -75,37 +86,42 @@ export function useListQueryState<TFilters extends Record<string, string>>({
 
   const compactSearchParams = useCallback(
     (nextSearchParams: URLSearchParams) => {
-      const normalizedPage = parsePositiveInteger(nextSearchParams.get('page'), 1);
+      const normalizedPage = parsePositiveInteger(
+        nextSearchParams.get("page"),
+        1,
+      );
       const normalizedPageSize = resolvePageSize(
-        nextSearchParams.get('pageSize'),
+        nextSearchParams.get("pageSize"),
         defaultPageSize,
         allowedPageSizes,
       );
-      const normalizedSort = nextSearchParams.get('sort')?.trim() ?? '';
-      const normalizedSearch = normalizeSearchValue(nextSearchParams.get('search') ?? '');
+      const normalizedSort = nextSearchParams.get("sort")?.trim() ?? "";
+      const normalizedSearch = normalizeSearchValue(
+        nextSearchParams.get("search") ?? "",
+      );
 
       if (normalizedPage <= 1) {
-        nextSearchParams.delete('page');
+        nextSearchParams.delete("page");
       } else {
-        nextSearchParams.set('page', String(normalizedPage));
+        nextSearchParams.set("page", String(normalizedPage));
       }
 
       if (normalizedPageSize === defaultPageSize) {
-        nextSearchParams.delete('pageSize');
+        nextSearchParams.delete("pageSize");
       } else {
-        nextSearchParams.set('pageSize', String(normalizedPageSize));
+        nextSearchParams.set("pageSize", String(normalizedPageSize));
       }
 
       if (!normalizedSort || normalizedSort === defaultSorting) {
-        nextSearchParams.delete('sort');
+        nextSearchParams.delete("sort");
       } else {
-        nextSearchParams.set('sort', normalizedSort);
+        nextSearchParams.set("sort", normalizedSort);
       }
 
       if (!normalizedSearch) {
-        nextSearchParams.delete('search');
+        nextSearchParams.delete("search");
       } else {
-        nextSearchParams.set('search', normalizedSearch);
+        nextSearchParams.set("search", normalizedSearch);
       }
 
       Object.entries(resolvedFilterDefaults).forEach(([key, fallbackValue]) => {
@@ -139,6 +155,10 @@ export function useListQueryState<TFilters extends Record<string, string>>({
   );
 
   useEffect(() => {
+    if (debouncedSearch !== normalizedSearch) {
+      return;
+    }
+
     if (debouncedSearch === searchFromUrl) {
       return;
     }
@@ -146,16 +166,16 @@ export function useListQueryState<TFilters extends Record<string, string>>({
     updateSearchParams(
       (nextSearchParams) => {
         if (debouncedSearch) {
-          nextSearchParams.set('search', debouncedSearch);
+          nextSearchParams.set("search", debouncedSearch);
         } else {
-          nextSearchParams.delete('search');
+          nextSearchParams.delete("search");
         }
 
-        nextSearchParams.delete('page');
+        nextSearchParams.delete("page");
       },
       { replace: true },
     );
-  }, [debouncedSearch, searchFromUrl, updateSearchParams]);
+  }, [debouncedSearch, normalizedSearch, searchFromUrl, updateSearchParams]);
 
   useEffect(() => {
     if (!rawPageSize) {
@@ -168,8 +188,8 @@ export function useListQueryState<TFilters extends Record<string, string>>({
 
     updateSearchParams(
       (nextSearchParams) => {
-        nextSearchParams.set('pageSize', String(pageSize));
-        nextSearchParams.delete('page');
+        nextSearchParams.set("pageSize", String(pageSize));
+        nextSearchParams.delete("page");
       },
       { replace: true },
     );
@@ -179,7 +199,7 @@ export function useListQueryState<TFilters extends Record<string, string>>({
     (nextPage: number, options?: NavigationOptions) => {
       updateSearchParams((nextSearchParams) => {
         nextSearchParams.set(
-          'page',
+          "page",
           String(parsePositiveInteger(String(nextPage), 1)),
         );
       }, options);
@@ -191,10 +211,16 @@ export function useListQueryState<TFilters extends Record<string, string>>({
     (nextPageSize: number, options: NavigationOptions = { replace: true }) => {
       updateSearchParams((nextSearchParams) => {
         nextSearchParams.set(
-          'pageSize',
-          String(resolvePageSize(String(nextPageSize), defaultPageSize, allowedPageSizes)),
+          "pageSize",
+          String(
+            resolvePageSize(
+              String(nextPageSize),
+              defaultPageSize,
+              allowedPageSizes,
+            ),
+          ),
         );
-        nextSearchParams.delete('page');
+        nextSearchParams.delete("page");
       }, options);
     },
     [allowedPageSizes, defaultPageSize, updateSearchParams],
@@ -203,8 +229,8 @@ export function useListQueryState<TFilters extends Record<string, string>>({
   const setSorting = useCallback(
     (nextSorting: string, options: NavigationOptions = { replace: true }) => {
       updateSearchParams((nextSearchParams) => {
-        nextSearchParams.set('sort', nextSorting);
-        nextSearchParams.delete('page');
+        nextSearchParams.set("sort", nextSorting);
+        nextSearchParams.delete("page");
       }, options);
     },
     [updateSearchParams],
@@ -223,7 +249,48 @@ export function useListQueryState<TFilters extends Record<string, string>>({
           nextSearchParams.set(String(key), value);
         }
 
-        nextSearchParams.delete('page');
+        nextSearchParams.delete("page");
+      }, options);
+    },
+    [resolvedFilterDefaults, updateSearchParams],
+  );
+
+  const setFilters = useCallback(
+    (
+      nextFilters: Partial<TFilters>,
+      options: NavigationOptions = { replace: true },
+    ) => {
+      updateSearchParams((nextSearchParams) => {
+        (
+          Object.entries(nextFilters) as Array<
+            [keyof TFilters, TFilters[keyof TFilters] | undefined]
+          >
+        ).forEach(([key, value]) => {
+          if (!value || value === resolvedFilterDefaults[key]) {
+            nextSearchParams.delete(String(key));
+          } else {
+            nextSearchParams.set(String(key), value);
+          }
+        });
+
+        nextSearchParams.delete("page");
+      }, options);
+    },
+    [resolvedFilterDefaults, updateSearchParams],
+  );
+
+  const resetFilters = useCallback(
+    (options: NavigationOptions = { replace: true }) => {
+      setSearch("");
+
+      updateSearchParams((nextSearchParams) => {
+        nextSearchParams.delete("search");
+
+        Object.keys(resolvedFilterDefaults).forEach((key) => {
+          nextSearchParams.delete(key);
+        });
+
+        nextSearchParams.delete("page");
       }, options);
     },
     [resolvedFilterDefaults, updateSearchParams],
@@ -236,8 +303,10 @@ export function useListQueryState<TFilters extends Record<string, string>>({
     pageSize,
     search,
     setFilter,
+    setFilters,
     setPage,
     setPageSize,
+    resetFilters,
     setSearch,
     setSorting,
     sorting,

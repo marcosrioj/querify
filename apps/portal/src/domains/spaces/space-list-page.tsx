@@ -14,7 +14,6 @@ import type { SpaceDto } from "@/domains/spaces/types";
 import {
   SpaceStatus,
   VisibilityScope,
-  spaceStatusLabels,
   visibilityScopeLabels,
 } from "@/shared/constants/backend-enums";
 import {
@@ -32,7 +31,12 @@ import {
   Badge,
   Button,
   ConfirmAction,
-  Input,
+  ListFilterChip,
+  ListFilterChipRail,
+  ListFilterField,
+  ListFilterSearch,
+  ListFilterSection,
+  ListFilterToolbar,
   SectionGridSkeleton,
   Select,
   SelectContent,
@@ -79,8 +83,10 @@ export function SpaceListPage() {
     filters,
     page,
     pageSize,
+    resetFilters,
     search,
     setFilter,
+    setFilters,
     setPage,
     setPageSize,
     setSearch,
@@ -109,6 +115,14 @@ export function SpaceListPage() {
     statusFilter === "all" &&
     acceptsQuestionsFilter === "all" &&
     acceptsAnswersFilter === "all";
+  const activeFilterCount = [
+    search.trim(),
+    visibilityFilter !== "all",
+    statusFilter !== "all",
+    acceptsQuestionsFilter !== "all",
+    acceptsAnswersFilter !== "all",
+  ].filter(Boolean).length;
+  const clearFilters = () => resetFilters();
 
   const spaceQuery = useSpaceList({
     page,
@@ -315,143 +329,142 @@ export function SpaceListPage() {
         loading={spaceQuery.isLoading}
         onRowClick={(space) => navigate(`/app/spaces/${space.id}`)}
         headingControl={
-          <Input
+          <ListFilterSearch
             value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder={translateText("Search spaces")}
-            className="w-full"
+            onChange={setSearch}
+            placeholder="Search spaces by name or slug"
+            activeFilterCount={activeFilterCount}
+            onClear={clearFilters}
+            isLoading={spaceQuery.isFetching}
           />
         }
         toolbar={
-          <div className="grid w-full gap-3 xl:min-w-[720px]">
-            <div className="flex flex-wrap gap-1.5 rounded-xl border border-border/70 bg-muted/30 p-1">
-              {spaceStatusBuckets.map((bucket) => (
-                <Button
-                  key={bucket.value}
-                  type="button"
-                  variant={
-                    bucket.value === "all"
-                      ? quickAllActive
-                        ? "secondary"
-                        : "ghost"
-                      : statusFilter === bucket.value
-                        ? "secondary"
-                        : "ghost"
-                  }
-                  size="sm"
-                  className="shrink-0"
-                  onClick={() => {
-                    setFilter("status", bucket.value);
-
-                    if (bucket.value === "all") {
-                      setFilter("acceptsQuestions", "all");
-                      setFilter("acceptsAnswers", "all");
+          <ListFilterToolbar isLoading={spaceQuery.isFetching}>
+            <ListFilterSection
+              label="Quick filters"
+              activeFilterCount={activeFilterCount}
+              emptyLabel="All spaces"
+            >
+              <ListFilterChipRail>
+                {spaceStatusBuckets.map((bucket) => (
+                  <ListFilterChip
+                    key={bucket.value}
+                    active={
+                      bucket.value === "all"
+                        ? quickAllActive
+                        : statusFilter === bucket.value
                     }
-                  }}
+                    onClick={() => {
+                      if (bucket.value === "all") {
+                        setFilters({
+                          status: "all",
+                          acceptsQuestions: "all",
+                          acceptsAnswers: "all",
+                        });
+                        return;
+                      }
+
+                      setFilter("status", bucket.value);
+                    }}
+                  >
+                    {translateText(bucket.label)}
+                  </ListFilterChip>
+                ))}
+                <ListFilterChip
+                  active={acceptsQuestionsFilter === "true"}
+                  onClick={() =>
+                    setFilter(
+                      "acceptsQuestions",
+                      acceptsQuestionsFilter === "true" ? "all" : "true",
+                    )
+                  }
                 >
-                  {translateText(bucket.label)}
-                </Button>
-              ))}
-              <Button
-                type="button"
-                variant={
-                  acceptsQuestionsFilter === "true" ? "secondary" : "ghost"
-                }
-                size="sm"
-                className="shrink-0"
-                onClick={() => setFilter("acceptsQuestions", "true")}
-              >
-                {translateText("Questions enabled")}
-              </Button>
-              <Button
-                type="button"
-                variant={
-                  acceptsAnswersFilter === "true" ? "secondary" : "ghost"
-                }
-                size="sm"
-                className="shrink-0"
-                onClick={() => setFilter("acceptsAnswers", "true")}
-              >
-                {translateText("Answers enabled")}
-              </Button>
-            </div>
-            <div className="grid w-full gap-2 sm:grid-cols-2 xl:grid-cols-[170px_180px_170px_170px_180px]">
-              <Select
-                value={visibilityFilter}
-                onValueChange={(value) => setFilter("visibility", value)}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder={translateText("Visibility")} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All visibility</SelectItem>
-                  {Object.entries(visibilityScopeLabels).map(
-                    ([value, label]) => (
-                      <SelectItem key={value} value={value}>
-                        {translateText(label)}
+                  {translateText("Questions enabled")}
+                </ListFilterChip>
+                <ListFilterChip
+                  active={acceptsAnswersFilter === "true"}
+                  onClick={() =>
+                    setFilter(
+                      "acceptsAnswers",
+                      acceptsAnswersFilter === "true" ? "all" : "true",
+                    )
+                  }
+                >
+                  {translateText("Answers enabled")}
+                </ListFilterChip>
+              </ListFilterChipRail>
+            </ListFilterSection>
+            <div className="grid w-full gap-3 md:grid-cols-2 xl:grid-cols-4">
+              <ListFilterField label="Visibility">
+                <Select
+                  value={visibilityFilter}
+                  onValueChange={(value) => setFilter("visibility", value)}
+                >
+                  <SelectTrigger className="w-full" size="lg">
+                    <SelectValue placeholder={translateText("Visibility")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All visibility</SelectItem>
+                    {Object.entries(visibilityScopeLabels).map(
+                      ([value, label]) => (
+                        <SelectItem key={value} value={value}>
+                          {translateText(label)}
+                        </SelectItem>
+                      ),
+                    )}
+                  </SelectContent>
+                </Select>
+              </ListFilterField>
+              <ListFilterField label="Questions">
+                <Select
+                  value={acceptsQuestionsFilter}
+                  onValueChange={(value) =>
+                    setFilter("acceptsQuestions", value)
+                  }
+                >
+                  <SelectTrigger className="w-full" size="lg">
+                    <SelectValue
+                      placeholder={translateText("Question intake")}
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All question states</SelectItem>
+                    <SelectItem value="true">Questions enabled</SelectItem>
+                    <SelectItem value="false">Questions disabled</SelectItem>
+                  </SelectContent>
+                </Select>
+              </ListFilterField>
+              <ListFilterField label="Answers">
+                <Select
+                  value={acceptsAnswersFilter}
+                  onValueChange={(value) => setFilter("acceptsAnswers", value)}
+                >
+                  <SelectTrigger className="w-full" size="lg">
+                    <SelectValue placeholder={translateText("Answer intake")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All answer states</SelectItem>
+                    <SelectItem value="true">Answers enabled</SelectItem>
+                    <SelectItem value="false">Answers disabled</SelectItem>
+                  </SelectContent>
+                </Select>
+              </ListFilterField>
+              <ListFilterField label="Sort">
+                <Select value={sorting} onValueChange={setSorting}>
+                  <SelectTrigger className="w-full" size="lg">
+                    <SelectValue placeholder={translateText("Sort spaces")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {sortingOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {translateText(option.label)}
                       </SelectItem>
-                    ),
-                  )}
-                </SelectContent>
-              </Select>
-              <Select
-                value={statusFilter}
-                onValueChange={(value) => setFilter("status", value)}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder={translateText("Status")} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">
-                    {translateText("All statuses")}
-                  </SelectItem>
-                  {Object.entries(spaceStatusLabels).map(([value, label]) => (
-                    <SelectItem key={value} value={value}>
-                      {translateText(label)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select
-                value={acceptsQuestionsFilter}
-                onValueChange={(value) => setFilter("acceptsQuestions", value)}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder={translateText("Question intake")} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All question states</SelectItem>
-                  <SelectItem value="true">Questions enabled</SelectItem>
-                  <SelectItem value="false">Questions disabled</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select
-                value={acceptsAnswersFilter}
-                onValueChange={(value) => setFilter("acceptsAnswers", value)}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder={translateText("Answer intake")} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All answer states</SelectItem>
-                  <SelectItem value="true">Answers enabled</SelectItem>
-                  <SelectItem value="false">Answers disabled</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={sorting} onValueChange={setSorting}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder={translateText("Sort spaces")} />
-                </SelectTrigger>
-                <SelectContent>
-                  {sortingOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {translateText(option.label)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </ListFilterField>
             </div>
-          </div>
+          </ListFilterToolbar>
         }
         emptyState={
           <EmptyState

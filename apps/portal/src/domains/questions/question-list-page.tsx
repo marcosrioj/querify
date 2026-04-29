@@ -5,12 +5,7 @@ import {
   useMemo,
   useState,
 } from "react";
-import {
-  CheckCircle2,
-  CircleDot,
-  Pencil,
-  Trash2,
-} from "lucide-react";
+import { CheckCircle2, CircleDot, Pencil, Trash2 } from "lucide-react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { usePortalTimeZone } from "@/domains/settings/settings-hooks";
 import { useQuestionList, useDeleteQuestion } from "@/domains/questions/hooks";
@@ -18,7 +13,6 @@ import type { QuestionDto } from "@/domains/questions/types";
 import { useSpace, useSpaceList } from "@/domains/spaces/hooks";
 import {
   QuestionStatus,
-  questionStatusLabels,
   visibilityScopeLabels,
 } from "@/shared/constants/backend-enums";
 import {
@@ -37,7 +31,12 @@ import {
   Badge,
   Button,
   ConfirmAction,
-  Input,
+  ListFilterChip,
+  ListFilterChipRail,
+  ListFilterField,
+  ListFilterSearch,
+  ListFilterSection,
+  ListFilterToolbar,
   SectionGridSkeleton,
   SearchSelect,
   Select,
@@ -101,6 +100,7 @@ export function QuestionListPage() {
     filters,
     page,
     pageSize,
+    resetFilters,
     search,
     setFilter,
     setPage,
@@ -119,6 +119,13 @@ export function QuestionListPage() {
   const apiVisibility =
     visibilityFilter === "all" ? undefined : Number(visibilityFilter);
   const apiSpaceId = spaceFilter === "all" ? undefined : spaceFilter;
+  const activeFilterCount = [
+    search.trim(),
+    statusFilter !== "all",
+    visibilityFilter !== "all",
+    spaceFilter !== "all",
+  ].filter(Boolean).length;
+  const clearFilters = () => resetFilters();
 
   const questionQuery = useQuestionList({
     page: scopedToRelationship ? 1 : page,
@@ -181,8 +188,8 @@ export function QuestionListPage() {
 
     return matchesSource && matchesTag;
   });
-  const acceptedAnswerCount = questionRows.filter(
-    (question) => Boolean(question.acceptedAnswerId),
+  const acceptedAnswerCount = questionRows.filter((question) =>
+    Boolean(question.acceptedAnswerId),
   ).length;
   const activeCount = questionRows.filter(
     (question) => question.status === QuestionStatus.Active,
@@ -209,6 +216,11 @@ export function QuestionListPage() {
     : null;
   const showMetricsLoadingState =
     questionQuery.isLoading && questionQuery.data === undefined;
+  const filtersLoading =
+    questionQuery.isFetching ||
+    spaceOptionsQuery.isFetching ||
+    spaceSearchOptionsQuery.isFetching ||
+    selectedSpaceQuery.isFetching;
 
   const columns: DataTableColumn<QuestionListRow>[] = [
     {
@@ -365,9 +377,7 @@ export function QuestionListPage() {
             {
               title: "Accepted",
               value: acceptedAnswerCount,
-              description: translateText(
-                "Questions with an accepted answer",
-              ),
+              description: translateText("Questions with an accepted answer"),
               icon: CheckCircle2,
             },
             {
@@ -395,105 +405,105 @@ export function QuestionListPage() {
         loading={questionQuery.isLoading}
         onRowClick={(question) => navigate(`/app/questions/${question.id}`)}
         headingControl={
-          <Input
+          <ListFilterSearch
             value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder={translateText("Search questions")}
+            onChange={setSearch}
+            placeholder="Search questions by title or summary"
+            activeFilterCount={activeFilterCount}
+            onClear={clearFilters}
+            isLoading={questionQuery.isFetching}
           />
         }
         toolbar={
-          <div className="grid w-full gap-3 xl:min-w-[680px]">
-            <div className="flex flex-wrap gap-1.5 rounded-xl border border-border/70 bg-muted/30 p-1">
-              {statusBuckets.map((bucket) => (
-                <Button
-                  key={bucket.value}
-                  type="button"
-                  variant={
-                    statusFilter === bucket.value ? "secondary" : "ghost"
+          <ListFilterToolbar isLoading={filtersLoading}>
+            <ListFilterSection
+              label="Status"
+              activeFilterCount={activeFilterCount}
+              emptyLabel="All questions"
+            >
+              <ListFilterChipRail>
+                {statusBuckets.map((bucket) => (
+                  <ListFilterChip
+                    key={bucket.value}
+                    active={statusFilter === bucket.value}
+                    onClick={() => setFilter("status", bucket.value)}
+                  >
+                    {translateText(bucket.label)}
+                  </ListFilterChip>
+                ))}
+              </ListFilterChipRail>
+            </ListFilterSection>
+            <div className="grid w-full gap-3 md:grid-cols-2 xl:grid-cols-[minmax(260px,1fr)_200px_220px]">
+              <ListFilterField
+                label="Space"
+                className="md:col-span-2 xl:col-span-1"
+              >
+                <SearchSelect
+                  value={apiSpaceId ?? ""}
+                  onValueChange={(value) =>
+                    setFilter("spaceId", value || "all")
                   }
-                  size="sm"
-                  className="shrink-0"
-                  onClick={() => setFilter("status", bucket.value)}
+                  options={spaceOptions}
+                  selectedOption={selectedSpaceOption}
+                  placeholder={translateText("All spaces")}
+                  searchPlaceholder={translateText("Search spaces")}
+                  emptyMessage={
+                    deferredSpaceSearch
+                      ? translateText("No spaces match this search.")
+                      : translateText("No spaces available.")
+                  }
+                  loading={
+                    deferredSpaceSearch
+                      ? spaceSearchOptionsQuery.isFetching
+                      : spaceOptionsQuery.isFetching
+                  }
+                  searchValue={spaceSearch}
+                  onSearchChange={(value) =>
+                    startTransition(() => setSpaceSearch(value))
+                  }
+                  allowClear
+                  clearLabel={translateText("All spaces")}
+                  className="w-full"
+                />
+              </ListFilterField>
+              <ListFilterField label="Visibility">
+                <Select
+                  value={visibilityFilter}
+                  onValueChange={(value) => setFilter("visibility", value)}
                 >
-                  {translateText(bucket.label)}
-                </Button>
-              ))}
-            </div>
-            <div className="grid w-full gap-2 sm:grid-cols-2 xl:grid-cols-[minmax(220px,1fr)_180px_180px_200px]">
-              <SearchSelect
-                value={apiSpaceId ?? ""}
-                onValueChange={(value) => setFilter("spaceId", value || "all")}
-                options={spaceOptions}
-                selectedOption={selectedSpaceOption}
-                placeholder={translateText("All spaces")}
-                searchPlaceholder={translateText("Search spaces")}
-                emptyMessage={
-                  deferredSpaceSearch
-                    ? translateText("No spaces match this search.")
-                    : translateText("No spaces available.")
-                }
-                loading={
-                  deferredSpaceSearch
-                    ? spaceSearchOptionsQuery.isFetching
-                    : spaceOptionsQuery.isFetching
-                }
-                searchValue={spaceSearch}
-                onSearchChange={(value) =>
-                  startTransition(() => setSpaceSearch(value))
-                }
-                allowClear
-                clearLabel={translateText("All spaces")}
-              />
-              <Select
-                value={statusFilter}
-                onValueChange={(value) => setFilter("status", value)}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder={translateText("Status")} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All statuses</SelectItem>
-                  {Object.entries(questionStatusLabels).map(
-                    ([value, label]) => (
-                      <SelectItem key={value} value={value}>
-                        {translateText(label)}
+                  <SelectTrigger className="w-full" size="lg">
+                    <SelectValue placeholder={translateText("Visibility")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All visibility</SelectItem>
+                    {Object.entries(visibilityScopeLabels).map(
+                      ([value, label]) => (
+                        <SelectItem key={value} value={value}>
+                          {translateText(label)}
+                        </SelectItem>
+                      ),
+                    )}
+                  </SelectContent>
+                </Select>
+              </ListFilterField>
+              <ListFilterField label="Sort">
+                <Select value={sorting} onValueChange={setSorting}>
+                  <SelectTrigger className="w-full" size="lg">
+                    <SelectValue
+                      placeholder={translateText("Sort questions")}
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {sortingOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {translateText(option.label)}
                       </SelectItem>
-                    ),
-                  )}
-                </SelectContent>
-              </Select>
-              <Select
-                value={visibilityFilter}
-                onValueChange={(value) => setFilter("visibility", value)}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder={translateText("Visibility")} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All visibility</SelectItem>
-                  {Object.entries(visibilityScopeLabels).map(
-                    ([value, label]) => (
-                      <SelectItem key={value} value={value}>
-                        {translateText(label)}
-                      </SelectItem>
-                    ),
-                  )}
-                </SelectContent>
-              </Select>
-              <Select value={sorting} onValueChange={setSorting}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder={translateText("Sort questions")} />
-                </SelectTrigger>
-                <SelectContent>
-                  {sortingOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {translateText(option.label)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </ListFilterField>
             </div>
-          </div>
+          </ListFilterToolbar>
         }
         emptyState={
           <EmptyState

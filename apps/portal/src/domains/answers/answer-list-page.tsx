@@ -19,7 +19,6 @@ import type { AnswerDto } from "@/domains/answers/types";
 import { useQuestion, useQuestionList } from "@/domains/questions/hooks";
 import {
   AnswerStatus,
-  answerStatusLabels,
   visibilityScopeLabels,
 } from "@/shared/constants/backend-enums";
 import {
@@ -37,6 +36,12 @@ import {
   Badge,
   Button,
   ConfirmAction,
+  ListFilterChip,
+  ListFilterChipRail,
+  ListFilterClearButton,
+  ListFilterField,
+  ListFilterSection,
+  ListFilterToolbar,
   SectionGridSkeleton,
   SearchSelect,
   Select,
@@ -66,6 +71,13 @@ const ANSWER_FILTER_DEFAULTS = {
   visibility: "all",
 } as const;
 
+const answerStatusBuckets = [
+  { label: "All", value: "all" },
+  { label: "Draft", value: String(AnswerStatus.Draft) },
+  { label: "Active", value: String(AnswerStatus.Active) },
+  { label: "Archived", value: String(AnswerStatus.Archived) },
+] as const;
+
 function buildQuestionOption(question: {
   id: string;
   title: string;
@@ -90,6 +102,7 @@ export function AnswerListPage() {
     filters,
     page,
     pageSize,
+    resetFilters,
     setFilter,
     setPage,
     setPageSize,
@@ -109,6 +122,13 @@ export function AnswerListPage() {
     acceptedFilter === "all" ? undefined : acceptedFilter === "true";
   const apiVisibility =
     visibilityFilter === "all" ? undefined : Number(visibilityFilter);
+  const activeFilterCount = [
+    statusFilter !== "all",
+    questionFilter !== "all",
+    acceptedFilter !== "all",
+    visibilityFilter !== "all",
+  ].filter(Boolean).length;
+  const clearFilters = () => resetFilters();
 
   const answerQuery = useAnswerList({
     page: scopedToSource ? 1 : page,
@@ -183,6 +203,11 @@ export function AnswerListPage() {
     : null;
   const showMetricsLoadingState =
     answerQuery.isLoading && answerQuery.data === undefined;
+  const filtersLoading =
+    answerQuery.isFetching ||
+    questionOptionsQuery.isFetching ||
+    questionSearchOptionsQuery.isFetching ||
+    selectedQuestionQuery.isFetching;
 
   const columns: DataTableColumn<AnswerDto>[] = [
     {
@@ -321,7 +346,9 @@ export function AnswerListPage() {
             {
               title: "Accepted",
               value: acceptedCount,
-              description: translateText("Currently chosen question resolutions"),
+              description: translateText(
+                "Currently chosen question resolutions",
+              ),
               icon: CheckCircle2,
             },
             {
@@ -345,91 +372,118 @@ export function AnswerListPage() {
         loading={answerQuery.isLoading}
         onRowClick={(answer) => navigate(`/app/answers/${answer.id}`)}
         toolbar={
-          <div className="grid w-full gap-2 sm:grid-cols-2 xl:grid-cols-[220px_220px_220px_220px]">
-            <SearchSelect
-              value={apiQuestionId ?? ""}
-              onValueChange={(value) => setFilter("questionId", value || "all")}
-              options={questionOptions}
-              selectedOption={selectedQuestionOption}
-              placeholder={translateText("All questions")}
-              searchPlaceholder={translateText("Search questions")}
-              emptyMessage={
-                deferredQuestionSearch
-                  ? translateText("No questions match this search.")
-                  : translateText("No questions available.")
+          <ListFilterToolbar isLoading={filtersLoading}>
+            <ListFilterSection
+              label="Status"
+              activeFilterCount={activeFilterCount}
+              emptyLabel="All answers"
+              action={
+                <ListFilterClearButton
+                  activeFilterCount={activeFilterCount}
+                  onClear={clearFilters}
+                  size="sm"
+                  className="w-auto"
+                />
               }
-              loading={
-                deferredQuestionSearch
-                  ? questionSearchOptionsQuery.isFetching
-                  : questionOptionsQuery.isFetching
-              }
-              searchValue={questionSearch}
-              onSearchChange={(value) =>
-                startTransition(() => setQuestionSearch(value))
-              }
-              allowClear
-              clearLabel={translateText("All questions")}
-            />
-            <Select
-              value={statusFilter}
-              onValueChange={(value) => setFilter("status", value)}
             >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder={translateText("Status")} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All statuses</SelectItem>
-                {Object.entries(answerStatusLabels).map(([value, label]) => (
-                  <SelectItem key={value} value={value}>
-                    {translateText(label)}
-                  </SelectItem>
+              <ListFilterChipRail>
+                {answerStatusBuckets.map((bucket) => (
+                  <ListFilterChip
+                    key={bucket.value}
+                    active={statusFilter === bucket.value}
+                    onClick={() => setFilter("status", bucket.value)}
+                  >
+                    {translateText(bucket.label)}
+                  </ListFilterChip>
                 ))}
-              </SelectContent>
-            </Select>
-            <Select
-              value={visibilityFilter}
-              onValueChange={(value) => setFilter("visibility", value)}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder={translateText("Visibility")} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All visibility</SelectItem>
-                {Object.entries(visibilityScopeLabels).map(([value, label]) => (
-                  <SelectItem key={value} value={value}>
-                    {translateText(label)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select
-              value={acceptedFilter}
-              onValueChange={(value) => setFilter("accepted", value)}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder={translateText("Accepted state")} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All answer states</SelectItem>
-                <SelectItem value="true">Accepted only</SelectItem>
-                <SelectItem value="false">Not accepted</SelectItem>
-              </SelectContent>
-            </Select>
-            <div className="sm:col-span-2 xl:col-span-4">
-              <Select value={sorting} onValueChange={setSorting}>
-                <SelectTrigger className="w-full xl:max-w-[240px]">
-                  <SelectValue placeholder={translateText("Sort answers")} />
-                </SelectTrigger>
-                <SelectContent>
-                  {sortingOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {translateText(option.label)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              </ListFilterChipRail>
+            </ListFilterSection>
+            <div className="grid w-full gap-3 md:grid-cols-2 xl:grid-cols-[minmax(260px,1fr)_200px_180px_220px]">
+              <ListFilterField
+                label="Question"
+                className="md:col-span-2 xl:col-span-1"
+              >
+                <SearchSelect
+                  value={apiQuestionId ?? ""}
+                  onValueChange={(value) =>
+                    setFilter("questionId", value || "all")
+                  }
+                  options={questionOptions}
+                  selectedOption={selectedQuestionOption}
+                  placeholder={translateText("All questions")}
+                  searchPlaceholder={translateText("Search questions")}
+                  emptyMessage={
+                    deferredQuestionSearch
+                      ? translateText("No questions match this search.")
+                      : translateText("No questions available.")
+                  }
+                  loading={
+                    deferredQuestionSearch
+                      ? questionSearchOptionsQuery.isFetching
+                      : questionOptionsQuery.isFetching
+                  }
+                  searchValue={questionSearch}
+                  onSearchChange={(value) =>
+                    startTransition(() => setQuestionSearch(value))
+                  }
+                  allowClear
+                  clearLabel={translateText("All questions")}
+                  className="w-full"
+                />
+              </ListFilterField>
+              <ListFilterField label="Visibility">
+                <Select
+                  value={visibilityFilter}
+                  onValueChange={(value) => setFilter("visibility", value)}
+                >
+                  <SelectTrigger className="w-full" size="lg">
+                    <SelectValue placeholder={translateText("Visibility")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All visibility</SelectItem>
+                    {Object.entries(visibilityScopeLabels).map(
+                      ([value, label]) => (
+                        <SelectItem key={value} value={value}>
+                          {translateText(label)}
+                        </SelectItem>
+                      ),
+                    )}
+                  </SelectContent>
+                </Select>
+              </ListFilterField>
+              <ListFilterField label="Accepted">
+                <Select
+                  value={acceptedFilter}
+                  onValueChange={(value) => setFilter("accepted", value)}
+                >
+                  <SelectTrigger className="w-full" size="lg">
+                    <SelectValue
+                      placeholder={translateText("Accepted state")}
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All answer states</SelectItem>
+                    <SelectItem value="true">Accepted only</SelectItem>
+                    <SelectItem value="false">Not accepted</SelectItem>
+                  </SelectContent>
+                </Select>
+              </ListFilterField>
+              <ListFilterField label="Sort">
+                <Select value={sorting} onValueChange={setSorting}>
+                  <SelectTrigger className="w-full" size="lg">
+                    <SelectValue placeholder={translateText("Sort answers")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {sortingOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {translateText(option.label)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </ListFilterField>
             </div>
-          </div>
+          </ListFilterToolbar>
         }
         emptyState={
           <EmptyState

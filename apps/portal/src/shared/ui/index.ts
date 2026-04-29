@@ -110,6 +110,15 @@ export { ConfirmAction } from "@/shared/ui/confirm-action";
 export { ContextHint } from "@/shared/ui/context-hint";
 export { FormSectionHeading } from "@/shared/ui/form-section-heading";
 export {
+  ListFilterChip,
+  ListFilterChipRail,
+  ListFilterClearButton,
+  ListFilterField,
+  ListFilterSearch,
+  ListFilterSection,
+  ListFilterToolbar,
+} from "@/shared/ui/list-filter-controls";
+export {
   DetailPageSkeleton,
   FormCardSkeleton,
   KeyValueListSkeleton,
