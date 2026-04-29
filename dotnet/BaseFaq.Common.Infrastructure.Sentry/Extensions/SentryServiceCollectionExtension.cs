@@ -9,11 +9,9 @@ namespace BaseFaq.Common.Infrastructure.Sentry.Extensions;
 
 public static class SentryServiceCollectionExtension
 {
-    public static void AddConfiguredSentry(this IWebHostBuilder webBuilder)
+    public static void AddConfiguredSentry(this IWebHostBuilder webBuilder, IWebHostEnvironment environment)
     {
-        var environment = webBuilder.GetSetting(WebHostDefaults.EnvironmentKey);
-
-        if (!string.Equals(environment, Environments.Production, StringComparison.OrdinalIgnoreCase))
+        if (!environment.IsProduction())
         {
             return;
         }
@@ -36,6 +34,7 @@ public static class SentryServiceCollectionExtension
         webBuilder.UseSentry((_, options) =>
         {
             options.Release = release;
+            options.AutoRegisterTracing = false;
             options.TracesSampleRate ??= 1.0;
             options.ProfilesSampleRate ??= 1.0;
 

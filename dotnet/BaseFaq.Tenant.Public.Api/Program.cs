@@ -39,7 +39,7 @@ public class Program
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddFeatures(builder.Configuration);
         builder.Services.AddMediatRLogging();
-        builder.WebHost.AddConfiguredSentry();
+        builder.WebHost.AddConfiguredSentry(builder.Environment);
 
         builder.Services.AddControllers(options => { options.Filters.Add(new StringTrimmingActionFilter()); })
             .AddJsonOptions(options => { });
