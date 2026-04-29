@@ -167,7 +167,11 @@ The `BaseFaq.Common.Infrastructure.*` and `BaseFaq.Common.EntityFramework.*` pro
 - MassTransit conventions
 - telemetry wiring
 
-Feature projects should consume these shared building blocks rather than re-implementing their own versions.
+Feature projects should consume these shared building blocks rather than re-implementing their own
+versions. For request-time API failures, feature code should throw the shared `ApiErrorException`
+so middleware returns the structured `{ errorCode, messageError, data }` payload. Do not introduce
+feature-local API exception helpers or use `InvalidOperationException` for user-correctable request
+validation errors.
 
 ### 9. Integration tests prefer real infrastructure
 

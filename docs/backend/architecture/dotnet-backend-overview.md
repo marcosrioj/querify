@@ -92,7 +92,8 @@ Current module persistence implementation:
 - `BaseFaq.Direct.Common.Persistence.DirectDb`: Direct module tenant persistence for conversations and conversation messages
 - `BaseFaq.Broadcast.Common.Persistence.BroadcastDb`: Broadcast module tenant persistence for public/community threads and captured items
 - `BaseFaq.Common.Infrastructure.Core`: shared core abstractions and backend helper services
-- `BaseFaq.Common.Infrastructure.ApiErrorHandling`: API error handling conventions
+- `BaseFaq.Common.Infrastructure.ApiErrorHandling`: API error handling conventions and
+  `ApiErrorException`, the exception type handlers should use for request-time API failures
 - `BaseFaq.Common.Infrastructure.MassTransit`: MassTransit registration and messaging conventions
 - `BaseFaq.Common.Infrastructure.MediatR`: MediatR integration and related pipeline behavior
 - `BaseFaq.Common.Infrastructure.Mvc`: MVC filters and ASP.NET Core glue

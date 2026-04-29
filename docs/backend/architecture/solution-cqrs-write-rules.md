@@ -92,6 +92,11 @@ When a command starts asynchronous work:
 - split loading, validation, persistence, and publication into focused private methods when necessary
 - avoid large nested branches
 - keep the command contract unchanged while improving readability
+- throw `ApiErrorException` for API-facing validation failures, missing resources, and domain
+  workflow rejections; reserve `InvalidOperationException` for internal invariants that indicate a
+  bug, invalid configuration, or persistence corruption
+- use `HttpStatusCode.UnprocessableEntity` for user-correctable business rule failures such as an
+  invalid status and visibility combination
 
 ## Rule 8: modules use feature-scoped projects
 

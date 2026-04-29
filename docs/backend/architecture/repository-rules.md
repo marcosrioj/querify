@@ -170,6 +170,29 @@ Never solve a big command by moving behavior to unrelated folders.
 - `PUT` or `PATCH` update -> `200` plus `Guid` or `bool`
 - async command request -> `202` plus correlation `Guid`
 
+## API Error Conventions
+
+Use the existing `ApiErrorException` from `BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception`
+for every error that can be caused by an API request and should be returned to the caller as a
+structured API response.
+
+- missing resource -> `ApiErrorException(..., (int)HttpStatusCode.NotFound)`
+- malformed, missing, or invalid request context -> `BadRequest`, `Unauthorized`, or `Forbidden`
+  according to the existing middleware and endpoint pattern
+- domain or workflow rule rejected by user input -> `UnprocessableEntity`
+- duplicate or conflicting resource state -> `Conflict`
+
+Do not throw `InvalidOperationException` from controllers, services, command handlers, or query
+handlers for user-correctable API errors. The API error middleware only serializes
+`ApiErrorException` into `{ errorCode, messageError, data }`; other exceptions can leak as developer
+exception pages or generic server errors during local and hosted API runs.
+
+`InvalidOperationException` remains acceptable for internal invariants that indicate a programming,
+configuration, or persistence corruption problem and are not expected to be recovered by changing
+the request payload. When a persistence invariant mirrors a request-time rule, validate it first in
+the owning API handler with `ApiErrorException` and keep the persistence rule only as a defensive
+fallback.
+
 ## Required Review Checklist
 
 - command return type is a simple value only
@@ -183,3 +206,4 @@ Never solve a big command by moving behavior to unrelated folders.
 - tenant-owned relationship changes update the owning `DbContext/TenantIntegrity` rule
 - tests were updated for dependency and contract changes
 - no command response wrapper DTO was introduced
+- API-facing validation errors use `ApiErrorException`, not `InvalidOperationException`
