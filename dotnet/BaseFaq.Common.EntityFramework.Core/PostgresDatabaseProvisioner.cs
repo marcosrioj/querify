@@ -1,4 +1,6 @@
+using BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception;
 using Npgsql;
+using System.Net;
 
 namespace BaseFaq.Common.EntityFramework.Core;
 
@@ -9,7 +11,9 @@ public static class PostgresDatabaseProvisioner
         var targetBuilder = new NpgsqlConnectionStringBuilder(connectionString);
         if (string.IsNullOrWhiteSpace(targetBuilder.Database))
         {
-            throw new InvalidOperationException("The target PostgreSQL connection string must include a database name.");
+            throw new ApiErrorException(
+                "The target PostgreSQL connection string must include a database name.",
+                (int)HttpStatusCode.InternalServerError);
         }
 
         var targetDatabase = targetBuilder.Database;

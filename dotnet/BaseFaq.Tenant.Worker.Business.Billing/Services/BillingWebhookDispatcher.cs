@@ -1,5 +1,7 @@
+using BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception;
 using BaseFaq.Tenant.Worker.Business.Billing.Abstractions;
 using BaseFaq.Tenant.Worker.Business.Billing.Models;
+using System.Net;
 
 namespace BaseFaq.Tenant.Worker.Business.Billing.Services;
 
@@ -16,8 +18,9 @@ public sealed class BillingWebhookDispatcher(IEnumerable<IBillingWebhookEventHan
 
         if (!_handlers.TryGetValue(billingEvent.Kind, out var handler))
         {
-            throw new InvalidOperationException(
-                $"No billing webhook event handler is registered for '{billingEvent.Kind}'.");
+            throw new ApiErrorException(
+                $"No billing webhook event handler is registered for '{billingEvent.Kind}'.",
+                (int)HttpStatusCode.UnprocessableEntity);
         }
 
         await handler.HandleAsync(billingEvent, cancellationToken);

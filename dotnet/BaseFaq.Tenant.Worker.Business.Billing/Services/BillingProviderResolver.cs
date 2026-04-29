@@ -1,5 +1,7 @@
+using BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception;
 using BaseFaq.Models.Tenant.Enums;
 using BaseFaq.Tenant.Worker.Business.Billing.Abstractions;
+using System.Net;
 
 namespace BaseFaq.Tenant.Worker.Business.Billing.Services;
 
@@ -16,6 +18,8 @@ public sealed class BillingProviderResolver(IEnumerable<IBillingProvider> provid
             return resolvedProvider;
         }
 
-        throw new InvalidOperationException($"No billing provider is registered for '{provider}'.");
+        throw new ApiErrorException(
+            $"No billing provider is registered for '{provider}'.",
+            (int)HttpStatusCode.InternalServerError);
     }
 }

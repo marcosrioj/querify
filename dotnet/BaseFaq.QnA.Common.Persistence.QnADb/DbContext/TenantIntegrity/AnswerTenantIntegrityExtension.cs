@@ -1,7 +1,9 @@
 using BaseFaq.Common.EntityFramework.Core.Tenant.DbContext.TenantIntegrity;
+using BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception;
 using BaseFaq.Models.QnA.Enums;
 using BaseFaq.QnA.Common.Persistence.QnADb.Entities;
 using Microsoft.EntityFrameworkCore;
+using System.Net;
 
 namespace BaseFaq.QnA.Common.Persistence.QnADb.DbContext.TenantIntegrity;
 
@@ -22,8 +24,9 @@ internal static class AnswerTenantIntegrityExtension
 
             if (answer.Visibility is VisibilityScope.Public &&
                 answer.Status is not AnswerStatus.Active)
-                throw new InvalidOperationException(
-                    $"Answer '{answer.Id}' cannot be public while in status '{answer.Status}'.");
+                throw new ApiErrorException(
+                    $"Answer '{answer.Id}' cannot be public while in status '{answer.Status}'.",
+                    (int)HttpStatusCode.UnprocessableEntity);
         }
     }
 }

@@ -1,6 +1,8 @@
+using BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception;
 using BaseFaq.Models.QnA.Enums;
 using BaseFaq.QnA.Common.Persistence.QnADb.Entities;
 using Microsoft.EntityFrameworkCore;
+using System.Net;
 
 namespace BaseFaq.QnA.Common.Persistence.QnADb.DbContext.TenantIntegrity;
 
@@ -15,8 +17,9 @@ internal static class SpaceTenantIntegrityExtension
 
             if (space.Visibility is VisibilityScope.Public &&
                 space.Status is not SpaceStatus.Active)
-                throw new InvalidOperationException(
-                    $"Space '{space.Id}' cannot be public while in status '{space.Status}'.");
+                throw new ApiErrorException(
+                    $"Space '{space.Id}' cannot be public while in status '{space.Status}'.",
+                    (int)HttpStatusCode.UnprocessableEntity);
         }
     }
 }

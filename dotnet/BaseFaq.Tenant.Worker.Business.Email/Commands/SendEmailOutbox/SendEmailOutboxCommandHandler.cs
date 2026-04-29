@@ -1,5 +1,7 @@
+using BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception;
 using MediatR;
 using Microsoft.Extensions.Logging;
+using System.Net;
 
 namespace BaseFaq.Tenant.Worker.Business.Email.Commands.SendEmailOutbox;
 
@@ -18,7 +20,8 @@ public sealed class SendEmailOutboxCommandHandler(
             workItem.Id,
             workItem.RecipientEmail);
 
-        throw new InvalidOperationException(
-            $"No email provider is implemented yet. Cannot send email to '{workItem.RecipientEmail}'.");
+        throw new ApiErrorException(
+            $"No email provider is implemented yet. Cannot send email to '{workItem.RecipientEmail}'.",
+            (int)HttpStatusCode.InternalServerError);
     }
 }

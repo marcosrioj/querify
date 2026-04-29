@@ -1,6 +1,8 @@
 using BaseFaq.Common.EntityFramework.Core.Tenant.DbContext.TenantIntegrity;
+using BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception;
 using BaseFaq.QnA.Common.Persistence.QnADb.Entities;
 using Microsoft.EntityFrameworkCore;
+using System.Net;
 
 namespace BaseFaq.QnA.Common.Persistence.QnADb.DbContext.TenantIntegrity;
 
@@ -14,8 +16,9 @@ internal static class ActivityTenantIntegrityExtension
                      .Where(entry => entry.State != EntityState.Unchanged))
         {
             if (entry.State is EntityState.Modified or EntityState.Deleted)
-                throw new InvalidOperationException(
-                    $"Activity '{entry.Entity.Id}' is append-only and cannot be modified or deleted.");
+                throw new ApiErrorException(
+                    $"Activity '{entry.Entity.Id}' is append-only and cannot be modified or deleted.",
+                    (int)HttpStatusCode.UnprocessableEntity);
 
             var activity = entry.Entity;
             TenantIntegrityGuard.EnsureTenantMatch(
@@ -29,8 +32,9 @@ internal static class ActivityTenantIntegrityExtension
             TenantIntegrityGuard.EnsureTenantMatch(activity.TenantId, answer.TenantId, nameof(Activity.AnswerId));
 
             if (answer.QuestionId != activity.QuestionId)
-                throw new InvalidOperationException(
-                    $"Activity '{activity.Id}' references answer '{answerId}' from a different question.");
+                throw new ApiErrorException(
+                    $"Activity '{activity.Id}' references answer '{answerId}' from a different question.",
+                    (int)HttpStatusCode.UnprocessableEntity);
         }
     }
 }

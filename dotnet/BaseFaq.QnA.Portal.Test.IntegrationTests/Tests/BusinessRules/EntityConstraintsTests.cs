@@ -1,3 +1,4 @@
+using BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception;
 using BaseFaq.Models.QnA.Enums;
 using BaseFaq.QnA.Portal.Test.IntegrationTests.Helpers;
 using Xunit;
@@ -35,7 +36,7 @@ public class EntityConstraintsTests
 
         context.DbContext.Questions.Add(question);
 
-        await Assert.ThrowsAsync<InvalidOperationException>(() => context.DbContext.SaveChangesAsync());
+        await Assert.ThrowsAsync<ApiErrorException>(() => context.DbContext.SaveChangesAsync());
     }
 
     [Fact]
@@ -67,7 +68,7 @@ public class EntityConstraintsTests
 
         context.DbContext.Answers.Add(answer);
 
-        await Assert.ThrowsAsync<InvalidOperationException>(() => context.DbContext.SaveChangesAsync());
+        await Assert.ThrowsAsync<ApiErrorException>(() => context.DbContext.SaveChangesAsync());
     }
 
     [Fact]
@@ -91,7 +92,7 @@ public class EntityConstraintsTests
 
         context.DbContext.Sources.Add(source);
 
-        await Assert.ThrowsAsync<InvalidOperationException>(() => context.DbContext.SaveChangesAsync());
+        await Assert.ThrowsAsync<ApiErrorException>(() => context.DbContext.SaveChangesAsync());
     }
 
     [Fact]
@@ -105,6 +106,6 @@ public class EntityConstraintsTests
         var activity = question.Activities.Single();
         activity.Notes = "Edited after creation";
 
-        await Assert.ThrowsAsync<InvalidOperationException>(() => context.DbContext.SaveChangesAsync());
+        await Assert.ThrowsAsync<ApiErrorException>(() => context.DbContext.SaveChangesAsync());
     }
 }

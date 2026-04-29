@@ -1,7 +1,9 @@
 using BaseFaq.Common.EntityFramework.Core.Tenant.DbContext.TenantIntegrity;
+using BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception;
 using BaseFaq.Models.QnA.Enums;
 using BaseFaq.QnA.Common.Persistence.QnADb.Entities;
 using Microsoft.EntityFrameworkCore;
+using System.Net;
 
 namespace BaseFaq.QnA.Common.Persistence.QnADb.DbContext.TenantIntegrity;
 
@@ -23,13 +25,15 @@ internal static class QuestionTenantIntegrityExtension
 
             if (question.Visibility is VisibilityScope.Public &&
                 question.Status is not QuestionStatus.Active)
-                throw new InvalidOperationException(
-                    $"Question '{question.Id}' cannot be public while in status '{question.Status}'.");
+                throw new ApiErrorException(
+                    $"Question '{question.Id}' cannot be public while in status '{question.Status}'.",
+                    (int)HttpStatusCode.UnprocessableEntity);
 
             if (question.Visibility is VisibilityScope.Public &&
                 question.DuplicateOfQuestionId.HasValue)
-                throw new InvalidOperationException(
-                    $"Question '{question.Id}' cannot be public while it points to a duplicate target.");
+                throw new ApiErrorException(
+                    $"Question '{question.Id}' cannot be public while it points to a duplicate target.",
+                    (int)HttpStatusCode.UnprocessableEntity);
 
             if (question.AcceptedAnswerId is Guid acceptedAnswerId)
             {
@@ -40,17 +44,20 @@ internal static class QuestionTenantIntegrityExtension
                     nameof(Question.AcceptedAnswerId));
 
                 if (acceptedAnswer.QuestionId != question.Id)
-                    throw new InvalidOperationException(
-                        $"Question '{question.Id}' accepts answer '{acceptedAnswerId}' from a different question.");
+                    throw new ApiErrorException(
+                        $"Question '{question.Id}' accepts answer '{acceptedAnswerId}' from a different question.",
+                        (int)HttpStatusCode.UnprocessableEntity);
 
                 if (acceptedAnswer.Status is not AnswerStatus.Active)
-                    throw new InvalidOperationException(
-                        $"Question '{question.Id}' cannot accept answer '{acceptedAnswerId}' while it is in status '{acceptedAnswer.Status}'.");
+                    throw new ApiErrorException(
+                        $"Question '{question.Id}' cannot accept answer '{acceptedAnswerId}' while it is in status '{acceptedAnswer.Status}'.",
+                        (int)HttpStatusCode.UnprocessableEntity);
 
                 if (question.Visibility is VisibilityScope.Public &&
                     acceptedAnswer.Visibility is not VisibilityScope.Public)
-                    throw new InvalidOperationException(
-                        $"Question '{question.Id}' cannot expose accepted answer '{acceptedAnswerId}' while the answer is not publicly visible.");
+                    throw new ApiErrorException(
+                        $"Question '{question.Id}' cannot expose accepted answer '{acceptedAnswerId}' while the answer is not publicly visible.",
+                        (int)HttpStatusCode.UnprocessableEntity);
             }
 
             if (question.DuplicateOfQuestionId is Guid duplicateQuestionId)
@@ -62,8 +69,9 @@ internal static class QuestionTenantIntegrityExtension
                     nameof(Question.DuplicateOfQuestionId));
 
                 if (duplicateQuestionId == question.Id)
-                    throw new InvalidOperationException(
-                        $"Question '{question.Id}' cannot point to itself as a duplicate.");
+                    throw new ApiErrorException(
+                        $"Question '{question.Id}' cannot point to itself as a duplicate.",
+                        (int)HttpStatusCode.UnprocessableEntity);
             }
         }
     }

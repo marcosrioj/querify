@@ -1,6 +1,8 @@
+using BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception;
 using BaseFaq.Models.QnA.Enums;
 using BaseFaq.QnA.Common.Persistence.QnADb.Entities;
 using Microsoft.EntityFrameworkCore;
+using System.Net;
 
 namespace BaseFaq.QnA.Common.Persistence.QnADb.DbContext.TenantIntegrity;
 
@@ -16,12 +18,14 @@ internal static class SourceTenantIntegrityExtension
             if (source.Visibility is not VisibilityScope.Public) continue;
 
             if (source.Kind == SourceKind.InternalNote)
-                throw new InvalidOperationException(
-                    $"Source '{source.Id}' cannot expose internal notes publicly.");
+                throw new ApiErrorException(
+                    $"Source '{source.Id}' cannot expose internal notes publicly.",
+                    (int)HttpStatusCode.UnprocessableEntity);
 
             if (source.LastVerifiedAtUtc is null)
-                throw new InvalidOperationException(
-                    $"Source '{source.Id}' must be verified before public exposure.");
+                throw new ApiErrorException(
+                    $"Source '{source.Id}' must be verified before public exposure.",
+                    (int)HttpStatusCode.UnprocessableEntity);
         }
     }
 }

@@ -1,8 +1,10 @@
 using BaseFaq.Common.EntityFramework.Tenant;
 using BaseFaq.Common.EntityFramework.Tenant.Entities;
+using BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception;
 using BaseFaq.Models.Tenant.Enums;
 using BaseFaq.Tenant.Worker.Business.Billing.Models;
 using Microsoft.EntityFrameworkCore;
+using System.Net;
 
 namespace BaseFaq.Tenant.Worker.Business.Billing.Services;
 
@@ -20,8 +22,9 @@ public sealed class BillingStateService(
             return tenantId.Value;
         }
 
-        throw new InvalidOperationException(
-            $"Tenant could not be resolved for billing event '{billingEvent.ExternalEventId}' ({billingEvent.EventType}).");
+        throw new ApiErrorException(
+            $"Tenant could not be resolved for billing event '{billingEvent.ExternalEventId}' ({billingEvent.EventType}).",
+            (int)HttpStatusCode.NotFound);
     }
 
     public async Task<BillingCustomer?> UpsertCustomerAsync(

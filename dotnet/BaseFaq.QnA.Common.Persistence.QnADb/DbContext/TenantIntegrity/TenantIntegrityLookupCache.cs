@@ -1,7 +1,9 @@
 using BaseFaq.Common.EntityFramework.Core.Tenant.DbContext.TenantIntegrity;
+using BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception;
 using BaseFaq.Models.QnA.Enums;
 using BaseFaq.QnA.Common.Persistence.QnADb.Entities;
 using Microsoft.EntityFrameworkCore;
+using System.Net;
 
 namespace BaseFaq.QnA.Common.Persistence.QnADb.DbContext.TenantIntegrity;
 
@@ -43,7 +45,9 @@ internal sealed class TenantIntegrityLookupCache(QnADbContext dbContext)
             .SingleOrDefault();
 
         if (databaseLookup is null)
-            throw new InvalidOperationException($"Referenced {nameof(Answer)} '{id}' was not found.");
+            throw new ApiErrorException(
+                $"Referenced {nameof(Answer)} '{id}' was not found.",
+                (int)HttpStatusCode.NotFound);
 
         _answers[id] = databaseLookup;
         return databaseLookup;

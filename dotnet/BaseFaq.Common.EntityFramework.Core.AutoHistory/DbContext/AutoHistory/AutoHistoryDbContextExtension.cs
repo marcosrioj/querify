@@ -2,8 +2,10 @@ using System.Dynamic;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using BaseFaq.Common.EntityFramework.Core.AutoHistory.Attributes;
+using BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using System.Net;
 
 namespace BaseFaq.Common.EntityFramework.Core.AutoHistory.DbContext.AutoHistory;
 
@@ -68,7 +70,9 @@ public static class AutoHistoryDbContextExtension
             case EntityState.Detached:
             case EntityState.Unchanged:
             default:
-                throw new NotSupportedException("AutoHistory only supports Added, Modified, and Deleted entities.");
+                throw new ApiErrorException(
+                    "AutoHistory only supports Added, Modified, and Deleted entities.",
+                    (int)HttpStatusCode.InternalServerError);
         }
 
         return history;

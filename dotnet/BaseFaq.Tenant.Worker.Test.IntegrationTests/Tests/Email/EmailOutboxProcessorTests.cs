@@ -1,5 +1,6 @@
 using BaseFaq.Common.EntityFramework.Tenant.Entities;
 using BaseFaq.Common.EntityFramework.Tenant.Enums;
+using BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception;
 using BaseFaq.Tenant.Worker.Business.Email.Options;
 using BaseFaq.Tenant.Worker.Business.Email.Services;
 using BaseFaq.Tenant.Worker.Test.IntegrationTests.Helpers;
@@ -50,7 +51,7 @@ public class EmailOutboxProcessorTests
         return item;
     }
 
-    // SendEmailOutboxCommandHandler always throws InvalidOperationException (no provider implemented).
+    // SendEmailOutboxCommandHandler always throws ApiErrorException (no provider implemented).
     // The processor catches it and schedules a retry, so there is no "success" path in the current codebase.
 
     [Fact]
@@ -61,7 +62,7 @@ public class EmailOutboxProcessorTests
 
         // The real handler throws; the fake mediator simulates that.
         var mediator = new FakeMediator();
-        mediator.EnqueueException(new InvalidOperationException("No email provider is implemented yet."));
+        mediator.EnqueueException(new ApiErrorException("No email provider is implemented yet."));
         var processor = CreateProcessor(context.DbContext, mediator);
 
         var processed = await processor.ProcessBatchAsync(CancellationToken.None);
@@ -92,7 +93,7 @@ public class EmailOutboxProcessorTests
         var seeded = await SeedPendingItemAsync(context.DbContext, attemptCount: 2);
 
         var mediator = new FakeMediator();
-        mediator.EnqueueException(new InvalidOperationException("No email provider is implemented yet."));
+        mediator.EnqueueException(new ApiErrorException("No email provider is implemented yet."));
         var processor = CreateProcessor(context.DbContext, mediator, options);
 
         await processor.ProcessBatchAsync(CancellationToken.None);

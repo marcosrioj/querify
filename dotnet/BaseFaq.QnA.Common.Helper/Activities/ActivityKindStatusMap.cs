@@ -1,4 +1,6 @@
+using BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception;
 using BaseFaq.Models.QnA.Enums;
+using System.Net;
 
 namespace BaseFaq.QnA.Common.Helper.Activities;
 
@@ -11,7 +13,9 @@ public static class ActivityKindStatusMap
             QuestionStatus.Draft => ActivityKind.QuestionDraft,
             QuestionStatus.Active => ActivityKind.QuestionActive,
             QuestionStatus.Archived => ActivityKind.QuestionArchived,
-            _ => throw new ArgumentOutOfRangeException(nameof(status), status, "Unsupported question status.")
+            _ => throw new ApiErrorException(
+                "Unsupported question status.",
+                (int)HttpStatusCode.UnprocessableEntity)
         };
     }
 
@@ -22,7 +26,9 @@ public static class ActivityKindStatusMap
             AnswerStatus.Draft => ActivityKind.AnswerDraft,
             AnswerStatus.Active => ActivityKind.AnswerActive,
             AnswerStatus.Archived => ActivityKind.AnswerArchived,
-            _ => throw new ArgumentOutOfRangeException(nameof(status), status, "Unsupported answer status.")
+            _ => throw new ApiErrorException(
+                "Unsupported answer status.",
+                (int)HttpStatusCode.UnprocessableEntity)
         };
     }
 }

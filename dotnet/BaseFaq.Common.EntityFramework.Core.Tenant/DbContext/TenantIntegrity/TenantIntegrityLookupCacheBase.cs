@@ -1,5 +1,7 @@
 using BaseFaq.Common.EntityFramework.Core.Abstractions;
+using BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception;
 using Microsoft.EntityFrameworkCore;
+using System.Net;
 using EfDbContext = Microsoft.EntityFrameworkCore.DbContext;
 
 namespace BaseFaq.Common.EntityFramework.Core.Tenant.DbContext.TenantIntegrity;
@@ -23,8 +25,9 @@ public sealed class TenantIntegrityLookupCacheBase(EfDbContext dbContext)
             .SingleOrDefault();
 
         if (databaseTenantId is null)
-            throw new InvalidOperationException(
-                $"Referenced {entityName ?? typeof(TEntity).Name} '{id}' was not found.");
+            throw new ApiErrorException(
+                $"Referenced {entityName ?? typeof(TEntity).Name} '{id}' was not found.",
+                (int)HttpStatusCode.NotFound);
 
         cache[id] = databaseTenantId.Value;
         return databaseTenantId.Value;

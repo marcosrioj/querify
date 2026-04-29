@@ -1,5 +1,6 @@
 using BaseFaq.Common.EntityFramework.Core;
 using BaseFaq.Common.EntityFramework.Core.AutoHistory.DbContext.AutoHistory;
+using BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception;
 using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Models.Common.Enums;
 using BaseFaq.QnA.Common.Persistence.QnADb.DbContext.TenantIntegrity;
@@ -7,6 +8,7 @@ using BaseFaq.QnA.Common.Persistence.QnADb.Entities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using System.Net;
 
 namespace BaseFaq.QnA.Common.Persistence.QnADb.DbContext;
 
@@ -72,16 +74,19 @@ public class QnADbContext : BaseDbContext<QnADbContext>
             var activity = entry.Entity;
 
             if (string.IsNullOrWhiteSpace(activity.UserPrint))
-                throw new InvalidOperationException(
-                    $"Activity '{activity.Id}' must include a resolved '{nameof(Activity.UserPrint)}'.");
+                throw new ApiErrorException(
+                    $"Activity '{activity.Id}' must include a resolved '{nameof(Activity.UserPrint)}'.",
+                    (int)HttpStatusCode.BadRequest);
 
             if (string.IsNullOrWhiteSpace(activity.Ip))
-                throw new InvalidOperationException(
-                    $"Activity '{activity.Id}' must include a resolved '{nameof(Activity.Ip)}'.");
+                throw new ApiErrorException(
+                    $"Activity '{activity.Id}' must include a resolved '{nameof(Activity.Ip)}'.",
+                    (int)HttpStatusCode.BadRequest);
 
             if (string.IsNullOrWhiteSpace(activity.UserAgent))
-                throw new InvalidOperationException(
-                    $"Activity '{activity.Id}' must include a resolved '{nameof(Activity.UserAgent)}'.");
+                throw new ApiErrorException(
+                    $"Activity '{activity.Id}' must include a resolved '{nameof(Activity.UserAgent)}'.",
+                    (int)HttpStatusCode.BadRequest);
         }
     }
 
