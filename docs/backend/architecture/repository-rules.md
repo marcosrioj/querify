@@ -187,6 +187,13 @@ handlers for user-correctable API errors. The API error middleware only serializ
 `ApiErrorException` into `{ errorCode, messageError, data }`; other exceptions can leak as developer
 exception pages or generic server errors during local and hosted API runs.
 
+Treat the `ApiErrorException` message as a frontend localization contract. Prefer stable,
+user-facing English messages that can be used as Portal translation keys. If the message must
+include dynamic values such as ids, client keys, tenant ids, or header names, make sure the Portal
+maps it in `apps/portal/src/platform/api/api-error.ts` to a stable localized message before it is
+shown in a toast or popup. Do not add feature-local exception helpers for this; use the shared
+`ApiErrorException` and update the frontend error catalog when the API surface changes.
+
 `InvalidOperationException` remains acceptable for internal invariants that indicate a programming,
 configuration, or persistence corruption problem and are not expected to be recovered by changing
 the request payload. When a persistence invariant mirrors a request-time rule, validate it first in

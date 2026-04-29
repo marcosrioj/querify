@@ -97,6 +97,9 @@ When a command starts asynchronous work:
   bug, invalid configuration, or persistence corruption
 - use `HttpStatusCode.UnprocessableEntity` for user-correctable business rule failures such as an
   invalid status and visibility combination
+- keep `ApiErrorException` messages stable enough for frontend localization, or coordinate a Portal
+  alias in `apps/portal/src/platform/api/api-error.ts` when the message contains dynamic ids or
+  operational details
 
 ## Rule 8: modules use feature-scoped projects
 

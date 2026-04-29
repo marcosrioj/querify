@@ -172,6 +172,9 @@ versions. For request-time API failures, feature code should throw the shared `A
 so middleware returns the structured `{ errorCode, messageError, data }` payload. Do not introduce
 feature-local API exception helpers or use `InvalidOperationException` for user-correctable request
 validation errors.
+Messages from `ApiErrorException` are also frontend localization inputs. Keep them stable and
+user-facing, and update the Portal API error mapping when a message needs dynamic ids or operational
+details that should not be rendered directly.
 
 ### 9. Integration tests prefer real infrastructure
 

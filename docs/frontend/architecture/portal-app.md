@@ -56,8 +56,14 @@ Operational constraints reflected in the frontend:
 - tenant-scoped backend calls require `X-Tenant-Id`
 - tenant summaries expose `module`, backed by `ModuleEnum` values: Tenant, QnA, Direct, Broadcast, and Trust
 - pagination contracts use `SkipCount`, `MaxResultCount`, and `Sorting`
-- backend error payloads follow `{ errorCode, messageError, data }`
+- backend error payloads follow `{ ErrorCode, MessageError, Data }`; the frontend also accepts
+  camelCase fields defensively
 - Portal UI translation is frontend-owned, and backend DTOs do not provide translated labels
+
+API errors shown in toasts, confirmation failures, or page placeholders must go through
+`src/platform/api/api-error.ts`. That module normalizes `MessageError`, maps dynamic backend
+messages such as records with ids to stable frontend messages, and then sends the result through the
+Portal i18n catalogs. Do not render raw backend error strings directly in components.
 
 ## Architecture and implementation rules
 

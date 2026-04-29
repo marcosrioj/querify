@@ -75,6 +75,29 @@ Portal translations are frontend-owned:
 
 `i18n-core.ts` also matches placeholder-based keys at runtime. Prefer keys like `Delete source "{name}"?` or `Search: {value}` instead of concatenating translated fragments in components.
 
+## API error localization
+
+Backend APIs return request-time failures through `ApiErrorException`, serialized as
+`{ ErrorCode, MessageError, Data }`. The Portal treats `MessageError` as a canonical English
+message key, not as final UI copy.
+
+All API errors shown in popups, toasts, mutation errors, or page error states must use
+`toErrorMessage(...)` from `src/platform/api/api-error.ts`. That path:
+
+- accepts both PascalCase and camelCase API error fields
+- maps dynamic messages with ids, tenant ids, client keys, or headers to stable translation keys
+- collapses model validation payloads to `The submitted data is invalid.`
+- sends the final message key through the same locale catalogs as the rest of the UI
+
+When adding a new backend `ApiErrorException` message that can reach the Portal:
+
+1. prefer an existing stable frontend-translatable message
+2. add the exact message key to every locale file when the message is user-facing and stable
+3. add a pattern in `api-error.ts` when the backend message contains dynamic ids or operational
+   details that should not appear in translated UI
+4. verify the message appears through the shared toast or error-state path instead of raw component
+   rendering
+
 When adding new Portal UI copy:
 
 1. add the key to `en-US.json`
