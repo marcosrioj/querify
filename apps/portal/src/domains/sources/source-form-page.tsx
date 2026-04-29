@@ -66,6 +66,9 @@ function MetadataJsonEditor({
 }: {
   form: UseFormReturn<SourceFormValues>;
 }) {
+  const metadataDescription =
+    "Optional structured metadata. The form only saves valid JSON.";
+
   return (
     <FormField
       control={form.control}
@@ -73,7 +76,13 @@ function MetadataJsonEditor({
       render={({ field }) => (
         <FormItem>
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <FormLabel>{translateText("Metadata JSON")}</FormLabel>
+            <div className="flex items-center gap-1.5">
+              <FormLabel>{translateText("Metadata JSON")}</FormLabel>
+              <ContextHint
+                content={translateText(metadataDescription)}
+                label={translateText("Metadata JSON details")}
+              />
+            </div>
             <Button
               type="button"
               variant="outline"
@@ -110,10 +119,8 @@ function MetadataJsonEditor({
               spellCheck={false}
             />
           </FormControl>
-          <FormDescription>
-            {translateText(
-              "Optional structured metadata. The form only saves valid JSON.",
-            )}
+          <FormDescription className="sr-only">
+            {translateText(metadataDescription)}
           </FormDescription>
           <FormMessage />
         </FormItem>
@@ -286,7 +293,7 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
             <CardContent>
               <Form {...form}>
                 <form
-                  className="space-y-5"
+                  className="space-y-6"
                   onSubmit={form.handleSubmit(async (values) => {
                     const body = {
                       kind: Number(values.kind) as SourceKind,
@@ -312,22 +319,55 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
                   })}
                 >
                   <FormSectionHeading
-                    title="Core identity"
-                    description="Define the locator and source kind first so the record can be reused across questions."
+                    title="Evidence identity"
+                    description="Capture the canonical locator first, then add the operator-facing label and evidence type."
+                  />
+                  <div className="grid gap-4 lg:grid-cols-6">
+                    <div className="lg:col-span-6">
+                      <TextField
+                        control={form.control}
+                        name="locator"
+                        label="Locator"
+                        description="Use the canonical URL, path, repository URI, ticket reference, or document locator."
+                      />
+                    </div>
+                    <div className="lg:col-span-3">
+                      <TextField
+                        control={form.control}
+                        name="label"
+                        label="Label"
+                        description="Human-readable name shown when operators choose this source."
+                      />
+                    </div>
+                    <div className="lg:col-span-3">
+                      <SelectField
+                        control={form.control}
+                        name="kind"
+                        label="Source kind"
+                        description="The type of evidence or reusable reference this source represents."
+                        options={Object.entries(sourceKindLabels).map(
+                          ([value, label]) => ({
+                            value,
+                            label,
+                          }),
+                        )}
+                      />
+                    </div>
+                    <div className="lg:col-span-6">
+                      <TextareaField
+                        control={form.control}
+                        name="contextNote"
+                        label="Context note"
+                        rows={4}
+                        description="Internal note describing why this source matters or where it applies."
+                      />
+                    </div>
+                  </div>
+                  <FormSectionHeading
+                    title="Classification"
+                    description="Set who can reuse the source and how external systems should recognize it."
                   />
                   <div className="grid gap-4 md:grid-cols-2">
-                    <SelectField
-                      control={form.control}
-                      name="kind"
-                      label="Source kind"
-                      description="The type of evidence or reusable reference this source represents."
-                      options={Object.entries(sourceKindLabels).map(
-                        ([value, label]) => ({
-                          value,
-                          label,
-                        }),
-                      )}
-                    />
                     <SelectField
                       control={form.control}
                       name="visibility"
@@ -339,33 +379,6 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
                           label,
                         }),
                       )}
-                    />
-                  </div>
-                  <TextField
-                    control={form.control}
-                    name="locator"
-                    label="Locator"
-                    description="Use the canonical URL, path, repository URI, ticket reference, or document locator."
-                  />
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <TextField
-                      control={form.control}
-                      name="label"
-                      label="Label"
-                      description="Human-readable name shown when operators choose this source."
-                    />
-                    <TextareaField
-                      control={form.control}
-                      name="contextNote"
-                      label="Context note"
-                      rows={5}
-                      description="Internal note describing why this source matters or where it applies."
-                    />
-                    <TextField
-                      control={form.control}
-                      name="externalId"
-                      label="External ID"
-                      description="Identifier from the upstream connector, repository, or source system."
                     />
                     <SearchSelectField
                       control={form.control}
@@ -385,22 +398,20 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
                     />
                     <TextField
                       control={form.control}
+                      name="externalId"
+                      label="External ID"
+                      description="Identifier from the upstream connector, repository, or source system."
+                    />
+                    <TextField
+                      control={form.control}
                       name="mediaType"
                       label="Media type"
                       description="MIME type or source format such as text/html, application/pdf, or text/markdown."
                     />
-                    <TextField
-                      control={form.control}
-                      name="checksum"
-                      label="Checksum"
-                      description="Read-only value generated by the backend from the locator."
-                      readOnly
-                    />
                   </div>
-                  <MetadataJsonEditor form={form} />
                   <FormSectionHeading
-                    title="Verification"
-                    description="Choose whether this save should refresh the verification time."
+                    title="Verification and metadata"
+                    description="Refresh verification state and keep optional structured metadata close to system fields."
                   />
                   <div className="grid gap-4 md:grid-cols-2">
                     <SwitchField
@@ -409,7 +420,17 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
                       label="Mark verified now"
                       description="Set the verification timestamp when saving this source."
                     />
+                    {mode === "edit" ? (
+                      <TextField
+                        control={form.control}
+                        name="checksum"
+                        label="Checksum"
+                        description="Read-only value generated by the backend from the locator."
+                        readOnly
+                      />
+                    ) : null}
                   </div>
+                  <MetadataJsonEditor form={form} />
                   <div className="flex flex-wrap items-center gap-3">
                     <Button type="submit" disabled={isSubmitting}>
                       {translateText(

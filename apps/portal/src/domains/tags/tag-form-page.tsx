@@ -21,6 +21,7 @@ import {
   Form,
   FormSetupProgressCard,
   FormCardSkeleton,
+  FormSectionHeading,
   hasSetupText,
   SidebarSummarySkeleton,
 } from "@/shared/ui";
@@ -137,7 +138,7 @@ export function TagFormPage({ mode }: { mode: "create" | "edit" }) {
             <CardContent>
               <Form {...form}>
                 <form
-                  className="space-y-4"
+                  className="space-y-5"
                   onSubmit={form.handleSubmit(async (values) => {
                     if (mode === "create") {
                       await createTag.mutateAsync(values);
@@ -149,12 +150,18 @@ export function TagFormPage({ mode }: { mode: "create" | "edit" }) {
                     navigate("/app/tags");
                   })}
                 >
-                  <TextField
-                    control={form.control}
-                    name="name"
-                    label="Tag name"
-                    description="Use short reusable labels such as Billing, Activation, or API limits."
+                  <FormSectionHeading
+                    title="Taxonomy"
+                    description="Keep the tag broad enough to reuse across multiple spaces and questions."
                   />
+                  <div className="max-w-2xl">
+                    <TextField
+                      control={form.control}
+                      name="name"
+                      label="Tag name"
+                      description="Use short reusable labels such as Billing, Activation, or API limits."
+                    />
+                  </div>
                   <div className="flex flex-wrap items-center gap-3">
                     <Button type="submit" disabled={isSubmitting}>
                       {translateText(

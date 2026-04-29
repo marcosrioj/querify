@@ -137,8 +137,7 @@ export function AnswerFormPage({ mode }: { mode: "create" | "edit" }) {
   const publicVisibilitySelected =
     selectedVisibility === VisibilityScope.Public;
   const invalidPublicStatus =
-    publicVisibilitySelected &&
-    currentAnswerStatus !== AnswerStatus.Active;
+    publicVisibilitySelected && currentAnswerStatus !== AnswerStatus.Active;
   const spaceBlocksAnswers = selectedSpaceQuery.data?.acceptsAnswers === false;
   const questionOptions = (questionOptionsQuery.data?.items ?? []).map(
     buildQuestionOption,
@@ -283,7 +282,7 @@ export function AnswerFormPage({ mode }: { mode: "create" | "edit" }) {
             <CardContent>
               <Form {...form}>
                 <form
-                  className="space-y-5"
+                  className="space-y-6"
                   onSubmit={form.handleSubmit(async (values) => {
                     const createBody = {
                       questionId: values.questionId,
@@ -346,22 +345,24 @@ export function AnswerFormPage({ mode }: { mode: "create" | "edit" }) {
                     title="Content"
                     description="Write the headline customers should trust first, then add the deeper answer body."
                   />
-                  <TextField
-                    control={form.control}
-                    name="headline"
-                    label="Headline"
-                    description="The short answer that should appear as the candidate title."
-                  />
-                  <TextareaField
-                    control={form.control}
-                    name="body"
-                    label="Body"
-                    rows={8}
-                    description="The full guidance, including steps, caveats, and nuance."
-                  />
+                  <div className="grid gap-4">
+                    <TextField
+                      control={form.control}
+                      name="headline"
+                      label="Headline"
+                      description="The short answer that should appear as the candidate title."
+                    />
+                    <TextareaField
+                      control={form.control}
+                      name="body"
+                      label="Body"
+                      rows={8}
+                      description="The full guidance, including steps, caveats, and nuance."
+                    />
+                  </div>
                   <FormSectionHeading
-                    title="Lifecycle and trust"
-                    description="Control visibility, answer kind, and operational rank."
+                    title="Trust, attribution, and order"
+                    description="Control answer kind, audience exposure, author cue, and manual ordering together."
                   />
                   <div className="grid gap-4 md:grid-cols-3">
                     <SelectField
@@ -394,22 +395,36 @@ export function AnswerFormPage({ mode }: { mode: "create" | "edit" }) {
                       label="Sort"
                       description="Lower numbers surface first when acceptance does not override ordering."
                     />
+                    <div className="md:col-span-3">
+                      <TextField
+                        control={form.control}
+                        name="authorLabel"
+                        label="Author label"
+                        description="Optional attribution shown with the answer when authorship should be clear."
+                      />
+                    </div>
+                    <div className="md:col-span-3">
+                      <TextareaField
+                        control={form.control}
+                        name="contextNote"
+                        label="Context note"
+                        rows={4}
+                        description="Optional note explaining why, when, or how this answer applies."
+                      />
+                    </div>
                   </div>
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <TextField
-                      control={form.control}
-                      name="authorLabel"
-                      label="Author label"
-                      description="Optional attribution shown with the answer when authorship should be clear."
-                    />
-                  </div>
-                  <TextareaField
-                    control={form.control}
-                    name="contextNote"
-                    label="Context note"
-                    rows={4}
-                    description="Optional note explaining why, when, or how this answer applies."
-                  />
+                  {spaceBlocksAnswers ? (
+                    <p className="text-sm text-muted-foreground">
+                      {translateText("This space does not accept new answers.")}
+                    </p>
+                  ) : null}
+                  {invalidPublicStatus ? (
+                    <p className="text-sm text-muted-foreground">
+                      {translateText(
+                        "Only active answers can be exposed publicly.",
+                      )}
+                    </p>
+                  ) : null}
                   <div className="flex flex-wrap items-center gap-3">
                     <Button
                       type="submit"
@@ -430,18 +445,6 @@ export function AnswerFormPage({ mode }: { mode: "create" | "edit" }) {
                       </Link>
                     </Button>
                   </div>
-                  {spaceBlocksAnswers ? (
-                    <p className="text-sm text-muted-foreground">
-                      {translateText("This space does not accept new answers.")}
-                    </p>
-                  ) : null}
-                  {invalidPublicStatus ? (
-                    <p className="text-sm text-muted-foreground">
-                      {translateText(
-                        "Only active answers can be exposed publicly.",
-                      )}
-                    </p>
-                  ) : null}
                 </form>
               </Form>
             </CardContent>

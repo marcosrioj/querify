@@ -254,7 +254,7 @@ export function SpaceFormPage({ mode }: { mode: "create" | "edit" }) {
             <CardContent>
               <Form {...form}>
                 <form
-                  className="space-y-5"
+                  className="space-y-6"
                   onSubmit={form.handleSubmit(async (values) => {
                     const body = {
                       ...values,
@@ -275,24 +275,55 @@ export function SpaceFormPage({ mode }: { mode: "create" | "edit" }) {
                   })}
                 >
                   <FormSectionHeading
-                    title="Identity"
-                    description="Name the space clearly so operators know exactly what knowledge area they are configuring."
+                    title="Identity and locale"
+                    description="Start with the human-facing identity, then tune the routing and locale details."
                   />
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <TextField
-                      control={form.control}
-                      name="name"
-                      label="Name"
-                      placeholder="Product support space"
-                      description="Use the operational name teammates will recognize."
-                    />
-                    <FormField
-                      control={form.control}
-                      name="slug"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>{translateText("Slug")}</FormLabel>
-                          <div className="flex flex-col gap-2 sm:flex-row">
+                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
+                    <div className="md:col-span-2 lg:col-span-6">
+                      <TextField
+                        control={form.control}
+                        name="name"
+                        label="Name"
+                        placeholder="Product support space"
+                        description="Use the operational name teammates will recognize."
+                      />
+                    </div>
+                    <div className="md:col-span-2 lg:col-span-6">
+                      <TextareaField
+                        control={form.control}
+                        name="summary"
+                        label="Summary"
+                        rows={4}
+                        description="Explain what the space covers and when teams should route content here."
+                      />
+                    </div>
+                    <div className="lg:col-span-3">
+                      <FormField
+                        control={form.control}
+                        name="slug"
+                        render={({ field }) => (
+                          <FormItem>
+                            <div className="flex flex-wrap items-center justify-between gap-2">
+                              <div className="flex items-center gap-1.5">
+                                <FormLabel>{translateText("Slug")}</FormLabel>
+                                <ContextHint
+                                  content={translateText(
+                                    "Use a stable slug for routing and integrations.",
+                                  )}
+                                  label={translateText("Slug details")}
+                                />
+                              </div>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={slugifyFromName}
+                                className="shrink-0"
+                              >
+                                <RefreshCw className="size-4" />
+                                {translateText("Slugify from name")}
+                              </Button>
+                            </div>
                             <FormControl>
                               <Input
                                 {...field}
@@ -304,43 +335,40 @@ export function SpaceFormPage({ mode }: { mode: "create" | "edit" }) {
                                 }}
                               />
                             </FormControl>
-                            <Button
-                              type="button"
-                              variant="outline"
-                              onClick={slugifyFromName}
-                              className="shrink-0"
-                            >
-                              <RefreshCw className="size-4" />
-                              {translateText("Slugify from name")}
-                            </Button>
-                          </div>
-                          <FormDescription className="sr-only">
-                            {translateText(
-                              "Use a stable slug for routing and integrations.",
-                            )}
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                            <FormDescription className="sr-only">
+                              {translateText(
+                                "Use a stable slug for routing and integrations.",
+                              )}
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    <div className="lg:col-span-3">
+                      <SearchSelectField
+                        control={form.control}
+                        name="language"
+                        label="Language"
+                        description="Use the main locale for the questions and answers in this space."
+                        options={languageOptions}
+                        selectedOption={selectedLanguageOption}
+                        searchPlaceholder="Search languages"
+                        emptyMessage="No languages found."
+                        resultCountHint={translateText(
+                          "{count} languages available",
+                          {
+                            count: portalLanguageOptions.length,
+                          },
+                        )}
+                      />
+                    </div>
                   </div>
+                  <FormSectionHeading
+                    title="Publishing rules"
+                    description="Set lifecycle, audience exposure, and whether this space accepts new content."
+                  />
                   <div className="grid gap-4 md:grid-cols-2">
-                    <SearchSelectField
-                      control={form.control}
-                      name="language"
-                      label="Language"
-                      description="Use the main locale for the questions and answers in this space."
-                      options={languageOptions}
-                      selectedOption={selectedLanguageOption}
-                      searchPlaceholder="Search languages"
-                      emptyMessage="No languages found."
-                      resultCountHint={translateText(
-                        "{count} languages available",
-                        {
-                          count: portalLanguageOptions.length,
-                        },
-                      )}
-                    />
                     <SelectField
                       control={form.control}
                       name="status"
@@ -353,19 +381,6 @@ export function SpaceFormPage({ mode }: { mode: "create" | "edit" }) {
                         }),
                       )}
                     />
-                  </div>
-                  <TextareaField
-                    control={form.control}
-                    name="summary"
-                    label="Summary"
-                    rows={3}
-                    description="Explain what the space covers and when teams should route content here."
-                  />
-                  <FormSectionHeading
-                    title="Exposure"
-                    description="Decide who can see the space."
-                  />
-                  <div className="grid gap-4 md:grid-cols-2">
                     <SelectField
                       control={form.control}
                       name="visibility"
@@ -378,12 +393,6 @@ export function SpaceFormPage({ mode }: { mode: "create" | "edit" }) {
                         }),
                       )}
                     />
-                  </div>
-                  <FormSectionHeading
-                    title="Workflow rules"
-                    description="Tune whether the space accepts new questions."
-                  />
-                  <div className="grid gap-4 md:grid-cols-2">
                     <SwitchField
                       control={form.control}
                       name="acceptsQuestions"

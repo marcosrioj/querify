@@ -128,11 +128,12 @@ export function QuestionFormPage({ mode }: { mode: "create" | "edit" }) {
     selectedVisibility === VisibilityScope.Public;
   const invalidPublicStatus =
     publicVisibilitySelected && selectedStatus !== QuestionStatus.Active;
-  const questionStatusOptions = Object.entries(questionStatusLabels)
-    .map(([value, label]) => ({
+  const questionStatusOptions = Object.entries(questionStatusLabels).map(
+    ([value, label]) => ({
       value,
       label,
-    }));
+    }),
+  );
   const spaceBlocksQuestions = selectedSpace?.acceptsQuestions === false;
   const spaceOptions = (spaceOptionsQuery.data?.items ?? []).map(
     buildSpaceOption,
@@ -286,7 +287,7 @@ export function QuestionFormPage({ mode }: { mode: "create" | "edit" }) {
             <CardContent>
               <Form {...form}>
                 <form
-                  className="space-y-5"
+                  className="space-y-6"
                   onSubmit={form.handleSubmit(async (values) => {
                     const createBody = {
                       spaceId: values.spaceId,
@@ -351,7 +352,7 @@ export function QuestionFormPage({ mode }: { mode: "create" | "edit" }) {
                     title="Identity"
                     description="Use the wording customers or operators will actually search for."
                   />
-                  <div className="grid gap-4 md:grid-cols-2">
+                  <div className="grid gap-4">
                     <TextField
                       control={form.control}
                       name="title"
@@ -359,32 +360,26 @@ export function QuestionFormPage({ mode }: { mode: "create" | "edit" }) {
                       placeholder="How do I activate the workspace for a new tenant?"
                       description="Use the canonical question wording."
                     />
-                    <TextField
+                    <TextareaField
                       control={form.control}
-                      name="sort"
-                      label="Sort"
-                      description="Lower values appear earlier in curated ordering."
+                      name="summary"
+                      label="Summary"
+                      rows={3}
+                      description="A compact explanation of the question before the full context."
+                    />
+                    <TextareaField
+                      control={form.control}
+                      name="contextNote"
+                      label="Context note"
+                      rows={4}
+                      description="Operational nuance that answer authors should understand."
                     />
                   </div>
-                  <TextareaField
-                    control={form.control}
-                    name="summary"
-                    label="Summary"
-                    rows={3}
-                    description="A compact explanation of the question before the full context."
-                  />
-                  <TextareaField
-                    control={form.control}
-                    name="contextNote"
-                    label="Context note"
-                    rows={4}
-                    description="Operational nuance that answer authors should understand."
-                  />
                   <FormSectionHeading
-                    title="Workflow"
-                    description="Set the starting lifecycle, visibility, and intake channel."
+                    title="Workflow and order"
+                    description="Set lifecycle, audience exposure, intake channel, and manual ordering together."
                   />
-                  <div className="grid gap-4 md:grid-cols-3">
+                  <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
                     <SelectField
                       control={form.control}
                       name="status"
@@ -416,7 +411,27 @@ export function QuestionFormPage({ mode }: { mode: "create" | "edit" }) {
                         }),
                       )}
                     />
+                    <TextField
+                      control={form.control}
+                      name="sort"
+                      label="Sort"
+                      description="Lower values appear earlier in curated ordering."
+                    />
                   </div>
+                  {spaceBlocksQuestions ? (
+                    <p className="text-sm text-muted-foreground">
+                      {translateText(
+                        "This space does not accept new questions.",
+                      )}
+                    </p>
+                  ) : null}
+                  {invalidPublicStatus ? (
+                    <p className="text-sm text-muted-foreground">
+                      {translateText(
+                        "Public visibility requires status Active.",
+                      )}
+                    </p>
+                  ) : null}
                   <div className="flex flex-wrap items-center gap-3">
                     <Button
                       type="submit"
@@ -437,20 +452,6 @@ export function QuestionFormPage({ mode }: { mode: "create" | "edit" }) {
                       </Link>
                     </Button>
                   </div>
-                  {spaceBlocksQuestions ? (
-                    <p className="text-sm text-muted-foreground">
-                      {translateText(
-                        "This space does not accept new questions.",
-                      )}
-                    </p>
-                  ) : null}
-                  {invalidPublicStatus ? (
-                    <p className="text-sm text-muted-foreground">
-                      {translateText(
-                        "Public visibility requires status Active.",
-                      )}
-                    </p>
-                  ) : null}
                 </form>
               </Form>
             </CardContent>
