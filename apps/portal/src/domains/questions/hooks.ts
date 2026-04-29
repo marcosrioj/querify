@@ -3,15 +3,12 @@ import { toast } from "sonner";
 import {
   addQuestionSource,
   addQuestionTag,
-  approveQuestion,
   createQuestion,
   deleteQuestion,
   getQuestion,
   listQuestions,
-  rejectQuestion,
   removeQuestionSource,
   removeQuestionTag,
-  submitQuestion,
   updateQuestion,
 } from "@/domains/questions/api";
 import { useAuth } from "@/platform/auth/use-auth";
@@ -130,54 +127,6 @@ export function useDeleteQuestion() {
       deleteQuestion(session?.accessToken, currentTenantId, id),
     onSuccess: async () => {
       toast.success(translateText("Question deleted."));
-      await invalidateQna();
-    },
-  });
-}
-
-export function useSubmitQuestion() {
-  const { session } = useAuth();
-  const { currentTenantId } = useTenant();
-  const invalidateQna = useInvalidateQna();
-
-  return useMutation({
-    mutationKey: [...questionKeys.all, "workflow", "submit"],
-    mutationFn: (id: string) =>
-      submitQuestion(session?.accessToken, currentTenantId, id),
-    onSuccess: async () => {
-      toast.success(translateText("Question submitted for review."));
-      await invalidateQna();
-    },
-  });
-}
-
-export function useApproveQuestion() {
-  const { session } = useAuth();
-  const { currentTenantId } = useTenant();
-  const invalidateQna = useInvalidateQna();
-
-  return useMutation({
-    mutationKey: [...questionKeys.all, "workflow", "approve"],
-    mutationFn: (id: string) =>
-      approveQuestion(session?.accessToken, currentTenantId, id),
-    onSuccess: async () => {
-      toast.success(translateText("Question approved."));
-      await invalidateQna();
-    },
-  });
-}
-
-export function useRejectQuestion() {
-  const { session } = useAuth();
-  const { currentTenantId } = useTenant();
-  const invalidateQna = useInvalidateQna();
-
-  return useMutation({
-    mutationKey: [...questionKeys.all, "workflow", "reject"],
-    mutationFn: ({ id, notes }: { id: string; notes?: string }) =>
-      rejectQuestion(session?.accessToken, currentTenantId, id, notes),
-    onSuccess: async () => {
-      toast.success(translateText("Question rejected."));
       await invalidateQna();
     },
   });

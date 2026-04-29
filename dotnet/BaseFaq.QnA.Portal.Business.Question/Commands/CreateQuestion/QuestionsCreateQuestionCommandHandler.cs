@@ -37,6 +37,8 @@ public sealed class QuestionsCreateQuestionCommandHandler(
                 "This space is not accepting questions.",
                 (int)HttpStatusCode.UnprocessableEntity);
 
+        EnsureSupportedStatus(request.Request.Status);
+
         var entity = new Common.Persistence.QnADb.Entities.Question
         {
             TenantId = tenantId,
@@ -101,6 +103,8 @@ public sealed class QuestionsCreateQuestionCommandHandler(
 
     private static void Apply(Common.Persistence.QnADb.Entities.Question entity, QuestionCreateRequestDto request, string userId)
     {
+        EnsureSupportedStatus(request.Status);
+
         entity.Title = request.Title;
         entity.Summary = request.Summary;
         entity.ContextNote = request.ContextNote;
@@ -120,5 +124,15 @@ public sealed class QuestionsCreateQuestionCommandHandler(
             throw new ApiErrorException(
                 "Only active questions can be exposed publicly.",
                 (int)HttpStatusCode.UnprocessableEntity);
+    }
+
+    private static void EnsureSupportedStatus(QuestionStatus status)
+    {
+        if (status is QuestionStatus.Draft or QuestionStatus.Active or QuestionStatus.Archived)
+            return;
+
+        throw new ApiErrorException(
+            "Unsupported question status.",
+            (int)HttpStatusCode.UnprocessableEntity);
     }
 }

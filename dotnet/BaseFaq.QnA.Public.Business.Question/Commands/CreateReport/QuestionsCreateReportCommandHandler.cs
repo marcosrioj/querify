@@ -39,7 +39,8 @@ public sealed class QuestionsCreateReportCommandHandler(
                     entity.TenantId == tenantId &&
                     entity.Id == request.Request.QuestionId &&
                     entity.Visibility == VisibilityScope.Public &&
-                    entity.Status == QuestionStatus.Active,
+                    entity.Status == QuestionStatus.Active &&
+                    entity.DuplicateOfQuestionId == null,
                 cancellationToken);
 
         if (question is null)

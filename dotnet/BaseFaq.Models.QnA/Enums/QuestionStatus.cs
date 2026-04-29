@@ -17,12 +17,6 @@ public enum QuestionStatus
     Active = 1,
 
     /// <summary>
-    /// The question is not the canonical thread and should point to another question.
-    /// This prevents knowledge fragmentation.
-    /// </summary>
-    Duplicate = 2,
-
-    /// <summary>
     /// The question is no longer active in the knowledge surface.
     /// Historical data may still be preserved.
     /// </summary>

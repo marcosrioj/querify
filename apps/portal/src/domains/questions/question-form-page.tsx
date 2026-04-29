@@ -128,15 +128,7 @@ export function QuestionFormPage({ mode }: { mode: "create" | "edit" }) {
     selectedVisibility === VisibilityScope.Public;
   const invalidPublicStatus =
     publicVisibilitySelected && selectedStatus !== QuestionStatus.Active;
-  const duplicateTargetLocked = Boolean(
-    questionQuery.data?.duplicateOfQuestionId,
-  );
   const questionStatusOptions = Object.entries(questionStatusLabels)
-    .filter(([value]) => {
-      const status = Number(value) as QuestionStatus;
-
-      return status !== QuestionStatus.Duplicate || duplicateTargetLocked;
-    })
     .map(([value, label]) => ({
       value,
       label,
@@ -258,7 +250,7 @@ export function QuestionFormPage({ mode }: { mode: "create" | "edit" }) {
                   },
                   {
                     label: "Workflow",
-                    value: "Draft, active, duplicate, or archived",
+                    value: "Draft, active, or archived",
                   },
                 ]}
               />
@@ -399,13 +391,8 @@ export function QuestionFormPage({ mode }: { mode: "create" | "edit" }) {
                       control={form.control}
                       name="status"
                       label="Status"
-                      description={
-                        duplicateTargetLocked
-                          ? "Duplicate status is managed together with its duplicate target."
-                          : "Controls whether the thread is draft, active, or archived."
-                      }
+                      description="Controls whether the thread is draft, active, or archived."
                       options={questionStatusOptions}
-                      disabled={duplicateTargetLocked}
                     />
                     <SelectField
                       control={form.control}

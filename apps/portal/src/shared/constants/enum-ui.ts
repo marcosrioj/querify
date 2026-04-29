@@ -338,17 +338,11 @@ export const questionStatusPresentation: Record<
     badgeVariant: "success",
     sortGroup: 1,
   },
-  [QuestionStatus.Duplicate]: {
-    label: questionStatusLabels[QuestionStatus.Duplicate],
-    description: "Redirected to a canonical question.",
-    badgeVariant: "outline",
-    sortGroup: 3,
-  },
   [QuestionStatus.Archived]: {
     label: questionStatusLabels[QuestionStatus.Archived],
     description: "No longer active.",
     badgeVariant: "outline",
-    sortGroup: 4,
+    sortGroup: 3,
   },
 };
 

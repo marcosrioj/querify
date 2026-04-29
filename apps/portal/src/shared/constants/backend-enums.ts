@@ -77,7 +77,6 @@ export enum VisibilityScope {
 export enum QuestionStatus {
   Draft = 0,
   Active = 1,
-  Duplicate = 2,
   Archived = 3,
 }
 
@@ -125,9 +124,6 @@ export enum SourceRole {
 export enum ActivityKind {
   QuestionCreated = 1,
   QuestionUpdated = 2,
-  QuestionSubmitted = 3,
-  QuestionApproved = 4,
-  QuestionRejected = 5,
   QuestionMarkedDuplicate = 6,
   AnswerCreated = 8,
   AnswerUpdated = 9,
@@ -219,7 +215,6 @@ export const visibilityScopeLabels: Record<VisibilityScope, string> = {
 export const questionStatusLabels: Record<QuestionStatus, string> = {
   [QuestionStatus.Draft]: 'Draft',
   [QuestionStatus.Active]: 'Active',
-  [QuestionStatus.Duplicate]: 'Duplicate',
   [QuestionStatus.Archived]: 'Archived',
 };
 
@@ -267,9 +262,6 @@ export const sourceRoleLabels: Record<SourceRole, string> = {
 export const activityKindLabels: Record<ActivityKind, string> = {
   [ActivityKind.QuestionCreated]: 'Question created',
   [ActivityKind.QuestionUpdated]: 'Question updated',
-  [ActivityKind.QuestionSubmitted]: 'Question submitted',
-  [ActivityKind.QuestionApproved]: 'Question approved',
-  [ActivityKind.QuestionRejected]: 'Question rejected',
   [ActivityKind.QuestionMarkedDuplicate]: 'Question marked duplicate',
   [ActivityKind.AnswerCreated]: 'Answer created',
   [ActivityKind.AnswerUpdated]: 'Answer updated',

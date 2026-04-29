@@ -35,6 +35,7 @@ public sealed class QuestionsUpdateQuestionCommandHandler(
         if (entity is null)
             throw new ApiErrorException($"Question '{request.Id}' was not found.", (int)HttpStatusCode.NotFound);
 
+        EnsureSupportedStatus(request.Request.Status);
         EnsureDuplicateRequestAllowed(request.Id, request.Request);
         Apply(entity, request.Request, userId);
 
@@ -55,7 +56,7 @@ public sealed class QuestionsUpdateQuestionCommandHandler(
 
             entity.DuplicateOfQuestionId = canonical.Id;
             entity.DuplicateOfQuestion = canonical;
-            entity.Status = QuestionStatus.Duplicate;
+            entity.Visibility = VisibilityScope.Authenticated;
 
             if (canonical.DuplicateQuestions.All(existing => existing.Id != entity.Id))
                 canonical.DuplicateQuestions.Add(entity);
@@ -66,9 +67,7 @@ public sealed class QuestionsUpdateQuestionCommandHandler(
                 userId);
         }
         else if (request.Request.DuplicateOfQuestionId.HasValue)
-        {
-            entity.Status = QuestionStatus.Duplicate;
-        }
+            entity.Visibility = VisibilityScope.Authenticated;
 
         if (!request.Request.AcceptedAnswerId.HasValue && entity.AcceptedAnswerId.HasValue)
         {
@@ -120,12 +119,6 @@ public sealed class QuestionsUpdateQuestionCommandHandler(
 
     private static void EnsureDuplicateRequestAllowed(Guid questionId, QuestionUpdateRequestDto request)
     {
-        if (request.Status is QuestionStatus.Duplicate &&
-            !request.DuplicateOfQuestionId.HasValue)
-            throw new ApiErrorException(
-                "Duplicate questions must identify the canonical question.",
-                (int)HttpStatusCode.UnprocessableEntity);
-
         if (request.DuplicateOfQuestionId == questionId)
             throw new ApiErrorException(
                 "Questions cannot point to themselves as duplicates.",
@@ -181,6 +174,8 @@ public sealed class QuestionsUpdateQuestionCommandHandler(
     private static void Apply(Common.Persistence.QnADb.Entities.Question entity, QuestionUpdateRequestDto request,
         string userId)
     {
+        EnsureSupportedStatus(request.Status);
+
         entity.Title = request.Title;
         entity.Summary = request.Summary;
         entity.ContextNote = request.ContextNote;
@@ -202,6 +197,11 @@ public sealed class QuestionsUpdateQuestionCommandHandler(
                 "Only active questions can be exposed publicly.",
                 (int)HttpStatusCode.UnprocessableEntity);
 
+        if (entity.DuplicateOfQuestionId.HasValue)
+            throw new ApiErrorException(
+                "Duplicate questions cannot be exposed publicly.",
+                (int)HttpStatusCode.UnprocessableEntity);
+
         foreach (var sourceLink in entity.Sources)
             if (sourceLink.Role is SourceRole.Reference &&
                 sourceLink.Source.Visibility is not VisibilityScope.Public)
@@ -214,5 +214,15 @@ public sealed class QuestionsUpdateQuestionCommandHandler(
             throw new ApiErrorException(
                 "Public questions require a publicly visible accepted answer.",
                 (int)HttpStatusCode.UnprocessableEntity);
+    }
+
+    private static void EnsureSupportedStatus(QuestionStatus status)
+    {
+        if (status is QuestionStatus.Draft or QuestionStatus.Active or QuestionStatus.Archived)
+            return;
+
+        throw new ApiErrorException(
+            "Unsupported question status.",
+            (int)HttpStatusCode.UnprocessableEntity);
     }
 }

@@ -125,9 +125,6 @@ export function ActivityListPage() {
     (event) =>
       event.kind === ActivityKind.QuestionCreated ||
       event.kind === ActivityKind.QuestionUpdated ||
-      event.kind === ActivityKind.QuestionSubmitted ||
-      event.kind === ActivityKind.QuestionApproved ||
-      event.kind === ActivityKind.QuestionRejected ||
       event.kind === ActivityKind.QuestionMarkedDuplicate,
   ).length;
 

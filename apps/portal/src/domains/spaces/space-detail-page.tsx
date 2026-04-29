@@ -196,7 +196,7 @@ export function SpaceDetailPage() {
     (question) =>
       question.status === QuestionStatus.Draft ||
       (!question.acceptedAnswerId &&
-        question.status !== QuestionStatus.Duplicate &&
+        !question.duplicateOfQuestionId &&
         question.status !== QuestionStatus.Archived),
   );
   const visibleQuestionIds = new Set(
@@ -870,7 +870,7 @@ export function SpaceDetailPage() {
                         </p>
                         <div className="mt-2 flex flex-wrap gap-2">
                           {!question.acceptedAnswerId &&
-                          question.status !== QuestionStatus.Duplicate ? (
+                          !question.duplicateOfQuestionId ? (
                             <Badge variant="warning" appearance="outline">
                               {translateText("Needs answer decision")}
                             </Badge>

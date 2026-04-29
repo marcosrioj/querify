@@ -20,12 +20,9 @@ import {
   useQuestion,
   useAddQuestionSource,
   useAddQuestionTag,
-  useApproveQuestion,
   useDeleteQuestion,
-  useRejectQuestion,
   useRemoveQuestionSource,
   useRemoveQuestionTag,
-  useSubmitQuestion,
   useUpdateQuestion,
   useQuestionList,
 } from "@/domains/questions/hooks";
@@ -39,7 +36,6 @@ import { useTag, useTagList } from "@/domains/tags/hooks";
 import {
   AnswerKind,
   AnswerStatus,
-  QuestionStatus,
   SourceRole,
   VisibilityScope,
   answerStatusLabels,
@@ -106,18 +102,6 @@ function buildQuestionUpdateBody(
     duplicateOfQuestionId: question.duplicateOfQuestionId ?? null,
     ...overrides,
   };
-}
-
-function getQuestionStatusAfterClearingResolution(question: QuestionDetailDto) {
-  if (question.duplicateOfQuestionId) {
-    return QuestionStatus.Duplicate;
-  }
-
-  if (question.acceptedAnswerId) {
-    return QuestionStatus.Active;
-  }
-
-  return QuestionStatus.Active;
 }
 
 function buildTagOption(tag: {
@@ -198,9 +182,6 @@ export function QuestionDetailPage() {
   const updateQuestion = useUpdateQuestion(id ?? "");
   const createAnswer = useCreateAnswer();
   const deleteAnswer = useDeleteAnswer();
-  const submitQuestion = useSubmitQuestion();
-  const approveQuestion = useApproveQuestion();
-  const rejectQuestion = useRejectQuestion();
   const addTag = useAddQuestionTag(id ?? "");
   const removeTag = useRemoveQuestionTag(id ?? "");
   const addSource = useAddQuestionSource(id ?? "");
@@ -373,18 +354,6 @@ export function QuestionDetailPage() {
   const spaceBlocksAnswers = spaceQuery.data
     ? !spaceQuery.data.acceptsAnswers
     : false;
-  const canSubmit = questionQuery.data?.status === QuestionStatus.Draft;
-  const canApprove = questionQuery.data?.status === QuestionStatus.Draft;
-  const canReject =
-    questionQuery.data?.status === QuestionStatus.Active &&
-    questionQuery.data?.visibility === VisibilityScope.Public;
-  const workflowSummary =
-    questionQuery.data?.status === QuestionStatus.Draft
-      ? translateText("Submitting or approving this question activates it.")
-      : translateText(
-          "Current status controls which workflow actions are available.",
-        );
-
   return (
     <DetailLayout
       header={
@@ -592,46 +561,12 @@ export function QuestionDetailPage() {
                 title: "Answers",
                 value: questionQuery.data.answers.length,
                 description: translateText(
-                  "Accepted, draft, and review candidates",
+                  "Accepted, draft, and active candidates",
                 ),
                 icon: CheckCircle2,
               },
             ]}
           />
-
-          <Card>
-            <CardHeader>
-              <CardHeading>
-                <CardTitle>{translateText("Workflow actions")}</CardTitle>
-              </CardHeading>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm text-muted-foreground">{workflowSummary}</p>
-              <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
-                <ActionButton
-                  tone="primary"
-                  onClick={() => void submitQuestion.mutateAsync(id)}
-                  disabled={!canSubmit || submitQuestion.isPending}
-                >
-                  {translateText("Submit for review")}
-                </ActionButton>
-                <ActionButton
-                  tone="primary"
-                  onClick={() => void approveQuestion.mutateAsync(id)}
-                  disabled={!canApprove || approveQuestion.isPending}
-                >
-                  {translateText("Approve")}
-                </ActionButton>
-                <ActionButton
-                  tone="danger"
-                  onClick={() => void rejectQuestion.mutateAsync({ id })}
-                  disabled={!canReject || rejectQuestion.isPending}
-                >
-                  {translateText("Reject")}
-                </ActionButton>
-              </div>
-            </CardContent>
-          </Card>
 
           <Card>
             <CardHeader>
@@ -726,10 +661,6 @@ export function QuestionDetailPage() {
                         updateQuestion.mutateAsync(
                           buildQuestionUpdateBody(questionQuery.data, {
                             acceptedAnswerId: null,
-                            status: getQuestionStatusAfterClearingResolution({
-                              ...questionQuery.data,
-                              acceptedAnswerId: null,
-                            }),
                           }),
                         )
                       }
@@ -770,7 +701,7 @@ export function QuestionDetailPage() {
                         .mutateAsync(
                           buildQuestionUpdateBody(questionQuery.data, {
                             duplicateOfQuestionId: selectedDuplicateId,
-                            status: QuestionStatus.Duplicate,
+                            visibility: VisibilityScope.Authenticated,
                           }),
                         )
                         .then(() => setSelectedDuplicateId(""))
@@ -787,10 +718,6 @@ export function QuestionDetailPage() {
                         updateQuestion.mutateAsync(
                           buildQuestionUpdateBody(questionQuery.data, {
                             duplicateOfQuestionId: null,
-                            status: getQuestionStatusAfterClearingResolution({
-                              ...questionQuery.data,
-                              duplicateOfQuestionId: null,
-                            }),
                           }),
                         )
                       }

@@ -112,50 +112,6 @@ export function updateQuestion(
   });
 }
 
-export function submitQuestion(
-  accessToken: string | undefined,
-  tenantId: string | undefined,
-  id: string,
-) {
-  return portalRequest<string>({
-    service: 'qna',
-    path: `/api/qna/question/${id}/submit`,
-    method: 'POST',
-    accessToken: requireAccessToken(accessToken),
-    tenantId: requireTenantId(tenantId),
-  });
-}
-
-export function approveQuestion(
-  accessToken: string | undefined,
-  tenantId: string | undefined,
-  id: string,
-) {
-  return portalRequest<string>({
-    service: 'qna',
-    path: `/api/qna/question/${id}/approve`,
-    method: 'POST',
-    accessToken: requireAccessToken(accessToken),
-    tenantId: requireTenantId(tenantId),
-  });
-}
-
-export function rejectQuestion(
-  accessToken: string | undefined,
-  tenantId: string | undefined,
-  id: string,
-  notes?: string,
-) {
-  return portalRequest<string>({
-    service: 'qna',
-    path: `/api/qna/question/${id}/reject`,
-    method: 'POST',
-    accessToken: requireAccessToken(accessToken),
-    tenantId: requireTenantId(tenantId),
-    body: notes ?? '',
-  });
-}
-
 export function deleteQuestion(
   accessToken: string | undefined,
   tenantId: string | undefined,

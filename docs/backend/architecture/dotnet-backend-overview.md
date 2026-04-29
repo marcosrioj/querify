@@ -173,7 +173,7 @@ The QnA module database stores tenant module data for the QnA module:
 - answers
 - space, question, and answer tag/source links
 - activity and public signaling metadata derived from activity
-- workflow state for question moderation and answer activation or retirement
+- lifecycle state for questions, answer activation or retirement, and activity-backed public signals
 
 Each tenant can point to its own module database connection, which is why module migration and seed tooling must resolve tenant metadata first.
 

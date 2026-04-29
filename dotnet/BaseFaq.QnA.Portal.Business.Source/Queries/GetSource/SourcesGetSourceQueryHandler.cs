@@ -4,6 +4,7 @@ using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.QnA.Dtos.Source;
 using BaseFaq.QnA.Common.Persistence.QnADb.DbContext;
+using BaseFaq.QnA.Common.Persistence.QnADb.Projections;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -66,7 +67,7 @@ public sealed class SourcesGetSourceQueryHandler(
                         SpaceSlug = link.Question.Space.Slug,
                         Title = link.Question.Title,
                         Summary = link.Question.Summary,
-                        Status = link.Question.Status,
+                        Status = QnAReadModelMappings.NormalizeQuestionStatus(link.Question.Status),
                         Visibility = link.Question.Visibility,
                         Role = link.Role,
                         Order = link.Order,

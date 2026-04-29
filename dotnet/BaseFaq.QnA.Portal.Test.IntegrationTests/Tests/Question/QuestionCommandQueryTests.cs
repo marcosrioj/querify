@@ -88,4 +88,35 @@ public class QuestionCommandQueryTests
 
         Assert.Equal((int)HttpStatusCode.UnprocessableEntity, exception.ErrorCode);
     }
+
+    [Fact]
+    public async Task CreateQuestion_ReturnsApiErrorWhenStatusIsUnsupportedLegacyValue()
+    {
+        using var context = TestContext.Create();
+        var space = await TestDataFactory.SeedSpaceAsync(context.DbContext, context.SessionService.TenantId);
+        var createHandler = new QuestionsCreateQuestionCommandHandler(
+            context.DbContext,
+            context.SessionService,
+            context.HttpContextAccessor);
+
+        var exception = await Assert.ThrowsAsync<ApiErrorException>(() => createHandler.Handle(
+            new QuestionsCreateQuestionCommand
+            {
+                Request = new QuestionCreateRequestDto
+                {
+                    SpaceId = space.Id,
+                    Title = "Legacy duplicate status",
+                    Summary = null,
+                    ContextNote = null,
+                    Status = (QuestionStatus)2,
+                    Visibility = VisibilityScope.Authenticated,
+                    OriginChannel = ChannelKind.Manual,
+                    Sort = 0
+                }
+            },
+            CancellationToken.None));
+
+        Assert.Equal((int)HttpStatusCode.UnprocessableEntity, exception.ErrorCode);
+        Assert.Equal("Unsupported question status.", exception.Message);
+    }
 }

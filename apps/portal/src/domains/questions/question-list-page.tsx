@@ -71,7 +71,6 @@ const statusBuckets = [
   { label: "All", value: "all" },
   { label: "Draft", value: String(QuestionStatus.Draft) },
   { label: "Active", value: String(QuestionStatus.Active) },
-  { label: "Duplicate", value: String(QuestionStatus.Duplicate) },
   { label: "Archived", value: String(QuestionStatus.Archived) },
 ] as const;
 
@@ -190,7 +189,7 @@ export function QuestionListPage() {
     (question) => question.status === QuestionStatus.Active,
   ).length;
   const duplicateCount = questionRows.filter(
-    (question) => question.status === QuestionStatus.Duplicate,
+    (question) => Boolean(question.duplicateOfQuestionId),
   ).length;
   const spaceLookup = useMemo(
     () =>

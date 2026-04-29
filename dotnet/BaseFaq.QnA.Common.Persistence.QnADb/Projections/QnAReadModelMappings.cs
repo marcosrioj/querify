@@ -12,6 +12,15 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Projections;
 
 public static class QnAReadModelMappings
 {
+    public static QuestionStatus NormalizeQuestionStatus(QuestionStatus status)
+    {
+        const int legacyDuplicateStatus = 2;
+
+        return (int)status == legacyDuplicateStatus
+            ? QuestionStatus.Active
+            : status;
+    }
+
     public static QuestionDto ToQuestionDto(this Question entity)
     {
         return new QuestionDto
@@ -23,7 +32,7 @@ public static class QnAReadModelMappings
             Title = entity.Title,
             Summary = entity.Summary,
             ContextNote = entity.ContextNote,
-            Status = entity.Status,
+            Status = NormalizeQuestionStatus(entity.Status),
             Visibility = entity.Visibility,
             OriginChannel = entity.OriginChannel,
             AiConfidenceScore = entity.AiConfidenceScore,
@@ -46,7 +55,7 @@ public static class QnAReadModelMappings
             Title = entity.Title,
             Summary = entity.Summary,
             ContextNote = entity.ContextNote,
-            Status = entity.Status,
+            Status = NormalizeQuestionStatus(entity.Status),
             Visibility = entity.Visibility,
             OriginChannel = entity.OriginChannel,
             AiConfidenceScore = entity.AiConfidenceScore,
@@ -107,7 +116,7 @@ public static class QnAReadModelMappings
             Title = entity.Title,
             Summary = entity.Summary,
             ContextNote = entity.ContextNote,
-            Status = entity.Status,
+            Status = NormalizeQuestionStatus(entity.Status),
             Visibility = entity.Visibility,
             OriginChannel = entity.OriginChannel,
             AiConfidenceScore = entity.AiConfidenceScore,

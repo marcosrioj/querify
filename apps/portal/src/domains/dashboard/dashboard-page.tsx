@@ -518,7 +518,7 @@ export function DashboardPage() {
     pageSize: 1,
     sorting: "LastActivityAtUtc DESC",
   });
-  const pendingQuestionsQuery = useQuestionList({
+  const draftQuestionsQuery = useQuestionList({
     page: 1,
     pageSize: 5,
     sorting: "LastActivityAtUtc DESC",
@@ -557,7 +557,7 @@ export function DashboardPage() {
   const isInitialDashboardLoading =
     spacesQuery.isLoading ||
     questionsSummaryQuery.isLoading ||
-    pendingQuestionsQuery.isLoading ||
+    draftQuestionsQuery.isLoading ||
     openQuestionsQuery.isLoading ||
     activeAnswersQuery.isLoading ||
     acceptedAnswersQuery.isLoading ||
@@ -570,7 +570,7 @@ export function DashboardPage() {
   const hasCriticalError =
     spacesQuery.isError ||
     questionsSummaryQuery.isError ||
-    pendingQuestionsQuery.isError ||
+    draftQuestionsQuery.isError ||
     openQuestionsQuery.isError ||
     activeAnswersQuery.isError ||
     acceptedAnswersQuery.isError ||
@@ -585,7 +585,7 @@ export function DashboardPage() {
     const error =
       spacesQuery.error ??
       questionsSummaryQuery.error ??
-      pendingQuestionsQuery.error ??
+      draftQuestionsQuery.error ??
       openQuestionsQuery.error ??
       activeAnswersQuery.error ??
       acceptedAnswersQuery.error ??
@@ -604,7 +604,7 @@ export function DashboardPage() {
           retry={() => {
             void spacesQuery.refetch();
             void questionsSummaryQuery.refetch();
-            void pendingQuestionsQuery.refetch();
+            void draftQuestionsQuery.refetch();
             void openQuestionsQuery.refetch();
             void activeAnswersQuery.refetch();
             void acceptedAnswersQuery.refetch();
@@ -617,12 +617,12 @@ export function DashboardPage() {
   }
 
   const spaces = spacesQuery.data?.items ?? [];
-  const pendingQuestions = pendingQuestionsQuery.data?.items ?? [];
+  const draftQuestions = draftQuestionsQuery.data?.items ?? [];
   const openQuestions = openQuestionsQuery.data?.items ?? [];
   const activeAnswers = activeAnswersQuery.data?.items ?? [];
   const memberCount = membersQuery.data?.length ?? 0;
   const questionCount = questionsSummaryQuery.data?.totalCount ?? 0;
-  const pendingQuestionCount = pendingQuestionsQuery.data?.totalCount ?? 0;
+  const draftQuestionCount = draftQuestionsQuery.data?.totalCount ?? 0;
   const openQuestionCount = openQuestionsQuery.data?.totalCount ?? 0;
   const activeAnswerCount = activeAnswersQuery.data?.totalCount ?? 0;
   const acceptedAnswerCount = acceptedAnswersQuery.data?.totalCount ?? 0;
@@ -643,7 +643,7 @@ export function DashboardPage() {
     billingSummary,
     memberCount,
     openQuestions,
-    pendingQuestionCount,
+    draftQuestionCount,
     questionCount,
     sourceCount,
     spaces,
@@ -651,13 +651,13 @@ export function DashboardPage() {
   const businessReadout = getBusinessReadout({
     acceptedAnswerCount,
     openQuestionCount,
-    pendingQuestionCount,
+    draftQuestionCount,
     publicSourceCount,
     activeAnswerCount,
     questionCount,
     sourceCount,
   });
-  const queueQuestions = [...pendingQuestions, ...openQuestions].slice(0, 5);
+  const queueQuestions = [...draftQuestions, ...openQuestions].slice(0, 5);
   const billingNeedsAttention = getBillingNeedsAttention(billingSummary);
 
   return (
@@ -711,10 +711,10 @@ export function DashboardPage() {
           <div className="grid gap-5 lg:grid-cols-2">
             <div className="space-y-3">
               <QueueSectionHeader
-                count={pendingQuestionCount + openQuestionCount}
+                count={draftQuestionCount + openQuestionCount}
                 title="Questions to resolve"
                 to={
-                  pendingQuestionCount > 0
+                  draftQuestionCount > 0
                     ? `/app/questions?status=${QuestionStatus.Draft}`
                     : `/app/questions?status=${QuestionStatus.Active}`
                 }

@@ -508,18 +508,6 @@ public sealed class QnASeedService : IQnASeedService
                 createdAtUtc),
             CreateInternalActivity(
                 question,
-                null,
-                ActivityKind.QuestionSubmitted,
-                moderatorIdentity,
-                createdAtUtc.AddMinutes(10)),
-            CreateInternalActivity(
-                question,
-                null,
-                ActivityKind.QuestionApproved,
-                moderatorIdentity,
-                createdAtUtc.AddMinutes(25)),
-            CreateInternalActivity(
-                question,
                 primaryAnswer,
                 ActivityKind.AnswerCreated,
                 moderatorIdentity,

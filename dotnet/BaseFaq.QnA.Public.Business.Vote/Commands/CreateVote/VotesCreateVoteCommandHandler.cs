@@ -46,7 +46,9 @@ public sealed class VotesCreateVoteCommandHandler(
 
         if (answer is null ||
             answer.Question.TenantId != tenantId ||
-            answer.Question.Visibility is not VisibilityScope.Public)
+            answer.Question.Visibility is not VisibilityScope.Public ||
+            answer.Question.Status is not QuestionStatus.Active ||
+            answer.Question.DuplicateOfQuestionId.HasValue)
             throw new ApiErrorException(
                 $"Answer '{request.Request.AnswerId}' was not found.",
                 (int)HttpStatusCode.NotFound);

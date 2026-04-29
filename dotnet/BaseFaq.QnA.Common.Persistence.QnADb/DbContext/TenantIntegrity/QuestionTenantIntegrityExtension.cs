@@ -26,6 +26,11 @@ internal static class QuestionTenantIntegrityExtension
                 throw new InvalidOperationException(
                     $"Question '{question.Id}' cannot be public while in status '{question.Status}'.");
 
+            if (question.Visibility is VisibilityScope.Public &&
+                question.DuplicateOfQuestionId.HasValue)
+                throw new InvalidOperationException(
+                    $"Question '{question.Id}' cannot be public while it points to a duplicate target.");
+
             if (question.AcceptedAnswerId is Guid acceptedAnswerId)
             {
                 var acceptedAnswer = cache.GetAnswer(acceptedAnswerId);
@@ -47,10 +52,6 @@ internal static class QuestionTenantIntegrityExtension
                     throw new InvalidOperationException(
                         $"Question '{question.Id}' cannot expose accepted answer '{acceptedAnswerId}' while the answer is not publicly visible.");
             }
-
-            if (question.Status == QuestionStatus.Duplicate != question.DuplicateOfQuestionId.HasValue)
-                throw new InvalidOperationException(
-                    $"Question '{question.Id}' must keep duplicate status and duplicate target together.");
 
             if (question.DuplicateOfQuestionId is Guid duplicateQuestionId)
             {

@@ -74,7 +74,7 @@ export function AuthLayout() {
                 <div className="grid gap-3 py-4 sm:grid-cols-2">
                   {[
                     {
-                      label: "Questions in review",
+                      label: "Draft questions",
                       value: "12",
                       icon: Clock3,
                       tone: "text-amber-500 bg-amber-500/10",

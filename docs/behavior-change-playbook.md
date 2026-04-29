@@ -111,6 +111,7 @@ Common consolidation rules:
 
 - A space status enum should not be duplicated by kind/mode enums plus publication timestamps.
 - A question type enum should not duplicate origin channel, lifecycle status, or the parent space mode.
+- Duplicate question routing is represented by `DuplicateOfQuestionId`; it is relationship context, not a `QuestionStatus` lifecycle value.
 - A source kind should describe the artifact. A source role should describe why it is linked. Visibility should describe whether the source is authenticated-only or public.
 - Source trust or validation behavior belongs to relationship context or Trust-owned validation, not a source-wide shortcut in QnA.
 - An activity kind should describe an event that happened, not a field that can be edited directly.

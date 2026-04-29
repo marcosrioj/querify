@@ -3,13 +3,10 @@ using BaseFaq.Models.QnA.Dtos.Question;
 using BaseFaq.QnA.Portal.Business.Question.Abstractions;
 using BaseFaq.QnA.Portal.Business.Question.Commands.AddSource;
 using BaseFaq.QnA.Portal.Business.Question.Commands.AddTag;
-using BaseFaq.QnA.Portal.Business.Question.Commands.ApproveQuestion;
 using BaseFaq.QnA.Portal.Business.Question.Commands.CreateQuestion;
 using BaseFaq.QnA.Portal.Business.Question.Commands.DeleteQuestion;
-using BaseFaq.QnA.Portal.Business.Question.Commands.RejectQuestion;
 using BaseFaq.QnA.Portal.Business.Question.Commands.RemoveSource;
 using BaseFaq.QnA.Portal.Business.Question.Commands.RemoveTag;
-using BaseFaq.QnA.Portal.Business.Question.Commands.SubmitQuestion;
 using BaseFaq.QnA.Portal.Business.Question.Commands.UpdateQuestion;
 using BaseFaq.QnA.Portal.Business.Question.Queries.GetQuestion;
 using BaseFaq.QnA.Portal.Business.Question.Queries.GetQuestionList;
@@ -45,21 +42,6 @@ public sealed class QuestionService(IMediator mediator) : IQuestionService
     public Task Delete(Guid id, CancellationToken token)
     {
         return mediator.Send(new QuestionsDeleteQuestionCommand { Id = id }, token);
-    }
-
-    public Task<Guid> Submit(Guid id, CancellationToken token)
-    {
-        return mediator.Send(new QuestionsSubmitQuestionCommand { Id = id }, token);
-    }
-
-    public Task<Guid> Approve(Guid id, CancellationToken token)
-    {
-        return mediator.Send(new QuestionsApproveQuestionCommand { Id = id }, token);
-    }
-
-    public Task<Guid> Reject(Guid id, string? notes, CancellationToken token)
-    {
-        return mediator.Send(new QuestionsRejectQuestionCommand { Id = id, Notes = notes }, token);
     }
 
     public Task<Guid> AddTag(QuestionTagCreateRequestDto dto, CancellationToken token)

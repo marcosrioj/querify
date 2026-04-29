@@ -92,25 +92,6 @@ public sealed class QuestionsCreateQuestionCommandHandler(
         entity.LastActivityAtUtc = createdActivity.OccurredAtUtc;
         dbContext.Activities.Add(createdActivity);
 
-        var submittedActivity = new Activity
-        {
-            TenantId = entity.TenantId,
-            QuestionId = entity.Id,
-            Question = entity,
-            Kind = ActivityKind.QuestionSubmitted,
-            ActorKind = ActorKind.Customer,
-            ActorLabel = identity.UserPrint,
-            UserPrint = identity.UserPrint,
-            Ip = identity.Ip,
-            UserAgent = identity.UserAgent,
-            OccurredAtUtc = DateTime.UtcNow,
-            CreatedBy = "public",
-            UpdatedBy = "public"
-        };
-        entity.Activities.Add(submittedActivity);
-        entity.LastActivityAtUtc = submittedActivity.OccurredAtUtc;
-        dbContext.Activities.Add(submittedActivity);
-
         await dbContext.SaveChangesAsync(cancellationToken);
         return entity.Id;
     }

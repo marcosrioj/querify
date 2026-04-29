@@ -10,9 +10,6 @@ public interface IQuestionService
     Task<PagedResultDto<QuestionDto>> GetAll(QuestionGetAllRequestDto requestDto, CancellationToken token);
     Task<QuestionDetailDto> GetById(Guid id, CancellationToken token);
     Task<Guid> Update(Guid id, QuestionUpdateRequestDto dto, CancellationToken token);
-    Task<Guid> Submit(Guid id, CancellationToken token);
-    Task<Guid> Approve(Guid id, CancellationToken token);
-    Task<Guid> Reject(Guid id, string? notes, CancellationToken token);
     Task<Guid> AddTag(QuestionTagCreateRequestDto dto, CancellationToken token);
     Task RemoveTag(Guid questionId, Guid tagId, CancellationToken token);
     Task<Guid> AddSource(QuestionSourceLinkCreateRequestDto dto, CancellationToken token);

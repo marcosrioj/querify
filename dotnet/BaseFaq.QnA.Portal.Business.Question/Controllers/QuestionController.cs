@@ -40,27 +40,6 @@ public class QuestionController(IQuestionService questionService) : ControllerBa
         return Ok(await questionService.Update(id, dto, token));
     }
 
-    [HttpPost("{id:guid}/submit")]
-    [ProducesResponseType(typeof(Guid), StatusCodes.Status202Accepted)]
-    public async Task<IActionResult> Submit(Guid id, CancellationToken token)
-    {
-        return Accepted(await questionService.Submit(id, token));
-    }
-
-    [HttpPost("{id:guid}/approve")]
-    [ProducesResponseType(typeof(Guid), StatusCodes.Status202Accepted)]
-    public async Task<IActionResult> Approve(Guid id, CancellationToken token)
-    {
-        return Accepted(await questionService.Approve(id, token));
-    }
-
-    [HttpPost("{id:guid}/reject")]
-    [ProducesResponseType(typeof(Guid), StatusCodes.Status202Accepted)]
-    public async Task<IActionResult> Reject(Guid id, [FromBody] string? notes, CancellationToken token)
-    {
-        return Accepted(await questionService.Reject(id, notes, token));
-    }
-
     [HttpDelete("{id:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> Delete(Guid id, CancellationToken token)

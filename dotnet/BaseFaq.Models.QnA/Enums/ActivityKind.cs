@@ -16,21 +16,6 @@ public enum ActivityKind
     QuestionUpdated = 2,
 
     /// <summary>
-    /// A question entered workflow, often from a public intake path.
-    /// </summary>
-    QuestionSubmitted = 3,
-
-    /// <summary>
-    /// A moderator or editor approved the question.
-    /// </summary>
-    QuestionApproved = 4,
-
-    /// <summary>
-    /// A moderator or editor rejected the question.
-    /// </summary>
-    QuestionRejected = 5,
-
-    /// <summary>
     /// The question was redirected to another canonical question.
     /// </summary>
     QuestionMarkedDuplicate = 6,

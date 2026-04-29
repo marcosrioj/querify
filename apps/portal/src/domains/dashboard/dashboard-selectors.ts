@@ -71,7 +71,7 @@ export function getRoleAwareNextAction({
   spaces,
   sourceCount,
   questionCount,
-  pendingQuestionCount,
+  draftQuestionCount,
   openQuestions,
   billingSummary,
   memberCount,
@@ -79,7 +79,7 @@ export function getRoleAwareNextAction({
   spaces: SpaceDto[];
   sourceCount: number;
   questionCount: number;
-  pendingQuestionCount: number;
+  draftQuestionCount: number;
   openQuestions: QuestionDto[];
   billingSummary?: TenantBillingSummaryDto | null;
   memberCount: number;
@@ -115,7 +115,7 @@ export function getRoleAwareNextAction({
     };
   }
 
-  if (pendingQuestionCount > 0) {
+  if (draftQuestionCount > 0) {
     return {
       label: "Review draft questions",
       description: "Activate or archive draft threads before the queue grows.",
@@ -176,7 +176,7 @@ export function getBusinessReadout({
   acceptedAnswerCount,
   publicSourceCount,
   openQuestionCount,
-  pendingQuestionCount,
+  draftQuestionCount,
   activeAnswerCount,
   questionCount,
   sourceCount,
@@ -184,14 +184,14 @@ export function getBusinessReadout({
   acceptedAnswerCount: number;
   publicSourceCount: number;
   openQuestionCount: number;
-  pendingQuestionCount: number;
+  draftQuestionCount: number;
   activeAnswerCount: number;
   questionCount: number;
   sourceCount: number;
 }) {
-  const demandToResolve = pendingQuestionCount + openQuestionCount;
+  const demandToResolve = draftQuestionCount + openQuestionCount;
   const questionStatus =
-    pendingQuestionCount > 0 ? QuestionStatus.Draft : QuestionStatus.Active;
+    draftQuestionCount > 0 ? QuestionStatus.Draft : QuestionStatus.Active;
 
   return [
     {
@@ -199,7 +199,7 @@ export function getBusinessReadout({
       value: `${demandToResolve}`,
       detail:
         demandToResolve > 0
-          ? "Draft and active questions are waiting for review or an answer."
+          ? "Draft and active questions are waiting to be activated or answered."
           : "No open customer demand in the current queue.",
       to:
         demandToResolve > 0
