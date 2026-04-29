@@ -38,11 +38,6 @@ public class QuestionConfiguration : BaseConfiguration<Question>
             .HasForeignKey(question => question.AcceptedAnswerId)
             .OnDelete(DeleteBehavior.SetNull);
 
-        builder.HasOne(question => question.DuplicateOfQuestion)
-            .WithMany(question => question.DuplicateQuestions)
-            .HasForeignKey(question => question.DuplicateOfQuestionId)
-            .OnDelete(DeleteBehavior.Restrict);
-
         builder.HasMany(question => question.Answers)
             .WithOne(answer => answer.Question)
             .HasForeignKey(answer => answer.QuestionId)

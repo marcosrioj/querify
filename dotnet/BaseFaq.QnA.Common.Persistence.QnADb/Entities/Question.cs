@@ -79,24 +79,9 @@ public class Question : BaseEntity, IMustHaveTenant
     public Answer? AcceptedAnswer { get; set; }
 
     /// <summary>
-    ///     Id of the canonical question when this question is a duplicate.
-    /// </summary>
-    public Guid? DuplicateOfQuestionId { get; set; }
-
-    /// <summary>
-    ///     Canonical question when this question was marked as a duplicate.
-    /// </summary>
-    public Question? DuplicateOfQuestion { get; set; }
-
-    /// <summary>
     ///     Timestamp of the last relevant activity for the question.
     /// </summary>
     public DateTime? LastActivityAtUtc { get; set; }
-
-    /// <summary>
-    ///     Questions that point to this one as their duplicate target.
-    /// </summary>
-    public ICollection<Question> DuplicateQuestions { get; set; } = [];
 
     /// <summary>
     ///     Answers associated with the question.

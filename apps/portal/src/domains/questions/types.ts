@@ -24,7 +24,6 @@ export type QuestionDto = {
   feedbackScore: number;
   sort: number;
   acceptedAnswerId?: string | null;
-  duplicateOfQuestionId?: string | null;
   lastActivityAtUtc?: string | null;
 };
 
@@ -58,7 +57,6 @@ export type QuestionCreateRequestDto = {
 
 export type QuestionUpdateRequestDto = Omit<QuestionCreateRequestDto, 'spaceId'> & {
   acceptedAnswerId?: string | null;
-  duplicateOfQuestionId?: string | null;
 };
 
 export type QuestionTagCreateRequestDto = {

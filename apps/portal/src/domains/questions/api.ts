@@ -20,7 +20,6 @@ export function listQuestions(
     searchText,
     spaceId,
     acceptedAnswerId,
-    duplicateOfQuestionId,
     status,
     visibility,
     spaceSlug,
@@ -35,7 +34,6 @@ export function listQuestions(
     searchText?: string;
     spaceId?: string;
     acceptedAnswerId?: string;
-    duplicateOfQuestionId?: string;
     status?: number;
     visibility?: number;
     spaceSlug?: string;
@@ -55,7 +53,6 @@ export function listQuestions(
       SearchText: searchText,
       SpaceId: spaceId,
       AcceptedAnswerId: acceptedAnswerId,
-      DuplicateOfQuestionId: duplicateOfQuestionId,
       Status: status,
       Visibility: visibility,
       SpaceSlug: spaceSlug,

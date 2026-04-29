@@ -37,9 +37,6 @@ public sealed class QuestionsGetQuestionListQueryHandler(
         if (request.Request.AcceptedAnswerId is not null)
             query = query.Where(question => question.AcceptedAnswerId == request.Request.AcceptedAnswerId);
 
-        if (request.Request.DuplicateOfQuestionId is not null)
-            query = query.Where(question => question.DuplicateOfQuestionId == request.Request.DuplicateOfQuestionId);
-
         if (request.Request.Status is not null)
             query = query.Where(question => question.Status == request.Request.Status);
 

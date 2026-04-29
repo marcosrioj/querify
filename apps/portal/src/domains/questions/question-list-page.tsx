@@ -8,7 +8,6 @@ import {
 import {
   CheckCircle2,
   CircleDot,
-  GitFork,
   Pencil,
   Trash2,
 } from "lucide-react";
@@ -188,9 +187,6 @@ export function QuestionListPage() {
   const activeCount = questionRows.filter(
     (question) => question.status === QuestionStatus.Active,
   ).length;
-  const duplicateCount = questionRows.filter(
-    (question) => Boolean(question.duplicateOfQuestionId),
-  ).length;
   const spaceLookup = useMemo(
     () =>
       Object.fromEntries(
@@ -267,11 +263,6 @@ export function QuestionListPage() {
           {question.acceptedAnswerId ? (
             <Badge variant="success" appearance="outline">
               {translateText("Accepted answer")}
-            </Badge>
-          ) : null}
-          {question.duplicateOfQuestionId ? (
-            <Badge variant="mono" appearance="outline">
-              {translateText("Duplicate")}
             </Badge>
           ) : null}
         </div>
@@ -380,12 +371,16 @@ export function QuestionListPage() {
               icon: CheckCircle2,
             },
             {
-              title: "Duplicates",
-              value: duplicateCount,
+              title: "Needs answer",
+              value: questionRows.filter(
+                (question) =>
+                  !question.acceptedAnswerId &&
+                  question.status !== QuestionStatus.Archived,
+              ).length,
               description: translateText(
-                "Questions redirected to a canonical question",
+                "Questions waiting for an accepted answer decision",
               ),
-              icon: GitFork,
+              icon: CircleDot,
             },
           ]}
         />

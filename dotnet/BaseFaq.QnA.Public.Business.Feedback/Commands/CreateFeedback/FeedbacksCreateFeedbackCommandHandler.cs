@@ -39,8 +39,7 @@ public sealed class FeedbacksCreateFeedbackCommandHandler(
                     entity.TenantId == tenantId &&
                     entity.Id == request.Request.QuestionId &&
                     entity.Visibility == VisibilityScope.Public &&
-                    entity.Status == QuestionStatus.Active &&
-                    entity.DuplicateOfQuestionId == null,
+                    entity.Status == QuestionStatus.Active,
                 cancellationToken);
 
         if (question is null)

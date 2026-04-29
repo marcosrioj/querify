@@ -178,7 +178,7 @@ Relationship sections are local management surfaces for child records and relate
 #### QnA workflow and relationship surfaces
 
 - Spaces, questions, answers, sources, tags, and activity should expose child and related records in local relationship tabs where practical.
-- Question detail should keep accepted answer, duplicate routing, source links, tags, answers, and activity scoped to the question.
+- Question detail should keep accepted answer, source links, tags, answers, and activity scoped to the question.
 - Space detail should keep questions, tags, sources, and activity scoped to the space.
 - Answer detail should keep source evidence scoped to the answer.
 - Accepted answer selection should use the searchable selection pattern and should only expose answers that are eligible to be accepted.

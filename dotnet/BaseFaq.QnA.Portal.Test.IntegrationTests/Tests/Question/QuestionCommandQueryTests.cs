@@ -13,6 +13,21 @@ namespace BaseFaq.QnA.Portal.Test.IntegrationTests.Tests.Question;
 public class QuestionCommandQueryTests
 {
     [Fact]
+    public void QuestionContracts_DoNotExposeDuplicateRouting()
+    {
+        Assert.Null(typeof(QuestionDto).GetProperty("DuplicateOfQuestionId"));
+        Assert.Null(
+            typeof(QuestionUpdateRequestDto)
+                .GetProperty("DuplicateOfQuestionId"));
+        Assert.Null(
+            typeof(QuestionGetAllRequestDto)
+                .GetProperty("DuplicateOfQuestionId"));
+        Assert.Null(
+            typeof(global::BaseFaq.QnA.Common.Persistence.QnADb.Entities.Question)
+                .GetProperty("DuplicateOfQuestionId"));
+    }
+
+    [Fact]
     public async Task UpdateQuestion_AcceptsAnswer()
     {
         using var context = TestContext.Create();
@@ -104,7 +119,7 @@ public class QuestionCommandQueryTests
                 Request = new QuestionCreateRequestDto
                 {
                     SpaceId = space.Id,
-                    Title = "Legacy duplicate status",
+                    Title = "Unsupported legacy status",
                     Summary = null,
                     ContextNote = null,
                     Status = (QuestionStatus)2,

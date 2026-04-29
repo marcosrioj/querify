@@ -31,8 +31,7 @@ public sealed class QuestionsGetQuestionListQueryHandler(
             .Where(question =>
                 question.TenantId == tenantId &&
                 question.Visibility == VisibilityScope.Public &&
-                question.Status == QuestionStatus.Active &&
-                question.DuplicateOfQuestionId == null);
+                question.Status == QuestionStatus.Active);
 
         if (!string.IsNullOrWhiteSpace(request.Request.SearchText))
             query = query.Where(question =>

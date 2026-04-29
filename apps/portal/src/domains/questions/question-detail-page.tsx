@@ -2,7 +2,6 @@ import { startTransition, useDeferredValue, useMemo, useState } from "react";
 import {
   Activity,
   CheckCircle2,
-  GitFork,
   Link2,
   MessageSquareText,
   Pencil,
@@ -24,7 +23,6 @@ import {
   useRemoveQuestionSource,
   useRemoveQuestionTag,
   useUpdateQuestion,
-  useQuestionList,
 } from "@/domains/questions/hooks";
 import type {
   QuestionDetailDto,
@@ -99,7 +97,6 @@ function buildQuestionUpdateBody(
     originChannel: question.originChannel,
     sort: question.sort,
     acceptedAnswerId: question.acceptedAnswerId ?? null,
-    duplicateOfQuestionId: question.duplicateOfQuestionId ?? null,
     ...overrides,
   };
 }
@@ -141,19 +138,6 @@ function buildSourceOption(source: {
   };
 }
 
-function buildQuestionOption(question: {
-  id: string;
-  title: string;
-  spaceSlug?: string;
-}) {
-  return {
-    value: question.id,
-    label: question.title,
-    description: question.spaceSlug,
-    keywords: [question.title, question.spaceSlug ?? ""],
-  };
-}
-
 function buildAnswerOption(answer: {
   id: string;
   headline: string;
@@ -190,18 +174,15 @@ export function QuestionDetailPage() {
   const [selectedSourceId, setSelectedSourceId] = useState("");
   const [tagSearch, setTagSearch] = useState("");
   const [sourceSearch, setSourceSearch] = useState("");
-  const [duplicateSearch, setDuplicateSearch] = useState("");
   const [selectedSourceRole, setSelectedSourceRole] = useState(
     String(SourceRole.Context),
   );
   const [selectedAnswerId, setSelectedAnswerId] = useState("");
-  const [selectedDuplicateId, setSelectedDuplicateId] = useState("");
   const [newAnswerHeadline, setNewAnswerHeadline] = useState("");
   const [newAnswerBody, setNewAnswerBody] = useState("");
   const [relationshipTab, setRelationshipTab] = useState("answers");
   const deferredTagSearch = useDeferredValue(tagSearch.trim());
   const deferredSourceSearch = useDeferredValue(sourceSearch.trim());
-  const deferredDuplicateSearch = useDeferredValue(duplicateSearch.trim());
   const sourceOptionsQuery = useSourceList({
     page: 1,
     pageSize: 20,
@@ -214,13 +195,6 @@ export function QuestionDetailPage() {
     sorting: "Name ASC",
     searchText: deferredTagSearch || undefined,
   });
-  const relatedQuestionOptionsQuery = useQuestionList({
-    page: 1,
-    pageSize: 20,
-    sorting: "Title ASC",
-    searchText: deferredDuplicateSearch || undefined,
-    spaceId: questionQuery.data?.spaceId,
-  });
   const activityListQuery = useActivityList({
     page: 1,
     pageSize: 100,
@@ -229,11 +203,6 @@ export function QuestionDetailPage() {
   });
   const selectedTagQuery = useTag(selectedTagId || undefined);
   const selectedSourceQuery = useSource(selectedSourceId || undefined);
-  const selectedDuplicateQuestionQuery = useQuestion(
-    selectedDuplicateId ||
-      questionQuery.data?.duplicateOfQuestionId ||
-      undefined,
-  );
 
   const availableTags = useMemo(() => {
     const existing = new Set(
@@ -253,14 +222,6 @@ export function QuestionDetailPage() {
     );
   }, [questionQuery.data?.sources, sourceOptionsQuery.data?.items]);
 
-  const duplicateOptions = useMemo(
-    () =>
-      (relatedQuestionOptionsQuery.data?.items ?? []).filter(
-        (question) => question.id !== id,
-      ),
-    [id, relatedQuestionOptionsQuery.data?.items],
-  );
-
   const showLoadingState =
     !questionQuery.data &&
     (questionQuery.isLoading ||
@@ -268,16 +229,8 @@ export function QuestionDetailPage() {
       sourceOptionsQuery.isLoading ||
       tagOptionsQuery.isLoading);
 
-  const duplicateTarget =
-    duplicateOptions.find(
-      (question) => question.id === questionQuery.data?.duplicateOfQuestionId,
-    ) ?? selectedDuplicateQuestionQuery.data;
-  const selectedDuplicateQuestion =
-    duplicateOptions.find((question) => question.id === selectedDuplicateId) ??
-    selectedDuplicateQuestionQuery.data;
   const tagOptions = availableTags.map(buildTagOption);
   const sourceOptions = availableSources.map(buildSourceOption);
-  const duplicateQuestionOptions = duplicateOptions.map(buildQuestionOption);
   const selectedTag =
     availableTags.find((tag) => tag.id === selectedTagId) ??
     selectedTagQuery.data;
@@ -287,9 +240,6 @@ export function QuestionDetailPage() {
   const selectedTagOption = selectedTag ? buildTagOption(selectedTag) : null;
   const selectedSourceOption = selectedSource
     ? buildSourceOption(selectedSource)
-    : null;
-  const selectedDuplicateQuestionOption = selectedDuplicateQuestion
-    ? buildQuestionOption(selectedDuplicateQuestion)
     : null;
   const acceptedAnswerOptions = (questionQuery.data?.answers ?? []).filter(
     (answer) => answer.status === AnswerStatus.Active,
@@ -359,7 +309,7 @@ export function QuestionDetailPage() {
       header={
         <PageHeader
           title={questionQuery.data?.title ?? "Question"}
-          description="Operate question workflow, accepted answers, duplicate routing, source links, and activity from one place."
+          description="Operate question workflow, accepted answers, source links, tags, and activity from one place."
           descriptionMode="hint"
           backTo={
             questionQuery.data?.spaceId
@@ -509,10 +459,6 @@ export function QuestionDetailPage() {
                       label: "Sort",
                       value: String(questionQuery.data.sort),
                     },
-                    {
-                      label: "Duplicate target",
-                      value: duplicateTarget?.title || "No duplicate target",
-                    },
                   ]}
                 />
               </CardContent>
@@ -600,132 +546,70 @@ export function QuestionDetailPage() {
             <CardHeader>
               <CardHeading>
                 <CardTitle>
-                  {translateText("Accepted answer and duplicate routing")}
+                  {translateText("Accepted answer")}
                 </CardTitle>
               </CardHeading>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-3">
-                  <p className="text-sm text-muted-foreground">
-                    {translateText(
-                      "Choose the accepted answer that should anchor the canonical resolution for this question.",
-                    )}
-                  </p>
-                  <SearchSelect
-                    value={acceptedAnswerSelectValue}
-                    onValueChange={setSelectedAnswerId}
-                    options={acceptedAnswerOptions.map(buildAnswerOption)}
-                    selectedOption={selectedAcceptedAnswerOption}
-                    placeholder={translateText("Select accepted answer")}
-                    searchPlaceholder={translateText("Search answers...")}
-                    emptyMessage={translateText(
-                      "No active answers found.",
-                    )}
-                    resultCountHint={translateText(
-                      "Only active answers can become accepted.",
-                    )}
-                  />
-                  {acceptedAnswerOptions.length ? (
-                    <Button
-                      disabled={
-                        !selectedAnswerId ||
-                        selectedAnswerId ===
-                          questionQuery.data.acceptedAnswerId ||
-                        updateQuestion.isPending
-                      }
-                      onClick={() =>
-                        updateQuestion
-                          .mutateAsync(
-                            buildQuestionUpdateBody(questionQuery.data, {
-                              acceptedAnswerId: selectedAnswerId,
-                            }),
-                          )
-                          .then(() => setSelectedAnswerId(""))
-                      }
-                    >
-                      {translateText("Set accepted answer")}
-                    </Button>
-                  ) : (
-                    <p className="text-sm text-muted-foreground">
-                      {translateText(
-                        "Activate an answer before it can be accepted.",
-                      )}
-                    </p>
+              <div className="space-y-3">
+                <p className="text-sm text-muted-foreground">
+                  {translateText(
+                    "Choose the accepted answer that should anchor the canonical resolution for this question.",
                   )}
-                  {questionQuery.data.acceptedAnswerId ? (
-                    <Button
-                      variant="outline"
-                      disabled={updateQuestion.isPending}
-                      onClick={() =>
-                        updateQuestion.mutateAsync(
-                          buildQuestionUpdateBody(questionQuery.data, {
-                            acceptedAnswerId: null,
-                          }),
-                        )
-                      }
-                    >
-                      {translateText("Clear accepted answer")}
-                    </Button>
-                  ) : null}
-                </div>
-                <div className="space-y-3">
-                  <p className="text-sm text-muted-foreground">
-                    {translateText(
-                      "Mark this question as a duplicate when another canonical question should own the resolution.",
-                    )}
-                  </p>
-                  <SearchSelect
-                    value={selectedDuplicateId}
-                    onValueChange={setSelectedDuplicateId}
-                    options={duplicateQuestionOptions}
-                    selectedOption={selectedDuplicateQuestionOption}
-                    placeholder={translateText("Select duplicate target")}
-                    searchPlaceholder={translateText("Search questions")}
-                    emptyMessage={
-                      deferredDuplicateSearch
-                        ? translateText("No questions match this search.")
-                        : translateText("No related questions available.")
-                    }
-                    loading={relatedQuestionOptionsQuery.isFetching}
-                    searchValue={duplicateSearch}
-                    onSearchChange={(value) =>
-                      startTransition(() => setDuplicateSearch(value))
-                    }
-                    allowClear
-                  />
+                </p>
+                <SearchSelect
+                  value={acceptedAnswerSelectValue}
+                  onValueChange={setSelectedAnswerId}
+                  options={acceptedAnswerOptions.map(buildAnswerOption)}
+                  selectedOption={selectedAcceptedAnswerOption}
+                  placeholder={translateText("Select accepted answer")}
+                  searchPlaceholder={translateText("Search answers...")}
+                  emptyMessage={translateText("No active answers found.")}
+                  resultCountHint={translateText(
+                    "Only active answers can become accepted.",
+                  )}
+                />
+                {acceptedAnswerOptions.length ? (
                   <Button
-                    disabled={!selectedDuplicateId || updateQuestion.isPending}
+                    disabled={
+                      !selectedAnswerId ||
+                      selectedAnswerId === questionQuery.data.acceptedAnswerId ||
+                      updateQuestion.isPending
+                    }
                     onClick={() =>
                       updateQuestion
                         .mutateAsync(
                           buildQuestionUpdateBody(questionQuery.data, {
-                            duplicateOfQuestionId: selectedDuplicateId,
-                            visibility: VisibilityScope.Authenticated,
+                            acceptedAnswerId: selectedAnswerId,
                           }),
                         )
-                        .then(() => setSelectedDuplicateId(""))
+                        .then(() => setSelectedAnswerId(""))
                     }
                   >
-                    <GitFork className="size-4" />
-                    {translateText("Set duplicate target")}
+                    {translateText("Set accepted answer")}
                   </Button>
-                  {questionQuery.data.duplicateOfQuestionId ? (
-                    <Button
-                      variant="outline"
-                      disabled={updateQuestion.isPending}
-                      onClick={() =>
-                        updateQuestion.mutateAsync(
-                          buildQuestionUpdateBody(questionQuery.data, {
-                            duplicateOfQuestionId: null,
-                          }),
-                        )
-                      }
-                    >
-                      {translateText("Clear duplicate target")}
-                    </Button>
-                  ) : null}
-                </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    {translateText(
+                      "Activate an answer before it can be accepted.",
+                    )}
+                  </p>
+                )}
+                {questionQuery.data.acceptedAnswerId ? (
+                  <Button
+                    variant="outline"
+                    disabled={updateQuestion.isPending}
+                    onClick={() =>
+                      updateQuestion.mutateAsync(
+                        buildQuestionUpdateBody(questionQuery.data, {
+                          acceptedAnswerId: null,
+                        }),
+                      )
+                    }
+                  >
+                    {translateText("Clear accepted answer")}
+                  </Button>
+                ) : null}
               </div>
             </CardContent>
           </Card>

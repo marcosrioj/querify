@@ -29,12 +29,6 @@ internal static class QuestionTenantIntegrityExtension
                     $"Question '{question.Id}' cannot be public while in status '{question.Status}'.",
                     (int)HttpStatusCode.UnprocessableEntity);
 
-            if (question.Visibility is VisibilityScope.Public &&
-                question.DuplicateOfQuestionId.HasValue)
-                throw new ApiErrorException(
-                    $"Question '{question.Id}' cannot be public while it points to a duplicate target.",
-                    (int)HttpStatusCode.UnprocessableEntity);
-
             if (question.AcceptedAnswerId is Guid acceptedAnswerId)
             {
                 var acceptedAnswer = cache.GetAnswer(acceptedAnswerId);
@@ -60,19 +54,6 @@ internal static class QuestionTenantIntegrityExtension
                         (int)HttpStatusCode.UnprocessableEntity);
             }
 
-            if (question.DuplicateOfQuestionId is Guid duplicateQuestionId)
-            {
-                var duplicateOfQuestionTenantId = cache.GetQuestionTenant(duplicateQuestionId);
-                TenantIntegrityGuard.EnsureTenantMatch(
-                    question.TenantId,
-                    duplicateOfQuestionTenantId,
-                    nameof(Question.DuplicateOfQuestionId));
-
-                if (duplicateQuestionId == question.Id)
-                    throw new ApiErrorException(
-                        $"Question '{question.Id}' cannot point to itself as a duplicate.",
-                        (int)HttpStatusCode.UnprocessableEntity);
-            }
         }
     }
 }

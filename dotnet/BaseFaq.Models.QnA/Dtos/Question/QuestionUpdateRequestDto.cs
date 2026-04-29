@@ -12,5 +12,4 @@ public class QuestionUpdateRequestDto
     public required ChannelKind OriginChannel { get; set; }
     public required int Sort { get; set; }
     public Guid? AcceptedAnswerId { get; set; }
-    public Guid? DuplicateOfQuestionId { get; set; }
 }

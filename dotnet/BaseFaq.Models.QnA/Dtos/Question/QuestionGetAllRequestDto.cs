@@ -8,7 +8,6 @@ public class QuestionGetAllRequestDto : PagedAndSortedResultRequestDto
     public string? SearchText { get; set; }
     public Guid? SpaceId { get; set; }
     public Guid? AcceptedAnswerId { get; set; }
-    public Guid? DuplicateOfQuestionId { get; set; }
     public QuestionStatus? Status { get; set; }
     public VisibilityScope? Visibility { get; set; }
     public string? SpaceSlug { get; set; }

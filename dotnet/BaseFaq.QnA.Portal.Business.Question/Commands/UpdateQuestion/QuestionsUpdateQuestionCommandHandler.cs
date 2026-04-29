@@ -36,35 +36,8 @@ public sealed class QuestionsUpdateQuestionCommandHandler(
             throw new ApiErrorException($"Question '{request.Id}' was not found.", (int)HttpStatusCode.NotFound);
 
         EnsureSupportedStatus(request.Request.Status);
-        EnsureDuplicateRequestAllowed(request.Id, request.Request);
         var originalStatus = entity.Status;
         Apply(entity, request.Request, userId);
-
-        if (!request.Request.DuplicateOfQuestionId.HasValue && entity.DuplicateOfQuestionId.HasValue)
-        {
-            entity.DuplicateOfQuestionId = null;
-            entity.DuplicateOfQuestion = null;
-        }
-
-        if (request.Request.DuplicateOfQuestionId is Guid duplicateId && duplicateId != entity.DuplicateOfQuestionId)
-        {
-            var canonical = await dbContext.Questions
-                .SingleOrDefaultAsync(question => question.TenantId == tenantId && question.Id == duplicateId,
-                    cancellationToken);
-
-            if (canonical is null)
-                throw new ApiErrorException($"Question '{duplicateId}' was not found.", (int)HttpStatusCode.NotFound);
-
-            entity.DuplicateOfQuestionId = canonical.Id;
-            entity.DuplicateOfQuestion = canonical;
-            entity.Visibility = VisibilityScope.Authenticated;
-
-            if (canonical.DuplicateQuestions.All(existing => existing.Id != entity.Id))
-                canonical.DuplicateQuestions.Add(entity);
-
-        }
-        else if (request.Request.DuplicateOfQuestionId.HasValue)
-            entity.Visibility = VisibilityScope.Authenticated;
 
         if (!request.Request.AcceptedAnswerId.HasValue && entity.AcceptedAnswerId.HasValue)
         {
@@ -112,14 +85,6 @@ public sealed class QuestionsUpdateQuestionCommandHandler(
 
         await dbContext.SaveChangesAsync(cancellationToken);
         return request.Id;
-    }
-
-    private static void EnsureDuplicateRequestAllowed(Guid questionId, QuestionUpdateRequestDto request)
-    {
-        if (request.DuplicateOfQuestionId == questionId)
-            throw new ApiErrorException(
-                "Questions cannot point to themselves as duplicates.",
-                (int)HttpStatusCode.UnprocessableEntity);
     }
 
     private void AddActivity(
@@ -185,11 +150,6 @@ public sealed class QuestionsUpdateQuestionCommandHandler(
         if (entity.Status is not QuestionStatus.Active)
             throw new ApiErrorException(
                 "Only active questions can be exposed publicly.",
-                (int)HttpStatusCode.UnprocessableEntity);
-
-        if (entity.DuplicateOfQuestionId.HasValue)
-            throw new ApiErrorException(
-                "Duplicate questions cannot be exposed publicly.",
                 (int)HttpStatusCode.UnprocessableEntity);
 
         foreach (var sourceLink in entity.Sources)

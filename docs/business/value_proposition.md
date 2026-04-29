@@ -126,6 +126,8 @@ Ele transforma perguntas recorrentes, respostas canônicas e aprendizados de sup
 
 **Não possui**
 
+- Estado persistido de duplicidade entre perguntas. Duplicidade não é estado do QnA; é uma decisão do processo que tenta criar ou resolver uma pergunta.
+- Histórico de deduplicação, busca vetorial, tentativa de criação ou decisão de promover uma interação para QnA quando esse processo pertence a Direct, Broadcast, importadores ou outro fluxo de entrada.
 - Conversa privada, sequência de mensagens, handoff, negociação, exceção ou atendimento individual. Isso pertence ao Direct.
 - Comentário público, menção, thread comunitária, grupo, live, post ou sinal social/comunitário. Isso pertence ao Broadcast.
 - Voto formal, decisão coletiva, contestação, validação auditável ou trilha de governança. Isso pertence ao Trust.

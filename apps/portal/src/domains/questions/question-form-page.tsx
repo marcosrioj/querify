@@ -230,7 +230,7 @@ export function QuestionFormPage({ mode }: { mode: "create" | "edit" }) {
                   <span>{translateText("Quick notes")}</span>
                   <ContextHint
                     content={translateText(
-                      "Questions own workflow, accepted answers, duplicate routing, and public feedback.",
+                      "Questions own workflow, accepted answers, sources, tags, and public feedback.",
                     )}
                     label={translateText("Quick notes details")}
                   />
@@ -318,8 +318,6 @@ export function QuestionFormPage({ mode }: { mode: "create" | "edit" }) {
                       sort: createBody.sort,
                       acceptedAnswerId:
                         questionQuery.data?.acceptedAnswerId || undefined,
-                      duplicateOfQuestionId:
-                        questionQuery.data?.duplicateOfQuestionId || undefined,
                     });
                     navigate(`/app/questions/${id}`);
                   })}

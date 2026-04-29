@@ -196,7 +196,6 @@ export function SpaceDetailPage() {
     (question) =>
       question.status === QuestionStatus.Draft ||
       (!question.acceptedAnswerId &&
-        !question.duplicateOfQuestionId &&
         question.status !== QuestionStatus.Archived),
   );
   const visibleQuestionIds = new Set(
@@ -256,7 +255,7 @@ export function SpaceDetailPage() {
       ? {
           label: "Resolve first question",
           tab: "questions",
-          text: "A question needs an accepted answer or duplicate routing.",
+          text: "A question needs an accepted answer decision.",
         }
       : (spaceQuery.data?.curatedSources.length ?? 0) === 0
         ? {
@@ -869,15 +868,9 @@ export function SpaceDetailPage() {
                             translateText("No summary provided.")}
                         </p>
                         <div className="mt-2 flex flex-wrap gap-2">
-                          {!question.acceptedAnswerId &&
-                          !question.duplicateOfQuestionId ? (
+                          {!question.acceptedAnswerId ? (
                             <Badge variant="warning" appearance="outline">
                               {translateText("Needs answer decision")}
-                            </Badge>
-                          ) : null}
-                          {question.duplicateOfQuestionId ? (
-                            <Badge variant="mono" appearance="outline">
-                              {translateText("Duplicate")}
                             </Badge>
                           ) : null}
                         </div>
