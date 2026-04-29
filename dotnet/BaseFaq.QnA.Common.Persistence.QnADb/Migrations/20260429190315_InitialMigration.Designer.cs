@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
 {
     [DbContext(typeof(QnADbContext))]
-    [Migration("20260429052908_InitialMigration")]
+    [Migration("20260429190315_InitialMigration")]
     partial class InitialMigration
     {
         /// <inheritdoc />
@@ -326,9 +326,6 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
                     b.Property<DateTime?>("DeletedDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<Guid?>("DuplicateOfQuestionId")
-                        .HasColumnType("uuid");
-
                     b.Property<int>("FeedbackScore")
                         .HasColumnType("integer");
 
@@ -374,8 +371,6 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("AcceptedAnswerId");
-
-                    b.HasIndex("DuplicateOfQuestionId");
 
                     b.HasIndex("IsDeleted")
                         .HasDatabaseName("IX_Question_IsDeleted");
@@ -870,11 +865,6 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
                         .HasForeignKey("AcceptedAnswerId")
                         .OnDelete(DeleteBehavior.SetNull);
 
-                    b.HasOne("BaseFaq.QnA.Common.Persistence.QnADb.Entities.Question", "DuplicateOfQuestion")
-                        .WithMany("DuplicateQuestions")
-                        .HasForeignKey("DuplicateOfQuestionId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("BaseFaq.QnA.Common.Persistence.QnADb.Entities.Space", "Space")
                         .WithMany("Questions")
                         .HasForeignKey("SpaceId")
@@ -882,8 +872,6 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
                         .IsRequired();
 
                     b.Navigation("AcceptedAnswer");
-
-                    b.Navigation("DuplicateOfQuestion");
 
                     b.Navigation("Space");
                 });
@@ -974,8 +962,6 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
                     b.Navigation("Activities");
 
                     b.Navigation("Answers");
-
-                    b.Navigation("DuplicateQuestions");
 
                     b.Navigation("Sources");
 

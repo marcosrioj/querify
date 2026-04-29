@@ -284,7 +284,6 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
                     Sort = table.Column<int>(type: "integer", nullable: false),
                     SpaceId = table.Column<Guid>(type: "uuid", nullable: false),
                     AcceptedAnswerId = table.Column<Guid>(type: "uuid", nullable: true),
-                    DuplicateOfQuestionId = table.Column<Guid>(type: "uuid", nullable: true),
                     LastActivityAtUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     TenantId = table.Column<Guid>(type: "uuid", nullable: false),
                     CreatedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
@@ -304,12 +303,6 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
                         principalTable: "Answers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.SetNull);
-                    table.ForeignKey(
-                        name: "FK_Questions_Questions_DuplicateOfQuestionId",
-                        column: x => x.DuplicateOfQuestionId,
-                        principalTable: "Questions",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Questions_Spaces_SpaceId",
                         column: x => x.SpaceId,
@@ -456,11 +449,6 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
                 name: "IX_Questions_AcceptedAnswerId",
                 table: "Questions",
                 column: "AcceptedAnswerId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Questions_DuplicateOfQuestionId",
-                table: "Questions",
-                column: "DuplicateOfQuestionId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Questions_SpaceId",
