@@ -166,7 +166,7 @@ Relevant locations:
 - QnA configurations: `dotnet/BaseFaq.QnA.Common.Persistence.QnADb/Configurations`
 - Module DbContext folder: `dotnet/BaseFaq.<Module>.Common.Persistence.<Module>Db/DbContext`
 - Module tenant-integrity rules: `dotnet/BaseFaq.<Module>.Common.Persistence.<Module>Db/DbContext/TenantIntegrity`
-- QnA read mappings: `dotnet/BaseFaq.QnA.Common.Persistence.QnADb/Projections/QnAReadModelMappings.cs`
+- QnA read mappings: `dotnet/BaseFaq.QnA.Common.Persistence.QnADb/Mappings`
 - Direct configurations, DbContext, and mappings under `dotnet/BaseFaq.Direct.Common.Persistence.DirectDb`
 - Broadcast configurations, DbContext, and mappings under `dotnet/BaseFaq.Broadcast.Common.Persistence.BroadcastDb`
 - Tenant persistence equivalents when the behavior is control-plane-owned.
@@ -183,6 +183,14 @@ Process:
 8. Use `OnBeforeSaveChangesRules()` for tenant integrity and other pre-audit invariants.
 9. Use `OnBeforeSaveChanges()` for auto history after audit fields are applied.
 10. Run a targeted build of the persistence project when the stage is meant to compile.
+
+Mapping structure:
+
+- Keep the folder name plural: `Mappings`.
+- Use one focused file per entity-to-DTO mapping area.
+- Name mapping files and classes in the singular, matching the entity area: `SpaceMapping.cs` with `SpaceMapping`, `QuestionMapping.cs` with `QuestionMapping`, etc.
+- Keep mapping classes as regular static classes.
+- Keep extension methods in the module mapping namespace so query handlers only need the namespace import, not a specific mapping class reference.
 
 Do not run migration commands here. Leave a manual migration note that lists the intended schema operations, for example:
 
