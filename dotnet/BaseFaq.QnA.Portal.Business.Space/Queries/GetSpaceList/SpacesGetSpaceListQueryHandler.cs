@@ -18,11 +18,7 @@ public sealed class SpacesGetSpaceListQueryHandler(
     {
         var tenantId = sessionService.GetTenantId(ModuleEnum.QnA);
         var query = dbContext.Spaces
-            .Include(space => space.Questions)
-            .Include(space => space.Tags)
-            .ThenInclude(link => link.Tag)
-            .Include(space => space.Sources)
-            .ThenInclude(link => link.Source)
+            .AsNoTracking()
             .Where(space => space.TenantId == tenantId);
 
         if (!string.IsNullOrWhiteSpace(request.Request.SearchText))
@@ -63,28 +59,27 @@ public sealed class SpacesGetSpaceListQueryHandler(
 
         var totalCount = await query.CountAsync(cancellationToken);
         var items = await query
-            .AsNoTracking()
             .Skip(request.Request.SkipCount)
             .Take(request.Request.MaxResultCount)
+            .Select(space => new SpaceDto
+            {
+                Id = space.Id,
+                TenantId = space.TenantId,
+                Name = space.Name,
+                Slug = space.Slug,
+                Summary = space.Summary,
+                Language = space.Language,
+                Status = space.Status,
+                Visibility = space.Visibility,
+                AcceptsQuestions = space.AcceptsQuestions,
+                AcceptsAnswers = space.AcceptsAnswers,
+                QuestionCount = space.Questions.Count,
+                LastUpdatedAtUtc = space.UpdatedDate ?? space.CreatedDate
+            })
             .ToListAsync(cancellationToken);
 
         return new PagedResultDto<SpaceDto>(
             totalCount,
-            items.Select(space => new SpaceDto
-                {
-                    Id = space.Id,
-                    TenantId = space.TenantId,
-                    Name = space.Name,
-                    Slug = space.Slug,
-                    Summary = space.Summary,
-                    Language = space.Language,
-                    Status = space.Status,
-                    Visibility = space.Visibility,
-                    AcceptsQuestions = space.AcceptsQuestions,
-                    AcceptsAnswers = space.AcceptsAnswers,
-                    QuestionCount = space.Questions.Count,
-                    LastUpdatedAtUtc = space.UpdatedDate ?? space.CreatedDate
-                })
-                .ToList());
+            items);
     }
 }

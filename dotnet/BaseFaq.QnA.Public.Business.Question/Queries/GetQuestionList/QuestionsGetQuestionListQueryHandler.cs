@@ -4,7 +4,6 @@ using BaseFaq.Models.Common.Dtos;
 using BaseFaq.Models.QnA.Dtos.Question;
 using BaseFaq.Models.QnA.Enums;
 using BaseFaq.QnA.Common.Persistence.QnADb.DbContext;
-using BaseFaq.QnA.Common.Persistence.QnADb.Mappings;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -26,8 +25,7 @@ public sealed class QuestionsGetQuestionListQueryHandler(
 
         var tenantId = await ResolveTenantIdAndSetContextAsync(cancellationToken);
         var query = dbContext.Questions
-            .Include(question => question.Space)
-            .Include(question => question.Activities)
+            .AsNoTracking()
             .Where(question =>
                 question.TenantId == tenantId &&
                 question.Visibility == VisibilityScope.Public &&
@@ -55,12 +53,30 @@ public sealed class QuestionsGetQuestionListQueryHandler(
 
         var totalCount = await query.CountAsync(cancellationToken);
         var items = await query
-            .AsNoTracking()
             .Skip(request.Request.SkipCount)
             .Take(request.Request.MaxResultCount)
+            .Select(question => new QuestionDto
+            {
+                Id = question.Id,
+                TenantId = question.TenantId,
+                SpaceId = question.SpaceId,
+                SpaceSlug = question.Space.Slug,
+                Title = question.Title,
+                Summary = question.Summary,
+                ContextNote = question.ContextNote,
+                Status = question.Status,
+                Visibility = question.Visibility,
+                OriginChannel = question.OriginChannel,
+                AiConfidenceScore = question.AiConfidenceScore,
+                FeedbackScore = question.FeedbackScore,
+                Sort = question.Sort,
+                AcceptedAnswerId = question.AcceptedAnswerId,
+                LastActivityAtUtc = question.LastActivityAtUtc,
+                LastUpdatedAtUtc = question.UpdatedDate ?? question.CreatedDate
+            })
             .ToListAsync(cancellationToken);
 
-        return new PagedResultDto<QuestionDto>(totalCount, items.Select(entity => entity.ToQuestionDto()).ToList());
+        return new PagedResultDto<QuestionDto>(totalCount, items);
     }
 
     private async Task<Guid> ResolveTenantIdAndSetContextAsync(CancellationToken cancellationToken)

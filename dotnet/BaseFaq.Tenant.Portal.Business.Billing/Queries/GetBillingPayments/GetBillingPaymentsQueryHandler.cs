@@ -2,7 +2,6 @@ using BaseFaq.Common.EntityFramework.Tenant;
 using BaseFaq.Common.EntityFramework.Tenant.Entities;
 using BaseFaq.Models.Common.Dtos;
 using BaseFaq.Models.Tenant.Dtos.Billing;
-using BaseFaq.Tenant.Portal.Business.Billing.Service;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -25,11 +24,28 @@ public sealed class GetBillingPaymentsQueryHandler(TenantDbContext dbContext)
         var items = await query
             .Skip(request.Request.SkipCount)
             .Take(request.Request.MaxResultCount)
+            .Select(payment => new BillingPaymentDto
+            {
+                Id = payment.Id,
+                TenantId = payment.TenantId,
+                BillingInvoiceId = payment.BillingInvoiceId,
+                Provider = payment.Provider,
+                ExternalPaymentId = payment.ExternalPaymentId,
+                Method = payment.Method,
+                AmountMinor = payment.AmountMinor,
+                Currency = payment.Currency,
+                Status = payment.Status,
+                FailureCode = payment.FailureCode,
+                FailureMessage = payment.FailureMessage,
+                PaidAtUtc = payment.PaidAtUtc,
+                CreatedDateUtc = payment.CreatedDate,
+                UpdatedDateUtc = payment.UpdatedDate
+            })
             .ToListAsync(cancellationToken);
 
         return new PagedResultDto<BillingPaymentDto>(
             totalCount,
-            items.Select(BillingDtoMapper.ToPaymentDto).ToList());
+            items);
     }
 
     private static IQueryable<BillingPayment> ApplySorting(IQueryable<BillingPayment> query, string? sorting)

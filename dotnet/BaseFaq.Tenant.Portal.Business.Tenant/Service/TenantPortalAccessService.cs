@@ -16,12 +16,14 @@ public class TenantPortalAccessService(
 {
     public async Task EnsureAccessAsync(Guid tenantId, CancellationToken cancellationToken)
     {
-        _ = await GetAccessibleTenantAsync(tenantId, cancellationToken);
+        await EnsureActiveTenantExistsAsync(tenantId, cancellationToken);
+        await EnsureUserHasAccessAsync(tenantId, requiresOwner: false, cancellationToken);
     }
 
     public async Task EnsureOwnerAccessAsync(Guid tenantId, CancellationToken cancellationToken)
     {
-        _ = await GetOwnedTenantWithUsersAsync(tenantId, cancellationToken);
+        await EnsureActiveTenantExistsAsync(tenantId, cancellationToken);
+        await EnsureUserHasAccessAsync(tenantId, requiresOwner: true, cancellationToken);
     }
 
     public Task<EntityTenant> GetAccessibleTenantAsync(Guid tenantId, CancellationToken cancellationToken)
@@ -44,7 +46,7 @@ public class TenantPortalAccessService(
         CancellationToken cancellationToken)
     {
         var tenant = await GetTenantOrThrowAsync(tenantId, includeTenantUsers: false, cancellationToken);
-        await EnsureUserHasAccessAsync(tenantId, cancellationToken);
+        await EnsureUserHasAccessAsync(tenantId, requiresOwner: false, cancellationToken);
         return tenant;
     }
 
@@ -94,22 +96,53 @@ public class TenantPortalAccessService(
             errorCode: (int)HttpStatusCode.NotFound);
     }
 
-    private async Task EnsureUserHasAccessAsync(Guid tenantId, CancellationToken cancellationToken)
+    private async Task EnsureActiveTenantExistsAsync(Guid tenantId, CancellationToken cancellationToken)
     {
-        var currentUserId = sessionService.GetUserId();
-        var hasAccess = await dbContext.TenantUsers
+        var tenantExists = await dbContext.Tenants
             .AsNoTracking()
             .AnyAsync(
-                entity => entity.TenantId == tenantId && entity.UserId == currentUserId,
+                entity =>
+                    entity.Id == tenantId &&
+                    entity.IsActive,
                 cancellationToken);
 
-        if (hasAccess)
+        if (tenantExists)
         {
             return;
         }
 
         throw new ApiErrorException(
-            "The selected workspace is not available for the current user.",
+            $"Tenant '{tenantId}' was not found.",
+            errorCode: (int)HttpStatusCode.NotFound);
+    }
+
+    private async Task EnsureUserHasAccessAsync(
+        Guid tenantId,
+        bool requiresOwner,
+        CancellationToken cancellationToken)
+    {
+        var currentUserId = sessionService.GetUserId();
+
+        var role = await dbContext.TenantUsers
+            .AsNoTracking()
+            .Where(entity => entity.TenantId == tenantId && entity.UserId == currentUserId)
+            .Select(entity => (TenantUserRoleType?)entity.Role)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (role is null)
+        {
+            throw new ApiErrorException(
+                "The selected workspace is not available for the current user.",
+                errorCode: (int)HttpStatusCode.Forbidden);
+        }
+
+        if (!requiresOwner || role == TenantUserRoleType.Owner)
+        {
+            return;
+        }
+
+        throw new ApiErrorException(
+            "Only the workspace owner can manage members.",
             errorCode: (int)HttpStatusCode.Forbidden);
     }
 

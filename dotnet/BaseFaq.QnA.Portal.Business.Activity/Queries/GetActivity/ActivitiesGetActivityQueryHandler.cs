@@ -4,7 +4,6 @@ using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.QnA.Dtos.Activity;
 using BaseFaq.QnA.Common.Persistence.QnADb.DbContext;
-using BaseFaq.QnA.Common.Persistence.QnADb.Mappings;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -20,13 +19,29 @@ public sealed class ActivitiesGetActivityQueryHandler(
     {
         var tenantId = sessionService.GetTenantId(ModuleEnum.QnA);
         var entity = await dbContext.Activities.AsNoTracking()
-            .SingleOrDefaultAsync(activity => activity.TenantId == tenantId && activity.Id == request.Id,
-                cancellationToken);
+            .Where(activity => activity.TenantId == tenantId && activity.Id == request.Id)
+            .Select(activity => new ActivityDto
+            {
+                Id = activity.Id,
+                TenantId = activity.TenantId,
+                QuestionId = activity.QuestionId,
+                AnswerId = activity.AnswerId,
+                Kind = activity.Kind,
+                ActorKind = activity.ActorKind,
+                ActorLabel = activity.ActorLabel,
+                UserPrint = activity.UserPrint,
+                Ip = activity.Ip,
+                UserAgent = activity.UserAgent,
+                Notes = activity.Notes,
+                MetadataJson = activity.MetadataJson,
+                OccurredAtUtc = activity.OccurredAtUtc
+            })
+            .FirstOrDefaultAsync(cancellationToken);
 
         return entity is null
             ? throw new ApiErrorException(
                 $"Activity '{request.Id}' was not found.",
                 (int)HttpStatusCode.NotFound)
-            : entity.ToActivityDto();
+            : entity;
     }
 }

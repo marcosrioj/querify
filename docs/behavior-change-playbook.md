@@ -160,16 +160,16 @@ rg -n "DeletedProperty|DeletedEnum|DeletedValue" dotnet apps docs
 
 Historical EF migration files may still mention old schema. Do not edit or regenerate migrations in this workflow unless migration work was explicitly requested.
 
-## Step 4: Update EF Configurations And Read Mappings
+## Step 4: Update EF Configurations And Query Projections
 
 Relevant locations:
 
 - QnA configurations: `dotnet/BaseFaq.QnA.Common.Persistence.QnADb/Configurations`
 - Module DbContext folder: `dotnet/BaseFaq.<Module>.Common.Persistence.<Module>Db/DbContext`
 - Module tenant-integrity rules: `dotnet/BaseFaq.<Module>.Common.Persistence.<Module>Db/DbContext/TenantIntegrity`
-- QnA read mappings: `dotnet/BaseFaq.QnA.Common.Persistence.QnADb/Mappings`
-- Direct configurations, DbContext, and mappings under `dotnet/BaseFaq.Direct.Common.Persistence.DirectDb`
-- Broadcast configurations, DbContext, and mappings under `dotnet/BaseFaq.Broadcast.Common.Persistence.BroadcastDb`
+- Query handlers under the owning feature project: `dotnet/BaseFaq.<Module>.<Surface>.Business.<Feature>/Queries`
+- Direct configurations and DbContext under `dotnet/BaseFaq.Direct.Common.Persistence.DirectDb`
+- Broadcast configurations and DbContext under `dotnet/BaseFaq.Broadcast.Common.Persistence.BroadcastDb`
 - Tenant persistence equivalents when the behavior is control-plane-owned.
 
 Process:
@@ -178,20 +178,19 @@ Process:
 2. Remove configuration for deleted fields.
 3. Update indexes only when the behavior needs lookup, uniqueness, or query filtering.
 4. Update relationships only when ownership changed.
-5. Update projection mappings so DTOs and query handlers receive the canonical shape.
+5. Update query handler DTO projections so read models receive the canonical shape.
 6. Update `EnsureTenantIntegrity` when a new or changed relationship can connect two tenant-owned records.
 7. Keep the tenant-integrity rule in the owning module `DbContext/TenantIntegrity` folder, not in command handlers or service-registration extensions.
 8. Use `OnBeforeSaveChangesRules()` for tenant integrity and other pre-audit invariants.
 9. Use `OnBeforeSaveChanges()` for auto history after audit fields are applied.
 10. Run a targeted build of the persistence project when the stage is meant to compile.
 
-Mapping structure:
+Query projection structure:
 
-- Keep the folder name plural: `Mappings`.
-- Use one focused file per entity-to-DTO mapping area.
-- Name mapping files and classes in the singular, matching the entity area: `SpaceMapping.cs` with `SpaceMapping`, `QuestionMapping.cs` with `QuestionMapping`, etc.
-- Keep mapping classes as regular static classes.
-- Keep extension methods in the module mapping namespace so query handlers only need the namespace import, not a specific mapping class reference.
+- Keep DTO projection in the query handler that owns the read use case.
+- Use `AsNoTracking()` and project directly to the DTO with `Select(...)`.
+- Avoid shared read-shaping helpers for GET paths; they encourage entity graph materialization before shaping the response.
+- Load optional or high-cardinality child collections only when the request needs them.
 
 Do not run migration commands here. Leave a manual migration note that lists the intended schema operations, for example:
 

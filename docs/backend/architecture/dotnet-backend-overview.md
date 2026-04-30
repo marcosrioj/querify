@@ -133,6 +133,7 @@ Implications:
 - controllers should remain thin
 - write flows should return simple values
 - query DTOs belong to read handlers, not command handlers
+- read handlers are hot paths and must project DTOs with `AsNoTracking()` instead of loading entity graphs
 - API hosts compose multiple feature-owned business modules rather than one catch-all business assembly
 - module business projects use the same one-business-project-per-feature pattern across the owning module
 - feature projects keep real source files inside the owning project directory and avoid linked compile items
@@ -264,6 +265,7 @@ For worker-specific configuration and feature guidance, see [`basefaq-tenant-wor
 - Keep behavior in its owning module project; do not model another module's workflow in QnA entities as a shortcut.
 - Preserve the API-host composition pattern through `AddFeatures(...)`.
 - Keep controllers and services thin; push actual use-case behavior into handlers and domain-specific services.
+- Optimize `GET` and query handlers as the default read contract: use no-tracking DTO projections, avoid `Include`, page before loading child details, and add indexes plus migrations for new filters or sort fields.
 - Prefer lowercase kebab-case in route path segments when a controller exposes named actions beyond plain resource ids.
 - Treat tenant, QnA, Direct, Broadcast, and Trust data as separate ownership boundaries.
 - Treat tenant integrity as a module `DbContext` save-time responsibility whenever tenant-owned entities reference each other.

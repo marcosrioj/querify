@@ -20,67 +20,63 @@ public sealed class SpacesGetSpaceQueryHandler(
         CancellationToken cancellationToken)
     {
         var tenantId = sessionService.GetTenantId(ModuleEnum.QnA);
-        var entity = await dbContext.Spaces
-            .Include(space => space.Questions)
-            .Include(space => space.Tags)
-            .ThenInclude(link => link.Tag)
-            .Include(space => space.Sources)
-            .ThenInclude(link => link.Source)
-            .AsNoTracking()
-            .SingleOrDefaultAsync(space => space.TenantId == tenantId && space.Id == request.Id, cancellationToken);
+        var entity = await dbContext.Spaces.AsNoTracking()
+            .Where(space => space.TenantId == tenantId && space.Id == request.Id)
+            .Select(space => new SpaceDetailDto
+            {
+                Id = space.Id,
+                TenantId = space.TenantId,
+                Name = space.Name,
+                Slug = space.Slug,
+                Summary = space.Summary,
+                Language = space.Language,
+                Status = space.Status,
+                Visibility = space.Visibility,
+                AcceptsQuestions = space.AcceptsQuestions,
+                AcceptsAnswers = space.AcceptsAnswers,
+                QuestionCount = space.Questions.Count,
+                LastUpdatedAtUtc = space.UpdatedDate ?? space.CreatedDate,
+                Tags = space.Tags
+                    .OrderBy(link => link.Tag.Name)
+                    .Select(link => new TagDto
+                    {
+                        Id = link.Tag.Id,
+                        TenantId = link.Tag.TenantId,
+                        Name = link.Tag.Name,
+                        SpaceUsageCount = link.Tag.Spaces.Count,
+                        QuestionUsageCount = link.Tag.Questions.Count,
+                        LastUpdatedAtUtc = link.Tag.UpdatedDate ?? link.Tag.CreatedDate
+                    })
+                    .ToList(),
+                CuratedSources = space.Sources
+                    .OrderBy(link => link.Source.Label ?? link.Source.Locator)
+                    .Select(link => new SourceDto
+                    {
+                        Id = link.Source.Id,
+                        TenantId = link.Source.TenantId,
+                        Kind = link.Source.Kind,
+                        Locator = link.Source.Locator,
+                        Label = link.Source.Label,
+                        ContextNote = link.Source.ContextNote,
+                        ExternalId = link.Source.ExternalId,
+                        Language = link.Source.Language,
+                        MediaType = link.Source.MediaType,
+                        Checksum = link.Source.Checksum,
+                        MetadataJson = link.Source.MetadataJson,
+                        Visibility = link.Source.Visibility,
+                        LastVerifiedAtUtc = link.Source.LastVerifiedAtUtc,
+                        LastUpdatedAtUtc = link.Source.UpdatedDate ?? link.Source.CreatedDate,
+                        SpaceUsageCount = link.Source.Spaces.Count,
+                        QuestionUsageCount = link.Source.Questions.Count,
+                        AnswerUsageCount = link.Source.Answers.Count
+                    })
+                    .ToList()
+            })
+            .FirstOrDefaultAsync(cancellationToken);
 
         if (entity is null)
             throw new ApiErrorException($"Space '{request.Id}' was not found.", (int)HttpStatusCode.NotFound);
 
-        return new SpaceDetailDto
-        {
-            Id = entity.Id,
-            TenantId = entity.TenantId,
-            Name = entity.Name,
-            Slug = entity.Slug,
-            Summary = entity.Summary,
-            Language = entity.Language,
-            Status = entity.Status,
-            Visibility = entity.Visibility,
-            AcceptsQuestions = entity.AcceptsQuestions,
-            AcceptsAnswers = entity.AcceptsAnswers,
-            QuestionCount = entity.Questions.Count,
-            LastUpdatedAtUtc = entity.UpdatedDate ?? entity.CreatedDate,
-            Tags = entity.Tags
-                .Select(link => link.Tag)
-                .Select(tag => new TagDto
-                {
-                    Id = tag.Id,
-                    TenantId = tag.TenantId,
-                    Name = tag.Name,
-                    SpaceUsageCount = tag.Spaces.Count,
-                    QuestionUsageCount = tag.Questions.Count,
-                    LastUpdatedAtUtc = tag.UpdatedDate ?? tag.CreatedDate
-                })
-                .ToList(),
-            CuratedSources = entity.Sources
-                .Select(link => link.Source)
-                .Select(source => new SourceDto
-                {
-                    Id = source.Id,
-                    TenantId = source.TenantId,
-                    Kind = source.Kind,
-                    Locator = source.Locator,
-                    Label = source.Label,
-                    ContextNote = source.ContextNote,
-                    ExternalId = source.ExternalId,
-                    Language = source.Language,
-                    MediaType = source.MediaType,
-                    Checksum = source.Checksum,
-                    MetadataJson = source.MetadataJson,
-                    Visibility = source.Visibility,
-                    LastVerifiedAtUtc = source.LastVerifiedAtUtc,
-                    LastUpdatedAtUtc = source.UpdatedDate ?? source.CreatedDate,
-                    SpaceUsageCount = source.Spaces.Count,
-                    QuestionUsageCount = source.Questions.Count,
-                    AnswerUsageCount = source.Answers.Count
-                })
-                .ToList()
-        };
+        return entity;
     }
 }

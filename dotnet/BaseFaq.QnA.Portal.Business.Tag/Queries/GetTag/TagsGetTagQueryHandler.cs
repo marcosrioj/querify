@@ -26,7 +26,7 @@ public sealed class TagsGetTagQueryHandler(QnADbContext dbContext, ISessionServi
                 QuestionUsageCount = tag.Questions.Count,
                 LastUpdatedAtUtc = tag.UpdatedDate ?? tag.CreatedDate
             })
-            .SingleOrDefaultAsync(cancellationToken);
+            .FirstOrDefaultAsync(cancellationToken);
 
         return entity is null
             ? throw new ApiErrorException($"Tag '{request.Id}' was not found.", (int)HttpStatusCode.NotFound)

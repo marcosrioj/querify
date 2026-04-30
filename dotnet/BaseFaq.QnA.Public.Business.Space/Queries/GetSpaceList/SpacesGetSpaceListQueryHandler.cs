@@ -4,7 +4,6 @@ using BaseFaq.Models.Common.Dtos;
 using BaseFaq.Models.QnA.Dtos.Space;
 using BaseFaq.Models.QnA.Enums;
 using BaseFaq.QnA.Common.Persistence.QnADb.DbContext;
-using BaseFaq.QnA.Common.Persistence.QnADb.Mappings;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -26,7 +25,7 @@ public sealed class SpacesGetSpaceListQueryHandler(
 
         var tenantId = await ResolveTenantIdAndSetContextAsync(cancellationToken);
         var query = dbContext.Spaces
-            .Include(space => space.Questions)
+            .AsNoTracking()
             .Where(space =>
                 space.TenantId == tenantId &&
                 space.Visibility == VisibilityScope.Public &&
@@ -45,14 +44,28 @@ public sealed class SpacesGetSpaceListQueryHandler(
 
         var totalCount = await query.CountAsync(cancellationToken);
         var items = await query
-            .AsNoTracking()
             .Skip(request.Request.SkipCount)
             .Take(request.Request.MaxResultCount)
+            .Select(space => new SpaceDto
+            {
+                Id = space.Id,
+                TenantId = space.TenantId,
+                Name = space.Name,
+                Slug = space.Slug,
+                Summary = space.Summary,
+                Language = space.Language,
+                Status = space.Status,
+                Visibility = space.Visibility,
+                AcceptsQuestions = space.AcceptsQuestions,
+                AcceptsAnswers = space.AcceptsAnswers,
+                QuestionCount = space.Questions.Count,
+                LastUpdatedAtUtc = space.UpdatedDate ?? space.CreatedDate
+            })
             .ToListAsync(cancellationToken);
 
         return new PagedResultDto<SpaceDto>(
             totalCount,
-            items.Select(entity => entity.ToSpaceDto()).ToList());
+            items);
     }
 
     private async Task<Guid> ResolveTenantIdAndSetContextAsync(CancellationToken cancellationToken)

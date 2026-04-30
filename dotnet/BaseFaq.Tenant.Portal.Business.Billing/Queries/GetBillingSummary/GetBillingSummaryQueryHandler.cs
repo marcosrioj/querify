@@ -1,7 +1,6 @@
 using BaseFaq.Common.EntityFramework.Tenant;
 using BaseFaq.Models.Tenant.Dtos.Billing;
 using BaseFaq.Models.Tenant.Enums;
-using BaseFaq.Tenant.Portal.Business.Billing.Service;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -24,22 +23,80 @@ public sealed class GetBillingSummaryQueryHandler(TenantDbContext dbContext)
 
         var subscription = await dbContext.TenantSubscriptions
             .AsNoTracking()
-            .FirstOrDefaultAsync(entry => entry.TenantId == request.TenantId, cancellationToken);
+            .Where(entry => entry.TenantId == request.TenantId)
+            .Select(entry => new
+            {
+                entry.PlanCode,
+                entry.DefaultProvider,
+                entry.Status,
+                entry.TrialEndsAtUtc,
+                entry.CurrentPeriodStartUtc,
+                entry.CurrentPeriodEndUtc,
+                entry.GraceUntilUtc
+            })
+            .FirstOrDefaultAsync(cancellationToken);
 
         var entitlement = await dbContext.TenantEntitlementSnapshots
             .AsNoTracking()
-            .FirstOrDefaultAsync(entry => entry.TenantId == request.TenantId, cancellationToken);
+            .Where(entry => entry.TenantId == request.TenantId)
+            .Select(entry => new TenantEntitlementSnapshotDto
+            {
+                Id = entry.Id,
+                TenantId = entry.TenantId,
+                PlanCode = entry.PlanCode,
+                SubscriptionStatus = entry.SubscriptionStatus,
+                IsActive = entry.IsActive,
+                IsInGracePeriod = entry.IsInGracePeriod,
+                EffectiveUntilUtc = entry.EffectiveUntilUtc,
+                FeatureJson = entry.FeatureJson,
+                UpdatedAtUtc = entry.UpdatedDate
+            })
+            .FirstOrDefaultAsync(cancellationToken);
 
         var lastInvoice = await dbContext.BillingInvoices
             .AsNoTracking()
             .Where(entry => entry.TenantId == request.TenantId)
             .OrderByDescending(entry => entry.PaidAtUtc ?? entry.UpdatedDate ?? entry.CreatedDate)
+            .Select(invoice => new BillingInvoiceDto
+            {
+                Id = invoice.Id,
+                TenantId = invoice.TenantId,
+                TenantSubscriptionId = invoice.TenantSubscriptionId,
+                Provider = invoice.Provider,
+                ExternalInvoiceId = invoice.ExternalInvoiceId,
+                AmountMinor = invoice.AmountMinor,
+                Currency = invoice.Currency,
+                DueDateUtc = invoice.DueDateUtc,
+                PaidAtUtc = invoice.PaidAtUtc,
+                Status = invoice.Status,
+                HostedUrl = invoice.HostedUrl,
+                PdfUrl = invoice.PdfUrl,
+                CreatedDateUtc = invoice.CreatedDate,
+                UpdatedDateUtc = invoice.UpdatedDate
+            })
             .FirstOrDefaultAsync(cancellationToken);
 
         var lastPayment = await dbContext.BillingPayments
             .AsNoTracking()
             .Where(entry => entry.TenantId == request.TenantId)
             .OrderByDescending(entry => entry.PaidAtUtc ?? entry.UpdatedDate ?? entry.CreatedDate)
+            .Select(payment => new BillingPaymentDto
+            {
+                Id = payment.Id,
+                TenantId = payment.TenantId,
+                BillingInvoiceId = payment.BillingInvoiceId,
+                Provider = payment.Provider,
+                ExternalPaymentId = payment.ExternalPaymentId,
+                Method = payment.Method,
+                AmountMinor = payment.AmountMinor,
+                Currency = payment.Currency,
+                Status = payment.Status,
+                FailureCode = payment.FailureCode,
+                FailureMessage = payment.FailureMessage,
+                PaidAtUtc = payment.PaidAtUtc,
+                CreatedDateUtc = payment.CreatedDate,
+                UpdatedDateUtc = payment.UpdatedDate
+            })
             .FirstOrDefaultAsync(cancellationToken);
 
         return new TenantBillingSummaryDto
@@ -52,9 +109,9 @@ public sealed class GetBillingSummaryQueryHandler(TenantDbContext dbContext)
             CurrentPeriodStartUtc = subscription?.CurrentPeriodStartUtc,
             CurrentPeriodEndUtc = subscription?.CurrentPeriodEndUtc,
             GraceUntilUtc = subscription?.GraceUntilUtc,
-            LastInvoice = lastInvoice is null ? null : BillingDtoMapper.ToInvoiceDto(lastInvoice),
-            LastPayment = lastPayment is null ? null : BillingDtoMapper.ToPaymentDto(lastPayment),
-            Entitlement = BillingDtoMapper.ToEntitlementDto(entitlement)
+            LastInvoice = lastInvoice,
+            LastPayment = lastPayment,
+            Entitlement = entitlement
         };
     }
 }

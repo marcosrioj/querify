@@ -3,9 +3,10 @@ using BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception;
 using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.QnA.Dtos.Answer;
+using BaseFaq.Models.QnA.Dtos.Source;
+using BaseFaq.Models.QnA.Enums;
+using BaseFaq.QnA.Common.Helper.Activities;
 using BaseFaq.QnA.Common.Persistence.QnADb.DbContext;
-using BaseFaq.QnA.Common.Persistence.QnADb.Entities;
-using BaseFaq.QnA.Common.Persistence.QnADb.Mappings;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -20,17 +21,80 @@ public sealed class AnswersGetAnswerQueryHandler(
     {
         var tenantId = sessionService.GetTenantId(ModuleEnum.QnA);
         var entity = await dbContext.Answers
-            .Include(answer => answer.Question)
-            .ThenInclude(question => question.Activities)
-            .Include(answer => answer.Sources)
-            .ThenInclude(link => link.Source)
             .AsNoTracking()
-            .SingleOrDefaultAsync(answer => answer.TenantId == tenantId && answer.Id == request.Id, cancellationToken);
+            .Where(answer => answer.TenantId == tenantId && answer.Id == request.Id)
+            .Select(answer => new AnswerDto
+            {
+                Id = answer.Id,
+                TenantId = answer.TenantId,
+                QuestionId = answer.QuestionId,
+                Headline = answer.Headline,
+                Body = answer.Body,
+                Kind = answer.Kind,
+                Status = answer.Status,
+                Visibility = answer.Visibility,
+                ContextNote = answer.ContextNote,
+                AuthorLabel = answer.AuthorLabel,
+                AiConfidenceScore = answer.AiConfidenceScore,
+                Score = answer.Score,
+                Sort = answer.Sort,
+                IsAccepted = answer.Question.AcceptedAnswerId == answer.Id,
+                IsOfficial = answer.Kind == AnswerKind.Official,
+                LastUpdatedAtUtc = answer.UpdatedDate ?? answer.CreatedDate,
+                VoteScore = 0,
+                Sources = answer.Sources
+                    .OrderBy(source => source.Order)
+                    .Select(source => new AnswerSourceLinkDto
+                    {
+                        Id = source.Id,
+                        AnswerId = source.AnswerId,
+                        SourceId = source.SourceId,
+                        Role = source.Role,
+                        Order = source.Order,
+                        Source = new SourceDto
+                        {
+                            Id = source.Source.Id,
+                            TenantId = source.Source.TenantId,
+                            Kind = source.Source.Kind,
+                            Locator = source.Source.Locator,
+                            Label = source.Source.Label,
+                            ContextNote = source.Source.ContextNote,
+                            ExternalId = source.Source.ExternalId,
+                            Language = source.Source.Language,
+                            MediaType = source.Source.MediaType,
+                            Checksum = source.Source.Checksum,
+                            MetadataJson = source.Source.MetadataJson,
+                            Visibility = source.Source.Visibility,
+                            LastVerifiedAtUtc = source.Source.LastVerifiedAtUtc,
+                            LastUpdatedAtUtc = source.Source.UpdatedDate ?? source.Source.CreatedDate,
+                            SpaceUsageCount = source.Source.Spaces.Count,
+                            QuestionUsageCount = source.Source.Questions.Count,
+                            AnswerUsageCount = source.Source.Answers.Count
+                        }
+                    })
+                    .ToList()
+            })
+            .FirstOrDefaultAsync(cancellationToken);
 
         if (entity is null)
             throw new ApiErrorException($"Answer '{request.Id}' was not found.", (int)HttpStatusCode.NotFound);
 
-        IEnumerable<Activity> questionActivity = entity.Question?.Activities ?? [];
-        return entity.ToPortalAnswerDto(questionActivity, entity.Question?.AcceptedAnswerId);
+        var voteSignals = await dbContext.Activities
+            .AsNoTracking()
+            .Where(activity =>
+                activity.TenantId == tenantId &&
+                activity.QuestionId == entity.QuestionId &&
+                activity.AnswerId == entity.Id &&
+                activity.Kind == ActivityKind.VoteReceived)
+            .Select(activity => new ActivitySignalEntry(
+                activity.Kind,
+                activity.AnswerId,
+                activity.OccurredAtUtc,
+                activity.UserPrint,
+                activity.MetadataJson))
+            .ToListAsync(cancellationToken);
+
+        entity.VoteScore = ActivitySignals.ComputeVoteScore(voteSignals, entity.Id);
+        return entity;
     }
 }

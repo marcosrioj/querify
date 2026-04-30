@@ -2,9 +2,10 @@ using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Models.Common.Dtos;
 using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.QnA.Dtos.Answer;
+using BaseFaq.Models.QnA.Dtos.Source;
+using BaseFaq.Models.QnA.Enums;
+using BaseFaq.QnA.Common.Helper.Activities;
 using BaseFaq.QnA.Common.Persistence.QnADb.DbContext;
-using BaseFaq.QnA.Common.Persistence.QnADb.Entities;
-using BaseFaq.QnA.Common.Persistence.QnADb.Mappings;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -23,10 +24,7 @@ public sealed class AnswersGetAnswerListQueryHandler(
 
         var tenantId = sessionService.GetTenantId(ModuleEnum.QnA);
         var query = dbContext.Answers
-            .Include(answer => answer.Question)
-            .ThenInclude(question => question.Activities)
-            .Include(answer => answer.Sources)
-            .ThenInclude(link => link.Source)
+            .AsNoTracking()
             .Where(answer => answer.TenantId == tenantId);
 
         if (!string.IsNullOrWhiteSpace(request.Request.SearchText))
@@ -82,17 +80,96 @@ public sealed class AnswersGetAnswerListQueryHandler(
 
         var totalCount = await query.CountAsync(cancellationToken);
         var items = await query
-            .AsNoTracking()
             .Skip(request.Request.SkipCount)
             .Take(request.Request.MaxResultCount)
+            .Select(answer => new AnswerDto
+            {
+                Id = answer.Id,
+                TenantId = answer.TenantId,
+                QuestionId = answer.QuestionId,
+                Headline = answer.Headline,
+                Body = answer.Body,
+                Kind = answer.Kind,
+                Status = answer.Status,
+                Visibility = answer.Visibility,
+                ContextNote = answer.ContextNote,
+                AuthorLabel = answer.AuthorLabel,
+                AiConfidenceScore = answer.AiConfidenceScore,
+                Score = answer.Score,
+                Sort = answer.Sort,
+                IsAccepted = answer.Question.AcceptedAnswerId == answer.Id,
+                IsOfficial = answer.Kind == AnswerKind.Official,
+                LastUpdatedAtUtc = answer.UpdatedDate ?? answer.CreatedDate,
+                VoteScore = 0,
+                Sources = answer.Sources
+                    .OrderBy(source => source.Order)
+                    .Select(source => new AnswerSourceLinkDto
+                    {
+                        Id = source.Id,
+                        AnswerId = source.AnswerId,
+                        SourceId = source.SourceId,
+                        Role = source.Role,
+                        Order = source.Order,
+                        Source = new SourceDto
+                        {
+                            Id = source.Source.Id,
+                            TenantId = source.Source.TenantId,
+                            Kind = source.Source.Kind,
+                            Locator = source.Source.Locator,
+                            Label = source.Source.Label,
+                            ContextNote = source.Source.ContextNote,
+                            ExternalId = source.Source.ExternalId,
+                            Language = source.Source.Language,
+                            MediaType = source.Source.MediaType,
+                            Checksum = source.Source.Checksum,
+                            MetadataJson = source.Source.MetadataJson,
+                            Visibility = source.Source.Visibility,
+                            LastVerifiedAtUtc = source.Source.LastVerifiedAtUtc,
+                            LastUpdatedAtUtc = source.Source.UpdatedDate ?? source.Source.CreatedDate,
+                            SpaceUsageCount = source.Source.Spaces.Count,
+                            QuestionUsageCount = source.Source.Questions.Count,
+                            AnswerUsageCount = source.Source.Answers.Count
+                        }
+                    })
+                    .ToList()
+            })
             .ToListAsync(cancellationToken);
+
+        await PopulateVoteScoresAsync(tenantId, items, cancellationToken);
 
         return new PagedResultDto<AnswerDto>(
             totalCount,
-            items.Select(answer =>
-            {
-                IEnumerable<Activity> questionActivity = answer.Question?.Activities ?? [];
-                return answer.ToPortalAnswerDto(questionActivity, answer.Question?.AcceptedAnswerId);
-            }).ToList());
+            items);
+    }
+
+    private async Task PopulateVoteScoresAsync(
+        Guid tenantId,
+        IReadOnlyCollection<AnswerDto> items,
+        CancellationToken cancellationToken)
+    {
+        if (items.Count == 0)
+            return;
+
+        var questionIds = items.Select(answer => answer.QuestionId).Distinct().ToList();
+        var answerIds = items.Select(answer => answer.Id).ToHashSet();
+
+        var voteSignals = await dbContext.Activities
+            .AsNoTracking()
+            .Where(activity =>
+                activity.TenantId == tenantId &&
+                activity.Kind == ActivityKind.VoteReceived &&
+                activity.AnswerId.HasValue &&
+                questionIds.Contains(activity.QuestionId) &&
+                answerIds.Contains(activity.AnswerId.Value))
+            .Select(activity => new ActivitySignalEntry(
+                activity.Kind,
+                activity.AnswerId,
+                activity.OccurredAtUtc,
+                activity.UserPrint,
+                activity.MetadataJson))
+            .ToListAsync(cancellationToken);
+
+        foreach (var item in items)
+            item.VoteScore = ActivitySignals.ComputeVoteScore(voteSignals, item.Id);
     }
 }

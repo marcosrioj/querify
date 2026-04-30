@@ -5,7 +5,6 @@ using BaseFaq.Common.Infrastructure.Core.Constants;
 using BaseFaq.Models.QnA.Dtos.Space;
 using BaseFaq.Models.QnA.Enums;
 using BaseFaq.QnA.Common.Persistence.QnADb.DbContext;
-using BaseFaq.QnA.Common.Persistence.QnADb.Mappings;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -24,19 +23,32 @@ public sealed class SpacesGetSpaceQueryHandler(
     {
         var tenantId = await ResolveTenantIdAndSetContextAsync(cancellationToken);
         var entity = await dbContext.Spaces
-            .Include(space => space.Questions)
             .AsNoTracking()
-            .SingleOrDefaultAsync(
-                space =>
-                    space.TenantId == tenantId &&
-                    space.Id == request.Id &&
-                    space.Visibility == VisibilityScope.Public &&
-                    space.Status == SpaceStatus.Active,
-                cancellationToken);
+            .Where(space =>
+                space.TenantId == tenantId &&
+                space.Id == request.Id &&
+                space.Visibility == VisibilityScope.Public &&
+                space.Status == SpaceStatus.Active)
+            .Select(space => new SpaceDto
+            {
+                Id = space.Id,
+                TenantId = space.TenantId,
+                Name = space.Name,
+                Slug = space.Slug,
+                Summary = space.Summary,
+                Language = space.Language,
+                Status = space.Status,
+                Visibility = space.Visibility,
+                AcceptsQuestions = space.AcceptsQuestions,
+                AcceptsAnswers = space.AcceptsAnswers,
+                QuestionCount = space.Questions.Count,
+                LastUpdatedAtUtc = space.UpdatedDate ?? space.CreatedDate
+            })
+            .FirstOrDefaultAsync(cancellationToken);
 
         return entity is null
             ? throw new ApiErrorException($"Space '{request.Id}' was not found.", (int)HttpStatusCode.NotFound)
-            : entity.ToSpaceDto();
+            : entity;
     }
 
     private async Task<Guid> ResolveTenantIdAndSetContextAsync(CancellationToken cancellationToken)

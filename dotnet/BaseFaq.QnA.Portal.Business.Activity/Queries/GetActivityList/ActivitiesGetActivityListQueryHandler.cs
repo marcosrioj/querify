@@ -3,7 +3,6 @@ using BaseFaq.Models.Common.Dtos;
 using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.QnA.Dtos.Activity;
 using BaseFaq.QnA.Common.Persistence.QnADb.DbContext;
-using BaseFaq.QnA.Common.Persistence.QnADb.Mappings;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -72,11 +71,26 @@ public sealed class ActivitiesGetActivityListQueryHandler(
         var items = await query
             .Skip(request.SkipCount)
             .Take(request.MaxResultCount)
+            .Select(activity => new ActivityDto
+            {
+                Id = activity.Id,
+                TenantId = activity.TenantId,
+                QuestionId = activity.QuestionId,
+                AnswerId = activity.AnswerId,
+                Kind = activity.Kind,
+                ActorKind = activity.ActorKind,
+                ActorLabel = activity.ActorLabel,
+                UserPrint = activity.UserPrint,
+                Ip = activity.Ip,
+                UserAgent = activity.UserAgent,
+                Notes = activity.Notes,
+                MetadataJson = activity.MetadataJson,
+                OccurredAtUtc = activity.OccurredAtUtc
+            })
             .ToListAsync(cancellationToken);
 
         return new PagedResultDto<ActivityDto>(
             totalCount,
-            items.Select(activity => activity.ToActivityDto())
-                .ToList());
+            items);
     }
 }

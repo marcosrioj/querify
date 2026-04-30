@@ -258,6 +258,7 @@ public class TenantCommandQueryTests
             clientKey: "my-client-key");
 
         var handler = new TenantsGetClientKeyQueryHandler(
+            context.DbContext,
             new TenantPortalAccessService(context.DbContext, context.SessionService));
         var result = await handler.Handle(new TenantsGetClientKeyQuery { TenantId = tenantId }, CancellationToken.None);
 

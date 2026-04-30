@@ -48,19 +48,31 @@ Apply these rules to:
 - Services and controllers stay orchestration-thin.
 - For async write processing, return correlation `Guid` and use `202 Accepted`.
 
-### 3. Handler quality
+### 3. Read path performance
+
+- Treat `GET` endpoints and query handlers as hot paths. Assume they may be called by millions of users.
+- Query handlers must default to `AsNoTracking()` and project directly to the response DTO before materialization.
+- Do not materialize EF entities only to call a mapper when the same shape can be expressed with `Select(...)`.
+- Avoid `Include(...)` in query handlers. Use DTO projection, filtered child subqueries, or separate explicit queries for optional collections.
+- Apply filters and sorting on `IQueryable` before `CountAsync`, `Skip`, and `Take`; page parent rows before loading expensive child details.
+- Public query handlers must honor include flags by not loading omitted collections.
+- For reads by primary key, unique slug, or another constrained unique key, use `FirstOrDefaultAsync` and rely on database constraints for uniqueness.
+- When adding a query filter, search field, sort field, or high-cardinality relationship lookup, add or update the matching EF index and migration in the owning persistence project.
+- Keep returned columns limited to the DTO contract; never return internal fields because they are easy to load.
+
+### 4. Handler quality
 
 - `Handle(...)` remains short, explicit, and orchestration-focused.
 - Split large logic into focused methods or classes without changing behavior.
 - Preserve transaction boundaries and side-effect order during refactoring.
 
-### 4. Test contract discipline
+### 5. Test contract discipline
 
 - Tests must adapt to production contracts; do not weaken production design for tests.
 - If dependencies change, update unit test doubles and integration fixtures.
 - Keep integration-first behavior with real DB and real migrations where defined.
 
-### 5. BaseFaq module physical boundary
+### 6. BaseFaq module physical boundary
 
 - Tenant, QnA, Direct, Broadcast, and Trust are the current BaseFaq modules. Every module must keep the established feature-scoped physical decomposition style used by the solution.
 - Each entity or surface concern gets its own business project inside the owning module, for example `BaseFaq.QnA.Portal.Business.Question` or `BaseFaq.QnA.Public.Business.Vote`.
@@ -78,7 +90,7 @@ Apply these rules to:
 - Behavior must live in its owning feature and persistence projects.
 - `BaseFaq.Direct.Common.Persistence.DirectDb` and `BaseFaq.Broadcast.Common.Persistence.BroadcastDb` contain their current entity models; extend them only for concrete module behavior, not placeholder coverage.
 
-### 6. Module model contract boundary
+### 7. Module model contract boundary
 
 - Module contract projects such as `BaseFaq.Models.QnA`, `BaseFaq.Models.Direct`, `BaseFaq.Models.Broadcast`, and `BaseFaq.Models.Tenant` must keep the same feature-folder DTO layout used across the solution.
 - Keep DTOs in real feature folders such as `Dtos/Question/QuestionDto.cs` or `Dtos/Answer/AnswerCreateRequestDto.cs`.
@@ -89,7 +101,7 @@ Apply these rules to:
 - Query request DTOs for paged or sorted list reads may inherit the shared pagination base used by the project pattern.
 - Each write-side request DTO must declare its own properties explicitly.
 
-### 7. Module DbContext and tenant integrity defaults
+### 8. Module DbContext and tenant integrity defaults
 
 - Module `DbContext` classes live under `DbContext/<Module>DbContext.cs`.
 - Save-time persistence concerns live under focused `DbContext/<Concern>` folders.
@@ -208,6 +220,8 @@ fallback.
 - `Handle(...)` is bounded and oversized logic was decomposed using the slicing rules
 - every extracted class has a single responsibility and clear name
 - behavior stays in the owning command or query flow or feature-local collaborators, not controllers, generic helpers, or module persistence entities
+- query handlers use no-tracking DTO projections and avoid `Include` unless a documented exception proves it is the cheaper read path
+- new query filters, sorts, and relationship lookups have matching indexes and migrations
 - action structure follows the standard slicing pattern for commands and queries
 - new behavior was added only to the correct folder ownership boundary
 - tenant-owned relationship changes update the owning `DbContext/TenantIntegrity` rule

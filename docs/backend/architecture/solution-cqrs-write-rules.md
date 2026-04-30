@@ -61,6 +61,18 @@ For `POST`, `PUT`, and `PATCH` endpoints:
 
 Read DTOs belong to `GET` endpoints and query handlers.
 
+## Rule 3a: GET/query handlers are optimized read paths
+
+For `GET` endpoints and query handlers:
+
+- use `AsNoTracking()` by default
+- project directly to the response DTO before materialization
+- avoid `Include(...)` unless a measured, documented exception proves it is cheaper
+- apply filters and sorting before `CountAsync`, `Skip`, and `Take`
+- page parent rows before loading expensive child collections
+- honor include flags by not loading omitted data
+- add or update indexes and migrations when introducing new filters, sorts, or high-cardinality relationship lookups
+
 ## Rule 4: write services stay thin
 
 Application services may orchestrate command dispatch, but they should not rebuild read models after the command completes.
@@ -157,6 +169,8 @@ Extend module entity models only for concrete behavior owned by that module; do 
 - command handler returns only a simple value
 - no read-after-write response shaping
 - write controller returns a write result, not a read DTO
+- GET/query handler uses no-tracking DTO projection and avoids entity graph loading
+- query filters, sorts, and high-cardinality relationship lookups have matching indexes and migrations
 - service write methods stay thin
 - tests were updated for the real dependencies
 - large handler logic was extracted where necessary

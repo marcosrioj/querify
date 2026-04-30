@@ -4,7 +4,6 @@ using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.QnA.Dtos.Source;
 using BaseFaq.QnA.Common.Persistence.QnADb.DbContext;
-using BaseFaq.QnA.Common.Persistence.QnADb.Mappings;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -94,7 +93,7 @@ public sealed class SourcesGetSourceQueryHandler(
                     })
                     .ToList()
             })
-            .SingleOrDefaultAsync(cancellationToken);
+            .FirstOrDefaultAsync(cancellationToken);
 
         return entity is null
             ? throw new ApiErrorException(
