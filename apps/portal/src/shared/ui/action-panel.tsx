@@ -21,10 +21,10 @@ export function ActionPanel({
   description?: string;
 }>) {
   return (
-    <Card className="overflow-hidden rounded-lg border-border/80 bg-card/95 shadow-[0_12px_32px_-28px_rgba(15,23,42,0.45)]">
-      <CardHeader className="px-3.5 py-3">
+    <Card className="overflow-hidden rounded-lg border-border/70 bg-card/95 shadow-none">
+      <CardHeader className="px-3 py-2.5">
         <CardHeading>
-          <CardTitle className="flex items-center gap-2 text-sm">
+          <CardTitle className="flex items-center gap-2 text-[0.8125rem]">
             <span>{translateText(title)}</span>
             {description ? (
               <ContextHint
@@ -35,8 +35,8 @@ export function ActionPanel({
           </CardTitle>
         </CardHeading>
       </CardHeader>
-      <CardContent className="p-3">
-        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 [&_[data-slot=button]]:min-w-0 [&_[data-slot=button]]:whitespace-normal">
+      <CardContent className="px-2.5 pb-2.5 pt-2">
+        <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2 [&_[data-slot=button]]:min-w-0 [&_[data-slot=button]]:whitespace-normal">
           {children}
         </div>
       </CardContent>
@@ -49,7 +49,7 @@ export function ActionButton({
   span,
   className,
   autoHeight = true,
-  size = "lg",
+  size = "sm",
   variant = "foreground",
   ...props
 }: ComponentProps<typeof Button> & {

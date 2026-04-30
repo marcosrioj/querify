@@ -8,11 +8,11 @@ export function actionButtonClassName({
   span?: "single" | "full";
 } = {}) {
   return cn(
-    "h-auto min-h-11 w-full justify-start rounded-lg px-3 py-2 text-left text-[0.8125rem] font-semibold shadow-none",
+    "h-auto min-h-9 w-full justify-start rounded-md px-2.5 py-1.5 text-left text-xs font-medium leading-5 shadow-none",
     "border transition-[background-color,border-color,color,box-shadow,transform]",
-    "[&_svg]:size-4 [&_svg]:text-current [&_svg]:opacity-80",
+    "[&_svg]:size-3.5 [&_svg]:text-current [&_svg]:opacity-75",
     "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-    span === "full" && "col-span-2",
+    span === "full" && "col-span-full",
     tone === "primary" &&
       "border-primary/35 bg-primary text-primary-foreground hover:bg-primary/90 hover:shadow-[0_14px_28px_-18px_rgba(16,185,129,0.95)]",
     tone === "secondary" &&
