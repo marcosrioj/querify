@@ -32,7 +32,7 @@ public sealed class AnswersArchiveAnswerCommandHandler(
 
         var originalStatus = entity.Status;
         entity.Status = AnswerStatus.Archived;
-        entity.Visibility = VisibilityScope.Authenticated;
+        entity.Visibility = VisibilityScope.Internal;
 
         if (originalStatus != entity.Status)
         {

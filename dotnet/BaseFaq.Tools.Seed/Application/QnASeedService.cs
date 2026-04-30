@@ -368,7 +368,7 @@ public sealed class QnASeedService : IQnASeedService
             Body = $"Legacy workflow retained for audit purposes before the active answer from {item.SourceName} replaced it.",
             Kind = AnswerKind.Imported,
             Status = AnswerStatus.Archived,
-            Visibility = VisibilityScope.Authenticated,
+            Visibility = VisibilityScope.Internal,
             ContextNote = $"Retained for audit only. Superseded by the current operational answer based on {item.SourceLabel}.",
             AuthorLabel = moderatedBy,
             AiConfidenceScore = Math.Max(35, item.AiConfidenceScore - 25),

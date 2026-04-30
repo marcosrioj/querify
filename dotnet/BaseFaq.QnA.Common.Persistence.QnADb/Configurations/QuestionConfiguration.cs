@@ -1,4 +1,5 @@
 using BaseFaq.Common.EntityFramework.Core.Configurations;
+using BaseFaq.Models.QnA.Enums;
 using BaseFaq.QnA.Common.Persistence.QnADb.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -22,6 +23,10 @@ public class QuestionConfiguration : BaseConfiguration<Question>
 
         builder.Property(question => question.ContextNote)
             .HasMaxLength(Question.MaxContextNoteLength);
+
+        builder.Property(question => question.Visibility)
+            .HasDefaultValue(VisibilityScope.Internal)
+            .IsRequired();
 
         builder.Property(question => question.AiConfidenceScore)
             .HasDefaultValue(0)

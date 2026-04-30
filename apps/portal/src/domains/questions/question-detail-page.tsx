@@ -2,6 +2,7 @@ import { startTransition, useDeferredValue, useMemo, useState } from "react";
 import {
   Activity,
   CheckCircle2,
+  CircleOff,
   Link2,
   MessageSquareText,
   Pencil,
@@ -12,7 +13,12 @@ import {
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useActivityList } from "@/domains/activity/hooks";
 import type { ActivityDto } from "@/domains/activity/types";
-import { useCreateAnswer, useDeleteAnswer } from "@/domains/answers/hooks";
+import {
+  useCreateAnswer,
+  useDeleteAnswer,
+  useUpdateAnswerStatus,
+} from "@/domains/answers/hooks";
+import { useActivationVisibilityPrompt } from "@/domains/qna/activation-visibility";
 import { QnaModuleNav } from "@/domains/qna/qna-module-nav";
 import { RecommendedNextActionCard } from "@/domains/qna/recommended-next-action-card";
 import { usePortalTimeZone } from "@/domains/settings/settings-hooks";
@@ -169,6 +175,9 @@ export function QuestionDetailPage() {
   const updateQuestion = useUpdateQuestion(id ?? "");
   const createAnswer = useCreateAnswer();
   const deleteAnswer = useDeleteAnswer();
+  const updateAnswerStatus = useUpdateAnswerStatus();
+  const { resolveActivationVisibility, ActivationVisibilityDialog } =
+    useActivationVisibilityPrompt();
   const addTag = useAddQuestionTag(id ?? "");
   const removeTag = useRemoveQuestionTag(id ?? "");
   const addSource = useAddQuestionSource(id ?? "");
@@ -271,6 +280,24 @@ export function QuestionDetailPage() {
     items: questionQuery.data?.answers ?? [],
   });
   const activityPagination = useLocalPagination({ items: questionActivity });
+  const handleAnswerStatusChange = async (
+    answer: NonNullable<typeof questionQuery.data>["answers"][number],
+  ) => {
+    const status =
+      answer.status === AnswerStatus.Active
+        ? AnswerStatus.Archived
+        : AnswerStatus.Active;
+    const visibility =
+      answer.status === AnswerStatus.Active
+        ? undefined
+        : await resolveActivationVisibility(answer.visibility);
+
+    updateAnswerStatus.mutate({
+      answer,
+      status,
+      visibility,
+    });
+  };
 
   const activateRelationshipTab = (tab: string, focusTargetId?: string) => {
     setRelationshipTab(tab);
@@ -537,6 +564,7 @@ export function QuestionDetailPage() {
         </>
       }
     >
+      {ActivationVisibilityDialog}
       {questionQuery.isError ? (
         <ErrorState
           title="Unable to load question"
@@ -1026,7 +1054,7 @@ export function QuestionDetailPage() {
                           body: newAnswerBody.trim() || undefined,
                           kind: AnswerKind.Official,
                           status: AnswerStatus.Draft,
-                          visibility: VisibilityScope.Authenticated,
+                          visibility: VisibilityScope.Internal,
                           contextNote: undefined,
                           authorLabel: undefined,
                           sort: questionQuery.data.answers.length + 1,
@@ -1041,11 +1069,11 @@ export function QuestionDetailPage() {
                       <div className="space-y-3">
                         <div>
                           <p className="text-sm font-semibold text-mono">
-                            {translateText("Draft answer for this question")}
+                            {translateText("Create answer for this question")}
                           </p>
                           <p className="text-sm text-muted-foreground">
                             {translateText(
-                              "Write the answer here, then activate it from this same question.",
+                              "Write the answer here, then activate it from the list below.",
                             )}
                           </p>
                         </div>
@@ -1103,7 +1131,7 @@ export function QuestionDetailPage() {
                           }
                         >
                           <Plus className="size-4" />
-                          {translateText("Save draft")}
+                          {translateText("Create answer")}
                         </Button>
                       </div>
                     </div>
@@ -1142,6 +1170,23 @@ export function QuestionDetailPage() {
                         </div>
                       </div>
                       <div className="flex flex-wrap gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={updateAnswerStatus.isPending}
+                          onClick={() => void handleAnswerStatusChange(answer)}
+                        >
+                          {answer.status === AnswerStatus.Active ? (
+                            <CircleOff className="size-4" />
+                          ) : (
+                            <CheckCircle2 className="size-4" />
+                          )}
+                          {translateText(
+                            answer.status === AnswerStatus.Active
+                              ? "Desativar"
+                              : "Ativar",
+                          )}
+                        </Button>
                         <Button asChild variant="outline" size="sm">
                           <Link to={`/app/answers/${answer.id}`}>
                             <Link2 className="size-4" />

@@ -20,7 +20,7 @@ public class AnswerWorkflowTests
             context.SessionService.TenantId,
             question.Id,
             status: AnswerStatus.Draft,
-            visibility: VisibilityScope.Authenticated,
+            visibility: VisibilityScope.Internal,
             accept: false);
 
         await new AnswersActivateAnswerCommandHandler(
@@ -81,7 +81,7 @@ public class AnswerWorkflowTests
             .ToList();
 
         Assert.Equal(AnswerStatus.Archived, archivedResult.Status);
-        Assert.Equal(VisibilityScope.Authenticated, archivedResult.Visibility);
+        Assert.Equal(VisibilityScope.Internal, archivedResult.Visibility);
         Assert.Contains(ActivityKind.AnswerArchived, archivedActivityKinds);
     }
 }

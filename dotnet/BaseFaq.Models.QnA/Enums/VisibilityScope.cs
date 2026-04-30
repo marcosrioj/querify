@@ -7,13 +7,19 @@ namespace BaseFaq.Models.QnA.Enums;
 public enum VisibilityScope
 {
     /// <summary>
-    /// Visible only to authenticated tenant users or authenticated product users.
-    /// This is the non-public exposure level for operational and gated content.
+    /// Visible only inside the tenant portal.
+    /// This is the default exposure level for operational content.
+    /// </summary>
+    Internal = 0,
+
+    /// <summary>
+    /// Visible outside the portal only to authenticated users.
+    /// This is for gated external customer or product experiences.
     /// </summary>
     Authenticated = 1,
 
     /// <summary>
-    /// Publicly visible to any visitor.
+    /// Visible outside the portal to any visitor.
     /// </summary>
     Public = 2
 }

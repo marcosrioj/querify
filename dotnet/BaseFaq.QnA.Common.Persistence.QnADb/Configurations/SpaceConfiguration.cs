@@ -1,4 +1,5 @@
 using BaseFaq.Common.EntityFramework.Core.Configurations;
+using BaseFaq.Models.QnA.Enums;
 using BaseFaq.QnA.Common.Persistence.QnADb.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -26,6 +27,10 @@ public class SpaceConfiguration : BaseConfiguration<Space>
 
         builder.Property(space => space.Language)
             .HasMaxLength(Space.MaxLanguageLength)
+            .IsRequired();
+
+        builder.Property(space => space.Visibility)
+            .HasDefaultValue(VisibilityScope.Internal)
             .IsRequired();
 
         builder.Property(space => space.TenantId)

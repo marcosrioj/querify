@@ -81,6 +81,38 @@ public class AnswerCommandQueryTests
     }
 
     [Fact]
+    public async Task CreateAnswer_DefaultsVisibilityToInternalWhenOmitted()
+    {
+        using var context = TestContext.Create();
+        var space = await TestDataFactory.SeedSpaceAsync(context.DbContext, context.SessionService.TenantId);
+        var question =
+            await TestDataFactory.SeedQuestionAsync(context.DbContext, context.SessionService.TenantId, space.Id);
+
+        var createHandler = new AnswersCreateAnswerCommandHandler(
+            context.DbContext,
+            context.SessionService,
+            context.HttpContextAccessor);
+        var id = await createHandler.Handle(new AnswersCreateAnswerCommand
+        {
+            Request = new AnswerCreateRequestDto
+            {
+                QuestionId = question.Id,
+                Headline = "Internal default answer",
+                Body = "Internal answer body",
+                Kind = AnswerKind.Official,
+                Status = AnswerStatus.Active,
+                ContextNote = null,
+                Sort = 0
+            }
+        }, CancellationToken.None);
+
+        var getHandler = new AnswersGetAnswerQueryHandler(context.DbContext, context.SessionService);
+        var result = await getHandler.Handle(new AnswersGetAnswerQuery { Id = id }, CancellationToken.None);
+
+        Assert.Equal(VisibilityScope.Internal, result.Visibility);
+    }
+
+    [Fact]
     public async Task CreateAnswer_ReturnsApiErrorWhenStatusIsUnsupported()
     {
         using var context = TestContext.Create();
@@ -103,7 +135,7 @@ public class AnswerCommandQueryTests
                     Body = "Legacy body",
                     Kind = AnswerKind.Official,
                     Status = (AnswerStatus)3,
-                    Visibility = VisibilityScope.Authenticated,
+                    Visibility = VisibilityScope.Internal,
                     ContextNote = null,
                     Sort = 0
                 }

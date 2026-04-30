@@ -9,7 +9,7 @@ public class QuestionCreateRequestDto
     public string? Summary { get; set; }
     public string? ContextNote { get; set; }
     public required QuestionStatus Status { get; set; }
-    public required VisibilityScope Visibility { get; set; }
+    public VisibilityScope Visibility { get; set; } = VisibilityScope.Internal;
     public required ChannelKind OriginChannel { get; set; }
     public required int Sort { get; set; }
 }

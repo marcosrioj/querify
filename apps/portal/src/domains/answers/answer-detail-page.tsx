@@ -11,12 +11,13 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { useActivityList } from "@/domains/activity/hooks";
 import {
   useAnswer,
-  useActivateAnswer,
   useArchiveAnswer,
   useAddAnswerSource,
   useDeleteAnswer,
   useRemoveAnswerSource,
+  useUpdateAnswerStatus,
 } from "@/domains/answers/hooks";
+import { useActivationVisibilityPrompt } from "@/domains/qna/activation-visibility";
 import { QnaModuleNav } from "@/domains/qna/qna-module-nav";
 import { RecommendedNextActionCard } from "@/domains/qna/recommended-next-action-card";
 import { useQuestion } from "@/domains/questions/hooks";
@@ -98,8 +99,10 @@ export function AnswerDetailPage() {
     answerId: id,
   });
   const deleteAnswer = useDeleteAnswer();
-  const activateAnswer = useActivateAnswer();
+  const updateAnswerStatus = useUpdateAnswerStatus();
   const archiveAnswer = useArchiveAnswer();
+  const { resolveActivationVisibility, ActivationVisibilityDialog } =
+    useActivationVisibilityPrompt();
   const addSource = useAddAnswerSource(answerId);
   const removeSource = useRemoveAnswerSource(answerId);
   const [selectedSourceId, setSelectedSourceId] = useState("");
@@ -144,13 +147,24 @@ export function AnswerDetailPage() {
       questionQuery.isLoading ||
       sourceOptionsQuery.isLoading);
   const currentAnswerStatus = answerQuery.data?.status;
+  const activateCurrentAnswer = async () => {
+    if (!answerQuery.data) {
+      return Promise.resolve();
+    }
+
+    return updateAnswerStatus.mutateAsync({
+      answer: answerQuery.data,
+      status: AnswerStatus.Active,
+      visibility: await resolveActivationVisibility(answerQuery.data.visibility),
+    });
+  };
   const lifecycleActionOptions = [
     {
       status: AnswerStatus.Active,
       label: "Activate",
       variant: "primary" as const,
-      isPending: activateAnswer.isPending,
-      run: () => activateAnswer.mutateAsync(answerId),
+      isPending: updateAnswerStatus.isPending,
+      run: activateCurrentAnswer,
     },
     {
       status: AnswerStatus.Archived,
@@ -199,15 +213,15 @@ export function AnswerDetailPage() {
     : answerQuery.data.status === AnswerStatus.Draft
       ? {
           label: "Activate answer",
-          run: () => activateAnswer.mutateAsync(answerId),
-          disabled: activateAnswer.isPending,
+          run: activateCurrentAnswer,
+          disabled: updateAnswerStatus.isPending,
           text: "This draft is not available for accepted-answer selection yet. Activate it when the content is ready.",
         }
       : answerQuery.data.status === AnswerStatus.Archived
         ? {
             label: "Reactivate answer",
-            run: () => activateAnswer.mutateAsync(answerId),
-            disabled: activateAnswer.isPending,
+            run: activateCurrentAnswer,
+            disabled: updateAnswerStatus.isPending,
             text: "This answer is archived. Reactivate it only if it should return to the usable knowledge set.",
           }
         : answerQuery.data.sources.length === 0
@@ -357,6 +371,7 @@ export function AnswerDetailPage() {
         </>
       }
     >
+      {ActivationVisibilityDialog}
       {answerQuery.isError ? (
         <ErrorState
           title="Unable to load answer"

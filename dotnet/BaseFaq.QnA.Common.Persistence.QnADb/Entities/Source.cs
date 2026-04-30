@@ -65,7 +65,7 @@ public class Source : BaseEntity, IMustHaveTenant
     public string? MetadataJson { get; set; }
 
     /// <summary>
-    ///     Allowed visibility scope for the source.
+    ///     Audience exposure for the source: internal portal, authenticated external, or public.
     /// </summary>
     public required VisibilityScope Visibility { get; set; }
 

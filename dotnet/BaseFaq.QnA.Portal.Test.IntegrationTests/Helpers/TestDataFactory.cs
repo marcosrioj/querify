@@ -13,7 +13,7 @@ public static class TestDataFactory
         Guid tenantId,
         string? name = null,
         string? slug = null,
-        VisibilityScope visibility = VisibilityScope.Authenticated,
+        VisibilityScope visibility = VisibilityScope.Internal,
         bool acceptsQuestions = true,
         bool acceptsAnswers = true)
     {
@@ -44,7 +44,7 @@ public static class TestDataFactory
         string? title = null,
         string? key = null,
         QuestionStatus status = QuestionStatus.Active,
-        VisibilityScope visibility = VisibilityScope.Authenticated)
+        VisibilityScope visibility = VisibilityScope.Internal)
     {
         var space = await dbContext.Spaces
             .Include(entity => entity.Questions)
@@ -96,7 +96,7 @@ public static class TestDataFactory
         Guid questionId,
         string? headline = null,
         AnswerStatus status = AnswerStatus.Active,
-        VisibilityScope visibility = VisibilityScope.Authenticated,
+        VisibilityScope visibility = VisibilityScope.Internal,
         bool accept = false,
         int rank = 1)
     {
@@ -180,7 +180,7 @@ public static class TestDataFactory
         QnADbContext dbContext,
         Guid tenantId,
         string? locator = null,
-        VisibilityScope visibility = VisibilityScope.Authenticated)
+        VisibilityScope visibility = VisibilityScope.Internal)
     {
         var entity = new Source
         {

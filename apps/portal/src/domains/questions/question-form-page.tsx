@@ -21,6 +21,7 @@ import {
   useCreateQuestion,
   useUpdateQuestion,
 } from "@/domains/questions/hooks";
+import { useActivationVisibilityPrompt } from "@/domains/qna/activation-visibility";
 import {
   questionFormSchema,
   type QuestionFormValues,
@@ -75,6 +76,8 @@ export function QuestionFormPage({ mode }: { mode: "create" | "edit" }) {
   const questionQuery = useQuestion(mode === "edit" ? id : undefined);
   const createQuestion = useCreateQuestion();
   const updateQuestion = useUpdateQuestion(id ?? "");
+  const { resolveActivationVisibility, ActivationVisibilityDialog } =
+    useActivationVisibilityPrompt();
 
   const form = useForm<QuestionFormValues>({
     resolver: zodResolver(questionFormSchema),
@@ -83,8 +86,8 @@ export function QuestionFormPage({ mode }: { mode: "create" | "edit" }) {
       title: "",
       summary: "",
       contextNote: "",
-      status: QuestionStatus.Active,
-      visibility: VisibilityScope.Public,
+      status: QuestionStatus.Draft,
+      visibility: VisibilityScope.Internal,
       originChannel: ChannelKind.Manual,
       sort: 0,
     },
@@ -260,6 +263,7 @@ export function QuestionFormPage({ mode }: { mode: "create" | "edit" }) {
         )
       }
     >
+      {ActivationVisibilityDialog}
       {questionQuery.isError ? (
         <ErrorState
           title="Unable to load question"
@@ -289,13 +293,30 @@ export function QuestionFormPage({ mode }: { mode: "create" | "edit" }) {
                 <form
                   className="space-y-6"
                   onSubmit={form.handleSubmit(async (values) => {
+                    const nextStatus = Number(values.status) as QuestionStatus;
+                    let nextVisibility = Number(
+                      values.visibility,
+                    ) as VisibilityScope;
+                    const isActivating =
+                      nextStatus === QuestionStatus.Active &&
+                      (mode === "create" ||
+                        questionQuery.data?.status !== QuestionStatus.Active);
+
+                    if (
+                      isActivating &&
+                      nextVisibility !== VisibilityScope.Public
+                    ) {
+                      nextVisibility =
+                        await resolveActivationVisibility(nextVisibility);
+                    }
+
                     const createBody = {
                       spaceId: values.spaceId,
                       title: values.title,
                       summary: values.summary || undefined,
                       contextNote: values.contextNote || undefined,
-                      status: Number(values.status) as QuestionStatus,
-                      visibility: Number(values.visibility) as VisibilityScope,
+                      status: nextStatus,
+                      visibility: nextVisibility,
                       originChannel: Number(
                         values.originChannel,
                       ) as ChannelKind,
@@ -391,7 +412,7 @@ export function QuestionFormPage({ mode }: { mode: "create" | "edit" }) {
                       control={form.control}
                       name="visibility"
                       label="Visibility"
-                      description="Controls whether the question stays internal or can be exposed publicly."
+                      description="Controls internal, authenticated external, or public question exposure."
                       options={Object.entries(visibilityScopeLabels).map(
                         ([value, label]) => ({
                           value,

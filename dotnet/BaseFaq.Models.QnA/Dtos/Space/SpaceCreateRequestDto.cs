@@ -9,7 +9,7 @@ public class SpaceCreateRequestDto
     public required string Language { get; set; }
     public string? Summary { get; set; }
     public required SpaceStatus Status { get; set; }
-    public required VisibilityScope Visibility { get; set; }
+    public VisibilityScope Visibility { get; set; } = VisibilityScope.Internal;
     public required bool AcceptsQuestions { get; set; }
     public required bool AcceptsAnswers { get; set; }
 }

@@ -60,7 +60,6 @@ public class SpaceCommandQueryTests
                 Language = "en-US",
                 Summary = "Customer success questions.",
                 Status = SpaceStatus.Active,
-                Visibility = VisibilityScope.Authenticated,
                 AcceptsQuestions = true,
                 AcceptsAnswers = true
             }
@@ -71,6 +70,7 @@ public class SpaceCommandQueryTests
             await getHandler.Handle(new SpacesGetSpaceQuery { Id = id }, CancellationToken.None);
 
         Assert.Equal("customer-success-support", result.Slug);
+        Assert.Equal(VisibilityScope.Internal, result.Visibility);
     }
 
     [Fact]

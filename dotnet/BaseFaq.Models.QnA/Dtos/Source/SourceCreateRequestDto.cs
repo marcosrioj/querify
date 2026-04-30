@@ -12,6 +12,6 @@ public class SourceCreateRequestDto
     public required string Language { get; set; }
     public string? MediaType { get; set; }
     public string? MetadataJson { get; set; }
-    public required VisibilityScope Visibility { get; set; }
+    public VisibilityScope Visibility { get; set; } = VisibilityScope.Internal;
     public required bool MarkVerified { get; set; }
 }

@@ -87,7 +87,7 @@ export function AnswerFormPage({ mode }: { mode: "create" | "edit" }) {
       headline: "",
       body: "",
       kind: AnswerKind.Official,
-      visibility: VisibilityScope.Authenticated,
+      visibility: VisibilityScope.Internal,
       contextNote: "",
       authorLabel: "",
       sort: 1,
@@ -381,7 +381,7 @@ export function AnswerFormPage({ mode }: { mode: "create" | "edit" }) {
                       control={form.control}
                       name="visibility"
                       label="Visibility"
-                      description="Controls whether the answer stays internal or can be exposed publicly."
+                      description="Controls internal, authenticated external, or public answer exposure."
                       options={Object.entries(visibilityScopeLabels).map(
                         ([value, label]) => ({
                           value,

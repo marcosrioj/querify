@@ -41,7 +41,7 @@ public class Space : BaseEntity, IMustHaveTenant
     public required SpaceStatus Status { get; set; }
 
     /// <summary>
-    ///     Visibility scope for the space.
+    ///     Audience exposure for the space: internal portal, authenticated external, or public.
     /// </summary>
     public required VisibilityScope Visibility { get; set; }
 

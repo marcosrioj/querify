@@ -212,7 +212,9 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("Visibility")
-                        .HasColumnType("integer");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
 
                     b.HasKey("Id");
 
@@ -356,7 +358,9 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("Visibility")
-                        .HasColumnType("integer");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
 
                     b.HasKey("Id");
 
@@ -557,7 +561,9 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("Visibility")
-                        .HasColumnType("integer");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
 
                     b.HasKey("Id");
 
@@ -629,7 +635,9 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("Visibility")
-                        .HasColumnType("integer");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
 
                     b.HasKey("Id");
 

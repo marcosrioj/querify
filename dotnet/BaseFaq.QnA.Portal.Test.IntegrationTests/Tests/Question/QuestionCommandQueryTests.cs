@@ -104,6 +104,37 @@ public class QuestionCommandQueryTests
     }
 
     [Fact]
+    public async Task CreateQuestion_DefaultsVisibilityToInternalWhenOmitted()
+    {
+        using var context = TestContext.Create();
+        var space = await TestDataFactory.SeedSpaceAsync(context.DbContext, context.SessionService.TenantId);
+        var createHandler = new QuestionsCreateQuestionCommandHandler(
+            context.DbContext,
+            context.SessionService,
+            context.HttpContextAccessor);
+
+        var id = await createHandler.Handle(new QuestionsCreateQuestionCommand
+        {
+            Request = new QuestionCreateRequestDto
+            {
+                SpaceId = space.Id,
+                Title = "Internal default question",
+                Summary = null,
+                ContextNote = null,
+                Status = QuestionStatus.Active,
+                OriginChannel = ChannelKind.Manual,
+                Sort = 0
+            }
+        }, CancellationToken.None);
+
+        var getHandler = new QuestionsGetQuestionQueryHandler(context.DbContext, context.SessionService);
+        var result =
+            await getHandler.Handle(new QuestionsGetQuestionQuery { Id = id }, CancellationToken.None);
+
+        Assert.Equal(VisibilityScope.Internal, result.Visibility);
+    }
+
+    [Fact]
     public async Task CreateQuestion_ReturnsApiErrorWhenStatusIsUnsupportedLegacyValue()
     {
         using var context = TestContext.Create();
@@ -123,7 +154,7 @@ public class QuestionCommandQueryTests
                     Summary = null,
                     ContextNote = null,
                     Status = (QuestionStatus)99,
-                    Visibility = VisibilityScope.Authenticated,
+                    Visibility = VisibilityScope.Internal,
                     OriginChannel = ChannelKind.Manual,
                     Sort = 0
                 }

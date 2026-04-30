@@ -308,15 +308,21 @@ export const spaceStatusPresentation: Record<SpaceStatus, EnumPresentation> = {
 };
 
 export const visibilityPresentation: Record<VisibilityScope, EnumPresentation> = {
+  [VisibilityScope.Internal]: {
+    label: visibilityScopeLabels[VisibilityScope.Internal],
+    description: "Visible only inside the portal.",
+    badgeVariant: "outline",
+    sortGroup: 0,
+  },
   [VisibilityScope.Authenticated]: {
     label: visibilityScopeLabels[VisibilityScope.Authenticated],
-    description: "Visible to authenticated users.",
+    description: "Visible outside the portal to authenticated users.",
     badgeVariant: "info",
     sortGroup: 1,
   },
   [VisibilityScope.Public]: {
     label: visibilityScopeLabels[VisibilityScope.Public],
-    description: "Visible publicly.",
+    description: "Visible outside the portal to any visitor.",
     badgeVariant: "success",
     sortGroup: 2,
   },

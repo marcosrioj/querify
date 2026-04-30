@@ -70,6 +70,7 @@ export enum SpaceStatus {
 }
 
 export enum VisibilityScope {
+  Internal = 0,
   Authenticated = 1,
   Public = 2,
 }
@@ -205,6 +206,7 @@ export const spaceStatusLabels: Record<SpaceStatus, string> = {
 };
 
 export const visibilityScopeLabels: Record<VisibilityScope, string> = {
+  [VisibilityScope.Internal]: 'Internal',
   [VisibilityScope.Authenticated]: 'Authenticated',
   [VisibilityScope.Public]: 'Public',
 };

@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
 {
     [DbContext(typeof(QnADbContext))]
-    [Migration("20260430054616_InitialMigration")]
+    [Migration("20260430171548_InitialMigration")]
     partial class InitialMigration
     {
         /// <inheritdoc />
@@ -215,7 +215,9 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("Visibility")
-                        .HasColumnType("integer");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
 
                     b.HasKey("Id");
 
@@ -359,7 +361,9 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("Visibility")
-                        .HasColumnType("integer");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
 
                     b.HasKey("Id");
 
@@ -560,7 +564,9 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("Visibility")
-                        .HasColumnType("integer");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
 
                     b.HasKey("Id");
 
@@ -632,7 +638,9 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("Visibility")
-                        .HasColumnType("integer");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
 
                     b.HasKey("Id");
 

@@ -3,6 +3,7 @@ import {
   Activity,
   BookOpen,
   CheckCircle2,
+  CircleOff,
   Link2,
   MessageSquareText,
   Pencil,
@@ -13,9 +14,14 @@ import {
 } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useActivityList } from "@/domains/activity/hooks";
+import { useActivationVisibilityPrompt } from "@/domains/qna/activation-visibility";
 import { QnaModuleNav } from "@/domains/qna/qna-module-nav";
 import { RecommendedNextActionCard } from "@/domains/qna/recommended-next-action-card";
-import { useCreateQuestion, useQuestionList } from "@/domains/questions/hooks";
+import {
+  useCreateQuestion,
+  useQuestionList,
+  useUpdateQuestionStatus,
+} from "@/domains/questions/hooks";
 import { useSource, useSourceList } from "@/domains/sources/hooks";
 import {
   useSpace,
@@ -124,6 +130,9 @@ export function SpaceDetailPage() {
   });
   const deleteSpace = useDeleteSpace();
   const createQuestion = useCreateQuestion();
+  const updateQuestionStatus = useUpdateQuestionStatus();
+  const { resolveActivationVisibility, ActivationVisibilityDialog } =
+    useActivationVisibilityPrompt();
   const addTag = useAddSpaceTag(id ?? "");
   const removeTag = useRemoveSpaceTag(id ?? "");
   const addSource = useAddSpaceSource(id ?? "");
@@ -214,6 +223,24 @@ export function SpaceDetailPage() {
   });
   const questionsPagination = useLocalPagination({ items: spaceQuestions });
   const activityPagination = useLocalPagination({ items: contextualActivity });
+  const handleQuestionStatusChange = async (
+    question: (typeof spaceQuestions)[number],
+  ) => {
+    const status =
+      question.status === QuestionStatus.Active
+        ? QuestionStatus.Archived
+        : QuestionStatus.Active;
+    const visibility =
+      question.status === QuestionStatus.Active
+        ? undefined
+        : await resolveActivationVisibility(question.visibility);
+
+    updateQuestionStatus.mutate({
+      question,
+      status,
+      visibility,
+    });
+  };
 
   const activateRelationshipTab = (tab: string, focusTargetId?: string) => {
     setRelationshipTab(tab);
@@ -425,6 +452,7 @@ export function SpaceDetailPage() {
         </>
       }
     >
+      {ActivationVisibilityDialog}
       {spaceQuery.isError ? (
         <ErrorState
           title="Unable to load space"
@@ -786,8 +814,8 @@ export function SpaceDetailPage() {
                           title,
                           summary: newQuestionSummary.trim() || undefined,
                           contextNote: undefined,
-                          status: QuestionStatus.Active,
-                          visibility: VisibilityScope.Public,
+                          status: QuestionStatus.Draft,
+                          visibility: VisibilityScope.Internal,
                           originChannel: ChannelKind.Manual,
                           sort: spaceQuestions.length + 1,
                         })
@@ -896,6 +924,25 @@ export function SpaceDetailPage() {
                       </div>
                       <div className="flex shrink-0 flex-col gap-2 sm:items-end">
                         <QuestionStatusBadge status={question.status} />
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={updateQuestionStatus.isPending}
+                          onClick={() =>
+                            void handleQuestionStatusChange(question)
+                          }
+                        >
+                          {question.status === QuestionStatus.Active ? (
+                            <CircleOff className="size-4" />
+                          ) : (
+                            <CheckCircle2 className="size-4" />
+                          )}
+                          {translateText(
+                            question.status === QuestionStatus.Active
+                              ? "Desativar"
+                              : "Ativar",
+                          )}
+                        </Button>
                         <Button asChild variant="outline" size="sm">
                           <Link to={`/app/questions/${question.id}`}>
                             {translateText("Open question")}

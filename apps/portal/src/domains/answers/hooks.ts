@@ -13,9 +13,14 @@ import {
 } from '@/domains/answers/api';
 import { useAuth } from '@/platform/auth/use-auth';
 import { useTenant } from '@/platform/tenant/use-tenant';
+import {
+  AnswerStatus,
+  VisibilityScope,
+} from '@/shared/constants/backend-enums';
 import { translateText } from '@/shared/lib/i18n-core';
 import type {
   AnswerCreateRequestDto,
+  AnswerDto,
   AnswerSourceLinkCreateRequestDto,
   AnswerUpdateRequestDto,
 } from '@/domains/answers/types';
@@ -97,6 +102,43 @@ export function useUpdateAnswer(id: string) {
       updateAnswer(session?.accessToken, currentTenantId, id, body),
     onSuccess: async () => {
       toast.success(translateText('Answer updated.'));
+      await invalidateQna();
+    },
+  });
+}
+
+export function useUpdateAnswerStatus() {
+  const { session } = useAuth();
+  const { currentTenantId } = useTenant();
+  const invalidateQna = useInvalidateQna();
+
+  return useMutation({
+    mutationKey: [...answerKeys.all, 'workflow', 'status'],
+    mutationFn: ({
+      answer,
+      status,
+      visibility,
+    }: {
+      answer: AnswerDto;
+      status: AnswerStatus;
+      visibility?: VisibilityScope;
+    }) =>
+      updateAnswer(session?.accessToken, currentTenantId, answer.id, {
+        headline: answer.headline,
+        body: answer.body ?? undefined,
+        kind: answer.kind,
+        status,
+        visibility:
+          visibility ??
+          (status === AnswerStatus.Active
+            ? answer.visibility
+            : VisibilityScope.Internal),
+        contextNote: answer.contextNote ?? undefined,
+        authorLabel: answer.authorLabel ?? undefined,
+        sort: answer.sort,
+      }),
+    onSuccess: async () => {
+      toast.success(translateText('Answer status updated.'));
       await invalidateQna();
     },
   });

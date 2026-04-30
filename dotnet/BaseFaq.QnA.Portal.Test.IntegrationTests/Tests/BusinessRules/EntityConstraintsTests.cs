@@ -25,7 +25,7 @@ public class EntityConstraintsTests
             Summary = "Summary",
             ContextNote = "Context",
             Status = QuestionStatus.Active,
-            Visibility = VisibilityScope.Authenticated,
+            Visibility = VisibilityScope.Internal,
             OriginChannel = ChannelKind.Manual,
             AiConfidenceScore = 50,
             FeedbackScore = 0,

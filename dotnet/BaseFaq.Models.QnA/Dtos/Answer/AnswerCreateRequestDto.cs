@@ -9,7 +9,7 @@ public class AnswerCreateRequestDto
     public string? Body { get; set; }
     public required AnswerKind Kind { get; set; }
     public required AnswerStatus Status { get; set; }
-    public required VisibilityScope Visibility { get; set; }
+    public VisibilityScope Visibility { get; set; } = VisibilityScope.Internal;
     public string? ContextNote { get; set; }
     public string? AuthorLabel { get; set; }
     public required int Sort { get; set; }

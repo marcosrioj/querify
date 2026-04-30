@@ -98,7 +98,7 @@ Use these dimensions for module behavior:
 | Module boundary | owning persistence project | Which BaseFaq module owns the behavior: Tenant, QnA, Direct, Broadcast, or Trust. |
 | Space lifecycle state | `SpaceStatus` | Whether a QnA space is draft, active, or archived. Public spaces must be active. |
 | Lifecycle state | `QuestionStatus`, `AnswerStatus` | Where a question or answer is in workflow. |
-| Audience exposure | `VisibilityScope` | Who can see the item: authenticated users or the public. This is not status and not moderation. |
+| Audience exposure | `VisibilityScope` | Who can see the item: internal portal users, authenticated external users, or the public. This is not status and not moderation. |
 | Channel | `ChannelKind` | Where a question, vote, feedback, or signal entered the system. |
 | Answer provenance | `AnswerKind` | Whether an answer is official, community-provided, or imported. |
 | Source material type | `SourceKind` | What artifact is linked: article, page, ticket, transcript, audit record, and so on. |
@@ -112,7 +112,7 @@ Common consolidation rules:
 - A space status enum should not be duplicated by kind/mode enums plus publication timestamps.
 - A question type enum should not duplicate origin channel, lifecycle status, or the parent space mode.
 - Duplicate question detection is not persisted as QnA question state. Intake processes such as Direct, Broadcast, imports, or QnA-owned creation flows may use vector search to resolve an existing question before creating a new canonical question.
-- A source kind should describe the artifact. A source role should describe why it is linked. Visibility should describe whether the source is authenticated-only or public.
+- A source kind should describe the artifact. A source role should describe why it is linked. Visibility should describe whether the source is internal-only, authenticated external, or public.
 - Source trust or validation behavior belongs to relationship context or Trust-owned validation, not a source-wide shortcut in QnA.
 - An activity kind should describe a supported status event or public signal, not a field that can be edited directly.
 - Generic edits, accepted-answer selection, reports, and creation shortcuts should rely on entity state, relationship state, or audit fields instead of broad activity values.

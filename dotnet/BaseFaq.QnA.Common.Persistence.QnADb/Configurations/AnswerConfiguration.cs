@@ -1,4 +1,5 @@
 using BaseFaq.Common.EntityFramework.Core.Configurations;
+using BaseFaq.Models.QnA.Enums;
 using BaseFaq.QnA.Common.Persistence.QnADb.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -25,6 +26,10 @@ public class AnswerConfiguration : BaseConfiguration<Answer>
 
         builder.Property(answer => answer.AuthorLabel)
             .HasMaxLength(Answer.MaxAuthorLabelLength);
+
+        builder.Property(answer => answer.Visibility)
+            .HasDefaultValue(VisibilityScope.Internal)
+            .IsRequired();
 
         builder.Property(answer => answer.AiConfidenceScore)
             .HasDefaultValue(0)

@@ -34,7 +34,7 @@ public class Question : BaseEntity, IMustHaveTenant
     public required QuestionStatus Status { get; set; }
 
     /// <summary>
-    ///     Visibility scope of the question.
+    ///     Audience exposure for the question: internal portal, authenticated external, or public.
     /// </summary>
     public required VisibilityScope Visibility { get; set; }
 

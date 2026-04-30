@@ -13,9 +13,14 @@ import {
 } from "@/domains/questions/api";
 import { useAuth } from "@/platform/auth/use-auth";
 import { useTenant } from "@/platform/tenant/use-tenant";
+import {
+  QuestionStatus,
+  VisibilityScope,
+} from "@/shared/constants/backend-enums";
 import { translateText } from "@/shared/lib/i18n-core";
 import type {
   QuestionCreateRequestDto,
+  QuestionDto,
   QuestionSourceLinkCreateRequestDto,
   QuestionTagCreateRequestDto,
   QuestionUpdateRequestDto,
@@ -112,6 +117,43 @@ export function useUpdateQuestion(id: string) {
       updateQuestion(session?.accessToken, currentTenantId, id, body),
     onSuccess: async () => {
       toast.success(translateText("Question updated."));
+      await invalidateQna();
+    },
+  });
+}
+
+export function useUpdateQuestionStatus() {
+  const { session } = useAuth();
+  const { currentTenantId } = useTenant();
+  const invalidateQna = useInvalidateQna();
+
+  return useMutation({
+    mutationKey: [...questionKeys.all, "workflow", "status"],
+    mutationFn: ({
+      question,
+      status,
+      visibility,
+    }: {
+      question: QuestionDto;
+      status: QuestionStatus;
+      visibility?: VisibilityScope;
+    }) =>
+      updateQuestion(session?.accessToken, currentTenantId, question.id, {
+        title: question.title,
+        summary: question.summary ?? undefined,
+        contextNote: question.contextNote ?? undefined,
+        status,
+        visibility:
+          visibility ??
+          (status === QuestionStatus.Active
+            ? question.visibility
+            : VisibilityScope.Internal),
+        originChannel: question.originChannel,
+        sort: question.sort,
+        acceptedAnswerId: question.acceptedAnswerId ?? null,
+      }),
+    onSuccess: async () => {
+      toast.success(translateText("Question status updated."));
       await invalidateQna();
     },
   });

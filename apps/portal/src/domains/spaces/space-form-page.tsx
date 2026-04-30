@@ -89,7 +89,7 @@ export function SpaceFormPage({ mode }: { mode: "create" | "edit" }) {
       language: initialLanguage,
       summary: "",
       status: SpaceStatus.Active,
-      visibility: VisibilityScope.Public,
+      visibility: VisibilityScope.Internal,
       acceptsQuestions: true,
       acceptsAnswers: true,
     },
@@ -219,7 +219,7 @@ export function SpaceFormPage({ mode }: { mode: "create" | "edit" }) {
               <KeyValueList
                 items={[
                   { label: "Status", value: "Draft, active, or archived" },
-                  { label: "Visibility", value: "Authenticated or public" },
+                  { label: "Visibility", value: "Internal, authenticated, or public" },
                 ]}
               />
             </CardContent>

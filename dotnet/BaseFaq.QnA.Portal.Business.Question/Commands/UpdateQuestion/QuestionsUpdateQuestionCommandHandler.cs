@@ -71,7 +71,7 @@ public sealed class QuestionsUpdateQuestionCommandHandler(
             if (entity.Visibility is VisibilityScope.Public &&
                 answer.Visibility is not VisibilityScope.Public)
                 throw new ApiErrorException(
-                    "Public questions cannot accept authenticated-only answers.",
+                    "Public questions cannot accept non-public answers.",
                     (int)HttpStatusCode.UnprocessableEntity);
 
             entity.AcceptedAnswerId = answer.Id;

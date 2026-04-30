@@ -35,7 +35,7 @@ public class Answer : BaseEntity, IMustHaveTenant
     public required AnswerStatus Status { get; set; }
 
     /// <summary>
-    ///     Visibility scope of the answer.
+    ///     Audience exposure for the answer: internal portal, authenticated external, or public.
     /// </summary>
     public required VisibilityScope Visibility { get; set; }
 

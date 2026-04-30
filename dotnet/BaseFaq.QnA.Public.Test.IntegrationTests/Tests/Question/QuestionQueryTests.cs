@@ -24,8 +24,16 @@ public class QuestionQueryTests
             context.DbContext,
             context.TenantId,
             question.Id,
-            "Internal draft answer",
-            AnswerStatus.Draft,
+            "Internal answer",
+            AnswerStatus.Active,
+            VisibilityScope.Internal,
+            rank: 9);
+        await TestDataFactory.SeedAnswerAsync(
+            context.DbContext,
+            context.TenantId,
+            question.Id,
+            "Authenticated answer",
+            AnswerStatus.Active,
             VisibilityScope.Authenticated,
             rank: 10);
 

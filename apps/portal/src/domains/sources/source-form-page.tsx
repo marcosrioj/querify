@@ -149,7 +149,7 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
       mediaType: "",
       checksum: "",
       metadataJson: "",
-      visibility: VisibilityScope.Authenticated,
+      visibility: VisibilityScope.Internal,
       markVerified: false,
     },
   });
@@ -257,7 +257,7 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
                     value:
                       "Article, web page, ticket, repository, chat, and more",
                   },
-                  { label: "Visibility", value: "Authenticated or public" },
+                  { label: "Visibility", value: "Internal, authenticated, or public" },
                   { label: "Metadata", value: "Optional valid JSON object" },
                 ]}
               />
