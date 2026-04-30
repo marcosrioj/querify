@@ -4,7 +4,9 @@ export type ActivityDto = {
   id: string;
   tenantId: string;
   questionId: string;
+  questionTitle?: string | null;
   answerId?: string | null;
+  answerHeadline?: string | null;
   kind: ActivityKind;
   actorKind: ActorKind;
   actorLabel?: string | null;

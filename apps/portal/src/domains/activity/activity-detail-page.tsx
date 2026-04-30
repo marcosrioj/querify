@@ -40,6 +40,20 @@ function formatMetadataJson(metadataJson?: string | null) {
   }
 }
 
+function ActivitySubjectValue({
+  fallback,
+  value,
+}: {
+  fallback: string;
+  value?: string | null;
+}) {
+  return (
+    <span className="block text-base font-medium leading-snug text-foreground [overflow-wrap:anywhere] sm:text-lg">
+      {value?.trim() || fallback}
+    </span>
+  );
+}
+
 export function ActivityDetailPage() {
   const portalTimeZone = usePortalTimeZone();
   const { id } = useParams();
@@ -79,7 +93,7 @@ export function ActivityDetailPage() {
       header={
         <PageHeader
           title="Activity event"
-          description="Inspect actor context, notes, metadata, and the question identifiers behind this audit entry."
+          description="Inspect actor context, notes, metadata, and the question or answer behind this audit entry."
           descriptionMode="hint"
           backTo={
             activityQuery.data?.answerId
@@ -136,11 +150,24 @@ export function ActivityDetailPage() {
               },
               {
                 title: "Question",
-                value: activityQuery.data.questionId,
+                value: (
+                  <ActivitySubjectValue
+                    value={activityQuery.data.questionTitle}
+                    fallback={activityQuery.data.questionId}
+                  />
+                ),
               },
               {
                 title: "Answer",
-                value: activityQuery.data.answerId || "No answer scope",
+                value: (
+                  <ActivitySubjectValue
+                    value={activityQuery.data.answerHeadline}
+                    fallback={
+                      activityQuery.data.answerId ||
+                      translateText("No answer scope")
+                    }
+                  />
+                ),
               },
             ]}
           />
