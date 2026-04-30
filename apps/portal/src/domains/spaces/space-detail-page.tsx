@@ -431,7 +431,7 @@ export function SpaceDetailPage() {
           retry={() => void spaceQuery.refetch()}
         />
       ) : showLoadingState ? (
-        <DetailPageSkeleton cards={4} />
+        <DetailPageSkeleton cards={5} />
       ) : spaceQuery.data ? (
         <>
           <SectionGrid
@@ -505,6 +505,20 @@ export function SpaceDetailPage() {
               )
             }
           />
+
+          <Card>
+            <CardHeader>
+              <CardHeading>
+                <CardTitle>{translateText("Summary")}</CardTitle>
+              </CardHeading>
+            </CardHeader>
+            <CardContent>
+              <p className="whitespace-pre-wrap text-sm leading-6">
+                {spaceQuery.data.summary ||
+                  translateText("No summary provided.")}
+              </p>
+            </CardContent>
+          </Card>
 
           <QnaModuleNav
             eyebrow="Space relationships"
