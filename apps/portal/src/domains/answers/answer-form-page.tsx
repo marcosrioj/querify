@@ -219,11 +219,11 @@ export function AnswerFormPage({ mode }: { mode: "create" | "edit" }) {
           breadcrumbs={
             selectedQuestion
               ? [
-                  ...(selectedSpaceQuery.data
+                  ...(selectedQuestion.spaceId
                     ? [
                         {
-                          label: selectedSpaceQuery.data.name,
-                          to: `/app/spaces/${selectedSpaceQuery.data.id}`,
+                          label: "Space",
+                          to: `/app/spaces/${selectedQuestion.spaceId}`,
                         },
                       ]
                     : []),

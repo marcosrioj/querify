@@ -222,11 +222,11 @@ export function QuestionFormPage({ mode }: { mode: "create" | "edit" }) {
           descriptionMode="hint"
           backTo={backTo}
           breadcrumbs={
-            selectedSpace
+            selectedSpaceId
               ? [
                   {
-                    label: selectedSpace.name,
-                    to: `/app/spaces/${selectedSpace.id}`,
+                    label: "Space",
+                    to: `/app/spaces/${selectedSpaceId}`,
                   },
                   ...(mode === "edit" && id
                     ? [{ label: "Question", to: `/app/questions/${id}` }]

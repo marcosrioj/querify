@@ -574,8 +574,7 @@ export function QuestionDetailPage() {
             questionQuery.data
               ? [
                   {
-                    label:
-                      spaceQuery.data?.name ?? questionQuery.data.spaceSlug,
+                    label: "Space",
                     to: `/app/spaces/${questionQuery.data.spaceId}`,
                   },
                   { label: "Question" },

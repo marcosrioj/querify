@@ -3,7 +3,6 @@ import { useActivity } from "@/domains/activity/hooks";
 import { RecommendedNextActionCard } from "@/domains/qna/recommended-next-action-card";
 import { useQuestion } from "@/domains/questions/hooks";
 import { usePortalTimeZone } from "@/domains/settings/settings-hooks";
-import { useSpace } from "@/domains/spaces/hooks";
 import {
   DetailLayout,
   KeyValueList,
@@ -61,7 +60,6 @@ export function ActivityDetailPage() {
   const { id } = useParams();
   const activityQuery = useActivity(id);
   const questionQuery = useQuestion(activityQuery.data?.questionId);
-  const spaceQuery = useSpace(questionQuery.data?.spaceId);
   const formattedMetadataJson = formatMetadataJson(
     activityQuery.data?.metadataJson,
   );
@@ -109,11 +107,11 @@ export function ActivityDetailPage() {
           breadcrumbs={
             activityQuery.data
               ? [
-                  ...(spaceQuery.data
+                  ...(questionQuery.data?.spaceId
                     ? [
                         {
-                          label: spaceQuery.data.name,
-                          to: `/app/spaces/${spaceQuery.data.id}`,
+                          label: "Space",
+                          to: `/app/spaces/${questionQuery.data.spaceId}`,
                         },
                       ]
                     : []),

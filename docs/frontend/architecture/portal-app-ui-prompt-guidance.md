@@ -40,7 +40,7 @@ If a shared primitive already matches the use case, do not replace it with ad ho
 - The workspace switcher belongs in the sidebar header.
 - The top toolbar is for the unified page trail, command search, language, notifications, and the user menu.
 - The unified page trail combines parent breadcrumbs, the current page title, optional back navigation, and compact title hints. Do not render a second page title in the content header.
-- QnA child breadcrumbs must follow the owning lineage, for example Space name -> Question -> question title, Space name -> Question -> Answer -> Activity, or just the Space name on a Space detail page.
+- QnA child breadcrumbs must follow the owning lineage with the generic parent label, for example Space -> Question -> question title or Space -> Question -> Answer -> Activity. Only the Space detail page itself should show the Space name.
 - Breadcrumb/title text must truncate inside the toolbar instead of wrapping or widening the shell.
 - Do not use the QnA module navigation as primary app navigation.
 - Use the QnA module visual language only for in-screen child and relationship management.

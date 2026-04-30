@@ -30,7 +30,6 @@ import { RecommendedNextActionCard } from "@/domains/qna/recommended-next-action
 import { useQuestion } from "@/domains/questions/hooks";
 import { usePortalTimeZone } from "@/domains/settings/settings-hooks";
 import { useSource, useSourceList } from "@/domains/sources/hooks";
-import { useSpace } from "@/domains/spaces/hooks";
 import {
   AnswerStatus,
   SourceRole,
@@ -125,7 +124,6 @@ export function AnswerDetailPage() {
   const answerId = id ?? "";
   const answerQuery = useAnswer(id);
   const questionQuery = useQuestion(answerQuery.data?.questionId);
-  const selectedSpaceQuery = useSpace(questionQuery.data?.spaceId);
   const activityListState = useRelationshipListState({
     defaultSorting: "OccurredAtUtc DESC",
     filterDefaults: ACTIVITY_RELATIONSHIP_FILTER_DEFAULTS,
@@ -343,11 +341,11 @@ export function AnswerDetailPage() {
           breadcrumbs={
             answerQuery.data
               ? [
-                  ...(selectedSpaceQuery.data
+                  ...(questionQuery.data?.spaceId
                     ? [
                         {
-                          label: selectedSpaceQuery.data.name,
-                          to: `/app/spaces/${selectedSpaceQuery.data.id}`,
+                          label: "Space",
+                          to: `/app/spaces/${questionQuery.data.spaceId}`,
                         },
                       ]
                     : []),
