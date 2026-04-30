@@ -2,6 +2,10 @@ using System.Text;
 using System.Text.Json;
 using BaseFaq.Models.QnA.Enums;
 using BaseFaq.QnA.Common.Domain.BusinessRules.Activities;
+using BaseFaq.QnA.Common.Domain.BusinessRules.Answers;
+using BaseFaq.QnA.Common.Domain.BusinessRules.Questions;
+using BaseFaq.QnA.Common.Domain.BusinessRules.Sources;
+using BaseFaq.QnA.Common.Domain.BusinessRules.Spaces;
 using BaseFaq.QnA.Common.Persistence.QnADb.DbContext;
 using BaseFaq.QnA.Common.Domain.Entities;
 using BaseFaq.Tools.Seed.Abstractions;
@@ -66,7 +70,7 @@ public sealed class QnASeedService : IQnASeedService
             var definition = selectedSpaces[spaceIndex];
             var space = spaces[spaceIndex];
 
-            SeedSpaceRelationships(dbContext, space, definition, tagsByName, sourcesByUrl, counts, tenantId);
+            SeedSpaceRelationships(space, definition, tagsByName, sourcesByUrl, counts, tenantId);
             SeedQuestions(
                 dbContext,
                 space,
@@ -83,8 +87,7 @@ public sealed class QnASeedService : IQnASeedService
 
         foreach (var assignment in acceptedAnswerAssignments)
         {
-            assignment.Question.AcceptedAnswerId = assignment.Answer.Id;
-            assignment.Question.AcceptedAnswer = assignment.Answer;
+            QuestionRules.ApplyAcceptedAnswer(assignment.Question, assignment.Answer);
         }
 
         dbContext.SaveChanges();
@@ -131,30 +134,38 @@ public sealed class QnASeedService : IQnASeedService
             .SelectMany(definition => definition.Items)
             .DistinctBy(item => item.SourceUrl, StringComparer.OrdinalIgnoreCase)
             .Take(Math.Max(0, maxSourceCount))
-            .Select(item => new Source
-            {
-                Id = Guid.NewGuid(),
-                TenantId = tenantId,
-                Kind = ResolveSourceKind(item),
-                Locator = item.SourceUrl,
-                Label = item.SourceLabel,
-                ContextNote = BuildSourceContextNote(item),
-                ExternalId = BuildSourceExternalId(item),
-                Language = SeedLanguage,
-                MediaType = ResolveMediaType(item),
-                Checksum = BuildChecksum(item),
-                MetadataJson = BuildSourceMetadataJson(item),
-                Visibility = VisibilityScope.Public,
-                LastVerifiedAtUtc = BuildVerifiedAtUtc(item),
-                CreatedBy = "seed",
-                UpdatedBy = "seed"
-            })
+            .Select(item => CreateSource(item, tenantId))
             .ToList();
+    }
+
+    private static Source CreateSource(SeedQuestionDefinition item, Guid tenantId)
+    {
+        var source = new Source
+        {
+            Id = Guid.NewGuid(),
+            TenantId = tenantId,
+            Kind = ResolveSourceKind(item),
+            Locator = item.SourceUrl,
+            Label = item.SourceLabel,
+            ContextNote = BuildSourceContextNote(item),
+            ExternalId = BuildSourceExternalId(item),
+            Language = SeedLanguage,
+            MediaType = ResolveMediaType(item),
+            Checksum = BuildChecksum(item),
+            MetadataJson = BuildSourceMetadataJson(item),
+            Visibility = VisibilityScope.Public,
+            LastVerifiedAtUtc = BuildVerifiedAtUtc(item),
+            CreatedBy = "seed",
+            UpdatedBy = "seed"
+        };
+
+        SourceRules.EnsureVisibilityAllowed(source, source.Visibility);
+        return source;
     }
 
     private static Space CreateSpace(SeedSpaceDefinition definition, Guid tenantId, int index)
     {
-        return new Space
+        var space = new Space
         {
             Id = Guid.NewGuid(),
             TenantId = tenantId,
@@ -169,6 +180,9 @@ public sealed class QnASeedService : IQnASeedService
             CreatedBy = "seed",
             UpdatedBy = "seed"
         };
+
+        SpaceRules.EnsureVisibilityAllowed(space, space.Visibility);
+        return space;
     }
 
     private static string BuildSpaceSummary(SeedSpaceDefinition definition)
@@ -178,7 +192,6 @@ public sealed class QnASeedService : IQnASeedService
     }
 
     private static void SeedSpaceRelationships(
-        QnADbContext dbContext,
         Space space,
         SeedSpaceDefinition definition,
         IReadOnlyDictionary<string, Tag> tagsByName,
@@ -192,17 +205,7 @@ public sealed class QnASeedService : IQnASeedService
                      .Take(Math.Max(0, counts.TagsPerSpace)))
         {
             var tag = tagsByName[tagName];
-            dbContext.SpaceTags.Add(new SpaceTag
-            {
-                Id = Guid.NewGuid(),
-                TenantId = tenantId,
-                SpaceId = space.Id,
-                Space = space,
-                TagId = tag.Id,
-                Tag = tag,
-                CreatedBy = "seed",
-                UpdatedBy = "seed"
-            });
+            SpaceRules.EnsureTagLink(space, tag, tenantId, "seed");
         }
 
         foreach (var sourceUrl in definition.Items
@@ -212,17 +215,7 @@ public sealed class QnASeedService : IQnASeedService
                      .Take(Math.Max(0, counts.SourcesPerSpace)))
         {
             var source = sourcesByUrl[sourceUrl];
-            dbContext.SpaceSources.Add(new SpaceSource
-            {
-                Id = Guid.NewGuid(),
-                TenantId = tenantId,
-                SpaceId = space.Id,
-                Space = space,
-                SourceId = source.Id,
-                Source = source,
-                CreatedBy = "seed",
-                UpdatedBy = "seed"
-            });
+            SpaceRules.EnsureSourceLink(space, source, tenantId, "seed");
         }
     }
 
@@ -237,6 +230,9 @@ public sealed class QnASeedService : IQnASeedService
         int spaceIndex,
         ICollection<AcceptedAnswerAssignment> acceptedAnswerAssignments)
     {
+        SpaceRules.EnsureAcceptsQuestions(space);
+        SpaceRules.EnsureAcceptsAnswers(space);
+
         for (var questionIndex = 0; questionIndex < definition.Items.Count; questionIndex++)
         {
             var item = definition.Items[questionIndex];
@@ -294,6 +290,20 @@ public sealed class QnASeedService : IQnASeedService
                 ApplyAlternateAnswerRelationships(alternateAnswer, item, sourcesByUrl, tenantId);
             }
 
+            QuestionRules.EnsureSupportedStatus(question.Status);
+            AnswerRules.EnsureSupportedStatus(primaryAnswer.Status);
+            if (alternateAnswer is not null)
+            {
+                AnswerRules.EnsureSupportedStatus(alternateAnswer.Status);
+            }
+
+            QuestionRules.EnsureVisibilityAllowed(question, question.Visibility);
+            AnswerRules.EnsureVisibilityAllowed(primaryAnswer, primaryAnswer.Visibility);
+            if (alternateAnswer is not null)
+            {
+                AnswerRules.EnsureVisibilityAllowed(alternateAnswer, alternateAnswer.Visibility);
+            }
+
             var activities = BuildActivities(
                 question,
                 primaryAnswer,
@@ -306,11 +316,6 @@ public sealed class QnASeedService : IQnASeedService
                 resolvedAtUtc,
                 spaceIndex,
                 questionIndex);
-
-            foreach (var activity in activities)
-            {
-                question.Activities.Add(activity);
-            }
 
             question.LastActivityAtUtc = activities.Max(activity => activity.OccurredAtUtc);
             question.FeedbackScore = ActivitySignals.ComputeFeedbackScore(
@@ -394,17 +399,7 @@ public sealed class QnASeedService : IQnASeedService
                      .Take(2))
         {
             var tag = tagsByName[tagName];
-            question.Tags.Add(new QuestionTag
-            {
-                Id = Guid.NewGuid(),
-                TenantId = tenantId,
-                QuestionId = question.Id,
-                Question = question,
-                TagId = tag.Id,
-                Tag = tag,
-                CreatedBy = "seed",
-                UpdatedBy = "seed"
-            });
+            QuestionRules.EnsureTagLink(question, tag, tenantId, "seed");
         }
 
         if (!sourcesByUrl.TryGetValue(item.SourceUrl, out var source))
@@ -412,19 +407,16 @@ public sealed class QnASeedService : IQnASeedService
             return;
         }
 
-        question.Sources.Add(new QuestionSourceLink
-        {
-            Id = Guid.NewGuid(),
-            TenantId = tenantId,
-            QuestionId = question.Id,
-            Question = question,
-            SourceId = source.Id,
-            Source = source,
-            Role = SourceRole.Origin,
-            Order = 1,
-            CreatedBy = "seed",
-            UpdatedBy = "seed"
-        });
+        var link = QuestionRules.CreateSourceLink(
+            question,
+            source,
+            SourceRole.Origin,
+            1,
+            tenantId,
+            "seed");
+
+        question.Sources.Add(link);
+        source.Questions.Add(link);
     }
 
     private static void ApplyAnswerRelationships(
@@ -438,19 +430,16 @@ public sealed class QnASeedService : IQnASeedService
             return;
         }
 
-        answer.Sources.Add(new AnswerSourceLink
-        {
-            Id = Guid.NewGuid(),
-            TenantId = tenantId,
-            AnswerId = answer.Id,
-            Answer = answer,
-            SourceId = source.Id,
-            Source = source,
-            Role = SourceRole.Evidence,
-            Order = 1,
-            CreatedBy = "seed",
-            UpdatedBy = "seed"
-        });
+        var link = AnswerRules.CreateSourceLink(
+            answer,
+            source,
+            SourceRole.Evidence,
+            1,
+            tenantId,
+            "seed");
+
+        answer.Sources.Add(link);
+        source.Answers.Add(link);
     }
 
     private static void ApplyAlternateAnswerRelationships(
@@ -464,19 +453,16 @@ public sealed class QnASeedService : IQnASeedService
             return;
         }
 
-        answer.Sources.Add(new AnswerSourceLink
-        {
-            Id = Guid.NewGuid(),
-            TenantId = tenantId,
-            AnswerId = answer.Id,
-            Answer = answer,
-            SourceId = source.Id,
-            Source = source,
-            Role = SourceRole.Context,
-            Order = 1,
-            CreatedBy = "seed",
-            UpdatedBy = "seed"
-        });
+        var link = AnswerRules.CreateSourceLink(
+            answer,
+            source,
+            SourceRole.Context,
+            1,
+            tenantId,
+            "seed");
+
+        answer.Sources.Add(link);
+        source.Answers.Add(link);
     }
 
     private static List<Activity> BuildActivities(
@@ -492,36 +478,66 @@ public sealed class QnASeedService : IQnASeedService
         int spaceIndex,
         int questionIndex)
     {
-        var activities = new List<Activity>
+        var activities = new List<Activity>();
+        var moderator = CreateModeratorActor(moderatorIdentity);
+        var emptySnapshot = new Dictionary<string, object?>(StringComparer.Ordinal);
+
+        var questionActivity = ActivityAppender.AddQuestionActivity(
+            question,
+            ActivityKind.QuestionCreated,
+            moderator,
+            "Created",
+            emptySnapshot,
+            ActivityEntityMetadata.SnapshotQuestion(question),
+            ActivityEntityMetadata.QuestionContext(question),
+            createdAtUtc);
+        if (questionActivity is not null)
         {
-            CreateInternalActivity(
-                question,
-                null,
-                ActivityKindStatusMap.ForQuestionStatus(question.Status),
-                moderatorIdentity,
-                createdAtUtc),
-            CreateInternalActivity(
-                question,
-                primaryAnswer,
-                ActivityKindStatusMap.ForAnswerStatus(primaryAnswer.Status),
-                moderatorIdentity,
-                answerActiveEventAtUtc)
-        };
+            activities.Add(questionActivity);
+        }
+
+        var answerActivity = ActivityAppender.AddAnswerActivity(
+            primaryAnswer,
+            ActivityKind.AnswerCreated,
+            moderator,
+            "Created",
+            emptySnapshot,
+            ActivityEntityMetadata.SnapshotAnswer(primaryAnswer),
+            ActivityEntityMetadata.AnswerContext(primaryAnswer),
+            answerActiveEventAtUtc);
+        if (answerActivity is not null)
+        {
+            activities.Add(answerActivity);
+        }
 
         if (alternateAnswer is not null)
         {
-            activities.Add(
-                CreateInternalActivity(
-                    question,
-                    alternateAnswer,
-                    ActivityKindStatusMap.ForAnswerStatus(alternateAnswer.Status),
-                    moderatorIdentity,
-                    resolvedAtUtc.AddHours(4),
-                    notes: "Archived after the active canonical answer replaced it."));
+            var archiveActivity = ActivityAppender.AddAnswerActivity(
+                alternateAnswer,
+                ActivityKindStatusMap.ForAnswerStatus(alternateAnswer.Status),
+                moderator,
+                "StatusChanged",
+                new Dictionary<string, object?>(StringComparer.Ordinal)
+                {
+                    ["Status"] = AnswerStatus.Active.ToString(),
+                    ["Visibility"] = VisibilityScope.Public.ToString()
+                },
+                new Dictionary<string, object?>(StringComparer.Ordinal)
+                {
+                    ["Status"] = alternateAnswer.Status.ToString(),
+                    ["Visibility"] = alternateAnswer.Visibility.ToString()
+                },
+                ActivityEntityMetadata.AnswerContext(alternateAnswer),
+                resolvedAtUtc.AddHours(4));
+
+            if (archiveActivity is not null)
+            {
+                activities.Add(archiveActivity);
+            }
         }
 
         activities.AddRange(BuildFeedbackActivities(question, item, signalCount, resolvedAtUtc, spaceIndex, questionIndex));
-        activities.AddRange(BuildVoteActivities(question, primaryAnswer, item, signalCount, resolvedAtUtc, spaceIndex, questionIndex));
+        activities.AddRange(BuildVoteActivities(primaryAnswer, item, signalCount, resolvedAtUtc, spaceIndex, questionIndex));
 
         return activities;
     }
@@ -549,34 +565,17 @@ public sealed class QnASeedService : IQnASeedService
         {
             var like = signalIndex < likeCount;
             var identity = BuildCustomerIdentity("feedback", spaceIndex, questionIndex, signalIndex);
-            yield return new Activity
-            {
-                Id = Guid.NewGuid(),
-                TenantId = question.TenantId,
-                QuestionId = question.Id,
-                Question = question,
-                Kind = ActivityKind.FeedbackReceived,
-                ActorKind = ActorKind.Customer,
-                ActorLabel = identity.UserPrint,
-                UserPrint = identity.UserPrint,
-                Ip = identity.Ip,
-                UserAgent = identity.UserAgent,
-                Notes = like ? "Helpful outcome confirmed." : "Customer still needs clarification.",
-                MetadataJson = ActivitySignals.CreateFeedbackMetadata(
-                    identity.UserPrint,
-                    identity.Ip,
-                    identity.UserAgent,
-                    like,
-                    like ? null : FeedbackReasons[(spaceIndex + questionIndex + signalIndex) % FeedbackReasons.Length]),
-                OccurredAtUtc = startAtUtc.AddHours(12).AddMinutes(signalIndex),
-                CreatedBy = identity.UserPrint,
-                UpdatedBy = identity.UserPrint
-            };
+            yield return ActivityAppender.AddFeedbackActivity(
+                question,
+                CreateCustomerActor(identity),
+                like,
+                like ? null : FeedbackReasons[(spaceIndex + questionIndex + signalIndex) % FeedbackReasons.Length],
+                like ? "Helpful outcome confirmed." : "Customer still needs clarification.",
+                startAtUtc.AddHours(12).AddMinutes(signalIndex));
         }
     }
 
     private static IEnumerable<Activity> BuildVoteActivities(
-        Question question,
         Answer answer,
         SeedQuestionDefinition item,
         int signalCount,
@@ -599,60 +598,37 @@ public sealed class QnASeedService : IQnASeedService
         {
             var voteValue = signalIndex < upvoteCount ? 1 : -1;
             var identity = BuildCustomerIdentity("vote", spaceIndex, questionIndex, signalIndex);
-            yield return new Activity
-            {
-                Id = Guid.NewGuid(),
-                TenantId = question.TenantId,
-                QuestionId = question.Id,
-                Question = question,
-                AnswerId = answer.Id,
-                Answer = answer,
-                Kind = ActivityKind.VoteReceived,
-                ActorKind = ActorKind.Customer,
-                ActorLabel = identity.UserPrint,
-                UserPrint = identity.UserPrint,
-                Ip = identity.Ip,
-                UserAgent = identity.UserAgent,
-                Notes = voteValue > 0 ? "Useful answer ranking signal." : "Ranking signal favored another answer.",
-                MetadataJson = ActivitySignals.CreateVoteMetadata(
-                    identity.UserPrint,
-                    identity.Ip,
-                    identity.UserAgent,
-                    voteValue),
-                OccurredAtUtc = startAtUtc.AddHours(24).AddMinutes(signalIndex),
-                CreatedBy = identity.UserPrint,
-                UpdatedBy = identity.UserPrint
-            };
+            yield return ActivityAppender.AddVoteActivity(
+                answer,
+                CreateCustomerActor(identity),
+                voteValue,
+                voteValue > 0 ? "Useful answer ranking signal." : "Ranking signal favored another answer.",
+                startAtUtc.AddHours(24).AddMinutes(signalIndex));
         }
     }
 
-    private static Activity CreateInternalActivity(
-        Question question,
-        Answer? answer,
-        ActivityKind kind,
-        SeedActorIdentity identity,
-        DateTime occurredAtUtc,
-        string? notes = null)
+    private static ActivityActor CreateModeratorActor(SeedActorIdentity identity)
     {
-        return new Activity
-        {
-            Id = Guid.NewGuid(),
-            TenantId = question.TenantId,
-            QuestionId = question.Id,
-            Question = question,
-            AnswerId = answer?.Id,
-            Answer = answer,
-            Kind = kind,
-            ActorKind = ActorKind.Moderator,
-            ActorLabel = identity.UserPrint,
-            UserPrint = identity.UserPrint,
-            Ip = identity.Ip,
-            UserAgent = identity.UserAgent,
-            Notes = notes,
-            OccurredAtUtc = occurredAtUtc,
-            CreatedBy = identity.UserPrint,
-            UpdatedBy = identity.UserPrint
-        };
+        return new ActivityActor(
+            ActorKind.Moderator,
+            identity.UserPrint,
+            identity.Ip,
+            identity.UserAgent,
+            null,
+            identity.UserPrint,
+            false);
+    }
+
+    private static ActivityActor CreateCustomerActor(SeedActorIdentity identity)
+    {
+        return new ActivityActor(
+            ActorKind.Customer,
+            identity.UserPrint,
+            identity.Ip,
+            identity.UserAgent,
+            null,
+            null,
+            true);
     }
 
     private static SeedActorIdentity BuildModeratorIdentity(int spaceIndex, int questionIndex)

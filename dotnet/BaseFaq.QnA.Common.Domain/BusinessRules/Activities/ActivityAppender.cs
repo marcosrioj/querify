@@ -12,7 +12,8 @@ public static class ActivityAppender
         string operation,
         IReadOnlyDictionary<string, object?> before,
         IReadOnlyDictionary<string, object?> after,
-        IReadOnlyDictionary<string, object?>? context = null)
+        IReadOnlyDictionary<string, object?>? context = null,
+        DateTime? occurredAtUtc = null)
     {
         var metadataJson = ActivityChangeMetadata.Create(
             "Question",
@@ -32,7 +33,8 @@ public static class ActivityAppender
             kind,
             actor,
             metadataJson,
-            CreateNote(kind, actor));
+            CreateNote(kind, actor),
+            occurredAtUtc);
 
         question.Activities.Add(activity);
         question.LastActivityAtUtc = activity.OccurredAtUtc;
@@ -47,7 +49,8 @@ public static class ActivityAppender
         string operation,
         IReadOnlyDictionary<string, object?> before,
         IReadOnlyDictionary<string, object?> after,
-        IReadOnlyDictionary<string, object?>? context = null)
+        IReadOnlyDictionary<string, object?>? context = null,
+        DateTime? occurredAtUtc = null)
     {
         var metadataJson = ActivityChangeMetadata.Create(
             "Answer",
@@ -67,7 +70,8 @@ public static class ActivityAppender
             kind,
             actor,
             metadataJson,
-            CreateNote(kind, actor));
+            CreateNote(kind, actor),
+            occurredAtUtc);
 
         answer.Question.Activities.Add(activity);
         answer.Question.LastActivityAtUtc = activity.OccurredAtUtc;
@@ -80,7 +84,8 @@ public static class ActivityAppender
         ActivityActor actor,
         bool like,
         string? reason,
-        string? notes)
+        string? notes,
+        DateTime? occurredAtUtc = null)
     {
         var activity = CreateActivity(
             question,
@@ -96,7 +101,8 @@ public static class ActivityAppender
                 actor.AuditUserId,
                 actor.DisplayName,
                 ActorSource(actor)),
-            CreateFeedbackNote(actor, like, notes));
+            CreateFeedbackNote(actor, like, notes),
+            occurredAtUtc);
 
         question.Activities.Add(activity);
         question.LastActivityAtUtc = activity.OccurredAtUtc;
@@ -108,7 +114,8 @@ public static class ActivityAppender
         Answer answer,
         ActivityActor actor,
         int voteValue,
-        string? notes)
+        string? notes,
+        DateTime? occurredAtUtc = null)
     {
         var activity = CreateActivity(
             answer.Question,
@@ -123,7 +130,8 @@ public static class ActivityAppender
                 actor.AuditUserId,
                 actor.DisplayName,
                 ActorSource(actor)),
-            CreateVoteNote(actor, voteValue, notes));
+            CreateVoteNote(actor, voteValue, notes),
+            occurredAtUtc);
 
         answer.Question.Activities.Add(activity);
         answer.Question.LastActivityAtUtc = activity.OccurredAtUtc;
@@ -137,7 +145,8 @@ public static class ActivityAppender
         ActivityKind kind,
         ActivityActor actor,
         string metadataJson,
-        string notes)
+        string notes,
+        DateTime? occurredAtUtc)
     {
         return new Activity
         {
@@ -154,7 +163,7 @@ public static class ActivityAppender
             UserAgent = actor.UserAgent,
             Notes = notes,
             MetadataJson = metadataJson,
-            OccurredAtUtc = DateTime.UtcNow,
+            OccurredAtUtc = occurredAtUtc ?? DateTime.UtcNow,
             CreatedBy = actor.AuditUserId,
             UpdatedBy = actor.AuditUserId
         };
