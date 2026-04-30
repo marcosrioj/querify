@@ -145,13 +145,13 @@ When the work belongs to a module contract project such as `BaseFaq.Models.QnA`,
 
 ## Rule 10: Product persistence entities stay anemic
 
-When the work belongs to a module persistence entity folder such as `QnADb/Entities`, `DirectDb/Entities`, or `BroadcastDb/Entities`:
+When the work belongs to a module entity folder such as `BaseFaq.QnA.Common.Domain/Entities`, `DirectDb/Entities`, or `BroadcastDb/Entities`:
 
 - keep entities as state-only persistence models
 - do not add behavior methods, factory methods, or transition methods
 - do not add convenience projection properties such as computed tag or source collections
 - do not use `[NotMapped]` computed properties to hide query shaping inside entities
-- keep relation creation, validation, status transitions, and DTO shaping inside commands, queries, and feature-local private methods
+- keep relation creation, validation, status transitions, and DTO shaping inside commands, queries, feature-local private methods, or infrastructure-free domain business rules when they are reused across QnA surfaces
 - keep tenant-owned relationship integrity in the owning module `DbContext/TenantIntegrity` rules, not in entities or repeated command-handler checks
 
 Extend module entity models only for concrete behavior owned by that module; do not create placeholder entities or move one module's workflow into another module's entities as a shortcut.

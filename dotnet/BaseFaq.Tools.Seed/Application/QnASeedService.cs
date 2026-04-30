@@ -1,9 +1,9 @@
 using System.Text;
 using System.Text.Json;
 using BaseFaq.Models.QnA.Enums;
-using BaseFaq.QnA.Common.Helper.Activities;
+using BaseFaq.QnA.Common.Domain.BusinessRules.Activities;
 using BaseFaq.QnA.Common.Persistence.QnADb.DbContext;
-using BaseFaq.QnA.Common.Persistence.QnADb.Entities;
+using BaseFaq.QnA.Common.Domain.Entities;
 using BaseFaq.Tools.Seed.Abstractions;
 using BaseFaq.Tools.Seed.Configuration;
 

@@ -4,7 +4,7 @@ using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Models.QnA.Enums;
 using Microsoft.AspNetCore.Http;
 
-namespace BaseFaq.QnA.Common.Helper.Activities;
+namespace BaseFaq.QnA.Common.Domain.BusinessRules.Activities;
 
 public static class ActivityActorResolver
 {

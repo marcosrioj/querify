@@ -4,8 +4,8 @@ using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.QnA.Dtos.Source;
 using BaseFaq.Models.QnA.Enums;
+using BaseFaq.QnA.Common.Domain.BusinessRules.Sources;
 using BaseFaq.QnA.Common.Persistence.QnADb.DbContext;
-using BaseFaq.QnA.Portal.Business.Source.Helpers;
 using MediatR;
 
 namespace BaseFaq.QnA.Portal.Business.Source.Commands.CreateSource;
@@ -23,7 +23,7 @@ public sealed class SourcesCreateSourceCommandHandler(
 
         var tenantId = sessionService.GetTenantId(ModuleEnum.QnA);
         var userId = sessionService.GetUserId().ToString();
-        var entity = new Common.Persistence.QnADb.Entities.Source
+        var entity = new Common.Domain.Entities.Source
         {
             TenantId = tenantId,
             Kind = request.Request.Kind,
@@ -42,7 +42,7 @@ public sealed class SourcesCreateSourceCommandHandler(
     }
 
     private static void Apply(
-        Common.Persistence.QnADb.Entities.Source entity,
+        Common.Domain.Entities.Source entity,
         SourceCreateRequestDto request,
         string userId)
     {
@@ -67,7 +67,7 @@ public sealed class SourcesCreateSourceCommandHandler(
     }
 
     private static void EnsureVisibilityAllowed(
-        Common.Persistence.QnADb.Entities.Source entity,
+        Common.Domain.Entities.Source entity,
         VisibilityScope visibility)
     {
         if (visibility is not VisibilityScope.Public) return;

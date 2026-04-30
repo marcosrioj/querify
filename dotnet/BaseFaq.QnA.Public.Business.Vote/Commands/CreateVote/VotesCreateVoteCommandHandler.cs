@@ -3,8 +3,7 @@ using BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception;
 using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Common.Infrastructure.Core.Constants;
 using BaseFaq.Models.QnA.Enums;
-using BaseFaq.QnA.Common.Helper.Activities;
-using BaseFaq.QnA.Common.Persistence.QnADb.Activities;
+using BaseFaq.QnA.Common.Domain.BusinessRules.Activities;
 using BaseFaq.QnA.Common.Persistence.QnADb.DbContext;
 using MediatR;
 using Microsoft.AspNetCore.Http;
@@ -71,7 +70,6 @@ public sealed class VotesCreateVoteCommandHandler(
         var storedValue = effectiveValue == requestedValue ? 0 : requestedValue;
 
         var activity = ActivityAppender.AddVoteActivity(
-            dbContext,
             answer,
             actor,
             storedValue,

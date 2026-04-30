@@ -2,7 +2,7 @@ using BaseFaq.Common.EntityFramework.Core.Abstractions;
 using BaseFaq.Common.EntityFramework.Core.Entities;
 using BaseFaq.Models.QnA.Enums;
 
-namespace BaseFaq.QnA.Common.Persistence.QnADb.Entities;
+namespace BaseFaq.QnA.Common.Domain.Entities;
 
 /// <summary>
 ///     Represents a candidate, official, or curated answer for a question.

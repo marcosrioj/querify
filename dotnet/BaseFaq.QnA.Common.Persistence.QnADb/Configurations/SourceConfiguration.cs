@@ -1,6 +1,6 @@
 using BaseFaq.Common.EntityFramework.Core.Configurations;
 using BaseFaq.Models.QnA.Enums;
-using BaseFaq.QnA.Common.Persistence.QnADb.Entities;
+using BaseFaq.QnA.Common.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

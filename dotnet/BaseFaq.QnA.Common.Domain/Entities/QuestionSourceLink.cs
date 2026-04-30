@@ -2,36 +2,36 @@ using BaseFaq.Common.EntityFramework.Core.Abstractions;
 using BaseFaq.Common.EntityFramework.Core.Entities;
 using BaseFaq.Models.QnA.Enums;
 
-namespace BaseFaq.QnA.Common.Persistence.QnADb.Entities;
+namespace BaseFaq.QnA.Common.Domain.Entities;
 
 /// <summary>
-///     Connects an answer to a source used as evidence,
-///     citation, or reference.
+///     Connects a question to a source, describing the role of that source
+///     for the question.
 /// </summary>
-public class AnswerSourceLink : BaseEntity, IMustHaveTenant
+public class QuestionSourceLink : BaseEntity, IMustHaveTenant
 {
     /// <summary>
-    ///     Id of the answer linked to the source.
+    ///     Id of the question linked to the source.
     /// </summary>
-    public required Guid AnswerId { get; set; }
+    public required Guid QuestionId { get; set; }
 
     /// <summary>
-    ///     Answer linked to the source.
+    ///     Question linked to the source.
     /// </summary>
-    public Answer Answer { get; set; } = null!;
+    public Question Question { get; set; } = null!;
 
     /// <summary>
-    ///     Id of the source associated with the answer.
+    ///     Id of the source associated with the question.
     /// </summary>
     public required Guid SourceId { get; set; }
 
     /// <summary>
-    ///     Source associated with the answer.
+    ///     Source associated with the question.
     /// </summary>
     public Source Source { get; set; } = null!;
 
     /// <summary>
-    ///     Role of the source for the answer, such as evidence or canonical reference.
+    ///     Role of the source for the question, such as origin, evidence, or reference.
     /// </summary>
     public required SourceRole Role { get; set; }
 

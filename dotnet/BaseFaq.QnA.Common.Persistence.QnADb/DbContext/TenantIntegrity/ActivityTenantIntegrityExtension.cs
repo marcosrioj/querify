@@ -1,6 +1,6 @@
 using BaseFaq.Common.EntityFramework.Core.Tenant.DbContext.TenantIntegrity;
 using BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception;
-using BaseFaq.QnA.Common.Persistence.QnADb.Entities;
+using BaseFaq.QnA.Common.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using System.Net;
 

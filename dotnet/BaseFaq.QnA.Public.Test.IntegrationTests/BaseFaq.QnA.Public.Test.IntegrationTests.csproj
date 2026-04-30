@@ -28,6 +28,7 @@
         <ProjectReference Include="..\BaseFaq.QnA.Public.Business.Question\BaseFaq.QnA.Public.Business.Question.csproj"/>
         <ProjectReference Include="..\BaseFaq.QnA.Public.Business.Space\BaseFaq.QnA.Public.Business.Space.csproj"/>
         <ProjectReference Include="..\BaseFaq.QnA.Public.Business.Vote\BaseFaq.QnA.Public.Business.Vote.csproj"/>
+        <ProjectReference Include="..\BaseFaq.QnA.Common.Domain\BaseFaq.QnA.Common.Domain.csproj"/>
         <ProjectReference Include="..\BaseFaq.QnA.Common.Persistence.QnADb\BaseFaq.QnA.Common.Persistence.QnADb.csproj"/>
         <ProjectReference Include="..\BaseFaq.Models.QnA\BaseFaq.Models.QnA.csproj"/>
     </ItemGroup>

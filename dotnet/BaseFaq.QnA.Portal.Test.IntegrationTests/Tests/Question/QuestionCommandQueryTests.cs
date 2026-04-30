@@ -26,7 +26,7 @@ public class QuestionCommandQueryTests
             typeof(QuestionGetAllRequestDto)
                 .GetProperty("DuplicateOfQuestionId"));
         Assert.Null(
-            typeof(global::BaseFaq.QnA.Common.Persistence.QnADb.Entities.Question)
+            typeof(global::BaseFaq.QnA.Common.Domain.Entities.Question)
                 .GetProperty("DuplicateOfQuestionId"));
     }
 

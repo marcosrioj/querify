@@ -1,30 +1,30 @@
 using BaseFaq.Common.EntityFramework.Core.Abstractions;
 using BaseFaq.Common.EntityFramework.Core.Entities;
 
-namespace BaseFaq.QnA.Common.Persistence.QnADb.Entities;
+namespace BaseFaq.QnA.Common.Domain.Entities;
 
 /// <summary>
-///     Link entity between a question and a tag.
+///     Link entity between a space and a tag.
 /// </summary>
-public class QuestionTag : BaseEntity, IMustHaveTenant
+public class SpaceTag : BaseEntity, IMustHaveTenant
 {
     /// <summary>
-    ///     Id of the classified question.
+    ///     Id of the classified space.
     /// </summary>
-    public required Guid QuestionId { get; set; }
+    public required Guid SpaceId { get; set; }
 
     /// <summary>
-    ///     Question classified by the tag.
+    ///     Space classified by the tag.
     /// </summary>
-    public Question Question { get; set; } = null!;
+    public Space Space { get; set; } = null!;
 
     /// <summary>
-    ///     Id of the tag applied to the question.
+    ///     Id of the tag applied to the space.
     /// </summary>
     public required Guid TagId { get; set; }
 
     /// <summary>
-    ///     Tag applied to the question.
+    ///     Tag applied to the space.
     /// </summary>
     public Tag Tag { get; set; } = null!;
 

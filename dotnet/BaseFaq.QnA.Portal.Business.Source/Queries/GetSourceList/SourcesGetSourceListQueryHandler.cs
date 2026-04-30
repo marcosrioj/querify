@@ -71,7 +71,7 @@ public sealed class SourcesGetSourceListQueryHandler(
     }
 
     private static async Task<PagedResultDto<SourceDto>> GetPagedResultAsync(
-        IQueryable<Common.Persistence.QnADb.Entities.Source> query,
+        IQueryable<Common.Domain.Entities.Source> query,
         SourceGetAllRequestDto request,
         CancellationToken cancellationToken)
     {

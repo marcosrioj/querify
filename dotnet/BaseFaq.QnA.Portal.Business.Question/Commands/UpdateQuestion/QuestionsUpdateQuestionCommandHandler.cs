@@ -4,8 +4,7 @@ using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.QnA.Dtos.Question;
 using BaseFaq.Models.QnA.Enums;
-using BaseFaq.QnA.Common.Helper.Activities;
-using BaseFaq.QnA.Common.Persistence.QnADb.Activities;
+using BaseFaq.QnA.Common.Domain.BusinessRules.Activities;
 using BaseFaq.QnA.Common.Persistence.QnADb.DbContext;
 using MediatR;
 using Microsoft.AspNetCore.Http;
@@ -88,7 +87,6 @@ public sealed class QuestionsUpdateQuestionCommandHandler(
         var afterSnapshot = SnapshotQuestion(entity);
         var statusChanged = entity.Status != originalStatus;
         ActivityAppender.AddQuestionActivity(
-            dbContext,
             entity,
             statusChanged
                 ? ActivityKindStatusMap.ForQuestionStatus(entity.Status)
@@ -103,7 +101,7 @@ public sealed class QuestionsUpdateQuestionCommandHandler(
         return request.Id;
     }
 
-    private static void Apply(Common.Persistence.QnADb.Entities.Question entity, QuestionUpdateRequestDto request,
+    private static void Apply(Common.Domain.Entities.Question entity, QuestionUpdateRequestDto request,
         string userId)
     {
         EnsureSupportedStatus(request.Status);
@@ -119,7 +117,7 @@ public sealed class QuestionsUpdateQuestionCommandHandler(
         entity.UpdatedBy = userId;
     }
 
-    private static Dictionary<string, object?> SnapshotQuestion(Common.Persistence.QnADb.Entities.Question entity)
+    private static Dictionary<string, object?> SnapshotQuestion(Common.Domain.Entities.Question entity)
     {
         return new Dictionary<string, object?>(StringComparer.Ordinal)
         {
@@ -139,7 +137,7 @@ public sealed class QuestionsUpdateQuestionCommandHandler(
         };
     }
 
-    private static Dictionary<string, object?> QuestionContext(Common.Persistence.QnADb.Entities.Question entity)
+    private static Dictionary<string, object?> QuestionContext(Common.Domain.Entities.Question entity)
     {
         return new Dictionary<string, object?>(StringComparer.Ordinal)
         {
@@ -150,7 +148,7 @@ public sealed class QuestionsUpdateQuestionCommandHandler(
         };
     }
 
-    private static void EnsureVisibilityAllowed(Common.Persistence.QnADb.Entities.Question entity,
+    private static void EnsureVisibilityAllowed(Common.Domain.Entities.Question entity,
         VisibilityScope visibility)
     {
         if (visibility is not VisibilityScope.Public) return;

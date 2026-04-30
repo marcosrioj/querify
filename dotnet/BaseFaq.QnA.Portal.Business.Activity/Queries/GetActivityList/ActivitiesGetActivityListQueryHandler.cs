@@ -63,7 +63,7 @@ public sealed class ActivitiesGetActivityListQueryHandler(
     }
 
     private static async Task<PagedResultDto<ActivityDto>> GetPagedResultAsync(
-        IQueryable<Common.Persistence.QnADb.Entities.Activity> query,
+        IQueryable<Common.Domain.Entities.Activity> query,
         ActivityGetAllRequestDto request,
         CancellationToken cancellationToken)
     {

@@ -2,7 +2,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 
-namespace BaseFaq.QnA.Common.Helper.Activities;
+namespace BaseFaq.QnA.Common.Domain.BusinessRules.Activities;
 
 public static class ActivityChangeMetadata
 {

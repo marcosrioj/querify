@@ -2,7 +2,7 @@ using BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception;
 using Microsoft.AspNetCore.Http;
 using System.Net;
 
-namespace BaseFaq.QnA.Common.Helper.Activities;
+namespace BaseFaq.QnA.Common.Domain.BusinessRules.Activities;
 
 public static class ActivityRequestInfo
 {

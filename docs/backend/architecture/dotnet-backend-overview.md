@@ -72,6 +72,7 @@ Current API/business implementation in this solution:
 Current module persistence implementation:
 
 - QnA:
+  - `BaseFaq.QnA.Common.Domain`
   - `BaseFaq.QnA.Common.Persistence.QnADb`
 - Direct:
   - `BaseFaq.Direct.Common.Persistence.DirectDb`
@@ -88,6 +89,7 @@ Current module persistence implementation:
 - `BaseFaq.Common.EntityFramework.Core.SoftDelete`: soft-delete abstractions, model filters, indexes, and write rules
 - `BaseFaq.Common.EntityFramework.Core.Tenant`: tenant-scoped entity abstractions, tenant filters, tenant indexes, and module `DbContext` tenant-integrity helpers
 - `BaseFaq.Common.EntityFramework.Tenant`: tenant database context, tenant resolution helpers, and shared tenant infrastructure for the control-plane database
+- `BaseFaq.QnA.Common.Domain`: QnA domain entities and reusable entity-related business rules shared by QnA persistence, business features, seed data, and tests
 - `BaseFaq.QnA.Common.Persistence.QnADb`: QnA module database context and persistence
 - `BaseFaq.Direct.Common.Persistence.DirectDb`: Direct module tenant persistence for conversations and conversation messages
 - `BaseFaq.Broadcast.Common.Persistence.BroadcastDb`: Broadcast module tenant persistence for public/community threads and captured items

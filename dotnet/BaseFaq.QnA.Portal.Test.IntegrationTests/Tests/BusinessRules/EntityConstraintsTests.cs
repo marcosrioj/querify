@@ -2,9 +2,9 @@ using BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception;
 using BaseFaq.Models.QnA.Enums;
 using BaseFaq.QnA.Portal.Test.IntegrationTests.Helpers;
 using Xunit;
-using AnswerEntity = BaseFaq.QnA.Common.Persistence.QnADb.Entities.Answer;
-using SourceEntity = BaseFaq.QnA.Common.Persistence.QnADb.Entities.Source;
-using QuestionEntity = BaseFaq.QnA.Common.Persistence.QnADb.Entities.Question;
+using AnswerEntity = BaseFaq.QnA.Common.Domain.Entities.Answer;
+using SourceEntity = BaseFaq.QnA.Common.Domain.Entities.Source;
+using QuestionEntity = BaseFaq.QnA.Common.Domain.Entities.Question;
 
 namespace BaseFaq.QnA.Portal.Test.IntegrationTests.Tests.BusinessRules;
 

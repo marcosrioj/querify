@@ -4,8 +4,7 @@ using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.QnA.Dtos.Answer;
 using BaseFaq.Models.QnA.Enums;
-using BaseFaq.QnA.Common.Helper.Activities;
-using BaseFaq.QnA.Common.Persistence.QnADb.Activities;
+using BaseFaq.QnA.Common.Domain.BusinessRules.Activities;
 using BaseFaq.QnA.Common.Persistence.QnADb.DbContext;
 using MediatR;
 using Microsoft.AspNetCore.Http;
@@ -44,7 +43,7 @@ public sealed class AnswersCreateAnswerCommandHandler(
                 "This space is not accepting answers.",
                 (int)HttpStatusCode.UnprocessableEntity);
 
-        var entity = new Common.Persistence.QnADb.Entities.Answer
+        var entity = new Common.Domain.Entities.Answer
         {
             TenantId = tenantId,
             QuestionId = question.Id,
@@ -67,7 +66,6 @@ public sealed class AnswersCreateAnswerCommandHandler(
         Apply(entity, request.Request, userId);
         var answerSnapshot = SnapshotAnswer(entity);
         ActivityAppender.AddAnswerActivity(
-            dbContext,
             entity,
             ActivityKind.AnswerCreated,
             actor,
@@ -80,7 +78,7 @@ public sealed class AnswersCreateAnswerCommandHandler(
         return entity.Id;
     }
 
-    private static void Apply(Common.Persistence.QnADb.Entities.Answer entity, AnswerCreateRequestDto request,
+    private static void Apply(Common.Domain.Entities.Answer entity, AnswerCreateRequestDto request,
         string userId)
     {
         entity.Headline = request.Headline;
@@ -112,7 +110,7 @@ public sealed class AnswersCreateAnswerCommandHandler(
         entity.UpdatedBy = userId;
     }
 
-    private static Dictionary<string, object?> SnapshotAnswer(Common.Persistence.QnADb.Entities.Answer entity)
+    private static Dictionary<string, object?> SnapshotAnswer(Common.Domain.Entities.Answer entity)
     {
         return new Dictionary<string, object?>(StringComparer.Ordinal)
         {
@@ -132,7 +130,7 @@ public sealed class AnswersCreateAnswerCommandHandler(
         };
     }
 
-    private static Dictionary<string, object?> AnswerContext(Common.Persistence.QnADb.Entities.Answer entity)
+    private static Dictionary<string, object?> AnswerContext(Common.Domain.Entities.Answer entity)
     {
         return new Dictionary<string, object?>(StringComparer.Ordinal)
         {
@@ -143,7 +141,7 @@ public sealed class AnswersCreateAnswerCommandHandler(
         };
     }
 
-    private static void EnsureVisibilityAllowed(Common.Persistence.QnADb.Entities.Answer entity,
+    private static void EnsureVisibilityAllowed(Common.Domain.Entities.Answer entity,
         VisibilityScope visibility)
     {
         if (visibility is not VisibilityScope.Public) return;

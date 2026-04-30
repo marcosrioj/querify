@@ -1,7 +1,7 @@
 using BaseFaq.Common.EntityFramework.Core.Abstractions;
 using BaseFaq.Common.EntityFramework.Core.Entities;
 
-namespace BaseFaq.QnA.Common.Persistence.QnADb.Entities;
+namespace BaseFaq.QnA.Common.Domain.Entities;
 
 /// <summary>
 ///     Represents a tag used to classify questions and spaces.

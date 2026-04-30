@@ -8,7 +8,7 @@ using BaseFaq.Models.QnA.Dtos.Question;
 using BaseFaq.Models.QnA.Dtos.Source;
 using BaseFaq.Models.QnA.Dtos.Tag;
 using BaseFaq.Models.QnA.Enums;
-using BaseFaq.QnA.Common.Helper.Activities;
+using BaseFaq.QnA.Common.Domain.BusinessRules.Activities;
 using BaseFaq.QnA.Common.Persistence.QnADb.DbContext;
 using MediatR;
 using Microsoft.AspNetCore.Http;

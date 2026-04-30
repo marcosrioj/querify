@@ -3,7 +3,7 @@ using System.Security.Claims;
 using BaseFaq.Common.Infrastructure.Core.Services;
 using BaseFaq.Models.QnA.Dtos.Answer;
 using BaseFaq.Models.QnA.Dtos.Question;
-using BaseFaq.QnA.Common.Helper.Activities;
+using BaseFaq.QnA.Common.Domain.BusinessRules.Activities;
 using BaseFaq.QnA.Public.Business.Question.Queries.GetQuestion;
 using BaseFaq.QnA.Public.Business.Vote.Commands.CreateVote;
 using BaseFaq.QnA.Public.Test.IntegrationTests.Helpers;

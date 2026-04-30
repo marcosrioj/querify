@@ -43,7 +43,7 @@ public sealed class TagsGetTagListQueryHandler(QnADbContext dbContext, ISessionS
     }
 
     private static async Task<PagedResultDto<TagDto>> GetPagedResultAsync(
-        IQueryable<Common.Persistence.QnADb.Entities.Tag> query,
+        IQueryable<Common.Domain.Entities.Tag> query,
         TagGetAllRequestDto request,
         CancellationToken cancellationToken)
     {

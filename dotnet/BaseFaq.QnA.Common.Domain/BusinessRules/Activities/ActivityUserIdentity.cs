@@ -1,4 +1,4 @@
-namespace BaseFaq.QnA.Common.Helper.Activities;
+namespace BaseFaq.QnA.Common.Domain.BusinessRules.Activities;
 
 public readonly record struct ActivityUserIdentity(
     string UserPrint,

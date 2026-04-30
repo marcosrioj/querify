@@ -30,6 +30,7 @@
         <ProjectReference Include="..\BaseFaq.QnA.Portal.Business.Space\BaseFaq.QnA.Portal.Business.Space.csproj"/>
         <ProjectReference Include="..\BaseFaq.QnA.Portal.Business.Activity\BaseFaq.QnA.Portal.Business.Activity.csproj"/>
         <ProjectReference Include="..\BaseFaq.QnA.Portal.Business.Tag\BaseFaq.QnA.Portal.Business.Tag.csproj"/>
+        <ProjectReference Include="..\BaseFaq.QnA.Common.Domain\BaseFaq.QnA.Common.Domain.csproj"/>
         <ProjectReference Include="..\BaseFaq.QnA.Common.Persistence.QnADb\BaseFaq.QnA.Common.Persistence.QnADb.csproj"/>
         <ProjectReference Include="..\BaseFaq.Models.QnA\BaseFaq.Models.QnA.csproj"/>
     </ItemGroup>

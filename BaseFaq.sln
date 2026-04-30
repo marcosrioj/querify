@@ -209,9 +209,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BaseFaq.QnA.Public.Business
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BaseFaq.QnA.Public.Business.Vote", "dotnet\BaseFaq.QnA.Public.Business.Vote\BaseFaq.QnA.Public.Business.Vote.csproj", "{7D81C381-5591-4967-B3B1-6146A6767158}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Helper", "Helper", "{990B10E8-53CC-412E-B05B-92D6BE7C4536}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Domain", "Domain", "{990B10E8-53CC-412E-B05B-92D6BE7C4536}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BaseFaq.QnA.Common.Helper", "dotnet\BaseFaq.QnA.Common.Helper\BaseFaq.QnA.Common.Helper.csproj", "{E9821077-93AB-4981-B853-939128BE5DCB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BaseFaq.QnA.Common.Domain", "dotnet\BaseFaq.QnA.Common.Domain\BaseFaq.QnA.Common.Domain.csproj", "{E9821077-93AB-4981-B853-939128BE5DCB}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Direct", "Direct", "{46F1AE19-CFC2-4929-A367-5119A4EBBBEA}"
 EndProject

@@ -66,7 +66,7 @@ Before adding anything, search for the current behavior and adjacent concepts:
 
 ```bash
 rg -n "ConceptName|RelatedEnum|RelatedProperty" dotnet apps docs
-rg --files dotnet/BaseFaq.Models.Tenant dotnet/BaseFaq.Models.QnA dotnet/BaseFaq.Models.Direct dotnet/BaseFaq.Models.Broadcast dotnet/BaseFaq.Common.EntityFramework.Tenant dotnet/BaseFaq.QnA.Common.Persistence.QnADb dotnet/BaseFaq.Direct.Common.Persistence.DirectDb dotnet/BaseFaq.Broadcast.Common.Persistence.BroadcastDb apps/portal/src/domains
+rg --files dotnet/BaseFaq.Models.Tenant dotnet/BaseFaq.Models.QnA dotnet/BaseFaq.Models.Direct dotnet/BaseFaq.Models.Broadcast dotnet/BaseFaq.Common.EntityFramework.Tenant dotnet/BaseFaq.QnA.Common.Domain dotnet/BaseFaq.QnA.Common.Persistence.QnADb dotnet/BaseFaq.Direct.Common.Persistence.DirectDb dotnet/BaseFaq.Broadcast.Common.Persistence.BroadcastDb apps/portal/src/domains
 ```
 
 Capture these facts before editing:
@@ -128,7 +128,8 @@ Relevant locations:
 - Common module enum: `dotnet/BaseFaq.Models.Common/Enums/ModuleEnum.cs`
 - Tenant contracts and entities when the behavior belongs to tenant control plane: `dotnet/BaseFaq.Models.Tenant`, `dotnet/BaseFaq.Common.EntityFramework.Tenant`
 - QnA contracts: `dotnet/BaseFaq.Models.QnA/Enums`
-- QnA persistence entities: `dotnet/BaseFaq.QnA.Common.Persistence.QnADb/Entities`
+- QnA domain entities and entity-related business rules: `dotnet/BaseFaq.QnA.Common.Domain/Entities` and `dotnet/BaseFaq.QnA.Common.Domain/BusinessRules`
+- QnA persistence infrastructure: `dotnet/BaseFaq.QnA.Common.Persistence.QnADb`
 - Direct contracts and persistence entities: `dotnet/BaseFaq.Models.Direct`, `dotnet/BaseFaq.Direct.Common.Persistence.DirectDb/Entities`
 - Broadcast contracts and persistence entities: `dotnet/BaseFaq.Models.Broadcast`, `dotnet/BaseFaq.Broadcast.Common.Persistence.BroadcastDb/Entities`
 - Trust contracts and persistence entities use `BaseFaq.Models.Trust` and a Trust persistence boundary when those projects are in scope for the change
@@ -147,10 +148,11 @@ Process:
 10. Keep `required` semantics explicit. Do not set silent defaults to make construction easier.
 11. For `Source`, keep artifact identity, audience exposure, and relationship context separate: `Kind` and locator fields identify the material, `Visibility` controls who can see it, and `SourceRole` explains why it is attached.
 12. Do not create placeholder module entities. If a needed owning entity is still missing and the stage does not explicitly introduce it, leave a handoff note instead.
-13. When a new or changed entity implements `IMustHaveTenant` and references another tenant-owned entity, update the owning `DbContext` to enforce tenant integrity before save.
-14. Follow the module `DbContext` pattern: call `EnsureTenantIntegrity()` from `OnBeforeSaveChangesRules()`, place one focused rule per checked entity or relationship under `DbContext/TenantIntegrity/<Entity>TenantIntegrityExtension.cs`, and keep `Extensions` folders for service registration only.
-15. Resolve referenced tenant ids with `TenantIntegrityLookupCacheBase` or a module-specific `TenantIntegrityLookupCache`, using `IgnoreQueryFilters()` so tenant filters and soft-delete do not hide invalid relationships.
-16. Throw on cross-tenant links or missing references. If a tenant-owned entity has no tenant-owned relationships, record that no additional tenant-integrity rule is needed instead of adding empty validation code.
+13. For QnA, put reusable entity-related rules under `BaseFaq.QnA.Common.Domain.BusinessRules`; these rules must not depend on `QnADbContext`, EF queries, service registration, or HTTP controllers.
+14. When a new or changed entity implements `IMustHaveTenant` and references another tenant-owned entity, update the owning `DbContext` to enforce tenant integrity before save.
+15. Follow the module `DbContext` pattern: call `EnsureTenantIntegrity()` from `OnBeforeSaveChangesRules()`, place one focused rule per checked entity or relationship under `DbContext/TenantIntegrity/<Entity>TenantIntegrityExtension.cs`, and keep `Extensions` folders for service registration only.
+16. Resolve referenced tenant ids with `TenantIntegrityLookupCacheBase` or a module-specific `TenantIntegrityLookupCache`, using `IgnoreQueryFilters()` so tenant filters and soft-delete do not hide invalid relationships.
+17. Throw on cross-tenant links or missing references. If a tenant-owned entity has no tenant-owned relationships, record that no additional tenant-integrity rule is needed instead of adding empty validation code.
 
 When deleting a property or enum, immediately search for all compile-time and string references:
 
@@ -442,6 +444,7 @@ Backend model and persistence stage:
 ```bash
 dotnet build dotnet/BaseFaq.Models.Common/BaseFaq.Models.Common.csproj -v minimal --no-restore
 dotnet build dotnet/BaseFaq.Models.Tenant/BaseFaq.Models.Tenant.csproj -v minimal --no-restore
+dotnet build dotnet/BaseFaq.QnA.Common.Domain/BaseFaq.QnA.Common.Domain.csproj -v minimal --no-restore
 dotnet build dotnet/BaseFaq.QnA.Common.Persistence.QnADb/BaseFaq.QnA.Common.Persistence.QnADb.csproj -v minimal --no-restore
 dotnet build dotnet/BaseFaq.Models.QnA/BaseFaq.Models.QnA.csproj -v minimal --no-restore
 ```

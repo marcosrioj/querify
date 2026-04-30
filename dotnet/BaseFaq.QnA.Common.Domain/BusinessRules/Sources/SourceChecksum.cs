@@ -1,9 +1,9 @@
 using System.Security.Cryptography;
 using System.Text;
 
-namespace BaseFaq.QnA.Portal.Business.Source.Helpers;
+namespace BaseFaq.QnA.Common.Domain.BusinessRules.Sources;
 
-internal static class SourceChecksum
+public static class SourceChecksum
 {
     public static string FromLocator(string locator)
     {

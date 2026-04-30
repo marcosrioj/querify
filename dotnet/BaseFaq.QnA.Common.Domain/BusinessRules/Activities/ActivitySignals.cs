@@ -1,7 +1,7 @@
 using System.Text.Json;
 using BaseFaq.Models.QnA.Enums;
 
-namespace BaseFaq.QnA.Common.Helper.Activities;
+namespace BaseFaq.QnA.Common.Domain.BusinessRules.Activities;
 
 public static class ActivitySignals
 {

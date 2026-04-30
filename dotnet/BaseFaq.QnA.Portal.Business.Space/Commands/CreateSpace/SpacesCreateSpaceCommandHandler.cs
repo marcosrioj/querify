@@ -5,7 +5,7 @@ using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.QnA.Dtos.Space;
 using BaseFaq.Models.QnA.Enums;
 using BaseFaq.QnA.Common.Persistence.QnADb.DbContext;
-using BaseFaq.QnA.Portal.Business.Space.Helpers;
+using BaseFaq.QnA.Portal.Business.Space.Commands;
 using MediatR;
 
 namespace BaseFaq.QnA.Portal.Business.Space.Commands.CreateSpace;
@@ -20,7 +20,7 @@ public sealed class SpacesCreateSpaceCommandHandler(
     {
         var tenantId = sessionService.GetTenantId(ModuleEnum.QnA);
         var userId = sessionService.GetUserId().ToString();
-        var slug = await SpaceSlugHelper.ResolveSlugAsync(
+        var slug = await SpaceSlugResolver.ResolveSlugAsync(
             dbContext,
             tenantId,
             spaceId: null,
@@ -29,7 +29,7 @@ public sealed class SpacesCreateSpaceCommandHandler(
             currentSlug: null,
             cancellationToken);
 
-        var entity = new Common.Persistence.QnADb.Entities.Space
+        var entity = new Common.Domain.Entities.Space
         {
             TenantId = tenantId,
             Name = request.Request.Name,
@@ -51,7 +51,7 @@ public sealed class SpacesCreateSpaceCommandHandler(
     }
 
     private static void Apply(
-        Common.Persistence.QnADb.Entities.Space entity,
+        Common.Domain.Entities.Space entity,
         SpaceCreateRequestDto request,
         string userId,
         string slug)
@@ -70,7 +70,7 @@ public sealed class SpacesCreateSpaceCommandHandler(
     }
 
     private static void EnsureVisibilityAllowed(
-        Common.Persistence.QnADb.Entities.Space entity,
+        Common.Domain.Entities.Space entity,
         VisibilityScope visibility)
     {
         if (visibility is not VisibilityScope.Public) return;

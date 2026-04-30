@@ -15,7 +15,7 @@ public sealed class TagsCreateTagCommandHandler(QnADbContext dbContext, ISession
 
         var tenantId = sessionService.GetTenantId(ModuleEnum.QnA);
         var userId = sessionService.GetUserId().ToString();
-        var entity = new Common.Persistence.QnADb.Entities.Tag
+        var entity = new Common.Domain.Entities.Tag
         {
             TenantId = tenantId,
             Name = request.Request.Name,

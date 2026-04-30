@@ -3,8 +3,7 @@ using BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception;
 using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.QnA.Enums;
-using BaseFaq.QnA.Common.Helper.Activities;
-using BaseFaq.QnA.Common.Persistence.QnADb.Activities;
+using BaseFaq.QnA.Common.Domain.BusinessRules.Activities;
 using BaseFaq.QnA.Common.Persistence.QnADb.DbContext;
 using MediatR;
 using Microsoft.AspNetCore.Http;
@@ -38,7 +37,6 @@ public sealed class AnswersActivateAnswerCommandHandler(
 
         if (originalStatus != entity.Status)
             ActivityAppender.AddAnswerActivity(
-                dbContext,
                 entity,
                 ActivityKindStatusMap.ForAnswerStatus(entity.Status),
                 actor,
@@ -51,7 +49,7 @@ public sealed class AnswersActivateAnswerCommandHandler(
         return request.Id;
     }
 
-    private static Dictionary<string, object?> AnswerContext(Common.Persistence.QnADb.Entities.Answer entity)
+    private static Dictionary<string, object?> AnswerContext(Common.Domain.Entities.Answer entity)
     {
         return new Dictionary<string, object?>(StringComparer.Ordinal)
         {

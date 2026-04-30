@@ -2,7 +2,7 @@ using BaseFaq.Common.EntityFramework.Core.Abstractions;
 using BaseFaq.Common.EntityFramework.Core.Entities;
 using BaseFaq.Models.QnA.Enums;
 
-namespace BaseFaq.QnA.Common.Persistence.QnADb.Entities;
+namespace BaseFaq.QnA.Common.Domain.Entities;
 
 /// <summary>
 ///     Represents a Q&amp;A space where questions live, including exposure,
@@ -55,6 +55,7 @@ public class Space : BaseEntity, IMustHaveTenant
     /// </summary>
     public required bool AcceptsAnswers { get; set; }
 
+    /// <summary>
     ///     Questions that belong to the space.
     /// </summary>
     public ICollection<Question> Questions { get; set; } = [];

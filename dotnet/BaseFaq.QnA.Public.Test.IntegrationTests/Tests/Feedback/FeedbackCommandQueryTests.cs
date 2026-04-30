@@ -2,7 +2,7 @@ using System.Net;
 using System.Security.Claims;
 using BaseFaq.Common.Infrastructure.Core.Services;
 using BaseFaq.Models.QnA.Dtos.Question;
-using BaseFaq.QnA.Common.Helper.Activities;
+using BaseFaq.QnA.Common.Domain.BusinessRules.Activities;
 using BaseFaq.QnA.Public.Business.Feedback.Commands.CreateFeedback;
 using BaseFaq.QnA.Public.Business.Question.Queries.GetQuestion;
 using BaseFaq.QnA.Public.Test.IntegrationTests.Helpers;

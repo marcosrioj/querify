@@ -21,6 +21,7 @@ The root [`../README.md`](../README.md) remains the short bootstrap summary. Eve
 
 - [`backend/architecture/solution-architecture.md`](backend/architecture/solution-architecture.md): repository and runtime shape, service boundaries, persistence ownership, and request model.
 - [`backend/architecture/dotnet-backend-overview.md`](backend/architecture/dotnet-backend-overview.md): active backend project inventory, API catalog, module taxonomy, and local backend workflow.
+- [`backend/architecture/qna-domain-boundary.md`](backend/architecture/qna-domain-boundary.md): QnA domain project ownership for entities and entity-related business rules.
 - [`backend/architecture/solution-cqrs-write-rules.md`](backend/architecture/solution-cqrs-write-rules.md): mandatory CQRS write-side rules and module physical-boundary constraints.
 - [`backend/architecture/repository-rules.md`](backend/architecture/repository-rules.md): repository-wide architecture guardrails and review checklist enforced by the architecture compliance suite.
 - [`backend/architecture/basefaq-tenant-worker.md`](backend/architecture/basefaq-tenant-worker.md): worker host responsibilities, billing/email processing model, and control-plane constraints.

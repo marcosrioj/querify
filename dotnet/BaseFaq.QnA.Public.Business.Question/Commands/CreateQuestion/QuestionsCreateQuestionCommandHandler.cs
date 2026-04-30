@@ -3,8 +3,7 @@ using BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception;
 using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Common.Infrastructure.Core.Constants;
 using BaseFaq.Models.QnA.Enums;
-using BaseFaq.QnA.Common.Helper.Activities;
-using BaseFaq.QnA.Common.Persistence.QnADb.Activities;
+using BaseFaq.QnA.Common.Domain.BusinessRules.Activities;
 using BaseFaq.QnA.Common.Persistence.QnADb.DbContext;
 using MediatR;
 using Microsoft.AspNetCore.Http;
@@ -49,7 +48,7 @@ public sealed class QuestionsCreateQuestionCommandHandler(
                 "This space is not accepting questions.",
                 (int)HttpStatusCode.UnprocessableEntity);
 
-        var entity = new Common.Persistence.QnADb.Entities.Question
+        var entity = new Common.Domain.Entities.Question
         {
             TenantId = tenantId,
             SpaceId = space.Id,
@@ -72,7 +71,6 @@ public sealed class QuestionsCreateQuestionCommandHandler(
 
         var questionSnapshot = SnapshotQuestion(entity);
         ActivityAppender.AddQuestionActivity(
-            dbContext,
             entity,
             ActivityKind.QuestionCreated,
             actor,
@@ -93,7 +91,7 @@ public sealed class QuestionsCreateQuestionCommandHandler(
         return tenantId;
     }
 
-    private static Dictionary<string, object?> SnapshotQuestion(Common.Persistence.QnADb.Entities.Question entity)
+    private static Dictionary<string, object?> SnapshotQuestion(Common.Domain.Entities.Question entity)
     {
         return new Dictionary<string, object?>(StringComparer.Ordinal)
         {
@@ -113,7 +111,7 @@ public sealed class QuestionsCreateQuestionCommandHandler(
         };
     }
 
-    private static Dictionary<string, object?> QuestionContext(Common.Persistence.QnADb.Entities.Question entity)
+    private static Dictionary<string, object?> QuestionContext(Common.Domain.Entities.Question entity)
     {
         return new Dictionary<string, object?>(StringComparer.Ordinal)
         {

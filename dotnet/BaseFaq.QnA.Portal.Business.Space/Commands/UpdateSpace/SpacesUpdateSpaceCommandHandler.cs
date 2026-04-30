@@ -5,7 +5,7 @@ using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.QnA.Dtos.Space;
 using BaseFaq.Models.QnA.Enums;
 using BaseFaq.QnA.Common.Persistence.QnADb.DbContext;
-using BaseFaq.QnA.Portal.Business.Space.Helpers;
+using BaseFaq.QnA.Portal.Business.Space.Commands;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -31,7 +31,7 @@ public sealed class SpacesUpdateSpaceCommandHandler(
         if (entity is null)
             throw new ApiErrorException($"Space '{request.Id}' was not found.", (int)HttpStatusCode.NotFound);
 
-        var slug = await SpaceSlugHelper.ResolveSlugAsync(
+        var slug = await SpaceSlugResolver.ResolveSlugAsync(
             dbContext,
             tenantId,
             request.Id,
@@ -46,7 +46,7 @@ public sealed class SpacesUpdateSpaceCommandHandler(
     }
 
     private static void Apply(
-        Common.Persistence.QnADb.Entities.Space entity,
+        Common.Domain.Entities.Space entity,
         SpaceUpdateRequestDto request,
         string userId,
         string slug)
@@ -65,7 +65,7 @@ public sealed class SpacesUpdateSpaceCommandHandler(
     }
 
     private static void EnsureVisibilityAllowed(
-        Common.Persistence.QnADb.Entities.Space entity,
+        Common.Domain.Entities.Space entity,
         VisibilityScope visibility)
     {
         if (visibility is not VisibilityScope.Public) return;

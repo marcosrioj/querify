@@ -4,8 +4,7 @@ using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.QnA.Dtos.Question;
 using BaseFaq.Models.QnA.Enums;
-using BaseFaq.QnA.Common.Helper.Activities;
-using BaseFaq.QnA.Common.Persistence.QnADb.Activities;
+using BaseFaq.QnA.Common.Domain.BusinessRules.Activities;
 using BaseFaq.QnA.Common.Persistence.QnADb.DbContext;
 using MediatR;
 using Microsoft.AspNetCore.Http;
@@ -43,7 +42,7 @@ public sealed class QuestionsCreateQuestionCommandHandler(
 
         EnsureSupportedStatus(request.Request.Status);
 
-        var entity = new Common.Persistence.QnADb.Entities.Question
+        var entity = new Common.Domain.Entities.Question
         {
             TenantId = tenantId,
             SpaceId = space.Id,
@@ -65,7 +64,6 @@ public sealed class QuestionsCreateQuestionCommandHandler(
         Apply(entity, request.Request, userId);
         var questionSnapshot = SnapshotQuestion(entity);
         ActivityAppender.AddQuestionActivity(
-            dbContext,
             entity,
             ActivityKind.QuestionCreated,
             actor,
@@ -78,7 +76,7 @@ public sealed class QuestionsCreateQuestionCommandHandler(
         return entity.Id;
     }
 
-    private static void Apply(Common.Persistence.QnADb.Entities.Question entity, QuestionCreateRequestDto request, string userId)
+    private static void Apply(Common.Domain.Entities.Question entity, QuestionCreateRequestDto request, string userId)
     {
         EnsureSupportedStatus(request.Status);
 
@@ -93,7 +91,7 @@ public sealed class QuestionsCreateQuestionCommandHandler(
         entity.UpdatedBy = userId;
     }
 
-    private static Dictionary<string, object?> SnapshotQuestion(Common.Persistence.QnADb.Entities.Question entity)
+    private static Dictionary<string, object?> SnapshotQuestion(Common.Domain.Entities.Question entity)
     {
         return new Dictionary<string, object?>(StringComparer.Ordinal)
         {
@@ -113,7 +111,7 @@ public sealed class QuestionsCreateQuestionCommandHandler(
         };
     }
 
-    private static Dictionary<string, object?> QuestionContext(Common.Persistence.QnADb.Entities.Question entity)
+    private static Dictionary<string, object?> QuestionContext(Common.Domain.Entities.Question entity)
     {
         return new Dictionary<string, object?>(StringComparer.Ordinal)
         {
@@ -124,7 +122,7 @@ public sealed class QuestionsCreateQuestionCommandHandler(
         };
     }
 
-    private static void EnsureVisibilityAllowed(Common.Persistence.QnADb.Entities.Question entity, VisibilityScope visibility)
+    private static void EnsureVisibilityAllowed(Common.Domain.Entities.Question entity, VisibilityScope visibility)
     {
         if (visibility is not VisibilityScope.Public) return;
 

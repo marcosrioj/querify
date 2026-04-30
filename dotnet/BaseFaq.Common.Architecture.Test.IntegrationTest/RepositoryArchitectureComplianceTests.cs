@@ -464,10 +464,10 @@ public class RepositoryArchitectureComplianceTests
     }
 
     [Fact]
-    public void QnAPersistenceEntities_MustStayAnemic()
+    public void QnADomainEntities_MustStayAnemic()
     {
         var failures = new List<string>();
-        var entitiesDirectory = ToAbsolutePath("dotnet/BaseFaq.QnA.Common.Persistence.QnADb/Entities");
+        var entitiesDirectory = ToAbsolutePath("dotnet/BaseFaq.QnA.Common.Domain/Entities");
 
         foreach (var entityPath in Directory.EnumerateFiles(entitiesDirectory, "*.cs", SearchOption.TopDirectoryOnly))
         {
@@ -476,12 +476,12 @@ public class RepositoryArchitectureComplianceTests
 
             if (source.Contains("[NotMapped]", StringComparison.Ordinal))
             {
-                failures.Add($"{relativePath}: [NotMapped] convenience projections are not allowed in QnA persistence entities.");
+                failures.Add($"{relativePath}: [NotMapped] convenience projections are not allowed in QnA domain entities.");
             }
 
             foreach (Match match in QnAEntityMethodRegex.Matches(source))
             {
-                failures.Add($"{relativePath}: behavior method '{match.Value.Trim()}' is not allowed in QnA persistence entities.");
+                failures.Add($"{relativePath}: behavior method '{match.Value.Trim()}' is not allowed in QnA domain entities.");
             }
 
             foreach (Match match in QnAEntityConstructorRegex.Matches(source))
@@ -493,7 +493,7 @@ public class RepositoryArchitectureComplianceTests
                     continue;
                 }
 
-                failures.Add($"{relativePath}: constructor '{constructorName}(...)' is not allowed in QnA persistence entities.");
+                failures.Add($"{relativePath}: constructor '{constructorName}(...)' is not allowed in QnA domain entities.");
             }
         }
 

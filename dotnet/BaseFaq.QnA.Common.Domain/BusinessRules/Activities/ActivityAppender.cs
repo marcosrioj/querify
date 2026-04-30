@@ -1,14 +1,11 @@
 using BaseFaq.Models.QnA.Enums;
-using BaseFaq.QnA.Common.Helper.Activities;
-using BaseFaq.QnA.Common.Persistence.QnADb.DbContext;
-using BaseFaq.QnA.Common.Persistence.QnADb.Entities;
+using BaseFaq.QnA.Common.Domain.Entities;
 
-namespace BaseFaq.QnA.Common.Persistence.QnADb.Activities;
+namespace BaseFaq.QnA.Common.Domain.BusinessRules.Activities;
 
 public static class ActivityAppender
 {
     public static Activity? AddQuestionActivity(
-        QnADbContext dbContext,
         Question question,
         ActivityKind kind,
         ActivityActor actor,
@@ -39,13 +36,11 @@ public static class ActivityAppender
 
         question.Activities.Add(activity);
         question.LastActivityAtUtc = activity.OccurredAtUtc;
-        dbContext.Activities.Add(activity);
 
         return activity;
     }
 
     public static Activity? AddAnswerActivity(
-        QnADbContext dbContext,
         Answer answer,
         ActivityKind kind,
         ActivityActor actor,
@@ -76,13 +71,11 @@ public static class ActivityAppender
 
         answer.Question.Activities.Add(activity);
         answer.Question.LastActivityAtUtc = activity.OccurredAtUtc;
-        dbContext.Activities.Add(activity);
 
         return activity;
     }
 
     public static Activity AddFeedbackActivity(
-        QnADbContext dbContext,
         Question question,
         ActivityActor actor,
         bool like,
@@ -107,13 +100,11 @@ public static class ActivityAppender
 
         question.Activities.Add(activity);
         question.LastActivityAtUtc = activity.OccurredAtUtc;
-        dbContext.Activities.Add(activity);
 
         return activity;
     }
 
     public static Activity AddVoteActivity(
-        QnADbContext dbContext,
         Answer answer,
         ActivityActor actor,
         int voteValue,
@@ -136,7 +127,6 @@ public static class ActivityAppender
 
         answer.Question.Activities.Add(activity);
         answer.Question.LastActivityAtUtc = activity.OccurredAtUtc;
-        dbContext.Activities.Add(activity);
 
         return activity;
     }
