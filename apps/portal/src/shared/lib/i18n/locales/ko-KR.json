@@ -202,6 +202,7 @@
   "Day": "일",
   "Define the locator and source kind first so the record can be reused across questions.": "Define the locator and source kind first so the record can be reused across questions.",
   "Delete": "삭제",
+  "Details": "세부 정보",
   "Delete answer": "답변 삭제",
   "Delete answer \"{name}\"?": "답변 \"{name}\"을(를) 삭제하시겠습니까?",
   "Delete question": "질문 삭제",

@@ -28,6 +28,7 @@ import {
   sourceRoleLabels,
 } from "@/shared/constants/backend-enums";
 import {
+  DetailFieldList,
   DetailLayout,
   KeyValueList,
   PageHeader,
@@ -471,36 +472,32 @@ export function AnswerDetailPage() {
           <Card>
             <CardHeader>
               <CardHeading>
-                <CardTitle>{translateText("Body and trust")}</CardTitle>
+                <CardTitle>{translateText("Details")}</CardTitle>
               </CardHeading>
             </CardHeader>
-            <CardContent className="space-y-5">
-              {answerQuery.data.body ? (
-                <div>
-                  <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-                    {translateText("Body")}
-                  </p>
-                  <p className="mt-2 whitespace-pre-wrap text-sm leading-6">
-                    {answerQuery.data.body}
-                  </p>
-                </div>
-              ) : (
-                <EmptyState
-                  title="No body yet"
-                  description="This answer currently only has the headline-level guidance."
-                />
-              )}
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="rounded-lg border border-border bg-muted/10 p-4">
-                  <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-                    {translateText("Context note")}
-                  </p>
-                  <p className="mt-2 text-sm leading-6">
-                    {answerQuery.data.contextNote ||
-                      translateText("No context note recorded.")}
-                  </p>
-                </div>
-              </div>
+            <CardContent>
+              <DetailFieldList
+                items={[
+                  {
+                    label: "Headline",
+                    value: answerQuery.data.headline,
+                    valueClassName: "text-base font-medium text-mono",
+                  },
+                  {
+                    label: "Body",
+                    value:
+                      answerQuery.data.body || translateText("No body yet"),
+                    valueClassName: "whitespace-pre-wrap",
+                  },
+                  {
+                    label: "Context note",
+                    value:
+                      answerQuery.data.contextNote ||
+                      translateText("No context note recorded."),
+                    valueClassName: "whitespace-pre-wrap",
+                  },
+                ]}
+              />
             </CardContent>
           </Card>
 

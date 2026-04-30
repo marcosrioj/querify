@@ -202,6 +202,7 @@
   "Day": "יום",
   "Define the locator and source kind first so the record can be reused across questions.": "Define the locator and source kind first so the record can be reused across questions.",
   "Delete": "מחק",
+  "Details": "פרטים",
   "Delete answer": "מחק תשובה",
   "Delete answer \"{name}\"?": "למחוק את התשובה \"{name}\"?",
   "Delete question": "מחק שאלה",

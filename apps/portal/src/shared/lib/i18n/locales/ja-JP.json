@@ -202,6 +202,7 @@
   "Day": "日",
   "Define the locator and source kind first so the record can be reused across questions.": "Define the locator and source kind first so the record can be reused across questions.",
   "Delete": "削除",
+  "Details": "詳細",
   "Delete answer": "回答を削除",
   "Delete answer \"{name}\"?": "回答「{name}」を削除しますか？",
   "Delete question": "質問を削除",

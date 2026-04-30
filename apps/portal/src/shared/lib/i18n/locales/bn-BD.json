@@ -202,6 +202,7 @@
   "Day": "দিন",
   "Define the locator and source kind first so the record can be reused across questions.": "Define the locator and source kind first so the record can be reused across questions.",
   "Delete": "মুছুন",
+  "Details": "বিস্তারিত",
   "Delete answer": "উত্তর মুছুন",
   "Delete answer \"{name}\"?": "উত্তর \"{name}\" মুছবেন?",
   "Delete question": "প্রশ্ন মুছুন",

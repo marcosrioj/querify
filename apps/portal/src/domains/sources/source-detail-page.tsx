@@ -14,6 +14,7 @@ import { RecommendedNextActionCard } from "@/domains/qna/recommended-next-action
 import { usePortalTimeZone } from "@/domains/settings/settings-hooks";
 import { useDeleteSource, useSource } from "@/domains/sources/hooks";
 import {
+  DetailFieldList,
   DetailLayout,
   KeyValueList,
   PageHeader,
@@ -31,7 +32,6 @@ import {
   CardTitle,
   ChildListPagination,
   ConfirmAction,
-  ContextHint,
   DetailPageSkeleton,
   SidebarSummarySkeleton,
 } from "@/shared/ui";
@@ -248,33 +248,40 @@ export function SourceDetailPage() {
           <Card>
             <CardHeader>
               <CardHeading>
-                <CardTitle className="flex items-center gap-2">
-                  <span>{translateText("Locator")}</span>
-                  <ContextHint
-                    content={translateText(
-                      "Use the canonical locator whenever possible so downstream links stay stable.",
-                    )}
-                    label={translateText("Locator details")}
-                  />
-                </CardTitle>
+                <CardTitle>{translateText("Details")}</CardTitle>
               </CardHeading>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="break-all text-sm leading-6">
-                {sourceQuery.data.locator}
-              </p>
-              {/^https?:\/\//i.test(sourceQuery.data.locator) ? (
-                <Button asChild variant="outline" size="sm">
-                  <a
-                    href={sourceQuery.data.locator}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    <ExternalLink className="size-4" />
-                    {translateText("Open locator")}
-                  </a>
-                </Button>
-              ) : null}
+            <CardContent>
+              <DetailFieldList
+                items={[
+                  {
+                    label: "Label",
+                    value: sourceQuery.data.label || translateText("Not set"),
+                    valueClassName: "text-base font-medium text-mono",
+                  },
+                  {
+                    label: "Locator",
+                    value: (
+                      <>
+                        <p className="break-all">{sourceQuery.data.locator}</p>
+                        {/^https?:\/\//i.test(sourceQuery.data.locator) ? (
+                          <Button asChild variant="outline" size="sm">
+                            <a
+                              href={sourceQuery.data.locator}
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              <ExternalLink className="size-4" />
+                              {translateText("Open locator")}
+                            </a>
+                          </Button>
+                        ) : null}
+                      </>
+                    ),
+                    valueClassName: "space-y-3",
+                  },
+                ]}
+              />
             </CardContent>
           </Card>
 
@@ -367,7 +374,9 @@ export function SourceDetailPage() {
                               )}
                             </Badge>
                             <Badge
-                              variant={space.acceptsAnswers ? "success" : "mono"}
+                              variant={
+                                space.acceptsAnswers ? "success" : "mono"
+                              }
                               appearance="outline"
                             >
                               {translateText(
@@ -442,9 +451,7 @@ export function SourceDetailPage() {
                           ) : null}
                           <div className="flex flex-wrap items-center gap-2">
                             <QuestionStatusBadge status={question.status} />
-                            <VisibilityBadge
-                              visibility={question.visibility}
-                            />
+                            <VisibilityBadge visibility={question.visibility} />
                             <SourceRoleBadge role={question.role} />
                             <Badge variant="outline">
                               {translateText("Order {value}", {

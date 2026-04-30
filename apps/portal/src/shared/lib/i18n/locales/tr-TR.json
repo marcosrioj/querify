@@ -202,6 +202,7 @@
   "Day": "Gün",
   "Define the locator and source kind first so the record can be reused across questions.": "Define the locator and source kind first so the record can be reused across questions.",
   "Delete": "Sil",
+  "Details": "Ayrıntılar",
   "Delete answer": "Cevabı sil",
   "Delete answer \"{name}\"?": "\"{name}\" cevabı silinsin mi?",
   "Delete question": "Soruyu sil",

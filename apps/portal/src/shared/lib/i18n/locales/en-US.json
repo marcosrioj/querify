@@ -202,6 +202,7 @@
   "Day": "Day",
   "Define the locator and source kind first so the record can be reused across questions.": "Define the locator and source kind first so the record can be reused across questions.",
   "Delete": "Delete",
+  "Details": "Details",
   "Delete answer": "Delete answer",
   "Delete answer \"{name}\"?": "Delete answer \"{name}\"?",
   "Delete question": "Delete question",

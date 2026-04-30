@@ -32,6 +32,7 @@ import {
   VisibilityScope,
 } from "@/shared/constants/backend-enums";
 import {
+  DetailFieldList,
   DetailLayout,
   KeyValueList,
   PageHeader,
@@ -509,14 +510,26 @@ export function SpaceDetailPage() {
           <Card>
             <CardHeader>
               <CardHeading>
-                <CardTitle>{translateText("Summary")}</CardTitle>
+                <CardTitle>{translateText("Details")}</CardTitle>
               </CardHeading>
             </CardHeader>
             <CardContent>
-              <p className="whitespace-pre-wrap text-sm leading-6">
-                {spaceQuery.data.summary ||
-                  translateText("No summary provided.")}
-              </p>
+              <DetailFieldList
+                items={[
+                  {
+                    label: "Name",
+                    value: spaceQuery.data.name,
+                    valueClassName: "text-base font-medium text-mono",
+                  },
+                  {
+                    label: "Summary",
+                    value:
+                      spaceQuery.data.summary ||
+                      translateText("No summary provided."),
+                    valueClassName: "whitespace-pre-wrap",
+                  },
+                ]}
+              />
             </CardContent>
           </Card>
 

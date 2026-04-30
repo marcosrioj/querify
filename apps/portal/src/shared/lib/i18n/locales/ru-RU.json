@@ -202,6 +202,7 @@
   "Day": "День",
   "Define the locator and source kind first so the record can be reused across questions.": "Define the locator and source kind first so the record can be reused across questions.",
   "Delete": "Удалить",
+  "Details": "Сведения",
   "Delete answer": "Удалить ответ",
   "Delete answer \"{name}\"?": "Удалить ответ \"{name}\"?",
   "Delete question": "Удалить вопрос",

@@ -202,6 +202,7 @@
   "Day": "天",
   "Define the locator and source kind first so the record can be reused across questions.": "Define the locator and source kind first so the record can be reused across questions.",
   "Delete": "删除",
+  "Details": "详细信息",
   "Delete answer": "删除答案",
   "Delete answer \"{name}\"?": "删除回答“{name}”？",
   "Delete question": "删除问题",

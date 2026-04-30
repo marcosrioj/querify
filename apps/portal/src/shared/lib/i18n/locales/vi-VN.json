@@ -202,6 +202,7 @@
   "Day": "Ngày",
   "Define the locator and source kind first so the record can be reused across questions.": "Define the locator and source kind first so the record can be reused across questions.",
   "Delete": "Xóa",
+  "Details": "Chi tiết",
   "Delete answer": "Xóa câu trả lời",
   "Delete answer \"{name}\"?": "Xóa câu trả lời \"{name}\"?",
   "Delete question": "Xóa câu hỏi",

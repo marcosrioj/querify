@@ -274,3 +274,38 @@ export function KeyValueList({
     </dl>
   );
 }
+
+export function DetailFieldList({
+  items,
+}: {
+  items: Array<{
+    label: string;
+    value: ReactNode;
+    valueClassName?: string;
+  }>;
+}) {
+  const { t } = usePortalI18n();
+
+  return (
+    <div className="space-y-4">
+      {items.map((item) => (
+        <section
+          key={item.label}
+          className="rounded-lg border border-border/70 bg-muted/10 p-4"
+        >
+          <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
+            {t(item.label)}
+          </p>
+          <div
+            className={cn(
+              "mt-2 min-w-0 break-words text-sm leading-6 text-foreground [overflow-wrap:anywhere]",
+              item.valueClassName,
+            )}
+          >
+            {translateMaybeString(item.value, t)}
+          </div>
+        </section>
+      ))}
+    </div>
+  );
+}

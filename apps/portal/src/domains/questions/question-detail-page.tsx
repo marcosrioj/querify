@@ -42,6 +42,7 @@ import {
   sourceRoleLabels,
 } from "@/shared/constants/backend-enums";
 import {
+  DetailFieldList,
   DetailLayout,
   KeyValueList,
   PageHeader,
@@ -621,28 +622,32 @@ export function QuestionDetailPage() {
           <Card>
             <CardHeader>
               <CardHeading>
-                <CardTitle>{translateText("Summary and context")}</CardTitle>
+                <CardTitle>{translateText("Details")}</CardTitle>
               </CardHeading>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="rounded-lg border border-border bg-muted/10 p-4">
-                <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-                  {translateText("Summary")}
-                </p>
-                <p className="mt-2 text-sm leading-6">
-                  {questionQuery.data.summary ||
-                    translateText("No summary provided.")}
-                </p>
-              </div>
-              <div className="rounded-lg border border-border bg-muted/10 p-4">
-                <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-                  {translateText("Context note")}
-                </p>
-                <p className="mt-2 whitespace-pre-wrap text-sm leading-6">
-                  {questionQuery.data.contextNote ||
-                    translateText("No context note recorded.")}
-                </p>
-              </div>
+            <CardContent>
+              <DetailFieldList
+                items={[
+                  {
+                    label: "Title",
+                    value: questionQuery.data.title,
+                    valueClassName: "text-base font-medium text-mono",
+                  },
+                  {
+                    label: "Summary",
+                    value:
+                      questionQuery.data.summary ||
+                      translateText("No summary provided."),
+                  },
+                  {
+                    label: "Context note",
+                    value:
+                      questionQuery.data.contextNote ||
+                      translateText("No context note recorded."),
+                    valueClassName: "whitespace-pre-wrap",
+                  },
+                ]}
+              />
             </CardContent>
           </Card>
 

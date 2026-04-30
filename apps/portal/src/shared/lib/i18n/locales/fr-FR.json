@@ -202,6 +202,7 @@
   "Day": "Jour",
   "Define the locator and source kind first so the record can be reused across questions.": "Define the locator and source kind first so the record can be reused across questions.",
   "Delete": "Supprimer",
+  "Details": "Détails",
   "Delete answer": "Supprimer la réponse",
   "Delete answer \"{name}\"?": "Supprimer la réponse « {name} » ?",
   "Delete question": "Supprimer la question",
