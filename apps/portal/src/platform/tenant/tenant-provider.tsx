@@ -9,6 +9,30 @@ import { ModuleEnum } from '@/shared/constants/backend-enums';
 
 const STORAGE_KEY = 'basefaq.portal.currentTenantId';
 
+function getStoredTenantId() {
+  if (typeof window === 'undefined') {
+    return undefined;
+  }
+
+  try {
+    return window.localStorage.getItem(STORAGE_KEY) ?? undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function setStoredTenantId(tenantId: string) {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  try {
+    window.localStorage.setItem(STORAGE_KEY, tenantId);
+  } catch {
+    // Ignore storage failures and keep the in-memory tenant selection.
+  }
+}
+
 async function fetchTenants(accessToken?: string) {
   return portalRequest<TenantSummaryDto[]>({
     service: 'tenant',
@@ -19,7 +43,9 @@ async function fetchTenants(accessToken?: string) {
 
 export function PortalTenantProvider({ children }: PropsWithChildren) {
   const { session, status } = useAuth();
-  const [currentTenantId, setCurrentTenantIdState] = useState<string>();
+  const [currentTenantId, setCurrentTenantIdState] = useState<
+    string | undefined
+  >(getStoredTenantId);
 
   const tenantsQuery = useQuery({
     queryKey: ['portal', 'tenant-context', 'tenants'],
@@ -32,15 +58,6 @@ export function PortalTenantProvider({ children }: PropsWithChildren) {
       (tenantsQuery.data ?? []).filter((tenant) => tenant.module === ModuleEnum.QnA),
     [tenantsQuery.data],
   );
-
-  useEffect(() => {
-    const storedTenantId = window.localStorage.getItem(STORAGE_KEY);
-    if (!storedTenantId) {
-      return;
-    }
-
-    setCurrentTenantIdState(storedTenantId);
-  }, []);
 
   useEffect(() => {
     if (tenantsQuery.isLoading || tenantsQuery.data === undefined) {
@@ -61,7 +78,7 @@ export function PortalTenantProvider({ children }: PropsWithChildren) {
 
     const nextTenant = tenantOptions[0];
     setCurrentTenantIdState(nextTenant.id);
-    window.localStorage.setItem(STORAGE_KEY, nextTenant.id);
+    setStoredTenantId(nextTenant.id);
   }, [currentTenantId, tenantOptions, tenantsQuery.isLoading, tenantsQuery.data]);
 
   const value = useMemo<TenantContextValue>(
@@ -72,7 +89,7 @@ export function PortalTenantProvider({ children }: PropsWithChildren) {
       isLoading: tenantsQuery.isLoading,
       setCurrentTenantId(tenantId) {
         setCurrentTenantIdState(tenantId);
-        window.localStorage.setItem(STORAGE_KEY, tenantId);
+        setStoredTenantId(tenantId);
       },
       async refreshTenants() {
         await tenantsQuery.refetch();
