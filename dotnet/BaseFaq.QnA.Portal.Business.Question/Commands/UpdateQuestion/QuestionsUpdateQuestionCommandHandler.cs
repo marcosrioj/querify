@@ -5,6 +5,7 @@ using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.QnA.Dtos.Question;
 using BaseFaq.Models.QnA.Enums;
 using BaseFaq.QnA.Common.Domain.BusinessRules.Activities;
+using BaseFaq.QnA.Common.Domain.BusinessRules.Questions;
 using BaseFaq.QnA.Common.Persistence.QnADb.DbContext;
 using MediatR;
 using Microsoft.AspNetCore.Http;
@@ -38,15 +39,14 @@ public sealed class QuestionsUpdateQuestionCommandHandler(
         if (entity is null)
             throw new ApiErrorException($"Question '{request.Id}' was not found.", (int)HttpStatusCode.NotFound);
 
-        EnsureSupportedStatus(request.Request.Status);
-        var beforeSnapshot = SnapshotQuestion(entity);
+        QuestionRules.EnsureSupportedStatus(request.Request.Status);
+        var beforeSnapshot = ActivityEntityMetadata.SnapshotQuestion(entity);
         var originalStatus = entity.Status;
         Apply(entity, request.Request, userId);
 
         if (!request.Request.AcceptedAnswerId.HasValue && entity.AcceptedAnswerId.HasValue)
         {
-            entity.AcceptedAnswerId = null;
-            entity.AcceptedAnswer = null;
+            QuestionRules.ClearAcceptedAnswer(entity);
         }
 
         if (request.Request.AcceptedAnswerId is Guid acceptedAnswerId && acceptedAnswerId != entity.AcceptedAnswerId)
@@ -62,29 +62,10 @@ public sealed class QuestionsUpdateQuestionCommandHandler(
                 throw new ApiErrorException($"Answer '{acceptedAnswerId}' was not found.",
                     (int)HttpStatusCode.NotFound);
 
-            if (answer.QuestionId != entity.Id)
-                throw new ApiErrorException(
-                    $"Accepted answer '{acceptedAnswerId}' belongs to a different question.",
-                    (int)HttpStatusCode.UnprocessableEntity);
-
-            if (answer.Status is not AnswerStatus.Active)
-                throw new ApiErrorException(
-                    "Only active answers can be accepted.",
-                    (int)HttpStatusCode.UnprocessableEntity);
-
-            if (entity.Visibility is VisibilityScope.Public &&
-                answer.Visibility is not VisibilityScope.Public)
-                throw new ApiErrorException(
-                    "Public questions cannot accept non-public answers.",
-                    (int)HttpStatusCode.UnprocessableEntity);
-
-            entity.AcceptedAnswerId = answer.Id;
-            entity.AcceptedAnswer = answer;
-            if (entity.Status is QuestionStatus.Draft)
-                entity.Status = QuestionStatus.Active;
+            QuestionRules.ApplyAcceptedAnswer(entity, answer);
         }
 
-        var afterSnapshot = SnapshotQuestion(entity);
+        var afterSnapshot = ActivityEntityMetadata.SnapshotQuestion(entity);
         var statusChanged = entity.Status != originalStatus;
         ActivityAppender.AddQuestionActivity(
             entity,
@@ -95,7 +76,7 @@ public sealed class QuestionsUpdateQuestionCommandHandler(
             statusChanged ? "StatusChanged" : "Updated",
             beforeSnapshot,
             afterSnapshot,
-            QuestionContext(entity));
+            ActivityEntityMetadata.QuestionContext(entity));
 
         await dbContext.SaveChangesAsync(cancellationToken);
         return request.Id;
@@ -104,7 +85,7 @@ public sealed class QuestionsUpdateQuestionCommandHandler(
     private static void Apply(Common.Domain.Entities.Question entity, QuestionUpdateRequestDto request,
         string userId)
     {
-        EnsureSupportedStatus(request.Status);
+        QuestionRules.EnsureSupportedStatus(request.Status);
 
         entity.Title = request.Title;
         entity.Summary = request.Summary;
@@ -112,73 +93,8 @@ public sealed class QuestionsUpdateQuestionCommandHandler(
         entity.Sort = request.Sort;
         entity.Status = request.Status;
 
-        EnsureVisibilityAllowed(entity, request.Visibility);
+        QuestionRules.EnsureVisibilityAllowed(entity, request.Visibility);
         entity.Visibility = request.Visibility;
         entity.UpdatedBy = userId;
-    }
-
-    private static Dictionary<string, object?> SnapshotQuestion(Common.Domain.Entities.Question entity)
-    {
-        return new Dictionary<string, object?>(StringComparer.Ordinal)
-        {
-            ["Id"] = entity.Id,
-            ["TenantId"] = entity.TenantId,
-            ["SpaceId"] = entity.SpaceId,
-            ["Title"] = entity.Title,
-            ["Summary"] = entity.Summary,
-            ["ContextNote"] = entity.ContextNote,
-            ["Status"] = entity.Status.ToString(),
-            ["Visibility"] = entity.Visibility.ToString(),
-            ["OriginChannel"] = entity.OriginChannel.ToString(),
-            ["AiConfidenceScore"] = entity.AiConfidenceScore,
-            ["FeedbackScore"] = entity.FeedbackScore,
-            ["Sort"] = entity.Sort,
-            ["AcceptedAnswerId"] = entity.AcceptedAnswerId
-        };
-    }
-
-    private static Dictionary<string, object?> QuestionContext(Common.Domain.Entities.Question entity)
-    {
-        return new Dictionary<string, object?>(StringComparer.Ordinal)
-        {
-            ["QuestionId"] = entity.Id,
-            ["SpaceId"] = entity.SpaceId,
-            ["Status"] = entity.Status.ToString(),
-            ["Visibility"] = entity.Visibility.ToString()
-        };
-    }
-
-    private static void EnsureVisibilityAllowed(Common.Domain.Entities.Question entity,
-        VisibilityScope visibility)
-    {
-        if (visibility is not VisibilityScope.Public) return;
-
-        if (entity.Status is not QuestionStatus.Active)
-            throw new ApiErrorException(
-                "Only active questions can be exposed publicly.",
-                (int)HttpStatusCode.UnprocessableEntity);
-
-        foreach (var sourceLink in entity.Sources)
-            if (sourceLink.Role is SourceRole.Reference &&
-                sourceLink.Source.Visibility is not VisibilityScope.Public)
-                throw new ApiErrorException(
-                    "Public references require a publicly visible source.",
-                    (int)HttpStatusCode.UnprocessableEntity);
-
-        if (entity.AcceptedAnswer is not null &&
-            entity.AcceptedAnswer.Visibility is not VisibilityScope.Public)
-            throw new ApiErrorException(
-                "Public questions require a publicly visible accepted answer.",
-                (int)HttpStatusCode.UnprocessableEntity);
-    }
-
-    private static void EnsureSupportedStatus(QuestionStatus status)
-    {
-        if (status is QuestionStatus.Draft or QuestionStatus.Active or QuestionStatus.Archived)
-            return;
-
-        throw new ApiErrorException(
-            "Unsupported question status.",
-            (int)HttpStatusCode.UnprocessableEntity);
     }
 }

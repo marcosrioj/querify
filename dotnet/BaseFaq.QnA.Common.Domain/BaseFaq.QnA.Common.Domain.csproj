@@ -13,6 +13,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\BaseFaq.Common.EntityFramework.Core\BaseFaq.Common.EntityFramework.Core.csproj"/>
+        <ProjectReference Include="..\BaseFaq.Common.Infrastructure.ApiErrorHandling\BaseFaq.Common.Infrastructure.ApiErrorHandling.csproj"/>
         <ProjectReference Include="..\BaseFaq.Common.Infrastructure.Core\BaseFaq.Common.Infrastructure.Core.csproj"/>
         <ProjectReference Include="..\BaseFaq.Models.QnA\BaseFaq.Models.QnA.csproj"/>
     </ItemGroup>

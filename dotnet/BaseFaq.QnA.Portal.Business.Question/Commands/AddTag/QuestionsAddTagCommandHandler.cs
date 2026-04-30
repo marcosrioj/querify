@@ -2,8 +2,8 @@ using System.Net;
 using BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception;
 using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Models.Common.Enums;
+using BaseFaq.QnA.Common.Domain.BusinessRules.Questions;
 using BaseFaq.QnA.Common.Persistence.QnADb.DbContext;
-using BaseFaq.QnA.Common.Domain.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -34,19 +34,9 @@ public sealed class QuestionsAddTagCommandHandler(
             throw new ApiErrorException($"Tag '{request.Request.TagId}' was not found.",
                 (int)HttpStatusCode.NotFound);
 
-        if (question.Tags.All(link => link.TagId != tag.Id))
-            question.Tags.Add(new QuestionTag
-            {
-                TenantId = tenantId,
-                QuestionId = question.Id,
-                Question = question,
-                TagId = tag.Id,
-                Tag = tag,
-                CreatedBy = userId,
-                UpdatedBy = userId
-            });
+        var link = QuestionRules.EnsureTagLink(question, tag, tenantId, userId);
 
         await dbContext.SaveChangesAsync(cancellationToken);
-        return question.Tags.Single(link => link.TagId == tag.Id).Id;
+        return link.Id;
     }
 }

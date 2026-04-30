@@ -2,8 +2,8 @@ using System.Net;
 using BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception;
 using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Models.Common.Enums;
+using BaseFaq.QnA.Common.Domain.BusinessRules.Spaces;
 using BaseFaq.QnA.Common.Persistence.QnADb.DbContext;
-using BaseFaq.QnA.Common.Domain.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -37,20 +37,10 @@ public sealed class SpacesAddCuratedSourceCommandHandler(
                 $"Source '{request.Request.SourceId}' was not found.",
                 (int)HttpStatusCode.NotFound);
 
-        if (space.Sources.All(link => link.SourceId != source.Id))
-            space.Sources.Add(new SpaceSource
-            {
-                TenantId = tenantId,
-                SpaceId = space.Id,
-                Space = space,
-                SourceId = source.Id,
-                Source = source,
-                CreatedBy = userId,
-                UpdatedBy = userId
-            });
+        var link = SpaceRules.EnsureSourceLink(space, source, tenantId, userId);
 
         await dbContext.SaveChangesAsync(cancellationToken);
 
-        return space.Sources.Single(link => link.SourceId == source.Id).Id;
+        return link.Id;
     }
 }

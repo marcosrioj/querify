@@ -2,8 +2,8 @@ using System.Net;
 using BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception;
 using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Models.Common.Enums;
+using BaseFaq.QnA.Common.Domain.BusinessRules.Spaces;
 using BaseFaq.QnA.Common.Persistence.QnADb.DbContext;
-using BaseFaq.QnA.Common.Domain.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -35,20 +35,10 @@ public sealed class SpacesAddTagCommandHandler(
             throw new ApiErrorException($"Tag '{request.Request.TagId}' was not found.",
                 (int)HttpStatusCode.NotFound);
 
-        if (space.Tags.All(link => link.TagId != tag.Id))
-            space.Tags.Add(new SpaceTag
-            {
-                TenantId = tenantId,
-                SpaceId = space.Id,
-                Space = space,
-                TagId = tag.Id,
-                Tag = tag,
-                CreatedBy = userId,
-                UpdatedBy = userId
-            });
+        var link = SpaceRules.EnsureTagLink(space, tag, tenantId, userId);
 
         await dbContext.SaveChangesAsync(cancellationToken);
 
-        return space.Tags.Single(link => link.TagId == tag.Id).Id;
+        return link.Id;
     }
 }

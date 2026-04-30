@@ -3,7 +3,7 @@ using BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception;
 using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.QnA.Dtos.Space;
-using BaseFaq.Models.QnA.Enums;
+using BaseFaq.QnA.Common.Domain.BusinessRules.Spaces;
 using BaseFaq.QnA.Common.Persistence.QnADb.DbContext;
 using BaseFaq.QnA.Portal.Business.Space.Commands;
 using MediatR;
@@ -58,21 +58,9 @@ public sealed class SpacesUpdateSpaceCommandHandler(
         entity.AcceptsQuestions = request.AcceptsQuestions;
         entity.AcceptsAnswers = request.AcceptsAnswers;
         entity.Status = request.Status;
-        EnsureVisibilityAllowed(entity, request.Visibility);
+        SpaceRules.EnsureVisibilityAllowed(entity, request.Visibility);
         entity.Visibility = request.Visibility;
 
         entity.UpdatedBy = userId;
-    }
-
-    private static void EnsureVisibilityAllowed(
-        Common.Domain.Entities.Space entity,
-        VisibilityScope visibility)
-    {
-        if (visibility is not VisibilityScope.Public) return;
-
-        if (entity.Status is not SpaceStatus.Active)
-            throw new ApiErrorException(
-                "Only active spaces can be exposed publicly.",
-                (int)HttpStatusCode.UnprocessableEntity);
     }
 }

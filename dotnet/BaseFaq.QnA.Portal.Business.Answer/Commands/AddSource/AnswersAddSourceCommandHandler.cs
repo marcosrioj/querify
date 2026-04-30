@@ -2,9 +2,8 @@ using System.Net;
 using BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception;
 using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Models.Common.Enums;
-using BaseFaq.Models.QnA.Enums;
+using BaseFaq.QnA.Common.Domain.BusinessRules.Answers;
 using BaseFaq.QnA.Common.Persistence.QnADb.DbContext;
-using BaseFaq.QnA.Common.Domain.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -38,39 +37,18 @@ public sealed class AnswersAddSourceCommandHandler(
                 $"Source '{request.Request.SourceId}' was not found.",
                 (int)HttpStatusCode.NotFound);
 
-        EnsureSourceSupportsVisibility(answer.Visibility, source, request.Request.Role);
-
-        var link = new AnswerSourceLink
-        {
-            TenantId = tenantId,
-            AnswerId = answer.Id,
-            Answer = answer,
-            SourceId = source.Id,
-            Source = source,
-            Role = request.Request.Role,
-            Order = request.Request.Order,
-            CreatedBy = userId,
-            UpdatedBy = userId
-        };
+        var link = AnswerRules.CreateSourceLink(
+            answer,
+            source,
+            request.Request.Role,
+            request.Request.Order,
+            tenantId,
+            userId);
 
         answer.Sources.Add(link);
         source.Answers.Add(link);
         dbContext.AnswerSourceLinks.Add(link);
         await dbContext.SaveChangesAsync(cancellationToken);
         return link.Id;
-    }
-
-    private static void EnsureSourceSupportsVisibility(
-        VisibilityScope answerVisibility,
-        Source source,
-        SourceRole role)
-    {
-        if (answerVisibility is not VisibilityScope.Public) return;
-
-        if (role is SourceRole.Reference &&
-            source.Visibility is not VisibilityScope.Public)
-            throw new ApiErrorException(
-                "Public references require a publicly visible source.",
-                (int)HttpStatusCode.UnprocessableEntity);
     }
 }

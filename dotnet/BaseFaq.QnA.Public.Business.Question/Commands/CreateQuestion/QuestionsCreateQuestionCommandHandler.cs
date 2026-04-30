@@ -4,6 +4,7 @@ using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Common.Infrastructure.Core.Constants;
 using BaseFaq.Models.QnA.Enums;
 using BaseFaq.QnA.Common.Domain.BusinessRules.Activities;
+using BaseFaq.QnA.Common.Domain.BusinessRules.Spaces;
 using BaseFaq.QnA.Common.Persistence.QnADb.DbContext;
 using MediatR;
 using Microsoft.AspNetCore.Http;
@@ -43,10 +44,7 @@ public sealed class QuestionsCreateQuestionCommandHandler(
                 $"Space '{request.Request.SpaceId}' was not found.",
                 (int)HttpStatusCode.NotFound);
 
-        if (!space.AcceptsQuestions)
-            throw new ApiErrorException(
-                "This space is not accepting questions.",
-                (int)HttpStatusCode.UnprocessableEntity);
+        SpaceRules.EnsureAcceptsQuestions(space);
 
         var entity = new Common.Domain.Entities.Question
         {
@@ -69,7 +67,7 @@ public sealed class QuestionsCreateQuestionCommandHandler(
         space.Questions.Add(entity);
         dbContext.Questions.Add(entity);
 
-        var questionSnapshot = SnapshotQuestion(entity);
+        var questionSnapshot = ActivityEntityMetadata.SnapshotQuestion(entity);
         ActivityAppender.AddQuestionActivity(
             entity,
             ActivityKind.QuestionCreated,
@@ -77,7 +75,7 @@ public sealed class QuestionsCreateQuestionCommandHandler(
             "Created",
             new Dictionary<string, object?>(StringComparer.Ordinal),
             questionSnapshot,
-            QuestionContext(entity));
+            ActivityEntityMetadata.QuestionContext(entity));
 
         await dbContext.SaveChangesAsync(cancellationToken);
         return entity.Id;
@@ -91,34 +89,4 @@ public sealed class QuestionsCreateQuestionCommandHandler(
         return tenantId;
     }
 
-    private static Dictionary<string, object?> SnapshotQuestion(Common.Domain.Entities.Question entity)
-    {
-        return new Dictionary<string, object?>(StringComparer.Ordinal)
-        {
-            ["Id"] = entity.Id,
-            ["TenantId"] = entity.TenantId,
-            ["SpaceId"] = entity.SpaceId,
-            ["Title"] = entity.Title,
-            ["Summary"] = entity.Summary,
-            ["ContextNote"] = entity.ContextNote,
-            ["Status"] = entity.Status.ToString(),
-            ["Visibility"] = entity.Visibility.ToString(),
-            ["OriginChannel"] = entity.OriginChannel.ToString(),
-            ["AiConfidenceScore"] = entity.AiConfidenceScore,
-            ["FeedbackScore"] = entity.FeedbackScore,
-            ["Sort"] = entity.Sort,
-            ["AcceptedAnswerId"] = entity.AcceptedAnswerId
-        };
-    }
-
-    private static Dictionary<string, object?> QuestionContext(Common.Domain.Entities.Question entity)
-    {
-        return new Dictionary<string, object?>(StringComparer.Ordinal)
-        {
-            ["QuestionId"] = entity.Id,
-            ["SpaceId"] = entity.SpaceId,
-            ["Status"] = entity.Status.ToString(),
-            ["Visibility"] = entity.Visibility.ToString()
-        };
-    }
 }

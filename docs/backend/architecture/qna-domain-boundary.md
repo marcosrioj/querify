@@ -6,9 +6,12 @@ This document records where QnA entity state and entity-related business rules l
 
 - `dotnet/BaseFaq.QnA.Common.Domain` owns QnA domain state and domain rules shared by Portal, Public, seed, tests, and persistence.
 - `BaseFaq.QnA.Common.Domain.Entities` contains the anemic QnA entity model: `Space`, `Question`, `Answer`, `Source`, `Tag`, links, and `Activity`.
-- `BaseFaq.QnA.Common.Domain.BusinessRules` contains reusable entity-related rules that do not require infrastructure. Activity rules live under `BaseFaq.QnA.Common.Domain.BusinessRules.Activities`.
-- Source checksum rules live under `BaseFaq.QnA.Common.Domain.BusinessRules.Sources`.
-- Space slug generation rules live under `BaseFaq.QnA.Common.Domain.BusinessRules.Spaces`; slug uniqueness checks stay outside the domain when they query `QnADbContext`.
+- `BaseFaq.QnA.Common.Domain.BusinessRules` contains reusable entity-related rules that do not require persistence or response shaping.
+- `BaseFaq.QnA.Common.Domain.BusinessRules.Activities` owns activity append, actor/request value creation, entity snapshots, activity context metadata, signal entries, and signal score calculations.
+- `BaseFaq.QnA.Common.Domain.BusinessRules.Answers` owns answer status validation/transitions, visibility constraints, archive/activate semantics, and answer-source link creation rules.
+- `BaseFaq.QnA.Common.Domain.BusinessRules.Questions` owns question status validation, visibility constraints, accepted-answer rules, and question tag/source link creation rules.
+- `BaseFaq.QnA.Common.Domain.BusinessRules.Sources` owns source checksum rules, public source constraints, and public reference compatibility rules.
+- `BaseFaq.QnA.Common.Domain.BusinessRules.Spaces` owns space visibility constraints, question/answer acceptance gates, tag/source link creation rules, and slug generation rules. Slug uniqueness checks stay outside the domain when they query `QnADbContext`.
 - `dotnet/BaseFaq.QnA.Common.Persistence.QnADb` owns EF Core infrastructure only: `QnADbContext`, model configurations, tenant-integrity rules, migrations, and service registration.
 
 Do not add new QnA entities under `BaseFaq.QnA.Common.Persistence.QnADb/Entities`. Do not add reusable QnA domain rules under `BaseFaq.QnA.Common.Persistence.QnADb/Activities` or a helper project.
@@ -34,3 +37,14 @@ Activity helpers and signal calculations are domain rules because they operate o
 - `ActivitySignals`, identity resolution, metadata shaping, and status-to-activity mapping stay under `BusinessRules.Activities`.
 
 Persistence decides how those attached entities are saved through normal EF change tracking.
+
+## Business Rule Audit Checklist
+
+Use this checklist when reviewing whether behavior belongs under `BusinessRules`:
+
+- Status and visibility invariants for `Space`, `Question`, `Answer`, and `Source` belong in the matching `BusinessRules.<Feature>` folder.
+- Cross-entity entity rules such as accepted-answer eligibility, public reference compatibility, and idempotent tag/source link creation belong in domain rules when they operate only on already-loaded entities.
+- Activity snapshot/context metadata and signal conversion belong in `BusinessRules.Activities` because the values are tied to QnA entity state and activity semantics.
+- DTO projection, filtering, sorting, and response-specific read shaping stay in query handlers.
+- EF uniqueness checks, tenant-integrity checks, model configuration, migrations, and `QnADbContext` queries stay in persistence or command orchestration, not in domain rules.
+- Seed files may call domain rules, but seed-specific catalog construction and raw bulk SQL remain seed-tool behavior.

@@ -2,9 +2,8 @@ using System.Net;
 using BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception;
 using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Models.Common.Enums;
-using BaseFaq.Models.QnA.Enums;
+using BaseFaq.QnA.Common.Domain.BusinessRules.Questions;
 using BaseFaq.QnA.Common.Persistence.QnADb.DbContext;
-using BaseFaq.QnA.Common.Domain.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -36,39 +35,18 @@ public sealed class QuestionsAddSourceCommandHandler(
             throw new ApiErrorException($"Source '{request.Request.SourceId}' was not found.",
                 (int)HttpStatusCode.NotFound);
 
-        EnsureSourceSupportsVisibility(question.Visibility, source, request.Request.Role);
-
-        var link = new QuestionSourceLink
-        {
-            TenantId = tenantId,
-            QuestionId = question.Id,
-            Question = question,
-            SourceId = source.Id,
-            Source = source,
-            Role = request.Request.Role,
-            Order = request.Request.Order,
-            CreatedBy = userId,
-            UpdatedBy = userId
-        };
+        var link = QuestionRules.CreateSourceLink(
+            question,
+            source,
+            request.Request.Role,
+            request.Request.Order,
+            tenantId,
+            userId);
 
         question.Sources.Add(link);
         source.Questions.Add(link);
         dbContext.QuestionSourceLinks.Add(link);
         await dbContext.SaveChangesAsync(cancellationToken);
         return link.Id;
-    }
-
-    private static void EnsureSourceSupportsVisibility(
-        VisibilityScope questionVisibility,
-        Source source,
-        SourceRole role)
-    {
-        if (questionVisibility is not VisibilityScope.Public) return;
-
-        if (role is SourceRole.Reference &&
-            source.Visibility is not VisibilityScope.Public)
-            throw new ApiErrorException(
-                "Public references require a publicly visible source.",
-                (int)HttpStatusCode.UnprocessableEntity);
     }
 }

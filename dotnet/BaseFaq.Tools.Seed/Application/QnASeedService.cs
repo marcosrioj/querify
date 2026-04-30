@@ -313,7 +313,8 @@ public sealed class QnASeedService : IQnASeedService
             }
 
             question.LastActivityAtUtc = activities.Max(activity => activity.OccurredAtUtc);
-            question.FeedbackScore = ActivitySignals.ComputeFeedbackScore(activities.Select(ToSignalEntry));
+            question.FeedbackScore = ActivitySignals.ComputeFeedbackScore(
+                activities.Select(ActivityEntityMetadata.ToSignalEntry));
             dbContext.Questions.Add(question);
             acceptedAnswerAssignments.Add(new AcceptedAnswerAssignment(question, primaryAnswer));
         }
@@ -955,16 +956,6 @@ public sealed class QnASeedService : IQnASeedService
         return string.IsNullOrWhiteSpace(normalized)
             ? fallback
             : normalized;
-    }
-
-    private static ActivitySignalEntry ToSignalEntry(Activity activity)
-    {
-        return new ActivitySignalEntry(
-            activity.Kind,
-            activity.AnswerId,
-            activity.OccurredAtUtc,
-            activity.UserPrint,
-            activity.MetadataJson);
     }
 
     private sealed record AcceptedAnswerAssignment(Question Question, Answer Answer);

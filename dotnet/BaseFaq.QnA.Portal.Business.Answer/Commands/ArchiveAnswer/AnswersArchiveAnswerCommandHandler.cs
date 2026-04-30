@@ -4,6 +4,7 @@ using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.QnA.Enums;
 using BaseFaq.QnA.Common.Domain.BusinessRules.Activities;
+using BaseFaq.QnA.Common.Domain.BusinessRules.Answers;
 using BaseFaq.QnA.Common.Persistence.QnADb.DbContext;
 using MediatR;
 using Microsoft.AspNetCore.Http;
@@ -34,8 +35,7 @@ public sealed class AnswersArchiveAnswerCommandHandler(
 
         var originalStatus = entity.Status;
         var originalVisibility = entity.Visibility;
-        entity.Status = AnswerStatus.Archived;
-        entity.Visibility = VisibilityScope.Internal;
+        AnswerRules.Archive(entity);
 
         if (originalStatus != entity.Status)
             ActivityAppender.AddAnswerActivity(
@@ -53,20 +53,9 @@ public sealed class AnswersArchiveAnswerCommandHandler(
                     ["Status"] = entity.Status.ToString(),
                     ["Visibility"] = entity.Visibility.ToString()
                 },
-                AnswerContext(entity));
+                ActivityEntityMetadata.AnswerContext(entity));
 
         await dbContext.SaveChangesAsync(cancellationToken);
         return request.Id;
-    }
-
-    private static Dictionary<string, object?> AnswerContext(Common.Domain.Entities.Answer entity)
-    {
-        return new Dictionary<string, object?>(StringComparer.Ordinal)
-        {
-            ["QuestionId"] = entity.QuestionId,
-            ["AnswerId"] = entity.Id,
-            ["Status"] = entity.Status.ToString(),
-            ["Visibility"] = entity.Visibility.ToString()
-        };
     }
 }

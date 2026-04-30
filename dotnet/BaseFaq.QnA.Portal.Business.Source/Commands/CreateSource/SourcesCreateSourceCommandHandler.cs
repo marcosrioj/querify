@@ -1,9 +1,6 @@
-using System.Net;
-using BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception;
 using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.QnA.Dtos.Source;
-using BaseFaq.Models.QnA.Enums;
 using BaseFaq.QnA.Common.Domain.BusinessRules.Sources;
 using BaseFaq.QnA.Common.Persistence.QnADb.DbContext;
 using MediatR;
@@ -61,25 +58,8 @@ public sealed class SourcesCreateSourceCommandHandler(
             entity.LastVerifiedAtUtc = DateTime.UtcNow;
         }
 
-        EnsureVisibilityAllowed(entity, request.Visibility);
+        SourceRules.EnsureVisibilityAllowed(entity, request.Visibility);
         entity.Visibility = request.Visibility;
         entity.UpdatedBy = userId;
-    }
-
-    private static void EnsureVisibilityAllowed(
-        Common.Domain.Entities.Source entity,
-        VisibilityScope visibility)
-    {
-        if (visibility is not VisibilityScope.Public) return;
-
-        if (entity.Kind is SourceKind.InternalNote)
-            throw new ApiErrorException(
-                "Internal notes cannot be exposed publicly.",
-                (int)HttpStatusCode.UnprocessableEntity);
-
-        if (entity.LastVerifiedAtUtc is null)
-            throw new ApiErrorException(
-                "Sources must be verified before public exposure.",
-                (int)HttpStatusCode.UnprocessableEntity);
     }
 }

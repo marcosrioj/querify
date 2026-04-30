@@ -5,6 +5,8 @@ using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.QnA.Dtos.Answer;
 using BaseFaq.Models.QnA.Enums;
 using BaseFaq.QnA.Common.Domain.BusinessRules.Activities;
+using BaseFaq.QnA.Common.Domain.BusinessRules.Answers;
+using BaseFaq.QnA.Common.Domain.BusinessRules.Spaces;
 using BaseFaq.QnA.Common.Persistence.QnADb.DbContext;
 using MediatR;
 using Microsoft.AspNetCore.Http;
@@ -38,10 +40,7 @@ public sealed class AnswersCreateAnswerCommandHandler(
                 $"Question '{request.Request.QuestionId}' was not found.",
                 (int)HttpStatusCode.NotFound);
 
-        if (!question.Space.AcceptsAnswers)
-            throw new ApiErrorException(
-                "This space is not accepting answers.",
-                (int)HttpStatusCode.UnprocessableEntity);
+        SpaceRules.EnsureAcceptsAnswers(question.Space);
 
         var entity = new Common.Domain.Entities.Answer
         {
@@ -64,7 +63,7 @@ public sealed class AnswersCreateAnswerCommandHandler(
         dbContext.Answers.Add(entity);
 
         Apply(entity, request.Request, userId);
-        var answerSnapshot = SnapshotAnswer(entity);
+        var answerSnapshot = ActivityEntityMetadata.SnapshotAnswer(entity);
         ActivityAppender.AddAnswerActivity(
             entity,
             ActivityKind.AnswerCreated,
@@ -72,7 +71,7 @@ public sealed class AnswersCreateAnswerCommandHandler(
             "Created",
             new Dictionary<string, object?>(StringComparer.Ordinal),
             answerSnapshot,
-            AnswerContext(entity));
+            ActivityEntityMetadata.AnswerContext(entity));
 
         await dbContext.SaveChangesAsync(cancellationToken);
         return entity.Id;
@@ -88,67 +87,10 @@ public sealed class AnswersCreateAnswerCommandHandler(
         entity.Sort = request.Sort;
         entity.Kind = request.Kind;
 
-        switch (request.Status)
-        {
-            case AnswerStatus.Active:
-                entity.Status = AnswerStatus.Active;
-                break;
-            case AnswerStatus.Archived:
-                entity.Status = AnswerStatus.Archived;
-                break;
-            case AnswerStatus.Draft:
-                entity.Status = request.Status;
-                break;
-            default:
-                throw new ApiErrorException(
-                    "Unsupported answer status.",
-                    (int)HttpStatusCode.UnprocessableEntity);
-        }
+        AnswerRules.SetSupportedStatus(entity, request.Status);
 
-        EnsureVisibilityAllowed(entity, request.Visibility);
+        AnswerRules.EnsureVisibilityAllowed(entity, request.Visibility);
         entity.Visibility = request.Visibility;
         entity.UpdatedBy = userId;
-    }
-
-    private static Dictionary<string, object?> SnapshotAnswer(Common.Domain.Entities.Answer entity)
-    {
-        return new Dictionary<string, object?>(StringComparer.Ordinal)
-        {
-            ["Id"] = entity.Id,
-            ["TenantId"] = entity.TenantId,
-            ["QuestionId"] = entity.QuestionId,
-            ["Headline"] = entity.Headline,
-            ["Body"] = entity.Body,
-            ["AuthorLabel"] = entity.AuthorLabel,
-            ["ContextNote"] = entity.ContextNote,
-            ["Kind"] = entity.Kind.ToString(),
-            ["Status"] = entity.Status.ToString(),
-            ["Visibility"] = entity.Visibility.ToString(),
-            ["AiConfidenceScore"] = entity.AiConfidenceScore,
-            ["Score"] = entity.Score,
-            ["Sort"] = entity.Sort
-        };
-    }
-
-    private static Dictionary<string, object?> AnswerContext(Common.Domain.Entities.Answer entity)
-    {
-        return new Dictionary<string, object?>(StringComparer.Ordinal)
-        {
-            ["QuestionId"] = entity.QuestionId,
-            ["AnswerId"] = entity.Id,
-            ["Status"] = entity.Status.ToString(),
-            ["Visibility"] = entity.Visibility.ToString()
-        };
-    }
-
-    private static void EnsureVisibilityAllowed(Common.Domain.Entities.Answer entity,
-        VisibilityScope visibility)
-    {
-        if (visibility is not VisibilityScope.Public) return;
-
-        if (entity.Status is not AnswerStatus.Active)
-            throw new ApiErrorException(
-                "Only active answers can be exposed publicly.",
-                (int)HttpStatusCode.UnprocessableEntity);
     }
 }

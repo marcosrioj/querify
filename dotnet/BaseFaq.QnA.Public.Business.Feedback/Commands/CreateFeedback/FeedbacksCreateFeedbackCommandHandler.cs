@@ -71,7 +71,8 @@ public sealed class FeedbacksCreateFeedbackCommandHandler(
             request.Request.Like,
             request.Request.Reason,
             request.Request.Notes);
-        question.FeedbackScore = ActivitySignals.ComputeFeedbackScore(question.Activities.Select(ToSignalEntry));
+        question.FeedbackScore = ActivitySignals.ComputeFeedbackScore(
+            question.Activities.Select(ActivityEntityMetadata.ToSignalEntry));
 
         await dbContext.SaveChangesAsync(cancellationToken);
         return activity.Id;
@@ -85,13 +86,4 @@ public sealed class FeedbacksCreateFeedbackCommandHandler(
         return tenantId;
     }
 
-    private static ActivitySignalEntry ToSignalEntry(Activity entity)
-    {
-        return new ActivitySignalEntry(
-            entity.Kind,
-            entity.AnswerId,
-            entity.OccurredAtUtc,
-            entity.UserPrint,
-            entity.MetadataJson);
-    }
 }

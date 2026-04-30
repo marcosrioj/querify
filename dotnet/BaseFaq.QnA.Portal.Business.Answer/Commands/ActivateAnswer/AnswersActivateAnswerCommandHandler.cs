@@ -4,6 +4,7 @@ using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.QnA.Enums;
 using BaseFaq.QnA.Common.Domain.BusinessRules.Activities;
+using BaseFaq.QnA.Common.Domain.BusinessRules.Answers;
 using BaseFaq.QnA.Common.Persistence.QnADb.DbContext;
 using MediatR;
 using Microsoft.AspNetCore.Http;
@@ -33,7 +34,7 @@ public sealed class AnswersActivateAnswerCommandHandler(
             throw new ApiErrorException($"Answer '{request.Id}' was not found.", (int)HttpStatusCode.NotFound);
 
         var originalStatus = entity.Status;
-        entity.Status = AnswerStatus.Active;
+        AnswerRules.Activate(entity);
 
         if (originalStatus != entity.Status)
             ActivityAppender.AddAnswerActivity(
@@ -43,20 +44,9 @@ public sealed class AnswersActivateAnswerCommandHandler(
                 "StatusChanged",
                 new Dictionary<string, object?>(StringComparer.Ordinal) { ["Status"] = originalStatus.ToString() },
                 new Dictionary<string, object?>(StringComparer.Ordinal) { ["Status"] = entity.Status.ToString() },
-                AnswerContext(entity));
+                ActivityEntityMetadata.AnswerContext(entity));
 
         await dbContext.SaveChangesAsync(cancellationToken);
         return request.Id;
-    }
-
-    private static Dictionary<string, object?> AnswerContext(Common.Domain.Entities.Answer entity)
-    {
-        return new Dictionary<string, object?>(StringComparer.Ordinal)
-        {
-            ["QuestionId"] = entity.QuestionId,
-            ["AnswerId"] = entity.Id,
-            ["Status"] = entity.Status.ToString(),
-            ["Visibility"] = entity.Visibility.ToString()
-        };
     }
 }
