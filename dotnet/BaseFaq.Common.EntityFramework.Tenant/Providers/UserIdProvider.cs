@@ -32,9 +32,9 @@ public sealed class UserIdProvider(IServiceProvider serviceProvider) : IUserIdPr
                 errorCode: (int)HttpStatusCode.Unauthorized);
         }
 
-        var cacheKey = $"UserId:{externalUserId}";
         var tenantDbContext = serviceProvider.GetRequiredService<TenantDbContext>();
         var memoryCache = serviceProvider.GetRequiredService<IMemoryCache>();
+        var cacheKey = $"UserId:{externalUserId}";
 
         //short‑circuit if it is already being created
         if (TryResolvePendingUserId(tenantDbContext, externalUserId, out var pendingUserId))
@@ -43,19 +43,31 @@ public sealed class UserIdProvider(IServiceProvider serviceProvider) : IUserIdPr
             return pendingUserId;
         }
 
-        var userId = memoryCache.GetOrCreate(
-            cacheKey,
-            entry =>
-            {
-                entry.AbsoluteExpirationRelativeToNow = UserIdCacheDuration;
-                var userName = claimService.GetName();
-                var email = claimService.GetEmail();
-                return tenantDbContext.EnsureUser(externalUserId, userName, email).GetAwaiter().GetResult();
-            });
+        if (memoryCache.TryGetValue<Guid>(cacheKey, out var cachedUserId) &&
+            IsCachedUserStillValid(tenantDbContext, cachedUserId, externalUserId))
+        {
+            return cachedUserId;
+        }
+
+        memoryCache.Remove(cacheKey);
+
+        var userName = claimService.GetName();
+        var email = claimService.GetEmail();
+        var userId = tenantDbContext.EnsureUser(externalUserId, userName, email).GetAwaiter().GetResult();
+        memoryCache.Set(cacheKey, userId, UserIdCacheDuration);
 
         return userId;
     }
 
+    private static bool IsCachedUserStillValid(
+        TenantDbContext tenantDbContext,
+        Guid userId,
+        string externalUserId)
+    {
+        return tenantDbContext.Users
+            .AsNoTracking()
+            .Any(entity => entity.Id == userId && entity.ExternalId == externalUserId);
+    }
 
     private static bool TryResolvePendingUserId(
         TenantDbContext tenantDbContext,
