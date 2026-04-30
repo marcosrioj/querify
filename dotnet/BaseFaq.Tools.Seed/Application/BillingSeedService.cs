@@ -100,8 +100,8 @@ public sealed class BillingSeedService : IBillingSeedService
         SeedScenarioC_MapleForgeMedia(dbContext, productConnectionString);
         SeedScenarioD_AuroraClinicSystems(dbContext, productConnectionString);
         SeedScenarioE_BlueHarborLegal(dbContext, productConnectionString);
-        SeedWebhookInboxSamples(dbContext);
-        SeedEmailOutboxSamples(dbContext);
+        SeedWebhookInboxScenarios(dbContext);
+        SeedEmailOutboxScenarios(dbContext);
         dbContext.SaveChanges();
     }
 
@@ -602,10 +602,10 @@ public sealed class BillingSeedService : IBillingSeedService
     }
 
     // -------------------------------------------------------------------------
-    // Webhook inbox samples — 5 rows covering all status variants
+    // Webhook inbox scenarios: 5 rows covering all status variants.
     // -------------------------------------------------------------------------
 
-    private static void SeedWebhookInboxSamples(TenantDbContext dbContext)
+    private static void SeedWebhookInboxScenarios(TenantDbContext dbContext)
     {
         // 1) Processed — checkout.session.completed (BlueHarbor onboarding)
         EnsureWebhookInbox(dbContext, Wh1Id,
@@ -670,10 +670,10 @@ public sealed class BillingSeedService : IBillingSeedService
     }
 
     // -------------------------------------------------------------------------
-    // Email outbox samples — Pending, Completed, Failed
+    // Email outbox scenarios: Pending, Completed, Failed.
     // -------------------------------------------------------------------------
 
-    private static void SeedEmailOutboxSamples(TenantDbContext dbContext)
+    private static void SeedEmailOutboxScenarios(TenantDbContext dbContext)
     {
         // 1) Pending — invoice receipt for BlueHarbor
         EnsureEmailOutbox(dbContext, Email1Id,

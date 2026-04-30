@@ -7,4 +7,5 @@ public interface ICleanupService
 {
     void CleanTenantDb(TenantDbContext dbContext);
     void CleanQnADb(QnADbContext dbContext);
+    void CleanBigDataQnADb(QnADbContext dbContext);
 }
