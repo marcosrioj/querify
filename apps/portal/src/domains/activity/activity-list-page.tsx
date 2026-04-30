@@ -122,9 +122,13 @@ export function ActivityListPage() {
   ).length;
   const workflowCount = rows.filter(
     (event) =>
+      event.kind === ActivityKind.QuestionCreated ||
+      event.kind === ActivityKind.QuestionUpdated ||
       event.kind === ActivityKind.QuestionDraft ||
       event.kind === ActivityKind.QuestionActive ||
       event.kind === ActivityKind.QuestionArchived ||
+      event.kind === ActivityKind.AnswerCreated ||
+      event.kind === ActivityKind.AnswerUpdated ||
       event.kind === ActivityKind.AnswerDraft ||
       event.kind === ActivityKind.AnswerActive ||
       event.kind === ActivityKind.AnswerArchived,

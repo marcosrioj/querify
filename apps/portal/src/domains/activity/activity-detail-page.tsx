@@ -26,10 +26,27 @@ import { ActivityKindBadge, ActorKindBadge } from "@/shared/ui/status-badges";
 import { translateText } from "@/shared/lib/i18n-core";
 import { formatOptionalDateTimeInTimeZone } from "@/shared/lib/time-zone";
 
+function formatMetadataJson(metadataJson?: string | null) {
+  const value = metadataJson?.trim();
+
+  if (!value) {
+    return null;
+  }
+
+  try {
+    return JSON.stringify(JSON.parse(value), null, 2);
+  } catch {
+    return value;
+  }
+}
+
 export function ActivityDetailPage() {
   const portalTimeZone = usePortalTimeZone();
   const { id } = useParams();
   const activityQuery = useActivity(id);
+  const formattedMetadataJson = formatMetadataJson(
+    activityQuery.data?.metadataJson,
+  );
   const activityNextAction = !activityQuery.data
     ? {
         label: "Back to activity",
@@ -199,9 +216,9 @@ export function ActivityDetailPage() {
                 <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
                   {translateText("Metadata JSON")}
                 </p>
-                {activityQuery.data.metadataJson ? (
-                  <pre className="mt-2 overflow-x-auto rounded-lg border border-border bg-muted/10 p-4 text-sm">
-                    {activityQuery.data.metadataJson}
+                {formattedMetadataJson ? (
+                  <pre className="mt-2 max-h-[32rem] overflow-auto rounded-lg border border-border bg-muted/10 p-4 font-mono text-xs leading-5">
+                    {formattedMetadataJson}
                   </pre>
                 ) : (
                   <p className="mt-2 text-sm text-muted-foreground">

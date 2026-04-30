@@ -73,17 +73,26 @@ public sealed class QuestionsCreateQuestionCommandHandler(
         space.Questions.Add(entity);
         dbContext.Questions.Add(entity);
 
+        var questionSnapshot = SnapshotQuestion(entity);
         var createdActivity = new Activity
         {
             TenantId = entity.TenantId,
             QuestionId = entity.Id,
             Question = entity,
-            Kind = ActivityKindStatusMap.ForQuestionStatus(entity.Status),
+            Kind = ActivityKind.QuestionCreated,
             ActorKind = ActorKind.Customer,
             ActorLabel = identity.UserPrint,
             UserPrint = identity.UserPrint,
             Ip = identity.Ip,
             UserAgent = identity.UserAgent,
+            MetadataJson = ActivityChangeMetadata.Create(
+                "Question",
+                "Created",
+                entity.Id,
+                new Dictionary<string, object?>(StringComparer.Ordinal),
+                questionSnapshot,
+                QuestionContext(entity),
+                maxLength: Activity.MaxMetadataLength),
             OccurredAtUtc = DateTime.UtcNow,
             CreatedBy = "public",
             UpdatedBy = "public"
@@ -102,5 +111,36 @@ public sealed class QuestionsCreateQuestionCommandHandler(
         var tenantId = await tenantClientKeyResolver.ResolveTenantId(clientKey, cancellationToken);
         httpContextAccessor.HttpContext?.Items[TenantContextKeys.TenantIdItemKey] = tenantId;
         return tenantId;
+    }
+
+    private static Dictionary<string, object?> SnapshotQuestion(Common.Persistence.QnADb.Entities.Question entity)
+    {
+        return new Dictionary<string, object?>(StringComparer.Ordinal)
+        {
+            ["Id"] = entity.Id,
+            ["TenantId"] = entity.TenantId,
+            ["SpaceId"] = entity.SpaceId,
+            ["Title"] = entity.Title,
+            ["Summary"] = entity.Summary,
+            ["ContextNote"] = entity.ContextNote,
+            ["Status"] = entity.Status.ToString(),
+            ["Visibility"] = entity.Visibility.ToString(),
+            ["OriginChannel"] = entity.OriginChannel.ToString(),
+            ["AiConfidenceScore"] = entity.AiConfidenceScore,
+            ["FeedbackScore"] = entity.FeedbackScore,
+            ["Sort"] = entity.Sort,
+            ["AcceptedAnswerId"] = entity.AcceptedAnswerId
+        };
+    }
+
+    private static Dictionary<string, object?> QuestionContext(Common.Persistence.QnADb.Entities.Question entity)
+    {
+        return new Dictionary<string, object?>(StringComparer.Ordinal)
+        {
+            ["QuestionId"] = entity.Id,
+            ["SpaceId"] = entity.SpaceId,
+            ["Status"] = entity.Status.ToString(),
+            ["Visibility"] = entity.Visibility.ToString()
+        };
     }
 }

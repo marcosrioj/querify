@@ -36,6 +36,7 @@ public sealed class QuestionsUpdateQuestionCommandHandler(
             throw new ApiErrorException($"Question '{request.Id}' was not found.", (int)HttpStatusCode.NotFound);
 
         EnsureSupportedStatus(request.Request.Status);
+        var beforeSnapshot = SnapshotQuestion(entity);
         var originalStatus = entity.Status;
         Apply(entity, request.Request, userId);
 
@@ -80,8 +81,24 @@ public sealed class QuestionsUpdateQuestionCommandHandler(
                 entity.Status = QuestionStatus.Active;
         }
 
-        if (entity.Status != originalStatus)
-            AddActivity(entity, ActivityKindStatusMap.ForQuestionStatus(entity.Status), userId);
+        var afterSnapshot = SnapshotQuestion(entity);
+        var statusChanged = entity.Status != originalStatus;
+        var metadata = ActivityChangeMetadata.Create(
+            "Question",
+            statusChanged ? "StatusChanged" : "Updated",
+            entity.Id,
+            beforeSnapshot,
+            afterSnapshot,
+            QuestionContext(entity),
+            maxLength: Activity.MaxMetadataLength);
+        if (metadata is not null)
+            AddActivity(
+                entity,
+                statusChanged
+                    ? ActivityKindStatusMap.ForQuestionStatus(entity.Status)
+                    : ActivityKind.QuestionUpdated,
+                userId,
+                metadata);
 
         await dbContext.SaveChangesAsync(cancellationToken);
         return request.Id;
@@ -90,7 +107,8 @@ public sealed class QuestionsUpdateQuestionCommandHandler(
     private void AddActivity(
         Common.Persistence.QnADb.Entities.Question question,
         ActivityKind kind,
-        string userId)
+        string userId,
+        string? metadataJson)
     {
         var activityIdentity = ResolveActivityIdentity(userId);
         var activity = new Activity
@@ -104,6 +122,7 @@ public sealed class QuestionsUpdateQuestionCommandHandler(
             UserPrint = activityIdentity.UserPrint,
             Ip = activityIdentity.Ip,
             UserAgent = activityIdentity.UserAgent,
+            MetadataJson = metadataJson,
             OccurredAtUtc = DateTime.UtcNow,
             CreatedBy = userId,
             UpdatedBy = userId
@@ -140,6 +159,37 @@ public sealed class QuestionsUpdateQuestionCommandHandler(
         EnsureVisibilityAllowed(entity, request.Visibility);
         entity.Visibility = request.Visibility;
         entity.UpdatedBy = userId;
+    }
+
+    private static Dictionary<string, object?> SnapshotQuestion(Common.Persistence.QnADb.Entities.Question entity)
+    {
+        return new Dictionary<string, object?>(StringComparer.Ordinal)
+        {
+            ["Id"] = entity.Id,
+            ["TenantId"] = entity.TenantId,
+            ["SpaceId"] = entity.SpaceId,
+            ["Title"] = entity.Title,
+            ["Summary"] = entity.Summary,
+            ["ContextNote"] = entity.ContextNote,
+            ["Status"] = entity.Status.ToString(),
+            ["Visibility"] = entity.Visibility.ToString(),
+            ["OriginChannel"] = entity.OriginChannel.ToString(),
+            ["AiConfidenceScore"] = entity.AiConfidenceScore,
+            ["FeedbackScore"] = entity.FeedbackScore,
+            ["Sort"] = entity.Sort,
+            ["AcceptedAnswerId"] = entity.AcceptedAnswerId
+        };
+    }
+
+    private static Dictionary<string, object?> QuestionContext(Common.Persistence.QnADb.Entities.Question entity)
+    {
+        return new Dictionary<string, object?>(StringComparer.Ordinal)
+        {
+            ["QuestionId"] = entity.Id,
+            ["SpaceId"] = entity.SpaceId,
+            ["Status"] = entity.Status.ToString(),
+            ["Visibility"] = entity.Visibility.ToString()
+        };
     }
 
     private static void EnsureVisibilityAllowed(Common.Persistence.QnADb.Entities.Question entity,

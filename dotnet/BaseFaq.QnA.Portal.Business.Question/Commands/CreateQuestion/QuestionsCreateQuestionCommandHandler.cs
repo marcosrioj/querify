@@ -59,13 +59,29 @@ public sealed class QuestionsCreateQuestionCommandHandler(
         dbContext.Questions.Add(entity);
 
         Apply(entity, request.Request, userId);
-        AddActivity(entity, ActivityKindStatusMap.ForQuestionStatus(entity.Status), userId);
+        var questionSnapshot = SnapshotQuestion(entity);
+        AddActivity(
+            entity,
+            ActivityKind.QuestionCreated,
+            userId,
+            ActivityChangeMetadata.Create(
+                "Question",
+                "Created",
+                entity.Id,
+                new Dictionary<string, object?>(StringComparer.Ordinal),
+                questionSnapshot,
+                QuestionContext(entity),
+                maxLength: Activity.MaxMetadataLength));
 
         await dbContext.SaveChangesAsync(cancellationToken);
         return entity.Id;
     }
 
-    private void AddActivity(Common.Persistence.QnADb.Entities.Question question, ActivityKind kind, string userId)
+    private void AddActivity(
+        Common.Persistence.QnADb.Entities.Question question,
+        ActivityKind kind,
+        string userId,
+        string? metadataJson)
     {
         var activityIdentity = ResolveActivityIdentity(userId);
         var activity = new Activity
@@ -79,6 +95,7 @@ public sealed class QuestionsCreateQuestionCommandHandler(
             UserPrint = activityIdentity.UserPrint,
             Ip = activityIdentity.Ip,
             UserAgent = activityIdentity.UserAgent,
+            MetadataJson = metadataJson,
             OccurredAtUtc = DateTime.UtcNow,
             CreatedBy = userId,
             UpdatedBy = userId
@@ -114,6 +131,37 @@ public sealed class QuestionsCreateQuestionCommandHandler(
         EnsureVisibilityAllowed(entity, request.Visibility);
         entity.Visibility = request.Visibility;
         entity.UpdatedBy = userId;
+    }
+
+    private static Dictionary<string, object?> SnapshotQuestion(Common.Persistence.QnADb.Entities.Question entity)
+    {
+        return new Dictionary<string, object?>(StringComparer.Ordinal)
+        {
+            ["Id"] = entity.Id,
+            ["TenantId"] = entity.TenantId,
+            ["SpaceId"] = entity.SpaceId,
+            ["Title"] = entity.Title,
+            ["Summary"] = entity.Summary,
+            ["ContextNote"] = entity.ContextNote,
+            ["Status"] = entity.Status.ToString(),
+            ["Visibility"] = entity.Visibility.ToString(),
+            ["OriginChannel"] = entity.OriginChannel.ToString(),
+            ["AiConfidenceScore"] = entity.AiConfidenceScore,
+            ["FeedbackScore"] = entity.FeedbackScore,
+            ["Sort"] = entity.Sort,
+            ["AcceptedAnswerId"] = entity.AcceptedAnswerId
+        };
+    }
+
+    private static Dictionary<string, object?> QuestionContext(Common.Persistence.QnADb.Entities.Question entity)
+    {
+        return new Dictionary<string, object?>(StringComparer.Ordinal)
+        {
+            ["QuestionId"] = entity.Id,
+            ["SpaceId"] = entity.SpaceId,
+            ["Status"] = entity.Status.ToString(),
+            ["Visibility"] = entity.Visibility.ToString()
+        };
     }
 
     private static void EnsureVisibilityAllowed(Common.Persistence.QnADb.Entities.Question entity, VisibilityScope visibility)

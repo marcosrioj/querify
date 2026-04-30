@@ -1,10 +1,13 @@
 using System.Net;
+using System.Text.Json;
 using BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception;
 using BaseFaq.Models.QnA.Dtos.Answer;
 using BaseFaq.Models.QnA.Enums;
 using BaseFaq.QnA.Portal.Business.Answer.Commands.CreateAnswer;
+using BaseFaq.QnA.Portal.Business.Answer.Commands.UpdateAnswer;
 using BaseFaq.QnA.Portal.Business.Answer.Queries.GetAnswer;
 using BaseFaq.QnA.Portal.Test.IntegrationTests.Helpers;
+using Microsoft.EntityFrameworkCore;
 using Xunit;
 
 namespace BaseFaq.QnA.Portal.Test.IntegrationTests.Tests.Answer;
@@ -45,6 +48,30 @@ public class AnswerCommandQueryTests
         Assert.Equal("Reset password from portal", result.Headline);
         Assert.Equal(AnswerStatus.Active, result.Status);
         Assert.Equal(VisibilityScope.Public, result.Visibility);
+
+        var activities = await context.DbContext.Activities
+            .Where(activity => activity.AnswerId == id)
+            .ToListAsync();
+        var createdActivity = Assert.Single(activities);
+        Assert.Equal(ActivityKind.AnswerCreated, createdActivity.Kind);
+
+        using var createdMetadata = JsonDocument.Parse(createdActivity.MetadataJson!);
+        Assert.Equal("Answer", createdMetadata.RootElement.GetProperty("Entity").GetString());
+        Assert.Equal("Created", createdMetadata.RootElement.GetProperty("Operation").GetString());
+        Assert.Equal(
+            "Reset password from portal",
+            createdMetadata.RootElement
+                .GetProperty("Changes")
+                .GetProperty("Headline")
+                .GetProperty("After")
+                .GetString());
+        Assert.Equal(
+            "Active",
+            createdMetadata.RootElement
+                .GetProperty("Changes")
+                .GetProperty("Status")
+                .GetProperty("After")
+                .GetString());
     }
 
     [Fact]
@@ -143,5 +170,116 @@ public class AnswerCommandQueryTests
             CancellationToken.None));
 
         Assert.Equal((int)HttpStatusCode.UnprocessableEntity, exception.ErrorCode);
+    }
+
+    [Fact]
+    public async Task UpdateAnswer_AppendsUpdatedActivityWhenStatusDoesNotChange()
+    {
+        using var context = TestContext.Create();
+        var space = await TestDataFactory.SeedSpaceAsync(context.DbContext, context.SessionService.TenantId);
+        var question =
+            await TestDataFactory.SeedQuestionAsync(context.DbContext, context.SessionService.TenantId, space.Id);
+        var answer = await TestDataFactory.SeedAnswerAsync(
+            context.DbContext,
+            context.SessionService.TenantId,
+            question.Id,
+            status: AnswerStatus.Active,
+            visibility: VisibilityScope.Internal);
+
+        await new AnswersUpdateAnswerCommandHandler(
+            context.DbContext,
+            context.SessionService,
+            context.HttpContextAccessor).Handle(new AnswersUpdateAnswerCommand
+        {
+            Id = answer.Id,
+            Request = new AnswerUpdateRequestDto
+            {
+                Headline = "Use the account security page",
+                Body = answer.Body,
+                Kind = answer.Kind,
+                Status = answer.Status,
+                Visibility = VisibilityScope.Internal,
+                ContextNote = answer.ContextNote,
+                AuthorLabel = answer.AuthorLabel,
+                Sort = answer.Sort
+            }
+        }, CancellationToken.None);
+
+        var updatedActivity = await context.DbContext.Activities
+            .SingleAsync(activity => activity.AnswerId == answer.Id && activity.Kind == ActivityKind.AnswerUpdated);
+        Assert.False(await context.DbContext.Activities
+            .AnyAsync(activity => activity.AnswerId == answer.Id && activity.Kind == ActivityKind.AnswerArchived));
+
+        using var updatedMetadata = JsonDocument.Parse(updatedActivity.MetadataJson!);
+        var updatedFields = updatedMetadata.RootElement
+            .GetProperty("ChangedFields")
+            .EnumerateArray()
+            .Select(field => field.GetString())
+            .ToList();
+        Assert.Contains("Headline", updatedFields);
+        Assert.DoesNotContain("Status", updatedFields);
+        Assert.Equal(
+            "Use the account security page",
+            updatedMetadata.RootElement
+                .GetProperty("Changes")
+                .GetProperty("Headline")
+                .GetProperty("After")
+                .GetString());
+    }
+
+    [Fact]
+    public async Task UpdateAnswer_UsesStatusActivityWhenStatusChanges()
+    {
+        using var context = TestContext.Create();
+        var space = await TestDataFactory.SeedSpaceAsync(context.DbContext, context.SessionService.TenantId);
+        var question =
+            await TestDataFactory.SeedQuestionAsync(context.DbContext, context.SessionService.TenantId, space.Id);
+        var answer = await TestDataFactory.SeedAnswerAsync(
+            context.DbContext,
+            context.SessionService.TenantId,
+            question.Id,
+            status: AnswerStatus.Active,
+            visibility: VisibilityScope.Internal);
+
+        await new AnswersUpdateAnswerCommandHandler(
+            context.DbContext,
+            context.SessionService,
+            context.HttpContextAccessor).Handle(new AnswersUpdateAnswerCommand
+        {
+            Id = answer.Id,
+            Request = new AnswerUpdateRequestDto
+            {
+                Headline = "Use the account security page",
+                Body = answer.Body,
+                Kind = answer.Kind,
+                Status = AnswerStatus.Archived,
+                Visibility = VisibilityScope.Internal,
+                ContextNote = answer.ContextNote,
+                AuthorLabel = answer.AuthorLabel,
+                Sort = answer.Sort
+            }
+        }, CancellationToken.None);
+
+        Assert.False(await context.DbContext.Activities
+            .AnyAsync(activity => activity.AnswerId == answer.Id && activity.Kind == ActivityKind.AnswerUpdated));
+        var archivedActivity = await context.DbContext.Activities
+            .SingleAsync(activity => activity.AnswerId == answer.Id && activity.Kind == ActivityKind.AnswerArchived);
+
+        using var archivedMetadata = JsonDocument.Parse(archivedActivity.MetadataJson!);
+        var archivedFields = archivedMetadata.RootElement
+            .GetProperty("ChangedFields")
+            .EnumerateArray()
+            .Select(field => field.GetString())
+            .ToList();
+        Assert.Contains("Headline", archivedFields);
+        Assert.Contains("Status", archivedFields);
+        Assert.Equal("StatusChanged", archivedMetadata.RootElement.GetProperty("Operation").GetString());
+        Assert.Equal(
+            "Archived",
+            archivedMetadata.RootElement
+                .GetProperty("Changes")
+                .GetProperty("Status")
+                .GetProperty("After")
+                .GetString());
     }
 }

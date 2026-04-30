@@ -123,14 +123,18 @@ export enum SourceRole {
 }
 
 export enum ActivityKind {
+  QuestionCreated = 18,
+  QuestionUpdated = 19,
   QuestionDraft = 20,
   QuestionActive = 21,
   QuestionArchived = 22,
+  AnswerCreated = 28,
+  AnswerUpdated = 29,
   AnswerDraft = 30,
   AnswerActive = 31,
   AnswerArchived = 32,
-  FeedbackReceived = 14,
-  VoteReceived = 15,
+  FeedbackReceived = 40,
+  VoteReceived = 41,
 }
 
 export enum ActorKind {
@@ -259,9 +263,13 @@ export const sourceRoleLabels: Record<SourceRole, string> = {
 };
 
 export const activityKindLabels: Record<ActivityKind, string> = {
+  [ActivityKind.QuestionCreated]: 'Question created',
+  [ActivityKind.QuestionUpdated]: 'Question updated',
   [ActivityKind.QuestionDraft]: 'Question draft',
   [ActivityKind.QuestionActive]: 'Question active',
   [ActivityKind.QuestionArchived]: 'Question archived',
+  [ActivityKind.AnswerCreated]: 'Answer created',
+  [ActivityKind.AnswerUpdated]: 'Answer updated',
   [ActivityKind.AnswerDraft]: 'Answer draft',
   [ActivityKind.AnswerActive]: 'Answer active',
   [ActivityKind.AnswerArchived]: 'Answer archived',

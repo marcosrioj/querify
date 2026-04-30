@@ -1,4 +1,5 @@
 using System.Net;
+using System.Text.Json;
 using BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception;
 using BaseFaq.Models.QnA.Dtos.Question;
 using BaseFaq.Models.QnA.Enums;
@@ -134,6 +135,165 @@ public class QuestionCommandQueryTests
             await getHandler.Handle(new QuestionsGetQuestionQuery { Id = id }, CancellationToken.None);
 
         Assert.Equal(VisibilityScope.Internal, result.Visibility);
+    }
+
+    [Fact]
+    public async Task CreateQuestion_AppendsCreatedAndStatusActivitiesWithMetadata()
+    {
+        using var context = TestContext.Create();
+        var space = await TestDataFactory.SeedSpaceAsync(context.DbContext, context.SessionService.TenantId);
+        var createHandler = new QuestionsCreateQuestionCommandHandler(
+            context.DbContext,
+            context.SessionService,
+            context.HttpContextAccessor);
+
+        var id = await createHandler.Handle(new QuestionsCreateQuestionCommand
+        {
+            Request = new QuestionCreateRequestDto
+            {
+                SpaceId = space.Id,
+                Title = "How do I rotate API keys?",
+                Summary = "Rotate API keys",
+                ContextNote = "Security operations",
+                Status = QuestionStatus.Active,
+                Visibility = VisibilityScope.Internal,
+                OriginChannel = ChannelKind.Manual,
+                Sort = 7
+            }
+        }, CancellationToken.None);
+
+        var activities = await context.DbContext.Activities
+            .Where(activity => activity.QuestionId == id)
+            .ToListAsync();
+        var createdActivity = Assert.Single(activities);
+        Assert.Equal(ActivityKind.QuestionCreated, createdActivity.Kind);
+
+        using var createdMetadata = JsonDocument.Parse(createdActivity.MetadataJson!);
+        Assert.Equal("Question", createdMetadata.RootElement.GetProperty("Entity").GetString());
+        Assert.Equal("Created", createdMetadata.RootElement.GetProperty("Operation").GetString());
+        Assert.Equal(
+            "How do I rotate API keys?",
+            createdMetadata.RootElement
+                .GetProperty("Changes")
+                .GetProperty("Title")
+                .GetProperty("After")
+                .GetString());
+        Assert.Equal(
+            "Active",
+            createdMetadata.RootElement
+                .GetProperty("Changes")
+                .GetProperty("Status")
+                .GetProperty("After")
+                .GetString());
+    }
+
+    [Fact]
+    public async Task UpdateQuestion_AppendsUpdatedActivityWhenStatusDoesNotChange()
+    {
+        using var context = TestContext.Create();
+        var space = await TestDataFactory.SeedSpaceAsync(context.DbContext, context.SessionService.TenantId);
+        var question = await TestDataFactory.SeedQuestionAsync(
+            context.DbContext,
+            context.SessionService.TenantId,
+            space.Id,
+            status: QuestionStatus.Active,
+            visibility: VisibilityScope.Internal);
+        var updateHandler = new QuestionsUpdateQuestionCommandHandler(
+            context.DbContext,
+            context.SessionService,
+            context.HttpContextAccessor);
+
+        await updateHandler.Handle(new QuestionsUpdateQuestionCommand
+        {
+            Id = question.Id,
+            Request = new QuestionUpdateRequestDto
+            {
+                Title = "How do I rotate API keys safely?",
+                Summary = question.Summary,
+                ContextNote = question.ContextNote,
+                Status = question.Status,
+                Visibility = VisibilityScope.Internal,
+                OriginChannel = question.OriginChannel,
+                Sort = question.Sort,
+                AcceptedAnswerId = question.AcceptedAnswerId
+            }
+        }, CancellationToken.None);
+
+        var updatedActivity = await context.DbContext.Activities
+            .SingleAsync(activity => activity.QuestionId == question.Id && activity.Kind == ActivityKind.QuestionUpdated);
+        Assert.False(await context.DbContext.Activities
+            .AnyAsync(activity => activity.QuestionId == question.Id && activity.Kind == ActivityKind.QuestionArchived));
+
+        using var updatedMetadata = JsonDocument.Parse(updatedActivity.MetadataJson!);
+        var updatedFields = updatedMetadata.RootElement
+            .GetProperty("ChangedFields")
+            .EnumerateArray()
+            .Select(field => field.GetString())
+            .ToList();
+        Assert.Contains("Title", updatedFields);
+        Assert.DoesNotContain("Status", updatedFields);
+        Assert.Equal(
+            "How do I rotate API keys safely?",
+            updatedMetadata.RootElement
+                .GetProperty("Changes")
+                .GetProperty("Title")
+                .GetProperty("After")
+                .GetString());
+    }
+
+    [Fact]
+    public async Task UpdateQuestion_UsesStatusActivityWhenStatusChanges()
+    {
+        using var context = TestContext.Create();
+        var space = await TestDataFactory.SeedSpaceAsync(context.DbContext, context.SessionService.TenantId);
+        var question = await TestDataFactory.SeedQuestionAsync(
+            context.DbContext,
+            context.SessionService.TenantId,
+            space.Id,
+            status: QuestionStatus.Active,
+            visibility: VisibilityScope.Internal);
+        var updateHandler = new QuestionsUpdateQuestionCommandHandler(
+            context.DbContext,
+            context.SessionService,
+            context.HttpContextAccessor);
+
+        await updateHandler.Handle(new QuestionsUpdateQuestionCommand
+        {
+            Id = question.Id,
+            Request = new QuestionUpdateRequestDto
+            {
+                Title = "How do I rotate API keys safely?",
+                Summary = question.Summary,
+                ContextNote = question.ContextNote,
+                Status = QuestionStatus.Archived,
+                Visibility = VisibilityScope.Internal,
+                OriginChannel = question.OriginChannel,
+                Sort = question.Sort,
+                AcceptedAnswerId = question.AcceptedAnswerId
+            }
+        }, CancellationToken.None);
+
+        Assert.False(await context.DbContext.Activities
+            .AnyAsync(activity => activity.QuestionId == question.Id && activity.Kind == ActivityKind.QuestionUpdated));
+        var archivedActivity = await context.DbContext.Activities
+            .SingleAsync(activity => activity.QuestionId == question.Id && activity.Kind == ActivityKind.QuestionArchived);
+
+        using var archivedMetadata = JsonDocument.Parse(archivedActivity.MetadataJson!);
+        var archivedFields = archivedMetadata.RootElement
+            .GetProperty("ChangedFields")
+            .EnumerateArray()
+            .Select(field => field.GetString())
+            .ToList();
+        Assert.Contains("Title", archivedFields);
+        Assert.Contains("Status", archivedFields);
+        Assert.Equal("StatusChanged", archivedMetadata.RootElement.GetProperty("Operation").GetString());
+        Assert.Equal(
+            "Archived",
+            archivedMetadata.RootElement
+                .GetProperty("Changes")
+                .GetProperty("Status")
+                .GetProperty("After")
+                .GetString());
     }
 
     [Fact]

@@ -49,6 +49,14 @@ public sealed class AnswersActivateAnswerCommandHandler(
                 UserPrint = activityIdentity.UserPrint,
                 Ip = activityIdentity.Ip,
                 UserAgent = activityIdentity.UserAgent,
+                MetadataJson = ActivityChangeMetadata.Create(
+                    "Answer",
+                    "StatusChanged",
+                    entity.Id,
+                    new Dictionary<string, object?>(StringComparer.Ordinal) { ["Status"] = originalStatus.ToString() },
+                    new Dictionary<string, object?>(StringComparer.Ordinal) { ["Status"] = entity.Status.ToString() },
+                    AnswerContext(entity),
+                    maxLength: Activity.MaxMetadataLength),
                 OccurredAtUtc = DateTime.UtcNow,
                 CreatedBy = userId,
                 UpdatedBy = userId
@@ -73,5 +81,16 @@ public sealed class AnswersActivateAnswerCommandHandler(
             userId,
             ActivityRequestInfo.GetRequiredIp(httpContext),
             ActivityRequestInfo.GetRequiredUserAgent(httpContext));
+    }
+
+    private static Dictionary<string, object?> AnswerContext(Common.Persistence.QnADb.Entities.Answer entity)
+    {
+        return new Dictionary<string, object?>(StringComparer.Ordinal)
+        {
+            ["QuestionId"] = entity.QuestionId,
+            ["AnswerId"] = entity.Id,
+            ["Status"] = entity.Status.ToString(),
+            ["Visibility"] = entity.Visibility.ToString()
+        };
     }
 }

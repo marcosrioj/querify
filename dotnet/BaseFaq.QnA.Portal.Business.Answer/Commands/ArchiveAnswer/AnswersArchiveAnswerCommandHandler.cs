@@ -31,6 +31,7 @@ public sealed class AnswersArchiveAnswerCommandHandler(
             throw new ApiErrorException($"Answer '{request.Id}' was not found.", (int)HttpStatusCode.NotFound);
 
         var originalStatus = entity.Status;
+        var originalVisibility = entity.Visibility;
         entity.Status = AnswerStatus.Archived;
         entity.Visibility = VisibilityScope.Internal;
 
@@ -50,6 +51,22 @@ public sealed class AnswersArchiveAnswerCommandHandler(
                 UserPrint = activityIdentity.UserPrint,
                 Ip = activityIdentity.Ip,
                 UserAgent = activityIdentity.UserAgent,
+                MetadataJson = ActivityChangeMetadata.Create(
+                    "Answer",
+                    "StatusChanged",
+                    entity.Id,
+                    new Dictionary<string, object?>(StringComparer.Ordinal)
+                    {
+                        ["Status"] = originalStatus.ToString(),
+                        ["Visibility"] = originalVisibility.ToString()
+                    },
+                    new Dictionary<string, object?>(StringComparer.Ordinal)
+                    {
+                        ["Status"] = entity.Status.ToString(),
+                        ["Visibility"] = entity.Visibility.ToString()
+                    },
+                    AnswerContext(entity),
+                    maxLength: Activity.MaxMetadataLength),
                 OccurredAtUtc = DateTime.UtcNow,
                 CreatedBy = userId,
                 UpdatedBy = userId
@@ -74,5 +91,16 @@ public sealed class AnswersArchiveAnswerCommandHandler(
             userId,
             ActivityRequestInfo.GetRequiredIp(httpContext),
             ActivityRequestInfo.GetRequiredUserAgent(httpContext));
+    }
+
+    private static Dictionary<string, object?> AnswerContext(Common.Persistence.QnADb.Entities.Answer entity)
+    {
+        return new Dictionary<string, object?>(StringComparer.Ordinal)
+        {
+            ["QuestionId"] = entity.QuestionId,
+            ["AnswerId"] = entity.Id,
+            ["Status"] = entity.Status.ToString(),
+            ["Visibility"] = entity.Visibility.ToString()
+        };
     }
 }

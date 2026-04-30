@@ -33,9 +33,21 @@ public sealed class AnswersUpdateAnswerCommandHandler(
         if (entity is null)
             throw new ApiErrorException($"Answer '{request.Id}' was not found.", (int)HttpStatusCode.NotFound);
 
+        var beforeSnapshot = SnapshotAnswer(entity);
         var originalStatus = entity.Status;
         Apply(entity, request.Request, userId);
-        if (entity.Status != originalStatus)
+
+        var afterSnapshot = SnapshotAnswer(entity);
+        var statusChanged = entity.Status != originalStatus;
+        var metadata = ActivityChangeMetadata.Create(
+            "Answer",
+            statusChanged ? "StatusChanged" : "Updated",
+            entity.Id,
+            beforeSnapshot,
+            afterSnapshot,
+            AnswerContext(entity),
+            maxLength: Activity.MaxMetadataLength);
+        if (metadata is not null)
         {
             var activityIdentity = ResolveActivityIdentity(userId);
             var activity = new Activity
@@ -45,12 +57,15 @@ public sealed class AnswersUpdateAnswerCommandHandler(
                 Question = entity.Question,
                 AnswerId = entity.Id,
                 Answer = entity,
-                Kind = ActivityKindStatusMap.ForAnswerStatus(entity.Status),
+                Kind = statusChanged
+                    ? ActivityKindStatusMap.ForAnswerStatus(entity.Status)
+                    : ActivityKind.AnswerUpdated,
                 ActorKind = ActorKind.Moderator,
                 ActorLabel = userId,
                 UserPrint = activityIdentity.UserPrint,
                 Ip = activityIdentity.Ip,
                 UserAgent = activityIdentity.UserAgent,
+                MetadataJson = metadata,
                 OccurredAtUtc = DateTime.UtcNow,
                 CreatedBy = userId,
                 UpdatedBy = userId
@@ -105,6 +120,37 @@ public sealed class AnswersUpdateAnswerCommandHandler(
         EnsureVisibilityAllowed(entity, request.Visibility);
         entity.Visibility = request.Visibility;
         entity.UpdatedBy = userId;
+    }
+
+    private static Dictionary<string, object?> SnapshotAnswer(Common.Persistence.QnADb.Entities.Answer entity)
+    {
+        return new Dictionary<string, object?>(StringComparer.Ordinal)
+        {
+            ["Id"] = entity.Id,
+            ["TenantId"] = entity.TenantId,
+            ["QuestionId"] = entity.QuestionId,
+            ["Headline"] = entity.Headline,
+            ["Body"] = entity.Body,
+            ["AuthorLabel"] = entity.AuthorLabel,
+            ["ContextNote"] = entity.ContextNote,
+            ["Kind"] = entity.Kind.ToString(),
+            ["Status"] = entity.Status.ToString(),
+            ["Visibility"] = entity.Visibility.ToString(),
+            ["AiConfidenceScore"] = entity.AiConfidenceScore,
+            ["Score"] = entity.Score,
+            ["Sort"] = entity.Sort
+        };
+    }
+
+    private static Dictionary<string, object?> AnswerContext(Common.Persistence.QnADb.Entities.Answer entity)
+    {
+        return new Dictionary<string, object?>(StringComparer.Ordinal)
+        {
+            ["QuestionId"] = entity.QuestionId,
+            ["AnswerId"] = entity.Id,
+            ["Status"] = entity.Status.ToString(),
+            ["Visibility"] = entity.Visibility.ToString()
+        };
     }
 
     private static void EnsureVisibilityAllowed(Common.Persistence.QnADb.Entities.Answer entity, VisibilityScope visibility)
