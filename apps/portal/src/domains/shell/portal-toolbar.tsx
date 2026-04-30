@@ -65,14 +65,9 @@ function ToolbarPageTrail() {
     : navPath;
 
   return (
-    <div className="flex min-w-0 items-center gap-2">
+    <div className="flex w-full min-w-0 items-center gap-2 overflow-hidden xl:flex-1">
       {pageChrome.backTo ? (
-        <Button
-          asChild
-          mode="icon"
-          variant="outline"
-          size="icon"
-        >
+        <Button asChild mode="icon" variant="outline" size="icon">
           <Link to={pageChrome.backTo} aria-label={t("Go back")}>
             <ArrowLeft className="size-4" />
           </Link>
@@ -83,7 +78,7 @@ function ToolbarPageTrail() {
         className="min-w-0 flex-1 overflow-hidden"
         aria-label={t("breadcrumb")}
       >
-        <BreadcrumbList className="flex-nowrap overflow-hidden">
+        <BreadcrumbList className="w-full min-w-0 flex-nowrap overflow-hidden">
           {linkedItems.map((item, index) => {
             const isImmediateParent = index === linkedItems.length - 1;
             const visibilityClassName = isImmediateParent
@@ -112,10 +107,10 @@ function ToolbarPageTrail() {
             );
           })}
 
-          <BreadcrumbItem className="min-w-0 flex-1 basis-0">
-            <div className="flex min-w-0 items-center gap-1.5">
+          <BreadcrumbItem className="min-w-0 flex-1 basis-0 overflow-hidden">
+            <div className="flex min-w-0 flex-1 items-center gap-1.5 overflow-hidden">
               <h1
-                className="min-w-0 truncate text-lg font-semibold leading-7 tracking-normal text-mono sm:text-xl"
+                className="min-w-0 flex-1 truncate text-lg font-semibold leading-7 tracking-normal text-mono sm:text-xl"
                 title={
                   typeof currentLabel === "string" ? currentLabel : undefined
                 }
@@ -140,7 +135,7 @@ function ToolbarPageTrail() {
 
 function ToolbarActions() {
   return (
-    <div className="flex w-full min-w-0 flex-wrap items-center justify-end gap-2 lg:gap-3 xl:w-auto xl:flex-nowrap">
+    <div className="flex w-full min-w-0 flex-wrap items-center justify-end gap-2 lg:gap-3 xl:w-auto xl:flex-nowrap xl:shrink-0">
       <PortalCommandDialog />
       <LanguageSelector />
       <NotificationsMenu />
@@ -152,7 +147,7 @@ function ToolbarActions() {
 export function PortalToolbar() {
   return (
     <div className="sticky top-0 z-10 min-w-0 border-b border-border/60 bg-background/88 pb-4 pt-0 backdrop-blur supports-[backdrop-filter]:bg-background/78">
-      <Container className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+      <Container className="flex min-w-0 flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
         <ToolbarPageTrail />
         <ToolbarActions />
       </Container>
