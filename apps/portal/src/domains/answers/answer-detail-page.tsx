@@ -18,6 +18,7 @@ import {
   useRetireAnswer,
 } from "@/domains/answers/hooks";
 import { QnaModuleNav } from "@/domains/qna/qna-module-nav";
+import { RecommendedNextActionCard } from "@/domains/qna/recommended-next-action-card";
 import { useQuestion } from "@/domains/questions/hooks";
 import { usePortalTimeZone } from "@/domains/settings/settings-hooks";
 import { useSource, useSourceList } from "@/domains/sources/hooks";
@@ -166,6 +167,66 @@ export function AnswerDetailPage() {
       : translateText(
           "Current status controls which lifecycle actions are available.",
         );
+  const activateRelationshipTab = (tab: string, focusTargetId?: string) => {
+    setRelationshipTab(tab);
+
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        const section = document.getElementById(`answer-${tab}-section`);
+        const focusTarget = focusTargetId
+          ? document.getElementById(focusTargetId)
+          : null;
+        const scrollTarget = focusTarget ?? section;
+
+        scrollTarget?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+
+        if (focusTarget instanceof HTMLElement) {
+          focusTarget.focus({ preventScroll: true });
+        }
+      });
+    });
+  };
+  const answerNextAction = !answerQuery.data
+    ? {
+        label: "Back to answers",
+        to: "/app/answers",
+        text: "Return to the answer queue while this answer loads.",
+      }
+    : answerQuery.data.status === AnswerStatus.Draft
+      ? {
+          label: "Activate answer",
+          run: () => activateAnswer.mutateAsync(answerId),
+          disabled: activateAnswer.isPending,
+          text: "This draft is not available for accepted-answer selection yet. Activate it when the content is ready.",
+        }
+      : answerQuery.data.status === AnswerStatus.Archived
+        ? {
+            label: "Reactivate answer",
+            run: () => activateAnswer.mutateAsync(answerId),
+            disabled: activateAnswer.isPending,
+            text: "This answer is retired. Reactivate it only if it should return to the usable knowledge set.",
+          }
+        : answerQuery.data.sources.length === 0
+          ? {
+              label: "Attach source",
+              tab: "sources",
+              focusTargetId: "answer-source-picker",
+              text: "Active answers need evidence links before they can be trusted as durable guidance.",
+            }
+          : !answerQuery.data.isAccepted
+            ? {
+                label: "Open question",
+                to: `/app/questions/${answerQuery.data.questionId}`,
+                text: "This answer has supporting evidence. Open the parent question when it should become the accepted resolution.",
+              }
+            : {
+                label: "Review activity",
+                tab: "activity",
+                text: "This accepted answer is active and sourced. Review recent events before changing lifecycle state.",
+              };
 
   if (!id) {
     return (
@@ -270,7 +331,7 @@ export function AnswerDetailPage() {
             </Card>
           ) : null}
           {showLoadingState ? null : answerQuery.data ? (
-            <Card>
+            <Card id="answer-sources-section">
               <CardHeader>
                 <CardHeading>
                   <CardTitle>{translateText("Context and timing")}</CardTitle>
@@ -351,6 +412,40 @@ export function AnswerDetailPage() {
                 icon: ShieldCheck,
               },
             ]}
+          />
+
+          <RecommendedNextActionCard
+            label={answerNextAction.label}
+            text={answerNextAction.text}
+            action={
+              "run" in answerNextAction ? (
+                <Button
+                  type="button"
+                  onClick={() => void answerNextAction.run()}
+                  disabled={answerNextAction.disabled}
+                >
+                  {translateText(answerNextAction.label)}
+                </Button>
+              ) : "to" in answerNextAction ? (
+                <Button asChild>
+                  <Link to={answerNextAction.to}>
+                    {translateText(answerNextAction.label)}
+                  </Link>
+                </Button>
+              ) : (
+                <Button
+                  type="button"
+                  onClick={() =>
+                    activateRelationshipTab(
+                      answerNextAction.tab,
+                      answerNextAction.focusTargetId,
+                    )
+                  }
+                >
+                  {translateText(answerNextAction.label)}
+                </Button>
+              )
+            }
           />
 
           <Card>
@@ -531,6 +626,7 @@ export function AnswerDetailPage() {
                 />
                 <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_220px_160px]">
                   <SearchSelect
+                    id="answer-source-picker"
                     value={selectedSourceId}
                     onValueChange={setSelectedSourceId}
                     options={sourceOptions}
@@ -587,7 +683,7 @@ export function AnswerDetailPage() {
           ) : null}
 
           {relationshipTab === "activity" ? (
-            <Card>
+            <Card id="answer-activity-section">
               <CardHeader>
                 <CardHeading>
                   <CardTitle className="flex items-center gap-2">

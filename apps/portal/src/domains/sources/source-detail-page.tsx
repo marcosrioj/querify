@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { QnaModuleNav } from "@/domains/qna/qna-module-nav";
+import { RecommendedNextActionCard } from "@/domains/qna/recommended-next-action-card";
 import { usePortalTimeZone } from "@/domains/settings/settings-hooks";
 import { useDeleteSource, useSource } from "@/domains/sources/hooks";
 import {
@@ -64,6 +65,46 @@ export function SourceDetailPage() {
   const answersPagination = useLocalPagination({
     items: sourceQuery.data?.answers ?? [],
   });
+  const activateRelationshipTab = (tab: string) => {
+    setRelationshipTab(tab);
+
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        document
+          .getElementById(`source-${tab}-section`)
+          ?.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    });
+  };
+  const sourceNextAction = !sourceQuery.data
+    ? {
+        label: "Back to sources",
+        to: "/app/sources",
+        text: "Return to the source catalog while this source loads.",
+      }
+    : sourceQuery.data.spaces.length === 0
+      ? {
+          label: "Open spaces",
+          to: "/app/spaces",
+          text: "No Space curates this source yet. Attach it from a Space when it should become trusted evidence.",
+        }
+      : sourceQuery.data.questions.length === 0
+        ? {
+            label: "Review spaces",
+            tab: "spaces",
+            text: "This source is curated by a Space. Use those boundaries to decide which questions should reference it.",
+          }
+        : sourceQuery.data.answers.length === 0
+          ? {
+              label: "Review question links",
+              tab: "questions",
+              text: "Questions already use this source. Link it to answers that need evidence or canonical support.",
+            }
+          : {
+              label: "Review answer links",
+              tab: "answers",
+              text: "This source is cited by answers. Review those links before updating trust metadata.",
+            };
 
   if (!id) {
     return (
@@ -182,6 +223,28 @@ export function SourceDetailPage() {
               },
             ]}
           />
+
+          <RecommendedNextActionCard
+            label={sourceNextAction.label}
+            text={sourceNextAction.text}
+            action={
+              "to" in sourceNextAction ? (
+                <Button asChild>
+                  <Link to={sourceNextAction.to}>
+                    {translateText(sourceNextAction.label)}
+                  </Link>
+                </Button>
+              ) : (
+                <Button
+                  type="button"
+                  onClick={() => activateRelationshipTab(sourceNextAction.tab)}
+                >
+                  {translateText(sourceNextAction.label)}
+                </Button>
+              )
+            }
+          />
+
           <Card>
             <CardHeader>
               <CardHeading>

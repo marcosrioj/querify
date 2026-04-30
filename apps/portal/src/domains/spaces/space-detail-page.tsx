@@ -14,6 +14,7 @@ import {
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useActivityList } from "@/domains/activity/hooks";
 import { QnaModuleNav } from "@/domains/qna/qna-module-nav";
+import { RecommendedNextActionCard } from "@/domains/qna/recommended-next-action-card";
 import { useCreateQuestion, useQuestionList } from "@/domains/questions/hooks";
 import { useSource, useSourceList } from "@/domains/sources/hooks";
 import {
@@ -474,20 +475,11 @@ export function SpaceDetailPage() {
             ]}
           />
 
-          <Card className="border-emerald-500/20 bg-linear-to-br from-background via-background to-emerald-500/[0.06]">
-            <CardContent className="flex flex-col gap-4 p-5 lg:flex-row lg:items-center lg:justify-between">
-              <div className="space-y-1">
-                <p className="text-xs font-medium uppercase tracking-[0.18em] text-emerald-600 dark:text-emerald-300">
-                  {translateText("Recommended next action")}
-                </p>
-                <p className="text-lg font-semibold text-mono">
-                  {translateText(nextAction.label)}
-                </p>
-                <p className="max-w-2xl text-sm leading-6 text-muted-foreground">
-                  {translateText(nextAction.text)}
-                </p>
-              </div>
-              {"to" in nextAction ? (
+          <RecommendedNextActionCard
+            label={nextAction.label}
+            text={nextAction.text}
+            action={
+              "to" in nextAction ? (
                 <Button asChild>
                   <Link to={nextAction.to}>
                     {translateText(nextAction.label)}
@@ -510,9 +502,9 @@ export function SpaceDetailPage() {
                 >
                   {translateText(nextAction.label)}
                 </Button>
-              )}
-            </CardContent>
-          </Card>
+              )
+            }
+          />
 
           <QnaModuleNav
             eyebrow="Space relationships"

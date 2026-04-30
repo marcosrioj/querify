@@ -14,6 +14,7 @@ import { useActivityList } from "@/domains/activity/hooks";
 import type { ActivityDto } from "@/domains/activity/types";
 import { useCreateAnswer, useDeleteAnswer } from "@/domains/answers/hooks";
 import { QnaModuleNav } from "@/domains/qna/qna-module-nav";
+import { RecommendedNextActionCard } from "@/domains/qna/recommended-next-action-card";
 import { usePortalTimeZone } from "@/domains/settings/settings-hooks";
 import {
   useQuestion,
@@ -34,6 +35,7 @@ import { useTag, useTagList } from "@/domains/tags/hooks";
 import {
   AnswerKind,
   AnswerStatus,
+  QuestionStatus,
   SourceRole,
   VisibilityScope,
   answerStatusLabels,
@@ -292,6 +294,21 @@ export function QuestionDetailPage() {
     });
   };
 
+  const scrollToDetailTarget = (targetId: string) => {
+    window.requestAnimationFrame(() => {
+      const target = document.getElementById(targetId);
+
+      target?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+
+      if (target instanceof HTMLElement) {
+        target.focus({ preventScroll: true });
+      }
+    });
+  };
+
   if (!id) {
     return (
       <ErrorState
@@ -304,6 +321,58 @@ export function QuestionDetailPage() {
   const spaceBlocksAnswers = spaceQuery.data
     ? !spaceQuery.data.acceptsAnswers
     : false;
+  const questionNextAction = !questionQuery.data
+    ? {
+        label: "Back to questions",
+        to: "/app/questions",
+        text: "Return to the moderation queue while this question loads.",
+      }
+    : questionQuery.data.status === QuestionStatus.Archived
+      ? {
+          label: "Review status",
+          to: `/app/questions/${id}/edit`,
+          text: "This question is archived. Review the status before adding new operational work.",
+        }
+      : spaceBlocksAnswers
+        ? {
+            label: "Review answer rules",
+            to: questionQuery.data.spaceId
+              ? `/app/spaces/${questionQuery.data.spaceId}/edit`
+              : "/app/spaces",
+            text: "This question cannot receive new answers until the Space accepts answer intake.",
+          }
+        : questionQuery.data.answers.length === 0
+          ? {
+              label: "Create answer",
+              tab: "answers",
+              focusTargetId: "new-answer-headline",
+              text: "Start with a draft answer candidate so this question can move toward resolution.",
+            }
+          : acceptedAnswerOptions.length === 0
+            ? {
+                label: "Activate answer",
+                to: `/app/answers/${questionQuery.data.answers[0].id}`,
+                text: "Draft answers exist. Open one and activate it before choosing the accepted answer.",
+              }
+            : !questionQuery.data.acceptedAnswerId
+              ? {
+                  label: "Set accepted answer",
+                  targetId: "question-accepted-answer-picker",
+                  text: "Active answer candidates are ready. Choose the accepted answer that should anchor the canonical resolution.",
+                }
+              : questionQuery.data.sources.length === 0
+                ? {
+                    label: "Attach source",
+                    tab: "sources",
+                    focusTargetId: "question-source-picker",
+                    text: "This question has an accepted answer. Attach evidence so the resolution remains defensible.",
+                  }
+                : {
+                    label: "Review activity",
+                    tab: "activity",
+                    text: "This question has resolution and evidence. Review recent events before the next update.",
+                  };
+
   return (
     <DetailLayout
       header={
@@ -514,6 +583,39 @@ export function QuestionDetailPage() {
             ]}
           />
 
+          <RecommendedNextActionCard
+            label={questionNextAction.label}
+            text={questionNextAction.text}
+            action={
+              "to" in questionNextAction ? (
+                <Button asChild>
+                  <Link to={questionNextAction.to}>
+                    {translateText(questionNextAction.label)}
+                  </Link>
+                </Button>
+              ) : "targetId" in questionNextAction ? (
+                <Button
+                  type="button"
+                  onClick={() => scrollToDetailTarget(questionNextAction.targetId)}
+                >
+                  {translateText(questionNextAction.label)}
+                </Button>
+              ) : (
+                <Button
+                  type="button"
+                  onClick={() =>
+                    activateRelationshipTab(
+                      questionNextAction.tab,
+                      questionNextAction.focusTargetId,
+                    )
+                  }
+                >
+                  {translateText(questionNextAction.label)}
+                </Button>
+              )
+            }
+          />
+
           <Card>
             <CardHeader>
               <CardHeading>
@@ -542,7 +644,7 @@ export function QuestionDetailPage() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card id="question-accepted-answer-section">
             <CardHeader>
               <CardHeading>
                 <CardTitle>
@@ -558,6 +660,7 @@ export function QuestionDetailPage() {
                   )}
                 </p>
                 <SearchSelect
+                  id="question-accepted-answer-picker"
                   value={acceptedAnswerSelectValue}
                   onValueChange={setSelectedAnswerId}
                   options={acceptedAnswerOptions.map(buildAnswerOption)}

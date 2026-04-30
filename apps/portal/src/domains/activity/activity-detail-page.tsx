@@ -1,5 +1,6 @@
 import { Link, useParams } from "react-router-dom";
 import { useActivity } from "@/domains/activity/hooks";
+import { RecommendedNextActionCard } from "@/domains/qna/recommended-next-action-card";
 import { usePortalTimeZone } from "@/domains/settings/settings-hooks";
 import {
   DetailLayout,
@@ -10,6 +11,7 @@ import {
 import {
   ActionButton,
   ActionPanel,
+  Button,
   Card,
   CardContent,
   CardHeader,
@@ -28,6 +30,23 @@ export function ActivityDetailPage() {
   const portalTimeZone = usePortalTimeZone();
   const { id } = useParams();
   const activityQuery = useActivity(id);
+  const activityNextAction = !activityQuery.data
+    ? {
+        label: "Back to activity",
+        to: "/app/activity",
+        text: "Return to the activity stream while this event loads.",
+      }
+    : activityQuery.data.answerId
+      ? {
+          label: "Open answer",
+          to: `/app/answers/${activityQuery.data.answerId}`,
+          text: "This event is scoped to an answer. Open it to review lifecycle, sources, and acceptance state.",
+        }
+      : {
+          label: "Open question",
+          to: `/app/questions/${activityQuery.data.questionId}`,
+          text: "This event is scoped to a question. Open it to review answers, sources, tags, and workflow state.",
+        };
 
   if (!id) {
     return (
@@ -108,6 +127,19 @@ export function ActivityDetailPage() {
               },
             ]}
           />
+
+          <RecommendedNextActionCard
+            label={activityNextAction.label}
+            text={activityNextAction.text}
+            action={
+              <Button asChild>
+                <Link to={activityNextAction.to}>
+                  {translateText(activityNextAction.label)}
+                </Link>
+              </Button>
+            }
+          />
+
           <Card>
             <CardHeader>
               <CardHeading>
