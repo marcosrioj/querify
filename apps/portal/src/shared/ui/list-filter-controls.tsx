@@ -68,6 +68,21 @@ export function ListFilterSearch({
   );
 }
 
+export function ListFilterSearchQuickRow({
+  search,
+  quickFilters,
+}: {
+  search: ReactNode;
+  quickFilters: ReactNode;
+}) {
+  return (
+    <div className="grid w-full min-w-0 gap-3 xl:grid-cols-[minmax(320px,0.9fr)_minmax(0,1.1fr)] xl:items-end">
+      <div className="min-w-0">{search}</div>
+      <div className="min-w-0">{quickFilters}</div>
+    </div>
+  );
+}
+
 export function ListFilterClearButton({
   activeFilterCount,
   onClear,

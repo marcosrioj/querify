@@ -115,6 +115,7 @@ export {
   ListFilterClearButton,
   ListFilterField,
   ListFilterSearch,
+  ListFilterSearchQuickRow,
   ListFilterSection,
   ListFilterToolbar,
 } from "@/shared/ui/list-filter-controls";

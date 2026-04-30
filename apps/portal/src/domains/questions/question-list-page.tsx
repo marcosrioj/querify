@@ -35,6 +35,7 @@ import {
   ListFilterChipRail,
   ListFilterField,
   ListFilterSearch,
+  ListFilterSearchQuickRow,
   ListFilterSection,
   ListFilterToolbar,
   SectionGridSkeleton,
@@ -168,12 +169,7 @@ export function QuestionListPage() {
     if (nextPage !== page) {
       setPage(nextPage, { replace: true });
     }
-  }, [
-    page,
-    pageSize,
-    questionQuery.data?.totalCount,
-    setPage,
-  ]);
+  }, [page, pageSize, questionQuery.data?.totalCount, setPage]);
 
   const deleteQuestion = useDeleteQuestion();
   const questionRows = (questionQuery.data?.items ?? []) as QuestionListRow[];
@@ -393,34 +389,40 @@ export function QuestionListPage() {
         loading={questionQuery.isLoading}
         onRowClick={(question) => navigate(`/app/questions/${question.id}`)}
         headingControl={
-          <ListFilterSearch
-            value={search}
-            onChange={setSearch}
-            placeholder="Search questions by title or summary"
-            activeFilterCount={activeFilterCount}
-            onClear={clearFilters}
-            isLoading={questionQuery.isFetching}
+          <ListFilterSearchQuickRow
+            search={
+              <ListFilterSearch
+                value={search}
+                onChange={setSearch}
+                placeholder="Search questions by title or summary"
+                activeFilterCount={activeFilterCount}
+                onClear={clearFilters}
+                isLoading={questionQuery.isFetching}
+              />
+            }
+            quickFilters={
+              <ListFilterSection
+                label="Status"
+                activeFilterCount={activeFilterCount}
+                emptyLabel="All questions"
+              >
+                <ListFilterChipRail>
+                  {statusBuckets.map((bucket) => (
+                    <ListFilterChip
+                      key={bucket.value}
+                      active={statusFilter === bucket.value}
+                      onClick={() => setFilter("status", bucket.value)}
+                    >
+                      {translateText(bucket.label)}
+                    </ListFilterChip>
+                  ))}
+                </ListFilterChipRail>
+              </ListFilterSection>
+            }
           />
         }
         toolbar={
           <ListFilterToolbar isLoading={filtersLoading}>
-            <ListFilterSection
-              label="Status"
-              activeFilterCount={activeFilterCount}
-              emptyLabel="All questions"
-            >
-              <ListFilterChipRail>
-                {statusBuckets.map((bucket) => (
-                  <ListFilterChip
-                    key={bucket.value}
-                    active={statusFilter === bucket.value}
-                    onClick={() => setFilter("status", bucket.value)}
-                  >
-                    {translateText(bucket.label)}
-                  </ListFilterChip>
-                ))}
-              </ListFilterChipRail>
-            </ListFilterSection>
             <div className="grid w-full gap-3 md:grid-cols-2 xl:grid-cols-[minmax(260px,1fr)_200px_220px]">
               <ListFilterField
                 label="Space"

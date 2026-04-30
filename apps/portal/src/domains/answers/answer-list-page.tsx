@@ -44,6 +44,7 @@ import {
   ListFilterClearButton,
   ListFilterField,
   ListFilterSearch,
+  ListFilterSearchQuickRow,
   ListFilterSection,
   ListFilterToolbar,
   SectionGridSkeleton,
@@ -441,42 +442,48 @@ export function AnswerListPage() {
         loading={answerQuery.isLoading}
         onRowClick={(answer) => navigate(`/app/answers/${answer.id}`)}
         headingControl={
-          <ListFilterSearch
-            value={search}
-            onChange={setSearch}
-            placeholder="Search answers by headline or body"
-            activeFilterCount={activeFilterCount}
-            onClear={clearFilters}
-            isLoading={answerQuery.isFetching}
+          <ListFilterSearchQuickRow
+            search={
+              <ListFilterSearch
+                value={search}
+                onChange={setSearch}
+                placeholder="Search answers by headline or body"
+                activeFilterCount={activeFilterCount}
+                onClear={clearFilters}
+                isLoading={answerQuery.isFetching}
+              />
+            }
+            quickFilters={
+              <ListFilterSection
+                label="Status"
+                activeFilterCount={activeFilterCount}
+                emptyLabel="All answers"
+                action={
+                  <ListFilterClearButton
+                    activeFilterCount={activeFilterCount}
+                    onClear={clearFilters}
+                    size="sm"
+                    className="w-auto"
+                  />
+                }
+              >
+                <ListFilterChipRail>
+                  {answerStatusBuckets.map((bucket) => (
+                    <ListFilterChip
+                      key={bucket.value}
+                      active={statusFilter === bucket.value}
+                      onClick={() => setFilter("status", bucket.value)}
+                    >
+                      {translateText(bucket.label)}
+                    </ListFilterChip>
+                  ))}
+                </ListFilterChipRail>
+              </ListFilterSection>
+            }
           />
         }
         toolbar={
           <ListFilterToolbar isLoading={filtersLoading}>
-            <ListFilterSection
-              label="Status"
-              activeFilterCount={activeFilterCount}
-              emptyLabel="All answers"
-              action={
-                <ListFilterClearButton
-                  activeFilterCount={activeFilterCount}
-                  onClear={clearFilters}
-                  size="sm"
-                  className="w-auto"
-                />
-              }
-            >
-              <ListFilterChipRail>
-                {answerStatusBuckets.map((bucket) => (
-                  <ListFilterChip
-                    key={bucket.value}
-                    active={statusFilter === bucket.value}
-                    onClick={() => setFilter("status", bucket.value)}
-                  >
-                    {translateText(bucket.label)}
-                  </ListFilterChip>
-                ))}
-              </ListFilterChipRail>
-            </ListFilterSection>
             <div className="grid w-full gap-3 md:grid-cols-2 xl:grid-cols-[minmax(220px,1fr)_minmax(220px,1fr)_180px_180px_200px]">
               <ListFilterField
                 label="Space"

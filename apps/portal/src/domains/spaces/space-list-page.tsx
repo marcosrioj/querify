@@ -37,6 +37,7 @@ import {
   ListFilterChipRail,
   ListFilterField,
   ListFilterSearch,
+  ListFilterSearchQuickRow,
   ListFilterSection,
   ListFilterToolbar,
   SectionGridSkeleton,
@@ -352,71 +353,77 @@ export function SpaceListPage() {
         loading={spaceQuery.isLoading}
         onRowClick={(space) => navigate(`/app/spaces/${space.id}`)}
         headingControl={
-          <ListFilterSearch
-            value={search}
-            onChange={setSearch}
-            placeholder="Search spaces by name, slug, summary, or language"
-            activeFilterCount={activeFilterCount}
-            onClear={clearFilters}
-            isLoading={spaceQuery.isFetching}
+          <ListFilterSearchQuickRow
+            search={
+              <ListFilterSearch
+                value={search}
+                onChange={setSearch}
+                placeholder="Search spaces by name, slug, summary, or language"
+                activeFilterCount={activeFilterCount}
+                onClear={clearFilters}
+                isLoading={spaceQuery.isFetching}
+              />
+            }
+            quickFilters={
+              <ListFilterSection
+                label="Quick filters"
+                activeFilterCount={activeFilterCount}
+                emptyLabel="All spaces"
+              >
+                <ListFilterChipRail>
+                  {spaceStatusBuckets.map((bucket) => (
+                    <ListFilterChip
+                      key={bucket.value}
+                      active={
+                        bucket.value === "all"
+                          ? quickAllActive
+                          : statusFilter === bucket.value
+                      }
+                      onClick={() => {
+                        if (bucket.value === "all") {
+                          setFilters({
+                            status: "all",
+                            acceptsQuestions: "all",
+                            acceptsAnswers: "all",
+                          });
+                          return;
+                        }
+
+                        setFilter("status", bucket.value);
+                      }}
+                    >
+                      {translateText(bucket.label)}
+                    </ListFilterChip>
+                  ))}
+                  <ListFilterChip
+                    active={acceptsQuestionsFilter === "true"}
+                    onClick={() =>
+                      setFilter(
+                        "acceptsQuestions",
+                        acceptsQuestionsFilter === "true" ? "all" : "true",
+                      )
+                    }
+                  >
+                    {translateText("Questions enabled")}
+                  </ListFilterChip>
+                  <ListFilterChip
+                    active={acceptsAnswersFilter === "true"}
+                    onClick={() =>
+                      setFilter(
+                        "acceptsAnswers",
+                        acceptsAnswersFilter === "true" ? "all" : "true",
+                      )
+                    }
+                  >
+                    {translateText("Answers enabled")}
+                  </ListFilterChip>
+                </ListFilterChipRail>
+              </ListFilterSection>
+            }
           />
         }
         toolbar={
           <ListFilterToolbar isLoading={spaceQuery.isFetching}>
-            <ListFilterSection
-              label="Quick filters"
-              activeFilterCount={activeFilterCount}
-              emptyLabel="All spaces"
-            >
-              <ListFilterChipRail>
-                {spaceStatusBuckets.map((bucket) => (
-                  <ListFilterChip
-                    key={bucket.value}
-                    active={
-                      bucket.value === "all"
-                        ? quickAllActive
-                        : statusFilter === bucket.value
-                    }
-                    onClick={() => {
-                      if (bucket.value === "all") {
-                        setFilters({
-                          status: "all",
-                          acceptsQuestions: "all",
-                          acceptsAnswers: "all",
-                        });
-                        return;
-                      }
-
-                      setFilter("status", bucket.value);
-                    }}
-                  >
-                    {translateText(bucket.label)}
-                  </ListFilterChip>
-                ))}
-                <ListFilterChip
-                  active={acceptsQuestionsFilter === "true"}
-                  onClick={() =>
-                    setFilter(
-                      "acceptsQuestions",
-                      acceptsQuestionsFilter === "true" ? "all" : "true",
-                    )
-                  }
-                >
-                  {translateText("Questions enabled")}
-                </ListFilterChip>
-                <ListFilterChip
-                  active={acceptsAnswersFilter === "true"}
-                  onClick={() =>
-                    setFilter(
-                      "acceptsAnswers",
-                      acceptsAnswersFilter === "true" ? "all" : "true",
-                    )
-                  }
-                >
-                  {translateText("Answers enabled")}
-                </ListFilterChip>
-              </ListFilterChipRail>
-            </ListFilterSection>
             <div className="grid w-full gap-3 md:grid-cols-2 xl:grid-cols-4">
               <ListFilterField label="Visibility">
                 <Select
