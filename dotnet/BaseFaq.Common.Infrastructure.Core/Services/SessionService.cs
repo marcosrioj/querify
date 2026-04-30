@@ -44,4 +44,9 @@ public sealed class SessionService : ISessionService
 
         return userId;
     }
+
+    public string? GetUserName()
+    {
+        return _claimService.GetName() ?? _claimService.GetEmail();
+    }
 }

@@ -13,6 +13,7 @@ import {
   Waypoints,
 } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import { ActivityRelationshipActions } from "@/domains/activity/activity-relationship-actions";
 import { useActivityList } from "@/domains/activity/hooks";
 import { useActivationVisibilityPrompt } from "@/domains/qna/activation-visibility";
 import { QnaModuleNav } from "@/domains/qna/qna-module-nav";
@@ -1032,18 +1033,7 @@ export function SpaceDetailPage() {
                           {event.notes || event.actorLabel || event.userPrint}
                         </p>
                       </div>
-                      <Button asChild variant="outline" size="sm">
-                        <Link
-                          to={
-                            event.answerId
-                              ? `/app/answers/${event.answerId}`
-                              : `/app/questions/${event.questionId}`
-                          }
-                        >
-                          <Activity className="size-4" />
-                          {translateText("Open context")}
-                        </Link>
-                      </Button>
+                      <ActivityRelationshipActions event={event} />
                     </div>
                   ))
                 ) : (

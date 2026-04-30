@@ -1,13 +1,58 @@
+using System.Text.Json;
+using BaseFaq.Common.Infrastructure.Core.Services;
 using BaseFaq.Models.QnA.Dtos.Question;
 using BaseFaq.Models.QnA.Enums;
+using BaseFaq.QnA.Public.Business.Question.Commands.CreateQuestion;
 using BaseFaq.QnA.Public.Business.Question.Queries.GetQuestion;
 using BaseFaq.QnA.Public.Test.IntegrationTests.Helpers;
+using Microsoft.EntityFrameworkCore;
 using Xunit;
 
 namespace BaseFaq.QnA.Public.Test.IntegrationTests.Tests.Question;
 
 public class QuestionQueryTests
 {
+    [Fact]
+    public async Task CreateQuestion_AppendsCreatedActivityWithPublicUserPrint()
+    {
+        using var context = TestContext.Create();
+        var space = await TestDataFactory.SeedSpaceAsync(context.DbContext, context.TenantId);
+        var handler = new QuestionsCreateQuestionCommandHandler(
+            context.DbContext,
+            new TestClientKeyContextService(context.ClientKey),
+            new TestTenantClientKeyResolver(context.TenantId, context.ClientKey),
+            context.SessionService,
+            new ClaimService(context.HttpContextAccessor),
+            context.HttpContextAccessor);
+
+        var questionId = await handler.Handle(new QuestionsCreateQuestionCommand
+        {
+            Request = new QuestionCreateRequestDto
+            {
+                SpaceId = space.Id,
+                Title = "Can I invite teammates?",
+                Summary = "Team invitations",
+                ContextNote = "Asked from public help center",
+                Status = QuestionStatus.Active,
+                Visibility = VisibilityScope.Public,
+                OriginChannel = ChannelKind.Widget,
+                Sort = 3
+            }
+        }, CancellationToken.None);
+
+        var activity = await context.DbContext.Activities
+            .SingleAsync(entity => entity.QuestionId == questionId && entity.Kind == ActivityKind.QuestionCreated);
+
+        Assert.Contains(activity.UserPrint, activity.Notes);
+
+        using var metadata = JsonDocument.Parse(activity.MetadataJson!);
+        var metadataContext = metadata.RootElement.GetProperty("Context");
+        Assert.Equal("Public", metadataContext.GetProperty("ActorSource").GetString());
+        Assert.Equal(activity.UserPrint, metadataContext.GetProperty("ActorUserId").GetString());
+        Assert.Equal(activity.UserPrint, metadataContext.GetProperty("ActorUserName").GetString());
+        Assert.NotEqual(context.SessionService.UserName, metadataContext.GetProperty("ActorUserName").GetString());
+    }
+
     [Fact]
     public async Task GetQuestionById_ReturnsOnlyPublicAnswersAndAcceptedAnswer()
     {

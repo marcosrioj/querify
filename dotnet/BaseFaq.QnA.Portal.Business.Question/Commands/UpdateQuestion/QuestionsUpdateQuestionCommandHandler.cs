@@ -5,8 +5,8 @@ using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.QnA.Dtos.Question;
 using BaseFaq.Models.QnA.Enums;
 using BaseFaq.QnA.Common.Helper.Activities;
+using BaseFaq.QnA.Common.Persistence.QnADb.Activities;
 using BaseFaq.QnA.Common.Persistence.QnADb.DbContext;
-using BaseFaq.QnA.Common.Persistence.QnADb.Entities;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -22,7 +22,11 @@ public sealed class QuestionsUpdateQuestionCommandHandler(
     public async Task<Guid> Handle(QuestionsUpdateQuestionCommand request, CancellationToken cancellationToken)
     {
         var tenantId = sessionService.GetTenantId(ModuleEnum.QnA);
-        var userId = sessionService.GetUserId().ToString();
+        var actor = ActivityActorResolver.ResolvePortalActor(
+            sessionService,
+            httpContextAccessor,
+            ActorKind.Moderator);
+        var userId = actor.AuditUserId;
         var entity = await dbContext.Questions
             .Include(question => question.Answers)
             .Include(question => question.AcceptedAnswer)
@@ -83,66 +87,20 @@ public sealed class QuestionsUpdateQuestionCommandHandler(
 
         var afterSnapshot = SnapshotQuestion(entity);
         var statusChanged = entity.Status != originalStatus;
-        var metadata = ActivityChangeMetadata.Create(
-            "Question",
+        ActivityAppender.AddQuestionActivity(
+            dbContext,
+            entity,
+            statusChanged
+                ? ActivityKindStatusMap.ForQuestionStatus(entity.Status)
+                : ActivityKind.QuestionUpdated,
+            actor,
             statusChanged ? "StatusChanged" : "Updated",
-            entity.Id,
             beforeSnapshot,
             afterSnapshot,
-            QuestionContext(entity),
-            maxLength: Activity.MaxMetadataLength);
-        if (metadata is not null)
-            AddActivity(
-                entity,
-                statusChanged
-                    ? ActivityKindStatusMap.ForQuestionStatus(entity.Status)
-                    : ActivityKind.QuestionUpdated,
-                userId,
-                metadata);
+            QuestionContext(entity));
 
         await dbContext.SaveChangesAsync(cancellationToken);
         return request.Id;
-    }
-
-    private void AddActivity(
-        Common.Persistence.QnADb.Entities.Question question,
-        ActivityKind kind,
-        string userId,
-        string? metadataJson)
-    {
-        var activityIdentity = ResolveActivityIdentity(userId);
-        var activity = new Activity
-        {
-            TenantId = question.TenantId,
-            QuestionId = question.Id,
-            Question = question,
-            Kind = kind,
-            ActorKind = ActorKind.Moderator,
-            ActorLabel = userId,
-            UserPrint = activityIdentity.UserPrint,
-            Ip = activityIdentity.Ip,
-            UserAgent = activityIdentity.UserAgent,
-            MetadataJson = metadataJson,
-            OccurredAtUtc = DateTime.UtcNow,
-            CreatedBy = userId,
-            UpdatedBy = userId
-        };
-
-        question.Activities.Add(activity);
-        question.LastActivityAtUtc = activity.OccurredAtUtc;
-        dbContext.Activities.Add(activity);
-    }
-
-    private ActivityUserIdentity ResolveActivityIdentity(string userId)
-    {
-        var httpContext = httpContextAccessor.HttpContext
-                          ?? throw new ApiErrorException(
-                              "HttpContext is missing from the current request.",
-                              (int)HttpStatusCode.Unauthorized);
-        return ActivityIdentityResolver.ResolveActivityIdentity(
-            userId,
-            ActivityRequestInfo.GetRequiredIp(httpContext),
-            ActivityRequestInfo.GetRequiredUserAgent(httpContext));
     }
 
     private static void Apply(Common.Persistence.QnADb.Entities.Question entity, QuestionUpdateRequestDto request,

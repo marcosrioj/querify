@@ -11,6 +11,8 @@ internal sealed class MigrationsSessionService : ISessionService
     public Guid GetTenantId(ModuleEnum module) => MigrationTenantId;
 
     public Guid GetUserId() => MigrationUserId;
+
+    public string? GetUserName() => "migration";
 }
 
 internal sealed class NoopTenantConnectionStringProvider : ITenantConnectionStringProvider

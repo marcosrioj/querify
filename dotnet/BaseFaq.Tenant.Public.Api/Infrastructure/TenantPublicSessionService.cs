@@ -15,4 +15,6 @@ public sealed class TenantPublicSessionService : ISessionService
     }
 
     public Guid GetUserId() => Guid.Empty;
+
+    public string? GetUserName() => "public";
 }

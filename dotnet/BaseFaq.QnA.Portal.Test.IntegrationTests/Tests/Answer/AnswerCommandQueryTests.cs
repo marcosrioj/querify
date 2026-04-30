@@ -54,10 +54,23 @@ public class AnswerCommandQueryTests
             .ToListAsync();
         var createdActivity = Assert.Single(activities);
         Assert.Equal(ActivityKind.AnswerCreated, createdActivity.Kind);
+        Assert.Contains(context.SessionService.UserName!, createdActivity.Notes);
 
         using var createdMetadata = JsonDocument.Parse(createdActivity.MetadataJson!);
         Assert.Equal("Answer", createdMetadata.RootElement.GetProperty("Entity").GetString());
         Assert.Equal("Created", createdMetadata.RootElement.GetProperty("Operation").GetString());
+        Assert.Equal(
+            context.SessionService.UserId.ToString("D"),
+            createdMetadata.RootElement
+                .GetProperty("Context")
+                .GetProperty("ActorUserId")
+                .GetString());
+        Assert.Equal(
+            context.SessionService.UserName,
+            createdMetadata.RootElement
+                .GetProperty("Context")
+                .GetProperty("ActorUserName")
+                .GetString());
         Assert.Equal(
             "Reset password from portal",
             createdMetadata.RootElement
@@ -209,6 +222,7 @@ public class AnswerCommandQueryTests
             .SingleAsync(activity => activity.AnswerId == answer.Id && activity.Kind == ActivityKind.AnswerUpdated);
         Assert.False(await context.DbContext.Activities
             .AnyAsync(activity => activity.AnswerId == answer.Id && activity.Kind == ActivityKind.AnswerArchived));
+        Assert.Contains(context.SessionService.UserName!, updatedActivity.Notes);
 
         using var updatedMetadata = JsonDocument.Parse(updatedActivity.MetadataJson!);
         var updatedFields = updatedMetadata.RootElement
@@ -264,6 +278,7 @@ public class AnswerCommandQueryTests
             .AnyAsync(activity => activity.AnswerId == answer.Id && activity.Kind == ActivityKind.AnswerUpdated));
         var archivedActivity = await context.DbContext.Activities
             .SingleAsync(activity => activity.AnswerId == answer.Id && activity.Kind == ActivityKind.AnswerArchived);
+        Assert.Contains(context.SessionService.UserName!, archivedActivity.Notes);
 
         using var archivedMetadata = JsonDocument.Parse(archivedActivity.MetadataJson!);
         var archivedFields = archivedMetadata.RootElement

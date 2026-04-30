@@ -54,7 +54,12 @@ public class VoteCommandQueryTests
         Assert.Equal(context.UserId.ToString("D"), activity!.UserPrint);
         Assert.Equal("192.0.2.45", activity.Ip);
         Assert.Equal("QnAPublicVote/1.0", activity.UserAgent);
-        Assert.Equal(context.UserId.ToString("D"), ActivitySignals.ParseVote(activity.MetadataJson)?.UserPrint);
+        Assert.Contains(activity.UserPrint, activity.Notes);
+        var metadata = ActivitySignals.ParseVote(activity.MetadataJson);
+        Assert.Equal(context.UserId.ToString("D"), metadata?.UserPrint);
+        Assert.Equal(activity.UserPrint, metadata?.ActorUserId);
+        Assert.Equal(activity.UserPrint, metadata?.ActorUserName);
+        Assert.Equal("Public", metadata?.ActorSource);
         Assert.Equal(1, result.AcceptedAnswer!.VoteScore);
     }
 
@@ -94,7 +99,12 @@ public class VoteCommandQueryTests
         Assert.Equal(expectedIdentity.UserPrint, activity!.UserPrint);
         Assert.Equal(expectedIdentity.Ip, activity.Ip);
         Assert.Equal(expectedIdentity.UserAgent, activity.UserAgent);
-        Assert.Equal(expectedIdentity.UserPrint, ActivitySignals.ParseVote(activity.MetadataJson)?.UserPrint);
+        Assert.Contains(expectedIdentity.UserPrint, activity.Notes);
+        var metadata = ActivitySignals.ParseVote(activity.MetadataJson);
+        Assert.Equal(expectedIdentity.UserPrint, metadata?.UserPrint);
+        Assert.Equal(expectedIdentity.UserPrint, metadata?.ActorUserId);
+        Assert.Equal(expectedIdentity.UserPrint, metadata?.ActorUserName);
+        Assert.Equal("Public", metadata?.ActorSource);
     }
 
     private static VotesCreateVoteCommandHandler CreateVoteHandler(TestContext context)

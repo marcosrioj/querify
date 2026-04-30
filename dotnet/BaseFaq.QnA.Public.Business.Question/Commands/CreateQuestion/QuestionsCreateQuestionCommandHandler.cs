@@ -4,8 +4,8 @@ using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Common.Infrastructure.Core.Constants;
 using BaseFaq.Models.QnA.Enums;
 using BaseFaq.QnA.Common.Helper.Activities;
+using BaseFaq.QnA.Common.Persistence.QnADb.Activities;
 using BaseFaq.QnA.Common.Persistence.QnADb.DbContext;
-using BaseFaq.QnA.Common.Persistence.QnADb.Entities;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -23,14 +23,11 @@ public sealed class QuestionsCreateQuestionCommandHandler(
 {
     public async Task<Guid> Handle(QuestionsCreateQuestionCommand request, CancellationToken cancellationToken)
     {
-        var httpContext = httpContextAccessor.HttpContext ?? throw new ApiErrorException(
-            "HttpContext is missing from the current request.",
-            (int)HttpStatusCode.Unauthorized);
-        var identity = ActivityIdentityResolver.ResolveActivityIdentity(
+        var actor = ActivityActorResolver.ResolvePublicActor(
             sessionService,
-            ActivityRequestInfo.GetRequiredIp(httpContext),
-            ActivityRequestInfo.GetRequiredUserAgent(httpContext),
-            claimService.GetExternalUserId());
+            claimService,
+            httpContextAccessor,
+            ActorKind.Customer);
         var tenantId = await ResolveTenantIdAndSetContextAsync(cancellationToken);
         var space = await dbContext.Spaces
             .Include(entity => entity.Questions)
@@ -74,32 +71,15 @@ public sealed class QuestionsCreateQuestionCommandHandler(
         dbContext.Questions.Add(entity);
 
         var questionSnapshot = SnapshotQuestion(entity);
-        var createdActivity = new Activity
-        {
-            TenantId = entity.TenantId,
-            QuestionId = entity.Id,
-            Question = entity,
-            Kind = ActivityKind.QuestionCreated,
-            ActorKind = ActorKind.Customer,
-            ActorLabel = identity.UserPrint,
-            UserPrint = identity.UserPrint,
-            Ip = identity.Ip,
-            UserAgent = identity.UserAgent,
-            MetadataJson = ActivityChangeMetadata.Create(
-                "Question",
-                "Created",
-                entity.Id,
-                new Dictionary<string, object?>(StringComparer.Ordinal),
-                questionSnapshot,
-                QuestionContext(entity),
-                maxLength: Activity.MaxMetadataLength),
-            OccurredAtUtc = DateTime.UtcNow,
-            CreatedBy = "public",
-            UpdatedBy = "public"
-        };
-        entity.Activities.Add(createdActivity);
-        entity.LastActivityAtUtc = createdActivity.OccurredAtUtc;
-        dbContext.Activities.Add(createdActivity);
+        ActivityAppender.AddQuestionActivity(
+            dbContext,
+            entity,
+            ActivityKind.QuestionCreated,
+            actor,
+            "Created",
+            new Dictionary<string, object?>(StringComparer.Ordinal),
+            questionSnapshot,
+            QuestionContext(entity));
 
         await dbContext.SaveChangesAsync(cancellationToken);
         return entity.Id;

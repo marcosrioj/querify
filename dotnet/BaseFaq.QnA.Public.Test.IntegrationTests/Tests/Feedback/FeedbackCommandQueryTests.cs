@@ -46,7 +46,12 @@ public class FeedbackCommandQueryTests
         Assert.Equal(context.UserId.ToString("D"), activity!.UserPrint);
         Assert.Equal("192.0.2.44", activity.Ip);
         Assert.Equal("QnAPublicFeedback/1.0", activity.UserAgent);
-        Assert.Equal(context.UserId.ToString("D"), ActivitySignals.ParseFeedback(activity.MetadataJson)?.UserPrint);
+        Assert.Contains(activity.UserPrint, activity.Notes);
+        var metadata = ActivitySignals.ParseFeedback(activity.MetadataJson);
+        Assert.Equal(context.UserId.ToString("D"), metadata?.UserPrint);
+        Assert.Equal(activity.UserPrint, metadata?.ActorUserId);
+        Assert.Equal(activity.UserPrint, metadata?.ActorUserName);
+        Assert.Equal("Public", metadata?.ActorSource);
         Assert.Equal(1, result.FeedbackScore);
     }
 
@@ -80,7 +85,12 @@ public class FeedbackCommandQueryTests
         Assert.Equal(expectedIdentity.UserPrint, activity!.UserPrint);
         Assert.Equal(expectedIdentity.Ip, activity.Ip);
         Assert.Equal(expectedIdentity.UserAgent, activity.UserAgent);
-        Assert.Equal(expectedIdentity.UserPrint, ActivitySignals.ParseFeedback(activity.MetadataJson)?.UserPrint);
+        Assert.Contains(expectedIdentity.UserPrint, activity.Notes);
+        var metadata = ActivitySignals.ParseFeedback(activity.MetadataJson);
+        Assert.Equal(expectedIdentity.UserPrint, metadata?.UserPrint);
+        Assert.Equal(expectedIdentity.UserPrint, metadata?.ActorUserId);
+        Assert.Equal(expectedIdentity.UserPrint, metadata?.ActorUserName);
+        Assert.Equal("Public", metadata?.ActorSource);
     }
 
     private static FeedbacksCreateFeedbackCommandHandler CreateFeedbackHandler(TestContext context)

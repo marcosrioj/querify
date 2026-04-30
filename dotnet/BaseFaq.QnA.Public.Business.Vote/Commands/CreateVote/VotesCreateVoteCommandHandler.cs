@@ -4,8 +4,8 @@ using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Common.Infrastructure.Core.Constants;
 using BaseFaq.Models.QnA.Enums;
 using BaseFaq.QnA.Common.Helper.Activities;
+using BaseFaq.QnA.Common.Persistence.QnADb.Activities;
 using BaseFaq.QnA.Common.Persistence.QnADb.DbContext;
-using BaseFaq.QnA.Common.Persistence.QnADb.Entities;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -23,14 +23,11 @@ public sealed class VotesCreateVoteCommandHandler(
 {
     public async Task<Guid> Handle(VotesCreateVoteCommand request, CancellationToken cancellationToken)
     {
-        var httpContext = httpContextAccessor.HttpContext ?? throw new ApiErrorException(
-            "HttpContext is missing from the current request.",
-            (int)HttpStatusCode.Unauthorized);
-        var identity = ActivityIdentityResolver.ResolveActivityIdentity(
+        var actor = ActivityActorResolver.ResolvePublicActor(
             sessionService,
-            ActivityRequestInfo.GetRequiredIp(httpContext),
-            ActivityRequestInfo.GetRequiredUserAgent(httpContext),
-            claimService.GetExternalUserId());
+            claimService,
+            httpContextAccessor,
+            ActorKind.Customer);
         var tenantId = await ResolveTenantIdAndSetContextAsync(cancellationToken);
         var answer = await dbContext.Answers
             .Include(entity => entity.Question)
@@ -65,7 +62,7 @@ public sealed class VotesCreateVoteCommandHandler(
                     UserPrint = ActivityIdentityResolver.ResolveStored(activity.UserPrint, metadata?.UserPrint)
                 };
             })
-            .Where(item => item.Metadata is not null && item.UserPrint == identity.UserPrint)
+            .Where(item => item.Metadata is not null && item.UserPrint == actor.UserPrint)
             .OrderByDescending(item => item.Activity.OccurredAtUtc)
             .FirstOrDefault();
 
@@ -73,33 +70,12 @@ public sealed class VotesCreateVoteCommandHandler(
         var effectiveValue = latest?.Metadata?.VoteValue;
         var storedValue = effectiveValue == requestedValue ? 0 : requestedValue;
 
-        var activity = new Activity
-        {
-            TenantId = answer.TenantId,
-            QuestionId = answer.QuestionId,
-            Question = answer.Question,
-            AnswerId = answer.Id,
-            Answer = answer,
-            Kind = ActivityKind.VoteReceived,
-            ActorKind = ActorKind.Customer,
-            ActorLabel = identity.UserPrint,
-            UserPrint = identity.UserPrint,
-            Ip = identity.Ip,
-            UserAgent = identity.UserAgent,
-            Notes = request.Request.Notes,
-            MetadataJson = ActivitySignals.CreateVoteMetadata(
-                identity.UserPrint,
-                identity.Ip,
-                identity.UserAgent,
-                storedValue),
-            OccurredAtUtc = DateTime.UtcNow,
-            CreatedBy = identity.UserPrint,
-            UpdatedBy = identity.UserPrint
-        };
-
-        answer.Question.Activities.Add(activity);
-        answer.Question.LastActivityAtUtc = activity.OccurredAtUtc;
-        dbContext.Activities.Add(activity);
+        var activity = ActivityAppender.AddVoteActivity(
+            dbContext,
+            answer,
+            actor,
+            storedValue,
+            request.Request.Notes);
 
         await dbContext.SaveChangesAsync(cancellationToken);
         return storedValue == 0 ? Guid.Empty : activity.Id;

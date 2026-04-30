@@ -3,7 +3,7 @@ using BaseFaq.Models.Common.Enums;
 
 namespace BaseFaq.Tools.Seed.Infrastructure;
 
-public sealed class SeedSessionService(Guid userId, Guid tenantId) : ISessionService
+public sealed class SeedSessionService(Guid userId, Guid tenantId, string? userName = "seed") : ISessionService
 {
     public Guid GetTenantId(ModuleEnum module)
     {
@@ -13,5 +13,10 @@ public sealed class SeedSessionService(Guid userId, Guid tenantId) : ISessionSer
     public Guid GetUserId()
     {
         return userId;
+    }
+
+    public string? GetUserName()
+    {
+        return userName;
     }
 }

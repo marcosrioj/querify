@@ -8,6 +8,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import { ActivityRelationshipActions } from "@/domains/activity/activity-relationship-actions";
 import { useActivityList } from "@/domains/activity/hooks";
 import {
   useAnswer,
@@ -721,13 +722,16 @@ export function AnswerDetailPage() {
                           {event.notes || translateText("No notes recorded.")}
                         </div>
                       </div>
-                      <span className="text-sm text-muted-foreground">
-                        {formatOptionalDateTimeInTimeZone(
-                          event.occurredAtUtc,
-                          portalTimeZone,
-                          translateText("Not set"),
-                        )}
-                      </span>
+                      <div className="flex flex-col items-start gap-2 sm:items-end">
+                        <span className="text-sm text-muted-foreground">
+                          {formatOptionalDateTimeInTimeZone(
+                            event.occurredAtUtc,
+                            portalTimeZone,
+                            translateText("Not set"),
+                          )}
+                        </span>
+                        <ActivityRelationshipActions event={event} />
+                      </div>
                     </div>
                   ))
                 ) : (

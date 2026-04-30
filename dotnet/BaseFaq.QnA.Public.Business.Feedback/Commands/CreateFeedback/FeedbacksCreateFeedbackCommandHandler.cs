@@ -4,6 +4,7 @@ using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Common.Infrastructure.Core.Constants;
 using BaseFaq.Models.QnA.Enums;
 using BaseFaq.QnA.Common.Helper.Activities;
+using BaseFaq.QnA.Common.Persistence.QnADb.Activities;
 using BaseFaq.QnA.Common.Persistence.QnADb.DbContext;
 using BaseFaq.QnA.Common.Persistence.QnADb.Entities;
 using MediatR;
@@ -23,14 +24,11 @@ public sealed class FeedbacksCreateFeedbackCommandHandler(
 {
     public async Task<Guid> Handle(FeedbacksCreateFeedbackCommand request, CancellationToken cancellationToken)
     {
-        var httpContext = httpContextAccessor.HttpContext ?? throw new ApiErrorException(
-            "HttpContext is missing from the current request.",
-            (int)HttpStatusCode.Unauthorized);
-        var identity = ActivityIdentityResolver.ResolveActivityIdentity(
+        var actor = ActivityActorResolver.ResolvePublicActor(
             sessionService,
-            ActivityRequestInfo.GetRequiredIp(httpContext),
-            ActivityRequestInfo.GetRequiredUserAgent(httpContext),
-            claimService.GetExternalUserId());
+            claimService,
+            httpContextAccessor,
+            ActorKind.Customer);
         var tenantId = await ResolveTenantIdAndSetContextAsync(cancellationToken);
         var question = await dbContext.Questions
             .Include(entity => entity.Activities)
@@ -59,7 +57,7 @@ public sealed class FeedbacksCreateFeedbackCommandHandler(
                     UserPrint = ActivityIdentityResolver.ResolveStored(activity.UserPrint, metadata?.UserPrint)
                 };
             })
-            .Where(item => item.Metadata is not null && item.UserPrint == identity.UserPrint)
+            .Where(item => item.Metadata is not null && item.UserPrint == actor.UserPrint)
             .OrderByDescending(item => item.Activity.OccurredAtUtc)
             .FirstOrDefault();
 
@@ -68,33 +66,14 @@ public sealed class FeedbacksCreateFeedbackCommandHandler(
             latest.Metadata.Reason == request.Request.Reason)
             return latest.Activity.Id;
 
-        var activity = new Activity
-        {
-            TenantId = question.TenantId,
-            QuestionId = question.Id,
-            Question = question,
-            Kind = ActivityKind.FeedbackReceived,
-            ActorKind = ActorKind.Customer,
-            ActorLabel = identity.UserPrint,
-            UserPrint = identity.UserPrint,
-            Ip = identity.Ip,
-            UserAgent = identity.UserAgent,
-            Notes = request.Request.Notes,
-            MetadataJson = ActivitySignals.CreateFeedbackMetadata(
-                identity.UserPrint,
-                identity.Ip,
-                identity.UserAgent,
-                request.Request.Like,
-                request.Request.Reason),
-            OccurredAtUtc = DateTime.UtcNow,
-            CreatedBy = identity.UserPrint,
-            UpdatedBy = identity.UserPrint
-        };
-
-        question.Activities.Add(activity);
-        question.LastActivityAtUtc = activity.OccurredAtUtc;
+        var activity = ActivityAppender.AddFeedbackActivity(
+            dbContext,
+            question,
+            actor,
+            request.Request.Like,
+            request.Request.Reason,
+            request.Request.Notes);
         question.FeedbackScore = ActivitySignals.ComputeFeedbackScore(question.Activities.Select(ToSignalEntry));
-        dbContext.Activities.Add(activity);
 
         await dbContext.SaveChangesAsync(cancellationToken);
         return activity.Id;

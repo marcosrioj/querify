@@ -138,7 +138,7 @@ public class QuestionCommandQueryTests
     }
 
     [Fact]
-    public async Task CreateQuestion_AppendsCreatedAndStatusActivitiesWithMetadata()
+    public async Task CreateQuestion_AppendsCreatedActivityWithMetadata()
     {
         using var context = TestContext.Create();
         var space = await TestDataFactory.SeedSpaceAsync(context.DbContext, context.SessionService.TenantId);
@@ -167,10 +167,23 @@ public class QuestionCommandQueryTests
             .ToListAsync();
         var createdActivity = Assert.Single(activities);
         Assert.Equal(ActivityKind.QuestionCreated, createdActivity.Kind);
+        Assert.Contains(context.SessionService.UserName!, createdActivity.Notes);
 
         using var createdMetadata = JsonDocument.Parse(createdActivity.MetadataJson!);
         Assert.Equal("Question", createdMetadata.RootElement.GetProperty("Entity").GetString());
         Assert.Equal("Created", createdMetadata.RootElement.GetProperty("Operation").GetString());
+        Assert.Equal(
+            context.SessionService.UserId.ToString("D"),
+            createdMetadata.RootElement
+                .GetProperty("Context")
+                .GetProperty("ActorUserId")
+                .GetString());
+        Assert.Equal(
+            context.SessionService.UserName,
+            createdMetadata.RootElement
+                .GetProperty("Context")
+                .GetProperty("ActorUserName")
+                .GetString());
         Assert.Equal(
             "How do I rotate API keys?",
             createdMetadata.RootElement
@@ -223,6 +236,7 @@ public class QuestionCommandQueryTests
             .SingleAsync(activity => activity.QuestionId == question.Id && activity.Kind == ActivityKind.QuestionUpdated);
         Assert.False(await context.DbContext.Activities
             .AnyAsync(activity => activity.QuestionId == question.Id && activity.Kind == ActivityKind.QuestionArchived));
+        Assert.Contains(context.SessionService.UserName!, updatedActivity.Notes);
 
         using var updatedMetadata = JsonDocument.Parse(updatedActivity.MetadataJson!);
         var updatedFields = updatedMetadata.RootElement
@@ -277,6 +291,7 @@ public class QuestionCommandQueryTests
             .AnyAsync(activity => activity.QuestionId == question.Id && activity.Kind == ActivityKind.QuestionUpdated));
         var archivedActivity = await context.DbContext.Activities
             .SingleAsync(activity => activity.QuestionId == question.Id && activity.Kind == ActivityKind.QuestionArchived);
+        Assert.Contains(context.SessionService.UserName!, archivedActivity.Notes);
 
         using var archivedMetadata = JsonDocument.Parse(archivedActivity.MetadataJson!);
         var archivedFields = archivedMetadata.RootElement

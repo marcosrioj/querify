@@ -11,6 +11,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import { ActivityRelationshipActions } from "@/domains/activity/activity-relationship-actions";
 import { useActivityList } from "@/domains/activity/hooks";
 import type { ActivityDto } from "@/domains/activity/types";
 import {
@@ -1271,12 +1272,7 @@ export function QuestionDetailPage() {
                           {event.notes || translateText("No notes recorded.")}
                         </div>
                       </div>
-                      <Button asChild variant="outline" size="sm">
-                        <Link to={`/app/activity/${event.id}`}>
-                          <Activity className="size-4" />
-                          {translateText("Open event")}
-                        </Link>
-                      </Button>
+                      <ActivityRelationshipActions event={event} />
                     </div>
                   ))
                 ) : (

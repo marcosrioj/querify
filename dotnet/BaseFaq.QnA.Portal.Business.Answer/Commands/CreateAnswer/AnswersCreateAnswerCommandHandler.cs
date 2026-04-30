@@ -5,8 +5,8 @@ using BaseFaq.Models.Common.Enums;
 using BaseFaq.Models.QnA.Dtos.Answer;
 using BaseFaq.Models.QnA.Enums;
 using BaseFaq.QnA.Common.Helper.Activities;
+using BaseFaq.QnA.Common.Persistence.QnADb.Activities;
 using BaseFaq.QnA.Common.Persistence.QnADb.DbContext;
-using BaseFaq.QnA.Common.Persistence.QnADb.Entities;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -22,7 +22,11 @@ public sealed class AnswersCreateAnswerCommandHandler(
     public async Task<Guid> Handle(AnswersCreateAnswerCommand request, CancellationToken cancellationToken)
     {
         var tenantId = sessionService.GetTenantId(ModuleEnum.QnA);
-        var userId = sessionService.GetUserId().ToString();
+        var actor = ActivityActorResolver.ResolvePortalActor(
+            sessionService,
+            httpContextAccessor,
+            ActorKind.Moderator);
+        var userId = actor.AuditUserId;
         var question = await dbContext.Questions
             .Include(entity => entity.Answers)
             .Include(entity => entity.Activities)
@@ -62,66 +66,18 @@ public sealed class AnswersCreateAnswerCommandHandler(
 
         Apply(entity, request.Request, userId);
         var answerSnapshot = SnapshotAnswer(entity);
-        AddActivity(
-            question,
+        ActivityAppender.AddAnswerActivity(
+            dbContext,
             entity,
             ActivityKind.AnswerCreated,
-            userId,
-            ActivityChangeMetadata.Create(
-                "Answer",
-                "Created",
-                entity.Id,
-                new Dictionary<string, object?>(StringComparer.Ordinal),
-                answerSnapshot,
-                AnswerContext(entity),
-                maxLength: Activity.MaxMetadataLength));
+            actor,
+            "Created",
+            new Dictionary<string, object?>(StringComparer.Ordinal),
+            answerSnapshot,
+            AnswerContext(entity));
 
         await dbContext.SaveChangesAsync(cancellationToken);
         return entity.Id;
-    }
-
-    private void AddActivity(
-        Question question,
-        Common.Persistence.QnADb.Entities.Answer answer,
-        ActivityKind kind,
-        string userId,
-        string? metadataJson)
-    {
-        var activityIdentity = ResolveActivityIdentity(userId);
-        var activity = new Activity
-        {
-            TenantId = question.TenantId,
-            QuestionId = question.Id,
-            Question = question,
-            AnswerId = answer.Id,
-            Answer = answer,
-            Kind = kind,
-            ActorKind = ActorKind.Moderator,
-            ActorLabel = userId,
-            UserPrint = activityIdentity.UserPrint,
-            Ip = activityIdentity.Ip,
-            UserAgent = activityIdentity.UserAgent,
-            MetadataJson = metadataJson,
-            OccurredAtUtc = DateTime.UtcNow,
-            CreatedBy = userId,
-            UpdatedBy = userId
-        };
-
-        question.Activities.Add(activity);
-        question.LastActivityAtUtc = activity.OccurredAtUtc;
-        dbContext.Activities.Add(activity);
-    }
-
-    private ActivityUserIdentity ResolveActivityIdentity(string userId)
-    {
-        var httpContext = httpContextAccessor.HttpContext
-                          ?? throw new ApiErrorException(
-                              "HttpContext is missing from the current request.",
-                              (int)HttpStatusCode.Unauthorized);
-        return ActivityIdentityResolver.ResolveActivityIdentity(
-            userId,
-            ActivityRequestInfo.GetRequiredIp(httpContext),
-            ActivityRequestInfo.GetRequiredUserAgent(httpContext));
     }
 
     private static void Apply(Common.Persistence.QnADb.Entities.Answer entity, AnswerCreateRequestDto request,

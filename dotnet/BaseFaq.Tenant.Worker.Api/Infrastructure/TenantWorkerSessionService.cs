@@ -15,4 +15,6 @@ public sealed class TenantWorkerSessionService : ISessionService
     }
 
     public Guid GetUserId() => Guid.Empty;
+
+    public string? GetUserName() => "tenant-worker";
 }

@@ -50,13 +50,19 @@ public static class ActivitySignals
         string ip,
         string userAgent,
         bool like,
-        string? reason)
+        string? reason,
+        string? actorUserId = null,
+        string? actorUserName = null,
+        string? actorSource = null)
     {
         return JsonSerializer.Serialize(new FeedbackSignalMetadata
         {
             UserPrint = userPrint,
             Ip = ip,
             UserAgent = userAgent,
+            ActorUserId = actorUserId,
+            ActorUserName = actorUserName,
+            ActorSource = actorSource,
             Like = like,
             Reason = reason
         });
@@ -81,13 +87,19 @@ public static class ActivitySignals
         string userPrint,
         string ip,
         string userAgent,
-        int voteValue)
+        int voteValue,
+        string? actorUserId = null,
+        string? actorUserName = null,
+        string? actorSource = null)
     {
         return JsonSerializer.Serialize(new VoteSignalMetadata
         {
             UserPrint = userPrint,
             Ip = ip,
             UserAgent = userAgent,
+            ActorUserId = actorUserId,
+            ActorUserName = actorUserName,
+            ActorSource = actorSource,
             VoteValue = voteValue
         });
     }
@@ -112,6 +124,9 @@ public static class ActivitySignals
         public required string UserPrint { get; init; }
         public string? Ip { get; init; }
         public string? UserAgent { get; init; }
+        public string? ActorUserId { get; init; }
+        public string? ActorUserName { get; init; }
+        public string? ActorSource { get; init; }
         public required bool Like { get; init; }
         public string? Reason { get; init; }
     }
@@ -121,7 +136,9 @@ public static class ActivitySignals
         public required string UserPrint { get; init; }
         public string? Ip { get; init; }
         public string? UserAgent { get; init; }
+        public string? ActorUserId { get; init; }
+        public string? ActorUserName { get; init; }
+        public string? ActorSource { get; init; }
         public required int VoteValue { get; init; }
     }
-
 }
