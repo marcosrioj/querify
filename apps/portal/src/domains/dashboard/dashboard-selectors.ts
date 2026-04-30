@@ -1,10 +1,6 @@
 import type { QuestionDto } from "@/domains/questions/types";
 import type { SpaceDto } from "@/domains/spaces/types";
-import {
-  AnswerStatus,
-  QuestionStatus,
-  TenantSubscriptionStatus,
-} from "@/shared/constants/backend-enums";
+import { TenantSubscriptionStatus } from "@/shared/constants/backend-enums";
 import type { TenantBillingSummaryDto } from "@/domains/billing/types";
 
 const chartFills = [
@@ -71,6 +67,7 @@ export function getRoleAwareNextAction({
   spaces,
   sourceCount,
   questionCount,
+  draftQuestions,
   draftQuestionCount,
   openQuestions,
   billingSummary,
@@ -79,6 +76,7 @@ export function getRoleAwareNextAction({
   spaces: SpaceDto[];
   sourceCount: number;
   questionCount: number;
+  draftQuestions: QuestionDto[];
   draftQuestionCount: number;
   openQuestions: QuestionDto[];
   billingSummary?: TenantBillingSummaryDto | null;
@@ -118,8 +116,11 @@ export function getRoleAwareNextAction({
   if (draftQuestionCount > 0) {
     return {
       label: "Review draft questions",
-      description: "Activate or archive draft questions before the queue grows.",
-      to: `/app/questions?status=${QuestionStatus.Draft}`,
+      description:
+        "Activate or archive draft questions before the queue grows.",
+      to: draftQuestions[0]
+        ? `/app/questions/${draftQuestions[0].id}`
+        : `/app/spaces/${questionSpace.id}`,
     };
   }
 
@@ -154,7 +155,7 @@ export function getRoleAwareNextAction({
   return {
     label: "Review activity",
     description: "Use recent signals to keep trusted answers fresh.",
-    to: "/app/activity",
+    to: `/app/spaces/${questionSpace.id}`,
   };
 }
 
@@ -180,6 +181,9 @@ export function getBusinessReadout({
   activeAnswerCount,
   questionCount,
   sourceCount,
+  firstActiveAnswerId,
+  firstDemandQuestionId,
+  firstSpaceId,
 }: {
   acceptedAnswerCount: number;
   publicSourceCount: number;
@@ -188,10 +192,14 @@ export function getBusinessReadout({
   activeAnswerCount: number;
   questionCount: number;
   sourceCount: number;
+  firstActiveAnswerId?: string;
+  firstDemandQuestionId?: string;
+  firstSpaceId?: string;
 }) {
   const demandToResolve = draftQuestionCount + openQuestionCount;
-  const questionStatus =
-    draftQuestionCount > 0 ? QuestionStatus.Draft : QuestionStatus.Active;
+  const fallbackSpaceTo = firstSpaceId
+    ? `/app/spaces/${firstSpaceId}`
+    : "/app/spaces";
 
   return [
     {
@@ -202,9 +210,9 @@ export function getBusinessReadout({
           ? "Draft and active questions are waiting to be activated or answered."
           : "No open customer demand in the current queue.",
       to:
-        demandToResolve > 0
-          ? `/app/questions?status=${questionStatus}`
-          : "/app/questions",
+        demandToResolve > 0 && firstDemandQuestionId
+          ? `/app/questions/${firstDemandQuestionId}`
+          : fallbackSpaceTo,
     },
     {
       label: "Active answers",
@@ -213,7 +221,10 @@ export function getBusinessReadout({
         activeAnswerCount > 0
           ? "Active answers are ready for reuse across customer journeys."
           : "No active answers are ready for reuse yet.",
-      to: `/app/answers?status=${AnswerStatus.Active}`,
+      to:
+        activeAnswerCount > 0 && firstActiveAnswerId
+          ? `/app/answers/${firstActiveAnswerId}`
+          : fallbackSpaceTo,
     },
     {
       label: "Trusted coverage",
@@ -222,7 +233,7 @@ export function getBusinessReadout({
         questionCount > 0
           ? "Share of questions with an accepted answer."
           : "Create questions before measuring trusted coverage.",
-      to: "/app/answers",
+      to: fallbackSpaceTo,
     },
     {
       label: "Evidence readiness",

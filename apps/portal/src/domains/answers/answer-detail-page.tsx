@@ -1,4 +1,10 @@
-import { startTransition, useDeferredValue, useMemo, useState } from "react";
+import {
+  startTransition,
+  useDeferredValue,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import {
   Activity,
   CheckCircle2,
@@ -24,9 +30,12 @@ import { RecommendedNextActionCard } from "@/domains/qna/recommended-next-action
 import { useQuestion } from "@/domains/questions/hooks";
 import { usePortalTimeZone } from "@/domains/settings/settings-hooks";
 import { useSource, useSourceList } from "@/domains/sources/hooks";
+import { useSpace } from "@/domains/spaces/hooks";
 import {
   AnswerStatus,
   SourceRole,
+  activityKindLabels,
+  actorKindLabels,
   sourceRoleLabels,
 } from "@/shared/constants/backend-enums";
 import {
@@ -50,6 +59,10 @@ import {
   ConfirmAction,
   ContextHint,
   DetailPageSkeleton,
+  ListFilterField,
+  ListFilterSearch,
+  ListFilterToolbar,
+  RelationshipFilterButton,
   SearchSelect,
   Select,
   SelectContent,
@@ -70,6 +83,25 @@ import {
 import { translateText } from "@/shared/lib/i18n-core";
 import { useLocalPagination } from "@/shared/lib/use-local-pagination";
 import { formatOptionalDateTimeInTimeZone } from "@/shared/lib/time-zone";
+import { clampPage } from "@/shared/lib/pagination";
+import { useRelationshipListState } from "@/shared/lib/use-relationship-list-state";
+
+const activitySortingOptions = [
+  { value: "OccurredAtUtc DESC", label: "Latest activity" },
+  { value: "OccurredAtUtc ASC", label: "Oldest activity" },
+  { value: "Kind ASC", label: "Event kind A-Z" },
+  { value: "Kind DESC", label: "Event kind Z-A" },
+  { value: "ActorKind ASC", label: "Actor kind A-Z" },
+  { value: "ActorKind DESC", label: "Actor kind Z-A" },
+];
+
+const ACTIVITY_RELATIONSHIP_FILTER_DEFAULTS: Record<
+  "kind" | "actorKind",
+  string
+> = {
+  kind: "all",
+  actorKind: "all",
+};
 
 function buildSourceOption(source: {
   id: string;
@@ -93,11 +125,25 @@ export function AnswerDetailPage() {
   const answerId = id ?? "";
   const answerQuery = useAnswer(id);
   const questionQuery = useQuestion(answerQuery.data?.questionId);
+  const selectedSpaceQuery = useSpace(questionQuery.data?.spaceId);
+  const activityListState = useRelationshipListState({
+    defaultSorting: "OccurredAtUtc DESC",
+    filterDefaults: ACTIVITY_RELATIONSHIP_FILTER_DEFAULTS,
+  });
+  const activityKindFilter = activityListState.filters.kind;
+  const activityActorKindFilter = activityListState.filters.actorKind;
   const activityQuery = useActivityList({
-    page: 1,
-    pageSize: 100,
-    sorting: "OccurredAtUtc DESC",
+    page: activityListState.page,
+    pageSize: activityListState.pageSize,
+    sorting: activityListState.sorting,
+    searchText: activityListState.debouncedSearch || undefined,
     answerId: id,
+    kind: activityKindFilter === "all" ? undefined : Number(activityKindFilter),
+    actorKind:
+      activityActorKindFilter === "all"
+        ? undefined
+        : Number(activityActorKindFilter),
+    enabled: Boolean(id),
   });
   const deleteAnswer = useDeleteAnswer();
   const updateAnswerStatus = useUpdateAnswerStatus();
@@ -112,6 +158,7 @@ export function AnswerDetailPage() {
     String(SourceRole.Evidence),
   );
   const [relationshipTab, setRelationshipTab] = useState("sources");
+  const [activityFiltersOpen, setActivityFiltersOpen] = useState(false);
   const deferredSourceSearch = useDeferredValue(sourceSearch.trim());
   const sourceOptionsQuery = useSourceList({
     page: 1,
@@ -140,7 +187,28 @@ export function AnswerDetailPage() {
   const sourcesPagination = useLocalPagination({
     items: answerQuery.data?.sources ?? [],
   });
-  const activityPagination = useLocalPagination({ items: answerActivity });
+
+  useEffect(() => {
+    const totalCount = activityQuery.data?.totalCount;
+
+    if (totalCount === undefined) {
+      return;
+    }
+
+    const nextPage = clampPage(
+      activityListState.page,
+      totalCount,
+      activityListState.pageSize,
+    );
+    if (nextPage !== activityListState.page) {
+      activityListState.setPage(nextPage);
+    }
+  }, [
+    activityListState.page,
+    activityListState.pageSize,
+    activityListState.setPage,
+    activityQuery.data?.totalCount,
+  ]);
 
   const showLoadingState =
     !answerQuery.data &&
@@ -214,9 +282,9 @@ export function AnswerDetailPage() {
   };
   const answerNextAction = !answerQuery.data
     ? {
-        label: "Back to answers",
-        to: "/app/answers",
-        text: "Return to the answer queue while this answer loads.",
+        label: "Open spaces",
+        to: "/app/spaces",
+        text: "Return to Spaces while this answer loads.",
       }
     : answerQuery.data.status === AnswerStatus.Draft
       ? {
@@ -271,6 +339,25 @@ export function AnswerDetailPage() {
             answerQuery.data?.questionId
               ? `/app/questions/${answerQuery.data.questionId}`
               : "/app/spaces"
+          }
+          breadcrumbs={
+            answerQuery.data
+              ? [
+                  ...(selectedSpaceQuery.data
+                    ? [
+                        {
+                          label: selectedSpaceQuery.data.name,
+                          to: `/app/spaces/${selectedSpaceQuery.data.id}`,
+                        },
+                      ]
+                    : []),
+                  {
+                    label: "Question",
+                    to: `/app/questions/${answerQuery.data.questionId}`,
+                  },
+                  { label: "Answer" },
+                ]
+              : undefined
           }
         />
       }
@@ -694,13 +781,107 @@ export function AnswerDetailPage() {
                     <span>{translateText("Activity")}</span>
                     <Badge variant="outline">
                       {translateText("{count} events", {
-                        count: answerActivity.length,
+                        count: activityQuery.data?.totalCount ?? 0,
                       })}
                     </Badge>
                   </CardTitle>
                 </CardHeading>
+                <RelationshipFilterButton
+                  activeFilterCount={activityListState.activeFilterCount}
+                  isLoading={activityQuery.isFetching}
+                  open={activityFiltersOpen}
+                  onClick={() => setActivityFiltersOpen((open) => !open)}
+                />
               </CardHeader>
               <CardContent className="space-y-3">
+                {activityFiltersOpen ? (
+                  <div className="rounded-lg border border-border/70 bg-muted/20 p-3">
+                    <ListFilterToolbar isLoading={activityQuery.isFetching}>
+                      <ListFilterSearch
+                        value={activityListState.search}
+                        onChange={activityListState.setSearch}
+                        placeholder="Search activity by actor, notes, or subject"
+                        activeFilterCount={activityListState.activeFilterCount}
+                        onClear={activityListState.resetFilters}
+                        isLoading={activityQuery.isFetching}
+                      />
+                      <div className="grid gap-3 md:grid-cols-3">
+                        <ListFilterField label="Event kind">
+                          <Select
+                            value={activityKindFilter}
+                            onValueChange={(value) =>
+                              activityListState.setFilter("kind", value)
+                            }
+                          >
+                            <SelectTrigger className="w-full" size="lg">
+                              <SelectValue
+                                placeholder={translateText("Event kind")}
+                              />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="all">
+                                All event kinds
+                              </SelectItem>
+                              {Object.entries(activityKindLabels).map(
+                                ([value, label]) => (
+                                  <SelectItem key={value} value={value}>
+                                    {translateText(label)}
+                                  </SelectItem>
+                                ),
+                              )}
+                            </SelectContent>
+                          </Select>
+                        </ListFilterField>
+                        <ListFilterField label="Actor kind">
+                          <Select
+                            value={activityActorKindFilter}
+                            onValueChange={(value) =>
+                              activityListState.setFilter("actorKind", value)
+                            }
+                          >
+                            <SelectTrigger className="w-full" size="lg">
+                              <SelectValue
+                                placeholder={translateText("Actor kind")}
+                              />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="all">All actors</SelectItem>
+                              {Object.entries(actorKindLabels).map(
+                                ([value, label]) => (
+                                  <SelectItem key={value} value={value}>
+                                    {translateText(label)}
+                                  </SelectItem>
+                                ),
+                              )}
+                            </SelectContent>
+                          </Select>
+                        </ListFilterField>
+                        <ListFilterField label="Sort">
+                          <Select
+                            value={activityListState.sorting}
+                            onValueChange={activityListState.setSorting}
+                          >
+                            <SelectTrigger className="w-full" size="lg">
+                              <SelectValue
+                                placeholder={translateText("Sort events")}
+                              />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {activitySortingOptions.map((option) => (
+                                <SelectItem
+                                  key={option.value}
+                                  value={option.value}
+                                >
+                                  {translateText(option.label)}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </ListFilterField>
+                      </div>
+                    </ListFilterToolbar>
+                  </div>
+                ) : null}
                 {activityQuery.isError ? (
                   <ErrorState
                     title="Unable to load answer activity"
@@ -708,7 +889,7 @@ export function AnswerDetailPage() {
                     retry={() => void activityQuery.refetch()}
                   />
                 ) : answerActivity.length ? (
-                  activityPagination.pagedItems.map((event) => (
+                  answerActivity.map((event) => (
                     <div
                       key={event.id}
                       className="flex flex-col gap-3 rounded-lg border border-border bg-muted/10 p-4 sm:flex-row sm:items-start sm:justify-between"
@@ -741,12 +922,12 @@ export function AnswerDetailPage() {
                   />
                 )}
                 <ChildListPagination
-                  page={activityPagination.page}
-                  pageSize={activityPagination.pageSize}
-                  totalCount={activityPagination.totalCount}
+                  page={activityListState.page}
+                  pageSize={activityListState.pageSize}
+                  totalCount={activityQuery.data?.totalCount ?? 0}
                   isFetching={activityQuery.isFetching}
-                  onPageChange={activityPagination.setPage}
-                  onPageSizeChange={activityPagination.setPageSize}
+                  onPageChange={activityListState.setPage}
+                  onPageSizeChange={activityListState.setPageSize}
                 />
               </CardContent>
             </Card>

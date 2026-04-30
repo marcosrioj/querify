@@ -90,10 +90,9 @@ Run this check whenever a change touches the Portal shell, `ListLayout`, `DataTa
 
 Required routes:
 
-- `/app/questions`
+- `/app/spaces`
 - `/app/sources`
 - `/app/tags`
-- `/app/activity`
 
 Required viewport widths:
 

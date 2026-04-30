@@ -2,7 +2,6 @@ using System.Net;
 using BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception;
 using BaseFaq.Common.Infrastructure.Core.Abstractions;
 using BaseFaq.Models.Common.Enums;
-using BaseFaq.Models.QnA.Dtos.Activity;
 using BaseFaq.Models.QnA.Dtos.Answer;
 using BaseFaq.Models.QnA.Dtos.Question;
 using BaseFaq.Models.QnA.Dtos.Source;
@@ -20,7 +19,9 @@ public sealed class QuestionsGetQuestionQueryHandler(
     ISessionService sessionService)
     : IRequestHandler<QuestionsGetQuestionQuery, QuestionDetailDto>
 {
-    public async Task<QuestionDetailDto> Handle(QuestionsGetQuestionQuery request, CancellationToken cancellationToken)
+    public async Task<QuestionDetailDto> Handle(
+        QuestionsGetQuestionQuery request,
+        CancellationToken cancellationToken)
     {
         var tenantId = sessionService.GetTenantId(ModuleEnum.QnA);
         var entity = await dbContext.Questions
@@ -48,30 +49,32 @@ public sealed class QuestionsGetQuestionQueryHandler(
             .FirstOrDefaultAsync(cancellationToken);
 
         if (entity is null)
-            throw new ApiErrorException($"Question '{request.Id}' was not found.", (int)HttpStatusCode.NotFound);
+            throw new ApiErrorException(
+                $"Question '{request.Id}' was not found.",
+                (int)HttpStatusCode.NotFound);
 
-        entity.Answers = await GetAnswersAsync(tenantId, entity, cancellationToken);
-        entity.AcceptedAnswer = entity.Answers.FirstOrDefault(answer => answer.Id == entity.AcceptedAnswerId);
+        entity.AcceptedAnswer = await GetAcceptedAnswerAsync(
+            tenantId,
+            entity.AcceptedAnswerId,
+            cancellationToken);
         entity.Tags = await GetTagsAsync(tenantId, request.Id, cancellationToken);
         entity.Sources = await GetSourcesAsync(tenantId, request.Id, cancellationToken);
-        entity.Activity = await GetActivityAsync(tenantId, request.Id, cancellationToken);
 
-        PopulateVoteScores(entity);
+        await PopulateAcceptedAnswerVoteScoreAsync(tenantId, entity, cancellationToken);
         return entity;
     }
 
-    private async Task<List<AnswerDto>> GetAnswersAsync(
+    private Task<AnswerDto?> GetAcceptedAnswerAsync(
         Guid tenantId,
-        QuestionDetailDto question,
+        Guid? acceptedAnswerId,
         CancellationToken cancellationToken)
     {
-        var answers = await dbContext.Answers
+        if (acceptedAnswerId is null)
+            return Task.FromResult<AnswerDto?>(null);
+
+        return dbContext.Answers
             .AsNoTracking()
-            .Where(answer => answer.TenantId == tenantId && answer.QuestionId == question.Id)
-            .OrderByDescending(answer => answer.Id == question.AcceptedAnswerId)
-            .ThenBy(answer => answer.Sort)
-            .ThenByDescending(answer => answer.Score)
-            .ThenBy(answer => answer.Headline)
+            .Where(answer => answer.TenantId == tenantId && answer.Id == acceptedAnswerId.Value)
             .Select(answer => new AnswerDto
             {
                 Id = answer.Id,
@@ -87,77 +90,18 @@ public sealed class QuestionsGetQuestionQueryHandler(
                 AiConfidenceScore = answer.AiConfidenceScore,
                 Score = answer.Score,
                 Sort = answer.Sort,
-                IsAccepted = answer.Id == question.AcceptedAnswerId,
+                IsAccepted = true,
                 IsOfficial = answer.Kind == AnswerKind.Official,
                 LastUpdatedAtUtc = answer.UpdatedDate ?? answer.CreatedDate,
                 VoteScore = 0
             })
-            .ToListAsync(cancellationToken);
-
-        await PopulateAnswerSourcesAsync(tenantId, answers, cancellationToken);
-        return answers;
+            .FirstOrDefaultAsync(cancellationToken);
     }
 
-    private async Task PopulateAnswerSourcesAsync(
+    private Task<List<TagDto>> GetTagsAsync(
         Guid tenantId,
-        IReadOnlyCollection<AnswerDto> answers,
+        Guid questionId,
         CancellationToken cancellationToken)
-    {
-        if (answers.Count == 0)
-            return;
-
-        var answerIds = answers.Select(answer => answer.Id).ToHashSet();
-        var sourceLinksQuery = dbContext.AnswerSourceLinks
-            .AsNoTracking()
-            .Where(link =>
-                link.TenantId == tenantId &&
-                answerIds.Contains(link.AnswerId));
-
-        var sourceLinks = await sourceLinksQuery
-            .OrderBy(link => link.Order)
-            .Select(link => new
-            {
-                link.AnswerId,
-                Source = new AnswerSourceLinkDto
-                {
-                    Id = link.Id,
-                    AnswerId = link.AnswerId,
-                    SourceId = link.SourceId,
-                    Role = link.Role,
-                    Order = link.Order,
-                    Source = new SourceDto
-                    {
-                        Id = link.Source.Id,
-                        TenantId = link.Source.TenantId,
-                        Kind = link.Source.Kind,
-                        Locator = link.Source.Locator,
-                        Label = link.Source.Label,
-                        ContextNote = link.Source.ContextNote,
-                        ExternalId = link.Source.ExternalId,
-                        Language = link.Source.Language,
-                        MediaType = link.Source.MediaType,
-                        Checksum = link.Source.Checksum,
-                        MetadataJson = link.Source.MetadataJson,
-                        Visibility = link.Source.Visibility,
-                        LastVerifiedAtUtc = link.Source.LastVerifiedAtUtc,
-                        LastUpdatedAtUtc = link.Source.UpdatedDate ?? link.Source.CreatedDate,
-                        SpaceUsageCount = link.Source.Spaces.Count,
-                        QuestionUsageCount = link.Source.Questions.Count,
-                        AnswerUsageCount = link.Source.Answers.Count
-                    }
-                }
-            })
-            .ToListAsync(cancellationToken);
-
-        var sourceLookup = sourceLinks
-            .GroupBy(link => link.AnswerId)
-            .ToDictionary(group => group.Key, group => group.Select(link => link.Source).ToList());
-
-        foreach (var answer in answers)
-            answer.Sources = sourceLookup.GetValueOrDefault(answer.Id) ?? [];
-    }
-
-    private Task<List<TagDto>> GetTagsAsync(Guid tenantId, Guid questionId, CancellationToken cancellationToken)
     {
         return dbContext.QuestionTags
             .AsNoTracking()
@@ -215,51 +159,31 @@ public sealed class QuestionsGetQuestionQueryHandler(
             .ToListAsync(cancellationToken);
     }
 
-    private Task<List<ActivityDto>> GetActivityAsync(
+    private async Task PopulateAcceptedAnswerVoteScoreAsync(
         Guid tenantId,
-        Guid questionId,
+        QuestionDetailDto entity,
         CancellationToken cancellationToken)
     {
-        return dbContext.Activities
-            .AsNoTracking()
-            .Where(activity => activity.TenantId == tenantId && activity.QuestionId == questionId)
-            .OrderByDescending(activity => activity.OccurredAtUtc)
-            .Select(activity => new ActivityDto
-            {
-                Id = activity.Id,
-                TenantId = activity.TenantId,
-                QuestionId = activity.QuestionId,
-                QuestionTitle = activity.Question.Title,
-                AnswerId = activity.AnswerId,
-                AnswerHeadline = activity.Answer == null ? null : activity.Answer.Headline,
-                Kind = activity.Kind,
-                ActorKind = activity.ActorKind,
-                ActorLabel = activity.ActorLabel,
-                UserPrint = activity.UserPrint,
-                Ip = activity.Ip,
-                UserAgent = activity.UserAgent,
-                Notes = activity.Notes,
-                MetadataJson = activity.MetadataJson,
-                OccurredAtUtc = activity.OccurredAtUtc
-            })
-            .ToListAsync(cancellationToken);
-    }
+        if (entity.AcceptedAnswer is null)
+            return;
 
-    private static void PopulateVoteScores(QuestionDetailDto entity)
-    {
-        var signals = entity.Activity
+        var signals = await dbContext.Activities
+            .AsNoTracking()
+            .Where(activity =>
+                activity.TenantId == tenantId &&
+                activity.QuestionId == entity.Id &&
+                activity.AnswerId == entity.AcceptedAnswer.Id &&
+                activity.Kind == ActivityKind.VoteReceived)
             .Select(activity => new ActivitySignalEntry(
                 activity.Kind,
                 activity.AnswerId,
                 activity.OccurredAtUtc,
                 activity.UserPrint,
                 activity.MetadataJson))
-            .ToList();
+            .ToListAsync(cancellationToken);
 
-        if (entity.AcceptedAnswer is not null)
-            entity.AcceptedAnswer.VoteScore = ActivitySignals.ComputeVoteScore(signals, entity.AcceptedAnswer.Id);
-
-        foreach (var answer in entity.Answers)
-            answer.VoteScore = ActivitySignals.ComputeVoteScore(signals, answer.Id);
+        entity.AcceptedAnswer.VoteScore = ActivitySignals.ComputeVoteScore(
+            signals,
+            entity.AcceptedAnswer.Id);
     }
 }

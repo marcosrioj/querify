@@ -7,11 +7,17 @@ import {
   type SetStateAction,
 } from "react";
 
+export type PageChromeBreadcrumb = {
+  label: ReactNode;
+  to?: string;
+};
+
 export type PageChromeState = {
   title?: ReactNode;
   description?: ReactNode;
   descriptionMode?: "inline" | "hint";
   backTo?: string;
+  breadcrumbs?: PageChromeBreadcrumb[];
 };
 
 type PageChromeContextValue = {
@@ -51,6 +57,7 @@ export function useRegisterPageChrome({
   description,
   descriptionMode,
   backTo,
+  breadcrumbs,
 }: PageChromeState) {
   const context = useContext(PageChromeContext);
 
@@ -68,8 +75,9 @@ export function useRegisterPageChrome({
       description,
       descriptionMode,
       backTo,
+      breadcrumbs,
     });
 
     return () => setChrome({});
-  }, [backTo, description, descriptionMode, setChrome, title]);
+  }, [backTo, breadcrumbs, description, descriptionMode, setChrome, title]);
 }

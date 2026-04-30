@@ -2,7 +2,10 @@ import { Fragment, PropsWithChildren, ReactNode } from "react";
 import { type LucideIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Container } from "@/shared/layout/container";
-import { useRegisterPageChrome } from "@/shared/layout/page-chrome-context";
+import {
+  useRegisterPageChrome,
+  type PageChromeBreadcrumb,
+} from "@/shared/layout/page-chrome-context";
 import { translateMaybeString } from "@/shared/lib/i18n-render";
 import { usePortalI18n } from "@/shared/lib/use-portal-i18n";
 import { Button, Card, CardContent, ContextHint } from "@/shared/ui";
@@ -14,12 +17,14 @@ export function PageHeader({
   descriptionMode = "inline",
   actions,
   backTo,
+  breadcrumbs,
 }: {
   title: ReactNode;
   description?: ReactNode;
   descriptionMode?: "inline" | "hint";
   actions?: ReactNode;
   backTo?: string;
+  breadcrumbs?: PageChromeBreadcrumb[];
 }) {
   const { t } = usePortalI18n();
   const inlineDescription = description && descriptionMode === "inline";
@@ -29,6 +34,7 @@ export function PageHeader({
     description,
     descriptionMode,
     backTo,
+    breadcrumbs,
   });
 
   if (!inlineDescription && !actions) {

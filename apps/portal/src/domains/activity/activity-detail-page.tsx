@@ -1,7 +1,9 @@
 import { Link, useParams } from "react-router-dom";
 import { useActivity } from "@/domains/activity/hooks";
 import { RecommendedNextActionCard } from "@/domains/qna/recommended-next-action-card";
+import { useQuestion } from "@/domains/questions/hooks";
 import { usePortalTimeZone } from "@/domains/settings/settings-hooks";
+import { useSpace } from "@/domains/spaces/hooks";
 import {
   DetailLayout,
   KeyValueList,
@@ -58,14 +60,16 @@ export function ActivityDetailPage() {
   const portalTimeZone = usePortalTimeZone();
   const { id } = useParams();
   const activityQuery = useActivity(id);
+  const questionQuery = useQuestion(activityQuery.data?.questionId);
+  const spaceQuery = useSpace(questionQuery.data?.spaceId);
   const formattedMetadataJson = formatMetadataJson(
     activityQuery.data?.metadataJson,
   );
   const activityNextAction = !activityQuery.data
     ? {
-        label: "Back to activity",
-        to: "/app/activity",
-        text: "Return to the activity stream while this event loads.",
+        label: "Open spaces",
+        to: "/app/spaces",
+        text: "Return to Spaces while this event loads.",
       }
     : activityQuery.data.answerId
       ? {
@@ -92,7 +96,7 @@ export function ActivityDetailPage() {
     <DetailLayout
       header={
         <PageHeader
-          title="Activity event"
+          title="Activity"
           description="Inspect actor context, notes, metadata, and the question or answer behind this audit entry."
           descriptionMode="hint"
           backTo={
@@ -101,6 +105,32 @@ export function ActivityDetailPage() {
               : activityQuery.data?.questionId
                 ? `/app/questions/${activityQuery.data.questionId}`
                 : "/app/spaces"
+          }
+          breadcrumbs={
+            activityQuery.data
+              ? [
+                  ...(spaceQuery.data
+                    ? [
+                        {
+                          label: spaceQuery.data.name,
+                          to: `/app/spaces/${spaceQuery.data.id}`,
+                        },
+                      ]
+                    : []),
+                  {
+                    label: "Question",
+                    to: `/app/questions/${activityQuery.data.questionId}`,
+                  },
+                  ...(activityQuery.data.answerId
+                    ? [
+                        {
+                          label: "Answer",
+                          to: `/app/answers/${activityQuery.data.answerId}`,
+                        },
+                      ]
+                    : []),
+                ]
+              : undefined
           }
         />
       }

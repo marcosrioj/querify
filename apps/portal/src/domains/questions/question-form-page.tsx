@@ -221,6 +221,19 @@ export function QuestionFormPage({ mode }: { mode: "create" | "edit" }) {
           description="Capture the question, its operational status, and the context needed for accurate answers."
           descriptionMode="hint"
           backTo={backTo}
+          breadcrumbs={
+            selectedSpace
+              ? [
+                  {
+                    label: selectedSpace.name,
+                    to: `/app/spaces/${selectedSpace.id}`,
+                  },
+                  ...(mode === "edit" && id
+                    ? [{ label: "Question", to: `/app/questions/${id}` }]
+                    : [{ label: "Question" }]),
+                ]
+              : undefined
+          }
         />
       }
       sidebar={

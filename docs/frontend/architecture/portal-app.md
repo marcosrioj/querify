@@ -78,6 +78,7 @@ The Portal shell uses a stable left sidebar for primary navigation and workspace
 - Render page location as one toolbar trail: parent navigation links plus the current page title. Page headers register the current title, back target, and hint text for that trail instead of rendering a second competing title in the page body.
 - Toolbar breadcrumb labels must stay on one line, use `min-w-0`, and truncate long record names instead of wrapping or forcing page overflow at mobile, tablet, or desktop widths.
 - The QnA module navigation pattern is not a primary app navigation replacement. Use it only inside a domain screen when the user is managing children or related records in the current context.
+- Breadcrumbs for QnA child records must show the full ownership line instead of the removed global list surface. Use the concrete parent record when available: Space name, then Question or Answer context, then the current record or Activity event.
 - The fixed sidebar is a desktop pattern only. Below the `xl` breakpoint, including tablet widths, use the mobile/tablet header and drawer so content keeps the full viewport width.
 - Keep the JavaScript shell breakpoint in `useIsMobile` aligned with the Tailwind breakpoint used by the sidebar and mobile header. Do not let React render one shell mode while CSS displays another.
 - The Portal must work down to a 320 CSS pixel viewport. Root, shell, and page flex containers must allow shrinking with `min-w-0`; do not introduce a page-level minimum width such as 414px.
@@ -144,6 +145,9 @@ Relationship sections are local management surfaces for child records and relate
 - A concise contextual hint is allowed when it helps explain the scope.
 - Filter child lists by the current parent entity, including tags and sources.
 - Use `ChildListPagination` for child lists with more than five items, with page sizes 5, 10, and 20.
+- High-cardinality QnA children must be fetched through scoped backend list endpoints from the relationship tab. Do not load all questions, answers, or activity events into a detail DTO and paginate them locally.
+- Questions live under Space relationships. Answers live under Question relationships. Activity lives under Space, Question, or Answer relationships. Do not reintroduce top-level Question, Answer, or Activity list pages or sidebar entries.
+- Relationship filters should be hidden behind a compact filter button by default. When expanded, use the shared list filter controls and omit filters already fixed by the parent context, such as Space inside a Space relationship or Question inside a Question relationship.
 - Do not apply this local child pagination rule to top-level list pages unless that page already owns its own pagination contract.
 
 ### Form standards
@@ -184,6 +188,7 @@ Relationship sections are local management surfaces for child records and relate
 - Question detail should keep accepted answer, source links, tags, answers, and activity scoped to the question.
 - Space detail should keep questions, tags, sources, and activity scoped to the space.
 - Answer detail should keep source evidence scoped to the answer.
+- Answer detail should keep activity scoped to the answer.
 - Accepted answer selection should use the searchable selection pattern and should only expose answers that are eligible to be accepted.
 
 #### First-run and progress guidance

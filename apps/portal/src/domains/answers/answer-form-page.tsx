@@ -216,6 +216,27 @@ export function AnswerFormPage({ mode }: { mode: "create" | "edit" }) {
           description="Author the answer candidate, then tune rank, visibility, and trust cues."
           descriptionMode="hint"
           backTo={backTo}
+          breadcrumbs={
+            selectedQuestion
+              ? [
+                  ...(selectedSpaceQuery.data
+                    ? [
+                        {
+                          label: selectedSpaceQuery.data.name,
+                          to: `/app/spaces/${selectedSpaceQuery.data.id}`,
+                        },
+                      ]
+                    : []),
+                  {
+                    label: "Question",
+                    to: `/app/questions/${selectedQuestion.id}`,
+                  },
+                  ...(mode === "edit" && id
+                    ? [{ label: "Answer", to: `/app/answers/${id}` }]
+                    : [{ label: "Answer" }]),
+                ]
+              : undefined
+          }
         />
       }
       sidebar={

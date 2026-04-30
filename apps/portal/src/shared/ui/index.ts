@@ -141,3 +141,4 @@ export {
   SearchSelect,
   type SearchSelectOption,
 } from "@/shared/ui/search-select";
+export { RelationshipFilterButton } from "@/shared/ui/relationship-filter-button";

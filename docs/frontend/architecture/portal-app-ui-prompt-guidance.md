@@ -40,6 +40,7 @@ If a shared primitive already matches the use case, do not replace it with ad ho
 - The workspace switcher belongs in the sidebar header.
 - The top toolbar is for the unified page trail, command search, language, notifications, and the user menu.
 - The unified page trail combines parent breadcrumbs, the current page title, optional back navigation, and compact title hints. Do not render a second page title in the content header.
+- QnA child breadcrumbs must follow the owning lineage, for example Space name -> Question -> question title, Space name -> Question -> Answer -> Activity, or just the Space name on a Space detail page.
 - Breadcrumb/title text must truncate inside the toolbar instead of wrapping or widening the shell.
 - Do not use the QnA module navigation as primary app navigation.
 - Use the QnA module visual language only for in-screen child and relationship management.
@@ -89,6 +90,9 @@ Relationship sections manage children and related records without leaving the or
 - Do not include repeated generic titles when the surrounding page already provides context.
 - A short hint is acceptable when it explains scope or consequence.
 - Use `ChildListPagination` for local child lists with more than five items, with page sizes 5, 10, and 20.
+- Question, Answer, and Activity do not have top-level list pages. Keep those lists inside their owning relationship tabs: Space -> Questions and Activity, Question -> Answers and Activity, Answer -> Activity.
+- Fetch relationship lists with scoped backend pagination and filters. Do not fetch broad child collections into detail DTOs for local filtering or local pagination.
+- Put relationship filters behind a compact filter icon button by default. Do not show parent filters that are already implied by the relationship context.
 - Do not retrofit this child-list pagination rule onto top-level list pages.
 
 ## Form standards
@@ -130,6 +134,7 @@ Relationship sections manage children and related records without leaving the or
 - Question detail should manage accepted answer, answers, sources, tags, and activity in context.
 - Space detail should manage questions, tags, sources, and activity in context.
 - Answer detail should manage source evidence in context.
+- Answer detail should manage answer activity in context.
 - Accepted answer selection should use the searchable select pattern and show only eligible answers.
 
 ### Progress guidance

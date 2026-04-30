@@ -1,4 +1,10 @@
-import { startTransition, useDeferredValue, useMemo, useState } from "react";
+import {
+  startTransition,
+  useDeferredValue,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import {
   Activity,
   CheckCircle2,
@@ -13,12 +19,13 @@ import {
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { ActivityRelationshipActions } from "@/domains/activity/activity-relationship-actions";
 import { useActivityList } from "@/domains/activity/hooks";
-import type { ActivityDto } from "@/domains/activity/types";
 import {
+  useAnswerList,
   useCreateAnswer,
   useDeleteAnswer,
   useUpdateAnswerStatus,
 } from "@/domains/answers/hooks";
+import type { AnswerDto } from "@/domains/answers/types";
 import { useActivationVisibilityPrompt } from "@/domains/qna/activation-visibility";
 import { QnaModuleNav } from "@/domains/qna/qna-module-nav";
 import { RecommendedNextActionCard } from "@/domains/qna/recommended-next-action-card";
@@ -45,8 +52,11 @@ import {
   QuestionStatus,
   SourceRole,
   VisibilityScope,
+  activityKindLabels,
+  actorKindLabels,
   answerStatusLabels,
   sourceRoleLabels,
+  visibilityScopeLabels,
 } from "@/shared/constants/backend-enums";
 import {
   DetailFieldList,
@@ -71,6 +81,10 @@ import {
   DetailPageSkeleton,
   Input,
   Label,
+  ListFilterField,
+  ListFilterSearch,
+  ListFilterToolbar,
+  RelationshipFilterButton,
   SearchSelect,
   Select,
   SelectContent,
@@ -93,6 +107,45 @@ import {
 import { translateText } from "@/shared/lib/i18n-core";
 import { useLocalPagination } from "@/shared/lib/use-local-pagination";
 import { formatOptionalDateTimeInTimeZone } from "@/shared/lib/time-zone";
+import { clampPage } from "@/shared/lib/pagination";
+import { useRelationshipListState } from "@/shared/lib/use-relationship-list-state";
+
+const answerSortingOptions = [
+  { value: "LastUpdatedAtUtc DESC", label: "Last update newest" },
+  { value: "LastUpdatedAtUtc ASC", label: "Last update oldest" },
+  { value: "Headline ASC", label: "Headline A-Z" },
+  { value: "Headline DESC", label: "Headline Z-A" },
+  { value: "Score DESC", label: "Score high-low" },
+  { value: "Score ASC", label: "Score low-high" },
+  { value: "Sort ASC", label: "Sort low-high" },
+  { value: "Sort DESC", label: "Sort high-low" },
+];
+
+const activitySortingOptions = [
+  { value: "OccurredAtUtc DESC", label: "Latest activity" },
+  { value: "OccurredAtUtc ASC", label: "Oldest activity" },
+  { value: "Kind ASC", label: "Event kind A-Z" },
+  { value: "Kind DESC", label: "Event kind Z-A" },
+  { value: "ActorKind ASC", label: "Actor kind A-Z" },
+  { value: "ActorKind DESC", label: "Actor kind Z-A" },
+];
+
+const ANSWER_RELATIONSHIP_FILTER_DEFAULTS: Record<
+  "status" | "visibility" | "accepted",
+  string
+> = {
+  status: "all",
+  visibility: "all",
+  accepted: "all",
+};
+
+const ACTIVITY_RELATIONSHIP_FILTER_DEFAULTS: Record<
+  "kind" | "actorKind",
+  string
+> = {
+  kind: "all",
+  actorKind: "all",
+};
 
 function buildQuestionUpdateBody(
   question: QuestionDetailDto,
@@ -191,11 +244,31 @@ export function QuestionDetailPage() {
     String(SourceRole.Context),
   );
   const [selectedAnswerId, setSelectedAnswerId] = useState("");
+  const [acceptedAnswerSearch, setAcceptedAnswerSearch] = useState("");
   const [newAnswerHeadline, setNewAnswerHeadline] = useState("");
   const [newAnswerBody, setNewAnswerBody] = useState("");
   const [relationshipTab, setRelationshipTab] = useState("answers");
+  const [answerCreateOpen, setAnswerCreateOpen] = useState(false);
+  const [answerFiltersOpen, setAnswerFiltersOpen] = useState(false);
+  const [activityFiltersOpen, setActivityFiltersOpen] = useState(false);
+  const answerListState = useRelationshipListState({
+    defaultSorting: "LastUpdatedAtUtc DESC",
+    filterDefaults: ANSWER_RELATIONSHIP_FILTER_DEFAULTS,
+  });
+  const activityListState = useRelationshipListState({
+    defaultSorting: "OccurredAtUtc DESC",
+    filterDefaults: ACTIVITY_RELATIONSHIP_FILTER_DEFAULTS,
+  });
   const deferredTagSearch = useDeferredValue(tagSearch.trim());
   const deferredSourceSearch = useDeferredValue(sourceSearch.trim());
+  const deferredAcceptedAnswerSearch = useDeferredValue(
+    acceptedAnswerSearch.trim(),
+  );
+  const answerStatusFilter = answerListState.filters.status;
+  const answerVisibilityFilter = answerListState.filters.visibility;
+  const answerAcceptedFilter = answerListState.filters.accepted;
+  const activityKindFilter = activityListState.filters.kind;
+  const activityActorKindFilter = activityListState.filters.actorKind;
   const sourceOptionsQuery = useSourceList({
     page: 1,
     pageSize: 20,
@@ -208,11 +281,45 @@ export function QuestionDetailPage() {
     sorting: "Name ASC",
     searchText: deferredTagSearch || undefined,
   });
-  const activityListQuery = useActivityList({
-    page: 1,
-    pageSize: 100,
-    sorting: "OccurredAtUtc DESC",
+  const answerListQuery = useAnswerList({
+    page: answerListState.page,
+    pageSize: answerListState.pageSize,
+    sorting: answerListState.sorting,
+    searchText: answerListState.debouncedSearch || undefined,
     questionId: id,
+    status:
+      answerStatusFilter === "all" ? undefined : Number(answerStatusFilter),
+    visibility:
+      answerVisibilityFilter === "all"
+        ? undefined
+        : Number(answerVisibilityFilter),
+    isAccepted:
+      answerAcceptedFilter === "all"
+        ? undefined
+        : answerAcceptedFilter === "true",
+    enabled: Boolean(id),
+  });
+  const acceptedAnswerOptionsQuery = useAnswerList({
+    page: 1,
+    pageSize: 20,
+    sorting: "Headline ASC",
+    searchText: deferredAcceptedAnswerSearch || undefined,
+    questionId: id,
+    status: AnswerStatus.Active,
+    enabled: Boolean(id),
+  });
+  const activityListQuery = useActivityList({
+    page: activityListState.page,
+    pageSize: activityListState.pageSize,
+    sorting: activityListState.sorting,
+    searchText: activityListState.debouncedSearch || undefined,
+    questionId: id,
+    kind: activityKindFilter === "all" ? undefined : Number(activityKindFilter),
+    actorKind:
+      activityActorKindFilter === "all"
+        ? undefined
+        : Number(activityActorKindFilter),
+    enabled: Boolean(id),
   });
   const selectedTagQuery = useTag(selectedTagId || undefined);
   const selectedSourceQuery = useSource(selectedSourceId || undefined);
@@ -254,9 +361,7 @@ export function QuestionDetailPage() {
   const selectedSourceOption = selectedSource
     ? buildSourceOption(selectedSource)
     : null;
-  const acceptedAnswerOptions = (questionQuery.data?.answers ?? []).filter(
-    (answer) => answer.status === AnswerStatus.Active,
-  );
+  const acceptedAnswerOptions = acceptedAnswerOptionsQuery.data?.items ?? [];
   const acceptedAnswerSelectValue =
     selectedAnswerId || questionQuery.data?.acceptedAnswerId || "";
   const selectedAcceptedAnswer =
@@ -268,22 +373,60 @@ export function QuestionDetailPage() {
   const selectedAcceptedAnswerOption = selectedAcceptedAnswer
     ? buildAnswerOption(selectedAcceptedAnswer)
     : null;
-  const questionActivity = (activityListQuery.data?.items ??
-    questionQuery.data?.activity ??
-    []) as ActivityDto[];
+  const questionActivity = activityListQuery.data?.items ?? [];
+  const questionAnswers = answerListQuery.data?.items ?? [];
   const tagsPagination = useLocalPagination({
     items: questionQuery.data?.tags ?? [],
   });
   const sourcesPagination = useLocalPagination({
     items: questionQuery.data?.sources ?? [],
   });
-  const answersPagination = useLocalPagination({
-    items: questionQuery.data?.answers ?? [],
-  });
-  const activityPagination = useLocalPagination({ items: questionActivity });
-  const handleAnswerStatusChange = async (
-    answer: NonNullable<typeof questionQuery.data>["answers"][number],
-  ) => {
+
+  useEffect(() => {
+    const totalCount = answerListQuery.data?.totalCount;
+
+    if (totalCount === undefined) {
+      return;
+    }
+
+    const nextPage = clampPage(
+      answerListState.page,
+      totalCount,
+      answerListState.pageSize,
+    );
+    if (nextPage !== answerListState.page) {
+      answerListState.setPage(nextPage);
+    }
+  }, [
+    answerListQuery.data?.totalCount,
+    answerListState.page,
+    answerListState.pageSize,
+    answerListState.setPage,
+  ]);
+
+  useEffect(() => {
+    const totalCount = activityListQuery.data?.totalCount;
+
+    if (totalCount === undefined) {
+      return;
+    }
+
+    const nextPage = clampPage(
+      activityListState.page,
+      totalCount,
+      activityListState.pageSize,
+    );
+    if (nextPage !== activityListState.page) {
+      activityListState.setPage(nextPage);
+    }
+  }, [
+    activityListQuery.data?.totalCount,
+    activityListState.page,
+    activityListState.pageSize,
+    activityListState.setPage,
+  ]);
+
+  const handleAnswerStatusChange = async (answer: AnswerDto) => {
     const status =
       answer.status === AnswerStatus.Active
         ? AnswerStatus.Archived
@@ -309,6 +452,9 @@ export function QuestionDetailPage() {
 
   const activateRelationshipTab = (tab: string, focusTargetId?: string) => {
     setRelationshipTab(tab);
+    if (tab === "answers" && focusTargetId === "new-answer-headline") {
+      setAnswerCreateOpen(true);
+    }
 
     window.requestAnimationFrame(() => {
       window.requestAnimationFrame(() => {
@@ -359,9 +505,9 @@ export function QuestionDetailPage() {
     : false;
   const questionNextAction = !questionQuery.data
     ? {
-        label: "Back to questions",
-        to: "/app/questions",
-        text: "Return to the moderation queue while this question loads.",
+        label: "Open spaces",
+        to: "/app/spaces",
+        text: "Return to Spaces while this question loads.",
       }
     : questionQuery.data.status === QuestionStatus.Archived
       ? {
@@ -377,17 +523,20 @@ export function QuestionDetailPage() {
               : "/app/spaces",
             text: "This question cannot receive new answers until the Space accepts answer intake.",
           }
-        : questionQuery.data.answers.length === 0
+        : (answerListQuery.data?.totalCount ?? 0) === 0
           ? {
               label: "Create answer",
               tab: "answers",
               focusTargetId: "new-answer-headline",
               text: "Start with a draft answer candidate so this question can move toward resolution.",
             }
-          : acceptedAnswerOptions.length === 0
+          : (acceptedAnswerOptionsQuery.data?.totalCount ?? 0) === 0
             ? {
                 label: "Activate answer",
-                to: `/app/answers/${questionQuery.data.answers[0].id}`,
+                to:
+                  questionAnswers[0]?.id !== undefined
+                    ? `/app/answers/${questionAnswers[0].id}`
+                    : `/app/questions/${id}`,
                 text: "Draft answers exist. Open one and activate it before choosing the accepted answer.",
               }
             : !questionQuery.data.acceptedAnswerId
@@ -420,6 +569,18 @@ export function QuestionDetailPage() {
             questionQuery.data?.spaceId
               ? `/app/spaces/${questionQuery.data.spaceId}`
               : "/app/spaces"
+          }
+          breadcrumbs={
+            questionQuery.data
+              ? [
+                  {
+                    label:
+                      spaceQuery.data?.name ?? questionQuery.data.spaceSlug,
+                    to: `/app/spaces/${questionQuery.data.spaceId}`,
+                  },
+                  { label: "Question" },
+                ]
+              : undefined
           }
         />
       }
@@ -611,7 +772,7 @@ export function QuestionDetailPage() {
               },
               {
                 title: "Answers",
-                value: questionQuery.data.answers.length,
+                value: answerListQuery.data?.totalCount ?? 0,
                 description: translateText(
                   "Accepted, draft, and active candidates",
                 ),
@@ -709,21 +870,26 @@ export function QuestionDetailPage() {
                   placeholder={translateText("Select accepted answer")}
                   searchPlaceholder={translateText("Search answers...")}
                   emptyMessage={translateText("No active answers found.")}
+                  loading={acceptedAnswerOptionsQuery.isFetching}
+                  searchValue={acceptedAnswerSearch}
+                  onSearchChange={(value) =>
+                    startTransition(() => setAcceptedAnswerSearch(value))
+                  }
                   resultCountHint={translateText(
                     "Only active answers can become accepted.",
                   )}
                 />
-                {acceptedAnswerOptions.length ? null : (
+                {(acceptedAnswerOptionsQuery.data?.totalCount ?? 0) ? null : (
                   <p className="text-sm text-muted-foreground">
                     {translateText(
                       "Activate an answer before it can be accepted.",
                     )}
                   </p>
                 )}
-                {acceptedAnswerOptions.length ||
+                {(acceptedAnswerOptionsQuery.data?.totalCount ?? 0) ||
                 questionQuery.data.acceptedAnswerId ? (
                   <div className="flex flex-wrap gap-2">
-                    {acceptedAnswerOptions.length ? (
+                    {(acceptedAnswerOptionsQuery.data?.totalCount ?? 0) ? (
                       <Button
                         disabled={
                           !selectedAnswerId ||
@@ -776,7 +942,7 @@ export function QuestionDetailPage() {
                 description:
                   "Write, activate, or archive answer candidates for this question.",
                 icon: CheckCircle2,
-                count: questionQuery.data?.answers.length ?? 0,
+                count: answerListQuery.data?.totalCount ?? 0,
               },
               {
                 key: "sources",
@@ -800,10 +966,7 @@ export function QuestionDetailPage() {
                 description:
                   "Review status changes, votes, feedback, and workflow history.",
                 icon: Activity,
-                count:
-                  activityListQuery.data?.totalCount ??
-                  questionQuery.data?.activity.length ??
-                  0,
+                count: activityListQuery.data?.totalCount ?? 0,
               },
             ]}
           />
@@ -1037,15 +1200,151 @@ export function QuestionDetailPage() {
                     <span>{translateText("Answers")}</span>
                     <Badge variant="outline">
                       {translateText("{count} answers", {
-                        count: questionQuery.data.answers.length,
+                        count: answerListQuery.data?.totalCount ?? 0,
                       })}
                     </Badge>
                   </CardTitle>
                 </CardHeading>
+                <div className="flex flex-wrap items-center gap-2">
+                  {!spaceBlocksAnswers ? (
+                    <Button
+                      type="button"
+                      variant={answerCreateOpen ? "primary" : "outline"}
+                      size="sm"
+                      className="h-8 gap-1.5 px-2.5 text-xs"
+                      aria-expanded={answerCreateOpen}
+                      aria-controls="question-answer-create-form"
+                      onClick={() => setAnswerCreateOpen((open) => !open)}
+                    >
+                      <Plus className="size-4" />
+                      {translateText("New answer")}
+                    </Button>
+                  ) : null}
+                  <RelationshipFilterButton
+                    activeFilterCount={answerListState.activeFilterCount}
+                    isLoading={answerListQuery.isFetching}
+                    open={answerFiltersOpen}
+                    onClick={() => setAnswerFiltersOpen((open) => !open)}
+                  />
+                </div>
               </CardHeader>
               <CardContent className="space-y-4">
-                {!spaceBlocksAnswers ? (
+                {answerFiltersOpen ? (
+                  <div className="rounded-lg border border-border/70 bg-muted/20 p-3">
+                    <ListFilterToolbar isLoading={answerListQuery.isFetching}>
+                      <ListFilterSearch
+                        value={answerListState.search}
+                        onChange={answerListState.setSearch}
+                        placeholder="Search answers by headline or body"
+                        activeFilterCount={answerListState.activeFilterCount}
+                        onClear={answerListState.resetFilters}
+                        isLoading={answerListQuery.isFetching}
+                      />
+                      <div className="grid gap-3 md:grid-cols-4">
+                        <ListFilterField label="Status">
+                          <Select
+                            value={answerStatusFilter}
+                            onValueChange={(value) =>
+                              answerListState.setFilter("status", value)
+                            }
+                          >
+                            <SelectTrigger className="w-full" size="lg">
+                              <SelectValue
+                                placeholder={translateText("Status")}
+                              />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="all">All</SelectItem>
+                              {Object.entries(answerStatusLabels).map(
+                                ([value, label]) => (
+                                  <SelectItem key={value} value={value}>
+                                    {translateText(label)}
+                                  </SelectItem>
+                                ),
+                              )}
+                            </SelectContent>
+                          </Select>
+                        </ListFilterField>
+                        <ListFilterField label="Visibility">
+                          <Select
+                            value={answerVisibilityFilter}
+                            onValueChange={(value) =>
+                              answerListState.setFilter("visibility", value)
+                            }
+                          >
+                            <SelectTrigger className="w-full" size="lg">
+                              <SelectValue
+                                placeholder={translateText("Visibility")}
+                              />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="all">
+                                All visibility
+                              </SelectItem>
+                              {Object.entries(visibilityScopeLabels).map(
+                                ([value, label]) => (
+                                  <SelectItem key={value} value={value}>
+                                    {translateText(label)}
+                                  </SelectItem>
+                                ),
+                              )}
+                            </SelectContent>
+                          </Select>
+                        </ListFilterField>
+                        <ListFilterField label="Accepted">
+                          <Select
+                            value={answerAcceptedFilter}
+                            onValueChange={(value) =>
+                              answerListState.setFilter("accepted", value)
+                            }
+                          >
+                            <SelectTrigger className="w-full" size="lg">
+                              <SelectValue
+                                placeholder={translateText("Accepted state")}
+                              />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="all">
+                                All answer states
+                              </SelectItem>
+                              <SelectItem value="true">
+                                Accepted only
+                              </SelectItem>
+                              <SelectItem value="false">
+                                Not accepted
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </ListFilterField>
+                        <ListFilterField label="Sort">
+                          <Select
+                            value={answerListState.sorting}
+                            onValueChange={answerListState.setSorting}
+                          >
+                            <SelectTrigger className="w-full" size="lg">
+                              <SelectValue
+                                placeholder={translateText("Sort answers")}
+                              />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {answerSortingOptions.map((option) => (
+                                <SelectItem
+                                  key={option.value}
+                                  value={option.value}
+                                >
+                                  {translateText(option.label)}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </ListFilterField>
+                      </div>
+                    </ListFilterToolbar>
+                  </div>
+                ) : null}
+                {!spaceBlocksAnswers && answerCreateOpen ? (
                   <form
+                    id="question-answer-create-form"
                     className="rounded-xl border border-primary/15 bg-primary/[0.025] p-4"
                     onSubmit={(event) => {
                       event.preventDefault();
@@ -1065,11 +1364,12 @@ export function QuestionDetailPage() {
                           visibility: VisibilityScope.Internal,
                           contextNote: undefined,
                           authorLabel: undefined,
-                          sort: questionQuery.data.answers.length + 1,
+                          sort: (answerListQuery.data?.totalCount ?? 0) + 1,
                         })
                         .then(() => {
                           setNewAnswerHeadline("");
                           setNewAnswerBody("");
+                          setAnswerCreateOpen(false);
                         });
                     }}
                   >
@@ -1145,8 +1445,8 @@ export function QuestionDetailPage() {
                     </div>
                   </form>
                 ) : null}
-                {questionQuery.data.answers.length ? (
-                  answersPagination.pagedItems.map((answer) => (
+                {questionAnswers.length ? (
+                  questionAnswers.map((answer) => (
                     <div
                       key={answer.id}
                       className="flex flex-col gap-3 rounded-lg border border-border bg-muted/10 p-4 sm:flex-row sm:items-start sm:justify-between"
@@ -1160,6 +1460,16 @@ export function QuestionDetailPage() {
                         </Link>
                         <div className="mt-2 flex flex-wrap items-center gap-2">
                           <AnswerStatusBadge status={answer.status} />
+                          <VisibilityBadge visibility={answer.visibility} />
+                          <span className="text-xs text-muted-foreground">
+                            {translateText("Last update {value}", {
+                              value: formatOptionalDateTimeInTimeZone(
+                                answer.lastUpdatedAtUtc,
+                                portalTimeZone,
+                                translateText("Not set"),
+                              ),
+                            })}
+                          </span>
                           {answer.isAccepted ? (
                             <Badge variant="success">
                               {translateText("Accepted")}
@@ -1232,11 +1542,12 @@ export function QuestionDetailPage() {
                   />
                 )}
                 <ChildListPagination
-                  page={answersPagination.page}
-                  pageSize={answersPagination.pageSize}
-                  totalCount={answersPagination.totalCount}
-                  onPageChange={answersPagination.setPage}
-                  onPageSizeChange={answersPagination.setPageSize}
+                  page={answerListState.page}
+                  pageSize={answerListState.pageSize}
+                  totalCount={answerListQuery.data?.totalCount ?? 0}
+                  isFetching={answerListQuery.isFetching}
+                  onPageChange={answerListState.setPage}
+                  onPageSizeChange={answerListState.setPageSize}
                 />
               </CardContent>
             </Card>
@@ -1250,15 +1561,109 @@ export function QuestionDetailPage() {
                     <span>{translateText("Activity")}</span>
                     <Badge variant="outline">
                       {translateText("{count} events", {
-                        count: questionActivity.length,
+                        count: activityListQuery.data?.totalCount ?? 0,
                       })}
                     </Badge>
                   </CardTitle>
                 </CardHeading>
+                <RelationshipFilterButton
+                  activeFilterCount={activityListState.activeFilterCount}
+                  isLoading={activityListQuery.isFetching}
+                  open={activityFiltersOpen}
+                  onClick={() => setActivityFiltersOpen((open) => !open)}
+                />
               </CardHeader>
               <CardContent className="space-y-3">
+                {activityFiltersOpen ? (
+                  <div className="rounded-lg border border-border/70 bg-muted/20 p-3">
+                    <ListFilterToolbar isLoading={activityListQuery.isFetching}>
+                      <ListFilterSearch
+                        value={activityListState.search}
+                        onChange={activityListState.setSearch}
+                        placeholder="Search activity by actor, notes, or subject"
+                        activeFilterCount={activityListState.activeFilterCount}
+                        onClear={activityListState.resetFilters}
+                        isLoading={activityListQuery.isFetching}
+                      />
+                      <div className="grid gap-3 md:grid-cols-3">
+                        <ListFilterField label="Event kind">
+                          <Select
+                            value={activityKindFilter}
+                            onValueChange={(value) =>
+                              activityListState.setFilter("kind", value)
+                            }
+                          >
+                            <SelectTrigger className="w-full" size="lg">
+                              <SelectValue
+                                placeholder={translateText("Event kind")}
+                              />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="all">
+                                All event kinds
+                              </SelectItem>
+                              {Object.entries(activityKindLabels).map(
+                                ([value, label]) => (
+                                  <SelectItem key={value} value={value}>
+                                    {translateText(label)}
+                                  </SelectItem>
+                                ),
+                              )}
+                            </SelectContent>
+                          </Select>
+                        </ListFilterField>
+                        <ListFilterField label="Actor kind">
+                          <Select
+                            value={activityActorKindFilter}
+                            onValueChange={(value) =>
+                              activityListState.setFilter("actorKind", value)
+                            }
+                          >
+                            <SelectTrigger className="w-full" size="lg">
+                              <SelectValue
+                                placeholder={translateText("Actor kind")}
+                              />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="all">All actors</SelectItem>
+                              {Object.entries(actorKindLabels).map(
+                                ([value, label]) => (
+                                  <SelectItem key={value} value={value}>
+                                    {translateText(label)}
+                                  </SelectItem>
+                                ),
+                              )}
+                            </SelectContent>
+                          </Select>
+                        </ListFilterField>
+                        <ListFilterField label="Sort">
+                          <Select
+                            value={activityListState.sorting}
+                            onValueChange={activityListState.setSorting}
+                          >
+                            <SelectTrigger className="w-full" size="lg">
+                              <SelectValue
+                                placeholder={translateText("Sort events")}
+                              />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {activitySortingOptions.map((option) => (
+                                <SelectItem
+                                  key={option.value}
+                                  value={option.value}
+                                >
+                                  {translateText(option.label)}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </ListFilterField>
+                      </div>
+                    </ListFilterToolbar>
+                  </div>
+                ) : null}
                 {questionActivity.length ? (
-                  activityPagination.pagedItems.map((event) => (
+                  questionActivity.map((event) => (
                     <div
                       key={event.id}
                       className="flex flex-col gap-3 rounded-lg border border-border bg-muted/10 p-4 sm:flex-row sm:items-start sm:justify-between"
@@ -1282,12 +1687,12 @@ export function QuestionDetailPage() {
                   />
                 )}
                 <ChildListPagination
-                  page={activityPagination.page}
-                  pageSize={activityPagination.pageSize}
-                  totalCount={activityPagination.totalCount}
+                  page={activityListState.page}
+                  pageSize={activityListState.pageSize}
+                  totalCount={activityListQuery.data?.totalCount ?? 0}
                   isFetching={activityListQuery.isFetching}
-                  onPageChange={activityPagination.setPage}
-                  onPageSizeChange={activityPagination.setPageSize}
+                  onPageChange={activityListState.setPage}
+                  onPageSizeChange={activityListState.setPageSize}
                 />
               </CardContent>
             </Card>

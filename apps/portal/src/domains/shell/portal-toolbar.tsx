@@ -63,6 +63,11 @@ function ToolbarPageTrail() {
   const linkedItems = currentMatchesLastNavItem
     ? navPath.slice(0, -1)
     : navPath;
+  const chromeBreadcrumbs = pageChrome.breadcrumbs;
+  const breadcrumbItems =
+    chromeBreadcrumbs !== undefined
+      ? chromeBreadcrumbs
+      : linkedItems.map((item) => ({ label: item.label, to: item.path }));
 
   return (
     <div className="flex w-full min-w-0 items-center gap-2 overflow-hidden xl:flex-1">
@@ -79,26 +84,36 @@ function ToolbarPageTrail() {
         aria-label={t("breadcrumb")}
       >
         <BreadcrumbList className="w-full min-w-0 flex-nowrap overflow-hidden">
-          {linkedItems.map((item, index) => {
-            const isImmediateParent = index === linkedItems.length - 1;
+          {breadcrumbItems.map((item, index) => {
+            const isImmediateParent = index === breadcrumbItems.length - 1;
             const visibilityClassName = isImmediateParent
               ? undefined
               : "hidden sm:inline-flex";
-            const label = t(item.label);
+            const label = translateMaybeString(item.label, t);
+            const title = typeof label === "string" ? label : undefined;
 
             return (
-              <Fragment key={item.key}>
+              <Fragment key={`${index}-${title ?? "breadcrumb"}`}>
                 <BreadcrumbItem
                   className={cn("min-w-0 shrink-0", visibilityClassName)}
                 >
-                  <BreadcrumbLink
-                    asChild
-                    className="block max-w-[7rem] truncate text-xs sm:max-w-[11rem] sm:text-sm"
-                  >
-                    <Link to={item.path} title={label}>
+                  {item.to ? (
+                    <BreadcrumbLink
+                      asChild
+                      className="block max-w-[7rem] truncate text-xs sm:max-w-[11rem] sm:text-sm"
+                    >
+                      <Link to={item.to} title={title}>
+                        {label}
+                      </Link>
+                    </BreadcrumbLink>
+                  ) : (
+                    <span
+                      className="block max-w-[7rem] truncate text-xs text-muted-foreground sm:max-w-[11rem] sm:text-sm"
+                      title={title}
+                    >
                       {label}
-                    </Link>
-                  </BreadcrumbLink>
+                    </span>
+                  )}
                 </BreadcrumbItem>
                 <BreadcrumbSeparator
                   className={cn("shrink-0", visibilityClassName)}

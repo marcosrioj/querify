@@ -365,11 +365,7 @@ function QuestionQueueRow({
   );
 }
 
-function AnswerQueueRow({
-  answer,
-}: {
-  answer: AnswerDto;
-}) {
+function AnswerQueueRow({ answer }: { answer: AnswerDto }) {
   return (
     <Link
       to={`/app/answers/${answer.id}`}
@@ -636,11 +632,13 @@ export function DashboardPage() {
     billingSummary,
     memberCount,
     openQuestions,
+    draftQuestions,
     draftQuestionCount,
     questionCount,
     sourceCount,
     spaces,
   });
+  const queueQuestions = [...draftQuestions, ...openQuestions].slice(0, 5);
   const businessReadout = getBusinessReadout({
     acceptedAnswerCount,
     openQuestionCount,
@@ -649,8 +647,10 @@ export function DashboardPage() {
     activeAnswerCount,
     questionCount,
     sourceCount,
+    firstActiveAnswerId: activeAnswers[0]?.id,
+    firstDemandQuestionId: queueQuestions[0]?.id,
+    firstSpaceId: spaces[0]?.id,
   });
-  const queueQuestions = [...draftQuestions, ...openQuestions].slice(0, 5);
   const billingNeedsAttention = getBillingNeedsAttention(billingSummary);
 
   return (
@@ -669,10 +669,7 @@ export function DashboardPage() {
       />
 
       {setupProgress < 100 ? (
-        <SetupFocusCard
-          nextAction={nextAction}
-          setupProgress={setupProgress}
-        />
+        <SetupFocusCard nextAction={nextAction} setupProgress={setupProgress} />
       ) : null}
 
       {billingNeedsAttention ? (
@@ -695,9 +692,7 @@ export function DashboardPage() {
           description="Only work that changes customer resolution or trusted knowledge appears here."
           action={
             <Button asChild variant="outline" size="sm">
-              <Link to={nextAction.to}>
-                {translateText("Open queue")}
-              </Link>
+              <Link to={nextAction.to}>{translateText("Open queue")}</Link>
             </Button>
           }
         >
@@ -707,9 +702,11 @@ export function DashboardPage() {
                 count={draftQuestionCount + openQuestionCount}
                 title="Questions to resolve"
                 to={
-                  draftQuestionCount > 0
-                    ? `/app/questions?status=${QuestionStatus.Draft}`
-                    : `/app/questions?status=${QuestionStatus.Active}`
+                  queueQuestions[0]
+                    ? `/app/questions/${queueQuestions[0].id}`
+                    : spaces[0]
+                      ? `/app/spaces/${spaces[0].id}`
+                      : "/app/spaces"
                 }
               />
               {queueQuestions.length ? (
@@ -732,14 +729,17 @@ export function DashboardPage() {
               <QueueSectionHeader
                 count={activeAnswerCount}
                 title="Active answers"
-                to={`/app/answers?status=${AnswerStatus.Active}`}
+                to={
+                  activeAnswers[0]
+                    ? `/app/answers/${activeAnswers[0].id}`
+                    : spaces[0]
+                      ? `/app/spaces/${spaces[0].id}`
+                      : "/app/spaces"
+                }
               />
               {activeAnswers.length ? (
                 activeAnswers.map((answer) => (
-                  <AnswerQueueRow
-                    key={answer.id}
-                    answer={answer}
-                  />
+                  <AnswerQueueRow key={answer.id} answer={answer} />
                 ))
               ) : (
                 <InlineEmptyState

@@ -1,4 +1,10 @@
-import { startTransition, useDeferredValue, useMemo, useState } from "react";
+import {
+  startTransition,
+  useDeferredValue,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import {
   Activity,
   BookOpen,
@@ -18,6 +24,7 @@ import { useActivityList } from "@/domains/activity/hooks";
 import { useActivationVisibilityPrompt } from "@/domains/qna/activation-visibility";
 import { QnaModuleNav } from "@/domains/qna/qna-module-nav";
 import { RecommendedNextActionCard } from "@/domains/qna/recommended-next-action-card";
+import { usePortalTimeZone } from "@/domains/settings/settings-hooks";
 import {
   useCreateQuestion,
   useDeleteQuestion,
@@ -38,6 +45,10 @@ import {
   ChannelKind,
   QuestionStatus,
   VisibilityScope,
+  activityKindLabels,
+  actorKindLabels,
+  questionStatusLabels,
+  visibilityScopeLabels,
 } from "@/shared/constants/backend-enums";
 import {
   DetailFieldList,
@@ -62,7 +73,16 @@ import {
   DetailPageSkeleton,
   Input,
   Label,
+  ListFilterField,
+  ListFilterSearch,
+  ListFilterToolbar,
+  RelationshipFilterButton,
   SearchSelect,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
   SidebarSummarySkeleton,
   Textarea,
 } from "@/shared/ui";
@@ -76,6 +96,45 @@ import {
 } from "@/shared/ui/status-badges";
 import { translateText } from "@/shared/lib/i18n-core";
 import { useLocalPagination } from "@/shared/lib/use-local-pagination";
+import { useRelationshipListState } from "@/shared/lib/use-relationship-list-state";
+import { clampPage } from "@/shared/lib/pagination";
+import { formatOptionalDateTimeInTimeZone } from "@/shared/lib/time-zone";
+
+const questionSortingOptions = [
+  { value: "LastActivityAtUtc DESC", label: "Latest activity" },
+  { value: "LastActivityAtUtc ASC", label: "Oldest activity" },
+  { value: "Title ASC", label: "Title A-Z" },
+  { value: "Title DESC", label: "Title Z-A" },
+  { value: "FeedbackScore DESC", label: "Feedback high-low" },
+  { value: "FeedbackScore ASC", label: "Feedback low-high" },
+  { value: "Sort ASC", label: "Sort low-high" },
+  { value: "Sort DESC", label: "Sort high-low" },
+];
+
+const activitySortingOptions = [
+  { value: "OccurredAtUtc DESC", label: "Latest activity" },
+  { value: "OccurredAtUtc ASC", label: "Oldest activity" },
+  { value: "Kind ASC", label: "Event kind A-Z" },
+  { value: "Kind DESC", label: "Event kind Z-A" },
+  { value: "ActorKind ASC", label: "Actor kind A-Z" },
+  { value: "ActorKind DESC", label: "Actor kind Z-A" },
+];
+
+const QUESTION_RELATIONSHIP_FILTER_DEFAULTS: Record<
+  "status" | "visibility",
+  string
+> = {
+  status: "all",
+  visibility: "all",
+};
+
+const ACTIVITY_RELATIONSHIP_FILTER_DEFAULTS: Record<
+  "kind" | "actorKind",
+  string
+> = {
+  kind: "all",
+  actorKind: "all",
+};
 
 function buildTagOption(tag: {
   id: string;
@@ -117,18 +176,47 @@ function buildSourceOption(source: {
 
 export function SpaceDetailPage() {
   const navigate = useNavigate();
+  const portalTimeZone = usePortalTimeZone();
   const { id } = useParams();
   const spaceQuery = useSpace(id);
+  const questionListState = useRelationshipListState({
+    defaultSorting: "LastActivityAtUtc DESC",
+    filterDefaults: QUESTION_RELATIONSHIP_FILTER_DEFAULTS,
+  });
+  const activityListState = useRelationshipListState({
+    defaultSorting: "OccurredAtUtc DESC",
+    filterDefaults: ACTIVITY_RELATIONSHIP_FILTER_DEFAULTS,
+  });
+  const questionStatusFilter = questionListState.filters.status;
+  const questionVisibilityFilter = questionListState.filters.visibility;
+  const activityKindFilter = activityListState.filters.kind;
+  const activityActorKindFilter = activityListState.filters.actorKind;
   const questionQuery = useQuestionList({
-    page: 1,
-    pageSize: 100,
-    sorting: "LastActivityAtUtc DESC",
+    page: questionListState.page,
+    pageSize: questionListState.pageSize,
+    sorting: questionListState.sorting,
+    searchText: questionListState.debouncedSearch || undefined,
     spaceId: id,
+    status:
+      questionStatusFilter === "all" ? undefined : Number(questionStatusFilter),
+    visibility:
+      questionVisibilityFilter === "all"
+        ? undefined
+        : Number(questionVisibilityFilter),
+    enabled: Boolean(id),
   });
   const activityQuery = useActivityList({
-    page: 1,
-    pageSize: 100,
-    sorting: "OccurredAtUtc DESC",
+    page: activityListState.page,
+    pageSize: activityListState.pageSize,
+    sorting: activityListState.sorting,
+    searchText: activityListState.debouncedSearch || undefined,
+    spaceId: id,
+    kind: activityKindFilter === "all" ? undefined : Number(activityKindFilter),
+    actorKind:
+      activityActorKindFilter === "all"
+        ? undefined
+        : Number(activityActorKindFilter),
+    enabled: Boolean(id),
   });
   const deleteSpace = useDeleteSpace();
   const createQuestion = useCreateQuestion();
@@ -147,6 +235,9 @@ export function SpaceDetailPage() {
   const [newQuestionTitle, setNewQuestionTitle] = useState("");
   const [newQuestionSummary, setNewQuestionSummary] = useState("");
   const [relationshipTab, setRelationshipTab] = useState("questions");
+  const [questionCreateOpen, setQuestionCreateOpen] = useState(false);
+  const [questionFiltersOpen, setQuestionFiltersOpen] = useState(false);
+  const [activityFiltersOpen, setActivityFiltersOpen] = useState(false);
   const deferredTagSearch = useDeferredValue(tagSearch.trim());
   const deferredSourceSearch = useDeferredValue(sourceSearch.trim());
   const sourceOptionsQuery = useSourceList({
@@ -212,20 +303,57 @@ export function SpaceDetailPage() {
       (!question.acceptedAnswerId &&
         question.status !== QuestionStatus.Archived),
   );
-  const visibleQuestionIds = new Set(
-    spaceQuestions.map((question) => question.id),
-  );
-  const contextualActivity = (activityQuery.data?.items ?? []).filter((entry) =>
-    visibleQuestionIds.has(entry.questionId),
-  );
+  const contextualActivity = activityQuery.data?.items ?? [];
   const tagsPagination = useLocalPagination({
     items: spaceQuery.data?.tags ?? [],
   });
   const sourcesPagination = useLocalPagination({
     items: spaceQuery.data?.curatedSources ?? [],
   });
-  const questionsPagination = useLocalPagination({ items: spaceQuestions });
-  const activityPagination = useLocalPagination({ items: contextualActivity });
+
+  useEffect(() => {
+    const totalCount = questionQuery.data?.totalCount;
+
+    if (totalCount === undefined) {
+      return;
+    }
+
+    const nextPage = clampPage(
+      questionListState.page,
+      totalCount,
+      questionListState.pageSize,
+    );
+    if (nextPage !== questionListState.page) {
+      questionListState.setPage(nextPage);
+    }
+  }, [
+    questionListState.page,
+    questionListState.pageSize,
+    questionListState.setPage,
+    questionQuery.data?.totalCount,
+  ]);
+
+  useEffect(() => {
+    const totalCount = activityQuery.data?.totalCount;
+
+    if (totalCount === undefined) {
+      return;
+    }
+
+    const nextPage = clampPage(
+      activityListState.page,
+      totalCount,
+      activityListState.pageSize,
+    );
+    if (nextPage !== activityListState.page) {
+      activityListState.setPage(nextPage);
+    }
+  }, [
+    activityListState.page,
+    activityListState.pageSize,
+    activityListState.setPage,
+    activityQuery.data?.totalCount,
+  ]);
   const handleQuestionStatusChange = async (
     question: (typeof spaceQuestions)[number],
   ) => {
@@ -254,6 +382,9 @@ export function SpaceDetailPage() {
 
   const activateRelationshipTab = (tab: string, focusTargetId?: string) => {
     setRelationshipTab(tab);
+    if (tab === "questions" && focusTargetId === "new-question-title") {
+      setQuestionCreateOpen(true);
+    }
 
     window.requestAnimationFrame(() => {
       window.requestAnimationFrame(() => {
@@ -316,6 +447,7 @@ export function SpaceDetailPage() {
           description="Review state, intake rules, questions needing action, connected tags and sources, and the next recommended move."
           descriptionMode="hint"
           backTo="/app/spaces"
+          breadcrumbs={[]}
         />
       }
       sidebar={
@@ -606,7 +738,7 @@ export function SpaceDetailPage() {
                 description:
                   "Inspect events from questions that belong to this Space.",
                 icon: Activity,
-                count: contextualActivity.length,
+                count: activityQuery.data?.totalCount ?? 0,
               },
             ]}
           />
@@ -801,14 +933,130 @@ export function SpaceDetailPage() {
             <Card id="space-questions-section">
               <CardHeader>
                 <CardHeading>
-                  <CardTitle>
-                    {translateText("Questions in this Space")}
+                  <CardTitle className="flex items-center gap-2">
+                    <span>{translateText("Questions in this Space")}</span>
+                    <Badge variant="outline">
+                      {translateText("{count} questions", {
+                        count: questionQuery.data?.totalCount ?? 0,
+                      })}
+                    </Badge>
                   </CardTitle>
                 </CardHeading>
+                <div className="flex flex-wrap items-center gap-2">
+                  {!blocksQuestions ? (
+                    <Button
+                      type="button"
+                      variant={questionCreateOpen ? "primary" : "outline"}
+                      size="sm"
+                      className="h-8 gap-1.5 px-2.5 text-xs"
+                      aria-expanded={questionCreateOpen}
+                      aria-controls="space-question-create-form"
+                      onClick={() => setQuestionCreateOpen((open) => !open)}
+                    >
+                      <Plus className="size-4" />
+                      {translateText("New question")}
+                    </Button>
+                  ) : null}
+                  <RelationshipFilterButton
+                    activeFilterCount={questionListState.activeFilterCount}
+                    isLoading={questionQuery.isFetching}
+                    open={questionFiltersOpen}
+                    onClick={() => setQuestionFiltersOpen((open) => !open)}
+                  />
+                </div>
               </CardHeader>
               <CardContent className="space-y-4">
-                {!blocksQuestions ? (
+                {questionFiltersOpen ? (
+                  <div className="rounded-lg border border-border/70 bg-muted/20 p-3">
+                    <ListFilterToolbar isLoading={questionQuery.isFetching}>
+                      <ListFilterSearch
+                        value={questionListState.search}
+                        onChange={questionListState.setSearch}
+                        placeholder="Search questions by title or summary"
+                        activeFilterCount={questionListState.activeFilterCount}
+                        onClear={questionListState.resetFilters}
+                        isLoading={questionQuery.isFetching}
+                      />
+                      <div className="grid gap-3 md:grid-cols-3">
+                        <ListFilterField label="Status">
+                          <Select
+                            value={questionStatusFilter}
+                            onValueChange={(value) =>
+                              questionListState.setFilter("status", value)
+                            }
+                          >
+                            <SelectTrigger className="w-full" size="lg">
+                              <SelectValue
+                                placeholder={translateText("Status")}
+                              />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="all">All</SelectItem>
+                              {Object.entries(questionStatusLabels).map(
+                                ([value, label]) => (
+                                  <SelectItem key={value} value={value}>
+                                    {translateText(label)}
+                                  </SelectItem>
+                                ),
+                              )}
+                            </SelectContent>
+                          </Select>
+                        </ListFilterField>
+                        <ListFilterField label="Visibility">
+                          <Select
+                            value={questionVisibilityFilter}
+                            onValueChange={(value) =>
+                              questionListState.setFilter("visibility", value)
+                            }
+                          >
+                            <SelectTrigger className="w-full" size="lg">
+                              <SelectValue
+                                placeholder={translateText("Visibility")}
+                              />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="all">
+                                All visibility
+                              </SelectItem>
+                              {Object.entries(visibilityScopeLabels).map(
+                                ([value, label]) => (
+                                  <SelectItem key={value} value={value}>
+                                    {translateText(label)}
+                                  </SelectItem>
+                                ),
+                              )}
+                            </SelectContent>
+                          </Select>
+                        </ListFilterField>
+                        <ListFilterField label="Sort">
+                          <Select
+                            value={questionListState.sorting}
+                            onValueChange={questionListState.setSorting}
+                          >
+                            <SelectTrigger className="w-full" size="lg">
+                              <SelectValue
+                                placeholder={translateText("Sort questions")}
+                              />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {questionSortingOptions.map((option) => (
+                                <SelectItem
+                                  key={option.value}
+                                  value={option.value}
+                                >
+                                  {translateText(option.label)}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </ListFilterField>
+                      </div>
+                    </ListFilterToolbar>
+                  </div>
+                ) : null}
+                {!blocksQuestions && questionCreateOpen ? (
                   <form
+                    id="space-question-create-form"
                     className="rounded-xl border border-primary/15 bg-primary/[0.025] p-4"
                     onSubmit={(event) => {
                       event.preventDefault();
@@ -827,11 +1075,12 @@ export function SpaceDetailPage() {
                           status: QuestionStatus.Draft,
                           visibility: VisibilityScope.Internal,
                           originChannel: ChannelKind.Manual,
-                          sort: spaceQuestions.length + 1,
+                          sort: (questionQuery.data?.totalCount ?? 0) + 1,
                         })
                         .then(() => {
                           setNewQuestionTitle("");
                           setNewQuestionSummary("");
+                          setQuestionCreateOpen(false);
                         });
                     }}
                   >
@@ -908,7 +1157,7 @@ export function SpaceDetailPage() {
                   </form>
                 ) : null}
                 {spaceQuestions.length ? (
-                  questionsPagination.pagedItems.map((question) => (
+                  spaceQuestions.map((question) => (
                     <div
                       key={question.id}
                       className="flex flex-col gap-3 rounded-lg border border-border bg-muted/10 p-4 sm:flex-row sm:items-start sm:justify-between"
@@ -924,8 +1173,18 @@ export function SpaceDetailPage() {
                           {question.summary ||
                             translateText("No summary provided.")}
                         </p>
-                        <div className="mt-2 flex flex-wrap gap-2">
+                        <div className="mt-2 flex flex-wrap items-center gap-2">
                           <QuestionStatusBadge status={question.status} />
+                          <VisibilityBadge visibility={question.visibility} />
+                          <span className="text-xs text-muted-foreground">
+                            {translateText("Last update {value}", {
+                              value: formatOptionalDateTimeInTimeZone(
+                                question.lastUpdatedAtUtc,
+                                portalTimeZone,
+                                translateText("Not set"),
+                              ),
+                            })}
+                          </span>
                           {!question.acceptedAnswerId ? (
                             <Badge variant="warning" appearance="outline">
                               {translateText("Needs answer decision")}
@@ -992,12 +1251,12 @@ export function SpaceDetailPage() {
                   />
                 )}
                 <ChildListPagination
-                  page={questionsPagination.page}
-                  pageSize={questionsPagination.pageSize}
-                  totalCount={questionsPagination.totalCount}
+                  page={questionListState.page}
+                  pageSize={questionListState.pageSize}
+                  totalCount={questionQuery.data?.totalCount ?? 0}
                   isFetching={questionQuery.isFetching}
-                  onPageChange={questionsPagination.setPage}
-                  onPageSizeChange={questionsPagination.setPageSize}
+                  onPageChange={questionListState.setPage}
+                  onPageSizeChange={questionListState.setPageSize}
                 />
               </CardContent>
             </Card>
@@ -1011,15 +1270,109 @@ export function SpaceDetailPage() {
                     <span>{translateText("Activity in this Space")}</span>
                     <Badge variant="outline">
                       {translateText("{count} events", {
-                        count: contextualActivity.length,
+                        count: activityQuery.data?.totalCount ?? 0,
                       })}
                     </Badge>
                   </CardTitle>
                 </CardHeading>
+                <RelationshipFilterButton
+                  activeFilterCount={activityListState.activeFilterCount}
+                  isLoading={activityQuery.isFetching}
+                  open={activityFiltersOpen}
+                  onClick={() => setActivityFiltersOpen((open) => !open)}
+                />
               </CardHeader>
               <CardContent className="space-y-3">
+                {activityFiltersOpen ? (
+                  <div className="rounded-lg border border-border/70 bg-muted/20 p-3">
+                    <ListFilterToolbar isLoading={activityQuery.isFetching}>
+                      <ListFilterSearch
+                        value={activityListState.search}
+                        onChange={activityListState.setSearch}
+                        placeholder="Search activity by actor, notes, or subject"
+                        activeFilterCount={activityListState.activeFilterCount}
+                        onClear={activityListState.resetFilters}
+                        isLoading={activityQuery.isFetching}
+                      />
+                      <div className="grid gap-3 md:grid-cols-3">
+                        <ListFilterField label="Event kind">
+                          <Select
+                            value={activityKindFilter}
+                            onValueChange={(value) =>
+                              activityListState.setFilter("kind", value)
+                            }
+                          >
+                            <SelectTrigger className="w-full" size="lg">
+                              <SelectValue
+                                placeholder={translateText("Event kind")}
+                              />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="all">
+                                All event kinds
+                              </SelectItem>
+                              {Object.entries(activityKindLabels).map(
+                                ([value, label]) => (
+                                  <SelectItem key={value} value={value}>
+                                    {translateText(label)}
+                                  </SelectItem>
+                                ),
+                              )}
+                            </SelectContent>
+                          </Select>
+                        </ListFilterField>
+                        <ListFilterField label="Actor kind">
+                          <Select
+                            value={activityActorKindFilter}
+                            onValueChange={(value) =>
+                              activityListState.setFilter("actorKind", value)
+                            }
+                          >
+                            <SelectTrigger className="w-full" size="lg">
+                              <SelectValue
+                                placeholder={translateText("Actor kind")}
+                              />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="all">All actors</SelectItem>
+                              {Object.entries(actorKindLabels).map(
+                                ([value, label]) => (
+                                  <SelectItem key={value} value={value}>
+                                    {translateText(label)}
+                                  </SelectItem>
+                                ),
+                              )}
+                            </SelectContent>
+                          </Select>
+                        </ListFilterField>
+                        <ListFilterField label="Sort">
+                          <Select
+                            value={activityListState.sorting}
+                            onValueChange={activityListState.setSorting}
+                          >
+                            <SelectTrigger className="w-full" size="lg">
+                              <SelectValue
+                                placeholder={translateText("Sort events")}
+                              />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {activitySortingOptions.map((option) => (
+                                <SelectItem
+                                  key={option.value}
+                                  value={option.value}
+                                >
+                                  {translateText(option.label)}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </ListFilterField>
+                      </div>
+                    </ListFilterToolbar>
+                  </div>
+                ) : null}
                 {contextualActivity.length ? (
-                  activityPagination.pagedItems.map((event) => (
+                  contextualActivity.map((event) => (
                     <div
                       key={event.id}
                       className="flex flex-col gap-3 rounded-lg border border-border bg-muted/10 p-4 sm:flex-row sm:items-start sm:justify-between"
@@ -1043,12 +1396,12 @@ export function SpaceDetailPage() {
                   />
                 )}
                 <ChildListPagination
-                  page={activityPagination.page}
-                  pageSize={activityPagination.pageSize}
-                  totalCount={activityPagination.totalCount}
+                  page={activityListState.page}
+                  pageSize={activityListState.pageSize}
+                  totalCount={activityQuery.data?.totalCount ?? 0}
                   isFetching={activityQuery.isFetching}
-                  onPageChange={activityPagination.setPage}
-                  onPageSizeChange={activityPagination.setPageSize}
+                  onPageChange={activityListState.setPage}
+                  onPageSizeChange={activityListState.setPageSize}
                 />
               </CardContent>
             </Card>
