@@ -152,10 +152,17 @@ export function AnswerDetailPage() {
       return Promise.resolve();
     }
 
+    const visibility = await resolveActivationVisibility(
+      answerQuery.data.visibility,
+    );
+    if (visibility === null) {
+      return Promise.resolve();
+    }
+
     return updateAnswerStatus.mutateAsync({
       answer: answerQuery.data,
       status: AnswerStatus.Active,
-      visibility: await resolveActivationVisibility(answerQuery.data.visibility),
+      visibility,
     });
   };
   const lifecycleActionOptions = [

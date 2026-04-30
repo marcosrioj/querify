@@ -287,10 +287,17 @@ export function QuestionDetailPage() {
       answer.status === AnswerStatus.Active
         ? AnswerStatus.Archived
         : AnswerStatus.Active;
-    const visibility =
-      answer.status === AnswerStatus.Active
-        ? undefined
-        : await resolveActivationVisibility(answer.visibility);
+    let visibility: VisibilityScope | undefined;
+    if (answer.status !== AnswerStatus.Active) {
+      const resolvedVisibility = await resolveActivationVisibility(
+        answer.visibility,
+      );
+      if (resolvedVisibility === null) {
+        return;
+      }
+
+      visibility = resolvedVisibility;
+    }
 
     updateAnswerStatus.mutate({
       answer,

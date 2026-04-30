@@ -19,6 +19,7 @@ import { QnaModuleNav } from "@/domains/qna/qna-module-nav";
 import { RecommendedNextActionCard } from "@/domains/qna/recommended-next-action-card";
 import {
   useCreateQuestion,
+  useDeleteQuestion,
   useQuestionList,
   useUpdateQuestionStatus,
 } from "@/domains/questions/hooks";
@@ -130,6 +131,7 @@ export function SpaceDetailPage() {
   });
   const deleteSpace = useDeleteSpace();
   const createQuestion = useCreateQuestion();
+  const deleteQuestion = useDeleteQuestion();
   const updateQuestionStatus = useUpdateQuestionStatus();
   const { resolveActivationVisibility, ActivationVisibilityDialog } =
     useActivationVisibilityPrompt();
@@ -230,10 +232,17 @@ export function SpaceDetailPage() {
       question.status === QuestionStatus.Active
         ? QuestionStatus.Archived
         : QuestionStatus.Active;
-    const visibility =
-      question.status === QuestionStatus.Active
-        ? undefined
-        : await resolveActivationVisibility(question.visibility);
+    let visibility: VisibilityScope | undefined;
+    if (question.status !== QuestionStatus.Active) {
+      const resolvedVisibility = await resolveActivationVisibility(
+        question.visibility,
+      );
+      if (resolvedVisibility === null) {
+        return;
+      }
+
+      visibility = resolvedVisibility;
+    }
 
     updateQuestionStatus.mutate({
       question,
@@ -915,6 +924,7 @@ export function SpaceDetailPage() {
                             translateText("No summary provided.")}
                         </p>
                         <div className="mt-2 flex flex-wrap gap-2">
+                          <QuestionStatusBadge status={question.status} />
                           {!question.acceptedAnswerId ? (
                             <Badge variant="warning" appearance="outline">
                               {translateText("Needs answer decision")}
@@ -922,8 +932,7 @@ export function SpaceDetailPage() {
                           ) : null}
                         </div>
                       </div>
-                      <div className="flex shrink-0 flex-col gap-2 sm:items-end">
-                        <QuestionStatusBadge status={question.status} />
+                      <div className="flex flex-wrap gap-2">
                         <Button
                           variant="outline"
                           size="sm"
@@ -945,9 +954,29 @@ export function SpaceDetailPage() {
                         </Button>
                         <Button asChild variant="outline" size="sm">
                           <Link to={`/app/questions/${question.id}`}>
-                            {translateText("Open question")}
+                            <Link2 className="size-4" />
+                            {translateText("Open")}
                           </Link>
                         </Button>
+                        <ConfirmAction
+                          title={translateText('Delete question "{name}"?', {
+                            name: question.title,
+                          })}
+                          description={translateText(
+                            "This removes the question from the portal and breaks any accepted-answer linkage.",
+                          )}
+                          confirmLabel={translateText("Delete question")}
+                          isPending={deleteQuestion.isPending}
+                          onConfirm={() =>
+                            deleteQuestion.mutateAsync(question.id)
+                          }
+                          trigger={
+                            <Button variant="ghost" size="sm">
+                              <Trash2 className="size-4" />
+                              {translateText("Delete")}
+                            </Button>
+                          }
+                        />
                       </div>
                     </div>
                   ))

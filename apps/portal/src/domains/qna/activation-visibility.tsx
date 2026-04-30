@@ -19,11 +19,11 @@ export function useActivationVisibilityPrompt() {
   const currentVisibilityRef = useRef<VisibilityScope>(
     VisibilityScope.Internal,
   );
-  const resolveRef = useRef<((visibility: VisibilityScope) => void) | null>(
-    null,
-  );
+  const resolveRef = useRef<
+    ((visibility: VisibilityScope | null) => void) | null
+  >(null);
 
-  const resolveVisibility = useCallback((visibility: VisibilityScope) => {
+  const resolveVisibility = useCallback((visibility: VisibilityScope | null) => {
     resolveRef.current?.(visibility);
     resolveRef.current = null;
     setOpen(false);
@@ -38,7 +38,7 @@ export function useActivationVisibilityPrompt() {
       currentVisibilityRef.current = currentVisibility;
       setOpen(true);
 
-      return new Promise<VisibilityScope>((resolve) => {
+      return new Promise<VisibilityScope | null>((resolve) => {
         resolveRef.current = resolve;
       });
     },
@@ -51,7 +51,7 @@ export function useActivationVisibilityPrompt() {
       return;
     }
 
-    resolveVisibility(currentVisibilityRef.current);
+    resolveVisibility(null);
   };
 
   const ActivationVisibilityDialog = (
@@ -71,12 +71,18 @@ export function useActivationVisibilityPrompt() {
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel
+          <AlertDialogCancel onClick={() => resolveVisibility(null)}>
+            {t("Cancel")}
+          </AlertDialogCancel>
+          <Button
+            type="button"
+            variant="outline"
             onClick={() => resolveVisibility(currentVisibilityRef.current)}
           >
             {t("Keep current visibility")}
-          </AlertDialogCancel>
+          </Button>
           <Button
+            type="button"
             variant="primary"
             onClick={() => resolveVisibility(VisibilityScope.Public)}
           >

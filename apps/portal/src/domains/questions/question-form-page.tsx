@@ -306,8 +306,13 @@ export function QuestionFormPage({ mode }: { mode: "create" | "edit" }) {
                       isActivating &&
                       nextVisibility !== VisibilityScope.Public
                     ) {
-                      nextVisibility =
+                      const resolvedVisibility =
                         await resolveActivationVisibility(nextVisibility);
+                      if (resolvedVisibility === null) {
+                        return;
+                      }
+
+                      nextVisibility = resolvedVisibility;
                     }
 
                     const createBody = {
