@@ -80,6 +80,7 @@ public sealed class SeedRunner(
                            Guid.Empty,
                            httpContextAccessor))
                 {
+                    ApplyBigDataCommandTimeout(qnaDb, bigDataSettings);
                     cleanupService.CleanBigDataQnADb(qnaDb);
                 }
 
@@ -98,6 +99,7 @@ public sealed class SeedRunner(
                            Guid.Empty,
                            httpContextAccessor))
                 {
+                    ApplyBigDataCommandTimeout(qnaDb, bigDataSettings);
                     cleanupService.CleanQnADb(qnaDb);
                 }
 
@@ -112,6 +114,7 @@ public sealed class SeedRunner(
                            Guid.Empty,
                            httpContextAccessor))
                 {
+                    ApplyBigDataCommandTimeout(qnaDb, bigDataSettings);
                     cleanupService.CleanQnADb(qnaDb);
                 }
 
@@ -235,6 +238,7 @@ public sealed class SeedRunner(
             seedUserId,
             essentialSeed.TenantId,
             httpContextAccessor);
+        ApplyBigDataCommandTimeout(qnaDb, bigDataSettings);
 
         if (bigDataSeeder.HasData(qnaDb))
         {
@@ -252,6 +256,11 @@ public sealed class SeedRunner(
         bigDataSeeder.Seed(qnaDb, essentialSeed.TenantId, bigDataSettings);
         console.WriteLine("Seed Big Data complete.");
         return 0;
+    }
+
+    private static void ApplyBigDataCommandTimeout(QnADbContext qnaDb, BigDataSeedSettings bigDataSettings)
+    {
+        qnaDb.Database.SetCommandTimeout(bigDataSettings.CommandTimeoutSeconds);
     }
 
     private static string FormatConnectionInfo(NpgsqlConnectionStringBuilder builder)

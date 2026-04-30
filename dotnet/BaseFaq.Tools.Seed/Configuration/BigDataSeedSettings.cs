@@ -7,7 +7,8 @@ public sealed record BigDataSeedSettings(
     int QuestionsPerSpace,
     int TagsPerSpace,
     int SourcesPerSpace,
-    int ActivitiesPerQuestion)
+    int ActivitiesPerQuestion,
+    int CommandTimeoutSeconds)
 {
     private const int MinimumCount = 1;
 
@@ -16,7 +17,8 @@ public sealed record BigDataSeedSettings(
         QuestionsPerSpace: 10_000,
         TagsPerSpace: 2,
         SourcesPerSpace: 5,
-        ActivitiesPerQuestion: 10);
+        ActivitiesPerQuestion: 10,
+        CommandTimeoutSeconds: 0);
 
     public long QuestionCount => (long)SpaceCount * QuestionsPerSpace;
     public long AnswerCount => QuestionCount;
@@ -46,7 +48,8 @@ public sealed record BigDataSeedSettings(
             QuestionsPerSpace: GetPositiveInt(configuration, "Seed:BigData:QuestionsPerSpace", defaults.QuestionsPerSpace),
             TagsPerSpace: GetPositiveInt(configuration, "Seed:BigData:TagsPerSpace", defaults.TagsPerSpace),
             SourcesPerSpace: GetPositiveInt(configuration, "Seed:BigData:SourcesPerSpace", defaults.SourcesPerSpace),
-            ActivitiesPerQuestion: GetPositiveInt(configuration, "Seed:BigData:ActivitiesPerQuestion", defaults.ActivitiesPerQuestion));
+            ActivitiesPerQuestion: GetPositiveInt(configuration, "Seed:BigData:ActivitiesPerQuestion", defaults.ActivitiesPerQuestion),
+            CommandTimeoutSeconds: GetCommandTimeoutSeconds(configuration, defaults.CommandTimeoutSeconds));
     }
 
     private static int GetPositiveInt(IConfiguration configuration, string key, int defaultValue)
@@ -54,6 +57,14 @@ public sealed record BigDataSeedSettings(
         var value = configuration[key];
         return int.TryParse(value, out var parsed)
             ? Math.Max(MinimumCount, parsed)
+            : defaultValue;
+    }
+
+    private static int GetCommandTimeoutSeconds(IConfiguration configuration, int defaultValue)
+    {
+        var value = configuration["Seed:BigData:CommandTimeoutSeconds"];
+        return int.TryParse(value, out var parsed)
+            ? Math.Max(0, parsed)
             : defaultValue;
     }
 }
