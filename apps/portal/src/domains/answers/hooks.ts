@@ -32,6 +32,8 @@ export function useAnswerList(params: {
   page: number;
   pageSize: number;
   sorting?: string;
+  searchText?: string;
+  spaceId?: string;
   questionId?: string;
   status?: number;
   visibility?: number;

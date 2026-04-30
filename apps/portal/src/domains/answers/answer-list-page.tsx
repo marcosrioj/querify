@@ -17,6 +17,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAnswerList, useDeleteAnswer } from "@/domains/answers/hooks";
 import type { AnswerDto } from "@/domains/answers/types";
 import { useQuestion, useQuestionList } from "@/domains/questions/hooks";
+import { useSpace, useSpaceList } from "@/domains/spaces/hooks";
 import {
   AnswerStatus,
   visibilityScopeLabels,
@@ -40,6 +41,7 @@ import {
   ListFilterChipRail,
   ListFilterClearButton,
   ListFilterField,
+  ListFilterSearch,
   ListFilterSection,
   ListFilterToolbar,
   SectionGridSkeleton,
@@ -66,6 +68,7 @@ const sortingOptions = [
 
 const ANSWER_FILTER_DEFAULTS = {
   status: "all",
+  spaceId: "all",
   questionId: "all",
   accepted: "all",
   visibility: "all",
@@ -91,6 +94,15 @@ function buildQuestionOption(question: {
   };
 }
 
+function buildSpaceOption(space: { id: string; name: string; slug: string }) {
+  return {
+    value: space.id,
+    label: space.name,
+    description: space.slug,
+    keywords: [space.name, space.slug],
+  };
+}
+
 export function AnswerListPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -98,14 +110,20 @@ export function AnswerListPage() {
   const scopedToSource = Boolean(sourceId);
   const [questionSearch, setQuestionSearch] = useState("");
   const deferredQuestionSearch = useDeferredValue(questionSearch.trim());
+  const [spaceSearch, setSpaceSearch] = useState("");
+  const deferredSpaceSearch = useDeferredValue(spaceSearch.trim());
   const {
+    debouncedSearch,
     filters,
     page,
     pageSize,
     resetFilters,
+    search,
     setFilter,
+    setFilters,
     setPage,
     setPageSize,
+    setSearch,
     setSorting,
     sorting,
   } = useListQueryState({
@@ -113,17 +131,21 @@ export function AnswerListPage() {
     filterDefaults: ANSWER_FILTER_DEFAULTS,
   });
   const statusFilter = filters.status;
+  const spaceFilter = filters.spaceId;
   const questionFilter = filters.questionId;
   const acceptedFilter = filters.accepted;
   const visibilityFilter = filters.visibility;
   const apiStatus = statusFilter === "all" ? undefined : Number(statusFilter);
+  const apiSpaceId = spaceFilter === "all" ? undefined : spaceFilter;
   const apiQuestionId = questionFilter === "all" ? undefined : questionFilter;
   const apiAccepted =
     acceptedFilter === "all" ? undefined : acceptedFilter === "true";
   const apiVisibility =
     visibilityFilter === "all" ? undefined : Number(visibilityFilter);
   const activeFilterCount = [
+    search.trim(),
     statusFilter !== "all",
+    spaceFilter !== "all",
     questionFilter !== "all",
     acceptedFilter !== "all",
     visibilityFilter !== "all",
@@ -134,6 +156,8 @@ export function AnswerListPage() {
     page: scopedToSource ? 1 : page,
     pageSize: scopedToSource ? 100 : pageSize,
     sorting,
+    searchText: debouncedSearch || undefined,
+    spaceId: apiSpaceId,
     status: apiStatus,
     questionId: apiQuestionId,
     isAccepted: apiAccepted,
@@ -143,15 +167,30 @@ export function AnswerListPage() {
     page: 1,
     pageSize: 100,
     sorting: "Title ASC",
+    spaceId: apiSpaceId,
   });
   const questionSearchOptionsQuery = useQuestionList({
     page: 1,
     pageSize: 20,
     sorting: "Title ASC",
     searchText: deferredQuestionSearch || undefined,
+    spaceId: apiSpaceId,
     enabled: Boolean(deferredQuestionSearch),
   });
   const selectedQuestionQuery = useQuestion(apiQuestionId);
+  const spaceOptionsQuery = useSpaceList({
+    page: 1,
+    pageSize: 100,
+    sorting: "Name ASC",
+  });
+  const spaceSearchOptionsQuery = useSpaceList({
+    page: 1,
+    pageSize: 20,
+    sorting: "Name ASC",
+    searchText: deferredSpaceSearch || undefined,
+    enabled: Boolean(deferredSpaceSearch),
+  });
+  const selectedSpaceQuery = useSpace(apiSpaceId);
 
   useEffect(() => {
     if (scopedToSource) {
@@ -201,13 +240,26 @@ export function AnswerListPage() {
   const selectedQuestionOption = selectedQuestion
     ? buildQuestionOption(selectedQuestion)
     : null;
+  const spaceOptionItems = deferredSpaceSearch
+    ? (spaceSearchOptionsQuery.data?.items ?? [])
+    : (spaceOptionsQuery.data?.items ?? []);
+  const spaceOptions = spaceOptionItems.map(buildSpaceOption);
+  const selectedSpace =
+    spaceOptionItems.find((space) => space.id === apiSpaceId) ??
+    selectedSpaceQuery.data;
+  const selectedSpaceOption = selectedSpace
+    ? buildSpaceOption(selectedSpace)
+    : null;
   const showMetricsLoadingState =
     answerQuery.isLoading && answerQuery.data === undefined;
   const filtersLoading =
     answerQuery.isFetching ||
     questionOptionsQuery.isFetching ||
     questionSearchOptionsQuery.isFetching ||
-    selectedQuestionQuery.isFetching;
+    selectedQuestionQuery.isFetching ||
+    spaceOptionsQuery.isFetching ||
+    spaceSearchOptionsQuery.isFetching ||
+    selectedSpaceQuery.isFetching;
 
   const columns: DataTableColumn<AnswerDto>[] = [
     {
@@ -334,7 +386,11 @@ export function AnswerListPage() {
                 : (answerQuery.data?.totalCount ?? 0),
               description: scopedToSource
                 ? translateText("Filtered by source relationship")
-                : translateText("Answer candidates in this workspace"),
+                : debouncedSearch
+                  ? translateText("Search: {value}", {
+                      value: debouncedSearch,
+                    })
+                  : translateText("Answer candidates in this workspace"),
               icon: Medal,
             },
             {
@@ -371,6 +427,16 @@ export function AnswerListPage() {
         getRowId={(row) => row.id}
         loading={answerQuery.isLoading}
         onRowClick={(answer) => navigate(`/app/answers/${answer.id}`)}
+        headingControl={
+          <ListFilterSearch
+            value={search}
+            onChange={setSearch}
+            placeholder="Search answers by headline or body"
+            activeFilterCount={activeFilterCount}
+            onClear={clearFilters}
+            isLoading={answerQuery.isFetching}
+          />
+        }
         toolbar={
           <ListFilterToolbar isLoading={filtersLoading}>
             <ListFilterSection
@@ -398,7 +464,42 @@ export function AnswerListPage() {
                 ))}
               </ListFilterChipRail>
             </ListFilterSection>
-            <div className="grid w-full gap-3 md:grid-cols-2 xl:grid-cols-[minmax(260px,1fr)_200px_180px_220px]">
+            <div className="grid w-full gap-3 md:grid-cols-2 xl:grid-cols-[minmax(220px,1fr)_minmax(220px,1fr)_180px_180px_200px]">
+              <ListFilterField
+                label="Space"
+                className="md:col-span-2 xl:col-span-1"
+              >
+                <SearchSelect
+                  value={apiSpaceId ?? ""}
+                  onValueChange={(value) =>
+                    setFilters({
+                      spaceId: value || "all",
+                      questionId: "all",
+                    })
+                  }
+                  options={spaceOptions}
+                  selectedOption={selectedSpaceOption}
+                  placeholder={translateText("All spaces")}
+                  searchPlaceholder={translateText("Search spaces")}
+                  emptyMessage={
+                    deferredSpaceSearch
+                      ? translateText("No spaces match this search.")
+                      : translateText("No spaces available.")
+                  }
+                  loading={
+                    deferredSpaceSearch
+                      ? spaceSearchOptionsQuery.isFetching
+                      : spaceOptionsQuery.isFetching
+                  }
+                  searchValue={spaceSearch}
+                  onSearchChange={(value) =>
+                    startTransition(() => setSpaceSearch(value))
+                  }
+                  allowClear
+                  clearLabel={translateText("All spaces")}
+                  className="w-full"
+                />
+              </ListFilterField>
               <ListFilterField
                 label="Question"
                 className="md:col-span-2 xl:col-span-1"

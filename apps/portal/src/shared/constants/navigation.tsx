@@ -56,6 +56,13 @@ export const portalNavigationGroups: NavigationGroup[] = [
         icon: MessagesSquare,
       },
       {
+        key: "answers",
+        label: "Answers",
+        description: "Answer candidates in this workspace",
+        path: "/app/answers",
+        icon: SearchCheck,
+      },
+      {
         key: "sources",
         label: "Sources",
         description: "Evidence and trust catalog",
@@ -142,23 +149,6 @@ export function findPortalNavigationPath(
         return [item, ...childPath];
       }
     }
-  }
-
-  if (items === portalNavigation && key === "answers") {
-    const questions = portalNavigation.find((item) => item.key === "questions");
-
-    return questions
-      ? [
-          questions,
-          {
-            key: "answers-context",
-            label: "Answers",
-            description: "Answer workflow context",
-            path: "/app/answers",
-            icon: SearchCheck,
-          },
-        ]
-      : [];
   }
 
   return [];

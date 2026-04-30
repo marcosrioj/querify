@@ -15,6 +15,8 @@ export function listAnswers(
     page,
     pageSize,
     sorting,
+    searchText,
+    spaceId,
     questionId,
     status,
     visibility,
@@ -23,6 +25,8 @@ export function listAnswers(
     page: number;
     pageSize: number;
     sorting?: string;
+    searchText?: string;
+    spaceId?: string;
     questionId?: string;
     status?: number;
     visibility?: number;
@@ -36,6 +40,8 @@ export function listAnswers(
     accessToken: requireAccessToken(accessToken),
     tenantId: requireTenantId(tenantId),
     query: toPagedQuery(page, pageSize, sorting, {
+      SearchText: searchText,
+      SpaceId: spaceId,
       QuestionId: questionId,
       Status: status,
       Visibility: visibility,

@@ -18,6 +18,9 @@ public sealed class AnswersGetAnswerListQueryHandler(
     public async Task<PagedResultDto<AnswerDto>> Handle(AnswersGetAnswerListQuery request,
         CancellationToken cancellationToken)
     {
+        ArgumentNullException.ThrowIfNull(request);
+        ArgumentNullException.ThrowIfNull(request.Request);
+
         var tenantId = sessionService.GetTenantId(ModuleEnum.QnA);
         var query = dbContext.Answers
             .Include(answer => answer.Question)
@@ -25,6 +28,17 @@ public sealed class AnswersGetAnswerListQueryHandler(
             .Include(answer => answer.Sources)
             .ThenInclude(link => link.Source)
             .Where(answer => answer.TenantId == tenantId);
+
+        if (!string.IsNullOrWhiteSpace(request.Request.SearchText))
+            query = query.Where(answer =>
+                EF.Functions.ILike(answer.Headline, $"%{request.Request.SearchText}%") ||
+                EF.Functions.ILike(answer.Body ?? string.Empty, $"%{request.Request.SearchText}%") ||
+                EF.Functions.ILike(answer.ContextNote ?? string.Empty, $"%{request.Request.SearchText}%") ||
+                EF.Functions.ILike(answer.AuthorLabel ?? string.Empty, $"%{request.Request.SearchText}%") ||
+                EF.Functions.ILike(answer.Question.Title, $"%{request.Request.SearchText}%"));
+
+        if (request.Request.SpaceId is not null)
+            query = query.Where(answer => answer.Question.SpaceId == request.Request.SpaceId);
 
         if (request.Request.QuestionId is not null)
             query = query.Where(answer => answer.QuestionId == request.Request.QuestionId);
