@@ -7,4 +7,5 @@ public class TagDto
     public required string Name { get; set; }
     public int SpaceUsageCount { get; set; }
     public int QuestionUsageCount { get; set; }
+    public DateTime? LastUpdatedAtUtc { get; set; }
 }

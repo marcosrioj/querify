@@ -7,6 +7,8 @@ public class QuestionGetAllRequestDto : PagedAndSortedResultRequestDto
 {
     public string? SearchText { get; set; }
     public Guid? SpaceId { get; set; }
+    public Guid? SourceId { get; set; }
+    public Guid? TagId { get; set; }
     public Guid? AcceptedAnswerId { get; set; }
     public QuestionStatus? Status { get; set; }
     public VisibilityScope? Visibility { get; set; }

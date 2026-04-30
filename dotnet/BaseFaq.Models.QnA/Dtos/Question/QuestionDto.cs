@@ -19,4 +19,5 @@ public class QuestionDto
     public required int Sort { get; set; }
     public Guid? AcceptedAnswerId { get; set; }
     public DateTime? LastActivityAtUtc { get; set; }
+    public DateTime? LastUpdatedAtUtc { get; set; }
 }

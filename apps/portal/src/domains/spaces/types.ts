@@ -14,6 +14,7 @@ export type SpaceDto = {
   acceptsQuestions: boolean;
   acceptsAnswers: boolean;
   questionCount: number;
+  lastUpdatedAtUtc?: string | null;
 };
 
 export type SpaceDetailDto = SpaceDto & {

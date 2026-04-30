@@ -22,6 +22,7 @@ export type SourceDto = {
   metadataJson?: string | null;
   visibility: VisibilityScope;
   lastVerifiedAtUtc?: string | null;
+  lastUpdatedAtUtc?: string | null;
   spaceUsageCount: number;
   questionUsageCount: number;
   answerUsageCount: number;

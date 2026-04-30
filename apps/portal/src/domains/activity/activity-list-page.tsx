@@ -4,7 +4,6 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import { usePortalTimeZone } from "@/domains/settings/settings-hooks";
 import { useActivityList } from "@/domains/activity/hooks";
 import type { ActivityDto } from "@/domains/activity/types";
-import { useQuestionList } from "@/domains/questions/hooks";
 import {
   ActivityKind,
   ActorKind,
@@ -26,6 +25,7 @@ import { translateText } from "@/shared/lib/i18n-core";
 import {
   ListFilterClearButton,
   ListFilterField,
+  ListFilterSearch,
   ListFilterSection,
   ListFilterToolbar,
   SectionGridSkeleton,
@@ -38,8 +38,12 @@ import {
 import { ActivityKindBadge, ActorKindBadge } from "@/shared/ui/status-badges";
 
 const sortingOptions = [
-  { value: "OccurredAtUtc DESC", label: "Latest first" },
-  { value: "OccurredAtUtc ASC", label: "Oldest first" },
+  { value: "OccurredAtUtc DESC", label: "Latest activity" },
+  { value: "OccurredAtUtc ASC", label: "Oldest activity" },
+  { value: "Kind ASC", label: "Event kind A-Z" },
+  { value: "Kind DESC", label: "Event kind Z-A" },
+  { value: "ActorKind ASC", label: "Actor kind A-Z" },
+  { value: "ActorKind DESC", label: "Actor kind Z-A" },
 ];
 
 const ACTIVITY_FILTER_DEFAULTS = {
@@ -52,13 +56,16 @@ export function ActivityListPage() {
   const portalTimeZone = usePortalTimeZone();
   const [searchParams] = useSearchParams();
   const {
+    debouncedSearch,
     filters,
     page,
     pageSize,
     resetFilters,
+    search,
     setFilter,
     setPage,
     setPageSize,
+    setSearch,
     setSorting,
     sorting,
   } = useListQueryState({
@@ -71,6 +78,7 @@ export function ActivityListPage() {
   const apiActorKind =
     actorKindFilter === "all" ? undefined : Number(actorKindFilter);
   const activeFilterCount = [
+    search.trim(),
     kindFilter !== "all",
     actorKindFilter !== "all",
   ].filter(Boolean).length;
@@ -78,33 +86,21 @@ export function ActivityListPage() {
   const questionId = searchParams.get("questionId") ?? undefined;
   const answerId = searchParams.get("answerId") ?? undefined;
   const spaceId = searchParams.get("spaceId") ?? undefined;
-  const scopedToSpace = Boolean(spaceId);
-  const spaceQuestionsQuery = useQuestionList({
-    page: 1,
-    pageSize: 100,
-    sorting: "Title ASC",
-    spaceId,
-    enabled: scopedToSpace,
-  });
 
   const activityQuery = useActivityList({
-    page: scopedToSpace ? 1 : page,
-    pageSize: scopedToSpace ? 200 : pageSize,
+    page,
+    pageSize,
     sorting,
-    questionId: scopedToSpace ? undefined : questionId,
-    answerId: scopedToSpace ? undefined : answerId,
+    searchText: debouncedSearch || undefined,
+    spaceId,
+    questionId,
+    answerId,
     kind: apiKind,
     actorKind: apiActorKind,
   });
-  const filtersLoading =
-    activityQuery.isFetching ||
-    (scopedToSpace && spaceQuestionsQuery.isFetching);
+  const filtersLoading = activityQuery.isFetching;
 
   useEffect(() => {
-    if (scopedToSpace) {
-      return;
-    }
-
     const totalCount = activityQuery.data?.totalCount;
 
     if (totalCount === undefined) {
@@ -115,16 +111,9 @@ export function ActivityListPage() {
     if (nextPage !== page) {
       setPage(nextPage, { replace: true });
     }
-  }, [activityQuery.data?.totalCount, page, pageSize, scopedToSpace, setPage]);
+  }, [activityQuery.data?.totalCount, page, pageSize, setPage]);
 
-  const spaceQuestionIds = new Set(
-    (spaceQuestionsQuery.data?.items ?? []).map((question) => question.id),
-  );
-  const rows = scopedToSpace
-    ? (activityQuery.data?.items ?? []).filter((event) =>
-        spaceQuestionIds.has(event.questionId),
-      )
-    : (activityQuery.data?.items ?? []);
+  const rows = activityQuery.data?.items ?? [];
   const moderationCount = rows.filter(
     (event) => event.actorKind === ActorKind.Moderator,
   ).length;
@@ -213,19 +202,14 @@ export function ActivityListPage() {
         </>
       }
     >
-      {(activityQuery.isLoading && activityQuery.data === undefined) ||
-      (scopedToSpace &&
-        spaceQuestionsQuery.isLoading &&
-        spaceQuestionsQuery.data === undefined) ? (
+      {activityQuery.isLoading && activityQuery.data === undefined ? (
         <SectionGridSkeleton />
       ) : (
         <SectionGrid
           items={[
             {
               title: "Total",
-              value: scopedToSpace
-                ? rows.length
-                : (activityQuery.data?.totalCount ?? 0),
+              value: activityQuery.data?.totalCount ?? 0,
               description: spaceId
                 ? translateText("Scoped to the current Space")
                 : questionId
@@ -263,11 +247,18 @@ export function ActivityListPage() {
         columns={columns}
         rows={rows}
         getRowId={(row) => row.id}
-        loading={
-          activityQuery.isLoading ||
-          (scopedToSpace && spaceQuestionsQuery.isLoading)
-        }
+        loading={activityQuery.isLoading}
         onRowClick={(row) => navigate(`/app/activity/${row.id}`)}
+        headingControl={
+          <ListFilterSearch
+            value={search}
+            onChange={setSearch}
+            placeholder="Search activity by actor, notes, or subject"
+            activeFilterCount={activeFilterCount}
+            onClear={clearFilters}
+            isLoading={activityQuery.isFetching}
+          />
+        }
         toolbar={
           <ListFilterToolbar isLoading={filtersLoading}>
             <ListFilterSection
@@ -350,21 +341,18 @@ export function ActivityListPage() {
           />
         }
         errorState={
-          activityQuery.isError || spaceQuestionsQuery.isError ? (
+          activityQuery.isError ? (
             <ErrorState
               title="Unable to load activity"
-              error={activityQuery.error ?? spaceQuestionsQuery.error}
+              error={activityQuery.error}
               retry={() => {
                 void activityQuery.refetch();
-                if (scopedToSpace) {
-                  void spaceQuestionsQuery.refetch();
-                }
               }}
             />
           ) : undefined
         }
         footer={
-          !scopedToSpace && activityQuery.data ? (
+          activityQuery.data ? (
             <PaginationControls
               page={page}
               pageSize={pageSize}

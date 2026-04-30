@@ -10,6 +10,8 @@ export function listActivity(
     page,
     pageSize,
     sorting,
+    searchText,
+    spaceId,
     questionId,
     answerId,
     kind,
@@ -18,6 +20,8 @@ export function listActivity(
     page: number;
     pageSize: number;
     sorting?: string;
+    searchText?: string;
+    spaceId?: string;
     questionId?: string;
     answerId?: string;
     kind?: number;
@@ -31,6 +35,8 @@ export function listActivity(
     accessToken: requireAccessToken(accessToken),
     tenantId: requireTenantId(tenantId),
     query: toPagedQuery(page, pageSize, sorting, {
+      SearchText: searchText,
+      SpaceId: spaceId,
       QuestionId: questionId,
       AnswerId: answerId,
       Kind: kind,

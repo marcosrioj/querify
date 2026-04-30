@@ -54,6 +54,7 @@ public static class AnswerMapping
             IsOfficial = entity.Kind == AnswerKind.Official,
             ActivatedAtUtc = entity.ActivatedAtUtc,
             RetiredAtUtc = entity.RetiredAtUtc,
+            LastUpdatedAtUtc = entity.UpdatedDate ?? entity.CreatedDate,
             VoteScore = ActivitySignals.ComputeVoteScore(questionActivity.Select(ToSignalEntry), entity.Id),
             Sources = sources
                 .OrderBy(source => source.Order)

@@ -25,6 +25,7 @@ export type QuestionDto = {
   sort: number;
   acceptedAnswerId?: string | null;
   lastActivityAtUtc?: string | null;
+  lastUpdatedAtUtc?: string | null;
 };
 
 export type QuestionSourceLinkDto = {

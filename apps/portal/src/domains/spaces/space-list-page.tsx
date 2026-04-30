@@ -9,6 +9,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
+import { usePortalTimeZone } from "@/domains/settings/settings-hooks";
 import { useDeleteSpace, useSpaceList } from "@/domains/spaces/hooks";
 import type { SpaceDto } from "@/domains/spaces/types";
 import {
@@ -22,6 +23,7 @@ import {
   SectionGrid,
 } from "@/shared/layout/page-layouts";
 import { clampPage } from "@/shared/lib/pagination";
+import { formatOptionalDateTimeInTimeZone } from "@/shared/lib/time-zone";
 import { useListQueryState } from "@/shared/lib/use-list-query-state";
 import { DataTable, type DataTableColumn } from "@/shared/ui/data-table";
 import { PaginationControls } from "@/shared/ui/pagination-controls";
@@ -47,10 +49,16 @@ import {
 import { SpaceStatusBadge, VisibilityBadge } from "@/shared/ui/status-badges";
 
 const sortingOptions = [
+  { value: "LastUpdatedAtUtc DESC", label: "Last update newest" },
+  { value: "LastUpdatedAtUtc ASC", label: "Last update oldest" },
   { value: "Name ASC", label: "Name A-Z" },
+  { value: "Name DESC", label: "Name Z-A" },
   { value: "Slug ASC", label: "Slug A-Z" },
-  { value: "QuestionCount DESC", label: "Question count" },
-  { value: "Status ASC", label: "Status" },
+  { value: "Slug DESC", label: "Slug Z-A" },
+  { value: "QuestionCount DESC", label: "Questions high-low" },
+  { value: "QuestionCount ASC", label: "Questions low-high" },
+  { value: "Status ASC", label: "Status A-Z" },
+  { value: "Status DESC", label: "Status Z-A" },
 ];
 
 const SPACE_FILTER_DEFAULTS = {
@@ -78,6 +86,7 @@ const spaceStatusBuckets = [
 
 export function SpaceListPage() {
   const navigate = useNavigate();
+  const portalTimeZone = usePortalTimeZone();
   const {
     debouncedSearch,
     filters,
@@ -93,7 +102,7 @@ export function SpaceListPage() {
     setSorting,
     sorting,
   } = useListQueryState({
-    defaultSorting: "Name ASC",
+    defaultSorting: "LastUpdatedAtUtc DESC",
     filterDefaults: SPACE_FILTER_DEFAULTS,
   });
   const visibilityFilter = filters.visibility;
@@ -227,6 +236,20 @@ export function SpaceListPage() {
       ),
     },
     {
+      key: "lastUpdatedAtUtc",
+      header: "Last update",
+      className: "lg:w-[160px]",
+      cell: (space) => (
+        <span className="break-words text-sm text-muted-foreground">
+          {formatOptionalDateTimeInTimeZone(
+            space.lastUpdatedAtUtc,
+            portalTimeZone,
+            translateText("No update"),
+          )}
+        </span>
+      ),
+    },
+    {
       key: "actions",
       header: "Actions",
       className: "lg:w-[120px]",
@@ -332,7 +355,7 @@ export function SpaceListPage() {
           <ListFilterSearch
             value={search}
             onChange={setSearch}
-            placeholder="Search spaces by name or slug"
+            placeholder="Search spaces by name, slug, summary, or language"
             activeFilterCount={activeFilterCount}
             onClear={clearFilters}
             isLoading={spaceQuery.isFetching}

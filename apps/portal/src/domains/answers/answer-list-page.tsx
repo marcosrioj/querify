@@ -17,6 +17,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAnswerList, useDeleteAnswer } from "@/domains/answers/hooks";
 import type { AnswerDto } from "@/domains/answers/types";
 import { useQuestion, useQuestionList } from "@/domains/questions/hooks";
+import { usePortalTimeZone } from "@/domains/settings/settings-hooks";
 import { useSpace, useSpaceList } from "@/domains/spaces/hooks";
 import {
   AnswerStatus,
@@ -28,6 +29,7 @@ import {
   SectionGrid,
 } from "@/shared/layout/page-layouts";
 import { clampPage } from "@/shared/lib/pagination";
+import { formatOptionalDateTimeInTimeZone } from "@/shared/lib/time-zone";
 import { useListQueryState } from "@/shared/lib/use-list-query-state";
 import { translateText } from "@/shared/lib/i18n-core";
 import { DataTable, type DataTableColumn } from "@/shared/ui/data-table";
@@ -59,11 +61,18 @@ import {
 } from "@/shared/ui/status-badges";
 
 const sortingOptions = [
-  { value: "Sort ASC", label: "Sort" },
-  { value: "Score DESC", label: "Score" },
-  { value: "ActivatedAtUtc DESC", label: "Recently activated" },
-  { value: "VoteScore DESC", label: "Vote score" },
-  { value: "AiConfidenceScore DESC", label: "AI confidence" },
+  { value: "LastUpdatedAtUtc DESC", label: "Last update newest" },
+  { value: "LastUpdatedAtUtc ASC", label: "Last update oldest" },
+  { value: "Headline ASC", label: "Headline A-Z" },
+  { value: "Headline DESC", label: "Headline Z-A" },
+  { value: "Score DESC", label: "Score high-low" },
+  { value: "Score ASC", label: "Score low-high" },
+  { value: "ActivatedAtUtc DESC", label: "Activation newest" },
+  { value: "ActivatedAtUtc ASC", label: "Activation oldest" },
+  { value: "AiConfidenceScore DESC", label: "AI confidence high-low" },
+  { value: "AiConfidenceScore ASC", label: "AI confidence low-high" },
+  { value: "Sort ASC", label: "Sort low-high" },
+  { value: "Sort DESC", label: "Sort high-low" },
 ];
 
 const ANSWER_FILTER_DEFAULTS = {
@@ -105,6 +114,7 @@ function buildSpaceOption(space: { id: string; name: string; slug: string }) {
 
 export function AnswerListPage() {
   const navigate = useNavigate();
+  const portalTimeZone = usePortalTimeZone();
   const [searchParams] = useSearchParams();
   const sourceId = searchParams.get("sourceId") ?? undefined;
   const scopedToSource = Boolean(sourceId);
@@ -127,7 +137,7 @@ export function AnswerListPage() {
     setSorting,
     sorting,
   } = useListQueryState({
-    defaultSorting: "Sort ASC",
+    defaultSorting: "LastUpdatedAtUtc DESC",
     filterDefaults: ANSWER_FILTER_DEFAULTS,
   });
   const statusFilter = filters.status;
@@ -153,11 +163,12 @@ export function AnswerListPage() {
   const clearFilters = () => resetFilters();
 
   const answerQuery = useAnswerList({
-    page: scopedToSource ? 1 : page,
-    pageSize: scopedToSource ? 100 : pageSize,
+    page,
+    pageSize,
     sorting,
     searchText: debouncedSearch || undefined,
     spaceId: apiSpaceId,
+    sourceId,
     status: apiStatus,
     questionId: apiQuestionId,
     isAccepted: apiAccepted,
@@ -193,10 +204,6 @@ export function AnswerListPage() {
   const selectedSpaceQuery = useSpace(apiSpaceId);
 
   useEffect(() => {
-    if (scopedToSource) {
-      return;
-    }
-
     const totalCount = answerQuery.data?.totalCount;
 
     if (totalCount === undefined) {
@@ -207,14 +214,10 @@ export function AnswerListPage() {
     if (nextPage !== page) {
       setPage(nextPage, { replace: true });
     }
-  }, [answerQuery.data?.totalCount, page, pageSize, scopedToSource, setPage]);
+  }, [answerQuery.data?.totalCount, page, pageSize, setPage]);
 
   const deleteAnswer = useDeleteAnswer();
-  const answerRows = scopedToSource
-    ? (answerQuery.data?.items ?? []).filter((answer) =>
-        answer.sources.some((link) => link.sourceId === sourceId),
-      )
-    : (answerQuery.data?.items ?? []);
+  const answerRows = answerQuery.data?.items ?? [];
   const activeCount = answerRows.filter(
     (answer) => answer.status === AnswerStatus.Active,
   ).length;
@@ -323,6 +326,20 @@ export function AnswerListPage() {
       ),
     },
     {
+      key: "lastUpdatedAtUtc",
+      header: "Last update",
+      className: "lg:w-[160px]",
+      cell: (answer) => (
+        <span className="break-words text-sm text-muted-foreground">
+          {formatOptionalDateTimeInTimeZone(
+            answer.lastUpdatedAtUtc,
+            portalTimeZone,
+            translateText("No update"),
+          )}
+        </span>
+      ),
+    },
+    {
       key: "actions",
       header: "Actions",
       className: "lg:w-[120px]",
@@ -381,9 +398,7 @@ export function AnswerListPage() {
           items={[
             {
               title: "Total",
-              value: scopedToSource
-                ? answerRows.length
-                : (answerQuery.data?.totalCount ?? 0),
+              value: answerQuery.data?.totalCount ?? 0,
               description: scopedToSource
                 ? translateText("Filtered by source relationship")
                 : debouncedSearch
@@ -603,7 +618,7 @@ export function AnswerListPage() {
           ) : undefined
         }
         footer={
-          !scopedToSource && answerQuery.data ? (
+          answerQuery.data ? (
             <PaginationControls
               page={page}
               pageSize={pageSize}

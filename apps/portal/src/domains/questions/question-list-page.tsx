@@ -21,7 +21,7 @@ import {
   SectionGrid,
 } from "@/shared/layout/page-layouts";
 import { clampPage } from "@/shared/lib/pagination";
-import { formatNumericDateTimeInTimeZone } from "@/shared/lib/time-zone";
+import { formatOptionalDateTimeInTimeZone } from "@/shared/lib/time-zone";
 import { useListQueryState } from "@/shared/lib/use-list-query-state";
 import { translateText } from "@/shared/lib/i18n-core";
 import { DataTable, type DataTableColumn } from "@/shared/ui/data-table";
@@ -53,10 +53,15 @@ import {
 
 const sortingOptions = [
   { value: "LastActivityAtUtc DESC", label: "Latest activity" },
+  { value: "LastActivityAtUtc ASC", label: "Oldest activity" },
   { value: "Title ASC", label: "Title A-Z" },
-  { value: "FeedbackScore DESC", label: "Feedback score" },
-  { value: "AiConfidenceScore DESC", label: "AI confidence" },
-  { value: "Sort ASC", label: "Sort" },
+  { value: "Title DESC", label: "Title Z-A" },
+  { value: "FeedbackScore DESC", label: "Feedback high-low" },
+  { value: "FeedbackScore ASC", label: "Feedback low-high" },
+  { value: "AiConfidenceScore DESC", label: "AI confidence high-low" },
+  { value: "AiConfidenceScore ASC", label: "AI confidence low-high" },
+  { value: "Sort ASC", label: "Sort low-high" },
+  { value: "Sort DESC", label: "Sort high-low" },
 ];
 
 const QUESTION_FILTER_DEFAULTS = {
@@ -128,15 +133,15 @@ export function QuestionListPage() {
   const clearFilters = () => resetFilters();
 
   const questionQuery = useQuestionList({
-    page: scopedToRelationship ? 1 : page,
-    pageSize: scopedToRelationship ? 100 : pageSize,
+    page,
+    pageSize,
     sorting,
     searchText: debouncedSearch || undefined,
     status: apiStatus,
     visibility: apiVisibility,
     spaceId: apiSpaceId,
-    includeSources: Boolean(sourceId),
-    includeTags: Boolean(tagId),
+    sourceId,
+    tagId,
   });
   const spaceOptionsQuery = useSpaceList({
     page: 1,
@@ -153,10 +158,6 @@ export function QuestionListPage() {
   const selectedSpaceQuery = useSpace(apiSpaceId);
 
   useEffect(() => {
-    if (scopedToRelationship) {
-      return;
-    }
-
     const totalCount = questionQuery.data?.totalCount;
 
     if (totalCount === undefined) {
@@ -171,23 +172,11 @@ export function QuestionListPage() {
     page,
     pageSize,
     questionQuery.data?.totalCount,
-    scopedToRelationship,
     setPage,
   ]);
 
   const deleteQuestion = useDeleteQuestion();
-  const questionRows = (
-    (questionQuery.data?.items ?? []) as QuestionListRow[]
-  ).filter((question) => {
-    const matchesSource = sourceId
-      ? question.sources?.some((link) => link.sourceId === sourceId)
-      : true;
-    const matchesTag = tagId
-      ? question.tags?.some((tag) => tag.id === tagId)
-      : true;
-
-    return matchesSource && matchesTag;
-  });
+  const questionRows = (questionQuery.data?.items ?? []) as QuestionListRow[];
   const acceptedAnswerCount = questionRows.filter((question) =>
     Boolean(question.acceptedAnswerId),
   ).length;
@@ -286,9 +275,10 @@ export function QuestionListPage() {
       className: "lg:w-[160px]",
       cell: (question) => (
         <span className="break-words text-sm text-muted-foreground">
-          {formatNumericDateTimeInTimeZone(
+          {formatOptionalDateTimeInTimeZone(
             question.lastActivityAtUtc,
             portalTimeZone,
+            translateText("No activity"),
           )}
         </span>
       ),
@@ -354,9 +344,7 @@ export function QuestionListPage() {
           items={[
             {
               title: "Total",
-              value: scopedToRelationship
-                ? questionRows.length
-                : (questionQuery.data?.totalCount ?? 0),
+              value: questionQuery.data?.totalCount ?? 0,
               description: scopedToRelationship
                 ? translateText("Filtered by relationship")
                 : debouncedSearch
@@ -522,7 +510,7 @@ export function QuestionListPage() {
           ) : undefined
         }
         footer={
-          !scopedToRelationship && questionQuery.data ? (
+          questionQuery.data ? (
             <PaginationControls
               page={page}
               pageSize={pageSize}

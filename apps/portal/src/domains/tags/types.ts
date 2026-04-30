@@ -4,6 +4,7 @@ export type TagDto = {
   name: string;
   spaceUsageCount: number;
   questionUsageCount: number;
+  lastUpdatedAtUtc?: string | null;
 };
 
 export type TagCreateRequestDto = {

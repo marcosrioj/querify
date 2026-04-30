@@ -36,6 +36,8 @@ export function useQuestionList(params: {
   sorting?: string;
   searchText?: string;
   spaceId?: string;
+  sourceId?: string;
+  tagId?: string;
   acceptedAnswerId?: string;
   status?: number;
   visibility?: number;

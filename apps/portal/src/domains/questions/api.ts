@@ -19,6 +19,8 @@ export function listQuestions(
     sorting,
     searchText,
     spaceId,
+    sourceId,
+    tagId,
     acceptedAnswerId,
     status,
     visibility,
@@ -33,6 +35,8 @@ export function listQuestions(
     sorting?: string;
     searchText?: string;
     spaceId?: string;
+    sourceId?: string;
+    tagId?: string;
     acceptedAnswerId?: string;
     status?: number;
     visibility?: number;
@@ -52,6 +56,8 @@ export function listQuestions(
     query: toPagedQuery(page, pageSize, sorting, {
       SearchText: searchText,
       SpaceId: spaceId,
+      SourceId: sourceId,
+      TagId: tagId,
       AcceptedAnswerId: acceptedAnswerId,
       Status: status,
       Visibility: visibility,

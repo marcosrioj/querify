@@ -21,6 +21,7 @@ public class AnswerDto
     public required bool IsOfficial { get; set; }
     public DateTime? ActivatedAtUtc { get; set; }
     public DateTime? RetiredAtUtc { get; set; }
+    public DateTime? LastUpdatedAtUtc { get; set; }
     public required int VoteScore { get; set; }
     public IReadOnlyList<AnswerSourceLinkDto> Sources { get; set; } = [];
 }

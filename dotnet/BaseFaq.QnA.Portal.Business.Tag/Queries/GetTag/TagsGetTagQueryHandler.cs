@@ -23,7 +23,8 @@ public sealed class TagsGetTagQueryHandler(QnADbContext dbContext, ISessionServi
                 TenantId = tag.TenantId,
                 Name = tag.Name,
                 SpaceUsageCount = tag.Spaces.Count,
-                QuestionUsageCount = tag.Questions.Count
+                QuestionUsageCount = tag.Questions.Count,
+                LastUpdatedAtUtc = tag.UpdatedDate ?? tag.CreatedDate
             })
             .SingleOrDefaultAsync(cancellationToken);
 

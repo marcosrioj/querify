@@ -24,6 +24,7 @@ public static class SourceMapping
             MetadataJson = entity.MetadataJson,
             Visibility = entity.Visibility,
             LastVerifiedAtUtc = entity.LastVerifiedAtUtc,
+            LastUpdatedAtUtc = entity.UpdatedDate ?? entity.CreatedDate,
             SpaceUsageCount = entity.Spaces.Count,
             QuestionUsageCount = entity.Questions.Count,
             AnswerUsageCount = entity.Answers.Count

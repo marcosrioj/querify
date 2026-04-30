@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useQuestion, useRemoveQuestionTag } from "@/domains/questions/hooks";
+import { usePortalTimeZone } from "@/domains/settings/settings-hooks";
 import { useRemoveSpaceTag, useSpace } from "@/domains/spaces/hooks";
 import { useDeleteTag, useTagList } from "@/domains/tags/hooks";
 import type { TagDto } from "@/domains/tags/types";
@@ -20,19 +21,40 @@ import {
 } from "@/shared/layout/page-layouts";
 import { translateText } from "@/shared/lib/i18n-core";
 import { clampPage } from "@/shared/lib/pagination";
+import { formatOptionalDateTimeInTimeZone } from "@/shared/lib/time-zone";
 import { useListQueryState } from "@/shared/lib/use-list-query-state";
 import {
   Badge,
   Button,
   ConfirmAction,
+  ListFilterField,
   ListFilterSearch,
+  ListFilterToolbar,
   SectionGridSkeleton,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/shared/ui";
 import { DataTable, type DataTableColumn } from "@/shared/ui/data-table";
 import { PaginationControls } from "@/shared/ui/pagination-controls";
 import { EmptyState, ErrorState } from "@/shared/ui/placeholder-state";
 
 const TAG_FILTER_DEFAULTS = {} as const;
+
+const sortingOptions = [
+  { value: "LastUpdatedAtUtc DESC", label: "Last update newest" },
+  { value: "LastUpdatedAtUtc ASC", label: "Last update oldest" },
+  { value: "Name ASC", label: "Name A-Z" },
+  { value: "Name DESC", label: "Name Z-A" },
+  { value: "LinkedRecordCount DESC", label: "Linked records high-low" },
+  { value: "LinkedRecordCount ASC", label: "Linked records low-high" },
+  { value: "SpaceUsageCount DESC", label: "Spaces high-low" },
+  { value: "SpaceUsageCount ASC", label: "Spaces low-high" },
+  { value: "QuestionUsageCount DESC", label: "Questions high-low" },
+  { value: "QuestionUsageCount ASC", label: "Questions low-high" },
+];
 
 type TagRelationshipKind = "space" | "question";
 
@@ -50,8 +72,54 @@ function tagMatchesSearch(tag: TagListRow, searchText: string) {
   return tag.name.toLowerCase().includes(searchText.toLowerCase());
 }
 
+function compareDate(left: string | null | undefined, right: string | null | undefined) {
+  return (left ? new Date(left).getTime() : 0) - (right ? new Date(right).getTime() : 0);
+}
+
+function tagLinkedRecordCount(tag: TagListRow) {
+  return tag.spaceUsageCount + tag.questionUsageCount;
+}
+
+function sortTags(tags: TagListRow[], sorting: string) {
+  const normalizedSorting = sorting.trim().toLowerCase();
+  const sortedTags = [...tags];
+
+  sortedTags.sort((left, right) => {
+    switch (normalizedSorting) {
+      case "name asc":
+      case "name":
+        return left.name.localeCompare(right.name);
+      case "name desc":
+        return right.name.localeCompare(left.name);
+      case "linkedrecordcount asc":
+      case "linkedrecordcount":
+        return tagLinkedRecordCount(left) - tagLinkedRecordCount(right);
+      case "linkedrecordcount desc":
+        return tagLinkedRecordCount(right) - tagLinkedRecordCount(left);
+      case "spaceusagecount desc":
+        return right.spaceUsageCount - left.spaceUsageCount;
+      case "spaceusagecount asc":
+      case "spaceusagecount":
+        return left.spaceUsageCount - right.spaceUsageCount;
+      case "questionusagecount desc":
+        return right.questionUsageCount - left.questionUsageCount;
+      case "questionusagecount asc":
+      case "questionusagecount":
+        return left.questionUsageCount - right.questionUsageCount;
+      case "lastupdatedatutc asc":
+      case "lastupdatedatutc":
+        return compareDate(left.lastUpdatedAtUtc, right.lastUpdatedAtUtc);
+      default:
+        return compareDate(right.lastUpdatedAtUtc, left.lastUpdatedAtUtc) || left.name.localeCompare(right.name);
+    }
+  });
+
+  return sortedTags;
+}
+
 export function TagListPage() {
   const navigate = useNavigate();
+  const portalTimeZone = usePortalTimeZone();
   const [searchParams] = useSearchParams();
   const spaceId = searchParams.get("spaceId") ?? "";
   const questionId = searchParams.get("questionId") ?? "";
@@ -70,8 +138,10 @@ export function TagListPage() {
     setPage,
     setPageSize,
     setSearch,
+    setSorting,
+    sorting,
   } = useListQueryState({
-    defaultSorting: "Name ASC",
+    defaultSorting: "LastUpdatedAtUtc DESC",
     filterDefaults: TAG_FILTER_DEFAULTS,
   });
   const activeFilterCount = search.trim() ? 1 : 0;
@@ -82,7 +152,7 @@ export function TagListPage() {
   const tagQuery = useTagList({
     page,
     pageSize,
-    sorting: "Name ASC",
+    sorting,
     searchText: debouncedSearch || undefined,
     enabled: !relationshipActive,
   });
@@ -108,7 +178,12 @@ export function TagListPage() {
     return [];
   }, [questionId, questionQuery.data?.tags, spaceId, spaceQuery.data?.tags]);
   const tagRows = relationshipActive
-    ? relationshipRows.filter((tag) => tagMatchesSearch(tag, debouncedSearch))
+    ? sortTags(
+        relationshipRows.filter((tag) =>
+          tagMatchesSearch(tag, debouncedSearch),
+        ),
+        sorting,
+      )
     : ((tagQuery.data?.items ?? []) as TagListRow[]);
   const relationshipLoading =
     (spaceId && spaceQuery.isLoading && !spaceQuery.data) ||
@@ -207,6 +282,20 @@ export function TagListPage() {
             </Badge>
           </div>
         ),
+    },
+    {
+      key: "lastUpdatedAtUtc",
+      header: "Last update",
+      className: "lg:w-[160px]",
+      cell: (tag) => (
+        <span className="break-words text-sm text-muted-foreground">
+          {formatOptionalDateTimeInTimeZone(
+            tag.lastUpdatedAtUtc,
+            portalTimeZone,
+            translateText("No update"),
+          )}
+        </span>
+      ),
     },
     {
       key: "actions",
@@ -368,6 +457,24 @@ export function TagListPage() {
             onClear={clearFilters}
             isLoading={filtersLoading}
           />
+        }
+        toolbar={
+          <ListFilterToolbar isLoading={filtersLoading}>
+            <ListFilterField label="Sort" className="max-w-sm">
+              <Select value={sorting} onValueChange={setSorting}>
+                <SelectTrigger className="w-full" size="lg">
+                  <SelectValue placeholder={translateText("Sort tags")} />
+                </SelectTrigger>
+                <SelectContent>
+                  {sortingOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {translateText(option.label)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </ListFilterField>
+          </ListFilterToolbar>
         }
         emptyState={
           <EmptyState

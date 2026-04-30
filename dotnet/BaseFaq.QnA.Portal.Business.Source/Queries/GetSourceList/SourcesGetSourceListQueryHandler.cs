@@ -27,7 +27,11 @@ public sealed class SourcesGetSourceListQueryHandler(
         if (!string.IsNullOrWhiteSpace(request.Request.SearchText))
             query = query.Where(source =>
                 EF.Functions.ILike(source.Locator, $"%{request.Request.SearchText}%") ||
-                EF.Functions.ILike(source.Label ?? string.Empty, $"%{request.Request.SearchText}%"));
+                EF.Functions.ILike(source.Label ?? string.Empty, $"%{request.Request.SearchText}%") ||
+                EF.Functions.ILike(source.ContextNote ?? string.Empty, $"%{request.Request.SearchText}%") ||
+                EF.Functions.ILike(source.ExternalId ?? string.Empty, $"%{request.Request.SearchText}%") ||
+                EF.Functions.ILike(source.Language, $"%{request.Request.SearchText}%") ||
+                EF.Functions.ILike(source.MediaType ?? string.Empty, $"%{request.Request.SearchText}%"));
 
         if (request.Request.Kind is not null) query = query.Where(source => source.Kind == request.Request.Kind);
 
@@ -36,10 +40,31 @@ public sealed class SourcesGetSourceListQueryHandler(
 
         query = request.Request.Sorting?.Trim().ToLowerInvariant() switch
         {
-            "kind" => query.OrderBy(source => source.Kind).ThenBy(source => source.Label),
+            "lastupdatedatutc" or "lastupdatedatutc desc" or "updateddate" or "updateddate desc" =>
+                query.OrderByDescending(source => source.UpdatedDate ?? source.CreatedDate),
+            "lastupdatedatutc asc" or "updateddate asc" => query.OrderBy(source =>
+                source.UpdatedDate ?? source.CreatedDate),
+            "kind" or "kind asc" => query.OrderBy(source => source.Kind).ThenBy(source => source.Label),
             "kind desc" => query.OrderByDescending(source => source.Kind).ThenBy(source => source.Label),
+            "label" or "label asc" => query.OrderBy(source => source.Label).ThenBy(source => source.Locator),
             "label desc" => query.OrderByDescending(source => source.Label),
-            _ => query.OrderBy(source => source.Label).ThenBy(source => source.Locator)
+            "locator" or "locator asc" => query.OrderBy(source => source.Locator),
+            "locator desc" => query.OrderByDescending(source => source.Locator),
+            "lastverifiedatutc" or "lastverifiedatutc asc" =>
+                query.OrderBy(source => source.LastVerifiedAtUtc),
+            "lastverifiedatutc desc" => query.OrderByDescending(source => source.LastVerifiedAtUtc),
+            "spaceusagecount" or "spaceusagecount asc" => query.OrderBy(source => source.Spaces.Count),
+            "spaceusagecount desc" => query.OrderByDescending(source => source.Spaces.Count),
+            "questionusagecount" or "questionusagecount asc" => query.OrderBy(source => source.Questions.Count),
+            "questionusagecount desc" => query.OrderByDescending(source => source.Questions.Count),
+            "answerusagecount" or "answerusagecount asc" => query.OrderBy(source => source.Answers.Count),
+            "answerusagecount desc" => query.OrderByDescending(source => source.Answers.Count),
+            "linkedrecordcount" or "linkedrecordcount asc" => query.OrderBy(source =>
+                source.Spaces.Count + source.Questions.Count + source.Answers.Count),
+            "linkedrecordcount desc" => query.OrderByDescending(source =>
+                source.Spaces.Count + source.Questions.Count + source.Answers.Count),
+            _ => query.OrderByDescending(source => source.UpdatedDate ?? source.CreatedDate)
+                .ThenBy(source => source.Label)
         };
 
         return GetPagedResultAsync(query.AsNoTracking(), request.Request, cancellationToken);
@@ -69,6 +94,7 @@ public sealed class SourcesGetSourceListQueryHandler(
                 MetadataJson = entity.MetadataJson,
                 Visibility = entity.Visibility,
                 LastVerifiedAtUtc = entity.LastVerifiedAtUtc,
+                LastUpdatedAtUtc = entity.UpdatedDate ?? entity.CreatedDate,
                 SpaceUsageCount = entity.Spaces.Count,
                 QuestionUsageCount = entity.Questions.Count,
                 AnswerUsageCount = entity.Answers.Count

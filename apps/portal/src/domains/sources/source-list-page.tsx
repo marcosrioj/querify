@@ -31,7 +31,7 @@ import {
 } from "@/shared/layout/page-layouts";
 import { translateText } from "@/shared/lib/i18n-core";
 import { clampPage } from "@/shared/lib/pagination";
-import { formatNumericDateTimeInTimeZone } from "@/shared/lib/time-zone";
+import { formatOptionalDateTimeInTimeZone } from "@/shared/lib/time-zone";
 import { useListQueryState } from "@/shared/lib/use-list-query-state";
 import {
   Badge,
@@ -57,10 +57,24 @@ import {
 } from "@/shared/ui/status-badges";
 
 const sortingOptions = [
+  { value: "LastUpdatedAtUtc DESC", label: "Last update newest" },
+  { value: "LastUpdatedAtUtc ASC", label: "Last update oldest" },
   { value: "Label ASC", label: "Label A-Z" },
-  { value: "Kind ASC", label: "Source kind" },
-  { value: "LastVerifiedAtUtc DESC", label: "Recently verified" },
+  { value: "Label DESC", label: "Label Z-A" },
+  { value: "Kind ASC", label: "Kind A-Z" },
+  { value: "Kind DESC", label: "Kind Z-A" },
+  { value: "LastVerifiedAtUtc DESC", label: "Verification newest" },
+  { value: "LastVerifiedAtUtc ASC", label: "Verification oldest" },
   { value: "Locator ASC", label: "Locator" },
+  { value: "Locator DESC", label: "Locator Z-A" },
+  { value: "LinkedRecordCount DESC", label: "Linked records high-low" },
+  { value: "LinkedRecordCount ASC", label: "Linked records low-high" },
+  { value: "SpaceUsageCount DESC", label: "Spaces high-low" },
+  { value: "SpaceUsageCount ASC", label: "Spaces low-high" },
+  { value: "QuestionUsageCount DESC", label: "Questions high-low" },
+  { value: "QuestionUsageCount ASC", label: "Questions low-high" },
+  { value: "AnswerUsageCount DESC", label: "Answers high-low" },
+  { value: "AnswerUsageCount ASC", label: "Answers low-high" },
 ];
 
 const SOURCE_FILTER_DEFAULTS = {
@@ -119,6 +133,75 @@ function sourceMatchesFilters(
   );
 }
 
+function compareText(left: string | null | undefined, right: string | null | undefined) {
+  return (left ?? "").localeCompare(right ?? "");
+}
+
+function compareDate(left: string | null | undefined, right: string | null | undefined) {
+  return (left ? new Date(left).getTime() : 0) - (right ? new Date(right).getTime() : 0);
+}
+
+function sourceLinkedRecordCount(source: SourceListRow) {
+  return source.spaceUsageCount + source.questionUsageCount + source.answerUsageCount;
+}
+
+function sortSources(sources: SourceListRow[], sorting: string) {
+  const normalizedSorting = sorting.trim().toLowerCase();
+  const sortedSources = [...sources];
+
+  sortedSources.sort((left, right) => {
+    switch (normalizedSorting) {
+      case "label asc":
+      case "label":
+        return compareText(left.label, right.label) || compareText(left.locator, right.locator);
+      case "label desc":
+        return compareText(right.label, left.label) || compareText(left.locator, right.locator);
+      case "kind asc":
+      case "kind":
+        return left.kind - right.kind || compareText(left.label, right.label);
+      case "kind desc":
+        return right.kind - left.kind || compareText(left.label, right.label);
+      case "lastverifiedatutc asc":
+      case "lastverifiedatutc":
+        return compareDate(left.lastVerifiedAtUtc, right.lastVerifiedAtUtc);
+      case "lastverifiedatutc desc":
+        return compareDate(right.lastVerifiedAtUtc, left.lastVerifiedAtUtc);
+      case "locator asc":
+      case "locator":
+        return compareText(left.locator, right.locator);
+      case "locator desc":
+        return compareText(right.locator, left.locator);
+      case "linkedrecordcount asc":
+      case "linkedrecordcount":
+        return sourceLinkedRecordCount(left) - sourceLinkedRecordCount(right);
+      case "linkedrecordcount desc":
+        return sourceLinkedRecordCount(right) - sourceLinkedRecordCount(left);
+      case "spaceusagecount asc":
+      case "spaceusagecount":
+        return left.spaceUsageCount - right.spaceUsageCount;
+      case "spaceusagecount desc":
+        return right.spaceUsageCount - left.spaceUsageCount;
+      case "questionusagecount asc":
+      case "questionusagecount":
+        return left.questionUsageCount - right.questionUsageCount;
+      case "questionusagecount desc":
+        return right.questionUsageCount - left.questionUsageCount;
+      case "answerusagecount asc":
+      case "answerusagecount":
+        return left.answerUsageCount - right.answerUsageCount;
+      case "answerusagecount desc":
+        return right.answerUsageCount - left.answerUsageCount;
+      case "lastupdatedatutc asc":
+      case "lastupdatedatutc":
+        return compareDate(left.lastUpdatedAtUtc, right.lastUpdatedAtUtc);
+      default:
+        return compareDate(right.lastUpdatedAtUtc, left.lastUpdatedAtUtc) || compareText(left.label, right.label);
+    }
+  });
+
+  return sortedSources;
+}
+
 export function SourceListPage() {
   const navigate = useNavigate();
   const portalTimeZone = usePortalTimeZone();
@@ -148,7 +231,7 @@ export function SourceListPage() {
     setSorting,
     sorting,
   } = useListQueryState({
-    defaultSorting: "Label ASC",
+    defaultSorting: "LastUpdatedAtUtc DESC",
     filterDefaults: SOURCE_FILTER_DEFAULTS,
   });
   const kindFilter = filters.kind;
@@ -235,12 +318,15 @@ export function SourceListPage() {
   ]);
 
   const sourceRows = relationshipActive
-    ? relationshipRows.filter((source) =>
-        sourceMatchesFilters(source, {
-          kindFilter,
-          searchText: debouncedSearch,
-          visibilityFilter,
-        }),
+    ? sortSources(
+        relationshipRows.filter((source) =>
+          sourceMatchesFilters(source, {
+            kindFilter,
+            searchText: debouncedSearch,
+            visibilityFilter,
+          }),
+        ),
+        sorting,
       )
     : ((sourceQuery.data?.items ?? []) as SourceListRow[]);
   const relationshipLoading =
@@ -419,9 +505,24 @@ export function SourceListPage() {
       className: "xl:w-[140px]",
       cell: (source) => (
         <span className="break-words text-sm text-muted-foreground">
-          {formatNumericDateTimeInTimeZone(
+          {formatOptionalDateTimeInTimeZone(
             source.lastVerifiedAtUtc,
             portalTimeZone,
+            translateText("Not verified"),
+          )}
+        </span>
+      ),
+    },
+    {
+      key: "lastUpdatedAtUtc",
+      header: "Last update",
+      className: "xl:w-[140px]",
+      cell: (source) => (
+        <span className="break-words text-sm text-muted-foreground">
+          {formatOptionalDateTimeInTimeZone(
+            source.lastUpdatedAtUtc,
+            portalTimeZone,
+            translateText("No update"),
           )}
         </span>
       ),

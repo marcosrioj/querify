@@ -16,6 +16,8 @@ export function useActivityList(params: {
   page: number;
   pageSize: number;
   sorting?: string;
+  searchText?: string;
+  spaceId?: string;
   questionId?: string;
   answerId?: string;
   kind?: number;

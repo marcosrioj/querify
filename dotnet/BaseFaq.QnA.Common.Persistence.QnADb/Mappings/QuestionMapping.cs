@@ -24,7 +24,8 @@ public static class QuestionMapping
             FeedbackScore = entity.FeedbackScore,
             Sort = entity.Sort,
             AcceptedAnswerId = entity.AcceptedAnswerId,
-            LastActivityAtUtc = entity.LastActivityAtUtc
+            LastActivityAtUtc = entity.LastActivityAtUtc,
+            LastUpdatedAtUtc = entity.UpdatedDate ?? entity.CreatedDate
         };
     }
 
@@ -47,6 +48,7 @@ public static class QuestionMapping
             Sort = entity.Sort,
             AcceptedAnswerId = entity.AcceptedAnswerId,
             LastActivityAtUtc = entity.LastActivityAtUtc,
+            LastUpdatedAtUtc = entity.UpdatedDate ?? entity.CreatedDate,
             AcceptedAnswer = entity.AcceptedAnswer?.ToPortalAnswerDto(entity.Activities, entity.AcceptedAnswerId),
             Answers = entity.Answers
                 .OrderByDescending(answer => answer.Id == entity.AcceptedAnswerId)
@@ -107,6 +109,7 @@ public static class QuestionMapping
             Sort = entity.Sort,
             AcceptedAnswerId = acceptedAnswer?.Id,
             LastActivityAtUtc = entity.LastActivityAtUtc,
+            LastUpdatedAtUtc = entity.UpdatedDate ?? entity.CreatedDate,
             AcceptedAnswer = request.IncludeAnswers ? acceptedAnswer : null,
             Answers = request.IncludeAnswers ? publicAnswers : [],
             Tags = request.IncludeTags

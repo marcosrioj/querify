@@ -19,7 +19,8 @@ public static class SpaceMapping
             Visibility = entity.Visibility,
             AcceptsQuestions = entity.AcceptsQuestions,
             AcceptsAnswers = entity.AcceptsAnswers,
-            QuestionCount = entity.Questions.Count
+            QuestionCount = entity.Questions.Count,
+            LastUpdatedAtUtc = entity.UpdatedDate ?? entity.CreatedDate
         };
     }
 }

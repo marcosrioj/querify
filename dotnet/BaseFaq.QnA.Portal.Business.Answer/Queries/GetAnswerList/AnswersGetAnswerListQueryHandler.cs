@@ -35,10 +35,14 @@ public sealed class AnswersGetAnswerListQueryHandler(
                 EF.Functions.ILike(answer.Body ?? string.Empty, $"%{request.Request.SearchText}%") ||
                 EF.Functions.ILike(answer.ContextNote ?? string.Empty, $"%{request.Request.SearchText}%") ||
                 EF.Functions.ILike(answer.AuthorLabel ?? string.Empty, $"%{request.Request.SearchText}%") ||
-                EF.Functions.ILike(answer.Question.Title, $"%{request.Request.SearchText}%"));
+                EF.Functions.ILike(answer.Question.Title, $"%{request.Request.SearchText}%") ||
+                EF.Functions.ILike(answer.Question.Space.Slug, $"%{request.Request.SearchText}%"));
 
         if (request.Request.SpaceId is not null)
             query = query.Where(answer => answer.Question.SpaceId == request.Request.SpaceId);
+
+        if (request.Request.SourceId is not null)
+            query = query.Where(answer => answer.Sources.Any(link => link.SourceId == request.Request.SourceId.Value));
 
         if (request.Request.QuestionId is not null)
             query = query.Where(answer => answer.QuestionId == request.Request.QuestionId);
@@ -55,17 +59,27 @@ public sealed class AnswersGetAnswerListQueryHandler(
 
         query = request.Request.Sorting?.Trim().ToLowerInvariant() switch
         {
+            "lastupdatedatutc" or "lastupdatedatutc desc" or "updateddate" or "updateddate desc" =>
+                query.OrderByDescending(answer => answer.UpdatedDate ?? answer.CreatedDate),
+            "lastupdatedatutc asc" or "updateddate asc" => query.OrderBy(answer =>
+                answer.UpdatedDate ?? answer.CreatedDate),
+            "headline" or "headline asc" => query.OrderBy(answer => answer.Headline),
             "headline desc" => query.OrderByDescending(answer => answer.Headline),
-            "score" => query.OrderBy(answer => answer.Score),
+            "score" or "score asc" => query.OrderBy(answer => answer.Score),
             "score desc" => query.OrderByDescending(answer => answer.Score),
-            "sort" => query.OrderBy(answer => answer.Sort),
+            "sort" or "sort asc" => query.OrderBy(answer => answer.Sort),
             "sort desc" => query.OrderByDescending(answer => answer.Sort),
-            "activatedatutc" => query.OrderBy(answer => answer.ActivatedAtUtc),
+            "activatedatutc" or "activatedatutc asc" => query.OrderBy(answer => answer.ActivatedAtUtc),
             "activatedatutc desc" => query.OrderByDescending(answer => answer.ActivatedAtUtc),
-            _ => query.OrderByDescending(answer =>
-                    answer.Question != null && answer.Question.AcceptedAnswerId == answer.Id)
-                .ThenBy(answer => answer.Sort)
-                .ThenByDescending(answer => answer.Score)
+            "aiconfidencescore" or "aiconfidencescore asc" => query.OrderBy(answer => answer.AiConfidenceScore),
+            "aiconfidencescore desc" => query.OrderByDescending(answer => answer.AiConfidenceScore),
+            "status" or "status asc" => query.OrderBy(answer => answer.Status),
+            "status desc" => query.OrderByDescending(answer => answer.Status),
+            "kind" or "kind asc" => query.OrderBy(answer => answer.Kind),
+            "kind desc" => query.OrderByDescending(answer => answer.Kind),
+            _ => query.OrderByDescending(answer => answer.UpdatedDate ?? answer.CreatedDate)
+                .ThenByDescending(answer => answer.Question != null && answer.Question.AcceptedAnswerId == answer.Id)
+                .ThenBy(answer => answer.Headline)
         };
 
         var totalCount = await query.CountAsync(cancellationToken);

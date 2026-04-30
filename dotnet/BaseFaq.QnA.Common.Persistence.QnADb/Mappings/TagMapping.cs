@@ -13,7 +13,8 @@ public static class TagMapping
             TenantId = entity.TenantId,
             Name = entity.Name,
             SpaceUsageCount = entity.Spaces.Count,
-            QuestionUsageCount = entity.Questions.Count
+            QuestionUsageCount = entity.Questions.Count,
+            LastUpdatedAtUtc = entity.UpdatedDate ?? entity.CreatedDate
         };
     }
 }

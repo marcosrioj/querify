@@ -24,8 +24,19 @@ public sealed class TagsGetTagListQueryHandler(QnADbContext dbContext, ISessionS
 
         query = request.Request.Sorting?.Trim().ToLowerInvariant() switch
         {
+            "lastupdatedatutc" or "lastupdatedatutc desc" or "updateddate" or "updateddate desc" =>
+                query.OrderByDescending(tag => tag.UpdatedDate ?? tag.CreatedDate),
+            "lastupdatedatutc asc" or "updateddate asc" => query.OrderBy(tag => tag.UpdatedDate ?? tag.CreatedDate),
+            "name" or "name asc" => query.OrderBy(tag => tag.Name),
             "name desc" => query.OrderByDescending(tag => tag.Name),
-            _ => query.OrderBy(tag => tag.Name)
+            "spaceusagecount" or "spaceusagecount asc" => query.OrderBy(tag => tag.Spaces.Count),
+            "spaceusagecount desc" => query.OrderByDescending(tag => tag.Spaces.Count),
+            "questionusagecount" or "questionusagecount asc" => query.OrderBy(tag => tag.Questions.Count),
+            "questionusagecount desc" => query.OrderByDescending(tag => tag.Questions.Count),
+            "linkedrecordcount" or "linkedrecordcount asc" => query.OrderBy(tag =>
+                tag.Spaces.Count + tag.Questions.Count),
+            "linkedrecordcount desc" => query.OrderByDescending(tag => tag.Spaces.Count + tag.Questions.Count),
+            _ => query.OrderByDescending(tag => tag.UpdatedDate ?? tag.CreatedDate).ThenBy(tag => tag.Name)
         };
 
         return GetPagedResultAsync(query.AsNoTracking(), request.Request, cancellationToken);
@@ -46,7 +57,8 @@ public sealed class TagsGetTagListQueryHandler(QnADbContext dbContext, ISessionS
                 TenantId = tag.TenantId,
                 Name = tag.Name,
                 SpaceUsageCount = tag.Spaces.Count,
-                QuestionUsageCount = tag.Questions.Count
+                QuestionUsageCount = tag.Questions.Count,
+                LastUpdatedAtUtc = tag.UpdatedDate ?? tag.CreatedDate
             })
             .ToListAsync(cancellationToken);
 

@@ -45,13 +45,17 @@ public sealed class SpacesGetSpaceQueryHandler(
             AcceptsQuestions = entity.AcceptsQuestions,
             AcceptsAnswers = entity.AcceptsAnswers,
             QuestionCount = entity.Questions.Count,
+            LastUpdatedAtUtc = entity.UpdatedDate ?? entity.CreatedDate,
             Tags = entity.Tags
                 .Select(link => link.Tag)
                 .Select(tag => new TagDto
                 {
                     Id = tag.Id,
                     TenantId = tag.TenantId,
-                    Name = tag.Name
+                    Name = tag.Name,
+                    SpaceUsageCount = tag.Spaces.Count,
+                    QuestionUsageCount = tag.Questions.Count,
+                    LastUpdatedAtUtc = tag.UpdatedDate ?? tag.CreatedDate
                 })
                 .ToList(),
             CuratedSources = entity.Sources
@@ -70,7 +74,11 @@ public sealed class SpacesGetSpaceQueryHandler(
                     Checksum = source.Checksum,
                     MetadataJson = source.MetadataJson,
                     Visibility = source.Visibility,
-                    LastVerifiedAtUtc = source.LastVerifiedAtUtc
+                    LastVerifiedAtUtc = source.LastVerifiedAtUtc,
+                    LastUpdatedAtUtc = source.UpdatedDate ?? source.CreatedDate,
+                    SpaceUsageCount = source.Spaces.Count,
+                    QuestionUsageCount = source.Questions.Count,
+                    AnswerUsageCount = source.Answers.Count
                 })
                 .ToList()
         };

@@ -33,6 +33,7 @@ export type AnswerDto = {
   isOfficial: boolean;
   activatedAtUtc?: string | null;
   retiredAtUtc?: string | null;
+  lastUpdatedAtUtc?: string | null;
   voteScore: number;
   sources: AnswerSourceLinkDto[];
 };

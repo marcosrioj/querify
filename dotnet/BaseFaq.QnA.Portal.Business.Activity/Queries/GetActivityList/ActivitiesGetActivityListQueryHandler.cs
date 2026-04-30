@@ -25,6 +25,19 @@ public sealed class ActivitiesGetActivityListQueryHandler(
         var query = dbContext.Activities
             .Where(activity => activity.TenantId == tenantId);
 
+        if (!string.IsNullOrWhiteSpace(request.Request.SearchText))
+            query = query.Where(activity =>
+                EF.Functions.ILike(activity.ActorLabel ?? string.Empty, $"%{request.Request.SearchText}%") ||
+                EF.Functions.ILike(activity.UserPrint, $"%{request.Request.SearchText}%") ||
+                EF.Functions.ILike(activity.Notes ?? string.Empty, $"%{request.Request.SearchText}%") ||
+                EF.Functions.ILike(activity.MetadataJson ?? string.Empty, $"%{request.Request.SearchText}%") ||
+                EF.Functions.ILike(activity.Question.Title, $"%{request.Request.SearchText}%") ||
+                (activity.Answer != null &&
+                 EF.Functions.ILike(activity.Answer.Headline, $"%{request.Request.SearchText}%")));
+
+        if (request.Request.SpaceId is not null)
+            query = query.Where(activity => activity.Question.SpaceId == request.Request.SpaceId.Value);
+
         if (request.Request.QuestionId is not null)
             query = query.Where(activity => activity.QuestionId == request.Request.QuestionId);
 
@@ -38,7 +51,12 @@ public sealed class ActivitiesGetActivityListQueryHandler(
 
         query = request.Request.Sorting?.Trim().ToLowerInvariant() switch
         {
-            "occurredatutc" => query.OrderBy(activity => activity.OccurredAtUtc),
+            "occurredatutc" or "occurredatutc asc" => query.OrderBy(activity => activity.OccurredAtUtc),
+            "occurredatutc desc" => query.OrderByDescending(activity => activity.OccurredAtUtc),
+            "kind" or "kind asc" => query.OrderBy(activity => activity.Kind),
+            "kind desc" => query.OrderByDescending(activity => activity.Kind),
+            "actorkind" or "actorkind asc" => query.OrderBy(activity => activity.ActorKind),
+            "actorkind desc" => query.OrderByDescending(activity => activity.ActorKind),
             _ => query.OrderByDescending(activity => activity.OccurredAtUtc)
         };
 
