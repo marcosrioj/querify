@@ -22,6 +22,15 @@ public sealed class SpacesDeleteSpaceCommandHandler(
         if (entity is null)
             throw new ApiErrorException($"Space '{request.Id}' was not found.", (int)HttpStatusCode.NotFound);
 
+        var answers = await dbContext.Answers
+            .Where(answer => answer.TenantId == tenantId && answer.Question.SpaceId == entity.Id)
+            .ToListAsync(cancellationToken);
+        var questions = await dbContext.Questions
+            .Where(question => question.TenantId == tenantId && question.SpaceId == entity.Id)
+            .ToListAsync(cancellationToken);
+
+        dbContext.Answers.RemoveRange(answers);
+        dbContext.Questions.RemoveRange(questions);
         dbContext.Spaces.Remove(entity);
         await dbContext.SaveChangesAsync(cancellationToken);
     }

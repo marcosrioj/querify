@@ -23,6 +23,11 @@ public sealed class QuestionsDeleteQuestionCommandHandler(
         if (entity is null)
             throw new ApiErrorException($"Question '{request.Id}' was not found.", (int)HttpStatusCode.NotFound);
 
+        var answers = await dbContext.Answers
+            .Where(answer => answer.TenantId == tenantId && answer.QuestionId == entity.Id)
+            .ToListAsync(cancellationToken);
+
+        dbContext.Answers.RemoveRange(answers);
         dbContext.Questions.Remove(entity);
         await dbContext.SaveChangesAsync(cancellationToken);
     }

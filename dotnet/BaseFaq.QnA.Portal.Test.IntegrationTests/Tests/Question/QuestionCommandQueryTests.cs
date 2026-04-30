@@ -3,9 +3,11 @@ using BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception;
 using BaseFaq.Models.QnA.Dtos.Question;
 using BaseFaq.Models.QnA.Enums;
 using BaseFaq.QnA.Portal.Business.Question.Commands.CreateQuestion;
+using BaseFaq.QnA.Portal.Business.Question.Commands.DeleteQuestion;
 using BaseFaq.QnA.Portal.Business.Question.Commands.UpdateQuestion;
 using BaseFaq.QnA.Portal.Business.Question.Queries.GetQuestion;
 using BaseFaq.QnA.Portal.Test.IntegrationTests.Helpers;
+using Microsoft.EntityFrameworkCore;
 using Xunit;
 
 namespace BaseFaq.QnA.Portal.Test.IntegrationTests.Tests.Question;
@@ -163,5 +165,51 @@ public class QuestionCommandQueryTests
 
         Assert.Equal((int)HttpStatusCode.UnprocessableEntity, exception.ErrorCode);
         Assert.Equal("Unsupported question status.", exception.Message);
+    }
+
+    [Fact]
+    public async Task DeleteQuestion_SoftDeletesAnswers()
+    {
+        using var context = TestContext.Create();
+        var space = await TestDataFactory.SeedSpaceAsync(context.DbContext, context.SessionService.TenantId);
+        var question = await TestDataFactory.SeedQuestionAsync(
+            context.DbContext,
+            context.SessionService.TenantId,
+            space.Id);
+        var answer = await TestDataFactory.SeedAnswerAsync(
+            context.DbContext,
+            context.SessionService.TenantId,
+            question.Id);
+        var otherQuestion = await TestDataFactory.SeedQuestionAsync(
+            context.DbContext,
+            context.SessionService.TenantId,
+            space.Id,
+            title: "How do I update billing?");
+        var otherAnswer = await TestDataFactory.SeedAnswerAsync(
+            context.DbContext,
+            context.SessionService.TenantId,
+            otherQuestion.Id,
+            headline: "Open billing settings.");
+
+        var deleteHandler = new QuestionsDeleteQuestionCommandHandler(context.DbContext, context.SessionService);
+        await deleteHandler.Handle(new QuestionsDeleteQuestionCommand { Id = question.Id }, CancellationToken.None);
+
+        context.DbContext.ChangeTracker.Clear();
+
+        Assert.False(await context.DbContext.Questions.AnyAsync(entity => entity.Id == question.Id));
+        Assert.False(await context.DbContext.Answers.AnyAsync(entity => entity.Id == answer.Id));
+        Assert.True(await context.DbContext.Questions.AnyAsync(entity => entity.Id == otherQuestion.Id));
+        Assert.True(await context.DbContext.Answers.AnyAsync(entity => entity.Id == otherAnswer.Id));
+
+        context.DbContext.SoftDeleteFiltersEnabled = false;
+        var deletedQuestion = await context.DbContext.Questions.SingleAsync(entity => entity.Id == question.Id);
+        var deletedAnswer = await context.DbContext.Answers.SingleAsync(entity => entity.Id == answer.Id);
+        var retainedQuestion = await context.DbContext.Questions.SingleAsync(entity => entity.Id == otherQuestion.Id);
+        var retainedAnswer = await context.DbContext.Answers.SingleAsync(entity => entity.Id == otherAnswer.Id);
+
+        Assert.True(deletedQuestion.IsDeleted);
+        Assert.True(deletedAnswer.IsDeleted);
+        Assert.False(retainedQuestion.IsDeleted);
+        Assert.False(retainedAnswer.IsDeleted);
     }
 }
