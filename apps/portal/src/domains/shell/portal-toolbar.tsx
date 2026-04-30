@@ -65,14 +65,13 @@ function ToolbarPageTrail() {
     : navPath;
 
   return (
-    <div className="flex min-w-0 items-start gap-2">
+    <div className="flex min-w-0 items-center gap-2">
       {pageChrome.backTo ? (
         <Button
           asChild
           mode="icon"
           variant="outline"
           size="icon"
-          className="mt-0.5"
         >
           <Link to={pageChrome.backTo} aria-label={t("Go back")}>
             <ArrowLeft className="size-4" />

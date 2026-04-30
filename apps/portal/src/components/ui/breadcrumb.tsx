@@ -82,7 +82,10 @@ const BreadcrumbSeparator = ({
     data-slot="breadcrumb-separator"
     role="presentation"
     aria-hidden="true"
-    className={cn("shrink-0 [&>svg]:h-3.5 [&>svg]:w-3.5", className)}
+    className={cn(
+      "inline-flex shrink-0 items-center justify-center [&>svg]:block [&>svg]:h-3.5 [&>svg]:w-3.5",
+      className,
+    )}
     {...props}
   >
     {children ?? <ChevronRight className="rtl:rotate-180" />}

@@ -596,7 +596,9 @@ export function QuestionDetailPage() {
               ) : "targetId" in questionNextAction ? (
                 <Button
                   type="button"
-                  onClick={() => scrollToDetailTarget(questionNextAction.targetId)}
+                  onClick={() =>
+                    scrollToDetailTarget(questionNextAction.targetId)
+                  }
                 >
                   {translateText(questionNextAction.label)}
                 </Button>
@@ -647,9 +649,7 @@ export function QuestionDetailPage() {
           <Card id="question-accepted-answer-section">
             <CardHeader>
               <CardHeading>
-                <CardTitle>
-                  {translateText("Accepted answer")}
-                </CardTitle>
+                <CardTitle>{translateText("Accepted answer")}</CardTitle>
               </CardHeading>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -672,46 +672,53 @@ export function QuestionDetailPage() {
                     "Only active answers can become accepted.",
                   )}
                 />
-                {acceptedAnswerOptions.length ? (
-                  <Button
-                    disabled={
-                      !selectedAnswerId ||
-                      selectedAnswerId === questionQuery.data.acceptedAnswerId ||
-                      updateQuestion.isPending
-                    }
-                    onClick={() =>
-                      updateQuestion
-                        .mutateAsync(
-                          buildQuestionUpdateBody(questionQuery.data, {
-                            acceptedAnswerId: selectedAnswerId,
-                          }),
-                        )
-                        .then(() => setSelectedAnswerId(""))
-                    }
-                  >
-                    {translateText("Set accepted answer")}
-                  </Button>
-                ) : (
+                {acceptedAnswerOptions.length ? null : (
                   <p className="text-sm text-muted-foreground">
                     {translateText(
                       "Activate an answer before it can be accepted.",
                     )}
                   </p>
                 )}
-                {questionQuery.data.acceptedAnswerId ? (
-                  <Button
-                    variant="outline"
-                    disabled={updateQuestion.isPending}
-                    onClick={() =>
-                      updateQuestion.mutateAsync(
-                        buildQuestionUpdateBody(questionQuery.data, {
-                          acceptedAnswerId: null,
-                        }),
-                      )
-                    }
-                  >
-                    {translateText("Clear accepted answer")}
-                  </Button>
+                {acceptedAnswerOptions.length ||
+                questionQuery.data.acceptedAnswerId ? (
+                  <div className="flex flex-wrap gap-2">
+                    {acceptedAnswerOptions.length ? (
+                      <Button
+                        disabled={
+                          !selectedAnswerId ||
+                          selectedAnswerId ===
+                            questionQuery.data.acceptedAnswerId ||
+                          updateQuestion.isPending
+                        }
+                        onClick={() =>
+                          updateQuestion
+                            .mutateAsync(
+                              buildQuestionUpdateBody(questionQuery.data, {
+                                acceptedAnswerId: selectedAnswerId,
+                              }),
+                            )
+                            .then(() => setSelectedAnswerId(""))
+                        }
+                      >
+                        {translateText("Set accepted answer")}
+                      </Button>
+                    ) : null}
+                    {questionQuery.data.acceptedAnswerId ? (
+                      <Button
+                        variant="outline"
+                        disabled={updateQuestion.isPending}
+                        onClick={() =>
+                          updateQuestion.mutateAsync(
+                            buildQuestionUpdateBody(questionQuery.data, {
+                              acceptedAnswerId: null,
+                            }),
+                          )
+                        }
+                      >
+                        {translateText("Clear accepted answer")}
+                      </Button>
+                    ) : null}
+                  </div>
                 ) : null}
               </div>
             </CardContent>
