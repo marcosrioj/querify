@@ -69,8 +69,6 @@ public sealed class AnswersGetAnswerListQueryHandler(
             "score desc" => query.OrderByDescending(answer => answer.Score),
             "sort" or "sort asc" => query.OrderBy(answer => answer.Sort),
             "sort desc" => query.OrderByDescending(answer => answer.Sort),
-            "activatedatutc" or "activatedatutc asc" => query.OrderBy(answer => answer.ActivatedAtUtc),
-            "activatedatutc desc" => query.OrderByDescending(answer => answer.ActivatedAtUtc),
             "aiconfidencescore" or "aiconfidencescore asc" => query.OrderBy(answer => answer.AiConfidenceScore),
             "aiconfidencescore desc" => query.OrderByDescending(answer => answer.AiConfidenceScore),
             "status" or "status asc" => query.OrderBy(answer => answer.Status),

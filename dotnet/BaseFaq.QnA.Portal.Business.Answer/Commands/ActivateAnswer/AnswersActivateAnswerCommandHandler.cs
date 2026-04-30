@@ -32,7 +32,6 @@ public sealed class AnswersActivateAnswerCommandHandler(
 
         var originalStatus = entity.Status;
         entity.Status = AnswerStatus.Active;
-        entity.ActivatedAtUtc = DateTime.UtcNow;
 
         if (originalStatus != entity.Status)
         {

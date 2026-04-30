@@ -124,17 +124,6 @@ public static class TestDataFactory
             UpdatedBy = "test"
         };
 
-        switch (status)
-        {
-            case AnswerStatus.Active:
-                entity.Status = AnswerStatus.Active;
-                entity.ActivatedAtUtc = DateTime.UtcNow;
-                break;
-            default:
-                entity.Status = status;
-                break;
-        }
-
         entity.Visibility = visibility;
         question.Answers.Add(entity);
         var createdActivity = new Activity

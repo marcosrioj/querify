@@ -229,7 +229,7 @@ export function AnswerFormPage({ mode }: { mode: "create" | "edit" }) {
                   <span>{translateText("Quick notes")}</span>
                   <ContextHint
                     content={translateText(
-                      "Answers are ranked, activated, retired, and often grounded with evidence links after they are saved.",
+                      "Answers are ranked, activated, archived, and often grounded with evidence links after they are saved.",
                     )}
                     label={translateText("Quick notes details")}
                   />

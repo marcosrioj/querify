@@ -14,11 +14,11 @@ public enum AnswerStatus
     /// <summary>
     /// The answer is ready for operational use and can be exposed when visibility allows it.
     /// </summary>
-    Active = 2,
+    Active = 1,
 
     /// <summary>
-    /// The answer is retired from active operations.
-    /// It remains historical rather than current.
+    /// The answer is no longer active in the knowledge surface.
+    /// Historical data may still be preserved.
     /// </summary>
-    Archived = 6
+    Archived = 2
 }

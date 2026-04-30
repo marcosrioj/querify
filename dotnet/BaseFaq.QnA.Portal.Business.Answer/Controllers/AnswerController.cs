@@ -47,11 +47,11 @@ public class AnswerController(IAnswerService answerService) : ControllerBase
         return Accepted(await answerService.Activate(id, token));
     }
 
-    [HttpPost("{id:guid}/retire")]
+    [HttpPost("{id:guid}/archive")]
     [ProducesResponseType(typeof(Guid), StatusCodes.Status202Accepted)]
-    public async Task<IActionResult> Retire(Guid id, CancellationToken token)
+    public async Task<IActionResult> Archive(Guid id, CancellationToken token)
     {
-        return Accepted(await answerService.Retire(id, token));
+        return Accepted(await answerService.Archive(id, token));
     }
 
     [HttpDelete("{id:guid}")]

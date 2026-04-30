@@ -3,10 +3,10 @@ using BaseFaq.Models.QnA.Dtos.Answer;
 using BaseFaq.QnA.Portal.Business.Answer.Abstractions;
 using BaseFaq.QnA.Portal.Business.Answer.Commands.AddSource;
 using BaseFaq.QnA.Portal.Business.Answer.Commands.ActivateAnswer;
+using BaseFaq.QnA.Portal.Business.Answer.Commands.ArchiveAnswer;
 using BaseFaq.QnA.Portal.Business.Answer.Commands.CreateAnswer;
 using BaseFaq.QnA.Portal.Business.Answer.Commands.DeleteAnswer;
 using BaseFaq.QnA.Portal.Business.Answer.Commands.RemoveSource;
-using BaseFaq.QnA.Portal.Business.Answer.Commands.RetireAnswer;
 using BaseFaq.QnA.Portal.Business.Answer.Commands.UpdateAnswer;
 using BaseFaq.QnA.Portal.Business.Answer.Queries.GetAnswer;
 using BaseFaq.QnA.Portal.Business.Answer.Queries.GetAnswerList;
@@ -49,9 +49,9 @@ public sealed class AnswerService(IMediator mediator) : IAnswerService
         return mediator.Send(new AnswersActivateAnswerCommand { Id = id }, token);
     }
 
-    public Task<Guid> Retire(Guid id, CancellationToken token)
+    public Task<Guid> Archive(Guid id, CancellationToken token)
     {
-        return mediator.Send(new AnswersRetireAnswerCommand { Id = id }, token);
+        return mediator.Send(new AnswersArchiveAnswerCommand { Id = id }, token);
     }
 
     public Task<Guid> AddSource(AnswerSourceLinkCreateRequestDto dto, CancellationToken token)

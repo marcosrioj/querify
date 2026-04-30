@@ -367,10 +367,8 @@ function QuestionQueueRow({
 
 function AnswerQueueRow({
   answer,
-  timeZone,
 }: {
   answer: AnswerDto;
-  timeZone: string;
 }) {
   return (
     <Link
@@ -396,11 +394,6 @@ function AnswerQueueRow({
             {answer.headline}
           </p>
         </div>
-        {answer.activatedAtUtc ? (
-          <div className="shrink-0 text-sm text-muted-foreground">
-            {formatNumericDateTimeInTimeZone(answer.activatedAtUtc, timeZone)}
-          </div>
-        ) : null}
       </div>
     </Link>
   );
@@ -533,13 +526,13 @@ export function DashboardPage() {
   const activeAnswersQuery = useAnswerList({
     page: 1,
     pageSize: 5,
-    sorting: "ActivatedAtUtc DESC",
+    sorting: "LastUpdatedAtUtc DESC",
     status: AnswerStatus.Active,
   });
   const acceptedAnswersQuery = useAnswerList({
     page: 1,
     pageSize: 1,
-    sorting: "ActivatedAtUtc DESC",
+    sorting: "LastUpdatedAtUtc DESC",
     isAccepted: true,
   });
   const sourcesQuery = useSourceList({
@@ -746,7 +739,6 @@ export function DashboardPage() {
                   <AnswerQueueRow
                     key={answer.id}
                     answer={answer}
-                    timeZone={timeZone}
                   />
                 ))
               ) : (

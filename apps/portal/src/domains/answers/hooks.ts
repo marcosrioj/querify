@@ -3,12 +3,12 @@ import { toast } from 'sonner';
 import {
   addAnswerSource,
   activateAnswer,
+  archiveAnswer,
   createAnswer,
   deleteAnswer,
   getAnswer,
   listAnswers,
   removeAnswerSource,
-  retireAnswer,
   updateAnswer,
 } from '@/domains/answers/api';
 import { useAuth } from '@/platform/auth/use-auth';
@@ -132,16 +132,16 @@ export function useActivateAnswer() {
   });
 }
 
-export function useRetireAnswer() {
+export function useArchiveAnswer() {
   const { session } = useAuth();
   const { currentTenantId } = useTenant();
   const invalidateQna = useInvalidateQna();
 
   return useMutation({
-    mutationKey: [...answerKeys.all, 'workflow', 'retire'],
-    mutationFn: (id: string) => retireAnswer(session?.accessToken, currentTenantId, id),
+    mutationKey: [...answerKeys.all, 'workflow', 'archive'],
+    mutationFn: (id: string) => archiveAnswer(session?.accessToken, currentTenantId, id),
     onSuccess: async () => {
-      toast.success(translateText('Answer retired.'));
+      toast.success(translateText('Answer archived.'));
       await invalidateQna();
     },
   });

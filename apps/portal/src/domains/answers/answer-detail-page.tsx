@@ -12,10 +12,10 @@ import { useActivityList } from "@/domains/activity/hooks";
 import {
   useAnswer,
   useActivateAnswer,
+  useArchiveAnswer,
   useAddAnswerSource,
   useDeleteAnswer,
   useRemoveAnswerSource,
-  useRetireAnswer,
 } from "@/domains/answers/hooks";
 import { QnaModuleNav } from "@/domains/qna/qna-module-nav";
 import { RecommendedNextActionCard } from "@/domains/qna/recommended-next-action-card";
@@ -98,7 +98,7 @@ export function AnswerDetailPage() {
   });
   const deleteAnswer = useDeleteAnswer();
   const activateAnswer = useActivateAnswer();
-  const retireAnswer = useRetireAnswer();
+  const archiveAnswer = useArchiveAnswer();
   const addSource = useAddAnswerSource(answerId);
   const removeSource = useRemoveAnswerSource(answerId);
   const [selectedSourceId, setSelectedSourceId] = useState("");
@@ -153,10 +153,10 @@ export function AnswerDetailPage() {
     },
     {
       status: AnswerStatus.Archived,
-      label: "Retire",
+      label: "Archive",
       variant: "destructive" as const,
-      isPending: retireAnswer.isPending,
-      run: () => retireAnswer.mutateAsync(answerId),
+      isPending: archiveAnswer.isPending,
+      run: () => archiveAnswer.mutateAsync(answerId),
     },
   ].filter((option) => option.status !== currentAnswerStatus);
   const lifecycleSummary =
@@ -207,7 +207,7 @@ export function AnswerDetailPage() {
             label: "Reactivate answer",
             run: () => activateAnswer.mutateAsync(answerId),
             disabled: activateAnswer.isPending,
-            text: "This answer is retired. Reactivate it only if it should return to the usable knowledge set.",
+            text: "This answer is archived. Reactivate it only if it should return to the usable knowledge set.",
           }
         : answerQuery.data.sources.length === 0
           ? {
@@ -240,10 +240,10 @@ export function AnswerDetailPage() {
   return (
     <DetailLayout
       header={
-          <PageHeader
-            title={answerQuery.data?.headline ?? "Answer"}
-            description="Manage activation, evidence links, and retirement for this answer candidate."
-            descriptionMode="hint"
+        <PageHeader
+          title={answerQuery.data?.headline ?? "Answer"}
+          description="Manage lifecycle status, evidence links, and trust signals for this answer candidate."
+          descriptionMode="hint"
           backTo={
             answerQuery.data?.questionId
               ? `/app/questions/${answerQuery.data.questionId}`
@@ -348,22 +348,6 @@ export function AnswerDetailPage() {
                       label: "Score",
                       value: String(answerQuery.data.score),
                     },
-                    {
-                      label: "Activated at",
-                      value: formatOptionalDateTimeInTimeZone(
-                        answerQuery.data.activatedAtUtc,
-                        portalTimeZone,
-                        translateText("Not set"),
-                      ),
-                    },
-                    {
-                      label: "Retired at",
-                      value: formatOptionalDateTimeInTimeZone(
-                        answerQuery.data.retiredAtUtc,
-                        portalTimeZone,
-                        translateText("Not set"),
-                      ),
-                    },
                   ]}
                 />
               </CardContent>
@@ -455,7 +439,7 @@ export function AnswerDetailPage() {
                   <span>{translateText("Lifecycle actions")}</span>
                   <ContextHint
                     content={translateText(
-                      "Activate or retire the answer as product truth evolves.",
+                      "Activate or archive the answer as product truth evolves.",
                     )}
                     label={translateText("Lifecycle details")}
                   />
@@ -537,7 +521,7 @@ export function AnswerDetailPage() {
                 key: "activity",
                 label: "Activity",
                 description:
-                  "Review events scoped to this answer when activation or retirement needs context.",
+                  "Review events scoped to this answer when status changes need context.",
                 icon: Activity,
                 count: activityQuery.data?.totalCount ?? 0,
               },
@@ -730,7 +714,7 @@ export function AnswerDetailPage() {
                 ) : (
                   <EmptyState
                     title="No answer activity yet"
-                    description="Activation, retirement, and source changes will appear here."
+                    description="Status and source changes will appear here."
                   />
                 )}
                 <ChildListPagination

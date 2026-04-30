@@ -122,7 +122,7 @@ public class QuestionCommandQueryTests
                     Title = "Unsupported legacy status",
                     Summary = null,
                     ContextNote = null,
-                    Status = (QuestionStatus)2,
+                    Status = (QuestionStatus)99,
                     Visibility = VisibilityScope.Authenticated,
                     OriginChannel = ChannelKind.Manual,
                     Sort = 0

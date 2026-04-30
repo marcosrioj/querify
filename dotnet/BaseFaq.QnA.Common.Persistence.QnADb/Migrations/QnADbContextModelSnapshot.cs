@@ -150,10 +150,6 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<DateTime?>("ActivatedAtUtc")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("PublishedAtUtc");
-
                     b.Property<int>("AiConfidenceScore")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
@@ -196,9 +192,6 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
 
                     b.Property<Guid>("QuestionId")
                         .HasColumnType("uuid");
-
-                    b.Property<DateTime?>("RetiredAtUtc")
-                        .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("Score")
                         .HasColumnType("integer");

@@ -67,8 +67,6 @@ const sortingOptions = [
   { value: "Headline DESC", label: "Headline Z-A" },
   { value: "Score DESC", label: "Score high-low" },
   { value: "Score ASC", label: "Score low-high" },
-  { value: "ActivatedAtUtc DESC", label: "Activation newest" },
-  { value: "ActivatedAtUtc ASC", label: "Activation oldest" },
   { value: "AiConfidenceScore DESC", label: "AI confidence high-low" },
   { value: "AiConfidenceScore ASC", label: "AI confidence low-high" },
   { value: "Sort ASC", label: "Sort low-high" },
@@ -435,7 +433,7 @@ export function AnswerListPage() {
       )}
       <DataTable
         title="Answers"
-        description="Open an answer to manage source links, activation, retirement, and question context."
+        description="Open an answer to manage source links, lifecycle status, and question context."
         descriptionMode="hint"
         columns={columns}
         rows={answerRows}

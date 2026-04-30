@@ -1,6 +1,6 @@
 using BaseFaq.Models.QnA.Enums;
+using BaseFaq.QnA.Portal.Business.Answer.Commands.ArchiveAnswer;
 using BaseFaq.QnA.Portal.Business.Answer.Commands.ActivateAnswer;
-using BaseFaq.QnA.Portal.Business.Answer.Commands.RetireAnswer;
 using BaseFaq.QnA.Portal.Business.Answer.Queries.GetAnswer;
 using BaseFaq.QnA.Portal.Test.IntegrationTests.Helpers;
 using Xunit;
@@ -43,17 +43,16 @@ public class AnswerWorkflowTests
             .ToList();
 
         Assert.Equal(AnswerStatus.Active, result.Status);
-        Assert.NotNull(result.ActivatedAtUtc);
         Assert.Contains(ActivityKind.AnswerActive, activityKinds);
     }
 
     [Fact]
-    public async Task RetireAnswer_EnforcesInternalVisibilityAndRetirementTrail()
+    public async Task ArchiveAnswer_EnforcesInternalVisibilityAndActivityTrail()
     {
         using var context = TestContext.Create();
         var space = await TestDataFactory.SeedSpaceAsync(context.DbContext, context.SessionService.TenantId);
         var question = await TestDataFactory.SeedQuestionAsync(context.DbContext, context.SessionService.TenantId, space.Id);
-        var retiredAnswer = await TestDataFactory.SeedAnswerAsync(
+        var archivedAnswer = await TestDataFactory.SeedAnswerAsync(
             context.DbContext,
             context.SessionService.TenantId,
             question.Id,
@@ -62,28 +61,27 @@ public class AnswerWorkflowTests
             accept: false,
             rank: 2);
 
-        await new AnswersRetireAnswerCommandHandler(
+        await new AnswersArchiveAnswerCommandHandler(
             context.DbContext,
             context.SessionService,
-            context.HttpContextAccessor).Handle(new AnswersRetireAnswerCommand
+            context.HttpContextAccessor).Handle(new AnswersArchiveAnswerCommand
         {
-            Id = retiredAnswer.Id
+            Id = archivedAnswer.Id
         }, CancellationToken.None);
 
-        var retiredResult = await new AnswersGetAnswerQueryHandler(
+        var archivedResult = await new AnswersGetAnswerQueryHandler(
             context.DbContext,
             context.SessionService).Handle(new AnswersGetAnswerQuery
         {
-            Id = retiredAnswer.Id
+            Id = archivedAnswer.Id
         }, CancellationToken.None);
-        var retiredActivityKinds = context.DbContext.Activities
-            .Where(activity => activity.AnswerId == retiredAnswer.Id)
+        var archivedActivityKinds = context.DbContext.Activities
+            .Where(activity => activity.AnswerId == archivedAnswer.Id)
             .Select(activity => activity.Kind)
             .ToList();
 
-        Assert.Equal(AnswerStatus.Archived, retiredResult.Status);
-        Assert.Equal(VisibilityScope.Authenticated, retiredResult.Visibility);
-        Assert.NotNull(retiredResult.RetiredAtUtc);
-        Assert.Contains(ActivityKind.AnswerArchived, retiredActivityKinds);
+        Assert.Equal(AnswerStatus.Archived, archivedResult.Status);
+        Assert.Equal(VisibilityScope.Authenticated, archivedResult.Visibility);
+        Assert.Contains(ActivityKind.AnswerArchived, archivedActivityKinds);
     }
 }

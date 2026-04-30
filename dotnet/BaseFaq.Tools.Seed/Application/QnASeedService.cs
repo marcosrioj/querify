@@ -242,8 +242,8 @@ public sealed class QnASeedService : IQnASeedService
             var item = definition.Items[questionIndex];
             var moderatorIdentity = BuildModeratorIdentity(spaceIndex, questionIndex);
             var createdAtUtc = SeedBaseTimeUtc.AddDays(-(spaceIndex * 3 + questionIndex + 1));
-            var activatedAtUtc = createdAtUtc.AddHours(2);
-            var resolvedAtUtc = activatedAtUtc.AddHours(2);
+            var answerActiveEventAtUtc = createdAtUtc.AddHours(2);
+            var resolvedAtUtc = answerActiveEventAtUtc.AddHours(2);
             var questionId = Guid.NewGuid();
 
             var primaryAnswer = CreatePrimaryAnswer(
@@ -251,8 +251,7 @@ public sealed class QnASeedService : IQnASeedService
                 questionId,
                 item,
                 moderatedBy: moderatorIdentity.UserPrint,
-                createdAtUtc,
-                activatedAtUtc);
+                createdAtUtc);
 
             var question = new Question
             {
@@ -282,7 +281,6 @@ public sealed class QnASeedService : IQnASeedService
                 question,
                 item,
                 questionIndex,
-                activatedAtUtc,
                 moderatorIdentity.UserPrint);
             if (alternateAnswer is not null)
             {
@@ -304,7 +302,7 @@ public sealed class QnASeedService : IQnASeedService
                 counts.SignalsPerQuestion,
                 moderatorIdentity,
                 createdAtUtc,
-                activatedAtUtc,
+                answerActiveEventAtUtc,
                 resolvedAtUtc,
                 spaceIndex,
                 questionIndex);
@@ -326,8 +324,7 @@ public sealed class QnASeedService : IQnASeedService
         Guid questionId,
         SeedQuestionDefinition item,
         string moderatedBy,
-        DateTime createdAtUtc,
-        DateTime activatedAtUtc)
+        DateTime createdAtUtc)
     {
         return new Answer
         {
@@ -344,7 +341,6 @@ public sealed class QnASeedService : IQnASeedService
             AiConfidenceScore = Math.Clamp(item.AiConfidenceScore, 0, 100),
             Score = Math.Max(1, item.HelpfulFeedbackPercent / 10),
             Sort = 1,
-            ActivatedAtUtc = activatedAtUtc,
             CreatedBy = "seed",
             UpdatedBy = "seed"
         };
@@ -355,7 +351,6 @@ public sealed class QnASeedService : IQnASeedService
         Question question,
         SeedQuestionDefinition item,
         int questionIndex,
-        DateTime activatedAtUtc,
         string moderatedBy)
     {
         if (questionIndex % 4 != 0)
@@ -379,8 +374,6 @@ public sealed class QnASeedService : IQnASeedService
             AiConfidenceScore = Math.Max(35, item.AiConfidenceScore - 25),
             Score = 1,
             Sort = 2,
-            ActivatedAtUtc = activatedAtUtc.AddMinutes(-30),
-            RetiredAtUtc = activatedAtUtc.AddHours(8),
             CreatedBy = "seed",
             UpdatedBy = "seed"
         };
@@ -493,7 +486,7 @@ public sealed class QnASeedService : IQnASeedService
         int signalCount,
         SeedActorIdentity moderatorIdentity,
         DateTime createdAtUtc,
-        DateTime activatedAtUtc,
+        DateTime answerActiveEventAtUtc,
         DateTime resolvedAtUtc,
         int spaceIndex,
         int questionIndex)
@@ -511,7 +504,7 @@ public sealed class QnASeedService : IQnASeedService
                 primaryAnswer,
                 ActivityKindStatusMap.ForAnswerStatus(primaryAnswer.Status),
                 moderatorIdentity,
-                activatedAtUtc)
+                answerActiveEventAtUtc)
         };
 
         if (alternateAnswer is not null)
@@ -522,7 +515,7 @@ public sealed class QnASeedService : IQnASeedService
                     alternateAnswer,
                     ActivityKindStatusMap.ForAnswerStatus(alternateAnswer.Status),
                     moderatorIdentity,
-                    alternateAnswer.RetiredAtUtc ?? resolvedAtUtc.AddHours(4),
+                    resolvedAtUtc.AddHours(4),
                     notes: "Archived after the active canonical answer replaced it."));
         }
 

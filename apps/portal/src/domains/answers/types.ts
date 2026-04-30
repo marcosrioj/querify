@@ -31,8 +31,6 @@ export type AnswerDto = {
   sort: number;
   isAccepted: boolean;
   isOfficial: boolean;
-  activatedAtUtc?: string | null;
-  retiredAtUtc?: string | null;
   lastUpdatedAtUtc?: string | null;
   voteScore: number;
   sources: AnswerSourceLinkDto[];

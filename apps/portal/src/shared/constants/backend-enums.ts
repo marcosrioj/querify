@@ -77,7 +77,7 @@ export enum VisibilityScope {
 export enum QuestionStatus {
   Draft = 0,
   Active = 1,
-  Archived = 3,
+  Archived = 2,
 }
 
 export enum ChannelKind {
@@ -97,8 +97,8 @@ export enum AnswerKind {
 
 export enum AnswerStatus {
   Draft = 0,
-  Active = 2,
-  Archived = 6,
+  Active = 1,
+  Archived = 2,
 }
 
 export enum SourceKind {

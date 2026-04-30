@@ -75,16 +75,6 @@ public class Answer : BaseEntity, IMustHaveTenant
     public Question Question { get; set; } = null!;
 
     /// <summary>
-    ///     Timestamp when the answer became active for operational use.
-    /// </summary>
-    public DateTime? ActivatedAtUtc { get; set; }
-
-    /// <summary>
-    ///     Timestamp when the answer was retired.
-    /// </summary>
-    public DateTime? RetiredAtUtc { get; set; }
-
-    /// <summary>
     ///     Sources that support the answer.
     /// </summary>
     public ICollection<AnswerSourceLink> Sources { get; set; } = [];

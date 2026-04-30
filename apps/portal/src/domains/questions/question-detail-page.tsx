@@ -726,7 +726,7 @@ export function QuestionDetailPage() {
                 key: "answers",
                 label: "Answers",
                 description:
-                  "Write, activate, or retire answer candidates for this question.",
+                  "Write, activate, or archive answer candidates for this question.",
                 icon: CheckCircle2,
                 count: questionQuery.data?.answers.length ?? 0,
               },

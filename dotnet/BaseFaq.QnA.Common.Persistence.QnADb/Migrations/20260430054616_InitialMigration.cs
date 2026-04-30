@@ -217,8 +217,6 @@ namespace BaseFaq.QnA.Common.Persistence.QnADb.Migrations
                     Score = table.Column<int>(type: "integer", nullable: false),
                     Sort = table.Column<int>(type: "integer", nullable: false),
                     QuestionId = table.Column<Guid>(type: "uuid", nullable: false),
-                    PublishedAtUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    RetiredAtUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     TenantId = table.Column<Guid>(type: "uuid", nullable: false),
                     CreatedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     CreatedBy = table.Column<string>(type: "text", nullable: true),

@@ -112,14 +112,14 @@ export function activateAnswer(
   });
 }
 
-export function retireAnswer(
+export function archiveAnswer(
   accessToken: string | undefined,
   tenantId: string | undefined,
   id: string,
 ) {
   return portalRequest<string>({
     service: 'qna',
-    path: `/api/qna/answer/${id}/retire`,
+    path: `/api/qna/answer/${id}/archive`,
     method: 'POST',
     accessToken: requireAccessToken(accessToken),
     tenantId: requireTenantId(tenantId),

@@ -303,7 +303,7 @@ For the QnA operating model, seed examples demonstrate:
 - source links that explain origin, context, evidence, and reusable references
 - source records with artifact identity, visibility, valid metadata JSON, and verification metadata
 - moderated contribution and accepted-answer behavior when it belongs to QnA
-- answer activation and retirement behavior where it is part of QnA lifecycle
+- answer activation and archival behavior where it is part of QnA lifecycle
 
 The seed tool may apply EF migrations when it is executed, as described in [`backend/tools/seed-tool.md`](backend/tools/seed-tool.md). Do not use that runtime behavior as a substitute for the manual migration step during model work.
 

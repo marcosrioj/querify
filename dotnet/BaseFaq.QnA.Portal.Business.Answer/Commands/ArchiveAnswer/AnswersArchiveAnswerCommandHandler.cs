@@ -10,15 +10,15 @@ using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 
-namespace BaseFaq.QnA.Portal.Business.Answer.Commands.RetireAnswer;
+namespace BaseFaq.QnA.Portal.Business.Answer.Commands.ArchiveAnswer;
 
-public sealed class AnswersRetireAnswerCommandHandler(
+public sealed class AnswersArchiveAnswerCommandHandler(
     QnADbContext dbContext,
     ISessionService sessionService,
     IHttpContextAccessor httpContextAccessor)
-    : IRequestHandler<AnswersRetireAnswerCommand, Guid>
+    : IRequestHandler<AnswersArchiveAnswerCommand, Guid>
 {
-    public async Task<Guid> Handle(AnswersRetireAnswerCommand request, CancellationToken cancellationToken)
+    public async Task<Guid> Handle(AnswersArchiveAnswerCommand request, CancellationToken cancellationToken)
     {
         var tenantId = sessionService.GetTenantId(ModuleEnum.QnA);
         var userId = sessionService.GetUserId().ToString();
@@ -33,7 +33,6 @@ public sealed class AnswersRetireAnswerCommandHandler(
         var originalStatus = entity.Status;
         entity.Status = AnswerStatus.Archived;
         entity.Visibility = VisibilityScope.Authenticated;
-        entity.RetiredAtUtc = DateTime.UtcNow;
 
         if (originalStatus != entity.Status)
         {

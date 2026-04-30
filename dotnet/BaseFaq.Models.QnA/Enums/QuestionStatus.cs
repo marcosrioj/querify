@@ -20,5 +20,5 @@ public enum QuestionStatus
     /// The question is no longer active in the knowledge surface.
     /// Historical data may still be preserved.
     /// </summary>
-    Archived = 3
+    Archived = 2
 }
