@@ -39,6 +39,7 @@ import {
 import {
   ActionButton,
   ActionPanel,
+  ActionPanelEndGroup,
   Badge,
   Button,
   Card,
@@ -239,7 +240,10 @@ export function AnswerDetailPage() {
       run: () => archiveAnswer.mutateAsync(answerId),
     },
   ].filter((option) => option.status !== currentAnswerStatus);
-  const hasDestructiveLifecycleAction = lifecycleActionOptions.some(
+  const regularLifecycleActionOptions = lifecycleActionOptions.filter(
+    (option) => option.variant !== "destructive",
+  );
+  const destructiveLifecycleActionOptions = lifecycleActionOptions.filter(
     (option) => option.variant === "destructive",
   );
   const activateRelationshipTab = (tab: string, focusTargetId?: string) => {
@@ -417,7 +421,7 @@ export function AnswerDetailPage() {
         layout="bar"
         description="Answer actions and parent navigation."
       >
-        <ActionButton asChild tone="primary">
+        <ActionButton asChild tone="secondary">
           <Link to={`/app/answers/${id}/edit`}>
             <Pencil className="size-4" />
             {translateText("Edit")}
@@ -431,55 +435,89 @@ export function AnswerDetailPage() {
             </Link>
           </ActionButton>
         ) : null}
-        {lifecycleActionOptions.map((option) => (
+        {regularLifecycleActionOptions.map((option) => (
           <Button
             key={option.status}
             size="sm"
             variant={option.variant}
-            data-action-tone={
-              option.variant === "destructive" ? "danger" : undefined
-            }
-            data-action-align={
-              option.variant === "destructive" ? "end" : undefined
-            }
             onClick={() => void option.run()}
             disabled={option.isPending}
           >
             {translateText(option.label)}
           </Button>
         ))}
-        <ConfirmAction
-          title={translateText('Delete answer "{name}"?', {
-            name: answerQuery.data?.headline ?? translateText("this answer"),
-          })}
-          description={translateText(
-            "This removes the answer candidate and any ranking signals attached to it.",
-          )}
-          confirmLabel={translateText("Delete answer")}
-          isPending={deleteAnswer.isPending}
-          onConfirm={() =>
-            deleteAnswer
-              .mutateAsync(id)
-              .then(() =>
-                navigate(
-                  answerQuery.data?.questionId
-                    ? `/app/questions/${answerQuery.data.questionId}`
-                    : "/app/spaces",
-                ),
-              )
-          }
-          trigger={
-            <ActionButton
-              tone="danger"
-              data-action-align={
-                hasDestructiveLifecycleAction ? "grouped" : undefined
+        {destructiveLifecycleActionOptions.length > 0 ? (
+          <ActionPanelEndGroup>
+            {destructiveLifecycleActionOptions.map((option) => (
+              <Button
+                key={option.status}
+                size="sm"
+                variant={option.variant}
+                data-action-tone="danger"
+                onClick={() => void option.run()}
+                disabled={option.isPending}
+              >
+                {translateText(option.label)}
+              </Button>
+            ))}
+            <ConfirmAction
+              title={translateText('Delete answer "{name}"?', {
+                name:
+                  answerQuery.data?.headline ?? translateText("this answer"),
+              })}
+              description={translateText(
+                "This removes the answer candidate and any ranking signals attached to it.",
+              )}
+              confirmLabel={translateText("Delete answer")}
+              isPending={deleteAnswer.isPending}
+              onConfirm={() =>
+                deleteAnswer
+                  .mutateAsync(id)
+                  .then(() =>
+                    navigate(
+                      answerQuery.data?.questionId
+                        ? `/app/questions/${answerQuery.data.questionId}`
+                        : "/app/spaces",
+                    ),
+                  )
               }
-            >
-              <Trash2 className="size-4" />
-              {translateText("Delete")}
-            </ActionButton>
-          }
-        />
+              trigger={
+                <ActionButton tone="danger" data-action-align="grouped">
+                  <Trash2 className="size-4" />
+                  {translateText("Delete")}
+                </ActionButton>
+              }
+            />
+          </ActionPanelEndGroup>
+        ) : (
+          <ConfirmAction
+            title={translateText('Delete answer "{name}"?', {
+              name: answerQuery.data?.headline ?? translateText("this answer"),
+            })}
+            description={translateText(
+              "This removes the answer candidate and any ranking signals attached to it.",
+            )}
+            confirmLabel={translateText("Delete answer")}
+            isPending={deleteAnswer.isPending}
+            onConfirm={() =>
+              deleteAnswer
+                .mutateAsync(id)
+                .then(() =>
+                  navigate(
+                    answerQuery.data?.questionId
+                      ? `/app/questions/${answerQuery.data.questionId}`
+                      : "/app/spaces",
+                  ),
+                )
+            }
+            trigger={
+              <ActionButton tone="danger">
+                <Trash2 className="size-4" />
+                {translateText("Delete")}
+              </ActionButton>
+            }
+          />
+        )}
       </ActionPanel>
       {answerQuery.isError ? (
         <ErrorState

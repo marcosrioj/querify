@@ -77,6 +77,23 @@ export function ActionPanel({
   );
 }
 
+export function ActionPanelEndGroup({
+  children,
+  className,
+}: PropsWithChildren<{ className?: string }>) {
+  return (
+    <span
+      data-action-group="end"
+      className={cn(
+        "ml-auto flex min-w-0 max-w-full flex-wrap items-center justify-end gap-1.5",
+        className,
+      )}
+    >
+      {children}
+    </span>
+  );
+}
+
 export function ActionButton({
   tone,
   span,

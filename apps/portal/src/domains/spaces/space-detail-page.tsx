@@ -534,34 +534,12 @@ export function SpaceDetailPage() {
         layout="bar"
         description="Record-level actions for this Space."
       >
-        {blocksQuestions ? (
-          <ActionButton disabled>
-            <Plus className="size-4" />
-            {translateText("New question")}
-          </ActionButton>
-        ) : (
-          <ActionButton
-            type="button"
-            tone="primary"
-            onClick={() =>
-              activateRelationshipTab("questions", "new-question-title")
-            }
-          >
-            <Plus className="size-4" />
-            {translateText("New question")}
-          </ActionButton>
-        )}
         <ActionButton asChild tone="secondary">
           <Link to={`/app/spaces/${id}/edit`}>
             <Pencil className="size-4" />
             {translateText("Edit")}
           </Link>
         </ActionButton>
-        {blocksQuestions ? (
-          <p className="text-xs text-muted-foreground">
-            {translateText("This space does not accept new questions.")}
-          </p>
-        ) : null}
         <ConfirmAction
           title={translateText('Delete space "{name}"?', {
             name: spaceQuery.data?.name ?? translateText("this space"),

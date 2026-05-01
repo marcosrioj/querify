@@ -647,23 +647,6 @@ export function QuestionDetailPage() {
     >
       {ActivationVisibilityDialog}
       <ActionPanel layout="bar" description="Question actions and navigation.">
-        {spaceBlocksAnswers ? (
-          <ActionButton disabled>
-            <Plus className="size-4" />
-            {translateText("New answer")}
-          </ActionButton>
-        ) : (
-          <ActionButton
-            type="button"
-            tone="primary"
-            onClick={() =>
-              activateRelationshipTab("answers", "new-answer-headline")
-            }
-          >
-            <Plus className="size-4" />
-            {translateText("New answer")}
-          </ActionButton>
-        )}
         <ActionButton asChild tone="secondary">
           <Link to={`/app/questions/${id}/edit`}>
             <Pencil className="size-4" />
@@ -677,11 +660,6 @@ export function QuestionDetailPage() {
               {translateText("Open space")}
             </Link>
           </ActionButton>
-        ) : null}
-        {spaceBlocksAnswers ? (
-          <p className="text-xs text-muted-foreground">
-            {translateText("This space does not accept new answers.")}
-          </p>
         ) : null}
         <ConfirmAction
           title={translateText('Delete question "{name}"?', {

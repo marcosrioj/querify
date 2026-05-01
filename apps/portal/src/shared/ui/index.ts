@@ -16,7 +16,11 @@ export {
 } from "@/components/ui/breadcrumb";
 export { Button } from "@/components/ui/button";
 export { actionButtonClassName } from "@/shared/ui/action-button-styles";
-export { ActionButton, ActionPanel } from "@/shared/ui/action-panel";
+export {
+  ActionButton,
+  ActionPanel,
+  ActionPanelEndGroup,
+} from "@/shared/ui/action-panel";
 export {
   Card,
   CardContent,
