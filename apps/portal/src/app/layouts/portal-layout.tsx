@@ -1,5 +1,11 @@
+import { useEffect, useRef } from "react";
 import { useIsFetching } from "@tanstack/react-query";
-import { Outlet, useMatches, useNavigation } from "react-router-dom";
+import {
+  Outlet,
+  useLocation,
+  useMatches,
+  useNavigation,
+} from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { AppRouteHandle } from "@/app/router/route-types";
 import { MobileHeader } from "@/domains/shell/mobile-header";
@@ -39,6 +45,8 @@ function PortalLayoutShell() {
   const routeTitle = useRouteTitle();
   const title = t(getPageChromeText(pageChrome.title) ?? routeTitle);
   const isMobile = useIsMobile();
+  const location = useLocation();
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   useBodyClass(`
     [--header-height:var(--portal-header-height)]
@@ -46,6 +54,12 @@ function PortalLayoutShell() {
     xl:overflow-hidden
     portal-body-background
   `);
+
+  useEffect(() => {
+    window.requestAnimationFrame(() => {
+      scrollAreaRef.current?.scrollTo({ top: 0, left: 0 });
+    });
+  }, [location.pathname]);
 
   return (
     <>
@@ -63,6 +77,7 @@ function PortalLayoutShell() {
           <div className="portal-elevated relative m-2 mt-0 flex min-w-0 grow flex-col items-stretch overflow-hidden rounded-2xl border border-border/70 bg-background/95 backdrop-blur sm:m-3 sm:mt-0 xl:mt-3">
             <PortalActivityBar />
             <div
+              ref={scrollAreaRef}
               data-portal-scroll-area
               className="kt-scrollable-y-auto flex min-w-0 grow flex-col [--kt-scrollbar-width:auto]"
             >
