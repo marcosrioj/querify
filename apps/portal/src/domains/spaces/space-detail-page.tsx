@@ -457,16 +457,22 @@ export function SpaceDetailPage() {
             highlights={[
               {
                 label: "Status",
+                description:
+                  "Public spaces must be active before they are exposed.",
                 value: <SpaceStatusBadge status={spaceQuery.data.status} />,
               },
               {
                 label: "Visibility",
+                description:
+                  "Choose the strongest audience exposure the space should allow.",
                 value: (
                   <VisibilityBadge visibility={spaceQuery.data.visibility} />
                 ),
               },
               {
                 label: "Accepts",
+                description:
+                  "Shows whether this space currently accepts new questions and answers.",
                 value: (
                   <div className="flex flex-wrap gap-2">
                     <Badge variant={blocksQuestions ? "mono" : "success"}>
@@ -482,22 +488,38 @@ export function SpaceDetailPage() {
               },
               {
                 label: "Needs action",
+                description:
+                  "Questions in this space that need operator attention before the knowledge set is ready.",
                 value: String(questionsNeedingAction.length),
               },
             ]}
             items={[
-              { label: "Slug", value: spaceQuery.data.slug },
-              { label: "Language", value: spaceQuery.data.language },
+              {
+                label: "Slug",
+                description: "Use a stable slug for routing and integrations.",
+                value: spaceQuery.data.slug,
+              },
+              {
+                label: "Language",
+                description:
+                  "Use the main locale for the questions and answers in this space.",
+                value: spaceQuery.data.language,
+              },
               {
                 label: "Questions",
+                description:
+                  "Questions currently routed through this operating space.",
                 value: String(spaceQuery.data.questionCount),
               },
               {
                 label: "Curated sources",
+                description: "Reusable material that should anchor this space.",
                 value: String(spaceQuery.data.curatedSources.length),
               },
               {
                 label: "Accepts questions",
+                description:
+                  "Disable this for frozen or read-only knowledge spaces.",
                 value: (
                   <Badge
                     variant={
@@ -512,6 +534,8 @@ export function SpaceDetailPage() {
               },
               {
                 label: "Accepts answers",
+                description:
+                  "Disable this if questions should route elsewhere instead of collecting answers.",
                 value: (
                   <Badge
                     variant={
@@ -612,11 +636,15 @@ export function SpaceDetailPage() {
                 items={[
                   {
                     label: "Name",
+                    description:
+                      "Use the operational name teammates will recognize.",
                     value: spaceQuery.data.name,
                     valueClassName: "text-base font-medium text-mono",
                   },
                   {
                     label: "Summary",
+                    description:
+                      "Explain what the space covers and when teams should route content here.",
                     value:
                       spaceQuery.data.summary ||
                       translateText("No summary provided."),

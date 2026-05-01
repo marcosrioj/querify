@@ -294,7 +294,7 @@ export function SectionGrid({
 export function KeyValueList({
   items,
 }: {
-  items: Array<{ label: string; value: ReactNode }>;
+  items: Array<{ label: string; value: ReactNode; description?: ReactNode }>;
 }) {
   const { t } = usePortalI18n();
 
@@ -302,9 +302,18 @@ export function KeyValueList({
     <dl className="overflow-hidden rounded-xl border border-border/70">
       {items.map((item) => (
         <Fragment key={item.label}>
-          <div className="flex flex-col gap-1.5 border-b border-border/70 px-4 py-3 last:border-b-0 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
-            <dt className="text-sm text-muted-foreground">{t(item.label)}</dt>
-            <dd className="break-words text-left text-sm font-medium text-foreground sm:text-right">
+          <div className="flex flex-col gap-1.5 border-b border-border/70 px-4 py-3 last:border-b-0 sm:flex-row sm:items-start sm:justify-between sm:gap-5">
+            <dt className="flex min-w-0 items-start gap-1.5 text-sm text-muted-foreground sm:w-26 sm:shrink-0">
+              <span className="min-w-0 break-words">{t(item.label)}</span>
+              {item.description ? (
+                <ContextHint
+                  content={translateMaybeString(item.description, t)}
+                  label={t("{label} details", { label: t(item.label) })}
+                  className="mt-0.5 size-4 shrink-0 text-[inherit] md:size-4"
+                />
+              ) : null}
+            </dt>
+            <dd className="break-words text-left text-sm font-medium text-foreground sm:min-w-0 sm:flex-1 sm:text-right">
               {translateMaybeString(item.value, t)}
             </dd>
           </div>
@@ -322,8 +331,12 @@ export function DetailOverviewCard({
 }: {
   title?: string;
   description?: ReactNode;
-  highlights: Array<{ label: string; value: ReactNode }>;
-  items: Array<{ label: string; value: ReactNode }>;
+  highlights: Array<{
+    label: string;
+    value: ReactNode;
+    description?: ReactNode;
+  }>;
+  items: Array<{ label: string; value: ReactNode; description?: ReactNode }>;
 }) {
   const { t } = usePortalI18n();
 
@@ -349,8 +362,15 @@ export function DetailOverviewCard({
               key={item.label}
               className="min-w-0 rounded-lg border border-border/70 bg-muted/15 p-3"
             >
-              <p className="text-[0.6875rem] font-medium uppercase tracking-[0.14em] text-muted-foreground">
-                {t(item.label)}
+              <p className="flex items-start gap-1.5 text-[0.6875rem] font-medium uppercase leading-4 tracking-[0.14em] text-muted-foreground">
+                <span className="min-w-14 break-words">{t(item.label)}</span>
+                {item.description ? (
+                  <ContextHint
+                    content={translateMaybeString(item.description, t)}
+                    label={t("{label} details", { label: t(item.label) })}
+                    className="mt-px size-3.5 shrink-0 text-[inherit] md:size-3.5"
+                  />
+                ) : null}
               </p>
               <div className="mt-2 min-w-0 break-words text-sm font-semibold leading-5 text-foreground">
                 {translateMaybeString(item.value, t)}
@@ -370,6 +390,7 @@ export function DetailFieldList({
   items: Array<{
     label: string;
     value: ReactNode;
+    description?: ReactNode;
     valueClassName?: string;
   }>;
 }) {
@@ -390,7 +411,16 @@ export function DetailFieldList({
               )}
             />
             <p className="min-w-0 text-xs font-medium uppercase leading-6 tracking-[0.12em] text-muted-foreground">
-              {t(item.label)}
+              <span className="inline-flex min-w-0 items-start gap-1.5 align-top">
+                <span className="min-w-0 break-words">{t(item.label)}</span>
+                {item.description ? (
+                  <ContextHint
+                    content={translateMaybeString(item.description, t)}
+                    label={t("{label} details", { label: t(item.label) })}
+                    className="mt-1 size-4 shrink-0 text-[inherit] md:size-4"
+                  />
+                ) : null}
+              </span>
             </p>
           </div>
           <div

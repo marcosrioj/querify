@@ -141,16 +141,22 @@ export function ActivityDetailPage() {
             highlights={[
               {
                 label: "Event",
+                description:
+                  "The workflow, moderation, status, vote, or feedback event recorded in activity history.",
                 value: <ActivityKindBadge kind={activityQuery.data.kind} />,
               },
               {
                 label: "Actor",
+                description:
+                  "The actor scope captured when the event was recorded.",
                 value: <ActorKindBadge kind={activityQuery.data.actorKind} />,
               },
             ]}
             items={[
               {
                 label: "Question",
+                description:
+                  "Question record connected to this activity event.",
                 value: (
                   <ActivitySubjectValue
                     value={activityQuery.data.questionTitle}
@@ -160,6 +166,8 @@ export function ActivityDetailPage() {
               },
               {
                 label: "Answer",
+                description:
+                  "Answer record connected to this activity event, when the event has answer scope.",
                 value: (
                   <ActivitySubjectValue
                     value={activityQuery.data.answerHeadline}

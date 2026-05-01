@@ -591,38 +591,52 @@ export function QuestionDetailPage() {
             highlights={[
               {
                 label: "Status",
+                description:
+                  "Controls whether the question is draft, active, or archived.",
                 value: (
                   <QuestionStatusBadge status={questionQuery.data.status} />
                 ),
               },
               {
                 label: "Visibility",
+                description:
+                  "Controls internal, authenticated external, or public question exposure.",
                 value: (
                   <VisibilityBadge visibility={questionQuery.data.visibility} />
                 ),
               },
               {
                 label: "Signals",
+                description:
+                  "Public and operator feedback signals captured for this question.",
                 value: translateText("Feedback {value}", {
                   value: questionQuery.data.feedbackScore,
                 }),
               },
               {
                 label: "Answers",
+                description:
+                  "Answer candidates currently attached to this question.",
                 value: String(answerListQuery.data?.totalCount ?? 0),
               },
             ]}
             items={[
               {
                 label: "Space",
+                description:
+                  "The space controls exposure and how the question should be operated.",
                 value: spaceQuery.data?.name ?? questionQuery.data.spaceSlug,
               },
               {
                 label: "Accepted answer",
+                description:
+                  "The answer currently selected as the canonical resolution for this question.",
                 value: questionQuery.data.acceptedAnswer?.headline || "None",
               },
               {
                 label: "Last activity",
+                description:
+                  "Most recent workflow, source, answer, vote, or feedback activity recorded for this question.",
                 value: formatOptionalDateTimeInTimeZone(
                   questionQuery.data.lastActivityAtUtc,
                   portalTimeZone,
@@ -631,15 +645,23 @@ export function QuestionDetailPage() {
               },
               {
                 label: "Origin channel",
+                description:
+                  "Records where the question came from for reporting and routing.",
                 value: (
                   <ChannelKindBadge kind={questionQuery.data.originChannel} />
                 ),
               },
               {
                 label: "AI confidence",
+                description:
+                  "Model confidence score available for this question's generated or assisted content.",
                 value: String(questionQuery.data.aiConfidenceScore),
               },
-              { label: "Sort", value: String(questionQuery.data.sort) },
+              {
+                label: "Sort",
+                description: "Lower values appear earlier in curated ordering.",
+                value: String(questionQuery.data.sort),
+              },
             ]}
           />
         ) : null
@@ -745,17 +767,22 @@ export function QuestionDetailPage() {
                 items={[
                   {
                     label: "Title",
+                    description: "Use the canonical question wording.",
                     value: questionQuery.data.title,
                     valueClassName: "text-base font-medium text-mono",
                   },
                   {
                     label: "Summary",
+                    description:
+                      "A compact explanation of the question before the full context.",
                     value:
                       questionQuery.data.summary ||
                       translateText("No summary provided."),
                   },
                   {
                     label: "Context note",
+                    description:
+                      "Operational nuance that answer authors should understand.",
                     value:
                       questionQuery.data.contextNote ||
                       translateText("No context note recorded."),

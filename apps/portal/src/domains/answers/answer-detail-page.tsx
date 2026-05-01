@@ -358,20 +358,28 @@ export function AnswerDetailPage() {
             highlights={[
               {
                 label: "Status",
+                description:
+                  "Lifecycle state that controls whether this answer is draft, active, or archived.",
                 value: <AnswerStatusBadge status={answerQuery.data.status} />,
               },
               {
                 label: "Visibility",
+                description:
+                  "Controls internal, authenticated external, or public answer exposure.",
                 value: (
                   <VisibilityBadge visibility={answerQuery.data.visibility} />
                 ),
               },
               {
                 label: "Type",
+                description:
+                  "Classifies the answer so workflow and badges present it correctly.",
                 value: <AnswerKindBadge kind={answerQuery.data.kind} />,
               },
               {
                 label: "Signals",
+                description:
+                  "Vote and accepted-answer signals that indicate whether this candidate is trusted.",
                 value: (
                   <div className="flex flex-wrap gap-2">
                     <Badge variant="outline">
@@ -395,20 +403,37 @@ export function AnswerDetailPage() {
             items={[
               {
                 label: "Question",
+                description: "The question this answer candidate belongs to.",
                 value: questionQuery.data?.title || answerQuery.data.questionId,
               },
               {
                 label: "Author label",
+                description:
+                  "Optional attribution shown with the answer when authorship should be clear.",
                 value: answerQuery.data.authorLabel || "Not set",
               },
-              { label: "Score", value: String(answerQuery.data.score) },
-              { label: "Sort", value: String(answerQuery.data.sort) },
+              {
+                label: "Score",
+                description:
+                  "Ranking signal used to compare answer candidates before acceptance overrides ordering.",
+                value: String(answerQuery.data.score),
+              },
+              {
+                label: "Sort",
+                description:
+                  "Lower numbers surface first when acceptance does not override ordering.",
+                value: String(answerQuery.data.sort),
+              },
               {
                 label: "Vote score",
+                description:
+                  "Net voting signal captured for this answer candidate.",
                 value: String(answerQuery.data.voteScore),
               },
               {
                 label: "AI confidence",
+                description:
+                  "Model confidence score available for this answer candidate.",
                 value: String(answerQuery.data.aiConfidenceScore),
               },
             ]}
@@ -574,17 +599,23 @@ export function AnswerDetailPage() {
                 items={[
                   {
                     label: "Headline",
+                    description:
+                      "The short answer that should appear as the candidate title.",
                     value: answerQuery.data.headline,
                     valueClassName: "text-base font-medium text-mono",
                   },
                   {
                     label: "Body",
+                    description:
+                      "The full guidance, including steps, caveats, and nuance.",
                     value:
                       answerQuery.data.body || translateText("No body yet"),
                     valueClassName: "whitespace-pre-wrap",
                   },
                   {
                     label: "Context note",
+                    description:
+                      "Optional note explaining why, when, or how this answer applies.",
                     value:
                       answerQuery.data.contextNote ||
                       translateText("No context note recorded."),
