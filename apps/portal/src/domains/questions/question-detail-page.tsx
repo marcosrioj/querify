@@ -1017,11 +1017,20 @@ export function QuestionDetailPage() {
                         className="flex flex-col gap-3 rounded-lg border border-border bg-muted/10 p-4 sm:flex-row sm:items-start sm:justify-between"
                       >
                         <div className="min-w-0">
-                          <p className="font-medium text-mono">
-                            {sourceLink.source?.label ||
-                              sourceLink.source?.locator ||
-                              sourceLink.sourceId}
-                          </p>
+                          {sourceLink.source ? (
+                            <Link
+                              to={`/app/sources/${sourceLink.source.id}`}
+                              className="font-medium text-mono hover:text-primary"
+                            >
+                              {sourceLink.source.label ||
+                                sourceLink.source.locator ||
+                                sourceLink.sourceId}
+                            </Link>
+                          ) : (
+                            <p className="font-medium text-mono">
+                              {sourceLink.sourceId}
+                            </p>
+                          )}
                           <div className="mt-2 flex flex-wrap items-center gap-2">
                             <SourceRoleBadge role={sourceLink.role} />
                             <Badge variant="outline">

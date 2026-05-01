@@ -5,13 +5,7 @@ import {
   useMemo,
   useState,
 } from "react";
-import {
-  Activity,
-  Link2,
-  Pencil,
-  ShieldCheck,
-  Trash2,
-} from "lucide-react";
+import { Activity, Link2, Pencil, ShieldCheck, Trash2 } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { ActivityRelationshipActions } from "@/domains/activity/activity-relationship-actions";
 import { useActivityList } from "@/domains/activity/hooks";
@@ -54,7 +48,6 @@ import {
   CardTitle,
   ChildListPagination,
   ConfirmAction,
-  ContextHint,
   DetailPageSkeleton,
   ListFilterField,
   ListFilterSearch,
@@ -249,14 +242,6 @@ export function AnswerDetailPage() {
   const hasDestructiveLifecycleAction = lifecycleActionOptions.some(
     (option) => option.variant === "destructive",
   );
-  const lifecycleSummary =
-    currentAnswerStatus === AnswerStatus.Draft
-      ? translateText(
-          "Activate the answer before exposing it publicly or accepting it.",
-        )
-      : translateText(
-          "Current status controls which lifecycle actions are available.",
-        );
   const activateRelationshipTab = (tab: string, focusTargetId?: string) => {
     setRelationshipTab(tab);
 
@@ -543,27 +528,6 @@ export function AnswerDetailPage() {
           <Card>
             <CardHeader>
               <CardHeading>
-                <CardTitle className="flex items-center gap-2">
-                  <span>{translateText("Lifecycle")}</span>
-                  <ContextHint
-                    content={translateText(
-                      "Activate or archive the answer as product truth evolves.",
-                    )}
-                    label={translateText("Lifecycle details")}
-                  />
-                </CardTitle>
-              </CardHeading>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm text-muted-foreground">
-                {lifecycleSummary}
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardHeading>
                 <CardTitle>{translateText("Details")}</CardTitle>
               </CardHeading>
             </CardHeader>
@@ -640,11 +604,20 @@ export function AnswerDetailPage() {
                         className="flex flex-col gap-3 rounded-lg border border-border bg-muted/10 p-4 sm:flex-row sm:items-start sm:justify-between"
                       >
                         <div className="min-w-0">
-                          <p className="font-medium text-mono">
-                            {sourceLink.source?.label ||
-                              sourceLink.source?.locator ||
-                              sourceLink.sourceId}
-                          </p>
+                          {sourceLink.source ? (
+                            <Link
+                              to={`/app/sources/${sourceLink.source.id}`}
+                              className="font-medium text-mono hover:text-primary"
+                            >
+                              {sourceLink.source.label ||
+                                sourceLink.source.locator ||
+                                sourceLink.sourceId}
+                            </Link>
+                          ) : (
+                            <p className="font-medium text-mono">
+                              {sourceLink.sourceId}
+                            </p>
+                          )}
                           <div className="mt-2 flex flex-wrap items-center gap-2">
                             <SourceRoleBadge role={sourceLink.role} />
                             <Badge variant="outline">

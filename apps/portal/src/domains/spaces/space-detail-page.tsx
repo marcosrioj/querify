@@ -794,9 +794,12 @@ export function SpaceDetailPage() {
                         className="flex flex-col gap-3 rounded-lg border border-border bg-muted/10 p-4 sm:flex-row sm:items-start sm:justify-between"
                       >
                         <div className="min-w-0">
-                          <p className="font-medium text-mono">
+                          <Link
+                            to={`/app/sources/${source.id}`}
+                            className="font-medium text-mono hover:text-primary"
+                          >
                             {source.label || translateText("Untitled source")}
-                          </p>
+                          </Link>
                           <p className="mt-1 break-all text-sm text-muted-foreground">
                             {source.locator}
                           </p>
