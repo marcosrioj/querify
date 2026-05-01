@@ -8,6 +8,7 @@ import {
   visibilityScopeLabels,
   SpaceStatus,
   VisibilityScope,
+  backendEnumSelectOptions,
 } from "@/shared/constants/backend-enums";
 import {
   useCreateSpace,
@@ -71,6 +72,9 @@ function slugify(value: string) {
     .replace(/^-+|-+$/g, "")
     .slice(0, 64);
 }
+
+const spaceStatusOptions = backendEnumSelectOptions(spaceStatusLabels);
+const visibilityOptions = backendEnumSelectOptions(visibilityScopeLabels);
 
 export function SpaceFormPage({ mode }: { mode: "create" | "edit" }) {
   const navigate = useNavigate();
@@ -219,7 +223,10 @@ export function SpaceFormPage({ mode }: { mode: "create" | "edit" }) {
               <KeyValueList
                 items={[
                   { label: "Status", value: "Draft, active, or archived" },
-                  { label: "Visibility", value: "Internal, authenticated, or public" },
+                  {
+                    label: "Visibility",
+                    value: "Internal, authenticated, or public",
+                  },
                 ]}
               />
             </CardContent>
@@ -374,24 +381,14 @@ export function SpaceFormPage({ mode }: { mode: "create" | "edit" }) {
                       name="status"
                       label="Status"
                       description="Public spaces must be active before they are exposed."
-                      options={Object.entries(spaceStatusLabels).map(
-                        ([value, label]) => ({
-                          value,
-                          label,
-                        }),
-                      )}
+                      options={spaceStatusOptions}
                     />
                     <SelectField
                       control={form.control}
                       name="visibility"
                       label="Visibility"
                       description="Choose the strongest audience exposure the space should allow."
-                      options={Object.entries(visibilityScopeLabels).map(
-                        ([value, label]) => ({
-                          value,
-                          label,
-                        }),
-                      )}
+                      options={visibilityOptions}
                     />
                     <SwitchField
                       control={form.control}

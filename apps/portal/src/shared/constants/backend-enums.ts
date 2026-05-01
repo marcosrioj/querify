@@ -284,3 +284,17 @@ export const actorKindLabels: Record<ActorKind, string> = {
   [ActorKind.Moderator]: 'Moderator',
   [ActorKind.Integration]: 'Integration',
 };
+
+export type BackendEnumSelectOption = {
+  value: string;
+  label: string;
+};
+
+export function backendEnumSelectOptions(
+  labels: Record<number, string>,
+): BackendEnumSelectOption[] {
+  return Object.entries(labels).map(([value, label]) => ({
+    value,
+    label,
+  }));
+}

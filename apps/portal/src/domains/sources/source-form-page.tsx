@@ -6,6 +6,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   SourceKind,
   VisibilityScope,
+  backendEnumSelectOptions,
   sourceKindLabels,
   visibilityScopeLabels,
 } from "@/shared/constants/backend-enums";
@@ -60,6 +61,9 @@ import {
   getStoredPortalLanguage,
   portalLanguageOptions,
 } from "@/shared/lib/language";
+
+const sourceKindOptions = backendEnumSelectOptions(sourceKindLabels);
+const visibilityOptions = backendEnumSelectOptions(visibilityScopeLabels);
 
 function MetadataJsonEditor({
   form,
@@ -257,7 +261,10 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
                     value:
                       "Article, web page, ticket, repository, chat, and more",
                   },
-                  { label: "Visibility", value: "Internal, authenticated, or public" },
+                  {
+                    label: "Visibility",
+                    value: "Internal, authenticated, or public",
+                  },
                   { label: "Metadata", value: "Optional valid JSON object" },
                 ]}
               />
@@ -345,12 +352,7 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
                         name="kind"
                         label="Source kind"
                         description="The type of evidence or reusable reference this source represents."
-                        options={Object.entries(sourceKindLabels).map(
-                          ([value, label]) => ({
-                            value,
-                            label,
-                          }),
-                        )}
+                        options={sourceKindOptions}
                       />
                     </div>
                     <div className="lg:col-span-6">
@@ -373,12 +375,7 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
                       name="visibility"
                       label="Visibility"
                       description="Controls which audiences can see or reuse this source."
-                      options={Object.entries(visibilityScopeLabels).map(
-                        ([value, label]) => ({
-                          value,
-                          label,
-                        }),
-                      )}
+                      options={visibilityOptions}
                     />
                     <SearchSelectField
                       control={form.control}

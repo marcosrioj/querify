@@ -173,10 +173,7 @@ function ConfirmingSwitchControl({
     ? resolveSwitchFieldConfirmationValue(confirmation.title, nextChecked)
     : null;
   const description = confirmation
-    ? resolveSwitchFieldConfirmationValue(
-        confirmation.description,
-        nextChecked,
-      )
+    ? resolveSwitchFieldConfirmationValue(confirmation.description, nextChecked)
     : null;
   const confirmLabel = confirmation
     ? resolveSwitchFieldConfirmationValue(
@@ -226,7 +223,9 @@ function ConfirmingSwitchControl({
                 <Sparkles className="size-5" />
               )}
             </div>
-            <AlertDialogTitle>{translateMaybeString(title, t)}</AlertDialogTitle>
+            <AlertDialogTitle>
+              {translateMaybeString(title, t)}
+            </AlertDialogTitle>
             <AlertDialogDescription>
               {translateMaybeString(description, t)}
             </AlertDialogDescription>
@@ -361,11 +360,11 @@ export function SwitchField<TFieldValues extends FieldValues>({
   const resolvedConfirmation =
     confirmation === false
       ? undefined
-      : confirmation ??
+      : (confirmation ??
         (normalizedFieldName.endsWith("isactive") ||
         normalizedFieldName.endsWith("active")
           ? activeStatusConfirmation
-          : undefined);
+          : undefined));
 
   return (
     <FormField
@@ -522,8 +521,7 @@ export function SelectField<TFieldValues extends FieldValues>({
                 }
               }}
               onValueChange={(value) => {
-                const nextValue =
-                  value === EMPTY_SELECT_VALUE ? "" : value;
+                const nextValue = value === EMPTY_SELECT_VALUE ? "" : value;
 
                 if (!confirmation || nextValue === fieldValue) {
                   setIsUserInitiatedChange(false);
@@ -542,7 +540,7 @@ export function SelectField<TFieldValues extends FieldValues>({
               disabled={disabled}
             >
               <FormControl>
-                  <SelectTrigger
+                <SelectTrigger
                   onPointerDown={() => {
                     if (!disabled) {
                       setIsUserInitiatedChange(true);

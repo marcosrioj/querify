@@ -12,6 +12,7 @@ import {
   ChannelKind,
   QuestionStatus,
   VisibilityScope,
+  backendEnumSelectOptions,
   channelKindLabels,
   questionStatusLabels,
   visibilityScopeLabels,
@@ -56,6 +57,10 @@ import {
   TextareaField,
 } from "@/shared/ui/form-fields";
 import { translateText } from "@/shared/lib/i18n-core";
+
+const channelKindOptions = backendEnumSelectOptions(channelKindLabels);
+const questionStatusOptions = backendEnumSelectOptions(questionStatusLabels);
+const visibilityOptions = backendEnumSelectOptions(visibilityScopeLabels);
 
 function buildSpaceOption(space: { id: string; name: string; slug: string }) {
   return {
@@ -131,12 +136,6 @@ export function QuestionFormPage({ mode }: { mode: "create" | "edit" }) {
     selectedVisibility === VisibilityScope.Public;
   const invalidPublicStatus =
     publicVisibilitySelected && selectedStatus !== QuestionStatus.Active;
-  const questionStatusOptions = Object.entries(questionStatusLabels).map(
-    ([value, label]) => ({
-      value,
-      label,
-    }),
-  );
   const spaceBlocksQuestions = selectedSpace?.acceptsQuestions === false;
   const spaceOptions = (spaceOptionsQuery.data?.items ?? []).map(
     buildSpaceOption,
@@ -431,24 +430,14 @@ export function QuestionFormPage({ mode }: { mode: "create" | "edit" }) {
                       name="visibility"
                       label="Visibility"
                       description="Controls internal, authenticated external, or public question exposure."
-                      options={Object.entries(visibilityScopeLabels).map(
-                        ([value, label]) => ({
-                          value,
-                          label,
-                        }),
-                      )}
+                      options={visibilityOptions}
                     />
                     <SelectField
                       control={form.control}
                       name="originChannel"
                       label="Origin channel"
                       description="Records where the question came from for reporting and routing."
-                      options={Object.entries(channelKindLabels).map(
-                        ([value, label]) => ({
-                          value,
-                          label,
-                        }),
-                      )}
+                      options={channelKindOptions}
                     />
                     <TextField
                       control={form.control}

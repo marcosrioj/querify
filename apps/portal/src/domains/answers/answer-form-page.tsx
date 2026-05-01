@@ -13,6 +13,7 @@ import {
   AnswerStatus,
   VisibilityScope,
   answerKindLabels,
+  backendEnumSelectOptions,
   visibilityScopeLabels,
 } from "@/shared/constants/backend-enums";
 import {
@@ -55,6 +56,9 @@ import {
   TextareaField,
 } from "@/shared/ui/form-fields";
 import { translateText } from "@/shared/lib/i18n-core";
+
+const answerKindOptions = backendEnumSelectOptions(answerKindLabels);
+const visibilityOptions = backendEnumSelectOptions(visibilityScopeLabels);
 
 function buildQuestionOption(question: {
   id: string;
@@ -391,24 +395,14 @@ export function AnswerFormPage({ mode }: { mode: "create" | "edit" }) {
                       name="kind"
                       label="Answer kind"
                       description="Classifies the answer so workflow and badges present it correctly."
-                      options={Object.entries(answerKindLabels).map(
-                        ([value, label]) => ({
-                          value,
-                          label,
-                        }),
-                      )}
+                      options={answerKindOptions}
                     />
                     <SelectField
                       control={form.control}
                       name="visibility"
                       label="Visibility"
                       description="Controls internal, authenticated external, or public answer exposure."
-                      options={Object.entries(visibilityScopeLabels).map(
-                        ([value, label]) => ({
-                          value,
-                          label,
-                        }),
-                      )}
+                      options={visibilityOptions}
                     />
                     <TextField
                       control={form.control}

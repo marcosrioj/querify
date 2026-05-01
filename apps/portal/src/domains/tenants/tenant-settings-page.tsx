@@ -1,29 +1,30 @@
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Building2, KeyRound } from 'lucide-react';
-import { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { TenantSettingsSkeleton } from '@/domains/tenants/tenant-settings-skeleton';
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Building2, KeyRound } from "lucide-react";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { TenantSettingsSkeleton } from "@/domains/tenants/tenant-settings-skeleton";
 import {
   useCurrentWorkspace,
   useGenerateClientKey,
   useTenantWorkspace,
   useUpdateTenantWorkspace,
-} from '@/domains/tenants/hooks';
-import { settingsNavItems } from '@/domains/settings/settings-nav';
-import { usePermission } from '@/platform/permissions/use-permission';
-import { useTenant } from '@/platform/tenant/use-tenant';
+} from "@/domains/tenants/hooks";
+import { settingsNavItems } from "@/domains/settings/settings-nav";
+import { usePermission } from "@/platform/permissions/use-permission";
+import { useTenant } from "@/platform/tenant/use-tenant";
 import {
   TenantEdition,
+  backendEnumSelectOptions,
   tenantEditionLabels,
   tenantUserRoleTypeLabels,
-} from '@/shared/constants/backend-enums';
+} from "@/shared/constants/backend-enums";
 import {
   KeyValueList,
   PageHeader,
   SectionGrid,
   SettingsLayout,
-} from '@/shared/layout/page-layouts';
+} from "@/shared/layout/page-layouts";
 import {
   Badge,
   Button,
@@ -36,20 +37,20 @@ import {
   CardToolbar,
   ConfirmAction,
   Form,
-} from '@/shared/ui';
-import { SelectField, TextField } from '@/shared/ui/form-fields';
-import { translateText } from '@/shared/lib/i18n-core';
-import { EmptyState } from '@/shared/ui/placeholder-state';
-import { TenantEditionBadge } from '@/shared/ui/status-badges';
+} from "@/shared/ui";
+import { SelectField, TextField } from "@/shared/ui/form-fields";
+import { translateText } from "@/shared/lib/i18n-core";
+import { EmptyState } from "@/shared/ui/placeholder-state";
+import { TenantEditionBadge } from "@/shared/ui/status-badges";
+import { numericEnumSchema } from "@/shared/lib/zod";
 
 const workspaceSchema = z.object({
-  name: z.string().min(2, 'Workspace name is required.'),
-  edition: z
-    .coerce.number()
-    .refine((value) => Object.values(TenantEdition).includes(value as TenantEdition)),
+  name: z.string().min(2, "Workspace name is required."),
+  edition: numericEnumSchema(TenantEdition),
 });
 
 type WorkspaceFormValues = z.infer<typeof workspaceSchema>;
+const tenantEditionOptions = backendEnumSelectOptions(tenantEditionLabels);
 
 export function TenantSettingsPage() {
   const { isLoading: isTenantLoading } = useTenant();
@@ -57,20 +58,20 @@ export function TenantSettingsPage() {
   const { clientKeyQuery } = useTenantWorkspace();
   const updateWorkspace = useUpdateTenantWorkspace();
   const regenerateClientKey = useGenerateClientKey();
-  const canManageTenant = usePermission('tenant.manage');
+  const canManageTenant = usePermission("tenant.manage");
   const canManageWorkspaceProfile = !currentWorkspace || canManageTenant;
 
   const workspaceForm = useForm<WorkspaceFormValues>({
     resolver: zodResolver(workspaceSchema),
     defaultValues: {
-      name: currentWorkspace?.name ?? '',
+      name: currentWorkspace?.name ?? "",
       edition: currentWorkspace?.edition ?? TenantEdition.Starter,
     },
   });
 
   useEffect(() => {
     workspaceForm.reset({
-      name: currentWorkspace?.name ?? '',
+      name: currentWorkspace?.name ?? "",
       edition: currentWorkspace?.edition ?? TenantEdition.Starter,
     });
   }, [currentWorkspace, workspaceForm]);
@@ -99,29 +100,30 @@ export function TenantSettingsPage() {
       <SectionGrid
         items={[
           {
-            title: 'Edition',
+            title: "Edition",
             value: currentWorkspace
               ? tenantEditionLabels[currentWorkspace.edition]
-              : 'No workspace',
-            description: currentWorkspace?.slug || 'Choose or create a workspace',
+              : "No workspace",
+            description:
+              currentWorkspace?.slug || "Choose or create a workspace",
             icon: Building2,
           },
           {
-            title: 'Public key',
-            value: clientKeyQuery.data ? 'Live' : 'Missing',
+            title: "Public key",
+            value: clientKeyQuery.data ? "Live" : "Missing",
             description: clientKeyQuery.data
-              ? 'Ready for previews and embeds'
-              : 'Generate one to expose public experiences',
+              ? "Ready for previews and embeds"
+              : "Generate one to expose public experiences",
             icon: KeyRound,
           },
           {
-            title: 'Workspace role',
+            title: "Workspace role",
             value: currentWorkspace
               ? tenantUserRoleTypeLabels[currentWorkspace.currentUserRole]
-              : 'No workspace',
+              : "No workspace",
             description: currentWorkspace
-              ? 'Current access level in this workspace'
-              : 'Choose or create a workspace',
+              ? "Current access level in this workspace"
+              : "Choose or create a workspace",
             icon: Building2,
           },
         ]}
@@ -142,7 +144,7 @@ export function TenantSettingsPage() {
             <CardHeading>
               <CardTitle>{currentWorkspace.name}</CardTitle>
               <CardDescription>
-                {translateText('Current workspace slug: {slug}', {
+                {translateText("Current workspace slug: {slug}", {
                   slug: currentWorkspace.slug,
                 })}
               </CardDescription>
@@ -154,15 +156,16 @@ export function TenantSettingsPage() {
           <CardContent>
             <KeyValueList
               items={[
-                { label: 'Tenant ID', value: currentWorkspace.id },
-                { label: 'Module scope', value: 'QnA Portal' },
+                { label: "Tenant ID", value: currentWorkspace.id },
+                { label: "Module scope", value: "QnA Portal" },
                 {
-                  label: 'Public client key',
-                  value: clientKeyQuery.data || 'No client key generated yet',
+                  label: "Public client key",
+                  value: clientKeyQuery.data || "No client key generated yet",
                 },
                 {
-                  label: 'Your workspace role',
-                  value: tenantUserRoleTypeLabels[currentWorkspace.currentUserRole],
+                  label: "Your workspace role",
+                  value:
+                    tenantUserRoleTypeLabels[currentWorkspace.currentUserRole],
                 },
               ]}
             />
@@ -174,20 +177,20 @@ export function TenantSettingsPage() {
         <Card>
           <CardHeader>
             <CardHeading>
-              <CardTitle>{translateText('Workspace profile')}</CardTitle>
+              <CardTitle>{translateText("Workspace profile")}</CardTitle>
               <CardDescription>
                 {translateText(
-                  'Rename the workspace and choose the active plan tier.',
+                  "Rename the workspace and choose the active plan tier.",
                 )}
               </CardDescription>
             </CardHeading>
             <CardToolbar>
-              <Badge variant={canManageTenant ? 'success' : 'outline'}>
+              <Badge variant={canManageTenant ? "success" : "outline"}>
                 {!currentWorkspace
-                  ? translateText('Workspace creation')
+                  ? translateText("Workspace creation")
                   : canManageTenant
-                    ? translateText('Owner access')
-                    : translateText('Member access')}
+                    ? translateText("Owner access")
+                    : translateText("Member access")}
               </Badge>
             </CardToolbar>
           </CardHeader>
@@ -213,16 +216,15 @@ export function TenantSettingsPage() {
                   label="Edition"
                   description="Plan tier that controls workspace limits and feature availability."
                   disabled={!canManageWorkspaceProfile}
-                  options={Object.entries(tenantEditionLabels).map(([value, label]) => ({
-                    value,
-                    label,
-                  }))}
+                  options={tenantEditionOptions}
                 />
                 <Button
                   type="submit"
-                  disabled={!canManageWorkspaceProfile || updateWorkspace.isPending}
+                  disabled={
+                    !canManageWorkspaceProfile || updateWorkspace.isPending
+                  }
                 >
-                  {translateText('Save workspace')}
+                  {translateText("Save workspace")}
                 </Button>
               </form>
             </Form>
@@ -232,10 +234,10 @@ export function TenantSettingsPage() {
         <Card>
           <CardHeader>
             <CardHeading>
-              <CardTitle>{translateText('Public preview key')}</CardTitle>
+              <CardTitle>{translateText("Public preview key")}</CardTitle>
               <CardDescription>
                 {translateText(
-                  'Use this key for public previews and embedded experiences.',
+                  "Use this key for public previews and embedded experiences.",
                 )}
               </CardDescription>
             </CardHeading>
@@ -244,19 +246,19 @@ export function TenantSettingsPage() {
             <div className="rounded-2xl border border-border bg-muted/30 p-4">
               <div className="flex items-center gap-2 text-sm font-medium text-mono">
                 <KeyRound className="size-4" />
-                {translateText('Current client key')}
+                {translateText("Current client key")}
               </div>
               <p className="mt-3 break-all text-sm text-muted-foreground">
                 {clientKeyQuery.data ||
-                  translateText('No client key has been generated yet.')}
+                  translateText("No client key has been generated yet.")}
               </p>
             </div>
             <ConfirmAction
-              title={translateText('Generate a new public client key?')}
+              title={translateText("Generate a new public client key?")}
               description={translateText(
-                'Existing embeds, previews, or public integrations using the current key may need to be updated after this change.',
+                "Existing embeds, previews, or public integrations using the current key may need to be updated after this change.",
               )}
-              confirmLabel={translateText('Generate key')}
+              confirmLabel={translateText("Generate key")}
               isPending={regenerateClientKey.isPending}
               onConfirm={() => regenerateClientKey.mutateAsync()}
               trigger={
@@ -264,7 +266,7 @@ export function TenantSettingsPage() {
                   variant="outline"
                   disabled={!canManageTenant || regenerateClientKey.isPending}
                 >
-                  {translateText('Generate new client key')}
+                  {translateText("Generate new client key")}
                 </Button>
               }
             />
