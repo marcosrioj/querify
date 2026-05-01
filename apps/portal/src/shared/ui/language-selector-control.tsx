@@ -6,13 +6,17 @@ import {
   SelectTrigger,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import { getLanguageOption, portalLanguageOptions } from "@/shared/lib/language";
+import {
+  getLanguageOption,
+  portalLanguageOptions,
+} from "@/shared/lib/language";
 
 type LanguageSelectorControlProps = {
   language?: string | null;
   onLanguageChange: (nextLanguage: string) => void;
   disabled?: boolean;
   ariaLabel: string;
+  iconOnly?: boolean;
   variant?: "default" | "compact";
 };
 
@@ -21,6 +25,7 @@ export function LanguageSelectorControl({
   onLanguageChange,
   disabled = false,
   ariaLabel,
+  iconOnly = false,
   variant = "default",
 }: LanguageSelectorControlProps) {
   const activeLanguage = getLanguageOption(language);
@@ -35,17 +40,21 @@ export function LanguageSelectorControl({
       <SelectTrigger
         className={cn(
           "w-auto min-w-0 gap-2 [&>svg:last-child]:hidden",
-          isCompact
-            ? "h-8.5 justify-center border-transparent bg-transparent px-2.5 shadow-none hover:bg-accent data-[state=open]:bg-accent"
-            : "px-3",
+          iconOnly
+            ? "size-10 justify-center border-transparent bg-transparent p-0 shadow-none hover:bg-accent data-[state=open]:bg-accent"
+            : isCompact
+              ? "h-8.5 justify-center border-transparent bg-transparent px-2.5 shadow-none hover:bg-accent data-[state=open]:bg-accent"
+              : "px-3",
         )}
         aria-label={ariaLabel}
       >
         <div className="flex items-center gap-2">
           <Globe className="size-4 text-muted-foreground" aria-hidden="true" />
-          <span className="inline-flex items-center pt-px leading-none font-mono text-xs uppercase tracking-[0.18em] text-foreground">
-            {activeLanguage.code}
-          </span>
+          {!iconOnly ? (
+            <span className="inline-flex items-center pt-px leading-none font-mono text-xs uppercase tracking-[0.18em] text-foreground">
+              {activeLanguage.code}
+            </span>
+          ) : null}
         </div>
       </SelectTrigger>
       <SelectContent className="min-w-[185px]">

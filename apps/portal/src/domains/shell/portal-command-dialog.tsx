@@ -45,6 +45,7 @@ export function PortalCommandDialog({
           variant="ghost"
           mode="icon"
           className="hover:bg-background hover:[&_svg]:text-primary"
+          aria-label={t('Search portal')}
           onClick={() => setOpen(true)}
         >
           <Search className="size-4" />

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { type CSSProperties, useEffect, useRef, useState } from "react";
 import { useIsFetching } from "@tanstack/react-query";
 import {
   Outlet,
@@ -21,6 +21,20 @@ import {
   usePageChrome,
 } from "@/shared/layout/page-chrome-context";
 import { usePortalI18n } from "@/shared/lib/use-portal-i18n";
+
+const SIDEBAR_COMPACT_STORAGE_KEY = "basefaq-portal-sidebar-compact";
+
+function getStoredSidebarCompact() {
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  try {
+    return window.localStorage.getItem(SIDEBAR_COMPACT_STORAGE_KEY) === "true";
+  } catch {
+    return false;
+  }
+}
 
 function useRouteTitle() {
   return (
@@ -47,6 +61,9 @@ function PortalLayoutShell() {
   const isMobile = useIsMobile();
   const location = useLocation();
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const [isSidebarCompact, setIsSidebarCompact] = useState(
+    getStoredSidebarCompact,
+  );
 
   useBodyClass(`
     [--header-height:var(--portal-header-height)]
@@ -61,6 +78,25 @@ function PortalLayoutShell() {
     });
   }, [location.pathname]);
 
+  const handleSidebarCompactChange = (nextCompact: boolean) => {
+    setIsSidebarCompact(nextCompact);
+
+    try {
+      window.localStorage.setItem(
+        SIDEBAR_COMPACT_STORAGE_KEY,
+        String(nextCompact),
+      );
+    } catch {
+      // Keep the in-memory preference when browser storage is unavailable.
+    }
+  };
+
+  const layoutStyle = {
+    "--sidebar-width": isSidebarCompact
+      ? "84px"
+      : "var(--portal-sidebar-width)",
+  } as CSSProperties;
+
   return (
     <>
       <Helmet>
@@ -69,11 +105,16 @@ function PortalLayoutShell() {
         </title>
       </Helmet>
 
-      <div className="flex min-h-screen min-w-0 grow">
-        {!isMobile && <PortalSidebar />}
+      <div className="flex min-h-screen min-w-0 grow" style={layoutStyle}>
+        {!isMobile && (
+          <PortalSidebar
+            compact={isSidebarCompact}
+            onCompactChange={handleSidebarCompactChange}
+          />
+        )}
         {isMobile && <MobileHeader />}
 
-        <div className="flex min-w-0 grow flex-col pt-[var(--header-height)] xl:ms-[var(--sidebar-width)] xl:w-[calc(100vw-var(--sidebar-width))] xl:max-w-[calc(100vw-var(--sidebar-width))] xl:grow-0 xl:pt-0">
+        <div className="flex min-w-0 grow flex-col pt-[var(--header-height)] transition-[margin,width,max-width] duration-200 xl:ms-[var(--sidebar-width)] xl:w-[calc(100vw-var(--sidebar-width))] xl:max-w-[calc(100vw-var(--sidebar-width))] xl:grow-0 xl:pt-0">
           <div className="portal-elevated relative m-2 mt-0 flex min-w-0 grow flex-col items-stretch overflow-hidden rounded-2xl border border-border/70 bg-background/95 backdrop-blur sm:m-3 sm:mt-0 xl:mt-3">
             <PortalActivityBar />
             <div

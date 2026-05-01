@@ -11,6 +11,8 @@ import {
   AccordionMenuSubTrigger,
 } from "@/components/ui/accordion-menu";
 import type { NavigationItem } from "@/shared/constants/navigation";
+import { cn } from "@/lib/utils";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui";
 import { usePortalI18n } from "@/shared/lib/use-portal-i18n";
 import {
   portalNavigation,
@@ -18,8 +20,10 @@ import {
 } from "@/shared/constants/navigation";
 
 export function SidebarMenuPrimary({
+  compact = false,
   onNavigate,
 }: {
+  compact?: boolean;
   onNavigate?: () => void;
 }) {
   const { t } = usePortalI18n();
@@ -46,6 +50,11 @@ export function SidebarMenuPrimary({
     ? (activeRootItem.children.find((child) => matchPath(child.path))?.path ??
       (activeRootItem.key === "qna" ? "/app/spaces" : pathname))
     : (activeRootItem?.path ?? pathname);
+
+  const getNavigationTarget = (item: NavigationItem) =>
+    item.children?.find((child) => matchPath(child.path))?.path ??
+    item.children?.[0]?.path ??
+    item.path;
 
   const classNames: AccordionMenuClassNames = {
     root: "space-y-5 px-3.5",
@@ -89,6 +98,60 @@ export function SidebarMenuPrimary({
       </AccordionMenuItem>
     );
   };
+
+  if (compact) {
+    return (
+      <nav
+        className="flex flex-col items-center gap-4 px-2"
+        aria-label={t("Primary navigation")}
+      >
+        {portalNavigationGroups.map((group) => (
+          <div
+            key={group.key}
+            role="group"
+            aria-label={t(group.label)}
+            className="flex w-full flex-col items-center gap-1"
+          >
+            {group.items.map((item) => {
+              const Icon = item.icon;
+              const isSelected = activeRootItem?.key === item.key;
+              const label = t(item.label);
+              const description = t(item.description);
+
+              return (
+                <Tooltip key={item.key}>
+                  <TooltipTrigger asChild>
+                    <button
+                      type="button"
+                      className={cn(
+                        "flex size-11 items-center justify-center rounded-lg border border-transparent text-accent-foreground outline-hidden transition-colors hover:border-border/60 hover:bg-background/70 hover:text-mono focus-visible:border-primary/30 focus-visible:bg-background focus-visible:text-mono",
+                        isSelected &&
+                          "border-primary/20 bg-primary/[0.08] text-mono",
+                      )}
+                      aria-label={label}
+                      aria-current={isSelected ? "page" : undefined}
+                      onClick={() => {
+                        navigate(getNavigationTarget(item));
+                        onNavigate?.();
+                      }}
+                    >
+                      <Icon className="size-4 opacity-70" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent side="right" className="max-w-56 space-y-0.5">
+                    <div className="text-xs font-semibold">{label}</div>
+                    <div className="text-[0.68rem] text-muted-foreground">
+                      {description}
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+              );
+            })}
+          </div>
+        ))}
+      </nav>
+    );
+  }
 
   return (
     <AccordionMenu

@@ -1,17 +1,24 @@
-import { useUserProfile, useUpdateUserProfile } from "@/domains/settings/settings-hooks";
+import {
+  useUserProfile,
+  useUpdateUserProfile,
+} from "@/domains/settings/settings-hooks";
 import { usePortalI18n } from "@/shared/lib/use-portal-i18n";
 import { getLanguageOption } from "@/shared/lib/language";
 import { LanguageSelectorControl } from "@/shared/ui/language-selector-control";
 
 export function LanguageSelector({
+  iconOnly = false,
   variant = "default",
 }: {
+  iconOnly?: boolean;
   variant?: "default" | "compact";
 }) {
   const profileQuery = useUserProfile();
   const updateProfile = useUpdateUserProfile();
   const { language, setLanguage, t } = usePortalI18n();
-  const activeLanguage = getLanguageOption(profileQuery.data?.language?.trim() || language);
+  const activeLanguage = getLanguageOption(
+    profileQuery.data?.language?.trim() || language,
+  );
   const selectedLanguage = activeLanguage.code;
 
   async function handleValueChange(nextLanguage: string) {
@@ -36,6 +43,7 @@ export function LanguageSelector({
         void handleValueChange(value);
       }}
       ariaLabel={`${t("Language")}: ${activeLanguage.code}`}
+      iconOnly={iconOnly}
       variant={variant}
       disabled={
         updateProfile.isPending ||

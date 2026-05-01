@@ -110,6 +110,12 @@ export {
 } from "@/components/ui/table";
 export { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 export { Textarea } from "@/components/ui/textarea";
+export {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 export { ConfirmAction } from "@/shared/ui/confirm-action";
 export { ContextHint } from "@/shared/ui/context-hint";
 export { FormSectionHeading } from "@/shared/ui/form-section-heading";

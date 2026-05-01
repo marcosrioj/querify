@@ -55,6 +55,78 @@
 }
 
 @layer utilities {
+  :is(
+      a[href],
+      button,
+      summary,
+      label[for],
+      input[type="checkbox"],
+      input[type="file"],
+      input[type="radio"],
+      select,
+      [role="button"],
+      [role="link"],
+      [role="menuitem"],
+      [role="option"],
+      [data-slot="accordion-menu-item"],
+      [data-slot="accordion-menu-sub-trigger"],
+      [data-slot="alert-dialog-action"],
+      [data-slot="alert-dialog-cancel"],
+      [data-slot="button"],
+      [data-slot="checkbox"],
+      [data-slot="dialog-close"],
+      [data-slot="dropdown-menu-checkbox-item"],
+      [data-slot="dropdown-menu-item"],
+      [data-slot="dropdown-menu-radio-item"],
+      [data-slot="dropdown-menu-sub-trigger"],
+      [data-slot="radio-group-item"],
+      [data-slot="select-item"],
+      [data-slot="select-trigger"],
+      [data-slot="sheet-close"],
+      [data-slot="switch"],
+      [data-slot="tabs-trigger"]
+    ):not(:disabled):not([aria-disabled="true"]):not([data-disabled]):not(
+      [data-disabled="true"]
+    ) {
+    cursor: pointer;
+  }
+
+  :is(
+    button,
+    input[type="checkbox"],
+    input[type="file"],
+    input[type="radio"],
+    select,
+    [role="button"],
+    [role="link"],
+    [role="menuitem"],
+    [role="option"],
+    [data-slot="accordion-menu-item"],
+    [data-slot="accordion-menu-sub-trigger"],
+    [data-slot="alert-dialog-action"],
+    [data-slot="alert-dialog-cancel"],
+    [data-slot="button"],
+    [data-slot="checkbox"],
+    [data-slot="dialog-close"],
+    [data-slot="dropdown-menu-checkbox-item"],
+    [data-slot="dropdown-menu-item"],
+    [data-slot="dropdown-menu-radio-item"],
+    [data-slot="dropdown-menu-sub-trigger"],
+    [data-slot="radio-group-item"],
+    [data-slot="select-item"],
+    [data-slot="select-trigger"],
+    [data-slot="sheet-close"],
+    [data-slot="switch"],
+    [data-slot="tabs-trigger"]
+  ):is(
+    :disabled,
+    [aria-disabled="true"],
+    [data-disabled],
+    [data-disabled="true"]
+  ) {
+    cursor: not-allowed;
+  }
+
   .portal-confetti-burst {
     animation: portal-confetti-burst 1.4s ease-out both;
   }

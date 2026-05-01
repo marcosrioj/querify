@@ -39,6 +39,7 @@ export function UserMenu({
           <button
             type="button"
             className="cursor-pointer rounded-full border-2 border-secondary"
+            aria-label={t('Open user menu')}
           >
             <Avatar className="size-9">
               <AvatarFallback>{initials}</AvatarFallback>
