@@ -15,6 +15,7 @@ export function SidebarHeader({
   onNavigate?: () => void;
 }) {
   const { t } = usePortalI18n();
+  const canToggleSidebar = Boolean(onCompactChange);
   const brandLink = (
     <Link
       to="/app/dashboard"
@@ -55,7 +56,7 @@ export function SidebarHeader({
           brandLink
         )}
 
-        {!compact ? (
+        {!compact && canToggleSidebar ? (
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
@@ -76,7 +77,7 @@ export function SidebarHeader({
         ) : null}
       </div>
 
-      {compact ? (
+      {compact && canToggleSidebar ? (
         <div className="flex justify-center px-2 pb-1">
           <Tooltip>
             <TooltipTrigger asChild>
