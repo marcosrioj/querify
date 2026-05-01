@@ -72,6 +72,24 @@ Technical reference for how `apps/portal` is organized, what it consumes from th
 
 ---
 
+## Integrations
+
+- [`integrations/mcp-server.md`](integrations/mcp-server.md) — what works today: TypeScript proxy quick start, available tools, and client connection configs. Points to the full design in `future/`.
+
+---
+
+## Future work
+
+Design documents for features that are planned but not yet built. See [`future/README.md`](future/README.md)
+for how this folder works and when documents move out of it.
+
+### Integrations (future)
+
+- [`future/integrations/mcp.md`](future/integrations/mcp.md) — complete architecture for `BaseFaq.MCP.Server`: one native .NET server powering five module agents (QnA, Direct, Broadcast, Trust, Tenant), direct MediatR handler calls, per-agent prompts, tool matrix, and 6-phase roadmap.
+- [`future/integrations/mcp-source-to-qna.md`](future/integrations/mcp-source-to-qna.md) — deep-dive on the `qna_import_source` tool and `GenerateQnAFromSourceCommand`: AI generation logic, Anthropic SDK, atomic batch creation, and pipeline-specific gaps.
+
+---
+
 ## Recommended reading order
 
 1. [`../README.md`](../README.md) — shortest path to a working local environment.
