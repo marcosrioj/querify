@@ -2,9 +2,9 @@ namespace BaseFaq.Models.Tenant.Enums;
 
 public enum TenantEdition
 {
-    Free = 0,
-    Starter = 1,
-    Pro = 2,
-    Business = 3,
-    Enterprise = 4
+    Free = 1,
+    Starter = 6,
+    Pro = 11,
+    Business = 16,
+    Enterprise = 21
 }

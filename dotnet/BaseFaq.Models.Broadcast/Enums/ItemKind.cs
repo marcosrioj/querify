@@ -13,15 +13,15 @@ public enum ItemKind
     /// <summary>
     /// Public reply or nested contribution within a Broadcast thread.
     /// </summary>
-    Comment = 2,
+    Comment = 6,
 
     /// <summary>
     /// Message captured from a shared Broadcast thread where responses can be seen by many people.
     /// </summary>
-    SharedMessage = 3,
+    SharedMessage = 11,
 
     /// <summary>
     /// Captured item is known by Broadcast but not represented by a more specific item kind yet.
     /// </summary>
-    Other = 99
+    Other = 16
 }

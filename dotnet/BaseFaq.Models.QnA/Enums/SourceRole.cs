@@ -13,15 +13,15 @@ public enum SourceRole
     /// <summary>
     /// The source adds background or interpretation for the question or answer.
     /// </summary>
-    Context = 2,
+    Context = 6,
 
     /// <summary>
     /// The source directly supports the question or answer and should influence confidence.
     /// </summary>
-    Evidence = 3,
+    Evidence = 11,
 
     /// <summary>
     /// The source is a user-facing reference for the current question or answer.
     /// </summary>
-    Reference = 4
+    Reference = 16
 }

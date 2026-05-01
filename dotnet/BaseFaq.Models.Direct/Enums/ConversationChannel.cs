@@ -13,15 +13,15 @@ public enum ConversationChannel
     /// <summary>
     /// Conversation started inside an authenticated application experience.
     /// </summary>
-    InApp = 2,
+    InApp = 6,
 
     /// <summary>
     /// Conversation originated from email and may represent an asynchronous support thread.
     /// </summary>
-    Email = 3,
+    Email = 11,
 
     /// <summary>
     /// Conversation source is known by Direct but not represented by a more specific channel yet.
     /// </summary>
-    Other = 99
+    Other = 16
 }

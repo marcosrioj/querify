@@ -15,11 +15,11 @@ public enum AnswerKind
     /// An answer provided by a community participant.
     /// It may still become accepted, but it is not official by default.
     /// </summary>
-    Community = 2,
+    Community = 6,
 
     /// <summary>
     /// An answer imported from another system or knowledge base.
     /// It may need normalization or revalidation in the local domain.
     /// </summary>
-    Imported = 3
+    Imported = 11
 }

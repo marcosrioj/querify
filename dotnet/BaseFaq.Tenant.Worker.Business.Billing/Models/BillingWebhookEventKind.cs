@@ -2,11 +2,11 @@ namespace BaseFaq.Tenant.Worker.Business.Billing.Models;
 
 public enum BillingWebhookEventKind
 {
-    Unknown = 0,
-    CheckoutCompleted = 1,
-    SubscriptionCreated = 2,
-    SubscriptionUpdated = 3,
-    SubscriptionCanceled = 4,
-    InvoicePaid = 5,
-    InvoicePaymentFailed = 6
+    Unknown = 1,
+    CheckoutCompleted = 6,
+    SubscriptionCreated = 11,
+    SubscriptionUpdated = 16,
+    SubscriptionCanceled = 21,
+    InvoicePaid = 26,
+    InvoicePaymentFailed = 31
 }

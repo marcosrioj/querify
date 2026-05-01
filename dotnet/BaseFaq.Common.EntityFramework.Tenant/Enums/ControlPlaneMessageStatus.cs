@@ -2,8 +2,8 @@ namespace BaseFaq.Common.EntityFramework.Tenant.Enums;
 
 public enum ControlPlaneMessageStatus
 {
-    Pending = 0,
-    Processing = 1,
-    Completed = 2,
-    Failed = 3
+    Pending = 1,
+    Processing = 6,
+    Completed = 11,
+    Failed = 16
 }

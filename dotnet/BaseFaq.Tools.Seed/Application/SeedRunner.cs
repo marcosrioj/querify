@@ -306,14 +306,14 @@ public sealed class SeedRunner(
 
     private enum SeedAction
     {
-        SeedRealistic,
-        SeedEssentialOnly,
-        SeedBigData,
-        CleanAndSeedRealistic,
-        CleanBigDataOnly,
-        CleanTenantOnly,
-        CleanQnAOnly,
-        CleanAllOnly,
-        Exit
+        SeedRealistic = 1,
+        SeedEssentialOnly = 6,
+        SeedBigData = 11,
+        CleanAndSeedRealistic = 16,
+        CleanBigDataOnly = 21,
+        CleanTenantOnly = 26,
+        CleanQnAOnly = 31,
+        CleanAllOnly = 36,
+        Exit = 41
     }
 }

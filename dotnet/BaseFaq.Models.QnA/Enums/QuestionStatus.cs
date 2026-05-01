@@ -9,16 +9,16 @@ public enum QuestionStatus
     /// The question exists but is still being prepared.
     /// It is not ready for normal operational or public use.
     /// </summary>
-    Draft = 0,
+    Draft = 1,
 
     /// <summary>
     /// The question is active in the knowledge surface and can receive answers or user interaction.
     /// </summary>
-    Active = 1,
+    Active = 6,
 
     /// <summary>
     /// The question is no longer active in the knowledge surface.
     /// Historical data may still be preserved.
     /// </summary>
-    Archived = 2
+    Archived = 11
 }

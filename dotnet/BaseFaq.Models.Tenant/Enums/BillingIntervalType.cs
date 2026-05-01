@@ -2,10 +2,10 @@ namespace BaseFaq.Models.Tenant.Enums;
 
 public enum BillingIntervalType
 {
-    Unknown = 0,
-    Day = 1,
-    Week = 2,
-    Month = 3,
-    Year = 4,
-    OneTime = 5
+    Unknown = 1,
+    Day = 6,
+    Week = 11,
+    Month = 16,
+    Year = 21,
+    OneTime = 26
 }

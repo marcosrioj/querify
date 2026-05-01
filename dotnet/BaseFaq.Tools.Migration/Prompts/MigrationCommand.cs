@@ -2,6 +2,6 @@ namespace BaseFaq.Tools.Migration.Prompts;
 
 internal enum MigrationCommand
 {
-    MigrationsAdd,
-    DatabaseUpdate
+    MigrationsAdd = 1,
+    DatabaseUpdate = 6
 }

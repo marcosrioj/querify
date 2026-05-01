@@ -128,21 +128,24 @@ Process:
 
 1. Add, update, or delete enum values only after Step 2 confirms there is no duplicate concept.
 2. Add an XML summary to every enum option in the enum file. The summary must explain the behavior or decision represented by the option, not just restate the option name.
-3. Update the owning entity with the smallest persisted shape that can execute the behavior.
-4. Add an XML summary to every persisted property and navigation in the entity file. The summary must explain how the behavior uses the property, including when a timestamp or actor differs from `BaseEntity`/`AuditableEntity` state.
-5. Before adding a persisted property, check whether `BaseEntity` or `AuditableEntity` already provides the needed state: `Id`, `CreatedDate`, `CreatedBy`, `UpdatedDate`, `UpdatedBy`, `DeletedDate`, `DeletedBy`, or `IsDeleted`.
-6. Do not duplicate or shadow base entity state with module-specific fields such as `CreatedAtUtc`, `UpdatedAtUtc`, `DeletedAtUtc`, `ExternalCreatedBy`, or separate soft-delete flags unless the new field represents a distinct domain timestamp or actor.
-7. Remove properties that duplicate the new canonical field.
-8. Preserve existing behavior semantics by moving callers to the canonical field.
-9. Keep entities state-only.
-10. Keep `required` semantics explicit. Do not set silent defaults to make construction easier.
-11. For `Source`, keep artifact identity, audience exposure, and relationship context separate: `Kind` and locator fields identify the material, `Visibility` controls who can see it, and `SourceRole` explains why it is attached.
-12. Do not create placeholder module entities. If a needed owning entity is still missing and the stage does not explicitly introduce it, leave a handoff note instead.
-13. For QnA, put reusable entity-related rules under `BaseFaq.QnA.Common.Domain.BusinessRules`; these rules must not depend on `QnADbContext`, EF queries, service registration, or HTTP controllers.
-14. When a new or changed entity implements `IMustHaveTenant` and references another tenant-owned entity, update the owning `DbContext` to enforce tenant integrity before save.
-15. Follow the module `DbContext` pattern: call `EnsureTenantIntegrity()` from `OnBeforeSaveChangesRules()`, place one focused rule per checked entity or relationship under `DbContext/TenantIntegrity/<Entity>TenantIntegrityExtension.cs`, and keep `Extensions` folders for service registration only.
-16. Resolve referenced tenant ids with `TenantIntegrityLookupCacheBase` or a module-specific `TenantIntegrityLookupCache`, using `IgnoreQueryFilters()` so tenant filters and soft-delete do not hide invalid relationships.
-17. Throw on cross-tenant links or missing references. If a tenant-owned entity has no tenant-owned relationships, record that no additional tenant-integrity rule is needed instead of adding empty validation code.
+3. Every enum member must declare an explicit numeric value. Do not use `0`, and do not rely on implicit enum numbering; `default(<Enum>)` must remain an invalid persisted/API value.
+4. Use the BaseFaq enum allocation sequence in declaration order: `1, 6, 11, 16, 21`, continuing by `+5` for every additional member. When a matching Portal enum exists in `apps/portal/src/shared/constants/backend-enums.ts`, update it in the same change.
+5. If an existing persisted/API enum needs a value inserted between stable values, use an unused number inside the existing five-value gap only when the current numeric contract must be preserved. Renumber the whole enum only when the user explicitly accepts a data reset, data migration, or contract break.
+6. Update the owning entity with the smallest persisted shape that can execute the behavior.
+7. Add an XML summary to every persisted property and navigation in the entity file. The summary must explain how the behavior uses the property, including when a timestamp or actor differs from `BaseEntity`/`AuditableEntity` state.
+8. Before adding a persisted property, check whether `BaseEntity` or `AuditableEntity` already provides the needed state: `Id`, `CreatedDate`, `CreatedBy`, `UpdatedDate`, `UpdatedBy`, `DeletedDate`, `DeletedBy`, or `IsDeleted`.
+9. Do not duplicate or shadow base entity state with module-specific fields such as `CreatedAtUtc`, `UpdatedAtUtc`, `DeletedAtUtc`, `ExternalCreatedBy`, or separate soft-delete flags unless the new field represents a distinct domain timestamp or actor.
+10. Remove properties that duplicate the new canonical field.
+11. Preserve existing behavior semantics by moving callers to the canonical field.
+12. Keep entities state-only.
+13. Keep `required` semantics explicit. Do not set silent defaults to make construction easier.
+14. For `Source`, keep artifact identity, audience exposure, and relationship context separate: `Kind` and locator fields identify the material, `Visibility` controls who can see it, and `SourceRole` explains why it is attached.
+15. Do not create placeholder module entities. If a needed owning entity is still missing and the stage does not explicitly introduce it, leave a handoff note instead.
+16. For QnA, put reusable entity-related rules under `BaseFaq.QnA.Common.Domain.BusinessRules`; these rules must not depend on `QnADbContext`, EF queries, service registration, or HTTP controllers.
+17. When a new or changed entity implements `IMustHaveTenant` and references another tenant-owned entity, update the owning `DbContext` to enforce tenant integrity before save.
+18. Follow the module `DbContext` pattern: call `EnsureTenantIntegrity()` from `OnBeforeSaveChangesRules()`, place one focused rule per checked entity or relationship under `DbContext/TenantIntegrity/<Entity>TenantIntegrityExtension.cs`, and keep `Extensions` folders for service registration only.
+19. Resolve referenced tenant ids with `TenantIntegrityLookupCacheBase` or a module-specific `TenantIntegrityLookupCache`, using `IgnoreQueryFilters()` so tenant filters and soft-delete do not hide invalid relationships.
+20. Throw on cross-tenant links or missing references. If a tenant-owned entity has no tenant-owned relationships, record that no additional tenant-integrity rule is needed instead of adding empty validation code.
 
 When deleting a property or enum, immediately search for all compile-time and string references:
 

@@ -13,21 +13,21 @@ public enum ActorKind
     /// <summary>
     /// An end customer or external user caused the event.
     /// </summary>
-    Customer = 2,
+    Customer = 6,
 
     /// <summary>
     /// A general contributor caused the event.
     /// This may be an internal or community participant.
     /// </summary>
-    Contributor = 3,
+    Contributor = 11,
 
     /// <summary>
     /// A moderator or editor caused the event.
     /// </summary>
-    Moderator = 4,
+    Moderator = 16,
 
     /// <summary>
     /// An external integration or connector caused the event.
     /// </summary>
-    Integration = 5
+    Integration = 21
 }

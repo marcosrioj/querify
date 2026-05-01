@@ -1,148 +1,148 @@
 export enum ModuleEnum {
-  Tenant = 0,
-  QnA = 1,
-  Direct = 3,
-  Broadcast = 2,
-  Trust = 4,
+  Tenant = 1,
+  QnA = 6,
+  Direct = 11,
+  Broadcast = 16,
+  Trust = 21,
 }
 
 export enum TenantEdition {
-  Free = 0,
-  Starter = 1,
-  Pro = 2,
-  Business = 3,
-  Enterprise = 4,
+  Free = 1,
+  Starter = 6,
+  Pro = 11,
+  Business = 16,
+  Enterprise = 21,
 }
 
 export enum TenantUserRoleType {
-  Owner = 0,
-  Member = 1,
+  Owner = 1,
+  Member = 6,
 }
 
 export enum BillingProviderType {
-  Unknown = 0,
-  Stripe = 1,
+  Unknown = 1,
+  Stripe = 6,
 }
 
 export enum BillingIntervalType {
-  Unknown = 0,
-  Day = 1,
-  Week = 2,
-  Month = 3,
-  Year = 4,
-  OneTime = 5,
+  Unknown = 1,
+  Day = 6,
+  Week = 11,
+  Month = 16,
+  Year = 21,
+  OneTime = 26,
 }
 
 export enum BillingInvoiceStatus {
-  Unknown = 0,
-  Draft = 1,
-  Open = 2,
-  Paid = 3,
-  Uncollectible = 4,
-  Void = 5,
-  Failed = 6,
+  Unknown = 1,
+  Draft = 6,
+  Open = 11,
+  Paid = 16,
+  Uncollectible = 21,
+  Void = 26,
+  Failed = 31,
 }
 
 export enum BillingPaymentStatus {
-  Unknown = 0,
-  Pending = 1,
-  Succeeded = 2,
-  Failed = 3,
-  Refunded = 4,
+  Unknown = 1,
+  Pending = 6,
+  Succeeded = 11,
+  Failed = 16,
+  Refunded = 21,
 }
 
 export enum TenantSubscriptionStatus {
-  Unknown = 0,
-  Trialing = 1,
-  Active = 2,
-  PastDue = 3,
-  Unpaid = 4,
-  Canceled = 5,
-  Incomplete = 6,
-  IncompleteExpired = 7,
-  Paused = 8,
+  Unknown = 1,
+  Trialing = 6,
+  Active = 11,
+  PastDue = 16,
+  Unpaid = 21,
+  Canceled = 26,
+  Incomplete = 31,
+  IncompleteExpired = 36,
+  Paused = 41,
 }
 
 export enum SpaceStatus {
-  Draft = 0,
-  Active = 1,
-  Archived = 2,
+  Draft = 1,
+  Active = 6,
+  Archived = 11,
 }
 
 export enum VisibilityScope {
-  Internal = 0,
-  Authenticated = 1,
-  Public = 2,
+  Internal = 1,
+  Authenticated = 6,
+  Public = 11,
 }
 
 export enum QuestionStatus {
-  Draft = 0,
-  Active = 1,
-  Archived = 2,
+  Draft = 1,
+  Active = 6,
+  Archived = 11,
 }
 
 export enum ChannelKind {
   Manual = 1,
-  Widget = 2,
-  Api = 3,
-  HelpCenter = 4,
-  Import = 5,
-  Other = 99,
+  Widget = 6,
+  Api = 11,
+  HelpCenter = 16,
+  Import = 21,
+  Other = 26,
 }
 
 export enum AnswerKind {
   Official = 1,
-  Community = 2,
-  Imported = 3,
+  Community = 6,
+  Imported = 11,
 }
 
 export enum AnswerStatus {
-  Draft = 0,
-  Active = 1,
-  Archived = 2,
+  Draft = 1,
+  Active = 6,
+  Archived = 11,
 }
 
 export enum SourceKind {
   Article = 1,
-  WebPage = 2,
-  Pdf = 3,
-  Video = 4,
-  Repository = 5,
-  ProductNote = 6,
-  InternalNote = 7,
-  GovernanceRecord = 8,
-  AuditRecord = 9,
-  Other = 99,
+  WebPage = 6,
+  Pdf = 11,
+  Video = 16,
+  Repository = 21,
+  ProductNote = 26,
+  InternalNote = 31,
+  GovernanceRecord = 36,
+  AuditRecord = 41,
+  Other = 46,
 }
 
 export enum SourceRole {
   Origin = 1,
-  Context = 2,
-  Evidence = 3,
-  Reference = 4,
+  Context = 6,
+  Evidence = 11,
+  Reference = 16,
 }
 
 export enum ActivityKind {
-  QuestionCreated = 18,
-  QuestionUpdated = 19,
-  QuestionDraft = 20,
-  QuestionActive = 21,
-  QuestionArchived = 22,
-  AnswerCreated = 28,
-  AnswerUpdated = 29,
-  AnswerDraft = 30,
-  AnswerActive = 31,
-  AnswerArchived = 32,
-  FeedbackReceived = 40,
-  VoteReceived = 41,
+  QuestionCreated = 1,
+  QuestionUpdated = 6,
+  QuestionDraft = 11,
+  QuestionActive = 16,
+  QuestionArchived = 21,
+  AnswerCreated = 26,
+  AnswerUpdated = 31,
+  AnswerDraft = 36,
+  AnswerActive = 41,
+  AnswerArchived = 46,
+  FeedbackReceived = 51,
+  VoteReceived = 56,
 }
 
 export enum ActorKind {
   System = 1,
-  Customer = 2,
-  Contributor = 3,
-  Moderator = 4,
-  Integration = 5,
+  Customer = 6,
+  Contributor = 11,
+  Moderator = 16,
+  Integration = 21,
 }
 
 export const tenantEditionLabels: Record<TenantEdition, string> = {

@@ -2,13 +2,13 @@ namespace BaseFaq.Models.Tenant.Enums;
 
 public enum TenantSubscriptionStatus
 {
-    Unknown = 0,
-    Trialing = 1,
-    Active = 2,
-    PastDue = 3,
-    Unpaid = 4,
-    Canceled = 5,
-    Incomplete = 6,
-    IncompleteExpired = 7,
-    Paused = 8
+    Unknown = 1,
+    Trialing = 6,
+    Active = 11,
+    PastDue = 16,
+    Unpaid = 21,
+    Canceled = 26,
+    Incomplete = 31,
+    IncompleteExpired = 36,
+    Paused = 41
 }

@@ -2,9 +2,9 @@ namespace BaseFaq.Models.Tenant.Enums;
 
 public enum BillingPaymentStatus
 {
-    Unknown = 0,
-    Pending = 1,
-    Succeeded = 2,
-    Failed = 3,
-    Refunded = 4
+    Unknown = 1,
+    Pending = 6,
+    Succeeded = 11,
+    Failed = 16,
+    Refunded = 21
 }

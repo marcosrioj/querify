@@ -13,5 +13,5 @@ public enum ThreadStatus
     /// <summary>
     /// Thread has been completed and should be treated as historical until reopen behavior exists.
     /// </summary>
-    Closed = 2
+    Closed = 6
 }
