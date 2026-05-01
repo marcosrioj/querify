@@ -10,21 +10,11 @@ The goal is not to add layers. The goal is to keep the model simple, preserve su
 
 The current BaseFaq module split is documented in [`business/value_proposition.md`](business/value_proposition.md). The current modules are Tenant, QnA, Direct, Broadcast, and Trust. Tenant owns the control plane. QnA, Direct, Broadcast, and Trust own product behavior. Treat each module persistence boundary as the owner of its own behavior; do not park behavior in QnA because the QnA model already has a channel, source, or activity enum value that sounds close.
 
-## Authority And Precedence
+## Before Starting
 
-Start with the existing documentation before making code changes:
+Read existing documentation before making code changes. Follow the **Product behavior change** reading order in [`execution-guide.md`](execution-guide.md) → Standard workstreams.
 
-1. Work routing: [`execution-guide.md`](execution-guide.md).
-2. Product boundaries and value model: [`business/value_proposition.md`](business/value_proposition.md).
-3. Backend architecture: [`backend/architecture/solution-architecture.md`](backend/architecture/solution-architecture.md) and [`backend/architecture/dotnet-backend-overview.md`](backend/architecture/dotnet-backend-overview.md).
-4. CQRS and repository rules: [`backend/architecture/solution-cqrs-write-rules.md`](backend/architecture/solution-cqrs-write-rules.md) and [`backend/architecture/repository-rules.md`](backend/architecture/repository-rules.md).
-5. Backend tests: [`backend/testing/integration-testing-strategy.md`](backend/testing/integration-testing-strategy.md).
-6. Seed and migration tools: [`backend/tools/seed-tool.md`](backend/tools/seed-tool.md) and [`backend/tools/migration-tool.md`](backend/tools/migration-tool.md).
-7. Portal architecture and UX: [`frontend/architecture/portal-app.md`](frontend/architecture/portal-app.md) and [`frontend/architecture/portal-app-ui-prompt-guidance.md`](frontend/architecture/portal-app-ui-prompt-guidance.md).
-8. Portal localization: [`frontend/architecture/portal-localization.md`](frontend/architecture/portal-localization.md).
-9. Frontend validation: [`frontend/testing/validation-guide.md`](frontend/testing/validation-guide.md).
-
-If those documents do not describe the behavior you are changing, inspect the closest existing implementation and follow its current pattern. If the new behavior establishes a reusable pattern, update the most specific owning document and link it from [`docs/README.md`](README.md) when needed.
+If those documents do not describe the behavior you are changing, inspect the closest existing implementation and follow its current pattern. If the new behavior establishes a reusable pattern, update the most specific owning document and link it from [`docs/README.md`](README.md).
 
 ## Non-Negotiable Rules
 

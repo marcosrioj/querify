@@ -323,45 +323,14 @@ Os fluxos abaixo mostram como o sistema cria valor em diferentes momentos da jor
 | 19. Risco, Compliance E Auditoria -> Prova De Decisão | Um tema exige controle, revisão ou evidências. | QnA guarda a resposta vigente; Trust registra validação, regra, participantes e histórico; Direct e Broadcast usam apenas a versão permitida. | Reduz risco operacional em temas sensíveis. |
 | 20. Liderança -> Inteligência Operacional | Diretoria quer entender o que clientes, usuários e comunidades estão perguntando. | Broadcast, Direct e QnA consolidam sinais de suas próprias fronteiras; Trust registra decisões quando houver regra formal; relatórios orientam novas respostas, campanhas ou propostas. | Transforma interações do dia a dia em insumo para estratégia. |
 
-## Padrões De Mercado Validados Pela Pesquisa
+## Padrões De Mercado Validados
 
-- Plataformas de suporte estão convergindo para conhecimento conectado que alimenta autosserviço, agentes humanos, automação e análise a partir de uma mesma fonte confiável.
-- Canais sociais e de vídeo já oferecem estruturas de comentários e conversas que podem ser capturadas, respondidas e transformadas em inventário de perguntas.
+- Plataformas de suporte convergem para conhecimento conectado que alimenta autosserviço, agentes humanos, automação e análise a partir de uma mesma fonte confiável.
+- Canais sociais e de vídeo oferecem estruturas de comentários capturáveis, respondíveis e transformáveis em inventário de perguntas.
 - Comunidades maduras usam respostas aceitas, votos, moderação e verificação para transformar discussão em conhecimento confiável.
-- Governança confiável depende menos de promessas tecnológicas e mais de identidade, regras claras, trilha de auditoria, contestabilidade e publicação do racional.
-- O uso de IA deve ser tratado como uma camada auxiliar, não como a promessa central. O valor principal é conhecimento confiável, resolução consistente e aprendizado contínuo.
+- Governança confiável depende de identidade, regras claras, trilha de auditoria, contestabilidade e publicação do racional — não de promessas tecnológicas.
+- O uso de IA deve ser tratado como camada auxiliar. O valor principal é conhecimento confiável, resolução consistente e aprendizado contínuo.
 
 ## Promessa Comercial Em Uma Linha
 
 **Responda melhor hoje, aprenda com cada interação e transforme perguntas repetidas em conhecimento que escala.**
-
-## Referências Consultadas
-
-- [Zendesk Knowledge](https://www.zendesk.com/service/knowledge/) reforça a tese de conhecimento conectado para resoluções em autosserviço, agentes e canais.
-- [YouTube CommentThreads API](https://developers.google.com/youtube/v3/docs/commentThreads) mostra comentários e respostas como estrutura capturável de interações públicas.
-- [WhatsApp Cloud API overview](https://developers.facebook.com/docs/whatsapp/cloud-api/overview) mostra mensageria programática e manual em escala, conectada a sistemas de negócio.
-- [GitHub Discussions](https://docs.github.com/en/discussions/collaborating-with-your-community-using-discussions/participating-in-a-discussion) mostra enquetes, votos e marcação de respostas em comunidades.
-- [Stack Overflow Internal Questions](https://stackoverflowteams.help/en/articles/8882140-questions) reforça a ideia de base de conhecimento construída a partir de perguntas bem respondidas.
-- [FIDO Alliance Passkeys](https://fidoalliance.org/passkeys/) referencia autenticação forte e resistente a phishing para fluxos de confiança.
-- [OpenZeppelin Governor](https://docs.openzeppelin.com/contracts/5.x/governance) referencia proposta, voto e ciclo de decisão para processos auditáveis.
-
-### Referências de viabilidade atual (abril de 2026)
-
-- [WordPress Plugin Developer Handbook](https://developer.wordpress.org/plugins/intro/) para distribuição via plugins em sites WordPress.
-- [Shopify theme app extensions](https://shopify.dev/apps/build/online-store/theme-app-extensions/configuration) para app embeds e blocos em storefront.
-- [BigCommerce Widgets API](https://developer.bigcommerce.com/docs/storefront/widgets) para posicionar widgets em páginas específicas.
-- [Webflow custom code embed](https://help.webflow.com/hc/en-us/articles/33961332238611-Custom-code-embed) para embeds em builders visuais.
-- [Squarespace code injection](https://support.squarespace.com/hc/en-us/articles/205815908-Using-code-injection) para scripts e widgets em sites Squarespace.
-- [Wix custom mobile widgets](https://support.wix.com/en/article/wix-mobile-apps-getting-started-with-custom-widgets) para superfícies mobile customizadas.
-- [Intercom web installation](https://developers.intercom.com/installing-intercom/web/installation) e [Intercom mobile installation](https://developers.intercom.com/installing-intercom) como evidência de padrão de mercado para web/mobile embeds.
-- [HubSpot Conversations guide](https://developers.hubspot.com/docs/api-reference/latest/conversations/guide) e [Chat Widget SDK](https://developers.hubspot.com/docs/api-reference/latest/conversations/chat-configuration/chat-widget-sdk) para chat web/mobile e canais customizados.
-- [Slack App Home](https://docs.slack.dev/surfaces/app-home/) e [Slack Shortcuts](https://docs.slack.dev/interactivity/implementing-shortcuts/) para levar conhecimento e ações para o fluxo de trabalho.
-- [Microsoft Teams tabs](https://learn.microsoft.com/en-us/microsoftteams/platform/tabs/what-are-tabs) e [message extensions](https://learn.microsoft.com/en-us/microsoftteams/platform/teams-sdk/in-depth-guides/message-extensions/overview) para superfícies internas de trabalho.
-- [GitHub Discussions](https://docs.github.com/en/discussions/collaborating-with-your-community-using-discussions/about-discussions) para perguntas, respostas, polls e decisões abertas.
-- [Discourse Solved](https://meta.discourse.org/t/discourse-solved/30155) e [Discourse Topic Voting](https://meta.discourse.org/t/discourse-topic-voting/40121) para suporte colaborativo e priorização por votos.
-- [Discord bots](https://discord.com/developers/docs/bots), [application commands](https://docs.discord.com/developers/interactions/application-commands) e [webhooks](https://docs.discord.com/developers/platform/webhooks) para comunidades próprias e automações.
-- [YouTube CommentThreads API](https://developers.google.com/youtube/v3/docs/commentThreads) para ingestão e resposta em comentários de vídeo.
-- [TikTok Research API](https://developers.tiktok.com/products/research-api/) e [About Research Tools](https://developers.tiktok.com/doc/about-research-api/) como evidência de que TikTok ainda deve ser tratado como conector restrito.
-- [WhatsApp Cloud API overview](https://developers.facebook.com/docs/whatsapp/cloud-api/overview) para mensageria operacional em escala.
-- [Snapshot docs](https://docs.snapshot.box/) para voto off-chain, mensagens assinadas e modelos flexíveis de governança.
-- [W3C WebAuthn Level 3](https://www.w3.org/TR/webauthn-3/) e [NIST SP 800-63-4](https://www.nist.gov/publications/nist-sp-800-63-4-digital-identity-guidelines) para autenticação forte e arquitetura de confiança.

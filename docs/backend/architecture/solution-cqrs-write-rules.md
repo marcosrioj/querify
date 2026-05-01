@@ -4,6 +4,8 @@
 
 This document defines the mandatory write-side rules for BaseFAQ. The goal is to keep command flows predictable, thin, and aligned across all business modules.
 
+For the extended companion — folder ownership rules, handler slicing guidelines, DTO contract rules, DbContext patterns, and the full review checklist — see [`repository-rules.md`](repository-rules.md).
+
 ## Scope
 
 These rules apply to:
@@ -165,17 +167,7 @@ Extend module entity models only for concrete behavior owned by that module; do 
 
 ## Review checklist
 
-- command returns only a simple value
-- command handler returns only a simple value
-- no read-after-write response shaping
-- write controller returns a write result, not a read DTO
-- GET/query handler uses no-tracking DTO projection and avoids entity graph loading
-- query filters, sorts, and high-cardinality relationship lookups have matching indexes and migrations
-- service write methods stay thin
-- tests were updated for the real dependencies
-- large handler logic was extracted where necessary
-- module persistence entities stayed state-only
-- tenant-owned relationship changes update the owning module `DbContext/TenantIntegrity` rule
+Use the full checklist in [`repository-rules.md`](repository-rules.md) → **Required Review Checklist**. That list is a superset of these CQRS rules and includes handler decomposition, folder ownership, and API error convention checks.
 
 ## Anti-patterns
 

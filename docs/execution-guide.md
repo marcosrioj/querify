@@ -2,9 +2,11 @@
 
 ## Purpose
 
-This document is the human workflow guide for the repository.
+This is the work-routing guide for the repository. Use it to decide how work should be framed, which boundary owns it, and which documents to read together.
 
-Use it to decide how work should be framed, which repository boundary owns it, and which backend or frontend documents must be used together.
+**Business context** lives in [`business/value_proposition.md`](business/value_proposition.md) (pt-BR). Read it first when the work touches module ownership, cross-module flows, or the product value proposition.
+
+**Technical context** lives in the `backend/` and `frontend/` document trees. This guide routes you to the right one.
 
 ## How to frame work
 
@@ -184,102 +186,19 @@ Start with:
 
 ## Standard workstreams
 
-### Backend feature or CQRS refactor
+Quick-reference reading order per task type. These refine the workflow choices above for the most common sub-patterns.
 
-Follow:
-
-1. [`backend/architecture/dotnet-backend-overview.md`](backend/architecture/dotnet-backend-overview.md)
-2. [`backend/architecture/solution-cqrs-write-rules.md`](backend/architecture/solution-cqrs-write-rules.md)
-3. [`backend/architecture/repository-rules.md`](backend/architecture/repository-rules.md)
-4. [`backend/testing/integration-testing-strategy.md`](backend/testing/integration-testing-strategy.md)
-
-Use this for new commands, queries, controllers, services, feature decomposition, and module project ownership changes.
-
-### Product behavior change
-
-Follow:
-
-1. [`behavior-change-playbook.md`](behavior-change-playbook.md)
-2. [`backend/architecture/repository-rules.md`](backend/architecture/repository-rules.md)
-3. [`backend/architecture/solution-cqrs-write-rules.md`](backend/architecture/solution-cqrs-write-rules.md)
-4. [`backend/testing/integration-testing-strategy.md`](backend/testing/integration-testing-strategy.md)
-5. [`frontend/architecture/portal-app.md`](frontend/architecture/portal-app.md), when the Portal is affected
-6. [`frontend/architecture/portal-localization.md`](frontend/architecture/portal-localization.md), when user-facing copy changes
-
-Use this for behavior that starts in entities or enums and must be applied through persistence, DTO contracts, CQRS flows, API surfaces, seed examples, tests, Portal screens, and locale catalogs. The first decision is whether an existing concept already represents the behavior; duplicated properties and enums should be consolidated before implementation spreads.
-
-### Tenant-aware public query
-
-Follow:
-
-1. [`backend/architecture/solution-architecture.md`](backend/architecture/solution-architecture.md)
-2. [`backend/architecture/dotnet-backend-overview.md`](backend/architecture/dotnet-backend-overview.md)
-3. [`backend/testing/integration-testing-strategy.md`](backend/testing/integration-testing-strategy.md)
-
-Use this for `X-Client-Key` flows, public reads, and tenant resolution on public APIs.
-
-### Control-plane worker or async processing
-
-Follow:
-
-1. [`backend/architecture/basefaq-tenant-worker.md`](backend/architecture/basefaq-tenant-worker.md)
-2. [`backend/architecture/solution-architecture.md`](backend/architecture/solution-architecture.md)
-3. [`backend/testing/integration-testing-strategy.md`](backend/testing/integration-testing-strategy.md)
-
-Use this for billing inboxes, email outboxes, retries, leases, and async command processing.
-
-### Seed, migration, and local stack changes
-
-Follow:
-
-1. [`backend/tools/local-development.md`](backend/tools/local-development.md)
-2. [`backend/tools/seed-tool.md`](backend/tools/seed-tool.md)
-3. [`backend/tools/migration-tool.md`](backend/tools/migration-tool.md)
-
-Use this for environment bootstrap, schema updates, tenant/module database setup, and local operational workflows.
-
-### Portal domain data flow
-
-Follow:
-
-1. [`frontend/architecture/portal-app.md`](frontend/architecture/portal-app.md)
-2. [`frontend/tools/portal-runtime.md`](frontend/tools/portal-runtime.md)
-3. [`frontend/testing/validation-guide.md`](frontend/testing/validation-guide.md)
-
-Use this for domain hooks, API clients, route wiring, page ownership, and backend contract alignment in `apps/portal`.
-
-### Portal page composition and stateful feedback
-
-Follow:
-
-1. [`frontend/architecture/portal-app-ui-prompt-guidance.md`](frontend/architecture/portal-app-ui-prompt-guidance.md)
-2. [`frontend/architecture/portal-app.md`](frontend/architecture/portal-app.md)
-3. [`frontend/testing/validation-guide.md`](frontend/testing/validation-guide.md)
-
-Use this for layouts, loading states, empty states, error handling, confirmations, and detail/list/settings consistency.
-
-### Portal localization
-
-Follow:
-
-1. [`frontend/architecture/portal-localization.md`](frontend/architecture/portal-localization.md)
-2. [`frontend/architecture/portal-app.md`](frontend/architecture/portal-app.md)
-3. [`frontend/testing/validation-guide.md`](frontend/testing/validation-guide.md)
-
-Use this for locale catalogs, language precedence, `lang` and `dir`, and profile-language integration.
-
-### Specialized domain, AI, or distribution design
-
-When the request concerns deeper product modeling, async AI flows, provenance, trust, or integration rollout, there is no standalone documentation area yet.
-
-Start with:
-
-1. [`backend/architecture/solution-architecture.md`](backend/architecture/solution-architecture.md)
-2. [`backend/architecture/dotnet-backend-overview.md`](backend/architecture/dotnet-backend-overview.md)
-3. [`backend/architecture/repository-rules.md`](backend/architecture/repository-rules.md)
-4. [`backend/testing/integration-testing-strategy.md`](backend/testing/integration-testing-strategy.md)
-
-If the work becomes a stable repository pattern, add or extend the owning backend or frontend guide instead of creating an isolated taxonomy document.
+| Workstream | Reading order |
+|---|---|
+| Backend feature / CQRS refactor | `dotnet-backend-overview` → `solution-cqrs-write-rules` → `repository-rules` → `integration-testing-strategy` |
+| Product behavior change (cross-layer) | `behavior-change-playbook` → `repository-rules` → `solution-cqrs-write-rules` → `integration-testing-strategy` → `portal-app` (if UI) → `portal-localization` (if copy changes) |
+| Tenant-aware public query (`X-Client-Key`) | `solution-architecture` → `dotnet-backend-overview` → `integration-testing-strategy` |
+| Control-plane worker / async processing | `basefaq-tenant-worker` → `solution-architecture` → `integration-testing-strategy` |
+| Seed, migration, or local stack | `local-development` → `seed-tool` → `migration-tool` |
+| Portal domain data flow | `portal-app` → `portal-runtime` → `validation-guide` |
+| Portal page composition / UI | `portal-app-ui-prompt-guidance` → `portal-app` → `validation-guide` |
+| Portal localization | `portal-localization` → `portal-app` → `validation-guide` |
+| Specialized domain, AI, or distribution | `solution-architecture` → `dotnet-backend-overview` → `repository-rules` → `integration-testing-strategy`. If the work becomes a stable pattern, extend the owning doc instead of creating a new taxonomy file. |
 
 ## Documentation update rules
 
