@@ -115,6 +115,15 @@
   }
 }
 
+@media (max-width: 767px) {
+  input,
+  select,
+  textarea,
+  [cmdk-input] {
+    font-size: 16px !important;
+  }
+}
+
 /* Component Integrations */
 @import "./components/image-input.css";
 @import "./components/apexcharts.css";
