@@ -3,7 +3,11 @@ import { usePortalI18n } from "@/shared/lib/use-portal-i18n";
 import { getLanguageOption } from "@/shared/lib/language";
 import { LanguageSelectorControl } from "@/shared/ui/language-selector-control";
 
-export function LanguageSelector() {
+export function LanguageSelector({
+  variant = "default",
+}: {
+  variant?: "default" | "compact";
+}) {
   const profileQuery = useUserProfile();
   const updateProfile = useUpdateUserProfile();
   const { language, setLanguage, t } = usePortalI18n();
@@ -32,6 +36,7 @@ export function LanguageSelector() {
         void handleValueChange(value);
       }}
       ariaLabel={`${t("Language")}: ${activeLanguage.code}`}
+      variant={variant}
       disabled={
         updateProfile.isPending ||
         profileQuery.isLoading ||

@@ -2,8 +2,6 @@ import { Fragment, useEffect, useRef, useState } from "react";
 import { ArrowLeft } from "lucide-react";
 import { Link, useMatches } from "react-router-dom";
 import { AppRouteHandle } from "@/app/router/route-types";
-import { LanguageSelector } from "@/domains/shell/language-selector";
-import { NotificationsMenu } from "@/domains/shell/notifications-menu";
 import { PortalCommandDialog } from "@/domains/shell/portal-command-dialog";
 import { UserMenu } from "@/domains/shell/user-menu";
 import {
@@ -161,9 +159,9 @@ function ToolbarActions({ compact }: { compact: boolean }) {
       )}
     >
       <PortalCommandDialog />
-      <LanguageSelector />
-      <NotificationsMenu />
-      <UserMenu />
+      <div className="hidden xl:block">
+        <UserMenu />
+      </div>
     </div>
   );
 }
