@@ -181,7 +181,7 @@ export function SourceDetailPage() {
       }
     >
       <ActionPanel layout="bar" description="Source actions and risk controls.">
-        <ActionButton asChild tone="primary">
+        <ActionButton asChild tone="secondary">
           <Link to={`/app/sources/${id}/edit`}>
             <Pencil className="size-4" />
             {translateText("Edit")}
