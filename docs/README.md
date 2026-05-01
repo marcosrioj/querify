@@ -90,3 +90,17 @@ Technical reference for how `apps/portal` is organized, what it consumes from th
 - Update the most specific owning document when behavior changes; do not create new files for behavior that belongs in an existing document.
 - Use `backend/` and `frontend/` as the primary top-level categories. Root-level docs should exist only for cross-cutting repository guides.
 - Keep `business/` documents in pt-BR; they describe domain intent for the business team, not technical implementation.
+
+### Content ownership — do not duplicate
+
+Each type of content has a single owner. Reference that owner; do not copy content into other documents.
+
+| Content type | Single owner | Do not add to |
+|---|---|---|
+| Portal UI rules: layouts, forms, relationships, actions, state handling, visual hierarchy | `frontend/architecture/portal-app-ui-prompt-guidance.md` | `portal-app.md` or any other doc |
+| Backend review checklist | `backend/architecture/repository-rules.md` | `solution-cqrs-write-rules.md` or architecture docs |
+| Standard workstream reading order | `execution-guide.md` → Standard workstreams | workflow or architecture docs |
+| Document authority / reading order for a cross-layer workflow | `execution-guide.md` | individual playbooks or step docs (point here instead) |
+| Local service endpoints (full infra) | `backend/tools/local-development.md` | architecture docs |
+| Locale file list | `frontend/architecture/portal-localization.md` | playbooks or tool docs |
+| External market research links and reference URLs | nowhere — not operational | any doc |

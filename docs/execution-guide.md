@@ -207,6 +207,7 @@ Quick-reference reading order per task type. These refine the workflow choices a
 - If the change is frontend-only, update frontend docs only.
 - If the change crosses both, update both sides and keep links between them explicit.
 - If the change introduces a new stable cross-cutting workflow, extend this guide and the docs index instead of restoring a separate agent taxonomy.
+- Do not copy content from another document into the one you are editing. Reference the owning document instead. The content ownership table in [`docs/README.md`](README.md) defines where each content type lives.
 
 ## Done when
 

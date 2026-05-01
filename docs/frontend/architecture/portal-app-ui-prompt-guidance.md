@@ -166,4 +166,6 @@ Relationship sections manage children and related records without leaving the or
 
 ## When to update this document
 
+This is the **single source of truth** for Portal UI implementation rules. `portal-app.md` delegates all shared UI patterns here and must not duplicate content from this file.
+
 Update this file whenever a shared Portal pattern changes. The guide should stay aligned with the real implementation, not with historical prompts.
