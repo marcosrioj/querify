@@ -189,7 +189,7 @@ export function ActivityDetailPage() {
           title="Jump to subject"
           description="Open the record connected to this event."
         >
-          <ActionButton asChild tone="primary">
+          <ActionButton asChild tone="secondary">
             <Link to={`/app/questions/${activityQuery.data.questionId}`}>
               {translateText("Open question")}
             </Link>
