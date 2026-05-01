@@ -452,55 +452,6 @@ export function SpaceDetailPage() {
       }
       sidebar={
         <>
-          <ActionPanel description="Record-level actions for this Space.">
-            {blocksQuestions ? (
-              <ActionButton disabled>
-                <Plus className="size-4" />
-                {translateText("New question")}
-              </ActionButton>
-            ) : (
-              <ActionButton
-                type="button"
-                tone="primary"
-                onClick={() =>
-                  activateRelationshipTab("questions", "new-question-title")
-                }
-              >
-                <Plus className="size-4" />
-                {translateText("New question")}
-              </ActionButton>
-            )}
-            <ActionButton asChild tone="secondary">
-              <Link to={`/app/spaces/${id}/edit`}>
-                <Pencil className="size-4" />
-                {translateText("Edit")}
-              </Link>
-            </ActionButton>
-            <ConfirmAction
-              title={translateText('Delete space "{name}"?', {
-                name: spaceQuery.data?.name ?? translateText("this space"),
-              })}
-              description={translateText(
-                "This removes the space and its operating rules from the workspace.",
-              )}
-              confirmLabel={translateText("Delete space")}
-              isPending={deleteSpace.isPending}
-              onConfirm={() =>
-                deleteSpace.mutateAsync(id).then(() => navigate("/app/spaces"))
-              }
-              trigger={
-                <ActionButton tone="danger" span="full">
-                  <Trash2 className="size-4" />
-                  {translateText("Delete")}
-                </ActionButton>
-              }
-            />
-            {blocksQuestions ? (
-              <p className="col-span-2 text-xs text-muted-foreground">
-                {translateText("This space does not accept new questions.")}
-              </p>
-            ) : null}
-          </ActionPanel>
           {showLoadingState ? (
             <SidebarSummarySkeleton />
           ) : spaceQuery.data ? (
@@ -591,10 +542,107 @@ export function SpaceDetailPage() {
               </CardContent>
             </Card>
           ) : null}
+          {showLoadingState ? null : spaceQuery.data ? (
+            <SectionGrid
+              variant="sidebar"
+              items={[
+                {
+                  title: "State",
+                  value: <SpaceStatusBadge status={spaceQuery.data.status} />,
+                  icon: BookOpen,
+                },
+                {
+                  title: "Accepts",
+                  value: (
+                    <div className="flex flex-wrap gap-2">
+                      <Badge variant={blocksQuestions ? "mono" : "success"}>
+                        {translateText(
+                          blocksQuestions ? "No questions" : "Questions",
+                        )}
+                      </Badge>
+                      <Badge variant={blocksAnswers ? "mono" : "success"}>
+                        {translateText(
+                          blocksAnswers ? "No answers" : "Answers",
+                        )}
+                      </Badge>
+                    </div>
+                  ),
+                  icon: CheckCircle2,
+                },
+                {
+                  title: "Needs action",
+                  value: questionsNeedingAction.length,
+                  description: translateText(
+                    "Questions in this Space waiting for an operator decision",
+                  ),
+                  icon: Waypoints,
+                },
+                {
+                  title: "Visibility",
+                  value: (
+                    <VisibilityBadge visibility={spaceQuery.data.visibility} />
+                  ),
+                  icon: BookOpen,
+                },
+              ]}
+            />
+          ) : null}
         </>
       }
     >
       {ActivationVisibilityDialog}
+      <ActionPanel
+        layout="bar"
+        description="Record-level actions for this Space."
+      >
+        {blocksQuestions ? (
+          <ActionButton disabled>
+            <Plus className="size-4" />
+            {translateText("New question")}
+          </ActionButton>
+        ) : (
+          <ActionButton
+            type="button"
+            tone="primary"
+            onClick={() =>
+              activateRelationshipTab("questions", "new-question-title")
+            }
+          >
+            <Plus className="size-4" />
+            {translateText("New question")}
+          </ActionButton>
+        )}
+        <ActionButton asChild tone="secondary">
+          <Link to={`/app/spaces/${id}/edit`}>
+            <Pencil className="size-4" />
+            {translateText("Edit")}
+          </Link>
+        </ActionButton>
+        {blocksQuestions ? (
+          <p className="text-xs text-muted-foreground">
+            {translateText("This space does not accept new questions.")}
+          </p>
+        ) : null}
+        <ConfirmAction
+          title={translateText('Delete space "{name}"?', {
+            name: spaceQuery.data?.name ?? translateText("this space"),
+          })}
+          description={translateText(
+            "This removes the space and its operating rules from the workspace.",
+          )}
+          confirmLabel={translateText("Delete space")}
+          isPending={deleteSpace.isPending}
+          onConfirm={() =>
+            deleteSpace.mutateAsync(id).then(() => navigate("/app/spaces"))
+          }
+          trigger={
+            <ActionButton tone="danger">
+              <Trash2 className="size-4" />
+              {translateText("Delete")}
+            </ActionButton>
+          }
+        />
+      </ActionPanel>
       {spaceQuery.isError ? (
         <ErrorState
           title="Unable to load space"
@@ -602,50 +650,9 @@ export function SpaceDetailPage() {
           retry={() => void spaceQuery.refetch()}
         />
       ) : showLoadingState ? (
-        <DetailPageSkeleton cards={5} />
+        <DetailPageSkeleton cards={5} metrics={0} />
       ) : spaceQuery.data ? (
         <>
-          <SectionGrid
-            items={[
-              {
-                title: "State",
-                value: <SpaceStatusBadge status={spaceQuery.data.status} />,
-                icon: BookOpen,
-              },
-              {
-                title: "Accepts",
-                value: (
-                  <div className="flex flex-wrap gap-2">
-                    <Badge variant={blocksQuestions ? "mono" : "success"}>
-                      {translateText(
-                        blocksQuestions ? "No questions" : "Questions",
-                      )}
-                    </Badge>
-                    <Badge variant={blocksAnswers ? "mono" : "success"}>
-                      {translateText(blocksAnswers ? "No answers" : "Answers")}
-                    </Badge>
-                  </div>
-                ),
-                icon: CheckCircle2,
-              },
-              {
-                title: "Needs action",
-                value: questionsNeedingAction.length,
-                description: translateText(
-                  "Questions in this Space waiting for an operator decision",
-                ),
-                icon: Waypoints,
-              },
-              {
-                title: "Visibility",
-                value: (
-                  <VisibilityBadge visibility={spaceQuery.data.visibility} />
-                ),
-                icon: BookOpen,
-              },
-            ]}
-          />
-
           <RecommendedNextActionCard
             label={nextAction.label}
             text={nextAction.text}

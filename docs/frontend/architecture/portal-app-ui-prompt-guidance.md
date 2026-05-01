@@ -68,7 +68,11 @@ If a shared primitive already matches the use case, do not replace it with ad ho
 
 - use `DetailLayout`
 - keep primary narrative, content, and relationship tabs in the main column
-- keep the right rail for actions, status summaries, workflow rules, publishing state, settings, metadata, and timing context
+- place the screen-level `ActionPanel` in the main column as the first action surface, using the `layout="bar"` toolbar treatment
+- keep record actions in that first action surface; do not scatter additional record-level commands into the right rail
+- keep `RecommendedNextActionCard` in the main column with its own action button; do not move recommended-next-action commands into the screen-level action toolbar
+- keep the right rail for status summaries, workflow rules, publishing state, settings, metadata, timing context, and compact metric/status blocks
+- put detail-page metric/status `SectionGrid` blocks at the end of the right rail with the compact sidebar treatment, not as the first row of the main content
 - do not render relationship sections as top-of-page anchors
 - keep onboarding or progress guidance in the location that best supports the current task, usually main content or a compact right-rail summary
 
@@ -122,6 +126,15 @@ Relationship sections manage children and related records without leaving the or
 
 - Use `ActionPanel` for screen-level and right-rail action groups.
 - Use `ActionButton` for the square, lightly rounded Portal action identity.
+- On detail pages, use `ActionPanel layout="bar"` for the primary record action surface.
+- The detail action bar should feel like a premium SaaS toolbar: compact, horizontally aligned on desktop, visually quiet, and able to wrap elegantly on mobile.
+- The action bar label and its `ContextHint` need enough left padding and must not touch the card edge.
+- Tooltip content must render through the shared tooltip portal so hints are not clipped by cards, rails, or overflow containers.
+- Keep regular actions on the left side of the action bar.
+- Keep destructive or destructive-feeling actions grouped on the right side.
+- If a red/destructive lifecycle action exists, it anchors the destructive group to the right and must sit immediately to the left of `Delete`.
+- `Delete` must be the final action in the row. It should align to the far right, use content width only, and never stretch to fill remaining space.
+- If `Delete` is the only destructive action, it anchors itself to the far right.
 - Keep panel descriptions as concise hints, not loose explanatory copy.
 - Keep destructive actions visually quiet until the final confirmation action.
 - Do not mix unrelated button shapes or densities in the same action surface.

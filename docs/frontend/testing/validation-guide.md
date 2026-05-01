@@ -79,6 +79,8 @@ Verify:
 - focus flow and keyboard activation remain intact for dialogs, buttons, and confirms
 - light and dark themes both use readable contrast and token-based surfaces
 - `ActionPanel` and `ActionButton` surfaces keep the square, lightly rounded action identity
+- detail-page action bars keep regular actions on the left, destructive actions grouped on the right, and `Delete` as the final content-width action
+- `RecommendedNextActionCard` still owns its own action button instead of being merged into the detail action bar
 - relationship sections behave as local tabs, not anchors or global-list redirects
 - child lists with more than five items use the local 5, 10, and 20 item pagination pattern
 - API-backed relationship selects use `SearchSelect` or `SearchSelectField`

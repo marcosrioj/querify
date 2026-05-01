@@ -136,37 +136,8 @@ export function ActivityDetailPage() {
         activityQuery.isLoading ? (
           <SidebarSummarySkeleton />
         ) : activityQuery.data ? (
-          <ActionPanel
-            title="Jump to subject"
-            description="Open the record connected to this event."
-          >
-            <ActionButton asChild tone="primary">
-              <Link to={`/app/questions/${activityQuery.data.questionId}`}>
-                {translateText("Open question")}
-              </Link>
-            </ActionButton>
-            {activityQuery.data.answerId ? (
-              <ActionButton asChild tone="secondary">
-                <Link to={`/app/answers/${activityQuery.data.answerId}`}>
-                  {translateText("Open answer")}
-                </Link>
-              </ActionButton>
-            ) : null}
-          </ActionPanel>
-        ) : null
-      }
-    >
-      {activityQuery.isError ? (
-        <ErrorState
-          title="Unable to load activity event"
-          error={activityQuery.error}
-          retry={() => void activityQuery.refetch()}
-        />
-      ) : activityQuery.isLoading ? (
-        <DetailPageSkeleton cards={3} />
-      ) : activityQuery.data ? (
-        <>
           <SectionGrid
+            variant="sidebar"
             items={[
               {
                 title: "Event",
@@ -199,7 +170,39 @@ export function ActivityDetailPage() {
               },
             ]}
           />
-
+        ) : null
+      }
+    >
+      {activityQuery.data ? (
+        <ActionPanel
+          layout="bar"
+          title="Jump to subject"
+          description="Open the record connected to this event."
+        >
+          <ActionButton asChild tone="primary">
+            <Link to={`/app/questions/${activityQuery.data.questionId}`}>
+              {translateText("Open question")}
+            </Link>
+          </ActionButton>
+          {activityQuery.data.answerId ? (
+            <ActionButton asChild tone="secondary">
+              <Link to={`/app/answers/${activityQuery.data.answerId}`}>
+                {translateText("Open answer")}
+              </Link>
+            </ActionButton>
+          ) : null}
+        </ActionPanel>
+      ) : null}
+      {activityQuery.isError ? (
+        <ErrorState
+          title="Unable to load activity event"
+          error={activityQuery.error}
+          retry={() => void activityQuery.refetch()}
+        />
+      ) : activityQuery.isLoading ? (
+        <DetailPageSkeleton cards={3} metrics={0} />
+      ) : activityQuery.data ? (
+        <>
           <RecommendedNextActionCard
             label={activityNextAction.label}
             text={activityNextAction.text}

@@ -127,38 +127,6 @@ export function SourceDetailPage() {
       }
       sidebar={
         <>
-          <ActionPanel description="Source actions and risk controls.">
-            <ActionButton asChild tone="primary">
-              <Link to={`/app/sources/${id}/edit`}>
-                <Pencil className="size-4" />
-                {translateText("Edit")}
-              </Link>
-            </ActionButton>
-            <ConfirmAction
-              title={translateText('Delete source "{name}"?', {
-                name:
-                  sourceQuery.data?.label ||
-                  sourceQuery.data?.locator ||
-                  translateText("this source"),
-              })}
-              description={translateText(
-                "This removes the source from the portal catalog and future linking flows.",
-              )}
-              confirmLabel={translateText("Delete source")}
-              isPending={deleteSource.isPending}
-              onConfirm={() =>
-                deleteSource
-                  .mutateAsync(id)
-                  .then(() => navigate("/app/sources"))
-              }
-              trigger={
-                <ActionButton tone="danger">
-                  <Trash2 className="size-4" />
-                  {translateText("Delete")}
-                </ActionButton>
-              }
-            />
-          </ActionPanel>
           {sourceQuery.isLoading ? (
             <SidebarSummarySkeleton />
           ) : sourceQuery.data ? (
@@ -196,9 +164,56 @@ export function SourceDetailPage() {
               </CardContent>
             </Card>
           ) : null}
+          {sourceQuery.isLoading ? null : sourceQuery.data ? (
+            <SectionGrid
+              variant="sidebar"
+              items={[
+                {
+                  title: "Kind",
+                  value: <SourceKindBadge kind={sourceQuery.data.kind} />,
+                },
+                {
+                  title: "Visibility",
+                  value: (
+                    <VisibilityBadge visibility={sourceQuery.data.visibility} />
+                  ),
+                },
+              ]}
+            />
+          ) : null}
         </>
       }
     >
+      <ActionPanel layout="bar" description="Source actions and risk controls.">
+        <ActionButton asChild tone="primary">
+          <Link to={`/app/sources/${id}/edit`}>
+            <Pencil className="size-4" />
+            {translateText("Edit")}
+          </Link>
+        </ActionButton>
+        <ConfirmAction
+          title={translateText('Delete source "{name}"?', {
+            name:
+              sourceQuery.data?.label ||
+              sourceQuery.data?.locator ||
+              translateText("this source"),
+          })}
+          description={translateText(
+            "This removes the source from the portal catalog and future linking flows.",
+          )}
+          confirmLabel={translateText("Delete source")}
+          isPending={deleteSource.isPending}
+          onConfirm={() =>
+            deleteSource.mutateAsync(id).then(() => navigate("/app/sources"))
+          }
+          trigger={
+            <ActionButton tone="danger">
+              <Trash2 className="size-4" />
+              {translateText("Delete")}
+            </ActionButton>
+          }
+        />
+      </ActionPanel>
       {sourceQuery.isError ? (
         <ErrorState
           title="Unable to load source"
@@ -206,24 +221,9 @@ export function SourceDetailPage() {
           retry={() => void sourceQuery.refetch()}
         />
       ) : sourceQuery.isLoading ? (
-        <DetailPageSkeleton cards={4} />
+        <DetailPageSkeleton cards={4} metrics={0} />
       ) : sourceQuery.data ? (
         <>
-          <SectionGrid
-            items={[
-              {
-                title: "Kind",
-                value: <SourceKindBadge kind={sourceQuery.data.kind} />,
-              },
-              {
-                title: "Visibility",
-                value: (
-                  <VisibilityBadge visibility={sourceQuery.data.visibility} />
-                ),
-              },
-            ]}
-          />
-
           <RecommendedNextActionCard
             label={sourceNextAction.label}
             text={sourceNextAction.text}

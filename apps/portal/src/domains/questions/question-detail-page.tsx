@@ -585,72 +585,6 @@ export function QuestionDetailPage() {
       }
       sidebar={
         <>
-          <ActionPanel description="Question actions and navigation.">
-            {spaceBlocksAnswers ? (
-              <ActionButton disabled>
-                <Plus className="size-4" />
-                {translateText("New answer")}
-              </ActionButton>
-            ) : (
-              <ActionButton
-                type="button"
-                tone="primary"
-                onClick={() =>
-                  activateRelationshipTab("answers", "new-answer-headline")
-                }
-              >
-                <Plus className="size-4" />
-                {translateText("New answer")}
-              </ActionButton>
-            )}
-            <ActionButton asChild tone="secondary">
-              <Link to={`/app/questions/${id}/edit`}>
-                <Pencil className="size-4" />
-                {translateText("Edit")}
-              </Link>
-            </ActionButton>
-            {questionQuery.data?.spaceId ? (
-              <ActionButton asChild tone="secondary">
-                <Link to={`/app/spaces/${questionQuery.data.spaceId}`}>
-                  <Link2 className="size-4" />
-                  {translateText("Open space")}
-                </Link>
-              </ActionButton>
-            ) : null}
-            <ConfirmAction
-              title={translateText('Delete question "{name}"?', {
-                name:
-                  questionQuery.data?.title ?? translateText("this question"),
-              })}
-              description={translateText(
-                "This removes the question, its accepted-answer state, and any public-signal aggregation from the portal view.",
-              )}
-              confirmLabel={translateText("Delete question")}
-              isPending={deleteQuestion.isPending}
-              onConfirm={() =>
-                deleteQuestion
-                  .mutateAsync(id)
-                  .then(() =>
-                    navigate(
-                      questionQuery.data?.spaceId
-                        ? `/app/spaces/${questionQuery.data.spaceId}`
-                        : "/app/spaces",
-                    ),
-                  )
-              }
-              trigger={
-                <ActionButton tone="danger" span="full">
-                  <Trash2 className="size-4" />
-                  {translateText("Delete")}
-                </ActionButton>
-              }
-            />
-            {spaceBlocksAnswers ? (
-              <p className="col-span-2 text-xs text-muted-foreground">
-                {translateText("This space does not accept new answers.")}
-              </p>
-            ) : null}
-          </ActionPanel>
           {showLoadingState ? (
             <SidebarSummarySkeleton />
           ) : questionQuery.data ? (
@@ -729,10 +663,116 @@ export function QuestionDetailPage() {
               </CardContent>
             </Card>
           ) : null}
+          {showLoadingState ? null : questionQuery.data ? (
+            <SectionGrid
+              variant="sidebar"
+              items={[
+                {
+                  title: "Status",
+                  value: (
+                    <QuestionStatusBadge status={questionQuery.data.status} />
+                  ),
+                  icon: MessageSquareText,
+                },
+                {
+                  title: "Visibility",
+                  value: (
+                    <VisibilityBadge
+                      visibility={questionQuery.data.visibility}
+                    />
+                  ),
+                  icon: MessageSquareText,
+                },
+                {
+                  title: "Signals",
+                  value: translateText("Feedback {value}", {
+                    value: questionQuery.data.feedbackScore,
+                  }),
+                  description: translateText(
+                    "Public feedback is aggregated into activity and score",
+                  ),
+                  icon: Activity,
+                },
+                {
+                  title: "Answers",
+                  value: answerListQuery.data?.totalCount ?? 0,
+                  description: translateText(
+                    "Accepted, draft, and active candidates",
+                  ),
+                  icon: CheckCircle2,
+                },
+              ]}
+            />
+          ) : null}
         </>
       }
     >
       {ActivationVisibilityDialog}
+      <ActionPanel layout="bar" description="Question actions and navigation.">
+        {spaceBlocksAnswers ? (
+          <ActionButton disabled>
+            <Plus className="size-4" />
+            {translateText("New answer")}
+          </ActionButton>
+        ) : (
+          <ActionButton
+            type="button"
+            tone="primary"
+            onClick={() =>
+              activateRelationshipTab("answers", "new-answer-headline")
+            }
+          >
+            <Plus className="size-4" />
+            {translateText("New answer")}
+          </ActionButton>
+        )}
+        <ActionButton asChild tone="secondary">
+          <Link to={`/app/questions/${id}/edit`}>
+            <Pencil className="size-4" />
+            {translateText("Edit")}
+          </Link>
+        </ActionButton>
+        {questionQuery.data?.spaceId ? (
+          <ActionButton asChild tone="secondary">
+            <Link to={`/app/spaces/${questionQuery.data.spaceId}`}>
+              <Link2 className="size-4" />
+              {translateText("Open space")}
+            </Link>
+          </ActionButton>
+        ) : null}
+        {spaceBlocksAnswers ? (
+          <p className="text-xs text-muted-foreground">
+            {translateText("This space does not accept new answers.")}
+          </p>
+        ) : null}
+        <ConfirmAction
+          title={translateText('Delete question "{name}"?', {
+            name: questionQuery.data?.title ?? translateText("this question"),
+          })}
+          description={translateText(
+            "This removes the question, its accepted-answer state, and any public-signal aggregation from the portal view.",
+          )}
+          confirmLabel={translateText("Delete question")}
+          isPending={deleteQuestion.isPending}
+          onConfirm={() =>
+            deleteQuestion
+              .mutateAsync(id)
+              .then(() =>
+                navigate(
+                  questionQuery.data?.spaceId
+                    ? `/app/spaces/${questionQuery.data.spaceId}`
+                    : "/app/spaces",
+                ),
+              )
+          }
+          trigger={
+            <ActionButton tone="danger">
+              <Trash2 className="size-4" />
+              {translateText("Delete")}
+            </ActionButton>
+          }
+        />
+      </ActionPanel>
       {questionQuery.isError ? (
         <ErrorState
           title="Unable to load question"
@@ -740,46 +780,9 @@ export function QuestionDetailPage() {
           retry={() => void questionQuery.refetch()}
         />
       ) : showLoadingState ? (
-        <DetailPageSkeleton cards={6} />
+        <DetailPageSkeleton cards={6} metrics={0} />
       ) : questionQuery.data ? (
         <>
-          <SectionGrid
-            items={[
-              {
-                title: "Status",
-                value: (
-                  <QuestionStatusBadge status={questionQuery.data.status} />
-                ),
-                icon: MessageSquareText,
-              },
-              {
-                title: "Visibility",
-                value: (
-                  <VisibilityBadge visibility={questionQuery.data.visibility} />
-                ),
-                icon: MessageSquareText,
-              },
-              {
-                title: "Signals",
-                value: translateText("Feedback {value}", {
-                  value: questionQuery.data.feedbackScore,
-                }),
-                description: translateText(
-                  "Public feedback is aggregated into activity and score",
-                ),
-                icon: Activity,
-              },
-              {
-                title: "Answers",
-                value: answerListQuery.data?.totalCount ?? 0,
-                description: translateText(
-                  "Accepted, draft, and active candidates",
-                ),
-                icon: CheckCircle2,
-              },
-            ]}
-          />
-
           <RecommendedNextActionCard
             label={questionNextAction.label}
             text={questionNextAction.text}

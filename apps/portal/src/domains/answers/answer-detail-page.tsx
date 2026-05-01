@@ -248,6 +248,9 @@ export function AnswerDetailPage() {
       run: () => archiveAnswer.mutateAsync(answerId),
     },
   ].filter((option) => option.status !== currentAnswerStatus);
+  const hasDestructiveLifecycleAction = lifecycleActionOptions.some(
+    (option) => option.variant === "destructive",
+  );
   const lifecycleSummary =
     currentAnswerStatus === AnswerStatus.Draft
       ? translateText(
@@ -361,50 +364,6 @@ export function AnswerDetailPage() {
       }
       sidebar={
         <>
-          <ActionPanel description="Answer actions and parent navigation.">
-            <ActionButton asChild tone="primary">
-              <Link to={`/app/answers/${id}/edit`}>
-                <Pencil className="size-4" />
-                {translateText("Edit")}
-              </Link>
-            </ActionButton>
-            {answerQuery.data?.questionId ? (
-              <ActionButton asChild tone="secondary">
-                <Link to={`/app/questions/${answerQuery.data.questionId}`}>
-                  <Link2 className="size-4" />
-                  {translateText("Open question")}
-                </Link>
-              </ActionButton>
-            ) : null}
-            <ConfirmAction
-              title={translateText('Delete answer "{name}"?', {
-                name:
-                  answerQuery.data?.headline ?? translateText("this answer"),
-              })}
-              description={translateText(
-                "This removes the answer candidate and any ranking signals attached to it.",
-              )}
-              confirmLabel={translateText("Delete answer")}
-              isPending={deleteAnswer.isPending}
-              onConfirm={() =>
-                deleteAnswer
-                  .mutateAsync(id)
-                  .then(() =>
-                    navigate(
-                      answerQuery.data?.questionId
-                        ? `/app/questions/${answerQuery.data.questionId}`
-                        : "/app/spaces",
-                    ),
-                  )
-              }
-              trigger={
-                <ActionButton tone="danger" span="full">
-                  <Trash2 className="size-4" />
-                  {translateText("Delete")}
-                </ActionButton>
-              }
-            />
-          </ActionPanel>
           {showLoadingState ? (
             <SidebarSummarySkeleton />
           ) : answerQuery.data ? (
@@ -461,10 +420,112 @@ export function AnswerDetailPage() {
               </CardContent>
             </Card>
           ) : null}
+          {showLoadingState ? null : answerQuery.data ? (
+            <SectionGrid
+              variant="sidebar"
+              items={[
+                {
+                  title: "Status",
+                  value: <AnswerStatusBadge status={answerQuery.data.status} />,
+                  icon: CheckCircle2,
+                },
+                {
+                  title: "Visibility",
+                  value: (
+                    <VisibilityBadge visibility={answerQuery.data.visibility} />
+                  ),
+                  icon: CheckCircle2,
+                },
+                {
+                  title: "Type",
+                  value: <AnswerKindBadge kind={answerQuery.data.kind} />,
+                  icon: ShieldCheck,
+                },
+                {
+                  title: "Signals",
+                  value: translateText("Votes {value}", {
+                    value: answerQuery.data.voteScore,
+                  }),
+                  description: answerQuery.data.isAccepted
+                    ? translateText("This answer is currently accepted")
+                    : translateText("Not currently accepted"),
+                  icon: ShieldCheck,
+                },
+              ]}
+            />
+          ) : null}
         </>
       }
     >
       {ActivationVisibilityDialog}
+      <ActionPanel
+        layout="bar"
+        description="Answer actions and parent navigation."
+      >
+        <ActionButton asChild tone="primary">
+          <Link to={`/app/answers/${id}/edit`}>
+            <Pencil className="size-4" />
+            {translateText("Edit")}
+          </Link>
+        </ActionButton>
+        {answerQuery.data?.questionId ? (
+          <ActionButton asChild tone="secondary">
+            <Link to={`/app/questions/${answerQuery.data.questionId}`}>
+              <Link2 className="size-4" />
+              {translateText("Open question")}
+            </Link>
+          </ActionButton>
+        ) : null}
+        {lifecycleActionOptions.map((option) => (
+          <Button
+            key={option.status}
+            size="sm"
+            variant={option.variant}
+            data-action-tone={
+              option.variant === "destructive" ? "danger" : undefined
+            }
+            data-action-align={
+              option.variant === "destructive" ? "end" : undefined
+            }
+            onClick={() => void option.run()}
+            disabled={option.isPending}
+          >
+            {translateText(option.label)}
+          </Button>
+        ))}
+        <ConfirmAction
+          title={translateText('Delete answer "{name}"?', {
+            name: answerQuery.data?.headline ?? translateText("this answer"),
+          })}
+          description={translateText(
+            "This removes the answer candidate and any ranking signals attached to it.",
+          )}
+          confirmLabel={translateText("Delete answer")}
+          isPending={deleteAnswer.isPending}
+          onConfirm={() =>
+            deleteAnswer
+              .mutateAsync(id)
+              .then(() =>
+                navigate(
+                  answerQuery.data?.questionId
+                    ? `/app/questions/${answerQuery.data.questionId}`
+                    : "/app/spaces",
+                ),
+              )
+          }
+          trigger={
+            <ActionButton
+              tone="danger"
+              data-action-align={
+                hasDestructiveLifecycleAction ? "grouped" : undefined
+              }
+            >
+              <Trash2 className="size-4" />
+              {translateText("Delete")}
+            </ActionButton>
+          }
+        />
+      </ActionPanel>
       {answerQuery.isError ? (
         <ErrorState
           title="Unable to load answer"
@@ -472,41 +533,9 @@ export function AnswerDetailPage() {
           retry={() => void answerQuery.refetch()}
         />
       ) : showLoadingState ? (
-        <DetailPageSkeleton cards={5} />
+        <DetailPageSkeleton cards={5} metrics={0} />
       ) : answerQuery.data ? (
         <>
-          <SectionGrid
-            items={[
-              {
-                title: "Status",
-                value: <AnswerStatusBadge status={answerQuery.data.status} />,
-                icon: CheckCircle2,
-              },
-              {
-                title: "Visibility",
-                value: (
-                  <VisibilityBadge visibility={answerQuery.data.visibility} />
-                ),
-                icon: CheckCircle2,
-              },
-              {
-                title: "Type",
-                value: <AnswerKindBadge kind={answerQuery.data.kind} />,
-                icon: ShieldCheck,
-              },
-              {
-                title: "Signals",
-                value: translateText("Votes {value}", {
-                  value: answerQuery.data.voteScore,
-                }),
-                description: answerQuery.data.isAccepted
-                  ? translateText("This answer is currently accepted")
-                  : translateText("Not currently accepted"),
-                icon: ShieldCheck,
-              },
-            ]}
-          />
-
           <RecommendedNextActionCard
             label={answerNextAction.label}
             text={answerNextAction.text}
@@ -545,7 +574,7 @@ export function AnswerDetailPage() {
             <CardHeader>
               <CardHeading>
                 <CardTitle className="flex items-center gap-2">
-                  <span>{translateText("Lifecycle actions")}</span>
+                  <span>{translateText("Lifecycle")}</span>
                   <ContextHint
                     content={translateText(
                       "Activate or archive the answer as product truth evolves.",
@@ -559,21 +588,6 @@ export function AnswerDetailPage() {
               <p className="text-sm text-muted-foreground">
                 {lifecycleSummary}
               </p>
-              {lifecycleActionOptions.length ? (
-                <div className="flex flex-wrap gap-2">
-                  {lifecycleActionOptions.map((option) => (
-                    <Button
-                      key={option.status}
-                      size="sm"
-                      variant={option.variant}
-                      onClick={() => void option.run()}
-                      disabled={option.isPending}
-                    >
-                      {translateText(option.label)}
-                    </Button>
-                  ))}
-                </div>
-              ) : null}
             </CardContent>
           </Card>
 

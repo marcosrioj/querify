@@ -171,6 +171,7 @@ export function SettingsLayout({
 export function SectionGrid({
   items,
   valueClassName,
+  variant = "default",
 }: {
   items: Array<{
     key?: string;
@@ -182,8 +183,10 @@ export function SectionGrid({
     iconToneClassName?: string;
   }>;
   valueClassName?: string;
+  variant?: "default" | "sidebar";
 }) {
   const { t } = usePortalI18n();
+  const isSidebar = variant === "sidebar";
   const toneClassNames = [
     "bg-blue-500/10 text-blue-600 dark:bg-blue-500/15 dark:text-blue-300",
     "bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-300",
@@ -192,7 +195,12 @@ export function SectionGrid({
   ];
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4 lg:gap-5">
+    <div
+      className={cn(
+        "grid gap-4",
+        isSidebar ? "grid-cols-1" : "sm:grid-cols-2 xl:grid-cols-4 lg:gap-5",
+      )}
+    >
       {items.map((item, index) => (
         <Card
           key={
@@ -201,12 +209,27 @@ export function SectionGrid({
               ? item.title
               : `section-grid-${index}`)
           }
-          className="group overflow-hidden bg-linear-to-b from-background to-muted/10 transition-transform duration-200 hover:-translate-y-0.5 hover:shadow-[var(--shadow-premium-elevated)]"
+          className={cn(
+            "group overflow-hidden bg-linear-to-b from-background to-muted/10 transition-transform duration-200 hover:-translate-y-0.5 hover:shadow-[var(--shadow-premium-elevated)]",
+            isSidebar && "shadow-none",
+          )}
         >
-          <CardContent className="relative min-w-0 p-5">
-            <div className="flex items-start justify-between gap-4">
+          <CardContent
+            className={cn("relative min-w-0", isSidebar ? "p-4" : "p-5")}
+          >
+            <div
+              className={cn(
+                "flex items-start justify-between",
+                isSidebar ? "gap-3" : "gap-4",
+              )}
+            >
               <div className="min-w-0 space-y-2.5">
-                <p className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
+                <p
+                  className={cn(
+                    "flex items-center gap-1.5 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground",
+                    isSidebar && "tracking-[0.14em]",
+                  )}
+                >
                   <span className="min-w-0 break-words">
                     {translateMaybeString(item.title, t)}
                   </span>
@@ -220,7 +243,8 @@ export function SectionGrid({
                 </p>
                 <div
                   className={cn(
-                    "break-words text-[1.7rem] font-semibold leading-none text-mono sm:text-3xl",
+                    "break-words font-semibold leading-none text-mono",
+                    isSidebar ? "text-xl" : "text-[1.7rem] sm:text-3xl",
                     valueClassName,
                   )}
                 >
@@ -230,7 +254,8 @@ export function SectionGrid({
               {item.icon ? (
                 <div
                   className={cn(
-                    "pointer-events-none flex size-9 shrink-0 items-center justify-center rounded-lg ring-1 ring-inset",
+                    "pointer-events-none flex shrink-0 items-center justify-center rounded-lg ring-1 ring-inset",
+                    isSidebar ? "size-8" : "size-9",
                     item.iconToneClassName ??
                       toneClassNames[index % toneClassNames.length],
                   )}
