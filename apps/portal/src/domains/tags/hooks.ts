@@ -7,6 +7,11 @@ import {
   listTags,
   updateTag,
 } from "@/domains/tags/api";
+import {
+  createQnaDomainKeys,
+  keepPreviousQnaTenantData,
+  qnaTenantKey,
+} from "@/domains/qna/query-keys";
 import { useAuth } from "@/platform/auth/use-auth";
 import { useTenant } from "@/platform/tenant/use-tenant";
 import { translateText } from "@/shared/lib/i18n-core";
@@ -15,14 +20,7 @@ import type {
   TagUpdateRequestDto,
 } from "@/domains/tags/types";
 
-const qnaRootKey = ["portal", "qna"] as const;
-
-export const tagKeys = {
-  all: [...qnaRootKey, "tags"] as const,
-  list: (params: Record<string, unknown>) =>
-    [...tagKeys.all, "list", params] as const,
-  detail: (id: string) => [...tagKeys.all, "detail", id] as const,
-};
+export const tagKeys = createQnaDomainKeys("tags");
 
 export function useTagList(params: {
   page: number;
@@ -36,11 +34,11 @@ export function useTagList(params: {
   const { enabled = true, ...requestParams } = params;
 
   return useQuery({
-    queryKey: tagKeys.list(requestParams),
+    queryKey: tagKeys.list(currentTenantId, requestParams),
     queryFn: ({ signal }) =>
       listTags(session?.accessToken, currentTenantId, requestParams, signal),
     enabled: enabled && status === "ready" && Boolean(currentTenantId),
-    placeholderData: (previous) => previous,
+    placeholderData: keepPreviousQnaTenantData(currentTenantId),
   });
 }
 
@@ -49,7 +47,7 @@ export function useTag(id: string | undefined) {
   const { currentTenantId } = useTenant();
 
   return useQuery({
-    queryKey: tagKeys.detail(id ?? "unknown"),
+    queryKey: tagKeys.detail(currentTenantId, id ?? "unknown"),
     queryFn: () => getTag(session?.accessToken, currentTenantId, id ?? ""),
     enabled: status === "ready" && Boolean(currentTenantId) && Boolean(id),
   });
@@ -57,9 +55,12 @@ export function useTag(id: string | undefined) {
 
 function useInvalidateQna() {
   const queryClient = useQueryClient();
+  const { currentTenantId } = useTenant();
 
   return async () => {
-    await queryClient.invalidateQueries({ queryKey: qnaRootKey });
+    await queryClient.invalidateQueries({
+      queryKey: qnaTenantKey(currentTenantId),
+    });
   };
 }
 
@@ -69,7 +70,7 @@ export function useCreateTag() {
   const invalidateQna = useInvalidateQna();
 
   return useMutation({
-    mutationKey: [...tagKeys.all, "create"],
+    mutationKey: [...tagKeys.all(currentTenantId), "create"],
     mutationFn: (body: TagCreateRequestDto) =>
       createTag(session?.accessToken, currentTenantId, body),
     onSuccess: async () => {
@@ -85,7 +86,7 @@ export function useUpdateTag(id: string) {
   const invalidateQna = useInvalidateQna();
 
   return useMutation({
-    mutationKey: [...tagKeys.all, "update", id],
+    mutationKey: [...tagKeys.all(currentTenantId), "update", id],
     mutationFn: (body: TagUpdateRequestDto) =>
       updateTag(session?.accessToken, currentTenantId, id, body),
     onSuccess: async () => {
@@ -101,7 +102,7 @@ export function useDeleteTag() {
   const invalidateQna = useInvalidateQna();
 
   return useMutation({
-    mutationKey: [...tagKeys.all, "delete"],
+    mutationKey: [...tagKeys.all(currentTenantId), "delete"],
     mutationFn: (id: string) =>
       deleteTag(session?.accessToken, currentTenantId, id),
     onSuccess: async () => {

@@ -11,6 +11,11 @@ import {
   removeQuestionTag,
   updateQuestion,
 } from "@/domains/questions/api";
+import {
+  createQnaDomainKeys,
+  keepPreviousQnaTenantData,
+  qnaTenantKey,
+} from "@/domains/qna/query-keys";
 import { useAuth } from "@/platform/auth/use-auth";
 import { useTenant } from "@/platform/tenant/use-tenant";
 import {
@@ -26,14 +31,7 @@ import type {
   QuestionUpdateRequestDto,
 } from "@/domains/questions/types";
 
-const qnaRootKey = ["portal", "qna"] as const;
-
-export const questionKeys = {
-  all: [...qnaRootKey, "questions"] as const,
-  list: (params: Record<string, unknown>) =>
-    [...questionKeys.all, "list", params] as const,
-  detail: (id: string) => [...questionKeys.all, "detail", id] as const,
-};
+export const questionKeys = createQnaDomainKeys("questions");
 
 export function useQuestionList(params: {
   page: number;
@@ -58,7 +56,7 @@ export function useQuestionList(params: {
   const { enabled = true, ...requestParams } = params;
 
   return useQuery({
-    queryKey: questionKeys.list(requestParams),
+    queryKey: questionKeys.list(currentTenantId, requestParams),
     queryFn: ({ signal }) =>
       listQuestions(
         session?.accessToken,
@@ -67,7 +65,7 @@ export function useQuestionList(params: {
         signal,
       ),
     enabled: enabled && status === "ready" && Boolean(currentTenantId),
-    placeholderData: (previous) => previous,
+    placeholderData: keepPreviousQnaTenantData(currentTenantId),
   });
 }
 
@@ -76,7 +74,7 @@ export function useQuestion(id: string | undefined) {
   const { currentTenantId } = useTenant();
 
   return useQuery({
-    queryKey: questionKeys.detail(id ?? "unknown"),
+    queryKey: questionKeys.detail(currentTenantId, id ?? "unknown"),
     queryFn: () => getQuestion(session?.accessToken, currentTenantId, id ?? ""),
     enabled: status === "ready" && Boolean(currentTenantId) && Boolean(id),
   });
@@ -84,9 +82,12 @@ export function useQuestion(id: string | undefined) {
 
 function useInvalidateQna() {
   const queryClient = useQueryClient();
+  const { currentTenantId } = useTenant();
 
   return async () => {
-    await queryClient.invalidateQueries({ queryKey: qnaRootKey });
+    await queryClient.invalidateQueries({
+      queryKey: qnaTenantKey(currentTenantId),
+    });
   };
 }
 
@@ -96,7 +97,7 @@ export function useCreateQuestion() {
   const invalidateQna = useInvalidateQna();
 
   return useMutation({
-    mutationKey: [...questionKeys.all, "create"],
+    mutationKey: [...questionKeys.all(currentTenantId), "create"],
     mutationFn: (body: QuestionCreateRequestDto) =>
       createQuestion(session?.accessToken, currentTenantId, body),
     onSuccess: async () => {
@@ -112,7 +113,7 @@ export function useUpdateQuestion(id: string) {
   const invalidateQna = useInvalidateQna();
 
   return useMutation({
-    mutationKey: [...questionKeys.all, "update", id],
+    mutationKey: [...questionKeys.all(currentTenantId), "update", id],
     mutationFn: (body: QuestionUpdateRequestDto) =>
       updateQuestion(session?.accessToken, currentTenantId, id, body),
     onSuccess: async () => {
@@ -128,7 +129,7 @@ export function useUpdateQuestionStatus() {
   const invalidateQna = useInvalidateQna();
 
   return useMutation({
-    mutationKey: [...questionKeys.all, "workflow", "status"],
+    mutationKey: [...questionKeys.all(currentTenantId), "workflow", "status"],
     mutationFn: ({
       question,
       status,
@@ -165,7 +166,7 @@ export function useDeleteQuestion() {
   const invalidateQna = useInvalidateQna();
 
   return useMutation({
-    mutationKey: [...questionKeys.all, "delete"],
+    mutationKey: [...questionKeys.all(currentTenantId), "delete"],
     mutationFn: (id: string) =>
       deleteQuestion(session?.accessToken, currentTenantId, id),
     onSuccess: async () => {
@@ -181,7 +182,7 @@ export function useAddQuestionTag(id: string) {
   const invalidateQna = useInvalidateQna();
 
   return useMutation({
-    mutationKey: [...questionKeys.all, "tag", id, "add"],
+    mutationKey: [...questionKeys.all(currentTenantId), "tag", id, "add"],
     mutationFn: (body: QuestionTagCreateRequestDto) =>
       addQuestionTag(session?.accessToken, currentTenantId, id, body),
     onSuccess: async () => {
@@ -197,7 +198,7 @@ export function useRemoveQuestionTag(id: string) {
   const invalidateQna = useInvalidateQna();
 
   return useMutation({
-    mutationKey: [...questionKeys.all, "tag", id, "remove"],
+    mutationKey: [...questionKeys.all(currentTenantId), "tag", id, "remove"],
     mutationFn: (tagId: string) =>
       removeQuestionTag(session?.accessToken, currentTenantId, id, tagId),
     onSuccess: async () => {
@@ -213,7 +214,7 @@ export function useAddQuestionSource(id: string) {
   const invalidateQna = useInvalidateQna();
 
   return useMutation({
-    mutationKey: [...questionKeys.all, "source", id, "add"],
+    mutationKey: [...questionKeys.all(currentTenantId), "source", id, "add"],
     mutationFn: (body: QuestionSourceLinkCreateRequestDto) =>
       addQuestionSource(session?.accessToken, currentTenantId, id, body),
     onSuccess: async () => {
@@ -229,7 +230,7 @@ export function useRemoveQuestionSource(id: string) {
   const invalidateQna = useInvalidateQna();
 
   return useMutation({
-    mutationKey: [...questionKeys.all, "source", id, "remove"],
+    mutationKey: [...questionKeys.all(currentTenantId), "source", id, "remove"],
     mutationFn: (sourceLinkId: string) =>
       removeQuestionSource(
         session?.accessToken,

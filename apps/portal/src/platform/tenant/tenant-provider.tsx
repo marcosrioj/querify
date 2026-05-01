@@ -1,16 +1,19 @@
-import { useEffect, useMemo, useState } from 'react';
-import type { PropsWithChildren } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import type { TenantSummaryDto } from '@/domains/tenants/types';
-import { portalRequest, requireAccessToken } from '@/platform/api/http-client';
-import { useAuth } from '@/platform/auth/use-auth';
-import { TenantContext, type TenantContextValue } from '@/platform/tenant/tenant-context';
-import { ModuleEnum } from '@/shared/constants/backend-enums';
+import { useEffect, useMemo, useState } from "react";
+import type { PropsWithChildren } from "react";
+import { useQuery } from "@tanstack/react-query";
+import type { TenantSummaryDto } from "@/domains/tenants/types";
+import { portalRequest, requireAccessToken } from "@/platform/api/http-client";
+import { useAuth } from "@/platform/auth/use-auth";
+import {
+  TenantContext,
+  type TenantContextValue,
+} from "@/platform/tenant/tenant-context";
+import { ModuleEnum } from "@/shared/constants/backend-enums";
 
-const STORAGE_KEY = 'basefaq.portal.currentTenantId';
+const STORAGE_KEY = "basefaq.portal.currentTenantId";
 
 function getStoredTenantId() {
-  if (typeof window === 'undefined') {
+  if (typeof window === "undefined") {
     return undefined;
   }
 
@@ -22,7 +25,7 @@ function getStoredTenantId() {
 }
 
 function setStoredTenantId(tenantId: string) {
-  if (typeof window === 'undefined') {
+  if (typeof window === "undefined") {
     return;
   }
 
@@ -33,69 +36,108 @@ function setStoredTenantId(tenantId: string) {
   }
 }
 
+function removeStoredTenantId() {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  try {
+    window.localStorage.removeItem(STORAGE_KEY);
+  } catch {
+    // Ignore storage failures and keep the in-memory tenant selection.
+  }
+}
+
 async function fetchTenants(accessToken?: string) {
   return portalRequest<TenantSummaryDto[]>({
-    service: 'tenant',
-    path: '/api/tenant/tenants/get-all',
+    service: "tenant",
+    path: "/api/tenant/tenants/get-all",
     accessToken: requireAccessToken(accessToken),
   });
 }
 
 export function PortalTenantProvider({ children }: PropsWithChildren) {
-  const { session, status } = useAuth();
-  const [currentTenantId, setCurrentTenantIdState] = useState<
-    string | undefined
-  >(getStoredTenantId);
+  const { session, status, user } = useAuth();
+  const [selectedTenantId, setSelectedTenantId] = useState<string | undefined>(
+    getStoredTenantId,
+  );
+  const canUseTenants =
+    status === "ready" && Boolean(session?.accessToken) && Boolean(user?.id);
 
   const tenantsQuery = useQuery({
-    queryKey: ['portal', 'tenant-context', 'tenants'],
+    queryKey: ["portal", "tenant-context", "tenants", user?.id ?? "anonymous"],
     queryFn: () => fetchTenants(session?.accessToken),
-    enabled: status === 'ready' && Boolean(session?.accessToken),
+    enabled: canUseTenants,
   });
 
   const tenantOptions = useMemo(
     () =>
-      (tenantsQuery.data ?? []).filter((tenant) => tenant.module === ModuleEnum.QnA),
+      (tenantsQuery.data ?? []).filter(
+        (tenant) => tenant.module === ModuleEnum.QnA,
+      ),
     [tenantsQuery.data],
   );
 
   useEffect(() => {
-    if (tenantsQuery.isLoading || tenantsQuery.data === undefined) {
+    if (
+      !canUseTenants ||
+      tenantsQuery.isLoading ||
+      tenantsQuery.data === undefined
+    ) {
       return;
     }
 
     if (!tenantOptions.length) {
-      setCurrentTenantIdState(undefined);
+      setSelectedTenantId(undefined);
+      removeStoredTenantId();
       return;
     }
 
     const matchedTenant = tenantOptions.find(
-      (tenant) => tenant.id === currentTenantId,
+      (tenant) => tenant.id === selectedTenantId,
     );
     if (matchedTenant) {
       return;
     }
 
     const nextTenant = tenantOptions[0];
-    setCurrentTenantIdState(nextTenant.id);
+    setSelectedTenantId(nextTenant.id);
     setStoredTenantId(nextTenant.id);
-  }, [currentTenantId, tenantOptions, tenantsQuery.isLoading, tenantsQuery.data]);
+  }, [
+    canUseTenants,
+    selectedTenantId,
+    tenantOptions,
+    tenantsQuery.isLoading,
+    tenantsQuery.data,
+  ]);
+
+  const currentTenant =
+    canUseTenants && tenantsQuery.data !== undefined
+      ? tenantOptions.find((tenant) => tenant.id === selectedTenantId)
+      : undefined;
+  const currentTenantId = currentTenant?.id;
+  const isLoading =
+    canUseTenants &&
+    (tenantsQuery.isLoading ||
+      (tenantsQuery.data !== undefined &&
+        tenantOptions.length > 0 &&
+        currentTenant === undefined));
 
   const value = useMemo<TenantContextValue>(
     () => ({
       tenants: tenantOptions,
       currentTenantId,
-      currentTenant: tenantOptions.find((tenant) => tenant.id === currentTenantId),
-      isLoading: tenantsQuery.isLoading,
+      currentTenant,
+      isLoading,
       setCurrentTenantId(tenantId) {
-        setCurrentTenantIdState(tenantId);
+        setSelectedTenantId(tenantId);
         setStoredTenantId(tenantId);
       },
       async refreshTenants() {
         await tenantsQuery.refetch();
       },
     }),
-    [currentTenantId, tenantOptions, tenantsQuery],
+    [currentTenant, currentTenantId, isLoading, tenantOptions, tenantsQuery],
   );
 
   return (

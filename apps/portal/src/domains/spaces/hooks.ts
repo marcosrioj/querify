@@ -11,6 +11,11 @@ import {
   removeSpaceTag,
   updateSpace,
 } from "@/domains/spaces/api";
+import {
+  createQnaDomainKeys,
+  keepPreviousQnaTenantData,
+  qnaTenantKey,
+} from "@/domains/qna/query-keys";
 import { useAuth } from "@/platform/auth/use-auth";
 import { useTenant } from "@/platform/tenant/use-tenant";
 import { translateText } from "@/shared/lib/i18n-core";
@@ -21,14 +26,7 @@ import type {
   SpaceUpdateRequestDto,
 } from "@/domains/spaces/types";
 
-const qnaRootKey = ["portal", "qna"] as const;
-
-export const spaceKeys = {
-  all: [...qnaRootKey, "spaces"] as const,
-  list: (params: Record<string, unknown>) =>
-    [...spaceKeys.all, "list", params] as const,
-  detail: (id: string) => [...spaceKeys.all, "detail", id] as const,
-};
+export const spaceKeys = createQnaDomainKeys("spaces");
 
 export function useSpaceList(params: {
   page: number;
@@ -46,11 +44,11 @@ export function useSpaceList(params: {
   const { enabled = true, ...requestParams } = params;
 
   return useQuery({
-    queryKey: spaceKeys.list(requestParams),
+    queryKey: spaceKeys.list(currentTenantId, requestParams),
     queryFn: ({ signal }) =>
       listSpaces(session?.accessToken, currentTenantId, requestParams, signal),
     enabled: enabled && status === "ready" && Boolean(currentTenantId),
-    placeholderData: (previous) => previous,
+    placeholderData: keepPreviousQnaTenantData(currentTenantId),
   });
 }
 
@@ -59,7 +57,7 @@ export function useSpace(id: string | undefined) {
   const { currentTenantId } = useTenant();
 
   return useQuery({
-    queryKey: spaceKeys.detail(id ?? "unknown"),
+    queryKey: spaceKeys.detail(currentTenantId, id ?? "unknown"),
     queryFn: () => getSpace(session?.accessToken, currentTenantId, id ?? ""),
     enabled: status === "ready" && Boolean(currentTenantId) && Boolean(id),
   });
@@ -67,9 +65,12 @@ export function useSpace(id: string | undefined) {
 
 function useInvalidateQna() {
   const queryClient = useQueryClient();
+  const { currentTenantId } = useTenant();
 
   return async () => {
-    await queryClient.invalidateQueries({ queryKey: qnaRootKey });
+    await queryClient.invalidateQueries({
+      queryKey: qnaTenantKey(currentTenantId),
+    });
   };
 }
 
@@ -79,7 +80,7 @@ export function useCreateSpace() {
   const invalidateQna = useInvalidateQna();
 
   return useMutation({
-    mutationKey: [...spaceKeys.all, "create"],
+    mutationKey: [...spaceKeys.all(currentTenantId), "create"],
     mutationFn: (body: SpaceCreateRequestDto) =>
       createSpace(session?.accessToken, currentTenantId, body),
     onSuccess: async () => {
@@ -95,7 +96,7 @@ export function useUpdateSpace(id: string) {
   const invalidateQna = useInvalidateQna();
 
   return useMutation({
-    mutationKey: [...spaceKeys.all, "update", id],
+    mutationKey: [...spaceKeys.all(currentTenantId), "update", id],
     mutationFn: (body: SpaceUpdateRequestDto) =>
       updateSpace(session?.accessToken, currentTenantId, id, body),
     onSuccess: async () => {
@@ -111,7 +112,7 @@ export function useDeleteSpace() {
   const invalidateQna = useInvalidateQna();
 
   return useMutation({
-    mutationKey: [...spaceKeys.all, "delete"],
+    mutationKey: [...spaceKeys.all(currentTenantId), "delete"],
     mutationFn: (id: string) =>
       deleteSpace(session?.accessToken, currentTenantId, id),
     onSuccess: async () => {
@@ -127,7 +128,7 @@ export function useAddSpaceTag(id: string) {
   const invalidateQna = useInvalidateQna();
 
   return useMutation({
-    mutationKey: [...spaceKeys.all, "tag", id, "add"],
+    mutationKey: [...spaceKeys.all(currentTenantId), "tag", id, "add"],
     mutationFn: (body: SpaceTagCreateRequestDto) =>
       addSpaceTag(session?.accessToken, currentTenantId, id, body),
     onSuccess: async () => {
@@ -143,7 +144,7 @@ export function useRemoveSpaceTag(id: string) {
   const invalidateQna = useInvalidateQna();
 
   return useMutation({
-    mutationKey: [...spaceKeys.all, "tag", id, "remove"],
+    mutationKey: [...spaceKeys.all(currentTenantId), "tag", id, "remove"],
     mutationFn: (tagId: string) =>
       removeSpaceTag(session?.accessToken, currentTenantId, id, tagId),
     onSuccess: async () => {
@@ -159,7 +160,7 @@ export function useAddSpaceSource(id: string) {
   const invalidateQna = useInvalidateQna();
 
   return useMutation({
-    mutationKey: [...spaceKeys.all, "source", id, "add"],
+    mutationKey: [...spaceKeys.all(currentTenantId), "source", id, "add"],
     mutationFn: (body: SpaceSourceCreateRequestDto) =>
       addSpaceSource(session?.accessToken, currentTenantId, id, body),
     onSuccess: async () => {
@@ -175,7 +176,7 @@ export function useRemoveSpaceSource(id: string) {
   const invalidateQna = useInvalidateQna();
 
   return useMutation({
-    mutationKey: [...spaceKeys.all, "source", id, "remove"],
+    mutationKey: [...spaceKeys.all(currentTenantId), "source", id, "remove"],
     mutationFn: (sourceId: string) =>
       removeSpaceSource(session?.accessToken, currentTenantId, id, sourceId),
     onSuccess: async () => {

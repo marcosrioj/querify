@@ -7,6 +7,11 @@ import {
   listSources,
   updateSource,
 } from "@/domains/sources/api";
+import {
+  createQnaDomainKeys,
+  keepPreviousQnaTenantData,
+  qnaTenantKey,
+} from "@/domains/qna/query-keys";
 import { useAuth } from "@/platform/auth/use-auth";
 import { useTenant } from "@/platform/tenant/use-tenant";
 import { translateText } from "@/shared/lib/i18n-core";
@@ -15,14 +20,7 @@ import type {
   SourceUpdateRequestDto,
 } from "@/domains/sources/types";
 
-const qnaRootKey = ["portal", "qna"] as const;
-
-export const sourceKeys = {
-  all: [...qnaRootKey, "sources"] as const,
-  list: (params: Record<string, unknown>) =>
-    [...sourceKeys.all, "list", params] as const,
-  detail: (id: string) => [...sourceKeys.all, "detail", id] as const,
-};
+export const sourceKeys = createQnaDomainKeys("sources");
 
 export function useSourceList(params: {
   page: number;
@@ -38,11 +36,11 @@ export function useSourceList(params: {
   const { enabled = true, ...requestParams } = params;
 
   return useQuery({
-    queryKey: sourceKeys.list(requestParams),
+    queryKey: sourceKeys.list(currentTenantId, requestParams),
     queryFn: ({ signal }) =>
       listSources(session?.accessToken, currentTenantId, requestParams, signal),
     enabled: enabled && status === "ready" && Boolean(currentTenantId),
-    placeholderData: (previous) => previous,
+    placeholderData: keepPreviousQnaTenantData(currentTenantId),
   });
 }
 
@@ -51,7 +49,7 @@ export function useSource(id: string | undefined) {
   const { currentTenantId } = useTenant();
 
   return useQuery({
-    queryKey: sourceKeys.detail(id ?? "unknown"),
+    queryKey: sourceKeys.detail(currentTenantId, id ?? "unknown"),
     queryFn: () => getSource(session?.accessToken, currentTenantId, id ?? ""),
     enabled: status === "ready" && Boolean(currentTenantId) && Boolean(id),
   });
@@ -59,9 +57,12 @@ export function useSource(id: string | undefined) {
 
 function useInvalidateQna() {
   const queryClient = useQueryClient();
+  const { currentTenantId } = useTenant();
 
   return async () => {
-    await queryClient.invalidateQueries({ queryKey: qnaRootKey });
+    await queryClient.invalidateQueries({
+      queryKey: qnaTenantKey(currentTenantId),
+    });
   };
 }
 
@@ -71,7 +72,7 @@ export function useCreateSource() {
   const invalidateQna = useInvalidateQna();
 
   return useMutation({
-    mutationKey: [...sourceKeys.all, "create"],
+    mutationKey: [...sourceKeys.all(currentTenantId), "create"],
     mutationFn: (body: SourceCreateRequestDto) =>
       createSource(session?.accessToken, currentTenantId, body),
     onSuccess: async () => {
@@ -87,7 +88,7 @@ export function useUpdateSource(id: string) {
   const invalidateQna = useInvalidateQna();
 
   return useMutation({
-    mutationKey: [...sourceKeys.all, "update", id],
+    mutationKey: [...sourceKeys.all(currentTenantId), "update", id],
     mutationFn: (body: SourceUpdateRequestDto) =>
       updateSource(session?.accessToken, currentTenantId, id, body),
     onSuccess: async () => {
@@ -103,7 +104,7 @@ export function useDeleteSource() {
   const invalidateQna = useInvalidateQna();
 
   return useMutation({
-    mutationKey: [...sourceKeys.all, "delete"],
+    mutationKey: [...sourceKeys.all(currentTenantId), "delete"],
     mutationFn: (id: string) =>
       deleteSource(session?.accessToken, currentTenantId, id),
     onSuccess: async () => {

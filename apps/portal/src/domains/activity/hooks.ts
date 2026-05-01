@@ -1,16 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
 import { getActivity, listActivity } from "@/domains/activity/api";
+import {
+  createQnaDomainKeys,
+  keepPreviousQnaTenantData,
+} from "@/domains/qna/query-keys";
 import { useAuth } from "@/platform/auth/use-auth";
 import { useTenant } from "@/platform/tenant/use-tenant";
 
-const qnaRootKey = ["portal", "qna"] as const;
-
-export const activityKeys = {
-  all: [...qnaRootKey, "activity"] as const,
-  list: (params: Record<string, unknown>) =>
-    [...activityKeys.all, "list", params] as const,
-  detail: (id: string) => [...activityKeys.all, "detail", id] as const,
-};
+export const activityKeys = createQnaDomainKeys("activity");
 
 export function useActivityList(params: {
   page: number;
@@ -29,7 +26,7 @@ export function useActivityList(params: {
   const { enabled = true, ...requestParams } = params;
 
   return useQuery({
-    queryKey: activityKeys.list(requestParams),
+    queryKey: activityKeys.list(currentTenantId, requestParams),
     queryFn: ({ signal }) =>
       listActivity(
         session?.accessToken,
@@ -38,7 +35,7 @@ export function useActivityList(params: {
         signal,
       ),
     enabled: enabled && status === "ready" && Boolean(currentTenantId),
-    placeholderData: (previous) => previous,
+    placeholderData: keepPreviousQnaTenantData(currentTenantId),
   });
 }
 
@@ -47,7 +44,7 @@ export function useActivity(id: string | undefined) {
   const { currentTenantId } = useTenant();
 
   return useQuery({
-    queryKey: activityKeys.detail(id ?? "unknown"),
+    queryKey: activityKeys.detail(currentTenantId, id ?? "unknown"),
     queryFn: () => getActivity(session?.accessToken, currentTenantId, id ?? ""),
     enabled: status === "ready" && Boolean(currentTenantId) && Boolean(id),
   });

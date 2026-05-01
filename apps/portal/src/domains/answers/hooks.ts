@@ -11,6 +11,11 @@ import {
   removeAnswerSource,
   updateAnswer,
 } from "@/domains/answers/api";
+import {
+  createQnaDomainKeys,
+  keepPreviousQnaTenantData,
+  qnaTenantKey,
+} from "@/domains/qna/query-keys";
 import { useAuth } from "@/platform/auth/use-auth";
 import { useTenant } from "@/platform/tenant/use-tenant";
 import {
@@ -25,14 +30,7 @@ import type {
   AnswerUpdateRequestDto,
 } from "@/domains/answers/types";
 
-const qnaRootKey = ["portal", "qna"] as const;
-
-export const answerKeys = {
-  all: [...qnaRootKey, "answers"] as const,
-  list: (params: Record<string, unknown>) =>
-    [...answerKeys.all, "list", params] as const,
-  detail: (id: string) => [...answerKeys.all, "detail", id] as const,
-};
+export const answerKeys = createQnaDomainKeys("answers");
 
 export function useAnswerList(params: {
   page: number;
@@ -52,11 +50,11 @@ export function useAnswerList(params: {
   const { enabled = true, ...requestParams } = params;
 
   return useQuery({
-    queryKey: answerKeys.list(requestParams),
+    queryKey: answerKeys.list(currentTenantId, requestParams),
     queryFn: ({ signal }) =>
       listAnswers(session?.accessToken, currentTenantId, requestParams, signal),
     enabled: enabled && status === "ready" && Boolean(currentTenantId),
-    placeholderData: (previous) => previous,
+    placeholderData: keepPreviousQnaTenantData(currentTenantId),
   });
 }
 
@@ -65,7 +63,7 @@ export function useAnswer(id: string | undefined) {
   const { currentTenantId } = useTenant();
 
   return useQuery({
-    queryKey: answerKeys.detail(id ?? "unknown"),
+    queryKey: answerKeys.detail(currentTenantId, id ?? "unknown"),
     queryFn: () => getAnswer(session?.accessToken, currentTenantId, id ?? ""),
     enabled: status === "ready" && Boolean(currentTenantId) && Boolean(id),
   });
@@ -73,9 +71,12 @@ export function useAnswer(id: string | undefined) {
 
 function useInvalidateQna() {
   const queryClient = useQueryClient();
+  const { currentTenantId } = useTenant();
 
   return async () => {
-    await queryClient.invalidateQueries({ queryKey: qnaRootKey });
+    await queryClient.invalidateQueries({
+      queryKey: qnaTenantKey(currentTenantId),
+    });
   };
 }
 
@@ -85,7 +86,7 @@ export function useCreateAnswer() {
   const invalidateQna = useInvalidateQna();
 
   return useMutation({
-    mutationKey: [...answerKeys.all, "create"],
+    mutationKey: [...answerKeys.all(currentTenantId), "create"],
     mutationFn: (body: AnswerCreateRequestDto) =>
       createAnswer(session?.accessToken, currentTenantId, body),
     onSuccess: async () => {
@@ -101,7 +102,7 @@ export function useUpdateAnswer(id: string) {
   const invalidateQna = useInvalidateQna();
 
   return useMutation({
-    mutationKey: [...answerKeys.all, "update", id],
+    mutationKey: [...answerKeys.all(currentTenantId), "update", id],
     mutationFn: (body: AnswerUpdateRequestDto) =>
       updateAnswer(session?.accessToken, currentTenantId, id, body),
     onSuccess: async () => {
@@ -117,7 +118,7 @@ export function useUpdateAnswerStatus() {
   const invalidateQna = useInvalidateQna();
 
   return useMutation({
-    mutationKey: [...answerKeys.all, "workflow", "status"],
+    mutationKey: [...answerKeys.all(currentTenantId), "workflow", "status"],
     mutationFn: ({
       answer,
       status,
@@ -154,7 +155,7 @@ export function useDeleteAnswer() {
   const invalidateQna = useInvalidateQna();
 
   return useMutation({
-    mutationKey: [...answerKeys.all, "delete"],
+    mutationKey: [...answerKeys.all(currentTenantId), "delete"],
     mutationFn: (id: string) =>
       deleteAnswer(session?.accessToken, currentTenantId, id),
     onSuccess: async () => {
@@ -170,7 +171,7 @@ export function useActivateAnswer() {
   const invalidateQna = useInvalidateQna();
 
   return useMutation({
-    mutationKey: [...answerKeys.all, "workflow", "activate"],
+    mutationKey: [...answerKeys.all(currentTenantId), "workflow", "activate"],
     mutationFn: (id: string) =>
       activateAnswer(session?.accessToken, currentTenantId, id),
     onSuccess: async () => {
@@ -186,7 +187,7 @@ export function useArchiveAnswer() {
   const invalidateQna = useInvalidateQna();
 
   return useMutation({
-    mutationKey: [...answerKeys.all, "workflow", "archive"],
+    mutationKey: [...answerKeys.all(currentTenantId), "workflow", "archive"],
     mutationFn: (id: string) =>
       archiveAnswer(session?.accessToken, currentTenantId, id),
     onSuccess: async () => {
@@ -202,7 +203,7 @@ export function useAddAnswerSource(id: string) {
   const invalidateQna = useInvalidateQna();
 
   return useMutation({
-    mutationKey: [...answerKeys.all, "source", id, "add"],
+    mutationKey: [...answerKeys.all(currentTenantId), "source", id, "add"],
     mutationFn: (body: AnswerSourceLinkCreateRequestDto) =>
       addAnswerSource(session?.accessToken, currentTenantId, id, body),
     onSuccess: async () => {
@@ -218,7 +219,7 @@ export function useRemoveAnswerSource(id: string) {
   const invalidateQna = useInvalidateQna();
 
   return useMutation({
-    mutationKey: [...answerKeys.all, "source", id, "remove"],
+    mutationKey: [...answerKeys.all(currentTenantId), "source", id, "remove"],
     mutationFn: (sourceLinkId: string) =>
       removeAnswerSource(
         session?.accessToken,
