@@ -25,6 +25,9 @@ import { cn } from "@/lib/utils";
 
 type RoutedHandle = AppRouteHandle;
 
+const TOOLBAR_COMPACT_ENTER_SCROLL = 32;
+const TOOLBAR_COMPACT_EXIT_SCROLL = 8;
+
 function useRouteHandles() {
   return useMatches().reduce<RoutedHandle[]>((acc, match) => {
     const handle = match.handle as AppRouteHandle | undefined;
@@ -168,12 +171,16 @@ function ToolbarActions({ compact }: { compact: boolean }) {
 
 export function PortalToolbar() {
   const toolbarRef = useRef<HTMLDivElement>(null);
+  const isScrolledRef = useRef(false);
+  const hasMobileHeaderRef = useRef(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [hasMobileHeader, setHasMobileHeader] = useState(false);
 
   useEffect(() => {
     const toolbar = toolbarRef.current;
-    const scrollArea = toolbar?.closest<HTMLElement>("[data-portal-scroll-area]");
+    const scrollArea = toolbar?.closest<HTMLElement>(
+      "[data-portal-scroll-area]",
+    );
     const mobileHeaderViewport = window.matchMedia("(max-width: 1279px)");
 
     if (!scrollArea) {
@@ -181,12 +188,26 @@ export function PortalToolbar() {
     }
 
     const updateToolbarState = () => {
-      setIsScrolled(scrollArea.scrollTop > 16);
-      setHasMobileHeader(mobileHeaderViewport.matches);
+      const nextIsScrolled = isScrolledRef.current
+        ? scrollArea.scrollTop > TOOLBAR_COMPACT_EXIT_SCROLL
+        : scrollArea.scrollTop > TOOLBAR_COMPACT_ENTER_SCROLL;
+      const nextHasMobileHeader = mobileHeaderViewport.matches;
+
+      if (nextIsScrolled !== isScrolledRef.current) {
+        isScrolledRef.current = nextIsScrolled;
+        setIsScrolled(nextIsScrolled);
+      }
+
+      if (nextHasMobileHeader !== hasMobileHeaderRef.current) {
+        hasMobileHeaderRef.current = nextHasMobileHeader;
+        setHasMobileHeader(nextHasMobileHeader);
+      }
     };
 
     updateToolbarState();
-    scrollArea.addEventListener("scroll", updateToolbarState, { passive: true });
+    scrollArea.addEventListener("scroll", updateToolbarState, {
+      passive: true,
+    });
     mobileHeaderViewport.addEventListener("change", updateToolbarState);
 
     return () => {
