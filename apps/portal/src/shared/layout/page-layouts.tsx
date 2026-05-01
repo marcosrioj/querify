@@ -376,18 +376,27 @@ export function DetailFieldList({
   const { t } = usePortalI18n();
 
   return (
-    <div className="space-y-4">
-      {items.map((item) => (
+    <div className="overflow-hidden rounded-lg border border-border/70 bg-background">
+      {items.map((item, index) => (
         <section
           key={item.label}
-          className="rounded-lg border border-border/70 bg-muted/10 p-4"
+          className="grid gap-2.5 border-b border-border/60 px-4 py-4 last:border-b-0 lg:grid-cols-[160px_minmax(0,1fr)] lg:gap-5"
         >
-          <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
-            {t(item.label)}
-          </p>
+          <div className="flex min-w-0 items-start gap-2">
+            <span
+              className={cn(
+                "mt-2.5 size-1 shrink-0 rounded-full",
+                index === 0 ? "bg-primary/70" : "bg-border",
+              )}
+            />
+            <p className="min-w-0 text-xs font-medium uppercase leading-6 tracking-[0.12em] text-muted-foreground">
+              {t(item.label)}
+            </p>
+          </div>
           <div
             className={cn(
-              "mt-2 min-w-0 break-words text-sm leading-6 text-foreground [overflow-wrap:anywhere]",
+              "min-w-0 text-sm leading-6 text-foreground [overflow-wrap:anywhere]",
+              index === 0 && "font-medium",
               item.valueClassName,
             )}
           >
