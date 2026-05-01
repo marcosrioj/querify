@@ -447,7 +447,7 @@ export function SpaceDetailPage() {
           description="Review state, intake rules, questions needing action, connected tags and sources, and the next recommended move."
           descriptionMode="hint"
           backTo="/app/spaces"
-          breadcrumbs={[]}
+          breadcrumbs={[{ label: "Space", to: "/app/spaces" }]}
         />
       }
       sidebar={
@@ -1193,6 +1193,12 @@ export function SpaceDetailPage() {
                         </div>
                       </div>
                       <div className="flex flex-wrap gap-2">
+                        <Button asChild variant="outline" size="sm">
+                          <Link to={`/app/questions/${question.id}`}>
+                            <Link2 className="size-4" />
+                            {translateText("Open")}
+                          </Link>
+                        </Button>
                         <Button
                           variant="outline"
                           size="sm"
@@ -1211,12 +1217,6 @@ export function SpaceDetailPage() {
                               ? "Desativar"
                               : "Ativar",
                           )}
-                        </Button>
-                        <Button asChild variant="outline" size="sm">
-                          <Link to={`/app/questions/${question.id}`}>
-                            <Link2 className="size-4" />
-                            {translateText("Open")}
-                          </Link>
                         </Button>
                         <ConfirmAction
                           title={translateText('Delete question "{name}"?', {

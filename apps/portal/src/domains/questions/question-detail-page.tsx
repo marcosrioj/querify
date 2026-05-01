@@ -1487,6 +1487,12 @@ export function QuestionDetailPage() {
                         </div>
                       </div>
                       <div className="flex flex-wrap gap-2">
+                        <Button asChild variant="outline" size="sm">
+                          <Link to={`/app/answers/${answer.id}`}>
+                            <Link2 className="size-4" />
+                            {translateText("Open")}
+                          </Link>
+                        </Button>
                         <Button
                           variant="outline"
                           size="sm"
@@ -1503,12 +1509,6 @@ export function QuestionDetailPage() {
                               ? "Desativar"
                               : "Ativar",
                           )}
-                        </Button>
-                        <Button asChild variant="outline" size="sm">
-                          <Link to={`/app/answers/${answer.id}`}>
-                            <Link2 className="size-4" />
-                            {translateText("Open")}
-                          </Link>
                         </Button>
                         <ConfirmAction
                           title={translateText('Delete answer "{name}"?', {
