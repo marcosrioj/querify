@@ -8,7 +8,15 @@ import {
 } from "@/shared/layout/page-chrome-context";
 import { translateMaybeString } from "@/shared/lib/i18n-render";
 import { usePortalI18n } from "@/shared/lib/use-portal-i18n";
-import { Button, Card, CardContent, ContextHint } from "@/shared/ui";
+import {
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
+  CardHeading,
+  CardTitle,
+  ContextHint,
+} from "@/shared/ui";
 import { cn } from "@/lib/utils";
 
 export function PageHeader({
@@ -303,6 +311,56 @@ export function KeyValueList({
         </Fragment>
       ))}
     </dl>
+  );
+}
+
+export function DetailOverviewCard({
+  title = "Overview",
+  description,
+  highlights,
+  items,
+}: {
+  title?: string;
+  description?: ReactNode;
+  highlights: Array<{ label: string; value: ReactNode }>;
+  items: Array<{ label: string; value: ReactNode }>;
+}) {
+  const { t } = usePortalI18n();
+
+  return (
+    <Card className="overflow-hidden">
+      <CardHeader className="px-4 py-3">
+        <CardHeading>
+          <CardTitle className="flex items-center gap-2 text-[0.9375rem]">
+            <span>{translateMaybeString(title, t)}</span>
+            {description ? (
+              <ContextHint
+                content={translateMaybeString(description, t)}
+                label={t("{title} details", { title: String(title) })}
+              />
+            ) : null}
+          </CardTitle>
+        </CardHeading>
+      </CardHeader>
+      <CardContent className="space-y-4 p-4">
+        <div className="grid grid-cols-2 gap-2">
+          {highlights.map((item) => (
+            <div
+              key={item.label}
+              className="min-w-0 rounded-lg border border-border/70 bg-muted/15 p-3"
+            >
+              <p className="text-[0.6875rem] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+                {t(item.label)}
+              </p>
+              <div className="mt-2 min-w-0 break-words text-sm font-semibold leading-5 text-foreground">
+                {translateMaybeString(item.value, t)}
+              </div>
+            </div>
+          ))}
+        </div>
+        <KeyValueList items={items} />
+      </CardContent>
+    </Card>
   );
 }
 

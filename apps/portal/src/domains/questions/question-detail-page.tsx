@@ -10,7 +10,6 @@ import {
   CheckCircle2,
   CircleOff,
   Link2,
-  MessageSquareText,
   Pencil,
   Plus,
   Tags,
@@ -59,11 +58,10 @@ import {
   visibilityScopeLabels,
 } from "@/shared/constants/backend-enums";
 import {
+  DetailOverviewCard,
   DetailFieldList,
   DetailLayout,
-  KeyValueList,
   PageHeader,
-  SectionGrid,
 } from "@/shared/layout/page-layouts";
 import {
   ActionButton,
@@ -584,127 +582,67 @@ export function QuestionDetailPage() {
         />
       }
       sidebar={
-        <>
-          {showLoadingState ? (
-            <SidebarSummarySkeleton />
-          ) : questionQuery.data ? (
-            <Card>
-              <CardHeader>
-                <CardHeading>
-                  <CardTitle>{translateText("Question overview")}</CardTitle>
-                </CardHeading>
-              </CardHeader>
-              <CardContent>
-                <KeyValueList
-                  items={[
-                    {
-                      label: "Space",
-                      value:
-                        spaceQuery.data?.name ?? questionQuery.data.spaceSlug,
-                    },
-                    {
-                      label: "Feedback score",
-                      value: String(questionQuery.data.feedbackScore),
-                    },
-                    {
-                      label: "Accepted answer",
-                      value:
-                        questionQuery.data.acceptedAnswer?.headline || "None",
-                    },
-                    {
-                      label: "Last activity",
-                      value: formatOptionalDateTimeInTimeZone(
-                        questionQuery.data.lastActivityAtUtc,
-                        portalTimeZone,
-                        translateText("Not set"),
-                      ),
-                    },
-                  ]}
-                />
-              </CardContent>
-            </Card>
-          ) : null}
-          {showLoadingState ? null : questionQuery.data ? (
-            <Card>
-              <CardHeader>
-                <CardHeading>
-                  <CardTitle className="flex items-center gap-2">
-                    <span>{translateText("Question settings")}</span>
-                    <ContextHint
-                      content={translateText(
-                        "These values describe the question and the intake path that created it.",
-                      )}
-                      label={translateText("Question settings details")}
-                    />
-                  </CardTitle>
-                </CardHeading>
-              </CardHeader>
-              <CardContent>
-                <KeyValueList
-                  items={[
-                    {
-                      label: "Origin channel",
-                      value: (
-                        <ChannelKindBadge
-                          kind={questionQuery.data.originChannel}
-                        />
-                      ),
-                    },
-                    {
-                      label: "AI confidence",
-                      value: String(questionQuery.data.aiConfidenceScore),
-                    },
-                    {
-                      label: "Sort",
-                      value: String(questionQuery.data.sort),
-                    },
-                  ]}
-                />
-              </CardContent>
-            </Card>
-          ) : null}
-          {showLoadingState ? null : questionQuery.data ? (
-            <SectionGrid
-              variant="sidebar"
-              items={[
-                {
-                  title: "Status",
-                  value: (
-                    <QuestionStatusBadge status={questionQuery.data.status} />
-                  ),
-                  icon: MessageSquareText,
-                },
-                {
-                  title: "Visibility",
-                  value: (
-                    <VisibilityBadge
-                      visibility={questionQuery.data.visibility}
-                    />
-                  ),
-                  icon: MessageSquareText,
-                },
-                {
-                  title: "Signals",
-                  value: translateText("Feedback {value}", {
-                    value: questionQuery.data.feedbackScore,
-                  }),
-                  description: translateText(
-                    "Public feedback is aggregated into activity and score",
-                  ),
-                  icon: Activity,
-                },
-                {
-                  title: "Answers",
-                  value: answerListQuery.data?.totalCount ?? 0,
-                  description: translateText(
-                    "Accepted, draft, and active candidates",
-                  ),
-                  icon: CheckCircle2,
-                },
-              ]}
-            />
-          ) : null}
-        </>
+        showLoadingState ? (
+          <SidebarSummarySkeleton />
+        ) : questionQuery.data ? (
+          <DetailOverviewCard
+            title="Overview"
+            description="These values describe the question state, intake path, and workflow signals."
+            highlights={[
+              {
+                label: "Status",
+                value: (
+                  <QuestionStatusBadge status={questionQuery.data.status} />
+                ),
+              },
+              {
+                label: "Visibility",
+                value: (
+                  <VisibilityBadge visibility={questionQuery.data.visibility} />
+                ),
+              },
+              {
+                label: "Signals",
+                value: translateText("Feedback {value}", {
+                  value: questionQuery.data.feedbackScore,
+                }),
+              },
+              {
+                label: "Answers",
+                value: String(answerListQuery.data?.totalCount ?? 0),
+              },
+            ]}
+            items={[
+              {
+                label: "Space",
+                value: spaceQuery.data?.name ?? questionQuery.data.spaceSlug,
+              },
+              {
+                label: "Accepted answer",
+                value: questionQuery.data.acceptedAnswer?.headline || "None",
+              },
+              {
+                label: "Last activity",
+                value: formatOptionalDateTimeInTimeZone(
+                  questionQuery.data.lastActivityAtUtc,
+                  portalTimeZone,
+                  translateText("Not set"),
+                ),
+              },
+              {
+                label: "Origin channel",
+                value: (
+                  <ChannelKindBadge kind={questionQuery.data.originChannel} />
+                ),
+              },
+              {
+                label: "AI confidence",
+                value: String(questionQuery.data.aiConfidenceScore),
+              },
+              { label: "Sort", value: String(questionQuery.data.sort) },
+            ]}
+          />
+        ) : null
       }
     >
       {ActivationVisibilityDialog}

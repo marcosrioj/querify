@@ -7,7 +7,6 @@ import {
 } from "react";
 import {
   Activity,
-  BookOpen,
   CheckCircle2,
   CircleOff,
   Link2,
@@ -51,11 +50,10 @@ import {
   visibilityScopeLabels,
 } from "@/shared/constants/backend-enums";
 import {
+  DetailOverviewCard,
   DetailFieldList,
   DetailLayout,
-  KeyValueList,
   PageHeader,
-  SectionGrid,
 } from "@/shared/layout/page-layouts";
 import {
   ActionButton,
@@ -451,143 +449,84 @@ export function SpaceDetailPage() {
         />
       }
       sidebar={
-        <>
-          {showLoadingState ? (
-            <SidebarSummarySkeleton />
-          ) : spaceQuery.data ? (
-            <Card>
-              <CardHeader>
-                <CardHeading>
-                  <CardTitle className="flex items-center gap-2">
-                    <span>{translateText("Overview")}</span>
-                    <ContextHint
-                      content={translateText(
-                        "This summarizes status and the major workflow gates.",
+        showLoadingState ? (
+          <SidebarSummarySkeleton />
+        ) : spaceQuery.data ? (
+          <DetailOverviewCard
+            description="This summarizes status and the major workflow gates."
+            highlights={[
+              {
+                label: "Status",
+                value: <SpaceStatusBadge status={spaceQuery.data.status} />,
+              },
+              {
+                label: "Visibility",
+                value: (
+                  <VisibilityBadge visibility={spaceQuery.data.visibility} />
+                ),
+              },
+              {
+                label: "Accepts",
+                value: (
+                  <div className="flex flex-wrap gap-2">
+                    <Badge variant={blocksQuestions ? "mono" : "success"}>
+                      {translateText(
+                        blocksQuestions ? "No questions" : "Questions",
                       )}
-                      label={translateText("Overview details")}
-                    />
-                  </CardTitle>
-                </CardHeading>
-              </CardHeader>
-              <CardContent>
-                <KeyValueList
-                  items={[
-                    { label: "Slug", value: spaceQuery.data.slug },
-                    { label: "Language", value: spaceQuery.data.language },
-                    {
-                      label: "Questions",
-                      value: String(spaceQuery.data.questionCount),
-                    },
-                    {
-                      label: "Curated sources",
-                      value: String(spaceQuery.data.curatedSources.length),
-                    },
-                  ]}
-                />
-              </CardContent>
-            </Card>
-          ) : null}
-          {showLoadingState ? null : spaceQuery.data ? (
-            <Card>
-              <CardHeader>
-                <CardHeading>
-                  <CardTitle>{translateText("Workflow rules")}</CardTitle>
-                </CardHeading>
-              </CardHeader>
-              <CardContent>
-                <KeyValueList
-                  items={[
-                    {
-                      label: "Accepts questions",
-                      value: (
-                        <Badge
-                          variant={
-                            spaceQuery.data.acceptsQuestions
-                              ? "success"
-                              : "mono"
-                          }
-                        >
-                          {translateText(
-                            spaceQuery.data.acceptsQuestions
-                              ? "Enabled"
-                              : "Disabled",
-                          )}
-                        </Badge>
-                      ),
-                    },
-                    {
-                      label: "Accepts answers",
-                      value: (
-                        <Badge
-                          variant={
-                            spaceQuery.data.acceptsAnswers ? "success" : "mono"
-                          }
-                        >
-                          {translateText(
-                            spaceQuery.data.acceptsAnswers
-                              ? "Enabled"
-                              : "Disabled",
-                          )}
-                        </Badge>
-                      ),
-                    },
-                    {
-                      label: "Status",
-                      value: (
-                        <SpaceStatusBadge status={spaceQuery.data.status} />
-                      ),
-                    },
-                  ]}
-                />
-              </CardContent>
-            </Card>
-          ) : null}
-          {showLoadingState ? null : spaceQuery.data ? (
-            <SectionGrid
-              variant="sidebar"
-              items={[
-                {
-                  title: "State",
-                  value: <SpaceStatusBadge status={spaceQuery.data.status} />,
-                  icon: BookOpen,
-                },
-                {
-                  title: "Accepts",
-                  value: (
-                    <div className="flex flex-wrap gap-2">
-                      <Badge variant={blocksQuestions ? "mono" : "success"}>
-                        {translateText(
-                          blocksQuestions ? "No questions" : "Questions",
-                        )}
-                      </Badge>
-                      <Badge variant={blocksAnswers ? "mono" : "success"}>
-                        {translateText(
-                          blocksAnswers ? "No answers" : "Answers",
-                        )}
-                      </Badge>
-                    </div>
-                  ),
-                  icon: CheckCircle2,
-                },
-                {
-                  title: "Needs action",
-                  value: questionsNeedingAction.length,
-                  description: translateText(
-                    "Questions in this Space waiting for an operator decision",
-                  ),
-                  icon: Waypoints,
-                },
-                {
-                  title: "Visibility",
-                  value: (
-                    <VisibilityBadge visibility={spaceQuery.data.visibility} />
-                  ),
-                  icon: BookOpen,
-                },
-              ]}
-            />
-          ) : null}
-        </>
+                    </Badge>
+                    <Badge variant={blocksAnswers ? "mono" : "success"}>
+                      {translateText(blocksAnswers ? "No answers" : "Answers")}
+                    </Badge>
+                  </div>
+                ),
+              },
+              {
+                label: "Needs action",
+                value: String(questionsNeedingAction.length),
+              },
+            ]}
+            items={[
+              { label: "Slug", value: spaceQuery.data.slug },
+              { label: "Language", value: spaceQuery.data.language },
+              {
+                label: "Questions",
+                value: String(spaceQuery.data.questionCount),
+              },
+              {
+                label: "Curated sources",
+                value: String(spaceQuery.data.curatedSources.length),
+              },
+              {
+                label: "Accepts questions",
+                value: (
+                  <Badge
+                    variant={
+                      spaceQuery.data.acceptsQuestions ? "success" : "mono"
+                    }
+                  >
+                    {translateText(
+                      spaceQuery.data.acceptsQuestions ? "Enabled" : "Disabled",
+                    )}
+                  </Badge>
+                ),
+              },
+              {
+                label: "Accepts answers",
+                value: (
+                  <Badge
+                    variant={
+                      spaceQuery.data.acceptsAnswers ? "success" : "mono"
+                    }
+                  >
+                    {translateText(
+                      spaceQuery.data.acceptsAnswers ? "Enabled" : "Disabled",
+                    )}
+                  </Badge>
+                ),
+              },
+            ]}
+          />
+        ) : null
       }
     >
       {ActivationVisibilityDialog}

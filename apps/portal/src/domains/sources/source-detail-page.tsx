@@ -14,11 +14,11 @@ import { RecommendedNextActionCard } from "@/domains/qna/recommended-next-action
 import { usePortalTimeZone } from "@/domains/settings/settings-hooks";
 import { useDeleteSource, useSource } from "@/domains/sources/hooks";
 import {
+  DetailOverviewCard,
   DetailFieldList,
   DetailLayout,
   KeyValueList,
   PageHeader,
-  SectionGrid,
 } from "@/shared/layout/page-layouts";
 import {
   ActionButton,
@@ -126,62 +126,47 @@ export function SourceDetailPage() {
         />
       }
       sidebar={
-        <>
-          {sourceQuery.isLoading ? (
-            <SidebarSummarySkeleton />
-          ) : sourceQuery.data ? (
-            <Card>
-              <CardHeader>
-                <CardHeading>
-                  <CardTitle>{translateText("Overview")}</CardTitle>
-                </CardHeading>
-              </CardHeader>
-              <CardContent>
-                <KeyValueList
-                  items={[
-                    {
-                      label: "External ID",
-                      value: sourceQuery.data.externalId || "Not set",
-                    },
-                    {
-                      label: "Checksum",
-                      value: sourceQuery.data.checksum || "Not set",
-                    },
-                    {
-                      label: "Language",
-                      value: sourceQuery.data.language || "Not set",
-                    },
-                    {
-                      label: "Last verified",
-                      value: formatOptionalDateTimeInTimeZone(
-                        sourceQuery.data.lastVerifiedAtUtc,
-                        portalTimeZone,
-                        translateText("Not set"),
-                      ),
-                    },
-                  ]}
-                />
-              </CardContent>
-            </Card>
-          ) : null}
-          {sourceQuery.isLoading ? null : sourceQuery.data ? (
-            <SectionGrid
-              variant="sidebar"
-              items={[
-                {
-                  title: "Kind",
-                  value: <SourceKindBadge kind={sourceQuery.data.kind} />,
-                },
-                {
-                  title: "Visibility",
-                  value: (
-                    <VisibilityBadge visibility={sourceQuery.data.visibility} />
-                  ),
-                },
-              ]}
-            />
-          ) : null}
-        </>
+        sourceQuery.isLoading ? (
+          <SidebarSummarySkeleton />
+        ) : sourceQuery.data ? (
+          <DetailOverviewCard
+            description="This summarizes source type, visibility, verification metadata, and connector identifiers."
+            highlights={[
+              {
+                label: "Kind",
+                value: <SourceKindBadge kind={sourceQuery.data.kind} />,
+              },
+              {
+                label: "Visibility",
+                value: (
+                  <VisibilityBadge visibility={sourceQuery.data.visibility} />
+                ),
+              },
+            ]}
+            items={[
+              {
+                label: "External ID",
+                value: sourceQuery.data.externalId || "Not set",
+              },
+              {
+                label: "Checksum",
+                value: sourceQuery.data.checksum || "Not set",
+              },
+              {
+                label: "Language",
+                value: sourceQuery.data.language || "Not set",
+              },
+              {
+                label: "Last verified",
+                value: formatOptionalDateTimeInTimeZone(
+                  sourceQuery.data.lastVerifiedAtUtc,
+                  portalTimeZone,
+                  translateText("Not set"),
+                ),
+              },
+            ]}
+          />
+        ) : null
       }
     >
       <ActionPanel layout="bar" description="Source actions and risk controls.">

@@ -4,10 +4,10 @@ import { RecommendedNextActionCard } from "@/domains/qna/recommended-next-action
 import { useQuestion } from "@/domains/questions/hooks";
 import { usePortalTimeZone } from "@/domains/settings/settings-hooks";
 import {
+  DetailOverviewCard,
   DetailLayout,
   KeyValueList,
   PageHeader,
-  SectionGrid,
 } from "@/shared/layout/page-layouts";
 import {
   ActionButton,
@@ -136,19 +136,21 @@ export function ActivityDetailPage() {
         activityQuery.isLoading ? (
           <SidebarSummarySkeleton />
         ) : activityQuery.data ? (
-          <SectionGrid
-            variant="sidebar"
-            items={[
+          <DetailOverviewCard
+            description="This summarizes the event type, actor scope, and linked records."
+            highlights={[
               {
-                title: "Event",
+                label: "Event",
                 value: <ActivityKindBadge kind={activityQuery.data.kind} />,
               },
               {
-                title: "Actor",
+                label: "Actor",
                 value: <ActorKindBadge kind={activityQuery.data.actorKind} />,
               },
+            ]}
+            items={[
               {
-                title: "Question",
+                label: "Question",
                 value: (
                   <ActivitySubjectValue
                     value={activityQuery.data.questionTitle}
@@ -157,7 +159,7 @@ export function ActivityDetailPage() {
                 ),
               },
               {
-                title: "Answer",
+                label: "Answer",
                 value: (
                   <ActivitySubjectValue
                     value={activityQuery.data.answerHeadline}

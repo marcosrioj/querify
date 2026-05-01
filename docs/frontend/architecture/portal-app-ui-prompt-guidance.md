@@ -71,8 +71,9 @@ If a shared primitive already matches the use case, do not replace it with ad ho
 - place the screen-level `ActionPanel` in the main column as the first action surface, using the `layout="bar"` toolbar treatment
 - keep record actions in that first action surface; do not scatter additional record-level commands into the right rail
 - keep `RecommendedNextActionCard` in the main column with its own action button; do not move recommended-next-action commands into the screen-level action toolbar
-- keep the right rail for status summaries, workflow rules, publishing state, settings, metadata, timing context, and compact metric/status blocks
-- put detail-page metric/status `SectionGrid` blocks at the end of the right rail with the compact sidebar treatment, not as the first row of the main content
+- keep the right rail to one consolidated `DetailOverviewCard` whenever the page is summarizing record status, workflow rules, publishing state, settings, metadata, timing context, and compact metrics
+- put high-signal status and metric fields in the `DetailOverviewCard` highlight grid, then put supporting metadata in the same card's key/value list
+- render enum values in the overview with the existing badge/status components; do not downgrade enums to plain text
 - do not render relationship sections as top-of-page anchors
 - keep onboarding or progress guidance in the location that best supports the current task, usually main content or a compact right-rail summary
 

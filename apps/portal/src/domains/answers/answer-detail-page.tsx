@@ -7,7 +7,6 @@ import {
 } from "react";
 import {
   Activity,
-  CheckCircle2,
   Link2,
   Pencil,
   ShieldCheck,
@@ -38,11 +37,10 @@ import {
   sourceRoleLabels,
 } from "@/shared/constants/backend-enums";
 import {
+  DetailOverviewCard,
   DetailFieldList,
   DetailLayout,
-  KeyValueList,
   PageHeader,
-  SectionGrid,
 } from "@/shared/layout/page-layouts";
 import {
   ActionButton,
@@ -363,98 +361,70 @@ export function AnswerDetailPage() {
         />
       }
       sidebar={
-        <>
-          {showLoadingState ? (
-            <SidebarSummarySkeleton />
-          ) : answerQuery.data ? (
-            <Card>
-              <CardHeader>
-                <CardHeading>
-                  <CardTitle>{translateText("Overview")}</CardTitle>
-                </CardHeading>
-              </CardHeader>
-              <CardContent>
-                <KeyValueList
-                  items={[
-                    {
-                      label: "Question",
-                      value:
-                        questionQuery.data?.title ||
-                        answerQuery.data.questionId,
-                    },
-                    { label: "Score", value: String(answerQuery.data.score) },
-                    { label: "Sort", value: String(answerQuery.data.sort) },
-                    {
-                      label: "Vote score",
-                      value: String(answerQuery.data.voteScore),
-                    },
-                    {
-                      label: "AI confidence",
-                      value: String(answerQuery.data.aiConfidenceScore),
-                    },
-                  ]}
-                />
-              </CardContent>
-            </Card>
-          ) : null}
-          {showLoadingState ? null : answerQuery.data ? (
-            <Card id="answer-sources-section">
-              <CardHeader>
-                <CardHeading>
-                  <CardTitle>{translateText("Context and timing")}</CardTitle>
-                </CardHeading>
-              </CardHeader>
-              <CardContent>
-                <KeyValueList
-                  items={[
-                    {
-                      label: "Author label",
-                      value: answerQuery.data.authorLabel || "Not set",
-                    },
-                    {
-                      label: "Score",
-                      value: String(answerQuery.data.score),
-                    },
-                  ]}
-                />
-              </CardContent>
-            </Card>
-          ) : null}
-          {showLoadingState ? null : answerQuery.data ? (
-            <SectionGrid
-              variant="sidebar"
-              items={[
-                {
-                  title: "Status",
-                  value: <AnswerStatusBadge status={answerQuery.data.status} />,
-                  icon: CheckCircle2,
-                },
-                {
-                  title: "Visibility",
-                  value: (
-                    <VisibilityBadge visibility={answerQuery.data.visibility} />
-                  ),
-                  icon: CheckCircle2,
-                },
-                {
-                  title: "Type",
-                  value: <AnswerKindBadge kind={answerQuery.data.kind} />,
-                  icon: ShieldCheck,
-                },
-                {
-                  title: "Signals",
-                  value: translateText("Votes {value}", {
-                    value: answerQuery.data.voteScore,
-                  }),
-                  description: answerQuery.data.isAccepted
-                    ? translateText("This answer is currently accepted")
-                    : translateText("Not currently accepted"),
-                  icon: ShieldCheck,
-                },
-              ]}
-            />
-          ) : null}
-        </>
+        showLoadingState ? (
+          <SidebarSummarySkeleton />
+        ) : answerQuery.data ? (
+          <DetailOverviewCard
+            description="This summarizes lifecycle, visibility, type, and trust signals for this answer."
+            highlights={[
+              {
+                label: "Status",
+                value: <AnswerStatusBadge status={answerQuery.data.status} />,
+              },
+              {
+                label: "Visibility",
+                value: (
+                  <VisibilityBadge visibility={answerQuery.data.visibility} />
+                ),
+              },
+              {
+                label: "Type",
+                value: <AnswerKindBadge kind={answerQuery.data.kind} />,
+              },
+              {
+                label: "Signals",
+                value: (
+                  <div className="flex flex-wrap gap-2">
+                    <Badge variant="outline">
+                      {translateText("Votes {value}", {
+                        value: answerQuery.data.voteScore,
+                      })}
+                    </Badge>
+                    <Badge
+                      variant={answerQuery.data.isAccepted ? "success" : "mono"}
+                    >
+                      {translateText(
+                        answerQuery.data.isAccepted
+                          ? "Accepted"
+                          : "Not accepted",
+                      )}
+                    </Badge>
+                  </div>
+                ),
+              },
+            ]}
+            items={[
+              {
+                label: "Question",
+                value: questionQuery.data?.title || answerQuery.data.questionId,
+              },
+              {
+                label: "Author label",
+                value: answerQuery.data.authorLabel || "Not set",
+              },
+              { label: "Score", value: String(answerQuery.data.score) },
+              { label: "Sort", value: String(answerQuery.data.sort) },
+              {
+                label: "Vote score",
+                value: String(answerQuery.data.voteScore),
+              },
+              {
+                label: "AI confidence",
+                value: String(answerQuery.data.aiConfidenceScore),
+              },
+            ]}
+          />
+        ) : null
       }
     >
       {ActivationVisibilityDialog}
