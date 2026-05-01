@@ -62,7 +62,10 @@ function PortalLayoutShell() {
         <div className="flex min-w-0 grow flex-col pt-[var(--header-height)] xl:ms-[var(--sidebar-width)] xl:w-[calc(100vw-var(--sidebar-width))] xl:max-w-[calc(100vw-var(--sidebar-width))] xl:grow-0 xl:pt-0">
           <div className="portal-elevated relative m-2 mt-0 flex min-w-0 grow flex-col items-stretch overflow-hidden rounded-2xl border border-border/70 bg-background/95 backdrop-blur sm:m-3 sm:mt-0 xl:mt-3">
             <PortalActivityBar />
-            <div className="kt-scrollable-y-auto flex min-w-0 grow flex-col pt-5 [--kt-scrollbar-width:auto]">
+            <div
+              data-portal-scroll-area
+              className="kt-scrollable-y-auto flex min-w-0 grow flex-col [--kt-scrollbar-width:auto]"
+            >
               <main className="min-w-0 grow" role="main">
                 <PortalToolbar />
                 <Outlet />

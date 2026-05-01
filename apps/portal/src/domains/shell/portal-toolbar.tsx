@@ -1,4 +1,4 @@
-import { Fragment } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { ArrowLeft } from "lucide-react";
 import { Link, useMatches } from "react-router-dom";
 import { AppRouteHandle } from "@/app/router/route-types";
@@ -148,9 +148,18 @@ function ToolbarPageTrail() {
   );
 }
 
-function ToolbarActions() {
+function ToolbarActions({ compact }: { compact: boolean }) {
   return (
-    <div className="flex w-full min-w-0 flex-wrap items-center justify-end gap-2 lg:gap-3 xl:w-auto xl:flex-nowrap xl:shrink-0">
+    <div
+      aria-hidden={compact}
+      inert={compact ? true : undefined}
+      className={cn(
+        "flex w-full min-w-0 flex-wrap items-center justify-end gap-2 overflow-hidden transition-[max-height,opacity,transform,margin] duration-300 ease-out lg:gap-3 xl:w-auto xl:flex-nowrap xl:shrink-0",
+        compact
+          ? "max-h-0 -translate-y-2 opacity-0 pointer-events-none"
+          : "max-h-24 translate-y-0 opacity-100",
+      )}
+    >
       <PortalCommandDialog />
       <LanguageSelector />
       <NotificationsMenu />
@@ -160,11 +169,54 @@ function ToolbarActions() {
 }
 
 export function PortalToolbar() {
+  const toolbarRef = useRef<HTMLDivElement>(null);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [hasMobileHeader, setHasMobileHeader] = useState(false);
+
+  useEffect(() => {
+    const toolbar = toolbarRef.current;
+    const scrollArea = toolbar?.closest<HTMLElement>("[data-portal-scroll-area]");
+    const mobileHeaderViewport = window.matchMedia("(max-width: 1279px)");
+
+    if (!scrollArea) {
+      return;
+    }
+
+    const updateToolbarState = () => {
+      setIsScrolled(scrollArea.scrollTop > 16);
+      setHasMobileHeader(mobileHeaderViewport.matches);
+    };
+
+    updateToolbarState();
+    scrollArea.addEventListener("scroll", updateToolbarState, { passive: true });
+    mobileHeaderViewport.addEventListener("change", updateToolbarState);
+
+    return () => {
+      scrollArea.removeEventListener("scroll", updateToolbarState);
+      mobileHeaderViewport.removeEventListener("change", updateToolbarState);
+    };
+  }, []);
+
+  const hideActions = isScrolled && hasMobileHeader;
+
   return (
-    <div className="sticky top-0 z-10 min-w-0 border-b border-border/60 bg-background/88 pb-4 pt-0 backdrop-blur supports-[backdrop-filter]:bg-background/78">
-      <Container className="flex min-w-0 flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+    <div
+      ref={toolbarRef}
+      className={cn(
+        "sticky top-0 z-10 min-w-0 border-b border-border/60 bg-background/88 backdrop-blur transition-[padding,box-shadow,background-color] duration-300 ease-out supports-[backdrop-filter]:bg-background/78",
+        isScrolled
+          ? "pb-2 pt-2 shadow-sm shadow-black/5"
+          : "pb-4 pt-5 shadow-none",
+      )}
+    >
+      <Container
+        className={cn(
+          "flex min-w-0 flex-col transition-[gap] duration-300 ease-out xl:flex-row xl:items-center xl:justify-between",
+          hideActions ? "gap-0" : "gap-3",
+        )}
+      >
         <ToolbarPageTrail />
-        <ToolbarActions />
+        <ToolbarActions compact={hideActions} />
       </Container>
     </div>
   );

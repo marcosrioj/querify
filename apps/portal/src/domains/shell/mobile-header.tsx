@@ -39,8 +39,13 @@ export function MobileHeader() {
 
         <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
           <SheetTrigger asChild>
-            <Button variant="ghost" mode="icon" aria-label={t("Open navigation")}>
-              <Menu />
+            <Button
+              variant="ghost"
+              mode="icon"
+              className="size-11 rounded-lg"
+              aria-label={t("Open navigation")}
+            >
+              <Menu className="size-6" />
             </Button>
           </SheetTrigger>
           <SheetContent
