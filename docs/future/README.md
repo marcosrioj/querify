@@ -40,6 +40,10 @@ detail to start implementation without additional context.
 
 ## Current documents
 
+### Backend
+
+- [`backend/source-upload.md`](backend/source-upload.md) — file upload for QnA `Source`: presigned URL flow, MinIO/S3 abstraction, async verification worker, two-phase write (intent → PUT → complete), and a 7-phase implementation roadmap with self-contained agent prompts.
+
 ### Integrations
 
 - [`integrations/mcp.md`](integrations/mcp.md) — `BaseFaq.MCP.Server`: multi-agent architecture, one server for all modules, per-agent prompts, tool groups, session model, and roadmap.
