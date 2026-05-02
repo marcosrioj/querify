@@ -24,6 +24,8 @@ services:
     volumes:
       - postgres:/var/lib/postgresql/data
       - ./postgres:/docker-entrypoint-initdb.d
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     networks:
       - bf-network
     healthcheck:
@@ -44,6 +46,8 @@ services:
       - smtp4dev-data:/smtp4dev
     environment:
       - ServerOptions__Port=1025
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     networks:
       - bf-network
 
@@ -61,6 +65,8 @@ services:
       - '5672:5672'
     volumes:
       - rabbitmq:/var/lib/rabbitmq
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     networks:
       - bf-network
     environment:
@@ -80,6 +86,8 @@ services:
       - OUTPUT_FORMAT=TTY
     depends_on:
       - rabbitmq
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     networks:
       - bf-network
 
@@ -94,6 +102,8 @@ services:
     command:
       - --config.file=/etc/alertmanager/alertmanager.yml
       - --storage.path=/alertmanager
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     networks:
       - bf-network
 
@@ -114,6 +124,8 @@ services:
     depends_on:
       - rabbitmq-exporter
       - alertmanager
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     networks:
       - bf-network
 
@@ -133,6 +145,8 @@ services:
       - ./observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
     depends_on:
       - prometheus
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     networks:
       - bf-network
 
@@ -155,6 +169,8 @@ services:
       - warning
       - --requirepass
       - ${REDIS_PASSWORD}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     networks:
       - bf-network
     volumes:
@@ -175,5 +191,7 @@ services:
       - '4318:4318'
     environment:
       - COLLECTOR_OTLP_ENABLED=true
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     networks:
       - bf-network
