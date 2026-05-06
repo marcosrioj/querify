@@ -10,7 +10,7 @@ import {
 } from "@/platform/tenant/tenant-context";
 import { ModuleEnum } from "@/shared/constants/backend-enums";
 
-const STORAGE_KEY = "basefaq.portal.currentTenantId";
+const STORAGE_KEY = "querify.portal.currentTenantId";
 
 function getStoredTenantId() {
   if (typeof window === "undefined") {

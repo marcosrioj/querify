@@ -7,7 +7,7 @@ export type LanguageOption = {
 };
 
 export const DEFAULT_PORTAL_LANGUAGE = "en-US";
-export const PORTAL_LANGUAGE_STORAGE_KEY = "basefaq.portal.language";
+export const PORTAL_LANGUAGE_STORAGE_KEY = "querify.portal.language";
 
 export const portalLanguageOptions: LanguageOption[] = [
   { code: "en-US", label: "English", direction: "ltr" },

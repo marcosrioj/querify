@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This guide is the operational runbook for running the BaseFAQ backend locally. It combines the repository bootstrap flow, Docker infrastructure, optional full-container execution, and the backend-facing parts of local host and proxy setup.
+This guide is the operational runbook for running the Querify backend locally. It combines the repository bootstrap flow, Docker infrastructure, optional full-container execution, and the backend-facing parts of local host and proxy setup.
 
 ## Recommended local model
 
@@ -27,8 +27,8 @@ This gives fast iteration without losing the production-like infrastructure comp
 ### 1. Restore and build
 
 ```bash
-dotnet restore BaseFaq.sln
-dotnet build BaseFaq.sln --no-restore
+dotnet restore Querify.sln
+dotnet build Querify.sln --no-restore
 ```
 
 ### 2. Start base services
@@ -61,7 +61,7 @@ The helper script also recreates the expected PostgreSQL databases through `devo
 ### 3. Initialize local schema and seed data
 
 ```bash
-dotnet run --project dotnet/BaseFaq.Tools.Seed
+dotnet run --project dotnet/Querify.Tools.Seed
 ```
 
 Common choices:
@@ -76,34 +76,34 @@ On a clean machine, this is the fastest way to create the tenant schema and the 
 Use the migration tool after tenant metadata already exists:
 
 ```bash
-dotnet run --project dotnet/BaseFaq.Tools.Migration
+dotnet run --project dotnet/Querify.Tools.Migration
 ```
 
 Or run the QnA module database update non-interactively:
 
 ```bash
-dotnet run --project dotnet/BaseFaq.Tools.Migration -- --module QnA --command database-update
+dotnet run --project dotnet/Querify.Tools.Migration -- --module QnA --command database-update
 ```
 
-If you want full manual schema control from scratch, first migrate `TenantDbContext`, then use `BaseFaq.Tools.Migration` for supported tenant module databases.
+If you want full manual schema control from scratch, first migrate `TenantDbContext`, then use `Querify.Tools.Migration` for supported tenant module databases.
 
 Manual tenant database migration:
 
 ```bash
 dotnet ef database update \
-  --project dotnet/BaseFaq.Common.EntityFramework.Tenant \
-  --startup-project dotnet/BaseFaq.Tenant.BackOffice.Api
+  --project dotnet/Querify.Common.EntityFramework.Tenant \
+  --startup-project dotnet/Querify.Tenant.BackOffice.Api
 ```
 
 ### 5. Run the host-based services
 
 ```bash
-dotnet run --project dotnet/BaseFaq.Tenant.BackOffice.Api
-dotnet run --project dotnet/BaseFaq.Tenant.Portal.Api
-dotnet run --project dotnet/BaseFaq.Tenant.Public.Api
-dotnet run --project dotnet/BaseFaq.QnA.Portal.Api
-dotnet run --project dotnet/BaseFaq.QnA.Public.Api
-dotnet run --project dotnet/BaseFaq.Tenant.Worker.Api
+dotnet run --project dotnet/Querify.Tenant.BackOffice.Api
+dotnet run --project dotnet/Querify.Tenant.Portal.Api
+dotnet run --project dotnet/Querify.Tenant.Public.Api
+dotnet run --project dotnet/Querify.QnA.Portal.Api
+dotnet run --project dotnet/Querify.QnA.Public.Api
+dotnet run --project dotnet/Querify.Tenant.Worker.Api
 ```
 
 For the Portal frontend runtime and Auth0 setup, use [`../../frontend/tools/portal-runtime.md`](../../frontend/tools/portal-runtime.md).
@@ -133,9 +133,9 @@ PowerShell equivalents live beside these scripts under `devops/local/docker/*.ps
 Equivalent manual commands:
 
 ```bash
-docker compose -p bf_services -f devops/local/docker/docker-compose.backend.yml up -d --build
-docker compose -p bf_services -f devops/local/docker/docker-compose.frontend.yml up -d --build
-docker compose -p bf_services \
+docker compose -p qf_services -f devops/local/docker/docker-compose.backend.yml up -d --build
+docker compose -p qf_services -f devops/local/docker/docker-compose.frontend.yml up -d --build
+docker compose -p qf_services \
   -f devops/local/docker/docker-compose.backend.yml \
   -f devops/local/docker/docker-compose.frontend.yml \
   up -d --build
@@ -146,8 +146,8 @@ Notes:
 - the app/API stack expects the external Docker network `bf-network`, which is created by the base-services stack
 - the application images use the repository root as the Docker build context
 - the default appsettings values use `host.docker.internal`, which keeps host and container networking aligned
-- `devops/local/docker/docker-compose.backend.yml` boots the APIs plus `BaseFaq.Tenant.Worker.Api`
-- `devops/local/docker/docker-compose.frontend.yml` boots only `basefaq.portal.app`
+- `devops/local/docker/docker-compose.backend.yml` boots the APIs plus `Querify.Tenant.Worker.Api`
+- `devops/local/docker/docker-compose.frontend.yml` boots only `querify.portal.app`
 - `./devops/local/docker/docker.sh` combines only `devops/local/docker/docker-compose.backend.yml` and `devops/local/docker/docker-compose.frontend.yml`
 
 ## Service endpoints
@@ -193,7 +193,7 @@ echo "127.0.0.1 host.docker.internal" | sudo tee -a /etc/hosts
 
 ## Local subdomains
 
-If you want local hostnames such as `dev.portal.basefaq.com`, `dev.qna.portal.basefaq.com`, and `dev.qna.public.basefaq.com`, use the helper documented in [`../../frontend/tools/local-subdomains.md`](../../frontend/tools/local-subdomains.md).
+If you want local hostnames such as `dev.portal.querify.net`, `dev.qna.portal.querify.net`, and `dev.qna.public.querify.net`, use the helper documented in [`../../frontend/tools/local-subdomains.md`](../../frontend/tools/local-subdomains.md).
 
 The helper runs an Nginx reverse proxy in Docker and updates the hosts file with managed entries. Use elevated privileges because hosts-file updates are mandatory.
 
@@ -236,13 +236,13 @@ dotnet dev-certs https --trust
 Stop base services:
 
 ```bash
-docker compose -p bf_baseservices -f devops/local/docker/docker-compose.baseservices.yml down
+docker compose -p qf_baseservices -f devops/local/docker/docker-compose.baseservices.yml down
 ```
 
 Stop app and API containers:
 
 ```bash
-docker compose -p bf_services \
+docker compose -p qf_services \
   -f devops/local/docker/docker-compose.backend.yml \
   -f devops/local/docker/docker-compose.frontend.yml \
   down

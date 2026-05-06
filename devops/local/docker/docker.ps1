@@ -18,12 +18,12 @@ function Write-Banner {
 
 Write-Banner "Removing Docker Containers..."
 
-docker compose -p bf_services @ComposeArgs down --remove-orphans
+docker compose -p qf_services @ComposeArgs down --remove-orphans
 
-Write-Banner "BaseFaq Docker Images..."
+Write-Banner "Querify Docker Images..."
 
 $images = docker images --format '{{.Repository}} {{.ID}}' |
-  Where-Object { $_ -match '^basefaq\.[^ ]+\s+' } |
+  Where-Object { $_ -match '^querify\.[^ ]+\s+' } |
   ForEach-Object { $_.Split(' ', [System.StringSplitOptions]::RemoveEmptyEntries)[1] }
 
 if ($images) {
@@ -32,7 +32,7 @@ if ($images) {
 
 Write-Banner "Starting Docker Containers..."
 
-docker compose -p bf_services @ComposeArgs up -d --build
+docker compose -p qf_services @ComposeArgs up -d --build
 
 Write-Host ""
 Write-Host "Services started" -ForegroundColor Green

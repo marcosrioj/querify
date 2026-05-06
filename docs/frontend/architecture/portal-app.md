@@ -1,4 +1,4 @@
-# BaseFAQ Portal App
+# Querify Portal App
 
 ## Purpose
 
@@ -6,7 +6,7 @@ This document is the main frontend guide for `apps/portal`. It covers scope, tec
 
 ## Scope
 
-`apps/portal` is the tenant-facing web application for BaseFAQ. It is responsible for:
+`apps/portal` is the tenant-facing web application for Querify. It is responsible for:
 
 - authenticated workspace access
 - Tenant workspace context, settings, member, profile, and billing flows
@@ -52,8 +52,8 @@ Reuse the existing structure instead of creating page-specific islands.
 
 The Portal currently integrates with:
 
-- `BaseFaq.Tenant.Portal.Api`
-- `BaseFaq.QnA.Portal.Api`
+- `Querify.Tenant.Portal.Api`
+- `Querify.QnA.Portal.Api`
 
 Operational constraints reflected in the frontend:
 
@@ -122,7 +122,7 @@ For shared components, layout standards, form rules, relationship sections, acti
 
 ## Current implementation notes
 
-- Member creation depends on the Tenant Portal member API and may require an already-existing BaseFAQ user account depending on backend validation.
+- Member creation depends on the Tenant Portal member API and may require an already-existing Querify user account depending on backend validation.
 - Billing is backed by the Tenant Portal billing summary, subscription, invoice, and payment endpoints.
 - Some QnA filtering remains constrained by backend list contracts and should stay page-scoped where the API surface is intentionally narrow.
 
@@ -136,6 +136,6 @@ Use [`../../execution-guide.md`](../../execution-guide.md) first when you need t
 
 For environment variables, Auth0 setup, `npm install`, `npm run dev`, and build or lint commands, use [`../tools/portal-runtime.md`](../tools/portal-runtime.md).
 
-For browser-facing local hostnames such as `dev.portal.basefaq.com`, use [`../tools/local-subdomains.md`](../tools/local-subdomains.md).
+For browser-facing local hostnames such as `dev.portal.querify.net`, use [`../tools/local-subdomains.md`](../tools/local-subdomains.md).
 
 For the required frontend validation pass before merge, use [`../testing/validation-guide.md`](../testing/validation-guide.md).

@@ -46,5 +46,5 @@ detail to start implementation without additional context.
 
 ### Integrations
 
-- [`integrations/mcp.md`](integrations/mcp.md) — `BaseFaq.MCP.Server`: multi-agent architecture, one server for all modules, per-agent prompts, tool groups, session model, and roadmap.
+- [`integrations/mcp.md`](integrations/mcp.md) — `Querify.MCP.Server`: multi-agent architecture, one server for all modules, per-agent prompts, tool groups, session model, and roadmap.
 - [`integrations/mcp-source-to-qna.md`](integrations/mcp-source-to-qna.md) — Source → Q&A generation pipeline: `qna_import_source`, `GenerateQnAFromSourceCommand`, `ContentFetcher`, `QnAGenerator`.

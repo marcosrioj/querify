@@ -29,12 +29,12 @@ export function MobileHeader() {
         <Link
           to="/app/dashboard"
           className="inline-flex items-center gap-2"
-          aria-label="BaseFAQ QnA Portal"
+          aria-label="Querify QnA Portal"
         >
           <span className="flex size-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
             <MessageSquareText className="size-4" />
           </span>
-          <span className="text-base font-semibold text-mono">BaseFAQ</span>
+          <span className="text-base font-semibold text-mono">Querify</span>
         </Link>
 
         <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>

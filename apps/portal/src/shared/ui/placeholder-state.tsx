@@ -81,7 +81,7 @@ export function NotFoundPage() {
     <Card className="w-full max-w-xl">
       <CardContent className="space-y-5 p-8 text-center">
         <p className="text-xs font-medium uppercase tracking-[0.24em] text-primary">
-          {t('BaseFAQ QnA Portal')}
+          {t('Querify QnA Portal')}
         </p>
         <div className="space-y-2">
           <h1 className="text-3xl font-semibold text-mono">

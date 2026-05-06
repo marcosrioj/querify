@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <IsTestProject>true</IsTestProject>
+        <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <FrameworkReference Include="Microsoft.AspNetCore.App"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1"/>
+        <PackageReference Include="xunit" Version="2.9.2"/>
+        <PackageReference Include="xunit.runner.visualstudio" Version="3.1.3">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Querify.Common.Architecture.Test.IntegrationTest\Querify.Common.Architecture.Test.IntegrationTest.csproj"/>
+        <ProjectReference Include="..\Querify.Common.Infrastructure.Core\Querify.Common.Infrastructure.Core.csproj"/>
+        <ProjectReference Include="..\Querify.QnA.Public.Business.Feedback\Querify.QnA.Public.Business.Feedback.csproj"/>
+        <ProjectReference Include="..\Querify.QnA.Public.Business.Question\Querify.QnA.Public.Business.Question.csproj"/>
+        <ProjectReference Include="..\Querify.QnA.Public.Business.Space\Querify.QnA.Public.Business.Space.csproj"/>
+        <ProjectReference Include="..\Querify.QnA.Public.Business.Vote\Querify.QnA.Public.Business.Vote.csproj"/>
+        <ProjectReference Include="..\Querify.QnA.Common.Domain\Querify.QnA.Common.Domain.csproj"/>
+        <ProjectReference Include="..\Querify.QnA.Common.Persistence.QnADb\Querify.QnA.Common.Persistence.QnADb.csproj"/>
+        <ProjectReference Include="..\Querify.Models.QnA\Querify.Models.QnA.csproj"/>
+    </ItemGroup>
+
+</Project>

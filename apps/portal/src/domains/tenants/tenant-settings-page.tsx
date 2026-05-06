@@ -207,7 +207,7 @@ export function TenantSettingsPage() {
                   name="name"
                   label="Workspace name"
                   description="Display name shown to teammates while they work in this tenant."
-                  placeholder="BaseFAQ Labs"
+                  placeholder="Querify Labs"
                   disabled={!canManageWorkspaceProfile}
                 />
                 <SelectField

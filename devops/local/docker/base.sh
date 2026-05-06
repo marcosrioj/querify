@@ -14,15 +14,15 @@ print_banner() {
 
 export REDIS_PASSWORD="${REDIS_PASSWORD:-RedisTempPassword}"
 
-print_banner "Stopping BaseFaq base services (project only)..."
+print_banner "Stopping Querify base services (project only)..."
 
-docker compose -p bf_baseservices -f "$COMPOSE_FILE" down --remove-orphans
+docker compose -p qf_baseservices -f "$COMPOSE_FILE" down --remove-orphans
 
 print_banner "Starting base services..."
 
 docker network inspect bf-network >/dev/null 2>&1 || docker network create bf-network
 
-docker compose -p bf_baseservices -f "$COMPOSE_FILE" up -d --force-recreate --no-build --remove-orphans --wait
+docker compose -p qf_baseservices -f "$COMPOSE_FILE" up -d --force-recreate --no-build --remove-orphans --wait
 
 username="postgres"
 password="Pass123$"

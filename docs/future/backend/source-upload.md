@@ -32,7 +32,7 @@ What is missing:
 
 1. No object storage in the local stack (`devops/local/docker/docker-compose.baseservices.yml` has
    PostgreSQL, RabbitMQ, Redis, SMTP4Dev, Prometheus, Grafana, Alertmanager, Jaeger — no MinIO/S3).
-2. No shared `IObjectStorage` abstraction in `BaseFaq.Common.Infrastructure.*`.
+2. No shared `IObjectStorage` abstraction in `Querify.Common.Infrastructure.*`.
 3. No upload endpoints on the Portal API. The current `SourceController` is plain CRUD and assumes
    the caller already has a valid `Locator`.
 4. No worker capable of reading a freshly uploaded blob, recomputing the checksum, and marking the
@@ -52,7 +52,7 @@ asynchronously verifies the bytes and flips `UploadStatus` to `Verified`.
 
 ```
 Portal (React)              QnA Portal API                Object Storage           QnA Worker
-                            (BaseFaq.QnA.Portal.Api)      (MinIO / S3 / R2)
+                            (Querify.QnA.Portal.Api)      (MinIO / S3 / R2)
 ─────────────────           ─────────────────────────     ────────────────         ───────────
 1. POST /upload-intent ───► validate + create
                             Source(Pending)               
@@ -84,14 +84,14 @@ Portal (React)              QnA Portal API                Object Storage        
 
 ### Why a dedicated QnA worker, not the existing tenant worker
 
-`BaseFaq.Tenant.Worker.Api` is the **control plane** worker — billing webhooks, email outbox,
-entitlements. Per [`../../backend/architecture/basefaq-tenant-worker.md`](../../backend/architecture/basefaq-tenant-worker.md)
+`Querify.Tenant.Worker.Api` is the **control plane** worker — billing webhooks, email outbox,
+entitlements. Per [`../../backend/architecture/querify-tenant-worker.md`](../../backend/architecture/querify-tenant-worker.md)
 and [`../../backend/architecture/solution-architecture.md`](../../backend/architecture/solution-architecture.md)
 section 7, it must not take ownership of product module workflows.
 
-QnA-owned async work belongs to a new host: `BaseFaq.QnA.Worker.Api`, mirroring the project layout
+QnA-owned async work belongs to a new host: `Querify.QnA.Worker.Api`, mirroring the project layout
 of the tenant worker. If that creates too much overhead in early phases, a transitional option is
-to run the consumer as an `IHostedService` inside `BaseFaq.QnA.Portal.Api` and split it out later;
+to run the consumer as an `IHostedService` inside `Querify.QnA.Portal.Api` and split it out later;
 the integration event contract stays the same.
 
 ---
@@ -201,10 +201,10 @@ Handler is a query:
   DateTime UploadedAtUtc }
 ```
 
-Consumer (`SourceUploadedConsumer` in `BaseFaq.QnA.Worker.Business.Source`):
+Consumer (`SourceUploadedConsumer` in `Querify.QnA.Worker.Business.Source`):
 
 1. Resolve the tenant-scoped `QnADbContext` connection from the event's `TenantId` (uses
-   `BaseFaq.Common.EntityFramework.Tenant` resolution).
+   `Querify.Common.EntityFramework.Tenant` resolution).
 2. Load the `Source`. If `UploadStatus != Uploaded`: ack and exit (idempotent).
 3. Stream the blob via `IObjectStorage.OpenReadAsync(storageKey)`. Compute SHA-256 with
    `IncrementalHash.CreateHash(HashAlgorithmName.SHA256)` so the file is never fully materialized.
@@ -241,7 +241,7 @@ CREATE UNIQUE INDEX IX_Sources_TenantId_StorageKey
   WHERE StorageKey IS NOT NULL;
 ```
 
-`SourceUploadStatus` enum (BaseFaq numeric allocation `1, 6, 11, 16, 21`):
+`SourceUploadStatus` enum (Querify numeric allocation `1, 6, 11, 16, 21`):
 
 | Value | Meaning |
 |---|---|
@@ -260,24 +260,24 @@ same change per [`../../behavior-change-playbook.md`](../../behavior-change-play
 
 | Phase | Scope | Touches |
 |---|---|---|
-| 0 | Object storage infrastructure | `devops/local/docker/`, new `BaseFaq.Common.Infrastructure.Storage` |
-| 1 | Model contract | `BaseFaq.QnA.Common.Domain`, `BaseFaq.Models.QnA`, `BaseFaq.QnA.Common.Persistence.QnADb` |
-| 2 | Backend behavior (Portal) | `BaseFaq.QnA.Portal.Business.Source`, `BaseFaq.QnA.Portal.Api` |
-| 3 | Async verification worker | new `BaseFaq.QnA.Worker.Api`, new `BaseFaq.QnA.Worker.Business.Source`, integration event |
-| 4 | Seed and integration tests | `BaseFaq.Tools.Seed`, `BaseFaq.QnA.Portal.Test.IntegrationTests`, new `BaseFaq.QnA.Worker.Test.IntegrationTests` |
+| 0 | Object storage infrastructure | `devops/local/docker/`, new `Querify.Common.Infrastructure.Storage` |
+| 1 | Model contract | `Querify.QnA.Common.Domain`, `Querify.Models.QnA`, `Querify.QnA.Common.Persistence.QnADb` |
+| 2 | Backend behavior (Portal) | `Querify.QnA.Portal.Business.Source`, `Querify.QnA.Portal.Api` |
+| 3 | Async verification worker | new `Querify.QnA.Worker.Api`, new `Querify.QnA.Worker.Business.Source`, integration event |
+| 4 | Seed and integration tests | `Querify.Tools.Seed`, `Querify.QnA.Portal.Test.IntegrationTests`, new `Querify.QnA.Worker.Test.IntegrationTests` |
 | 5 | Portal frontend | `apps/portal/src/domains/sources/` |
 | 6 | Localization | `apps/portal/src/shared/lib/i18n/locales/*.json` (20 locales) |
 
 Each phase below is a **self-contained agent prompt** suitable for execution by a smaller model.
 Each prompt names the documents the executor must read before coding, the exact files to
-create/edit, the BaseFAQ rules in scope, and the validation commands.
+create/edit, the Querify rules in scope, and the validation commands.
 
 ---
 
 ## Phase 0 prompt — Storage infrastructure
 
 ```text
-You are working in the BaseFAQ monorepo (.NET 10 + multi-tenant + microservices).
+You are working in the Querify monorepo (.NET 10 + multi-tenant + microservices).
 Required reading before coding:
 - docs/backend/architecture/solution-architecture.md (section 8: Cross-cutting
   concerns / shared libraries)
@@ -304,16 +304,16 @@ DELIVERABLES
    Add `minio:` to the `volumes:` section of the same compose file.
 
    Also add a one-shot `minio-init` service that creates the bucket
-   `basefaq-sources` (idempotent; uses minio/mc, depends_on minio with
+   `querify-sources` (idempotent; uses minio/mc, depends_on minio with
    condition: service_healthy).
 
-2) New shared project — dotnet/BaseFaq.Common.Infrastructure.Storage/
-   Create csproj net10.0, namespace BaseFaq.Common.Infrastructure.Storage.
-   Add to BaseFaq.sln.
+2) New shared project — dotnet/Querify.Common.Infrastructure.Storage/
+   Create csproj net10.0, namespace Querify.Common.Infrastructure.Storage.
+   Add to Querify.sln.
    NuGet dependency: AWSSDK.S3 (the SDK speaks MinIO/R2/S3 with
    ForcePathStyle).
 
-   Folder structure (follow other BaseFaq.Common.Infrastructure.* projects):
+   Folder structure (follow other Querify.Common.Infrastructure.* projects):
    - Abstractions/IObjectStorage.cs
    - Options/ObjectStorageOptions.cs    (Endpoint, Region, AccessKey,
      SecretKey, Bucket, ForcePathStyle, PresignTtlMinutes)
@@ -349,14 +349,14 @@ DELIVERABLES
      "Region": "us-east-1",
      "AccessKey": "minio",
      "SecretKey": "Pass123$$",
-     "Bucket": "basefaq-sources",
+     "Bucket": "querify-sources",
      "ForcePathStyle": true,
      "PresignTtlMinutes": 15
    }
 
 NON-NEGOTIABLE RULES
-- Do not touch BaseFaq.QnA.*, BaseFaq.Tenant.*, BaseFaq.Direct.*, or
-  BaseFaq.Broadcast.* — this phase is infrastructure only.
+- Do not touch Querify.QnA.*, Querify.Tenant.*, Querify.Direct.*, or
+  Querify.Broadcast.* — this phase is infrastructure only.
 - No comments explaining what code does; XML doc only on public surfaces
   (IObjectStorage, ObjectStorageOptions).
 - Do not run EF migrations.
@@ -364,11 +364,11 @@ NON-NEGOTIABLE RULES
   is the single entry point.
 
 VALIDATION
-- dotnet build dotnet/BaseFaq.Common.Infrastructure.Storage -v minimal
+- dotnet build dotnet/Querify.Common.Infrastructure.Storage -v minimal
 - docker compose -f devops/local/docker/docker-compose.baseservices.yml up -d
     minio minio-init
 - curl http://localhost:9000/minio/health/live → 200
-- console at http://localhost:9001 opens; bucket basefaq-sources exists
+- console at http://localhost:9001 opens; bucket querify-sources exists
 
 HANDOFF
 List of projects that build, bucket creation confirmation, next phase: model
@@ -380,7 +380,7 @@ contract for Source upload.
 ## Phase 1 prompt — Model contract
 
 ```text
-BaseFAQ monorepo. Required reading:
+Querify monorepo. Required reading:
 - docs/behavior-change-playbook.md (Steps 1–5)
 - docs/backend/architecture/qna-domain-boundary.md
 - docs/backend/architecture/repository-rules.md (Module model contract
@@ -389,7 +389,7 @@ BaseFAQ monorepo. Required reading:
 CONTEXT
 Source today supports only external sources via `Locator`. We are adding
 support for tenant-uploaded files. Storage layer already exists (Phase 0:
-BaseFaq.Common.Infrastructure.Storage with IObjectStorage). This phase is
+Querify.Common.Infrastructure.Storage with IObjectStorage). This phase is
 model + DTOs + EF only; no handlers, controllers, or frontend.
 
 DESIGN PRINCIPLES
@@ -402,7 +402,7 @@ DESIGN PRINCIPLES
 
 DELIVERABLES
 
-1) dotnet/BaseFaq.QnA.Common.Domain/Entities/Source.cs
+1) dotnet/Querify.QnA.Common.Domain/Entities/Source.cs
    Add persisted properties (with mandatory XML doc explaining usage,
    playbook Step 3):
    - string? StorageKey { get; set; }   (max 1000; nullable for URL sources)
@@ -412,8 +412,8 @@ DELIVERABLES
    New constant: public const int MaxStorageKeyLength = 1000;
    Do not duplicate CreatedDate/UpdatedDate (already in BaseEntity).
 
-2) dotnet/BaseFaq.Models.QnA/Enums/SourceUploadStatus.cs (NEW)
-   Enum with BaseFaq numeric allocation (1,6,11,16,21 — playbook Step 3.4),
+2) dotnet/Querify.Models.QnA/Enums/SourceUploadStatus.cs (NEW)
+   Enum with Querify numeric allocation (1,6,11,16,21 — playbook Step 3.4),
    each value with an XML summary explaining behavior (not naming):
    - None = 1            (URL/external source; no upload associated)
    - Pending = 6         (intent issued; PUT not yet confirmed)
@@ -423,7 +423,7 @@ DELIVERABLES
    Also add the enum to apps/portal/src/shared/constants/backend-enums.ts in
    the same change (playbook Step 3.4).
 
-3) dotnet/BaseFaq.Models.QnA/Dtos/Source/ — NEW DTOs (feature-folder layout,
+3) dotnet/Querify.Models.QnA/Dtos/Source/ — NEW DTOs (feature-folder layout,
    repository-rules §7):
    - SourceUploadIntentRequestDto.cs:
        string FileName, string ContentType, long SizeBytes, SourceKind Kind,
@@ -443,7 +443,7 @@ DELIVERABLES
    - SourceCreateRequestDto.cs: do NOT add upload fields; URL-creation flow
      stays flat and separate (write DTOs are flat per repository-rules).
 
-4) dotnet/BaseFaq.QnA.Common.Persistence.QnADb/Configurations/SourceConfiguration.cs
+4) dotnet/Querify.QnA.Common.Persistence.QnADb/Configurations/SourceConfiguration.cs
    Add property configuration for the 3 new fields:
    - StorageKey: HasMaxLength(Source.MaxStorageKeyLength), nullable
    - SizeBytes: nullable long
@@ -451,14 +451,14 @@ DELIVERABLES
    Add partial unique index: (TenantId, StorageKey) WHERE
    StorageKey IS NOT NULL (prevents duplicate StorageKey within the tenant).
 
-5) dotnet/BaseFaq.QnA.Common.Domain/BusinessRules/Sources/SourceStorageKey.cs
+5) dotnet/Querify.QnA.Common.Domain/BusinessRules/Sources/SourceStorageKey.cs
    (NEW)
    Pure static class (no DbContext dependency, playbook Step 3.16):
      public static string Build(Guid tenantId, Guid sourceId, string fileName)
    Sanitize fileName (strip paths, keep [a-zA-Z0-9._-]). Format:
      "{tenantId}/sources/{sourceId}/{sanitized}"
 
-6) dotnet/BaseFaq.QnA.Common.Domain/BusinessRules/Sources/SourceRules.cs
+6) dotnet/Querify.QnA.Common.Domain/BusinessRules/Sources/SourceRules.cs
    Add:
      EnsurePublicVisibilityAllowedForUploadStatus(Source source,
          VisibilityScope visibility)
@@ -477,10 +477,10 @@ NON-NEGOTIABLE RULES
 - Do not touch Direct, Broadcast, or Tenant projects.
 
 VALIDATION
-dotnet build dotnet/BaseFaq.Models.Common -v minimal
-dotnet build dotnet/BaseFaq.Models.QnA -v minimal
-dotnet build dotnet/BaseFaq.QnA.Common.Domain -v minimal
-dotnet build dotnet/BaseFaq.QnA.Common.Persistence.QnADb -v minimal
+dotnet build dotnet/Querify.Models.Common -v minimal
+dotnet build dotnet/Querify.Models.QnA -v minimal
+dotnet build dotnet/Querify.QnA.Common.Domain -v minimal
+dotnet build dotnet/Querify.QnA.Common.Persistence.QnADb -v minimal
 
 HANDOFF (playbook Step 12)
 - Canonical concepts added: SourceUploadStatus, Source.StorageKey,
@@ -500,24 +500,24 @@ HANDOFF (playbook Step 12)
 ## Phase 2 prompt — Backend behavior (Portal)
 
 ```text
-BaseFAQ monorepo. Required reading:
+Querify monorepo. Required reading:
 - docs/backend/architecture/solution-cqrs-write-rules.md
 - docs/backend/architecture/repository-rules.md (CQRS write contract, Folder
   ownership rules, API write response conventions, API error conventions)
 - docs/behavior-change-playbook.md (Step 6)
 
 CONTEXT
-- Phase 0 delivered BaseFaq.Common.Infrastructure.Storage with IObjectStorage.
+- Phase 0 delivered Querify.Common.Infrastructure.Storage with IObjectStorage.
 - Phase 1 added StorageKey/SizeBytes/UploadStatus on Source plus the new DTOs.
 - This phase adds the two-phase flow (intent → direct PUT → complete) to the
-  Portal API (BaseFaq.QnA.Portal.Business.Source) only. Public API does NOT
+  Portal API (Querify.QnA.Portal.Business.Source) only. Public API does NOT
   receive uploads (multi-tenant principle: public is read-only).
 - Async event publication (RabbitMQ) is included in this phase; the consumer
   arrives in Phase 3.
 
 DELIVERABLES
 
-In dotnet/BaseFaq.QnA.Portal.Business.Source/, mirror the existing command
+In dotnet/Querify.QnA.Portal.Business.Source/, mirror the existing command
 folder layout:
 
 1) Queries/RequestUploadIntent/
@@ -597,18 +597,18 @@ folder layout:
    Use [Authorize] + [ProducesResponseType] for each status code.
 
 6) Define the integration event contract — preferred location is
-   BaseFaq.Models.QnA.Contracts (new Dtos/IntegrationEvents/ folder if
-   absent) OR a new BaseFaq.Models.QnA.Contracts project if the repository
+   Querify.Models.QnA.Contracts (new Dtos/IntegrationEvents/ folder if
+   absent) OR a new Querify.Models.QnA.Contracts project if the repository
    pattern requires it. The contract:
      SourceUploadedIntegrationEvent
        { Guid TenantId, Guid SourceId, string StorageKey,
          string? ClientChecksum, DateTime UploadedAtUtc }
 
-7) BaseFaq.QnA.Portal.Api/Extensions/ServiceCollectionExtensions.cs:
+7) Querify.QnA.Portal.Api/Extensions/ServiceCollectionExtensions.cs:
    Ensure AddObjectStorage(configuration) is called once in the host
    composition root (solution-architecture §1).
-   Add project reference: BaseFaq.Common.Infrastructure.Storage in
-   BaseFaq.QnA.Portal.Business.Source.csproj.
+   Add project reference: Querify.Common.Infrastructure.Storage in
+   Querify.QnA.Portal.Business.Source.csproj.
    Ensure MassTransit is wired in the host with the Publish endpoint.
 
 RULES
@@ -617,11 +617,11 @@ RULES
 - Command returns Guid (CompleteUpload). Queries return DTOs.
 - Use ApiErrorException with the appropriate HttpStatusCode.
 - AsNoTracking + Select projection in queries.
-- Do not touch BaseFaq.QnA.Public.* — upload is portal-only.
+- Do not touch Querify.QnA.Public.* — upload is portal-only.
 
 VALIDATION
-dotnet build dotnet/BaseFaq.QnA.Portal.Business.Source
-dotnet build dotnet/BaseFaq.QnA.Portal.Api
+dotnet build dotnet/Querify.QnA.Portal.Business.Source
+dotnet build dotnet/Querify.QnA.Portal.Api
 
 HANDOFF
 - New endpoints: upload-intent, upload-complete, download-url.
@@ -634,11 +634,11 @@ HANDOFF
 ## Phase 3 prompt — Worker async verification
 
 ```text
-BaseFAQ monorepo. Required reading:
-- docs/backend/architecture/basefaq-tenant-worker.md
+Querify monorepo. Required reading:
+- docs/backend/architecture/querify-tenant-worker.md
 - docs/backend/architecture/solution-architecture.md (§7 control-plane
   workers)
-- BaseFaq.Common.Infrastructure.MassTransit/Extensions and Consumers for
+- Querify.Common.Infrastructure.MassTransit/Extensions and Consumers for
   patterns
 
 CONTEXT
@@ -651,12 +651,12 @@ async processing to:
 
 ARCHITECTURAL DECISION
 Source belongs to the QnA module, but the playbook
-(basefaq-tenant-worker.md) requires that Tenant.Worker.Api host only
+(querify-tenant-worker.md) requires that Tenant.Worker.Api host only
 control-plane work, not product workflows. Create a new project:
-BaseFaq.QnA.Worker.Api, mirroring the tenant worker layout.
+Querify.QnA.Worker.Api, mirroring the tenant worker layout.
 
 If overhead is a concern, a transitional option is to run the consumer as
-an IHostedService inside BaseFaq.QnA.Portal.Api. Document the choice in the
+an IHostedService inside Querify.QnA.Portal.Api. Document the choice in the
 handoff but keep the integration event contract identical so a later split
 is mechanical.
 
@@ -667,21 +667,21 @@ DELIVERABLES (assuming a dedicated worker)
      { Guid TenantId, Guid SourceId, string StorageKey,
        string? ClientChecksum, DateTime UploadedAtUtc }
 
-2) New project: dotnet/BaseFaq.QnA.Worker.Api/
+2) New project: dotnet/Querify.QnA.Worker.Api/
    - Program.cs: generic IHost, AddMassTransit with consumer registration,
      queue qna.source.uploaded
    - AddObjectStorage, AddDbContext<QnADbContext>
-   - tenant connection resolution mirroring BaseFaq.Tenant.Worker.Api
+   - tenant connection resolution mirroring Querify.Tenant.Worker.Api
    - appsettings with ObjectStorage + ConnectionStrings + RabbitMQ
-   - Dockerfile (mirror BaseFaq.Tenant.Worker.Api/Dockerfile)
+   - Dockerfile (mirror Querify.Tenant.Worker.Api/Dockerfile)
 
-3) New project: dotnet/BaseFaq.QnA.Worker.Business.Source/
+3) New project: dotnet/Querify.QnA.Worker.Business.Source/
    - Consumers/SourceUploadedConsumer.cs
        : IConsumer<SourceUploadedIntegrationEvent>
 
    Consumer flow:
    - resolve QnADbContext for the event's TenantId (use existing
-     BaseFaq.Common.EntityFramework.Tenant resolution)
+     Querify.Common.EntityFramework.Tenant resolution)
    - load Source; idempotent — return if UploadStatus != Uploaded
    - using IObjectStorage.OpenReadAsync(storageKey), compute SHA-256 in
      stream (do NOT materialize the full blob; use IncrementalHash)
@@ -695,10 +695,10 @@ DELIVERABLES (assuming a dedicated worker)
    - SaveChangesAsync
 
 4) Service registration extension in
-   BaseFaq.QnA.Worker.Business.Source/Extensions/ServiceCollectionExtensions.cs:
+   Querify.QnA.Worker.Business.Source/Extensions/ServiceCollectionExtensions.cs:
    AddSourceWorker(IConfiguration) registers consumer + dependencies.
 
-5) Add both csprojs to BaseFaq.sln.
+5) Add both csprojs to Querify.sln.
 
 6) devops/local/docker/docker-compose.backend.yml — add `bf-qna-worker`
    service following the pattern of other backend services (build context,
@@ -715,8 +715,8 @@ RULES
   the event TenantId before save.
 
 VALIDATION
-dotnet build dotnet/BaseFaq.QnA.Worker.Api
-dotnet build dotnet/BaseFaq.QnA.Worker.Business.Source
+dotnet build dotnet/Querify.QnA.Worker.Api
+dotnet build dotnet/Querify.QnA.Worker.Business.Source
 docker compose up -d bf-qna-worker rabbitmq minio postgres
 - Run /api/qna/source/upload-intent → PUT to presigned URL → upload-complete
 - Inspect consumer logs and Sources.UploadStatus column.
@@ -735,7 +735,7 @@ HANDOFF (known follow-ups, not blockers)
 ## Phase 4 prompt — Seed and integration tests
 
 ```text
-BaseFAQ monorepo. Required reading:
+Querify monorepo. Required reading:
 - docs/behavior-change-playbook.md (Steps 7–8)
 - docs/backend/testing/integration-testing-strategy.md
 - docs/backend/tools/seed-tool.md
@@ -746,7 +746,7 @@ and integration coverage.
 
 DELIVERABLES
 
-1) dotnet/BaseFaq.Tools.Seed/Application/QnASeedCatalog.*.cs
+1) dotnet/Querify.Tools.Seed/Application/QnASeedCatalog.*.cs
    Locate the existing Source catalog file. Add 2 deterministic Source
    examples with simulated upload state:
    - "Manual de produto.pdf" — Kind=Pdf, StorageKey populated, SizeBytes,
@@ -756,7 +756,7 @@ DELIVERABLES
    with synthetic StorageKey and Checksum. (Seed is data-only — it does not
    touch external systems.)
 
-2) dotnet/BaseFaq.QnA.Portal.Test.IntegrationTests/Tests/Source/
+2) dotnet/Querify.QnA.Portal.Test.IntegrationTests/Tests/Source/
    SourceUploadCommandQueryTests.cs (real PostgreSQL, mirroring the
    project's existing test patterns):
    - RequestUploadIntent_ValidPdf_CreatesPendingSourceAndReturnsPresignedUrl
@@ -774,13 +774,13 @@ DELIVERABLES
    real end-to-end MinIO tests, gate with [Trait("Category",
    "RequiresMinio")].
 
-3) dotnet/BaseFaq.QnA.Portal.Test.IntegrationTests/Common/Factories/
+3) dotnet/Querify.QnA.Portal.Test.IntegrationTests/Common/Factories/
    SourceFactory.cs (update or create):
    CreateUploadedSource(Guid tenantId, ...) producing entity with
    StorageKey + UploadStatus=Verified + valid Checksum.
 
-4) dotnet/BaseFaq.QnA.Worker.Test.IntegrationTests/ (NEW project mirroring
-   BaseFaq.Tenant.Worker.Test.IntegrationTests):
+4) dotnet/Querify.QnA.Worker.Test.IntegrationTests/ (NEW project mirroring
+   Querify.Tenant.Worker.Test.IntegrationTests):
    Tests for SourceUploadedConsumer:
    - HappyPath_VerifiesAndTransitionsToVerified
    - ChecksumMismatch_TransitionsToFailed
@@ -793,9 +793,9 @@ RULES
 - Each test independent (use the established WebApplicationFactory pattern).
 
 VALIDATION
-dotnet test dotnet/BaseFaq.QnA.Portal.Test.IntegrationTests
-dotnet test dotnet/BaseFaq.QnA.Worker.Test.IntegrationTests
-dotnet run --project dotnet/BaseFaq.Tools.Seed
+dotnet test dotnet/Querify.QnA.Portal.Test.IntegrationTests
+dotnet test dotnet/Querify.QnA.Worker.Test.IntegrationTests
+dotnet run --project dotnet/Querify.Tools.Seed
 - After seed, list /api/qna/source on the Portal API and verify both
   examples carry StorageKey + UploadStatus=Verified.
 
@@ -809,7 +809,7 @@ HANDOFF
 ## Phase 5 prompt — Portal frontend (sources domain)
 
 ```text
-BaseFAQ monorepo. Required reading:
+Querify monorepo. Required reading:
 - docs/frontend/architecture/portal-app.md
 - docs/frontend/architecture/portal-app-ui-prompt-guidance.md
 - docs/behavior-change-playbook.md (Step 9)
@@ -829,7 +829,7 @@ DELIVERABLES
 1) apps/portal/src/domains/sources/types.ts
    - Add types: SourceUploadIntentRequestDto,
      SourceUploadIntentResponseDto, SourceUploadCompleteRequestDto,
-     SourceDownloadUrlDto, SourceUploadStatus (mirror BaseFaq enum).
+     SourceDownloadUrlDto, SourceUploadStatus (mirror Querify enum).
    - Update SourceDto with StorageKey, SizeBytes, UploadStatus.
 
 2) apps/portal/src/domains/sources/api.ts
@@ -911,7 +911,7 @@ HANDOFF
 ## Phase 6 prompt — Localization (20 locales)
 
 ```text
-BaseFAQ monorepo. Required reading:
+Querify monorepo. Required reading:
 - docs/frontend/architecture/portal-localization.md
 - docs/behavior-change-playbook.md (Step 10)
 
@@ -977,7 +977,7 @@ FEATURE-LEVEL HANDOFF (final consolidated PR/release notes)
       ON Sources(TenantId, StorageKey) WHERE StorageKey IS NOT NULL;
 - ObjectStorage:* environment variables required in production.
 - S3 bucket to provision with multi-tenant prefix-based policy.
-- New worker BaseFaq.QnA.Worker.Api to add to the deployment pipeline.
+- New worker Querify.QnA.Worker.Api to add to the deployment pipeline.
 - Known follow-ups: transactional outbox, AV scan, text extraction,
   per-tenant quotas, bucket lifecycle policy for orphan Pending objects
   older than 24h.

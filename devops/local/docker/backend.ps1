@@ -3,12 +3,12 @@ $ErrorActionPreference = 'Stop'
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $ComposeFile = Join-Path $ScriptDir 'docker-compose.backend.yml'
 $Services = @(
-  'basefaq.qna.portal.api',
-  'basefaq.tenant.backoffice.api',
-  'basefaq.tenant.portal.api',
-  'basefaq.tenant.public.api',
-  'basefaq.qna.public.api',
-  'basefaq.tenant.worker.api'
+  'querify.qna.portal.api',
+  'querify.tenant.backoffice.api',
+  'querify.tenant.portal.api',
+  'querify.tenant.public.api',
+  'querify.qna.public.api',
+  'querify.tenant.worker.api'
 )
 
 function Write-Banner {
@@ -23,13 +23,13 @@ function Write-Banner {
 
 Write-Banner "Removing Backend Containers..."
 
-docker compose -p bf_services -f $ComposeFile stop @Services 2>$null | Out-Null
-docker compose -p bf_services -f $ComposeFile rm -f @Services 2>$null | Out-Null
+docker compose -p qf_services -f $ComposeFile stop @Services 2>$null | Out-Null
+docker compose -p qf_services -f $ComposeFile rm -f @Services 2>$null | Out-Null
 
-Write-Banner "BaseFaq Backend Docker Images..."
+Write-Banner "Querify Backend Docker Images..."
 
 $images = docker images --format '{{.Repository}} {{.ID}}' |
-  Where-Object { $_ -match '^basefaq\.(tenant|qna)\.[^ ]+\s+' } |
+  Where-Object { $_ -match '^querify\.(tenant|qna)\.[^ ]+\s+' } |
   ForEach-Object { $_.Split(' ', [System.StringSplitOptions]::RemoveEmptyEntries)[1] }
 
 if ($images) {
@@ -38,7 +38,7 @@ if ($images) {
 
 Write-Banner "Starting Backend Containers..."
 
-docker compose -p bf_services -f $ComposeFile up -d --build @Services
+docker compose -p qf_services -f $ComposeFile up -d --build @Services
 
 Write-Host ""
 Write-Host "Backend services started" -ForegroundColor Green

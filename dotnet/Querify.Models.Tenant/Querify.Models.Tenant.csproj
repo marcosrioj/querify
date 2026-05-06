@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <AssemblyName>Querify.Models.Tenant</AssemblyName>
+        <RootNamespace>Querify.Models.Tenant</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Querify.Models.Common\Querify.Models.Common.csproj"/>
+    </ItemGroup>
+
+</Project>

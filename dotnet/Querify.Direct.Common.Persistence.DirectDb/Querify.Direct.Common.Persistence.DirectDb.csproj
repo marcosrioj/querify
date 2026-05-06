@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <PackageId>Querify.Direct.Common.Persistence.DirectDb</PackageId>
+        <AssemblyName>Querify.Direct.Common.Persistence.DirectDb</AssemblyName>
+        <RootNamespace>Querify.Direct.Common.Persistence.DirectDb</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Querify.Common.EntityFramework.Core\Querify.Common.EntityFramework.Core.csproj"/>
+        <ProjectReference Include="..\Querify.Common.EntityFramework.Tenant\Querify.Common.EntityFramework.Tenant.csproj"/>
+        <ProjectReference Include="..\Querify.Common.Infrastructure.Core\Querify.Common.Infrastructure.Core.csproj"/>
+        <ProjectReference Include="..\Querify.Models.Direct\Querify.Models.Direct.csproj" />
+    </ItemGroup>
+
+</Project>

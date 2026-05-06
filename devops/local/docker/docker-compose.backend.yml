@@ -1,9 +1,9 @@
 services:
-  basefaq.qna.portal.api:
-    image: basefaq.qna.portal.api
+  querify.qna.portal.api:
+    image: querify.qna.portal.api
     build:
       context: ../../..
-      dockerfile: dotnet/BaseFaq.QnA.Portal.Api/Dockerfile
+      dockerfile: dotnet/Querify.QnA.Portal.Api/Dockerfile
     ports:
       - "5010:5010"
     environment:
@@ -13,11 +13,11 @@ services:
       - "host.docker.internal:host-gateway"
     networks:
       - bf-network
-  basefaq.tenant.backoffice.api:
-    image: basefaq.tenant.backoffice.api
+  querify.tenant.backoffice.api:
+    image: querify.tenant.backoffice.api
     build:
       context: ../../..
-      dockerfile: dotnet/BaseFaq.Tenant.BackOffice.Api/Dockerfile
+      dockerfile: dotnet/Querify.Tenant.BackOffice.Api/Dockerfile
     ports:
       - "5000:5000"
     environment:
@@ -27,11 +27,11 @@ services:
       - "host.docker.internal:host-gateway"
     networks:
       - bf-network
-  basefaq.tenant.portal.api:
-    image: basefaq.tenant.portal.api
+  querify.tenant.portal.api:
+    image: querify.tenant.portal.api
     build:
       context: ../../..
-      dockerfile: dotnet/BaseFaq.Tenant.Portal.Api/Dockerfile
+      dockerfile: dotnet/Querify.Tenant.Portal.Api/Dockerfile
     ports:
       - "5002:5002"
     environment:
@@ -41,11 +41,11 @@ services:
       - "host.docker.internal:host-gateway"
     networks:
       - bf-network
-  basefaq.tenant.public.api:
-    image: basefaq.tenant.public.api
+  querify.tenant.public.api:
+    image: querify.tenant.public.api
     build:
       context: ../../..
-      dockerfile: dotnet/BaseFaq.Tenant.Public.Api/Dockerfile
+      dockerfile: dotnet/Querify.Tenant.Public.Api/Dockerfile
     ports:
       - "5004:5004"
     environment:
@@ -55,11 +55,11 @@ services:
       - "host.docker.internal:host-gateway"
     networks:
       - bf-network
-  basefaq.qna.public.api:
-    image: basefaq.qna.public.api
+  querify.qna.public.api:
+    image: querify.qna.public.api
     build:
       context: ../../..
-      dockerfile: dotnet/BaseFaq.QnA.Public.Api/Dockerfile
+      dockerfile: dotnet/Querify.QnA.Public.Api/Dockerfile
     ports:
       - "5020:5020"
     environment:
@@ -69,11 +69,11 @@ services:
       - "host.docker.internal:host-gateway"
     networks:
       - bf-network
-  basefaq.tenant.worker.api:
-    image: basefaq.tenant.worker.api
+  querify.tenant.worker.api:
+    image: querify.tenant.worker.api
     build:
       context: ../../..
-      dockerfile: dotnet/BaseFaq.Tenant.Worker.Api/Dockerfile
+      dockerfile: dotnet/Querify.Tenant.Worker.Api/Dockerfile
     environment:
       - DOTNET_ENVIRONMENT=Development
     extra_hosts:

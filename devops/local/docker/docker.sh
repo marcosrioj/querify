@@ -17,15 +17,15 @@ print_banner() {
 
 print_banner "Removing Docker Containers..."
 
-docker compose -p bf_services "${COMPOSE_ARGS[@]}" down --remove-orphans
+docker compose -p qf_services "${COMPOSE_ARGS[@]}" down --remove-orphans
 
-print_banner "BaseFaq Docker Images..."
+print_banner "Querify Docker Images..."
 
-docker images --format '{{.Repository}} {{.ID}}' | awk '$1 ~ /^basefaq/ {print $2}' | xargs -r docker rmi -f
+docker images --format '{{.Repository}} {{.ID}}' | awk '$1 ~ /^querify/ {print $2}' | xargs -r docker rmi -f
 
 print_banner "Starting Docker Containers..."
 
-docker compose -p bf_services "${COMPOSE_ARGS[@]}" up -d --build
+docker compose -p qf_services "${COMPOSE_ARGS[@]}" up -d --build
 
 echo ""
 printf "\e[32m%s\e[0m\n" "Services started"

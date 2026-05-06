@@ -2,13 +2,13 @@ type LogContext = Record<string, unknown> | unknown;
 
 export const logger = {
   info(message: string, context?: LogContext) {
-    console.info(`[BaseFAQ Portal] ${message}`, context);
+    console.info(`[Querify Portal] ${message}`, context);
   },
   warn(message: string, context?: LogContext) {
-    console.warn(`[BaseFAQ Portal] ${message}`, context);
+    console.warn(`[Querify Portal] ${message}`, context);
   },
   error(message: string, context?: LogContext) {
-    console.error(`[BaseFAQ Portal] ${message}`, context);
+    console.error(`[Querify Portal] ${message}`, context);
   },
 };
 

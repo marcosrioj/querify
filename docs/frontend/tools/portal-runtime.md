@@ -69,13 +69,13 @@ npm run lint
 
 At minimum, run:
 
-- `BaseFaq.Tenant.Portal.Api`
-- `BaseFaq.QnA.Portal.Api`
+- `Querify.Tenant.Portal.Api`
+- `Querify.QnA.Portal.Api`
 
 Depending on the flow, you may also need:
 
-- `BaseFaq.Tenant.BackOffice.Api` to manage tenant metadata in administrative scenarios
-- `BaseFaq.Tenant.Worker.Api` when a flow depends on background processing side effects
+- `Querify.Tenant.BackOffice.Api` to manage tenant metadata in administrative scenarios
+- `Querify.Tenant.Worker.Api` when a flow depends on background processing side effects
 
 Use [`../../backend/tools/local-development.md`](../../backend/tools/local-development.md) for the supported backend bootstrap flow.
 
@@ -89,14 +89,14 @@ For `http://localhost:5500`, the Portal SPA client should allow:
 
 If you use the local subdomain helper, also allow:
 
-- callback URL: `http://dev.portal.basefaq.com/login`
-- logout URL: `http://dev.portal.basefaq.com/login`
-- web origin: `http://dev.portal.basefaq.com`
+- callback URL: `http://dev.portal.querify.net/login`
+- logout URL: `http://dev.portal.querify.net/login`
+- web origin: `http://dev.portal.querify.net`
 
 For refresh-token based SPA sessions, also configure:
 
 - the Portal client as a Single Page Application with Refresh Token Rotation enabled
-- the `https://basefaq.com` API audience with offline access enabled so Auth0 can issue refresh tokens for `offline_access`
+- the `https://querify.net` API audience with offline access enabled so Auth0 can issue refresh tokens for `offline_access`
 
 Do not assume the Swagger UI client id used by backend APIs is also valid for the Portal app. The Portal needs its own SPA client configuration unless the same Auth0 application was explicitly set up for both use cases.
 
@@ -123,7 +123,7 @@ For the full localization model, use [`../architecture/portal-localization.md`](
 
 ## Local subdomain option
 
-If you want a host-based experience that resembles shared subdomains, use the helper documented in [`local-subdomains.md`](local-subdomains.md). When active, the same app is also reachable at `http://dev.portal.basefaq.com`.
+If you want a host-based experience that resembles shared subdomains, use the helper documented in [`local-subdomains.md`](local-subdomains.md). When active, the same app is also reachable at `http://dev.portal.querify.net`.
 
 ## Containerized alternative
 
@@ -139,11 +139,11 @@ PowerShell equivalents live beside these scripts under `devops/local/docker/*.ps
 
 The Portal-only compose file is `devops/local/docker/docker-compose.frontend.yml`. The full-stack helper `./devops/local/docker/docker.sh` combines `devops/local/docker/docker-compose.backend.yml` and `devops/local/docker/docker-compose.frontend.yml`. The Portal is exposed on `http://localhost:5500`.
 
-When the local subdomain proxy is active, the frontend Docker compose file points both Portal API base URLs at `//dev.portal.basefaq.com`. The proxy routes `/api/tenant/*` and `/api/user/*` to the Tenant Portal API and `/api/qna/*` to the QnA Portal API, keeping browser requests same-origin and avoiding local cross-origin TLS failures.
+When the local subdomain proxy is active, the frontend Docker compose file points both Portal API base URLs at `//dev.portal.querify.net`. The proxy routes `/api/tenant/*` and `/api/user/*` to the Tenant Portal API and `/api/qna/*` to the QnA Portal API, keeping browser requests same-origin and avoiding local cross-origin TLS failures.
 
 ## Current gaps
 
-- member adds require an already-existing BaseFAQ user email; invitation acceptance is not exposed yet
+- member adds require an already-existing Querify user email; invitation acceptance is not exposed yet
 - billing uses the Tenant Portal billing summary, subscription, invoice, and payment endpoints
 
 ## Useful validation commands

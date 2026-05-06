@@ -1,0 +1,35 @@
+using System.Net;
+using Querify.Common.Infrastructure.ApiErrorHandling.Exception;
+using Querify.Common.Infrastructure.Core.Abstractions;
+using Querify.Models.Common.Enums;
+using Querify.QnA.Common.Persistence.QnADb.DbContext;
+using MediatR;
+using Microsoft.EntityFrameworkCore;
+
+namespace Querify.QnA.Portal.Business.Question.Commands.RemoveSource;
+
+public sealed class QuestionsRemoveSourceCommandHandler(
+    QnADbContext dbContext,
+    ISessionService sessionService)
+    : IRequestHandler<QuestionsRemoveSourceCommand>
+{
+    public async Task Handle(QuestionsRemoveSourceCommand request, CancellationToken cancellationToken)
+    {
+        var tenantId = sessionService.GetTenantId(ModuleEnum.QnA);
+        var link = await dbContext.QuestionSourceLinks
+            .SingleOrDefaultAsync(
+                entity =>
+                    entity.TenantId == tenantId &&
+                    entity.QuestionId == request.QuestionId &&
+                    entity.Id == request.SourceLinkId,
+                cancellationToken);
+
+        if (link is null)
+            throw new ApiErrorException(
+                $"Question source link '{request.SourceLinkId}' was not found.",
+                (int)HttpStatusCode.NotFound);
+
+        dbContext.QuestionSourceLinks.Remove(link);
+        await dbContext.SaveChangesAsync(cancellationToken);
+    }
+}

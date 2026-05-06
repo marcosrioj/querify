@@ -50,7 +50,7 @@ function ToolbarPageTrail() {
   const currentTitleText = getPageChromeText(currentTitle);
   const currentLabel = currentTitleText
     ? t(currentTitleText)
-    : translateMaybeString(currentTitle ?? "BaseFAQ QnA Portal", t);
+    : translateMaybeString(currentTitle ?? "Querify QnA Portal", t);
 
   const navPath = current?.navKey
     ? findPortalNavigationPath(current.navKey)

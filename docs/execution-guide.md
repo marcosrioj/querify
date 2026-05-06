@@ -1,4 +1,4 @@
-# BaseFAQ Execution Guide
+# Querify Execution Guide
 
 ## Purpose
 
@@ -58,7 +58,7 @@ Use this workflow when the request changes:
 
 Primary documents:
 
-- [`business/value_proposition.md`](business/value_proposition.md) when BaseFaq module ownership or cross-module flow is part of the change
+- [`business/value_proposition.md`](business/value_proposition.md) when Querify module ownership or cross-module flow is part of the change
 - [`backend/architecture/solution-architecture.md`](backend/architecture/solution-architecture.md)
 - [`backend/architecture/dotnet-backend-overview.md`](backend/architecture/dotnet-backend-overview.md)
 - [`backend/architecture/solution-cqrs-write-rules.md`](backend/architecture/solution-cqrs-write-rules.md)
@@ -67,7 +67,7 @@ Primary documents:
 
 Use these supporting guides when needed:
 
-- worker behavior: [`backend/architecture/basefaq-tenant-worker.md`](backend/architecture/basefaq-tenant-worker.md)
+- worker behavior: [`backend/architecture/querify-tenant-worker.md`](backend/architecture/querify-tenant-worker.md)
 - local runtime: [`backend/tools/local-development.md`](backend/tools/local-development.md)
 - migrations: [`backend/tools/migration-tool.md`](backend/tools/migration-tool.md)
 - seed data: [`backend/tools/seed-tool.md`](backend/tools/seed-tool.md)
@@ -104,7 +104,7 @@ Use this workflow when the change crosses the Portal and APIs together, for exam
 
 Start in this order:
 
-1. [`business/value_proposition.md`](business/value_proposition.md) when the change depends on the BaseFaq module split across Tenant, QnA, Direct, Broadcast, or Trust.
+1. [`business/value_proposition.md`](business/value_proposition.md) when the change depends on the Querify module split across Tenant, QnA, Direct, Broadcast, or Trust.
 2. [`backend/architecture/solution-architecture.md`](backend/architecture/solution-architecture.md) to identify ownership boundaries.
 3. The owning backend guide in [`backend/architecture`](backend/architecture).
 4. The owning frontend guide in [`frontend/architecture`](frontend/architecture).
@@ -178,7 +178,7 @@ Use the module and runtime docs to identify the real ownership boundary first, t
 
 Start with:
 
-- [`business/value_proposition.md`](business/value_proposition.md) for BaseFaq module boundaries and cross-module flow ownership
+- [`business/value_proposition.md`](business/value_proposition.md) for Querify module boundaries and cross-module flow ownership
 - [`backend/architecture/solution-architecture.md`](backend/architecture/solution-architecture.md) for system and data ownership
 - [`backend/architecture/dotnet-backend-overview.md`](backend/architecture/dotnet-backend-overview.md) for concrete API and persistence surfaces
 - [`frontend/architecture/portal-app.md`](frontend/architecture/portal-app.md) when the Portal UI, profile settings, or consent-facing flows are affected
@@ -193,7 +193,7 @@ Quick-reference reading order per task type. These refine the workflow choices a
 | Backend feature / CQRS refactor | `dotnet-backend-overview` → `solution-cqrs-write-rules` → `repository-rules` → `integration-testing-strategy` |
 | Product behavior change (cross-layer) | `behavior-change-playbook` → `repository-rules` → `solution-cqrs-write-rules` → `integration-testing-strategy` → `portal-app` (if UI) → `portal-localization` (if copy changes) |
 | Tenant-aware public query (`X-Client-Key`) | `solution-architecture` → `dotnet-backend-overview` → `integration-testing-strategy` |
-| Control-plane worker / async processing | `basefaq-tenant-worker` → `solution-architecture` → `integration-testing-strategy` |
+| Control-plane worker / async processing | `querify-tenant-worker` → `solution-architecture` → `integration-testing-strategy` |
 | Seed, migration, or local stack | `local-development` → `seed-tool` → `migration-tool` |
 | Portal domain data flow | `portal-app` → `portal-runtime` → `validation-guide` |
 | Portal page composition / UI | `portal-app-ui-prompt-guidance` → `portal-app` → `validation-guide` |

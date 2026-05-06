@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <FrameworkReference Include="Microsoft.AspNetCore.App"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Querify.Common.Infrastructure.Core\Querify.Common.Infrastructure.Core.csproj"/>
+        <ProjectReference Include="..\Querify.Common.Infrastructure.ApiErrorHandling\Querify.Common.Infrastructure.ApiErrorHandling.csproj"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Sentry" Version="6.0.0"/>
+        <PackageReference Include="Sentry.AspNetCore" Version="6.0.0"/>
+        <PackageReference Include="Sentry.Extensions.Logging" Version="6.0.0"/>
+        <PackageReference Include="Sentry.Profiling" Version="6.0.0"/>
+    </ItemGroup>
+
+</Project>

@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <PackageId>Querify.QnA.Common.Domain</PackageId>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <FrameworkReference Include="Microsoft.AspNetCore.App"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Querify.Common.EntityFramework.Core\Querify.Common.EntityFramework.Core.csproj"/>
+        <ProjectReference Include="..\Querify.Common.Infrastructure.ApiErrorHandling\Querify.Common.Infrastructure.ApiErrorHandling.csproj"/>
+        <ProjectReference Include="..\Querify.Common.Infrastructure.Core\Querify.Common.Infrastructure.Core.csproj"/>
+        <ProjectReference Include="..\Querify.Models.QnA\Querify.Models.QnA.csproj"/>
+    </ItemGroup>
+
+</Project>

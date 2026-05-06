@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Querify.Models.Tenant\Querify.Models.Tenant.csproj"/>
+        <ProjectReference Include="..\Querify.Models.User\Querify.Models.User.csproj"/>
+        <ProjectReference Include="..\\Querify.Common.EntityFramework.Core\\Querify.Common.EntityFramework.Core.csproj"/>
+        <ProjectReference Include="..\\Querify.Common.Infrastructure.Core\\Querify.Common.Infrastructure.Core.csproj"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Folder Include="Migrations\"/>
+    </ItemGroup>
+
+</Project>

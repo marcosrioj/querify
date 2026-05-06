@@ -7,7 +7,7 @@ export function ThemeProvider({ children }: PropsWithChildren) {
     <NextThemesProvider
       attribute="class"
       defaultTheme="system"
-      storageKey="basefaq-portal-theme"
+      storageKey="querify-portal-theme"
       enableSystem
       disableTransitionOnChange
       enableColorScheme

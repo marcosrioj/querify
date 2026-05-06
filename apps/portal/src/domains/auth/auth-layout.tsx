@@ -36,18 +36,18 @@ export function AuthLayout() {
             <Link
               to="/login"
               className="inline-flex w-fit items-center gap-2.5"
-              aria-label={t("BaseFAQ QnA Portal")}
+              aria-label={t("Querify QnA Portal")}
             >
               <span className="flex size-10 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-[0_14px_30px_-14px_rgba(16,185,129,0.8)]">
                 <MessageSquareText className="size-5" />
               </span>
-              <span className="text-xl font-semibold text-mono">BaseFAQ</span>
+              <span className="text-xl font-semibold text-mono">Querify</span>
             </Link>
 
             <div className="max-w-xl space-y-5">
               <div className="space-y-3">
                 <h1 className="text-2xl font-semibold text-mono">
-                  {t("Manage your BaseFAQ QnA workspace")}
+                  {t("Manage your Querify QnA workspace")}
                 </h1>
                 <p className="text-base font-medium text-secondary-foreground">
                   {t(

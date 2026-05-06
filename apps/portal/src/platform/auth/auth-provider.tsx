@@ -80,11 +80,11 @@ const buildUser = (
 ): PortalUser => {
   const email =
     (auth0User?.email as string | undefined) ||
-    (payload['https://basefaq.com/email'] as string | undefined) ||
+    (payload['https://querify.net/email'] as string | undefined) ||
     (payload.email as string | undefined);
   const name =
     (auth0User?.name as string | undefined) ||
-    (payload['https://basefaq.com/name'] as string | undefined) ||
+    (payload['https://querify.net/name'] as string | undefined) ||
     (payload.name as string | undefined);
 
   return {

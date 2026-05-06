@@ -6,13 +6,13 @@ This guide documents the self-contained helper under `devops/local/simulatedev` 
 
 Primary hostnames:
 
-- `dev.portal.basefaq.com`
-- `dev.tenant.backoffice.basefaq.com`
-- `dev.tenant.public.basefaq.com`
-- `dev.tenant.portal.basefaq.com`
-- `dev.qna.public.basefaq.com`
-- `dev.qna.portal.basefaq.com`
-- `dev.test.basefaq.com`
+- `dev.portal.querify.net`
+- `dev.tenant.backoffice.querify.net`
+- `dev.tenant.public.querify.net`
+- `dev.tenant.portal.querify.net`
+- `dev.qna.public.querify.net`
+- `dev.qna.portal.querify.net`
+- `dev.test.querify.net`
 
 The approach is intentionally decoupled from host-machine Nginx:
 
@@ -24,16 +24,16 @@ The approach is intentionally decoupled from host-machine Nginx:
 
 ## App and API mapping
 
-- `dev.portal.basefaq.com` -> `http://<upstream-host>:5500`
-- `dev.portal.basefaq.com/api/tenant` -> `http://<upstream-host>:5002`
-- `dev.portal.basefaq.com/api/user` -> `http://<upstream-host>:5002`
-- `dev.portal.basefaq.com/api/qna` -> `http://<upstream-host>:5010`
-- `dev.tenant.backoffice.basefaq.com` -> `http://<upstream-host>:5000`
-- `dev.tenant.public.basefaq.com` -> `http://<upstream-host>:5004`
-- `dev.tenant.portal.basefaq.com` -> `http://<upstream-host>:5002`
-- `dev.qna.portal.basefaq.com` -> `http://<upstream-host>:5010`
-- `dev.qna.public.basefaq.com` -> `http://<upstream-host>:5020`
-- `dev.test.basefaq.com` -> `http://<upstream-host>:5999`
+- `dev.portal.querify.net` -> `http://<upstream-host>:5500`
+- `dev.portal.querify.net/api/tenant` -> `http://<upstream-host>:5002`
+- `dev.portal.querify.net/api/user` -> `http://<upstream-host>:5002`
+- `dev.portal.querify.net/api/qna` -> `http://<upstream-host>:5010`
+- `dev.tenant.backoffice.querify.net` -> `http://<upstream-host>:5000`
+- `dev.tenant.public.querify.net` -> `http://<upstream-host>:5004`
+- `dev.tenant.portal.querify.net` -> `http://<upstream-host>:5002`
+- `dev.qna.portal.querify.net` -> `http://<upstream-host>:5010`
+- `dev.qna.public.querify.net` -> `http://<upstream-host>:5020`
+- `dev.test.querify.net` -> `http://<upstream-host>:5999`
 
 `<upstream-host>` defaults:
 
@@ -45,8 +45,8 @@ These defaults match the ports in the current API `launchSettings.json`.
 ## Files
 
 - `docker-compose.nginx-proxy.yml`: reverse proxy stack for Linux and Windows
-- `certs/dev.basefaq.com.crt`: dev TLS certificate used for HTTPS listeners
-- `certs/dev.basefaq.com.key`: dev TLS private key used for HTTPS listeners
+- `certs/dev.querify.net.crt`: dev TLS certificate used for HTTPS listeners
+- `certs/dev.querify.net.key`: dev TLS private key used for HTTPS listeners
 - `setup-subdomains.sh`: Linux setup
 - `teardown-subdomains.sh`: Linux cleanup
 - `setup-subdomains.ps1`: Windows setup
@@ -113,7 +113,7 @@ PowerShell example:
 
 Generated artifacts are created under:
 
-- `devops/local/simulatedev/runtime/nginx/conf.d/basefaq-subdomains.conf`
+- `devops/local/simulatedev/runtime/nginx/conf.d/querify-subdomains.conf`
 - `devops/local/simulatedev/runtime/hosts-backups/`
 
 This keeps all helper outputs inside `devops/local/` while preserving host-file backups.
@@ -123,12 +123,12 @@ HTTPS uses a dev self-signed certificate, so browsers may show a certificate war
 
 ## Internet-facing machine checklist
 
-- point DNS `A` or `CNAME` records for all `dev.*.basefaq.com` subdomains to your public IP
+- point DNS `A` or `CNAME` records for all `dev.*.querify.net` subdomains to your public IP
 - router or NAT forwarding required: `TCP 80 -> <machine_lan_ip>:80` for the Nginx entrypoint
 - router or NAT forwarding required: `TCP 443 -> <machine_lan_ip>:443` for HTTPS
 - router or NAT forwarding required: `TCP 5000-5999 -> <machine_lan_ip>:5000-5999` for direct backend ports, only when needed for diagnostics
 - do not use `:5000`, `:5002`, `:5010`, `:5020`, or `:5999` in public URLs; those are backend API ports
 - use `https://...` in public URLs when testing TLS, or `http://...` if you want to avoid certificate warnings
 - ensure APIs are running on the mapped local ports
-- for the Portal Docker stack, prefer same-origin API URLs through `dev.portal.basefaq.com/api/*`; this avoids browser CORS/TLS failures from cross-origin local API subdomains
-- Docker Compose project used by scripts: `bf_baseservices`
+- for the Portal Docker stack, prefer same-origin API URLs through `dev.portal.querify.net/api/*`; this avoids browser CORS/TLS failures from cross-origin local API subdomains
+- Docker Compose project used by scripts: `qf_baseservices`

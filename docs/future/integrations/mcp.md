@@ -1,10 +1,10 @@
-# BaseFAQ MCP: Multi-Agent Architecture
+# Querify MCP: Multi-Agent Architecture
 
 ## Purpose
 
-This document is the complete design reference for `BaseFaq.MCP.Server` — a single native .NET
-MCP server that exposes all BaseFAQ modules as AI-callable tools. Different AI agents connect to
-it with different tool subsets and system prompts, each operating as a specialist for one BaseFAQ
+This document is the complete design reference for `Querify.MCP.Server` — a single native .NET
+MCP server that exposes all Querify modules as AI-callable tools. Different AI agents connect to
+it with different tool subsets and system prompts, each operating as a specialist for one Querify
 module.
 
 **Status:** designed, not yet built. See [`../README.md`](../README.md).
@@ -13,11 +13,11 @@ module.
 
 ## Core concept: one server, N module agents
 
-An MCP server is an API for AI. Just as the BaseFAQ REST surface is consumed by the Portal
-frontend and external clients, `BaseFaq.MCP.Server` is consumed by AI agent instances. Each agent
+An MCP server is an API for AI. Just as the Querify REST surface is consumed by the Portal
+frontend and external clients, `Querify.MCP.Server` is consumed by AI agent instances. Each agent
 is an AI model (Claude, GPT, or any MCP-compatible model) configured with:
 
-1. A connection to `BaseFaq.MCP.Server`
+1. A connection to `Querify.MCP.Server`
 2. A module-specific MCP **prompt** that defines its role, behavior, and scope
 3. A filtered **tool set** matching its module responsibilities
 
@@ -26,7 +26,7 @@ are available to all agents because QnA is the shared knowledge source for every
 
 ```
 ┌──────────────────────────────────────────────────────────────────────┐
-│ BaseFaq.MCP.Server  (one .NET process, part of BaseFaq.sln)          │
+│ Querify.MCP.Server  (one .NET process, part of Querify.sln)          │
 │                                                                        │
 │  Tool groups:  [qna_*]  [direct_*]  [broadcast_*]  [trust_*]         │
 │                [tenant_*]                                              │
@@ -36,8 +36,8 @@ are available to all agents because QnA is the shared knowledge source for every
 └────────────────────────────┬─────────────────────────────────────────┘
                              │ in-process MediatR calls
                              ▼
-  BaseFaq.QnA.*   BaseFaq.Direct.*   BaseFaq.Broadcast.*
-  BaseFaq.Trust.* BaseFaq.Tenant.*
+  Querify.QnA.*   Querify.Direct.*   Querify.Broadcast.*
+  Querify.Trust.* Querify.Tenant.*
 ```
 
 ```
@@ -76,7 +76,7 @@ Every handler that touches tenant data calls `ISessionService.GetTenantId(module
 implementation reads from a scoped context populated at the start of each tool invocation.
 
 ```csharp
-// dotnet/BaseFaq.MCP.Server/Infrastructure/McpSessionContext.cs
+// dotnet/Querify.MCP.Server/Infrastructure/McpSessionContext.cs
 public class McpSessionContext
 {
     public Guid TenantId { get; set; }
@@ -84,7 +84,7 @@ public class McpSessionContext
     public string? UserName { get; set; }
 }
 
-// dotnet/BaseFaq.MCP.Server/Infrastructure/McpSessionService.cs
+// dotnet/Querify.MCP.Server/Infrastructure/McpSessionService.cs
 public sealed class McpSessionService(McpSessionContext ctx) : ISessionService
 {
     public Guid GetTenantId(ModuleEnum module) => ctx.TenantId;
@@ -115,7 +115,7 @@ worker host — no new pattern, same existing solution.
 ## Project structure
 
 ```
-dotnet/BaseFaq.MCP.Server/
+dotnet/Querify.MCP.Server/
   Program.cs
   Infrastructure/
     McpSessionService.cs
@@ -182,7 +182,7 @@ Available to every agent. QnA is the shared knowledge source across all modules.
 | `qna_get_space` | `GetSpaceBySlugQuery` | ✅ today |
 | `qna_list_questions` | `GetQuestionsQuery` | ✅ today |
 | `qna_get_question` | `GetQuestionQuery` | ✅ today |
-| `qna_search` | needs `BaseFaq.QnA.Public.Business.Search` | ❌ Gap 3 |
+| `qna_search` | needs `Querify.QnA.Public.Business.Search` | ❌ Gap 3 |
 | `qna_create_question` | `CreateQuestionCommand` | ✅ today |
 | `qna_create_answer` | `CreateAnswerCommand` | ✅ today |
 | `qna_activate_answer` | `ActivateAnswerCommand` | ✅ today |
@@ -262,8 +262,8 @@ public sealed class QnATools(
 
 Used by the Direct agent. Also uses `qna_search` to ground responses in the knowledge base.
 
-Requires `BaseFaq.Direct.*` API surface to exist. Currently only the persistence boundary
-(`BaseFaq.Direct.Common.Persistence.DirectDb`) is implemented.
+Requires `Querify.Direct.*` API surface to exist. Currently only the persistence boundary
+(`Querify.Direct.Common.Persistence.DirectDb`) is implemented.
 
 | Tool | Needs | Status |
 |---|---|---|
@@ -281,7 +281,7 @@ answer exists), it flags the conversation so the QnA Agent can draft a canonical
 [McpServerToolType]
 public sealed class DirectTools(IMediator mediator, McpSessionContext session)
 {
-    // Stubs — implementations added when BaseFaq.Direct.Portal.* ships
+    // Stubs — implementations added when Querify.Direct.Portal.* ships
     [McpServerTool(Name = "direct_list_conversations",
         Description = "List conversations for the tenant. Requires Direct module.")]
     public Task<string> ListConversations(Guid tenantId, CancellationToken ct)
@@ -295,8 +295,8 @@ public sealed class DirectTools(IMediator mediator, McpSessionContext session)
 
 Used by the Broadcast agent. Also uses `qna_search` to find canonical answers before replying.
 
-Requires `BaseFaq.Broadcast.*` API surface to exist. Currently only the persistence boundary
-(`BaseFaq.Broadcast.Common.Persistence.BroadcastDb`) is implemented.
+Requires `Querify.Broadcast.*` API surface to exist. Currently only the persistence boundary
+(`Querify.Broadcast.Common.Persistence.BroadcastDb`) is implemented.
 
 | Tool | Needs | Status |
 |---|---|---|
@@ -315,7 +315,7 @@ public question flags a gap that the QnA Agent should fill with a canonical answ
 
 Used by the Trust agent. References QnA to publish decisions as canonical answers.
 
-Requires `BaseFaq.Trust.*` implementation. No active project exists yet.
+Requires `Querify.Trust.*` implementation. No active project exists yet.
 
 | Tool | Status |
 |---|---|
@@ -332,7 +332,7 @@ tool creates a canonical QnA answer with `SourceRole.Evidence` linking back to t
 
 ### `tenant_*` — Workspace operations tools
 
-Used by the Tenant agent. Available today via `BaseFaq.Tenant.Portal.Api`.
+Used by the Tenant agent. Available today via `Querify.Tenant.Portal.Api`.
 
 | Tool | Route today | Status |
 |---|---|---|
@@ -359,14 +359,14 @@ the prompt at session start to configure its behavior.
 public static class AgentPrompts
 {
     [McpServerPrompt(Name = "qna_assistant",
-        Description = "Configures the AI as a BaseFAQ knowledge base specialist.")]
+        Description = "Configures the AI as a Querify knowledge base specialist.")]
     public static PromptMessage[] QnAAssistant() =>
     [
         new()
         {
             Role = "user",
             Content = new TextContent("""
-                You are a knowledge base specialist powered by BaseFAQ.
+                You are a knowledge base specialist powered by Querify.
                 Your job is to find, create, and improve question-and-answer pairs.
 
                 Before answering any question:
@@ -390,7 +390,7 @@ public static class AgentPrompts
         {
             Role = "user",
             Content = new TextContent("""
-                You are a private conversation resolution agent powered by BaseFAQ Direct.
+                You are a private conversation resolution agent powered by Querify Direct.
                 You handle 1:1 support conversations.
 
                 For each conversation:
@@ -415,7 +415,7 @@ public static class AgentPrompts
         {
             Role = "user",
             Content = new TextContent("""
-                You are a community and public channel response coordinator powered by BaseFAQ.
+                You are a community and public channel response coordinator powered by Querify.
                 You handle comments, mentions, and public discussions.
 
                 For each thread:
@@ -439,7 +439,7 @@ public static class AgentPrompts
         {
             Role = "user",
             Content = new TextContent("""
-                You are a governance assistant powered by BaseFAQ Trust.
+                You are a governance assistant powered by Querify Trust.
                 You help manage proposals, votes, and formal decisions.
 
                 For each governance task:
@@ -462,7 +462,7 @@ public static class AgentPrompts
         {
             Role = "user",
             Content = new TextContent("""
-                You are a workspace operations assistant powered by BaseFAQ.
+                You are a workspace operations assistant powered by Querify.
                 You help with workspace setup, member management, and billing questions.
 
                 Use tenant_get_workspace to understand the current workspace state.
@@ -493,9 +493,9 @@ server binary; only the prompt and (optionally) the exposed tool filter differ.
 ```json
 {
   "mcpServers": {
-    "basefaq-qna": {
+    "querify-qna": {
       "command": "dotnet",
-      "args": ["run", "--project", "/path/to/BaseFaq.MCP.Server", "--no-build"],
+      "args": ["run", "--project", "/path/to/Querify.MCP.Server", "--no-build"],
       "env": {
         "ASPNETCORE_ENVIRONMENT": "Development",
         "McpServer__DefaultTenantId": "your-tenant-uuid",
@@ -503,9 +503,9 @@ server binary; only the prompt and (optionally) the exposed tool filter differ.
         "Anthropic__ApiKey": "your-key"
       }
     },
-    "basefaq-direct": {
+    "querify-direct": {
       "command": "dotnet",
-      "args": ["run", "--project", "/path/to/BaseFaq.MCP.Server", "--no-build"],
+      "args": ["run", "--project", "/path/to/Querify.MCP.Server", "--no-build"],
       "env": {
         "ASPNETCORE_ENVIRONMENT": "Development",
         "McpServer__DefaultTenantId": "your-tenant-uuid",
@@ -528,9 +528,9 @@ The AI client loads the agent-specific prompt at session start by calling the ma
 ```json
 {
   "mcpServers": {
-    "basefaq": {
+    "querify": {
       "command": "dotnet",
-      "args": ["run", "--project", "dotnet/BaseFaq.MCP.Server", "--no-build"],
+      "args": ["run", "--project", "dotnet/Querify.MCP.Server", "--no-build"],
       "env": {
         "McpServer__DefaultTenantId": "your-tenant-uuid",
         "McpServer__ServiceUserId": "your-service-user-uuid",
@@ -562,7 +562,7 @@ Client configuration then uses `type: "sse"` with the server URL instead of a lo
 ## Cross-module tool usage
 
 The QnA knowledge base is shared. Every agent uses `qna_search` as its first step before acting.
-The cross-module handoffs mirror the BaseFAQ module boundary rules:
+The cross-module handoffs mirror the Querify module boundary rules:
 
 | Agent | Own tools | Uses from QnA | Handoff when gap found |
 |---|---|---|---|
@@ -618,27 +618,27 @@ answers and register gaps back to QnA. Trust publishes decisions to QnA.
 
 `AnswerKind` has `Official`, `Community`, `Imported`. AI-generated drafts use `Imported` today.
 
-Fix: add `AiGenerated = 4` to `dotnet/BaseFaq.Models.QnA/Enums/AnswerKind.cs`.
+Fix: add `AiGenerated = 4` to `dotnet/Querify.Models.QnA/Enums/AnswerKind.cs`.
 
 ### Gap 2: No `ChannelKind` for AI ingestion
 
 `ChannelKind` values today: `Manual`, `Widget`, `Api`, `HelpCenter`, `Import`, `Other`. For
 AI-generated content, use `ChannelKind.Import` (5) until a dedicated value is added.
 
-Fix: add `AiIngestion` or `System` to `dotnet/BaseFaq.Models.QnA/Enums/ChannelKind.cs`.
+Fix: add `AiIngestion` or `System` to `dotnet/Querify.Models.QnA/Enums/ChannelKind.cs`.
 
 ### Gap 3: No full-text search in QnA Public API
 
 `qna_search` has no backing endpoint. Every agent needs this before acting.
 
-Fix: add `BaseFaq.QnA.Public.Business.Search` with `GET /api/qna/search?q=...`.
+Fix: add `Querify.QnA.Public.Business.Search` with `GET /api/qna/search?q=...`.
 
 ### Gap 4: No atomic batch creation for Source → Q&A pipeline
 
 `qna_import_source` requires multiple sequential handler calls. A failure mid-run leaves partial
 data.
 
-Fix: add `GenerateQnAFromSourceCommand` in `BaseFaq.QnA.Portal.Business.SourceIngestion` — all
+Fix: add `GenerateQnAFromSourceCommand` in `Querify.QnA.Portal.Business.SourceIngestion` — all
 Q&A pairs and source links created in a single transaction.
 
 For the full Source → Q&A pipeline design, gaps, and roadmap, see
@@ -669,22 +669,22 @@ connection with existing QnA read tools. No backend changes.
 
 ### Phase 2 — Native .NET server, QnA Agent
 
-Create `BaseFaq.MCP.Server`. Implement QnA tools (list, get, create, link) and Tenant tools.
+Create `Querify.MCP.Server`. Implement QnA tools (list, get, create, link) and Tenant tools.
 Implement `McpSessionService`. Ship QnA Agent and Tenant Agent configurations.
 
 ### Phase 3 — QnA Agent: search and import (close Gaps 1, 2, 3, 4)
 
-Add `AnswerKind.AiGenerated`, `ChannelKind.AiIngestion`, `BaseFaq.QnA.Public.Business.Search`,
+Add `AnswerKind.AiGenerated`, `ChannelKind.AiIngestion`, `Querify.QnA.Public.Business.Search`,
 and `GenerateQnAFromSourceCommand`. Ship `qna_search` and `qna_import_source` tools.
 
 ### Phase 4 — Direct Agent (close Gap 5 for Direct)
 
-Ship `BaseFaq.Direct.Portal.*` API surface. Implement `direct_*` tools and `direct_assistant`
+Ship `Querify.Direct.Portal.*` API surface. Implement `direct_*` tools and `direct_assistant`
 prompt.
 
 ### Phase 5 — Broadcast Agent (close Gap 5 for Broadcast)
 
-Ship `BaseFaq.Broadcast.Portal.*` API surface. Implement `broadcast_*` tools and
+Ship `Querify.Broadcast.Portal.*` API surface. Implement `broadcast_*` tools and
 `broadcast_assistant` prompt.
 
 ### Phase 6 — Trust Agent + entitlement (close Gaps 5 for Trust, 6)
@@ -702,7 +702,7 @@ to Tenant.
 | [`mcp-source-to-qna.md`](mcp-source-to-qna.md) | Deep-dive on `qna_import_source`: AI generation pipeline, Anthropic SDK integration, and Gaps 1–4 |
 | [`../../business/value_proposition.md`](../../business/value_proposition.md) | Module boundaries and cross-module handoff model |
 | [`../../backend/architecture/solution-architecture.md`](../../backend/architecture/solution-architecture.md) | Runtime surfaces, `ISessionService`, multitenancy model |
-| [`../../backend/architecture/dotnet-backend-overview.md`](../../backend/architecture/dotnet-backend-overview.md) | Feature-scoped module pattern for adding `BaseFaq.MCP.Server` |
+| [`../../backend/architecture/dotnet-backend-overview.md`](../../backend/architecture/dotnet-backend-overview.md) | Feature-scoped module pattern for adding `Querify.MCP.Server` |
 | [`../../backend/architecture/solution-cqrs-write-rules.md`](../../backend/architecture/solution-cqrs-write-rules.md) | CQRS write rules applied by every tool that calls a command |
 | [`../../behavior-change-playbook.md`](../../behavior-change-playbook.md) | Propagation path for Gap 1 (`AnswerKind`) and Gap 2 (`ChannelKind`) |
 | [`../../backend/tools/local-development.md`](../../backend/tools/local-development.md) | Starting the local stack the MCP server depends on |

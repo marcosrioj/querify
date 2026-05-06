@@ -1,8 +1,8 @@
-# BaseFAQ CQRS Write Rules
+# Querify CQRS Write Rules
 
 ## Purpose
 
-This document defines the mandatory write-side rules for BaseFAQ. The goal is to keep command flows predictable, thin, and aligned across all business modules.
+This document defines the mandatory write-side rules for Querify. The goal is to keep command flows predictable, thin, and aligned across all business modules.
 
 For the extended companion — folder ownership rules, handler slicing guidelines, DTO contract rules, DbContext patterns, and the full review checklist — see [`repository-rules.md`](repository-rules.md).
 
@@ -10,11 +10,11 @@ For the extended companion — folder ownership rules, handler slicing guideline
 
 These rules apply to:
 
-- `BaseFaq.QnA.*`
-- `BaseFaq.Direct.*`
-- `BaseFaq.Broadcast.*`
-- `BaseFaq.Tenant.*`
-- `BaseFaq.Trust.*`
+- `Querify.QnA.*`
+- `Querify.Direct.*`
+- `Querify.Broadcast.*`
+- `Querify.Tenant.*`
+- `Querify.Trust.*`
 
 ## Rule 1: commands return simple values
 
@@ -117,7 +117,7 @@ When a command starts asynchronous work:
 
 ## Rule 8: modules use feature-scoped projects
 
-When backend work belongs to a BaseFaq module:
+When backend work belongs to a Querify module:
 
 - do not aggregate Portal behavior into a monolithic `<Module>.Portal.Business` project
 - do not aggregate Public behavior into a monolithic `<Module>.Public.Business` project
@@ -133,12 +133,12 @@ When backend work belongs to a BaseFaq module:
 
 ## Rule 9: module contract projects stay feature-organized
 
-When the work belongs to a module contract project such as `BaseFaq.Models.QnA`, `BaseFaq.Models.Direct`, `BaseFaq.Models.Broadcast`, or `BaseFaq.Models.Tenant`:
+When the work belongs to a module contract project such as `Querify.Models.QnA`, `Querify.Models.Direct`, `Querify.Models.Broadcast`, or `Querify.Models.Tenant`:
 
 - keep DTO folders feature-scoped such as `Dtos/Question/QuestionDto.cs`
 - keep DTOs in real feature folders rather than aggregate `*Dtos.cs` files
-- do not place catch-all DTO files directly under `dotnet/BaseFaq.Models.<Module>/Dtos`
-- do not create pseudo-entity folders such as `dotnet/BaseFaq.Models.QnA/Dtos/Link`
+- do not place catch-all DTO files directly under `dotnet/Querify.Models.<Module>/Dtos`
+- do not create pseudo-entity folders such as `dotnet/Querify.Models.QnA/Dtos/Link`
 - place link DTOs under the owning feature folders like `Dtos/Answer`, `Dtos/Question`, and `Dtos/Space`
 - keep write-side handler request DTOs flat
 - do not inherit one write-side `*RequestDto` from another `*RequestDto`
@@ -147,7 +147,7 @@ When the work belongs to a module contract project such as `BaseFaq.Models.QnA`,
 
 ## Rule 10: Product persistence entities stay anemic
 
-When the work belongs to a module entity folder such as `BaseFaq.QnA.Common.Domain/Entities`, `DirectDb/Entities`, or `BroadcastDb/Entities`:
+When the work belongs to a module entity folder such as `Querify.QnA.Common.Domain/Entities`, `DirectDb/Entities`, or `BroadcastDb/Entities`:
 
 - keep entities as state-only persistence models
 - do not add behavior methods, factory methods, or transition methods
@@ -181,6 +181,6 @@ Use the full checklist in [`repository-rules.md`](repository-rules.md) → **Req
 - using linked source files in module feature projects instead of real files in the owning project folder
 - using aggregate `*Dtos.cs` files in module contract projects instead of feature-scoped DTO folders and files
 - keeping generic module helper files instead of placing logic in command/query handlers
-- introducing a pseudo-entity DTO folder such as `BaseFaq.Models.QnA/Dtos/Link`
+- introducing a pseudo-entity DTO folder such as `Querify.Models.QnA/Dtos/Link`
 - adding behavior or computed projection properties to module persistence entities
 - enforcing tenant-owned relationship integrity only in command handlers instead of the owning module `DbContext`

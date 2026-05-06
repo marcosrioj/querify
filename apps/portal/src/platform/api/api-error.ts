@@ -59,10 +59,10 @@ const isApiErrorPayload = (value: unknown): value is ApiErrorPayload => {
 
 const GENERIC_MESSAGES = new Set([
   'Api error',
-  'BaseFAQ request failed.',
+  'Querify request failed.',
   'One or more validation errors occurred.',
   'Request failed.',
-  'Something went wrong while communicating with BaseFAQ.',
+  'Something went wrong while communicating with Querify.',
 ]);
 
 const API_ERROR_MESSAGE_ALIASES: Array<{

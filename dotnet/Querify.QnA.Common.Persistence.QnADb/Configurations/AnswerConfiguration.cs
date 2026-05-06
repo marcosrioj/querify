@@ -1,0 +1,49 @@
+using Querify.Common.EntityFramework.Core.Configurations;
+using Querify.Models.QnA.Enums;
+using Querify.QnA.Common.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
+namespace Querify.QnA.Common.Persistence.QnADb.Configurations;
+
+public class AnswerConfiguration : BaseConfiguration<Answer>
+{
+    public override void Configure(EntityTypeBuilder<Answer> builder)
+    {
+        base.Configure(builder);
+
+        builder.ToTable("Answers");
+
+        builder.Property(answer => answer.Headline)
+            .HasMaxLength(Answer.MaxHeadlineLength)
+            .IsRequired();
+
+        builder.Property(answer => answer.Body)
+            .HasMaxLength(Answer.MaxBodyLength);
+
+        builder.Property(answer => answer.ContextNote)
+            .HasMaxLength(Answer.MaxContextNoteLength);
+
+        builder.Property(answer => answer.AuthorLabel)
+            .HasMaxLength(Answer.MaxAuthorLabelLength);
+
+        builder.Property(answer => answer.Visibility)
+            .HasDefaultValue(VisibilityScope.Internal)
+            .IsRequired();
+
+        builder.Property(answer => answer.AiConfidenceScore)
+            .HasDefaultValue(0)
+            .IsRequired();
+
+        builder.Property(answer => answer.TenantId)
+            .IsRequired();
+
+        builder.Property(answer => answer.QuestionId)
+            .IsRequired();
+
+        builder.HasMany(answer => answer.Sources)
+            .WithOne(sourceLink => sourceLink.Answer)
+            .HasForeignKey(sourceLink => sourceLink.AnswerId)
+            .OnDelete(DeleteBehavior.Cascade);
+    }
+}

@@ -2,13 +2,13 @@
 
 ## Purpose
 
-Use this playbook when a change adds, updates, deletes, or consolidates BaseFaq module behavior across the BaseFAQ solution.
+Use this playbook when a change adds, updates, deletes, or consolidates Querify module behavior across the Querify solution.
 
 This is the workflow for changes that start in a module model and affect persistence, contracts, commands, queries, services, APIs, seed data, tests, Portal screens, and translations.
 
 The goal is not to add layers. The goal is to keep the model simple, preserve supported behavior, and remove duplicated concepts before they spread through the rest of the system.
 
-The current BaseFaq module split is documented in [`business/value_proposition.md`](business/value_proposition.md). The current modules are Tenant, QnA, Direct, Broadcast, and Trust. Tenant owns the control plane. QnA, Direct, Broadcast, and Trust own product behavior. Treat each module persistence boundary as the owner of its own behavior; do not park behavior in QnA because the QnA model already has a channel, source, or activity enum value that sounds close.
+The current Querify module split is documented in [`business/value_proposition.md`](business/value_proposition.md). The current modules are Tenant, QnA, Direct, Broadcast, and Trust. Tenant owns the control plane. QnA, Direct, Broadcast, and Trust own product behavior. Treat each module persistence boundary as the owner of its own behavior; do not park behavior in QnA because the QnA model already has a channel, source, or activity enum value that sounds close.
 
 ## Before Starting
 
@@ -27,7 +27,7 @@ If those documents do not describe the behavior you are changing, inspect the cl
 - Do not add Direct conversation, handoff, ticket-resolution, or agent-assist workflow state to QnA entities.
 - Do not add Broadcast social, public-comment, mention, community-thread, or campaign interaction workflow state to QnA entities.
 - Do not add Trust validation, governance, decision-history, or auditability state to QnA, Direct, Broadcast, or Tenant entities.
-- `BaseFaq.Direct.Common.Persistence.DirectDb` and `BaseFaq.Broadcast.Common.Persistence.BroadcastDb` contain their current module entity models. Write or update those entities only for concrete module behavior; do not add placeholder entities or empty folders only to satisfy a split.
+- `Querify.Direct.Common.Persistence.DirectDb` and `Querify.Broadcast.Common.Persistence.BroadcastDb` contain their current module entity models. Write or update those entities only for concrete module behavior; do not add placeholder entities or empty folders only to satisfy a split.
 - Command handlers return simple values only. Complex DTOs belong to queries.
 - Portal UI copy is frontend-owned. Backend DTOs should not return translated labels.
 
@@ -56,13 +56,13 @@ Before adding anything, search for the current behavior and adjacent concepts:
 
 ```bash
 rg -n "ConceptName|RelatedEnum|RelatedProperty" dotnet apps docs
-rg --files dotnet/BaseFaq.Models.Tenant dotnet/BaseFaq.Models.QnA dotnet/BaseFaq.Models.Direct dotnet/BaseFaq.Models.Broadcast dotnet/BaseFaq.Common.EntityFramework.Tenant dotnet/BaseFaq.QnA.Common.Domain dotnet/BaseFaq.QnA.Common.Persistence.QnADb dotnet/BaseFaq.Direct.Common.Persistence.DirectDb dotnet/BaseFaq.Broadcast.Common.Persistence.BroadcastDb apps/portal/src/domains
+rg --files dotnet/Querify.Models.Tenant dotnet/Querify.Models.QnA dotnet/Querify.Models.Direct dotnet/Querify.Models.Broadcast dotnet/Querify.Common.EntityFramework.Tenant dotnet/Querify.QnA.Common.Domain dotnet/Querify.QnA.Common.Persistence.QnADb dotnet/Querify.Direct.Common.Persistence.DirectDb dotnet/Querify.Broadcast.Common.Persistence.BroadcastDb apps/portal/src/domains
 ```
 
 Capture these facts before editing:
 
 - which entity owns the persisted state
-- which BaseFaq module owns the behavior: Tenant, QnA, Direct, Broadcast, or Trust
+- which Querify module owns the behavior: Tenant, QnA, Direct, Broadcast, or Trust
 - which enum expresses lifecycle, channel, audience, mode, role, actor, or event history
 - which DTOs expose the state
 - which handlers mutate or query it
@@ -85,7 +85,7 @@ Use these dimensions for module behavior:
 
 | Dimension | Canonical location | Meaning |
 |---|---|---|
-| Module boundary | owning persistence project | Which BaseFaq module owns the behavior: Tenant, QnA, Direct, Broadcast, or Trust. |
+| Module boundary | owning persistence project | Which Querify module owns the behavior: Tenant, QnA, Direct, Broadcast, or Trust. |
 | Space lifecycle state | `SpaceStatus` | Whether a QnA space is draft, active, or archived. Public spaces must be active. |
 | Lifecycle state | `QuestionStatus`, `AnswerStatus` | Where a question or answer is in workflow. |
 | Audience exposure | `VisibilityScope` | Who can see the item: internal portal users, authenticated external users, or the public. This is not status and not moderation. |
@@ -115,21 +115,21 @@ Common consolidation rules:
 
 Relevant locations:
 
-- Common module enum: `dotnet/BaseFaq.Models.Common/Enums/ModuleEnum.cs`
-- Tenant contracts and entities when the behavior belongs to tenant control plane: `dotnet/BaseFaq.Models.Tenant`, `dotnet/BaseFaq.Common.EntityFramework.Tenant`
-- QnA contracts: `dotnet/BaseFaq.Models.QnA/Enums`
-- QnA domain entities and entity-related business rules: `dotnet/BaseFaq.QnA.Common.Domain/Entities` and `dotnet/BaseFaq.QnA.Common.Domain/BusinessRules`
-- QnA persistence infrastructure: `dotnet/BaseFaq.QnA.Common.Persistence.QnADb`
-- Direct contracts and persistence entities: `dotnet/BaseFaq.Models.Direct`, `dotnet/BaseFaq.Direct.Common.Persistence.DirectDb/Entities`
-- Broadcast contracts and persistence entities: `dotnet/BaseFaq.Models.Broadcast`, `dotnet/BaseFaq.Broadcast.Common.Persistence.BroadcastDb/Entities`
-- Trust contracts and persistence entities use `BaseFaq.Models.Trust` and a Trust persistence boundary when those projects are in scope for the change
+- Common module enum: `dotnet/Querify.Models.Common/Enums/ModuleEnum.cs`
+- Tenant contracts and entities when the behavior belongs to tenant control plane: `dotnet/Querify.Models.Tenant`, `dotnet/Querify.Common.EntityFramework.Tenant`
+- QnA contracts: `dotnet/Querify.Models.QnA/Enums`
+- QnA domain entities and entity-related business rules: `dotnet/Querify.QnA.Common.Domain/Entities` and `dotnet/Querify.QnA.Common.Domain/BusinessRules`
+- QnA persistence infrastructure: `dotnet/Querify.QnA.Common.Persistence.QnADb`
+- Direct contracts and persistence entities: `dotnet/Querify.Models.Direct`, `dotnet/Querify.Direct.Common.Persistence.DirectDb/Entities`
+- Broadcast contracts and persistence entities: `dotnet/Querify.Models.Broadcast`, `dotnet/Querify.Broadcast.Common.Persistence.BroadcastDb/Entities`
+- Trust contracts and persistence entities use `Querify.Models.Trust` and a Trust persistence boundary when those projects are in scope for the change
 
 Process:
 
 1. Add, update, or delete enum values only after Step 2 confirms there is no duplicate concept.
 2. Add an XML summary to every enum option in the enum file. The summary must explain the behavior or decision represented by the option, not just restate the option name.
 3. Every enum member must declare an explicit numeric value. Do not use `0`, and do not rely on implicit enum numbering; `default(<Enum>)` must remain an invalid persisted/API value.
-4. Use the BaseFaq enum allocation sequence in declaration order: `1, 6, 11, 16, 21`, continuing by `+5` for every additional member. When a matching Portal enum exists in `apps/portal/src/shared/constants/backend-enums.ts`, update it in the same change.
+4. Use the Querify enum allocation sequence in declaration order: `1, 6, 11, 16, 21`, continuing by `+5` for every additional member. When a matching Portal enum exists in `apps/portal/src/shared/constants/backend-enums.ts`, update it in the same change.
 5. If an existing persisted/API enum needs a value inserted between stable values, use an unused number inside the existing five-value gap only when the current numeric contract must be preserved. Renumber the whole enum only when the user explicitly accepts a data reset, data migration, or contract break.
 6. Update the owning entity with the smallest persisted shape that can execute the behavior.
 7. Add an XML summary to every persisted property and navigation in the entity file. The summary must explain how the behavior uses the property, including when a timestamp or actor differs from `BaseEntity`/`AuditableEntity` state.
@@ -141,7 +141,7 @@ Process:
 13. Keep `required` semantics explicit. Do not set silent defaults to make construction easier.
 14. For `Source`, keep artifact identity, audience exposure, and relationship context separate: `Kind` and locator fields identify the material, `Visibility` controls who can see it, and `SourceRole` explains why it is attached.
 15. Do not create placeholder module entities. If a needed owning entity is still missing and the stage does not explicitly introduce it, leave a handoff note instead.
-16. For QnA, put reusable entity-related rules under `BaseFaq.QnA.Common.Domain.BusinessRules`; these rules must not depend on `QnADbContext`, EF queries, service registration, or HTTP controllers.
+16. For QnA, put reusable entity-related rules under `Querify.QnA.Common.Domain.BusinessRules`; these rules must not depend on `QnADbContext`, EF queries, service registration, or HTTP controllers.
 17. When a new or changed entity implements `IMustHaveTenant` and references another tenant-owned entity, update the owning `DbContext` to enforce tenant integrity before save.
 18. Follow the module `DbContext` pattern: call `EnsureTenantIntegrity()` from `OnBeforeSaveChangesRules()`, place one focused rule per checked entity or relationship under `DbContext/TenantIntegrity/<Entity>TenantIntegrityExtension.cs`, and keep `Extensions` folders for service registration only.
 19. Resolve referenced tenant ids with `TenantIntegrityLookupCacheBase` or a module-specific `TenantIntegrityLookupCache`, using `IgnoreQueryFilters()` so tenant filters and soft-delete do not hide invalid relationships.
@@ -159,12 +159,12 @@ Historical EF migration files may still mention old schema. Do not edit or regen
 
 Relevant locations:
 
-- QnA configurations: `dotnet/BaseFaq.QnA.Common.Persistence.QnADb/Configurations`
-- Module DbContext folder: `dotnet/BaseFaq.<Module>.Common.Persistence.<Module>Db/DbContext`
-- Module tenant-integrity rules: `dotnet/BaseFaq.<Module>.Common.Persistence.<Module>Db/DbContext/TenantIntegrity`
-- Query handlers under the owning feature project: `dotnet/BaseFaq.<Module>.<Surface>.Business.<Feature>/Queries`
-- Direct configurations and DbContext under `dotnet/BaseFaq.Direct.Common.Persistence.DirectDb`
-- Broadcast configurations and DbContext under `dotnet/BaseFaq.Broadcast.Common.Persistence.BroadcastDb`
+- QnA configurations: `dotnet/Querify.QnA.Common.Persistence.QnADb/Configurations`
+- Module DbContext folder: `dotnet/Querify.<Module>.Common.Persistence.<Module>Db/DbContext`
+- Module tenant-integrity rules: `dotnet/Querify.<Module>.Common.Persistence.<Module>Db/DbContext/TenantIntegrity`
+- Query handlers under the owning feature project: `dotnet/Querify.<Module>.<Surface>.Business.<Feature>/Queries`
+- Direct configurations and DbContext under `dotnet/Querify.Direct.Common.Persistence.DirectDb`
+- Broadcast configurations and DbContext under `dotnet/Querify.Broadcast.Common.Persistence.BroadcastDb`
 - Tenant persistence equivalents when the behavior is control-plane-owned.
 
 Process:
@@ -199,12 +199,12 @@ The operational migration tool is documented in [`backend/tools/migration-tool.m
 
 Relevant locations:
 
-- Tenant DTOs: `dotnet/BaseFaq.Models.Tenant`
-- QnA DTOs: `dotnet/BaseFaq.Models.QnA/Dtos/<Feature>`
-- Direct DTOs: `dotnet/BaseFaq.Models.Direct`
-- Broadcast DTOs: `dotnet/BaseFaq.Models.Broadcast`
-- Trust DTOs: `dotnet/BaseFaq.Models.Trust` when Trust contracts are in scope
-- User DTOs: `dotnet/BaseFaq.Models.User`
+- Tenant DTOs: `dotnet/Querify.Models.Tenant`
+- QnA DTOs: `dotnet/Querify.Models.QnA/Dtos/<Feature>`
+- Direct DTOs: `dotnet/Querify.Models.Direct`
+- Broadcast DTOs: `dotnet/Querify.Models.Broadcast`
+- Trust DTOs: `dotnet/Querify.Models.Trust` when Trust contracts are in scope
+- User DTOs: `dotnet/Querify.Models.User`
 
 Use the DTO structure rules in [`backend/architecture/repository-rules.md`](backend/architecture/repository-rules.md).
 
@@ -231,13 +231,13 @@ Relevant documents:
 
 Relevant module locations:
 
-- Tenant API hosts: `dotnet/BaseFaq.Tenant.BackOffice.Api`, `dotnet/BaseFaq.Tenant.Portal.Api`, `dotnet/BaseFaq.Tenant.Public.Api`
-- Tenant worker host: `dotnet/BaseFaq.Tenant.Worker.Api`
-- Tenant business modules: `dotnet/BaseFaq.Tenant.<Surface>.Business.<Feature>`
-- QnA API hosts: `dotnet/BaseFaq.QnA.Portal.Api`, `dotnet/BaseFaq.QnA.Public.Api`
-- QnA business modules: `dotnet/BaseFaq.QnA.<Surface>.Business.<Feature>`
-- Direct persistence module: `dotnet/BaseFaq.Direct.Common.Persistence.DirectDb`
-- Broadcast persistence module: `dotnet/BaseFaq.Broadcast.Common.Persistence.BroadcastDb`
+- Tenant API hosts: `dotnet/Querify.Tenant.BackOffice.Api`, `dotnet/Querify.Tenant.Portal.Api`, `dotnet/Querify.Tenant.Public.Api`
+- Tenant worker host: `dotnet/Querify.Tenant.Worker.Api`
+- Tenant business modules: `dotnet/Querify.Tenant.<Surface>.Business.<Feature>`
+- QnA API hosts: `dotnet/Querify.QnA.Portal.Api`, `dotnet/Querify.QnA.Public.Api`
+- QnA business modules: `dotnet/Querify.QnA.<Surface>.Business.<Feature>`
+- Direct persistence module: `dotnet/Querify.Direct.Common.Persistence.DirectDb`
+- Broadcast persistence module: `dotnet/Querify.Broadcast.Common.Persistence.BroadcastDb`
 
 Every module uses the same feature-scoped module pattern. Keep behavior out of another module's handlers unless the use case is explicitly reading or writing an asset owned by that other module.
 
@@ -275,12 +275,12 @@ Relevant document:
 
 Relevant locations:
 
-- `dotnet/BaseFaq.Tools.Seed/Application/TenantSeedService.cs`
-- `dotnet/BaseFaq.Tools.Seed/Application/QnASeedService.cs`
-- `dotnet/BaseFaq.Tools.Seed/Application/QnASeedCatalog.cs`
-- `dotnet/BaseFaq.Tools.Seed/Application/QnASeedCatalog.*.cs`
-- `dotnet/BaseFaq.Tools.Seed/Configuration`
-- `dotnet/BaseFaq.Tools.Seed/Infrastructure`
+- `dotnet/Querify.Tools.Seed/Application/TenantSeedService.cs`
+- `dotnet/Querify.Tools.Seed/Application/QnASeedService.cs`
+- `dotnet/Querify.Tools.Seed/Application/QnASeedCatalog.cs`
+- `dotnet/Querify.Tools.Seed/Application/QnASeedCatalog.*.cs`
+- `dotnet/Querify.Tools.Seed/Configuration`
+- `dotnet/Querify.Tools.Seed/Infrastructure`
 
 Process:
 
@@ -311,13 +311,13 @@ Relevant document:
 
 Relevant locations:
 
-- `dotnet/BaseFaq.QnA.Portal.Test.IntegrationTests`
-- `dotnet/BaseFaq.QnA.Public.Test.IntegrationTests`
-- `dotnet/BaseFaq.Tenant.BackOffice.Test.IntegrationTests`
-- `dotnet/BaseFaq.Tenant.Portal.Test.IntegrationTests`
-- `dotnet/BaseFaq.Tenant.Public.Test.IntegrationTests`
-- `dotnet/BaseFaq.Tenant.Worker.Test.IntegrationTests`
-- `dotnet/BaseFaq.Common.Architecture.Test.IntegrationTest`
+- `dotnet/Querify.QnA.Portal.Test.IntegrationTests`
+- `dotnet/Querify.QnA.Public.Test.IntegrationTests`
+- `dotnet/Querify.Tenant.BackOffice.Test.IntegrationTests`
+- `dotnet/Querify.Tenant.Portal.Test.IntegrationTests`
+- `dotnet/Querify.Tenant.Public.Test.IntegrationTests`
+- `dotnet/Querify.Tenant.Worker.Test.IntegrationTests`
+- `dotnet/Querify.Common.Architecture.Test.IntegrationTest`
 
 Process:
 
@@ -435,33 +435,33 @@ Use targeted validation first, then broaden.
 Backend model and persistence stage:
 
 ```bash
-dotnet build dotnet/BaseFaq.Models.Common/BaseFaq.Models.Common.csproj -v minimal --no-restore
-dotnet build dotnet/BaseFaq.Models.Tenant/BaseFaq.Models.Tenant.csproj -v minimal --no-restore
-dotnet build dotnet/BaseFaq.QnA.Common.Domain/BaseFaq.QnA.Common.Domain.csproj -v minimal --no-restore
-dotnet build dotnet/BaseFaq.QnA.Common.Persistence.QnADb/BaseFaq.QnA.Common.Persistence.QnADb.csproj -v minimal --no-restore
-dotnet build dotnet/BaseFaq.Models.QnA/BaseFaq.Models.QnA.csproj -v minimal --no-restore
+dotnet build dotnet/Querify.Models.Common/Querify.Models.Common.csproj -v minimal --no-restore
+dotnet build dotnet/Querify.Models.Tenant/Querify.Models.Tenant.csproj -v minimal --no-restore
+dotnet build dotnet/Querify.QnA.Common.Domain/Querify.QnA.Common.Domain.csproj -v minimal --no-restore
+dotnet build dotnet/Querify.QnA.Common.Persistence.QnADb/Querify.QnA.Common.Persistence.QnADb.csproj -v minimal --no-restore
+dotnet build dotnet/Querify.Models.QnA/Querify.Models.QnA.csproj -v minimal --no-restore
 ```
 
 When the stage touches module-specific persistence projects:
 
 ```bash
-dotnet build dotnet/BaseFaq.Direct.Common.Persistence.DirectDb/BaseFaq.Direct.Common.Persistence.DirectDb.csproj -v minimal --no-restore
-dotnet build dotnet/BaseFaq.Broadcast.Common.Persistence.BroadcastDb/BaseFaq.Broadcast.Common.Persistence.BroadcastDb.csproj -v minimal --no-restore
+dotnet build dotnet/Querify.Direct.Common.Persistence.DirectDb/Querify.Direct.Common.Persistence.DirectDb.csproj -v minimal --no-restore
+dotnet build dotnet/Querify.Broadcast.Common.Persistence.BroadcastDb/Querify.Broadcast.Common.Persistence.BroadcastDb.csproj -v minimal --no-restore
 ```
 
 Backend feature stage:
 
 ```bash
-dotnet build dotnet/BaseFaq.QnA.Portal.Business.Question/BaseFaq.QnA.Portal.Business.Question.csproj -v minimal --no-restore
-dotnet build dotnet/BaseFaq.QnA.Public.Business.Question/BaseFaq.QnA.Public.Business.Question.csproj -v minimal --no-restore
+dotnet build dotnet/Querify.QnA.Portal.Business.Question/Querify.QnA.Portal.Business.Question.csproj -v minimal --no-restore
+dotnet build dotnet/Querify.QnA.Public.Business.Question/Querify.QnA.Public.Business.Question.csproj -v minimal --no-restore
 ```
 
 Backend test stage:
 
 ```bash
-dotnet test dotnet/BaseFaq.QnA.Portal.Test.IntegrationTests/BaseFaq.QnA.Portal.Test.IntegrationTests.csproj
-dotnet test dotnet/BaseFaq.QnA.Public.Test.IntegrationTests/BaseFaq.QnA.Public.Test.IntegrationTests.csproj
-dotnet test dotnet/BaseFaq.Common.Architecture.Test.IntegrationTest/BaseFaq.Common.Architecture.Test.IntegrationTest.csproj
+dotnet test dotnet/Querify.QnA.Portal.Test.IntegrationTests/Querify.QnA.Portal.Test.IntegrationTests.csproj
+dotnet test dotnet/Querify.QnA.Public.Test.IntegrationTests/Querify.QnA.Public.Test.IntegrationTests.csproj
+dotnet test dotnet/Querify.Common.Architecture.Test.IntegrationTest/Querify.Common.Architecture.Test.IntegrationTest.csproj
 ```
 
 Frontend stage:

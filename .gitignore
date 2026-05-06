@@ -15,6 +15,6 @@
 
 /apps/demos/
 
-dotnet/BaseFaq.Sample.Ai.Generation/appsettings.json
-BaseFaq.sln.DotSettings.user
+dotnet/Querify.Sample.Ai.Generation/appsettings.json
+Querify.sln.DotSettings.user
 

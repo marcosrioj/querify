@@ -1,9 +1,0 @@
-using BaseFaq.Models.QnA.Dtos.Question;
-using MediatR;
-
-namespace BaseFaq.QnA.Portal.Business.Question.Queries.GetQuestion;
-
-public sealed class QuestionsGetQuestionQuery : IRequest<QuestionDetailDto>
-{
-    public required Guid Id { get; set; }
-}

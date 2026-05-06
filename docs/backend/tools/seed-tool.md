@@ -2,7 +2,7 @@
 
 ## Purpose
 
-`BaseFaq.Tools.Seed` prepares the local or target databases with either essential platform data or realistic sample module data.
+`Querify.Tools.Seed` prepares the local or target databases with either essential platform data or realistic sample module data.
 
 It is designed to work across both the tenant database and module databases, which is why it is the standard entrypoint instead of ad hoc SQL or hand-written scripts.
 
@@ -41,12 +41,12 @@ The tool reads:
 - `ConnectionStrings:TenantDb`
 - `ConnectionStrings:QnADb`
 
-from `dotnet/BaseFaq.Tools.Seed/appsettings.json`.
+from `dotnet/Querify.Tools.Seed/appsettings.json`.
 
 ## Run the tool
 
 ```bash
-dotnet run --project dotnet/BaseFaq.Tools.Seed
+dotnet run --project dotnet/Querify.Tools.Seed
 ```
 
 ## Menu options
@@ -99,4 +99,4 @@ Choose `5` when you want to clear only `QnADb`.
 
 - [`migration-tool.md`](migration-tool.md)
 - [`local-development.md`](local-development.md)
-- [`../architecture/basefaq-tenant-worker.md`](../architecture/basefaq-tenant-worker.md)
+- [`../architecture/querify-tenant-worker.md`](../architecture/querify-tenant-worker.md)

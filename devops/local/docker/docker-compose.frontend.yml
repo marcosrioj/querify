@@ -1,19 +1,19 @@
 services:
-  basefaq.portal.app:
-    image: basefaq.portal.app
+  querify.portal.app:
+    image: querify.portal.app
     build:
       context: ../../..
       dockerfile: apps/portal/Dockerfile
     ports:
       - "5500:5500"
     environment:
-      - VITE_PORTAL_TENANT_API_URL=${VITE_PORTAL_TENANT_API_URL:-//dev.portal.basefaq.com}
-      - VITE_PORTAL_QNA_API_URL=${VITE_PORTAL_QNA_API_URL:-//dev.portal.basefaq.com}
-      - VITE_AUTH0_DOMAIN=basefaq.us.auth0.com
-      - VITE_AUTH0_AUDIENCE=https://basefaq.com
-      - VITE_AUTH0_CLIENT_ID=fDJib60pSRhbtNRPhqYfZR9J8JqBCpz5
+      - VITE_PORTAL_TENANT_API_URL=${VITE_PORTAL_TENANT_API_URL:-//dev.portal.querify.net}
+      - VITE_PORTAL_QNA_API_URL=${VITE_PORTAL_QNA_API_URL:-//dev.portal.querify.net}
+      - VITE_AUTH0_DOMAIN=querify.us.auth0.com
+      - VITE_AUTH0_AUDIENCE=https://querify.net
+      - VITE_AUTH0_CLIENT_ID=U3WxjhBCMHAOCb5gDOXSYtdnTQViNb1K
       - VITE_AUTH0_PASSWORD_RESET_URL=
-      - VITE_AUTH0_LOGOUT_URI=https://dev.portal.basefaq.com/logout
+      - VITE_AUTH0_LOGOUT_URI=https://dev.portal.querify.net/logout
     networks:
       - bf-network
 

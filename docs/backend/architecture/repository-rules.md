@@ -2,7 +2,7 @@
 
 ## Objective
 
-Use existing BaseFaq architecture standards. Do not introduce parallel patterns.
+Use existing Querify architecture standards. Do not introduce parallel patterns.
 When Commands or Queries become large, slice them into small, cohesive parts so behavior stays maintainable, testable, and reusable under SOLID + DDD.
 
 ## Authoritative Sources
@@ -17,19 +17,19 @@ If this file conflicts with those sources, those sources win.
 
 Apply these rules to:
 
-- `BaseFaq.QnA.*`
-- `BaseFaq.Direct.*`
-- `BaseFaq.Broadcast.*`
-- `BaseFaq.Trust.*`
-- `BaseFaq.Tenant.*`
-- `BaseFaq.Common.*`
-- `BaseFaq.Models.Common`
-- `BaseFaq.Models.QnA`
-- `BaseFaq.Models.Direct`
-- `BaseFaq.Models.Broadcast`
-- `BaseFaq.Models.Tenant`
-- `BaseFaq.Models.User`
-- `BaseFaq.Tools.*`
+- `Querify.QnA.*`
+- `Querify.Direct.*`
+- `Querify.Broadcast.*`
+- `Querify.Trust.*`
+- `Querify.Tenant.*`
+- `Querify.Common.*`
+- `Querify.Models.Common`
+- `Querify.Models.QnA`
+- `Querify.Models.Direct`
+- `Querify.Models.Broadcast`
+- `Querify.Models.Tenant`
+- `Querify.Models.User`
+- `Querify.Tools.*`
 
 ## Non-Negotiable Architecture Rules
 
@@ -72,11 +72,11 @@ Apply these rules to:
 - If dependencies change, update unit test doubles and integration fixtures.
 - Keep integration-first behavior with real DB and real migrations where defined.
 
-### 6. BaseFaq module physical boundary
+### 6. Querify module physical boundary
 
-- Tenant, QnA, Direct, Broadcast, and Trust are the current BaseFaq modules. Every module must keep the established feature-scoped physical decomposition style used by the solution.
-- Each entity or surface concern gets its own business project inside the owning module, for example `BaseFaq.QnA.Portal.Business.Question` or `BaseFaq.QnA.Public.Business.Vote`.
-- Do not introduce monolithic aggregation projects such as `BaseFaq.<Module>.Portal.Business` or `BaseFaq.<Module>.Public.Business`.
+- Tenant, QnA, Direct, Broadcast, and Trust are the current Querify modules. Every module must keep the established feature-scoped physical decomposition style used by the solution.
+- Each entity or surface concern gets its own business project inside the owning module, for example `Querify.QnA.Portal.Business.Question` or `Querify.QnA.Public.Business.Vote`.
+- Do not introduce monolithic aggregation projects such as `Querify.<Module>.Portal.Business` or `Querify.<Module>.Public.Business`.
 - Keep source files physically inside the owning module feature project directory.
 - Do not use linked source items such as `<Compile Include="..\\..." Link="...">` for module business feature projects.
 - API hosts compose module features through feature-level `Add*Business()` registrations.
@@ -88,11 +88,11 @@ Apply these rules to:
 - Do not add command-like methods, factory methods, behavior methods, or convenience projection properties to module persistence entities.
 - Keep state transitions, relation management, validation, and projection shaping inside commands, queries, and feature-local private methods.
 - Behavior must live in its owning feature and persistence projects.
-- `BaseFaq.Direct.Common.Persistence.DirectDb` and `BaseFaq.Broadcast.Common.Persistence.BroadcastDb` contain their current entity models; extend them only for concrete module behavior, not placeholder coverage.
+- `Querify.Direct.Common.Persistence.DirectDb` and `Querify.Broadcast.Common.Persistence.BroadcastDb` contain their current entity models; extend them only for concrete module behavior, not placeholder coverage.
 
 ### 7. Module model contract boundary
 
-- Module contract projects such as `BaseFaq.Models.QnA`, `BaseFaq.Models.Direct`, `BaseFaq.Models.Broadcast`, and `BaseFaq.Models.Tenant` must keep the same feature-folder DTO layout used across the solution.
+- Module contract projects such as `Querify.Models.QnA`, `Querify.Models.Direct`, `Querify.Models.Broadcast`, and `Querify.Models.Tenant` must keep the same feature-folder DTO layout used across the solution.
 - Keep DTOs in real feature folders such as `Dtos/Question/QuestionDto.cs` or `Dtos/Answer/AnswerCreateRequestDto.cs`.
 - Do not keep aggregate files such as `Dtos/QuestionDtos.cs` or any other `*Dtos.cs` catch-all file in module contract projects.
 - Keep namespaces and file ownership coherent with the folder that owns the DTO.
@@ -184,7 +184,7 @@ Never solve a big command by moving behavior to unrelated folders.
 
 ## API Error Conventions
 
-Use the existing `ApiErrorException` from `BaseFaq.Common.Infrastructure.ApiErrorHandling.Exception`
+Use the existing `ApiErrorException` from `Querify.Common.Infrastructure.ApiErrorHandling.Exception`
 for every error that can be caused by an API request and should be returned to the caller as a
 structured API response.
 

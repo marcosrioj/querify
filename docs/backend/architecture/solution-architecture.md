@@ -1,4 +1,4 @@
-# BaseFAQ Solution Architecture
+# Querify Solution Architecture
 
 ## Purpose
 
@@ -6,7 +6,7 @@ This document explains how the repository is organized, how the runtime is split
 
 ## Solution shape
 
-The repository root contains one primary `.NET` solution file, `BaseFaq.sln`. It includes the active backend, persistence, worker, tooling, and sample projects under `dotnet/`, while `apps/portal` remains a separate frontend app outside the `.sln`.
+The repository root contains one primary `.NET` solution file, `Querify.sln`. It includes the active backend, persistence, worker, tooling, and sample projects under `dotnet/`, while `apps/portal` remains a separate frontend app outside the `.sln`.
 
 | Delivery root | Responsibility |
 |---|---|
@@ -21,12 +21,12 @@ The repository root contains one primary `.NET` solution file, `BaseFaq.sln`. It
 | Surface | Role | Local port |
 |---|---|---:|
 | `apps/portal` | authenticated tenant portal frontend | `5500` |
-| `BaseFaq.Tenant.BackOffice.Api` | back-office tenant and user administration | `5000` |
-| `BaseFaq.Tenant.Portal.Api` | tenant workspace management APIs | `5002` |
-| `BaseFaq.Tenant.Public.Api` | public tenant ingress APIs such as Stripe webhooks | `5004` |
-| `BaseFaq.QnA.Portal.Api` | authenticated QnA management APIs | `5010` |
-| `BaseFaq.QnA.Public.Api` | public QnA access and public signaling APIs | `5020` |
-| `BaseFaq.Tenant.Worker.Api` | control-plane worker for billing webhooks and email outbox processing | n/a |
+| `Querify.Tenant.BackOffice.Api` | back-office tenant and user administration | `5000` |
+| `Querify.Tenant.Portal.Api` | tenant workspace management APIs | `5002` |
+| `Querify.Tenant.Public.Api` | public tenant ingress APIs such as Stripe webhooks | `5004` |
+| `Querify.QnA.Portal.Api` | authenticated QnA management APIs | `5010` |
+| `Querify.QnA.Public.Api` | public QnA access and public signaling APIs | `5020` |
+| `Querify.Tenant.Worker.Api` | control-plane worker for billing webhooks and email outbox processing | n/a |
 
 ## Core architectural patterns
 
@@ -47,7 +47,7 @@ Business logic does not live in the host; the host wires the feature modules and
 
 ### 2. Business code is split by module
 
-The repository follows a consistent naming model. The current BaseFaq modules are Tenant, QnA, Direct, Broadcast, and Trust.
+The repository follows a consistent naming model. The current Querify modules are Tenant, QnA, Direct, Broadcast, and Trust.
 
 | Module | Role |
 |---|---|
@@ -59,25 +59,25 @@ The repository follows a consistent naming model. The current BaseFaq modules ar
 
 Project prefixes follow the same module names:
 
-- `BaseFaq.Tenant.*`
-- `BaseFaq.QnA.*`
-- `BaseFaq.Direct.*`
-- `BaseFaq.Broadcast.*`
-- `BaseFaq.Trust.*`
+- `Querify.Tenant.*`
+- `Querify.QnA.*`
+- `Querify.Direct.*`
+- `Querify.Broadcast.*`
+- `Querify.Trust.*`
 
 Inside each area, business modules are further split by feature, for example:
 
-- `BaseFaq.QnA.Portal.Business.Space`
-- `BaseFaq.QnA.Portal.Business.Question`
-- `BaseFaq.QnA.Portal.Business.Answer`
-- `BaseFaq.QnA.Portal.Business.Source`
-- `BaseFaq.QnA.Portal.Business.Activity`
-- `BaseFaq.QnA.Public.Business.Space`
-- `BaseFaq.QnA.Public.Business.Question`
-- `BaseFaq.Tenant.Portal.Business.Tenant`
-- `BaseFaq.Tenant.BackOffice.Business.User`
-- `BaseFaq.Tenant.Public.Business.Billing`
-- `BaseFaq.Tenant.BackOffice.Business.Billing`
+- `Querify.QnA.Portal.Business.Space`
+- `Querify.QnA.Portal.Business.Question`
+- `Querify.QnA.Portal.Business.Answer`
+- `Querify.QnA.Portal.Business.Source`
+- `Querify.QnA.Portal.Business.Activity`
+- `Querify.QnA.Public.Business.Space`
+- `Querify.QnA.Public.Business.Question`
+- `Querify.Tenant.Portal.Business.Tenant`
+- `Querify.Tenant.BackOffice.Business.User`
+- `Querify.Tenant.Public.Business.Billing`
+- `Querify.Tenant.BackOffice.Business.Billing`
 
 This keeps controller, service, command, and query code grouped by domain capability instead of by technical layer alone. Each module uses the same feature-scoped ownership rule: add behavior to the smallest module feature project that owns the use case, keep source files in that project, and compose API hosts from feature registrations.
 
@@ -107,7 +107,7 @@ They should not contain read-after-write orchestration, persistence logic, or cr
 
 ### 5. Persistence is explicitly split by database responsibility
 
-BaseFAQ uses separate EF Core context boundaries for module data responsibilities:
+Querify uses separate EF Core context boundaries for module data responsibilities:
 
 | Module | Context | Responsibility |
 |---|---|---|
@@ -130,7 +130,7 @@ Module persistence uses `OnBeforeSaveChangesRules()` for pre-save invariants and
 
 Tenant integrity is a mandatory `DbContext` responsibility for tenant module data. When an `IMustHaveTenant` entity references another tenant-owned record, the owning context must validate the relationship before save. The default shape is `DbContext/TenantIntegrity/<Entity>TenantIntegrityExtension.cs`, one focused extension per checked entity or relationship, backed by `TenantIntegrityGuard` and `TenantIntegrityLookupCacheBase` or a module-specific lookup cache that reads referenced records with `IgnoreQueryFilters()`.
 
-`BaseFaq.Direct.Common.Persistence.DirectDb` and `BaseFaq.Broadcast.Common.Persistence.BroadcastDb` contain the current Direct and Broadcast entity, enum, configuration, DbContext, and registration-extension scope. API hosts, business modules, migrations, additional workflow entities, and seed flows for those behaviors belong in the same module boundaries.
+`Querify.Direct.Common.Persistence.DirectDb` and `Querify.Broadcast.Common.Persistence.BroadcastDb` contain the current Direct and Broadcast entity, enum, configuration, DbContext, and registration-extension scope. API hosts, business modules, migrations, additional workflow entities, and seed flows for those behaviors belong in the same module boundaries.
 
 ### 6. Multitenancy is part of the request model
 
@@ -145,16 +145,16 @@ Tenant resolution is not an optional add-on; it is part of the backend contract.
 
 ### 7. Control-plane background work is isolated from request APIs
 
-Control-plane background processing is hosted separately in `BaseFaq.Tenant.Worker.Api`.
+Control-plane background processing is hosted separately in `Querify.Tenant.Worker.Api`.
 
 That separation is intentional:
 
-- billing webhooks, email outbox delivery, entitlements, and recurring tenant operational jobs belong to `BaseFaq.Tenant.Worker.Api`
+- billing webhooks, email outbox delivery, entitlements, and recurring tenant operational jobs belong to `Querify.Tenant.Worker.Api`
 - the worker should operate against `TenantDbContext` and should not take ownership of product module workflows
 
 ### 8. Cross-cutting concerns are centralized in shared libraries
 
-The `BaseFaq.Common.Infrastructure.*` and `BaseFaq.Common.EntityFramework.*` projects encapsulate recurring concerns:
+The `Querify.Common.Infrastructure.*` and `Querify.Common.EntityFramework.*` projects encapsulate recurring concerns:
 
 - authentication and session access
 - tenant resolution
@@ -206,10 +206,10 @@ The testing strategy is documented in [`../testing/integration-testing-strategy.
 
 ### Public billing webhook flow
 
-1. Stripe calls `BaseFaq.Tenant.Public.Api`.
+1. Stripe calls `Querify.Tenant.Public.Api`.
 2. The API reads the exact raw request body and validates the Stripe signature.
 3. The API persists a `BillingWebhookInbox` record in `TenantDbContext`.
-4. `BaseFaq.Tenant.Worker.Api` claims and processes the inbox item asynchronously.
+4. `Querify.Tenant.Worker.Api` claims and processes the inbox item asynchronously.
 
 ## Practical guidance for contributors
 
@@ -218,7 +218,7 @@ The testing strategy is documented in [`../testing/integration-testing-strategy.
 - Add new business features under the appropriate bounded-context module instead of enlarging unrelated projects.
 - Keep write flows simple and aligned with the CQRS rules.
 - Treat Tenant, QnA, Direct, Broadcast, and Trust as separate module ownership boundaries.
-- Keep behavior inside its owning BaseFaq module boundary instead of folding it into a module with a similar enum, source, channel, or activity value.
+- Keep behavior inside its owning Querify module boundary instead of folding it into a module with a similar enum, source, channel, or activity value.
 - Add or update tenant-integrity rules in the owning module `DbContext` whenever tenant-owned relationships change.
-- Put public tenant ingress endpoints such as billing webhooks in `BaseFaq.Tenant.Public.Api`, not in authenticated portal hosts.
+- Put public tenant ingress endpoints such as billing webhooks in `Querify.Tenant.Public.Api`, not in authenticated portal hosts.
 - Update the specific docs in `docs/` when boundaries, startup steps, or operational assumptions change.

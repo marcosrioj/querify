@@ -31,7 +31,7 @@ export function LoginPage() {
               <MessageSquareText className="size-4" />
             </span>
             <span className="truncate text-sm font-semibold text-mono">
-              BaseFAQ
+              Querify
             </span>
           </div>
           <LanguageSelectorControl
@@ -44,7 +44,7 @@ export function LoginPage() {
         <div className="space-y-2">
           <h2 className="text-3xl font-semibold text-mono">{t("Sign in")}</h2>
           <p className="text-sm leading-6 text-muted-foreground">
-            {t("Manage your BaseFAQ QnA workspace")}
+            {t("Manage your Querify QnA workspace")}
           </p>
         </div>
       </div>

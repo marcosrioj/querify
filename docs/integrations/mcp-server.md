@@ -1,10 +1,10 @@
-# BaseFAQ MCP Server
+# Querify MCP Server
 
 ## What this is
 
 Model Context Protocol (MCP) is an open standard that lets AI assistants (Claude, Cursor, VS Code
 Copilot, and any MCP-compatible client) call tools, read resources, and use system prompts
-provided by an external server. For BaseFAQ, this means any AI agent can query spaces and
+provided by an external server. For Querify, this means any AI agent can query spaces and
 questions, create drafts, and run the Source → Q&A generation pipeline — all from a conversation.
 
 **Full design:** [`../future/integrations/mcp.md`](../future/integrations/mcp.md)
@@ -13,12 +13,12 @@ questions, create drafts, and run the Source → Q&A generation pipeline — all
 
 ## What works today (TypeScript proxy)
 
-Before `BaseFaq.MCP.Server` is built, a lightweight TypeScript proxy bridges MCP calls to the
-existing BaseFAQ REST APIs. No changes to the .NET solution required.
+Before `Querify.MCP.Server` is built, a lightweight TypeScript proxy bridges MCP calls to the
+existing Querify REST APIs. No changes to the .NET solution required.
 
 ### Tools available now
 
-| Tool | BaseFAQ endpoint | Auth |
+| Tool | Querify endpoint | Auth |
 |---|---|---|
 | `qna_list_spaces` | `GET /api/qna/space` | `X-Client-Key` |
 | `qna_get_space` | `GET /api/qna/space/by-slug/{slug}` | `X-Client-Key` |
@@ -35,7 +35,7 @@ existing BaseFAQ REST APIs. No changes to the .NET solution required.
 ### Quick start
 
 ```bash
-mkdir basefaq-mcp && cd basefaq-mcp
+mkdir querify-mcp && cd querify-mcp
 npm init -y
 npm install @modelcontextprotocol/sdk zod
 npm install -D typescript @types/node tsx
@@ -44,11 +44,11 @@ npm install -D typescript @types/node tsx
 Environment variables:
 
 ```bash
-BASEFAQ_PORTAL_API_URL=http://localhost:5010
-BASEFAQ_PUBLIC_API_URL=http://localhost:5020
-BASEFAQ_CLIENT_KEY=your-client-key
-BASEFAQ_TENANT_ID=your-tenant-uuid
-BASEFAQ_AUTH_TOKEN=your-auth0-token   # only needed for write tools
+QUERIFY_PORTAL_API_URL=http://localhost:5010
+QUERIFY_PUBLIC_API_URL=http://localhost:5020
+QUERIFY_CLIENT_KEY=your-client-key
+QUERIFY_TENANT_ID=your-tenant-uuid
+QUERIFY_AUTH_TOKEN=your-auth0-token   # only needed for write tools
 ```
 
 ### Connect to Claude Code
@@ -58,13 +58,13 @@ BASEFAQ_AUTH_TOKEN=your-auth0-token   # only needed for write tools
 ```json
 {
   "mcpServers": {
-    "basefaq": {
+    "querify": {
       "command": "tsx",
-      "args": ["./basefaq-mcp/src/server.ts"],
+      "args": ["./querify-mcp/src/server.ts"],
       "env": {
-        "BASEFAQ_PORTAL_API_URL": "http://localhost:5010",
-        "BASEFAQ_PUBLIC_API_URL": "http://localhost:5020",
-        "BASEFAQ_CLIENT_KEY": "your-client-key"
+        "QUERIFY_PORTAL_API_URL": "http://localhost:5010",
+        "QUERIFY_PUBLIC_API_URL": "http://localhost:5020",
+        "QUERIFY_CLIENT_KEY": "your-client-key"
       }
     }
   }
@@ -78,13 +78,13 @@ BASEFAQ_AUTH_TOKEN=your-auth0-token   # only needed for write tools
 ```json
 {
   "mcpServers": {
-    "basefaq": {
+    "querify": {
       "command": "tsx",
-      "args": ["/absolute/path/to/basefaq-mcp/src/server.ts"],
+      "args": ["/absolute/path/to/querify-mcp/src/server.ts"],
       "env": {
-        "BASEFAQ_PORTAL_API_URL": "http://localhost:5010",
-        "BASEFAQ_PUBLIC_API_URL": "http://localhost:5020",
-        "BASEFAQ_CLIENT_KEY": "your-client-key"
+        "QUERIFY_PORTAL_API_URL": "http://localhost:5010",
+        "QUERIFY_PUBLIC_API_URL": "http://localhost:5020",
+        "QUERIFY_CLIENT_KEY": "your-client-key"
       }
     }
   }
@@ -103,8 +103,8 @@ Opens `http://localhost:5173` — browse tools, invoke them with test arguments,
 
 ## Production path
 
-The TypeScript proxy is the starting point. The production path is `BaseFaq.MCP.Server` — a
-native .NET project inside `BaseFaq.sln` that calls MediatR handlers directly, serves all five
+The TypeScript proxy is the starting point. The production path is `Querify.MCP.Server` — a
+native .NET project inside `Querify.sln` that calls MediatR handlers directly, serves all five
 module agent types (QnA, Direct, Broadcast, Trust, Tenant), and participates in the same database
 transaction as the rest of the backend.
 

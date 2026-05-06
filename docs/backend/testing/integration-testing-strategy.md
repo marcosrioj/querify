@@ -2,11 +2,11 @@
 
 ## Purpose
 
-This document explains what integration testing means in BaseFAQ, which parts of the solution are already covered, and where the current test investment should grow next.
+This document explains what integration testing means in Querify, which parts of the solution are already covered, and where the current test investment should grow next.
 
 ## Guiding principle
 
-BaseFAQ integration tests should validate real behavior across component boundaries with production-like rules, not mocked approximations of the stack.
+Querify integration tests should validate real behavior across component boundaries with production-like rules, not mocked approximations of the stack.
 
 That means preferring:
 
@@ -19,13 +19,13 @@ That means preferring:
 
 The repository currently contains these backend-facing automated test projects:
 
-- `BaseFaq.QnA.Portal.Test.IntegrationTests`
-- `BaseFaq.QnA.Public.Test.IntegrationTests`
-- `BaseFaq.Tenant.BackOffice.Test.IntegrationTests`
-- `BaseFaq.Tenant.Portal.Test.IntegrationTests`
-- `BaseFaq.Tenant.Public.Test.IntegrationTests`
-- `BaseFaq.Tenant.Worker.Test.IntegrationTests`
-- `BaseFaq.Common.Architecture.Test.IntegrationTest`
+- `Querify.QnA.Portal.Test.IntegrationTests`
+- `Querify.QnA.Public.Test.IntegrationTests`
+- `Querify.Tenant.BackOffice.Test.IntegrationTests`
+- `Querify.Tenant.Portal.Test.IntegrationTests`
+- `Querify.Tenant.Public.Test.IntegrationTests`
+- `Querify.Tenant.Worker.Test.IntegrationTests`
+- `Querify.Common.Architecture.Test.IntegrationTest`
 
 The first six focus on service behavior. The architecture test project enforces repository rules such as the write-side contract expectations from [`../architecture/repository-rules.md`](../architecture/repository-rules.md).
 
@@ -130,18 +130,18 @@ Focus:
 Run the current service integration suites individually:
 
 ```bash
-dotnet test dotnet/BaseFaq.QnA.Portal.Test.IntegrationTests/BaseFaq.QnA.Portal.Test.IntegrationTests.csproj
-dotnet test dotnet/BaseFaq.QnA.Public.Test.IntegrationTests/BaseFaq.QnA.Public.Test.IntegrationTests.csproj
-dotnet test dotnet/BaseFaq.Tenant.BackOffice.Test.IntegrationTests/BaseFaq.Tenant.BackOffice.Test.IntegrationTests.csproj
-dotnet test dotnet/BaseFaq.Tenant.Portal.Test.IntegrationTests/BaseFaq.Tenant.Portal.Test.IntegrationTests.csproj
-dotnet test dotnet/BaseFaq.Tenant.Public.Test.IntegrationTests/BaseFaq.Tenant.Public.Test.IntegrationTests.csproj
-dotnet test dotnet/BaseFaq.Tenant.Worker.Test.IntegrationTests/BaseFaq.Tenant.Worker.Test.IntegrationTests.csproj
+dotnet test dotnet/Querify.QnA.Portal.Test.IntegrationTests/Querify.QnA.Portal.Test.IntegrationTests.csproj
+dotnet test dotnet/Querify.QnA.Public.Test.IntegrationTests/Querify.QnA.Public.Test.IntegrationTests.csproj
+dotnet test dotnet/Querify.Tenant.BackOffice.Test.IntegrationTests/Querify.Tenant.BackOffice.Test.IntegrationTests.csproj
+dotnet test dotnet/Querify.Tenant.Portal.Test.IntegrationTests/Querify.Tenant.Portal.Test.IntegrationTests.csproj
+dotnet test dotnet/Querify.Tenant.Public.Test.IntegrationTests/Querify.Tenant.Public.Test.IntegrationTests.csproj
+dotnet test dotnet/Querify.Tenant.Worker.Test.IntegrationTests/Querify.Tenant.Worker.Test.IntegrationTests.csproj
 ```
 
 Run the architecture rules suite:
 
 ```bash
-dotnet test dotnet/BaseFaq.Common.Architecture.Test.IntegrationTest/BaseFaq.Common.Architecture.Test.IntegrationTest.csproj
+dotnet test dotnet/Querify.Common.Architecture.Test.IntegrationTest/Querify.Common.Architecture.Test.IntegrationTest.csproj
 ```
 
 ## Current priorities

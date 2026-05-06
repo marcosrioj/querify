@@ -1,4 +1,4 @@
-# BaseFAQ Portal Localization
+# Querify Portal Localization
 
 ## Purpose
 
@@ -9,7 +9,7 @@ This document explains how `apps/portal` resolves language, applies RTL or LTR, 
 The Portal language is resolved in this order:
 
 1. `User.Language` from the Tenant Portal profile endpoint, when available for the authenticated user
-2. the locally stored Portal language in `localStorage` under `basefaq.portal.language`
+2. the locally stored Portal language in `localStorage` under `querify.portal.language`
 3. browser language
 4. English `en-US`
 
@@ -107,4 +107,4 @@ When adding new Portal UI copy:
 
 ## Persistence note
 
-The tenant database migration for `User.Language` already exists in `BaseFaq.Common.EntityFramework.Tenant/Migrations/20260408200842_UserLanguageAdded.cs`. Frontend localization work should therefore treat the nullable profile language field as an active backend contract, not as a pending schema change.
+The tenant database migration for `User.Language` already exists in `Querify.Common.EntityFramework.Tenant/Migrations/20260408200842_UserLanguageAdded.cs`. Frontend localization work should therefore treat the nullable profile language field as an active backend contract, not as a pending schema change.

@@ -22,11 +22,11 @@ Cada resposta resolvida fortalece a base, reduz retrabalho e revela o que o merc
 
 Uma categoria mais forte do que "plataforma de perguntas": o produto não apenas responde dúvidas, ele transforma demanda, suporte, comunidade e decisão em conteúdo operacional que a empresa reutiliza.
 
-## Os 5 Módulos Atuais Do BaseFaq
+## Os 5 Módulos Atuais Do Querify
 
-O BaseFaq é composto por cinco módulos atuais: Tenant, QnA, Direct, Broadcast e Trust.
+O Querify é composto por cinco módulos atuais: Tenant, QnA, Direct, Broadcast e Trust.
 
-Esses módulos não representam departamentos da empresa. Produto, marketing, suporte, sucesso do cliente, comunidade, vendas, parceiros e liderança são áreas humanas que podem operar ou consumir o sistema, mas não são módulos do BaseFaq. Um fluxo de negócio pode envolver várias áreas humanas sem mudar a responsabilidade técnica de cada módulo.
+Esses módulos não representam departamentos da empresa. Produto, marketing, suporte, sucesso do cliente, comunidade, vendas, parceiros e liderança são áreas humanas que podem operar ou consumir o sistema, mas não são módulos do Querify. Um fluxo de negócio pode envolver várias áreas humanas sem mudar a responsabilidade técnica de cada módulo.
 
 ### Regra De Não Conflito Entre Áreas
 
@@ -40,7 +40,7 @@ Cada comportamento persistente deve ter um único dono de módulo. Outros módul
 | É uma interação visível por muitas pessoas ou produzida em espaço compartilhado? | Broadcast | Broadcast consulta QnA para responder e gerar lacunas, mas é dono de captura pública, coordenação de resposta e sinais sociais/comunitários. |
 | É validação, voto, aceite formal, contestação, racional, histórico de decisão ou auditoria? | Trust | Trust valida e registra decisões, mas não substitui QnA, Direct, Broadcast ou Tenant como donos dos seus próprios fluxos. |
 
-Se uma necessidade descreve uma área humana, como marketing ajustar campanha ou produto priorizar roadmap, ela continua sendo resultado de negócio. Ela só vira comportamento do BaseFaq quando existe estado, regra ou fluxo que um dos módulos precisa possuir.
+Se uma necessidade descreve uma área humana, como marketing ajustar campanha ou produto priorizar roadmap, ela continua sendo resultado de negócio. Ela só vira comportamento do Querify quando existe estado, regra ou fluxo que um dos módulos precisa possuir.
 
 ### Áreas De Negócio E Módulos Que Elas Usam
 
@@ -250,7 +250,7 @@ Esse é o ciclo que cria valor acumulado: **interação -> dono correto -> resol
 
 ## Como Os Módulos Se Conectam
 
-Os módulos do BaseFaq funcionam como partes de um mesmo sistema. Tenant controla identidade, acesso, cobrança e roteamento de dados. QnA, Direct, Broadcast e Trust executam os fluxos de produto e alimentam o ciclo de conhecimento.
+Os módulos do Querify funcionam como partes de um mesmo sistema. Tenant controla identidade, acesso, cobrança e roteamento de dados. QnA, Direct, Broadcast e Trust executam os fluxos de produto e alimentam o ciclo de conhecimento.
 
 A tabela abaixo mostra responsabilidade de módulo, não responsabilidade de times humanos. Produto, marketing, suporte, comunidade, vendas, parceiros e liderança podem participar da decisão operacional, mas continuam sendo áreas de negócio.
 

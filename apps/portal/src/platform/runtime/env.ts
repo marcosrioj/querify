@@ -4,7 +4,7 @@ const readEnv = (value: string | undefined, fallback = '') =>
 const qnaPortalApiUrl = readEnv(import.meta.env.VITE_PORTAL_QNA_API_URL, 'http://localhost:5010');
 
 export const RuntimeEnv = {
-  appName: 'BaseFAQ QnA Portal',
+  appName: 'Querify QnA Portal',
   baseUrl: import.meta.env.BASE_URL ?? '/',
   qnaPortalApiUrl,
   tenantPortalApiUrl: readEnv(
@@ -13,11 +13,11 @@ export const RuntimeEnv = {
   ),
   auth0Domain: readEnv(
     import.meta.env.VITE_AUTH0_DOMAIN,
-    'basefaq.us.auth0.com',
+    'querify.us.auth0.com',
   ),
   auth0Audience: readEnv(
     import.meta.env.VITE_AUTH0_AUDIENCE,
-    'https://basefaq.com',
+    'https://querify.net',
   ),
   auth0ClientId: readEnv(import.meta.env.VITE_AUTH0_CLIENT_ID),
   auth0RedirectUri: readEnv(import.meta.env.VITE_AUTH0_REDIRECT_URI),

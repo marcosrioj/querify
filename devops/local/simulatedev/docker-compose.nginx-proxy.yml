@@ -1,7 +1,7 @@
 services:
-  basefaq.local.nginx:
+  querify.local.nginx:
     image: nginx:1.27-alpine
-    container_name: basefaq-local-nginx-proxy
+    container_name: querify-local-nginx-proxy
     restart: unless-stopped
     ports:
       - "80:80"

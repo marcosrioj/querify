@@ -22,7 +22,7 @@ import {
 } from "@/shared/layout/page-chrome-context";
 import { usePortalI18n } from "@/shared/lib/use-portal-i18n";
 
-const SIDEBAR_COMPACT_STORAGE_KEY = "basefaq-portal-sidebar-compact";
+const SIDEBAR_COMPACT_STORAGE_KEY = "querify-portal-sidebar-compact";
 
 function getStoredSidebarCompact() {
   if (typeof window === "undefined") {
@@ -41,7 +41,7 @@ function useRouteTitle() {
     useMatches()
       .map((match) => match.handle as AppRouteHandle | undefined)
       .filter((handle): handle is AppRouteHandle => Boolean(handle?.title))
-      .at(-1)?.title ?? "BaseFAQ QnA Portal"
+      .at(-1)?.title ?? "Querify QnA Portal"
   );
 }
 
@@ -101,7 +101,7 @@ function PortalLayoutShell() {
     <>
       <Helmet>
         <title>
-          {title} | {t("BaseFAQ QnA Portal")}
+          {title} | {t("Querify QnA Portal")}
         </title>
       </Helmet>
 

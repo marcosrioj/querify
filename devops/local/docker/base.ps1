@@ -17,9 +17,9 @@ if (-not $env:REDIS_PASSWORD) {
   $env:REDIS_PASSWORD = 'RedisTempPassword'
 }
 
-Write-Banner "Stopping BaseFaq base services (project only)..."
+Write-Banner "Stopping Querify base services (project only)..."
 
-docker compose -p bf_baseservices -f $ComposeFile down --remove-orphans
+docker compose -p qf_baseservices -f $ComposeFile down --remove-orphans
 
 Write-Banner "Starting base services..."
 
@@ -28,7 +28,7 @@ if (-not $networkExists) {
   docker network create bf-network
 }
 
-docker compose -p bf_baseservices -f $ComposeFile up -d --force-recreate --no-build --remove-orphans --wait
+docker compose -p qf_baseservices -f $ComposeFile up -d --force-recreate --no-build --remove-orphans --wait
 
 $username = 'postgres'
 $password = 'Pass123$'

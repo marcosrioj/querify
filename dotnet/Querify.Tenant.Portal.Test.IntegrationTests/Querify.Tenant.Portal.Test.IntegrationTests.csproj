@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <IsTestProject>true</IsTestProject>
+        <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <FrameworkReference Include="Microsoft.AspNetCore.App"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1"/>
+        <PackageReference Include="xunit" Version="2.9.2"/>
+        <PackageReference Include="xunit.runner.visualstudio" Version="3.1.3">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Querify.Common.Architecture.Test.IntegrationTest\Querify.Common.Architecture.Test.IntegrationTest.csproj"/>
+        <ProjectReference Include="..\Querify.Common.EntityFramework.Tenant\Querify.Common.EntityFramework.Tenant.csproj"/>
+        <ProjectReference Include="..\Querify.Common.Infrastructure.Core\Querify.Common.Infrastructure.Core.csproj"/>
+        <ProjectReference Include="..\Querify.Models.Tenant\Querify.Models.Tenant.csproj"/>
+        <ProjectReference Include="..\Querify.Models.User\Querify.Models.User.csproj"/>
+        <ProjectReference Include="..\Querify.Tenant.Portal.Business.Billing\Querify.Tenant.Portal.Business.Billing.csproj"/>
+        <ProjectReference Include="..\Querify.Tenant.Portal.Business.Tenant\Querify.Tenant.Portal.Business.Tenant.csproj"/>
+        <ProjectReference Include="..\Querify.Tenant.Portal.Business.User\Querify.Tenant.Portal.Business.User.csproj"/>
+    </ItemGroup>
+
+</Project>

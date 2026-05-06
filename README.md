@@ -1,6 +1,6 @@
-# BaseFAQ
+# Querify
 
-BaseFAQ is a multi-tenant knowledge platform built from a React portal, multiple `.NET 10` APIs, tenant-aware PostgreSQL databases, and background worker services.
+Querify is a multi-tenant knowledge platform built from a React portal, multiple `.NET 10` APIs, tenant-aware PostgreSQL databases, and background worker services.
 
 This `README` is intentionally short. It explains what the repository is and how to bootstrap the essential local stack. All repository-owned documentation lives under [`docs/README.md`](docs/README.md).
 
@@ -23,8 +23,8 @@ This `README` is intentionally short. It explains what the repository is and how
 ### 1. Restore and build
 
 ```bash
-dotnet restore BaseFaq.sln
-dotnet build BaseFaq.sln
+dotnet restore Querify.sln
+dotnet build Querify.sln
 ```
 
 ### 2. Start local infrastructure
@@ -46,7 +46,7 @@ This brings up PostgreSQL, RabbitMQ, Redis, SMTP4Dev, Jaeger, Prometheus, Alertm
 ### 3. Initialize the databases
 
 ```bash
-dotnet run --project dotnet/BaseFaq.Tools.Seed
+dotnet run --project dotnet/Querify.Tools.Seed
 ```
 
 Recommended choices:
@@ -59,11 +59,11 @@ Recommended choices:
 Typical local host-based workflow:
 
 ```bash
-dotnet run --project dotnet/BaseFaq.Tenant.BackOffice.Api
-dotnet run --project dotnet/BaseFaq.Tenant.Portal.Api
-dotnet run --project dotnet/BaseFaq.Tenant.Public.Api
-dotnet run --project dotnet/BaseFaq.QnA.Portal.Api
-dotnet run --project dotnet/BaseFaq.QnA.Public.Api
+dotnet run --project dotnet/Querify.Tenant.BackOffice.Api
+dotnet run --project dotnet/Querify.Tenant.Portal.Api
+dotnet run --project dotnet/Querify.Tenant.Public.Api
+dotnet run --project dotnet/Querify.QnA.Portal.Api
+dotnet run --project dotnet/Querify.QnA.Public.Api
 ```
 
 Frontend:
@@ -92,13 +92,13 @@ Containerized app/API alternatives:
 Interactive mode:
 
 ```bash
-dotnet run --project dotnet/BaseFaq.Tools.Migration
+dotnet run --project dotnet/Querify.Tools.Migration
 ```
 
 Non-interactive QnA database update:
 
 ```bash
-dotnet run --project dotnet/BaseFaq.Tools.Migration -- --command database-update
+dotnet run --project dotnet/Querify.Tools.Migration -- --command database-update
 ```
 
 Use this after the tenant metadata already exists, or when you need to apply QnA migrations across all tenant databases.
@@ -124,7 +124,7 @@ Use this after the tenant metadata already exists, or when you need to apply QnA
 - Protected APIs use Auth0-issued JWTs.
 - Tenant-scoped endpoints use `X-Tenant-Id`.
 - Public QnA requests use `X-Client-Key`.
-- Public billing webhooks use `BaseFaq.Tenant.Public.Api` and do not require JWT, `X-Tenant-Id`, or `X-Client-Key`.
+- Public billing webhooks use `Querify.Tenant.Public.Api` and do not require JWT, `X-Tenant-Id`, or `X-Client-Key`.
 - Swagger UI auth is configured in the protected API `appsettings.json` files.
 
 ## Documentation

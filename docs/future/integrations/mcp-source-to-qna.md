@@ -130,7 +130,7 @@ public async Task<string> AnalyzeSource(
 
 ```csharp
 [McpServerTool(Name = "qna_import_source",
-    Description = "Fetch a URL, generate Q&A drafts using AI, and save everything to BaseFAQ in one transaction. All content enters as Draft and requires human review.")]
+    Description = "Fetch a URL, generate Q&A drafts using AI, and save everything to Querify in one transaction. All content enters as Draft and requires human review.")]
 public async Task<string> ImportSource(
     [McpServerToolParameter] Guid tenantId,
     [McpServerToolParameter(Description = "URL of the source")] string url,
@@ -166,10 +166,10 @@ public async Task<string> ImportSource(
 
 ```csharp
 [McpServerTool(Name = "qna_generate_from_existing_source",
-    Description = "Re-read a source already registered in BaseFAQ and generate new Q&A drafts from its current content.")]
+    Description = "Re-read a source already registered in Querify and generate new Q&A drafts from its current content.")]
 public async Task<string> GenerateFromExistingSource(
     [McpServerToolParameter] Guid tenantId,
-    [McpServerToolParameter(Description = "BaseFAQ source ID")] Guid sourceId,
+    [McpServerToolParameter(Description = "Querify source ID")] Guid sourceId,
     [McpServerToolParameter(Description = "Target space ID")] Guid spaceId,
     [McpServerToolParameter] int maxPairs = 5,
     CancellationToken ct = default)
@@ -200,7 +200,7 @@ public async Task<string> GenerateFromExistingSource(
 This command does not exist yet. It is the core backend addition for this pipeline.
 
 ```csharp
-// dotnet/BaseFaq.QnA.Portal.Business.SourceIngestion/Commands/GenerateQnA/GenerateQnAFromSourceCommand.cs
+// dotnet/Querify.QnA.Portal.Business.SourceIngestion/Commands/GenerateQnA/GenerateQnAFromSourceCommand.cs
 public record GenerateQnAFromSourceCommand : IRequest<GenerateQnAResult>
 {
     public required Guid SpaceId { get; init; }
@@ -255,7 +255,7 @@ public async Task<GenerateQnAResult> Handle(
 Project location follows the feature-scoped module pattern:
 
 ```
-dotnet/BaseFaq.QnA.Portal.Business.SourceIngestion/
+dotnet/Querify.QnA.Portal.Business.SourceIngestion/
   Commands/
     GenerateQnA/
       GenerateQnAFromSourceCommand.cs
@@ -264,15 +264,15 @@ dotnet/BaseFaq.QnA.Portal.Business.SourceIngestion/
     ServiceCollectionExtensions.cs    AddSourceIngestionBusiness()
 ```
 
-Register in `BaseFaq.QnA.Portal.Api` alongside the existing feature modules. Also register in
-`BaseFaq.MCP.Server/Program.cs` since the MCP server calls it directly.
+Register in `Querify.QnA.Portal.Api` alongside the existing feature modules. Also register in
+`Querify.MCP.Server/Program.cs` since the MCP server calls it directly.
 
 ---
 
 ## `ContentFetcher`
 
 ```csharp
-// dotnet/BaseFaq.MCP.Server/Infrastructure/ContentFetcher.cs
+// dotnet/Querify.MCP.Server/Infrastructure/ContentFetcher.cs
 public sealed class ContentFetcher(HttpClient http)
 {
     public async Task<(string Text, string Checksum, string Title)> FetchAsync(
@@ -317,7 +317,7 @@ public sealed class ContentFetcher(HttpClient http)
 ## `QnAGenerator`
 
 ```csharp
-// dotnet/BaseFaq.MCP.Server/Services/QnAGenerator.cs
+// dotnet/Querify.MCP.Server/Services/QnAGenerator.cs
 public sealed class QnAGenerator(AnthropicClient anthropic, IOptions<McpServerOptions> options)
 {
     public async Task<List<QnACandidate>> GenerateAsync(
@@ -373,12 +373,12 @@ pipeline and are repeated here for completeness.
 ### Gap 1: `AnswerKind.AiGenerated` missing
 
 **Workaround today:** `AnswerKind.Imported`.
-**Fix:** add `AiGenerated = 4` to `dotnet/BaseFaq.Models.QnA/Enums/AnswerKind.cs`.
+**Fix:** add `AiGenerated = 4` to `dotnet/Querify.Models.QnA/Enums/AnswerKind.cs`.
 
 ### Gap 2: No `ChannelKind` for AI ingestion
 
 **Workaround today:** `ChannelKind.Import` (5).
-**Fix:** add `AiIngestion` to `dotnet/BaseFaq.Models.QnA/Enums/ChannelKind.cs`.
+**Fix:** add `AiIngestion` to `dotnet/Querify.Models.QnA/Enums/ChannelKind.cs`.
 
 ### Gap 3: No search — duplicates not detected before generation
 
@@ -426,4 +426,4 @@ Phases 1–3 are inherited from [`mcp.md`](mcp.md). These phases are specific to
 | [`mcp.md`](mcp.md) | Server architecture, session model, all agents — required reading |
 | [`../../behavior-change-playbook.md`](../../behavior-change-playbook.md) | How to propagate `AnswerKind` and `ChannelKind` additions |
 | [`../../backend/architecture/solution-cqrs-write-rules.md`](../../backend/architecture/solution-cqrs-write-rules.md) | CQRS rules for `GenerateQnAFromSourceCommand` handler |
-| [`../../backend/architecture/repository-rules.md`](../../backend/architecture/repository-rules.md) | Feature-scoped module pattern for `BaseFaq.QnA.Portal.Business.SourceIngestion` |
+| [`../../backend/architecture/repository-rules.md`](../../backend/architecture/repository-rules.md) | Feature-scoped module pattern for `Querify.QnA.Portal.Business.SourceIngestion` |

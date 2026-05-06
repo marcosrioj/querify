@@ -24,14 +24,14 @@ export function SidebarHeader({
         "inline-flex min-w-0 items-center gap-2.5",
         compact && "justify-center",
       )}
-      aria-label={t("BaseFAQ QnA Portal")}
+      aria-label={t("Querify QnA Portal")}
     >
       <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-[0_12px_24px_-14px_rgba(16,185,129,0.9)]">
         <MessageSquareText className="size-4" />
       </span>
       {!compact ? (
         <span className="default-logo text-lg font-semibold text-mono">
-          BaseFAQ
+          Querify
         </span>
       ) : null}
     </Link>
@@ -49,7 +49,7 @@ export function SidebarHeader({
           <Tooltip>
             <TooltipTrigger asChild>{brandLink}</TooltipTrigger>
             <TooltipContent side="right">
-              {t("BaseFAQ QnA Portal")}
+              {t("Querify QnA Portal")}
             </TooltipContent>
           </Tooltip>
         ) : (

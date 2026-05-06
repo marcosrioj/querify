@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <PackageId>Querify.Broadcast.Common.Persistence.BroadcastDb</PackageId>
+        <AssemblyName>Querify.Broadcast.Common.Persistence.BroadcastDb</AssemblyName>
+        <RootNamespace>Querify.Broadcast.Common.Persistence.BroadcastDb</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Querify.Common.EntityFramework.Core\Querify.Common.EntityFramework.Core.csproj"/>
+        <ProjectReference Include="..\Querify.Common.EntityFramework.Tenant\Querify.Common.EntityFramework.Tenant.csproj"/>
+        <ProjectReference Include="..\Querify.Common.Infrastructure.Core\Querify.Common.Infrastructure.Core.csproj"/>
+        <ProjectReference Include="..\Querify.Models.Broadcast\Querify.Models.Broadcast.csproj" />
+    </ItemGroup>
+
+</Project>

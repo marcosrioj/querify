@@ -3,20 +3,20 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 COMPOSE_FILE="$SCRIPT_DIR/docker-compose.nginx-proxy.yml"
-COMPOSE_PROJECT="bf_baseservices"
-COMPOSE_SERVICE="basefaq.local.nginx"
+COMPOSE_PROJECT="qf_baseservices"
+COMPOSE_SERVICE="querify.local.nginx"
 
 RUNTIME_DIR="$SCRIPT_DIR/runtime"
 NGINX_CONF_DIR="$RUNTIME_DIR/nginx/conf.d"
-NGINX_CONF_FILE="$NGINX_CONF_DIR/basefaq-subdomains.conf"
+NGINX_CONF_FILE="$NGINX_CONF_DIR/querify-subdomains.conf"
 NGINX_CERT_DIR="$SCRIPT_DIR/certs"
-NGINX_CERT_FILE="$NGINX_CERT_DIR/dev.basefaq.com.crt"
-NGINX_CERT_KEY_FILE="$NGINX_CERT_DIR/dev.basefaq.com.key"
+NGINX_CERT_FILE="$NGINX_CERT_DIR/dev.querify.net.crt"
+NGINX_CERT_KEY_FILE="$NGINX_CERT_DIR/dev.querify.net.key"
 HOSTS_BACKUP_DIR="$RUNTIME_DIR/hosts-backups"
 
 HOSTS_FILE="/etc/hosts"
-HOSTS_MARKER_BEGIN="# >>> BASEFAQ LOCAL SUBDOMAINS >>>"
-HOSTS_MARKER_END="# <<< BASEFAQ LOCAL SUBDOMAINS <<<"
+HOSTS_MARKER_BEGIN="# >>> QUERIFY LOCAL SUBDOMAINS >>>"
+HOSTS_MARKER_END="# <<< QUERIFY LOCAL SUBDOMAINS <<<"
 
 UPSTREAM_HOST="${UPSTREAM_HOST:-host.docker.internal}"
 HOST_IP="${HOST_IP:-127.0.0.1}"
@@ -75,17 +75,17 @@ server {
 server {
     listen 443 ssl default_server;
     server_name _;
-    ssl_certificate /etc/nginx/certs/dev.basefaq.com.crt;
-    ssl_certificate_key /etc/nginx/certs/dev.basefaq.com.key;
+    ssl_certificate /etc/nginx/certs/dev.querify.net.crt;
+    ssl_certificate_key /etc/nginx/certs/dev.querify.net.key;
     return 404;
 }
 
 server {
     listen 80;
     listen 443 ssl;
-    server_name dev.portal.basefaq.com;
-    ssl_certificate /etc/nginx/certs/dev.basefaq.com.crt;
-    ssl_certificate_key /etc/nginx/certs/dev.basefaq.com.key;
+    server_name dev.portal.querify.net;
+    ssl_certificate /etc/nginx/certs/dev.querify.net.crt;
+    ssl_certificate_key /etc/nginx/certs/dev.querify.net.key;
 
     location /api/tenant/ {
         proxy_pass http://$UPSTREAM_HOST:$TENANT_PORTAL_PORT;
@@ -135,9 +135,9 @@ server {
 server {
     listen 80;
     listen 443 ssl;
-    server_name dev.tenant.backoffice.basefaq.com;
-    ssl_certificate /etc/nginx/certs/dev.basefaq.com.crt;
-    ssl_certificate_key /etc/nginx/certs/dev.basefaq.com.key;
+    server_name dev.tenant.backoffice.querify.net;
+    ssl_certificate /etc/nginx/certs/dev.querify.net.crt;
+    ssl_certificate_key /etc/nginx/certs/dev.querify.net.key;
 
     location / {
         proxy_pass http://$UPSTREAM_HOST:$TENANT_BACKOFFICE_PORT;
@@ -154,9 +154,9 @@ server {
 server {
     listen 80;
     listen 443 ssl;
-    server_name dev.tenant.portal.basefaq.com;
-    ssl_certificate /etc/nginx/certs/dev.basefaq.com.crt;
-    ssl_certificate_key /etc/nginx/certs/dev.basefaq.com.key;
+    server_name dev.tenant.portal.querify.net;
+    ssl_certificate /etc/nginx/certs/dev.querify.net.crt;
+    ssl_certificate_key /etc/nginx/certs/dev.querify.net.key;
 
     location / {
         proxy_pass http://$UPSTREAM_HOST:$TENANT_PORTAL_PORT;
@@ -173,9 +173,9 @@ server {
 server {
     listen 80;
     listen 443 ssl;
-    server_name dev.tenant.public.basefaq.com;
-    ssl_certificate /etc/nginx/certs/dev.basefaq.com.crt;
-    ssl_certificate_key /etc/nginx/certs/dev.basefaq.com.key;
+    server_name dev.tenant.public.querify.net;
+    ssl_certificate /etc/nginx/certs/dev.querify.net.crt;
+    ssl_certificate_key /etc/nginx/certs/dev.querify.net.key;
 
     location / {
         proxy_pass http://$UPSTREAM_HOST:$TENANT_PUBLIC_PORT;
@@ -192,9 +192,9 @@ server {
 server {
     listen 80;
     listen 443 ssl;
-    server_name dev.qna.portal.basefaq.com;
-    ssl_certificate /etc/nginx/certs/dev.basefaq.com.crt;
-    ssl_certificate_key /etc/nginx/certs/dev.basefaq.com.key;
+    server_name dev.qna.portal.querify.net;
+    ssl_certificate /etc/nginx/certs/dev.querify.net.crt;
+    ssl_certificate_key /etc/nginx/certs/dev.querify.net.key;
 
     location / {
         proxy_pass http://$UPSTREAM_HOST:$QNA_PORTAL_PORT;
@@ -211,9 +211,9 @@ server {
 server {
     listen 80;
     listen 443 ssl;
-    server_name dev.qna.public.basefaq.com;
-    ssl_certificate /etc/nginx/certs/dev.basefaq.com.crt;
-    ssl_certificate_key /etc/nginx/certs/dev.basefaq.com.key;
+    server_name dev.qna.public.querify.net;
+    ssl_certificate /etc/nginx/certs/dev.querify.net.crt;
+    ssl_certificate_key /etc/nginx/certs/dev.querify.net.key;
 
     location / {
         proxy_pass http://$UPSTREAM_HOST:$QNA_PUBLIC_PORT;
@@ -230,9 +230,9 @@ server {
 server {
     listen 80;
     listen 443 ssl;
-    server_name dev.test.basefaq.com *.test.basefaq.com;
-    ssl_certificate /etc/nginx/certs/dev.basefaq.com.crt;
-    ssl_certificate_key /etc/nginx/certs/dev.basefaq.com.key;
+    server_name dev.test.querify.net *.test.querify.net;
+    ssl_certificate /etc/nginx/certs/dev.querify.net.crt;
+    ssl_certificate_key /etc/nginx/certs/dev.querify.net.key;
 
     location / {
         proxy_pass http://$UPSTREAM_HOST:$TEST_PORT;
@@ -268,13 +268,13 @@ update_hosts_file() {
 
   {
     printf "\n%s\n" "$HOSTS_MARKER_BEGIN"
-    printf "%s dev.portal.basefaq.com\n" "$HOST_IP"
-    printf "%s dev.tenant.backoffice.basefaq.com\n" "$HOST_IP"
-    printf "%s dev.tenant.public.basefaq.com\n" "$HOST_IP"
-    printf "%s dev.tenant.portal.basefaq.com\n" "$HOST_IP"
-    printf "%s dev.qna.portal.basefaq.com\n" "$HOST_IP"
-    printf "%s dev.qna.public.basefaq.com\n" "$HOST_IP"
-    printf "%s dev.test.basefaq.com\n" "$HOST_IP"
+    printf "%s dev.portal.querify.net\n" "$HOST_IP"
+    printf "%s dev.tenant.backoffice.querify.net\n" "$HOST_IP"
+    printf "%s dev.tenant.public.querify.net\n" "$HOST_IP"
+    printf "%s dev.tenant.portal.querify.net\n" "$HOST_IP"
+    printf "%s dev.qna.portal.querify.net\n" "$HOST_IP"
+    printf "%s dev.qna.public.querify.net\n" "$HOST_IP"
+    printf "%s dev.test.querify.net\n" "$HOST_IP"
     printf "%s\n" "$HOSTS_MARKER_END"
   } >> "$tmp_file"
 
@@ -293,7 +293,7 @@ start_proxy() {
 verify_proxy_reachable() {
   local status
   for _ in {1..20}; do
-    status="$(curl -sS -o /dev/null -w "%{http_code}" -H "Host: dev.qna.public.basefaq.com" http://127.0.0.1/ || true)"
+    status="$(curl -sS -o /dev/null -w "%{http_code}" -H "Host: dev.qna.public.querify.net" http://127.0.0.1/ || true)"
     if [[ "$status" != "000" && -n "$status" ]]; then
       return
     fi
@@ -308,7 +308,7 @@ verify_proxy_reachable() {
 verify_https_reachable() {
   local status
   for _ in {1..20}; do
-    status="$(curl -k -sS -o /dev/null -w "%{http_code}" -H "Host: dev.qna.public.basefaq.com" https://127.0.0.1/ || true)"
+    status="$(curl -k -sS -o /dev/null -w "%{http_code}" -H "Host: dev.qna.public.querify.net" https://127.0.0.1/ || true)"
     if [[ "$status" != "000" && -n "$status" ]]; then
       return
     fi
@@ -322,21 +322,21 @@ verify_https_reachable() {
 
 print_summary() {
   echo
-  echo "BaseFAQ local subdomain proxy is ready."
+  echo "Querify local subdomain proxy is ready."
   echo "Docker compose project: $COMPOSE_PROJECT"
   echo "Upstream host: $UPSTREAM_HOST"
   echo
   echo "Domain mappings:"
-  echo "  dev.portal.basefaq.com            -> $UPSTREAM_HOST:$PORTAL_APP_PORT"
-  echo "  dev.portal.basefaq.com/api/tenant -> $UPSTREAM_HOST:$TENANT_PORTAL_PORT"
-  echo "  dev.portal.basefaq.com/api/user   -> $UPSTREAM_HOST:$TENANT_PORTAL_PORT"
-  echo "  dev.portal.basefaq.com/api/qna    -> $UPSTREAM_HOST:$QNA_PORTAL_PORT"
-  echo "  dev.tenant.backoffice.basefaq.com -> $UPSTREAM_HOST:$TENANT_BACKOFFICE_PORT"
-  echo "  dev.tenant.public.basefaq.com     -> $UPSTREAM_HOST:$TENANT_PUBLIC_PORT"
-  echo "  dev.tenant.portal.basefaq.com     -> $UPSTREAM_HOST:$TENANT_PORTAL_PORT"
-  echo "  dev.qna.portal.basefaq.com        -> $UPSTREAM_HOST:$QNA_PORTAL_PORT"
-  echo "  dev.qna.public.basefaq.com        -> $UPSTREAM_HOST:$QNA_PUBLIC_PORT"
-  echo "  dev.test.basefaq.com              -> $UPSTREAM_HOST:$TEST_PORT"
+  echo "  dev.portal.querify.net            -> $UPSTREAM_HOST:$PORTAL_APP_PORT"
+  echo "  dev.portal.querify.net/api/tenant -> $UPSTREAM_HOST:$TENANT_PORTAL_PORT"
+  echo "  dev.portal.querify.net/api/user   -> $UPSTREAM_HOST:$TENANT_PORTAL_PORT"
+  echo "  dev.portal.querify.net/api/qna    -> $UPSTREAM_HOST:$QNA_PORTAL_PORT"
+  echo "  dev.tenant.backoffice.querify.net -> $UPSTREAM_HOST:$TENANT_BACKOFFICE_PORT"
+  echo "  dev.tenant.public.querify.net     -> $UPSTREAM_HOST:$TENANT_PUBLIC_PORT"
+  echo "  dev.tenant.portal.querify.net     -> $UPSTREAM_HOST:$TENANT_PORTAL_PORT"
+  echo "  dev.qna.portal.querify.net        -> $UPSTREAM_HOST:$QNA_PORTAL_PORT"
+  echo "  dev.qna.public.querify.net        -> $UPSTREAM_HOST:$QNA_PUBLIC_PORT"
+  echo "  dev.test.querify.net              -> $UPSTREAM_HOST:$TEST_PORT"
   echo
   echo "Generated Nginx config:"
   echo "  $NGINX_CONF_FILE"

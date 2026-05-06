@@ -2,14 +2,14 @@ $ErrorActionPreference = "Stop"
 
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $composeFile = Join-Path $scriptDir "docker-compose.nginx-proxy.yml"
-$composeProject = "bf_baseservices"
-$composeService = "basefaq.local.nginx"
+$composeProject = "qf_baseservices"
+$composeService = "querify.local.nginx"
 $runtimeDir = Join-Path $scriptDir "runtime"
 $hostsBackupDir = Join-Path $runtimeDir "hosts-backups"
 $hostsFile = Join-Path $env:SystemRoot "System32\drivers\etc\hosts"
 
-$markerBegin = "# >>> BASEFAQ LOCAL SUBDOMAINS >>>"
-$markerEnd = "# <<< BASEFAQ LOCAL SUBDOMAINS <<<"
+$markerBegin = "# >>> QUERIFY LOCAL SUBDOMAINS >>>"
+$markerEnd = "# <<< QUERIFY LOCAL SUBDOMAINS <<<"
 
 function Test-IsAdmin {
     $identity = [Security.Principal.WindowsIdentity]::GetCurrent()
@@ -67,7 +67,7 @@ if (-not (Test-IsAdmin)) {
 
 $hostsLines = Get-Content -Path $hostsFile -ErrorAction Stop
 if (-not ($hostsLines -contains $markerBegin)) {
-    Write-Host "No BaseFAQ hosts block found in $hostsFile."
+    Write-Host "No Querify hosts block found in $hostsFile."
     exit 0
 }
 
@@ -79,5 +79,5 @@ Copy-Item -Path $hostsFile -Destination $backupFile -Force
 $cleanHosts = Remove-MarkerBlock -Lines $hostsLines -Begin $markerBegin -End $markerEnd
 Set-Content -Path $hostsFile -Encoding ascii -Value $cleanHosts
 
-Write-Host "Removed BaseFAQ hosts block from $hostsFile."
+Write-Host "Removed Querify hosts block from $hostsFile."
 Write-Host "Hosts backup: $backupFile"

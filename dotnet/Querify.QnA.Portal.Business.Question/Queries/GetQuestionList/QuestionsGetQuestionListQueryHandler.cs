@@ -1,0 +1,107 @@
+using Querify.Common.Infrastructure.Core.Abstractions;
+using Querify.Models.Common.Dtos;
+using Querify.Models.Common.Enums;
+using Querify.Models.QnA.Dtos.Question;
+using Querify.QnA.Common.Persistence.QnADb.DbContext;
+using MediatR;
+using Microsoft.EntityFrameworkCore;
+
+namespace Querify.QnA.Portal.Business.Question.Queries.GetQuestionList;
+
+public sealed class QuestionsGetQuestionListQueryHandler(
+    QnADbContext dbContext,
+    ISessionService sessionService)
+    : IRequestHandler<QuestionsGetQuestionListQuery, PagedResultDto<QuestionDto>>
+{
+    public async Task<PagedResultDto<QuestionDto>> Handle(QuestionsGetQuestionListQuery request,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        ArgumentNullException.ThrowIfNull(request.Request);
+
+        var tenantId = sessionService.GetTenantId(ModuleEnum.QnA);
+        var query = dbContext.Questions
+            .AsNoTracking()
+            .Where(question => question.TenantId == tenantId);
+
+        if (!string.IsNullOrWhiteSpace(request.Request.SearchText))
+            query = query.Where(question =>
+                EF.Functions.ILike(question.Title, $"%{request.Request.SearchText}%") ||
+                EF.Functions.ILike(question.Summary ?? string.Empty, $"%{request.Request.SearchText}%") ||
+                EF.Functions.ILike(question.ContextNote ?? string.Empty, $"%{request.Request.SearchText}%") ||
+                EF.Functions.ILike(question.Space.Slug, $"%{request.Request.SearchText}%"));
+
+        if (request.Request.SpaceId is not null)
+            query = query.Where(question => question.SpaceId == request.Request.SpaceId);
+
+        if (request.Request.SourceId is not null)
+            query = query.Where(question => question.Sources.Any(link => link.SourceId == request.Request.SourceId.Value));
+
+        if (request.Request.TagId is not null)
+            query = query.Where(question => question.Tags.Any(link => link.TagId == request.Request.TagId.Value));
+
+        if (request.Request.AcceptedAnswerId is not null)
+            query = query.Where(question => question.AcceptedAnswerId == request.Request.AcceptedAnswerId);
+
+        if (request.Request.Status is not null)
+            query = query.Where(question => question.Status == request.Request.Status);
+
+        if (request.Request.Visibility is not null)
+            query = query.Where(question => question.Visibility == request.Request.Visibility);
+
+        if (!string.IsNullOrWhiteSpace(request.Request.SpaceSlug))
+            query = query.Where(question => question.Space.Slug == request.Request.SpaceSlug);
+
+        query = request.Request.Sorting?.Trim().ToLowerInvariant() switch
+        {
+            "lastactivityatutc" or "lastactivityatutc desc" => query.OrderByDescending(question =>
+                question.LastActivityAtUtc ?? question.UpdatedDate ?? question.CreatedDate),
+            "lastactivityatutc asc" => query.OrderBy(question =>
+                question.LastActivityAtUtc ?? question.UpdatedDate ?? question.CreatedDate),
+            "lastupdatedatutc" or "lastupdatedatutc asc" or "updateddate" or "updateddate asc" =>
+                query.OrderBy(question => question.UpdatedDate ?? question.CreatedDate),
+            "lastupdatedatutc desc" or "updateddate desc" => query.OrderByDescending(question =>
+                question.UpdatedDate ?? question.CreatedDate),
+            "sort" or "sort asc" => query.OrderBy(question => question.Sort),
+            "sort desc" => query.OrderByDescending(question => question.Sort),
+            "title" or "title asc" => query.OrderBy(question => question.Title),
+            "title desc" => query.OrderByDescending(question => question.Title),
+            "feedbackscore" or "feedbackscore asc" => query.OrderBy(question => question.FeedbackScore),
+            "feedbackscore desc" => query.OrderByDescending(question => question.FeedbackScore),
+            "aiconfidencescore" or "aiconfidencescore asc" => query.OrderBy(question => question.AiConfidenceScore),
+            "aiconfidencescore desc" => query.OrderByDescending(question => question.AiConfidenceScore),
+            "status" or "status asc" => query.OrderBy(question => question.Status),
+            "status desc" => query.OrderByDescending(question => question.Status),
+            _ => query.OrderByDescending(question =>
+                question.LastActivityAtUtc ?? question.UpdatedDate ?? question.CreatedDate)
+                .ThenBy(question => question.Title)
+        };
+
+        var totalCount = await query.CountAsync(cancellationToken);
+        var items = await query
+            .Skip(request.Request.SkipCount)
+            .Take(request.Request.MaxResultCount)
+            .Select(question => new QuestionDto
+            {
+                Id = question.Id,
+                TenantId = question.TenantId,
+                SpaceId = question.SpaceId,
+                SpaceSlug = question.Space.Slug,
+                Title = question.Title,
+                Summary = question.Summary,
+                ContextNote = question.ContextNote,
+                Status = question.Status,
+                Visibility = question.Visibility,
+                OriginChannel = question.OriginChannel,
+                AiConfidenceScore = question.AiConfidenceScore,
+                FeedbackScore = question.FeedbackScore,
+                Sort = question.Sort,
+                AcceptedAnswerId = question.AcceptedAnswerId,
+                LastActivityAtUtc = question.LastActivityAtUtc,
+                LastUpdatedAtUtc = question.UpdatedDate ?? question.CreatedDate
+            })
+            .ToListAsync(cancellationToken);
+
+        return new PagedResultDto<QuestionDto>(totalCount, items);
+    }
+}

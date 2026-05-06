@@ -2,7 +2,7 @@
 
 ## Purpose
 
-`BaseFaq.Tools.Migration` is the tenant-aware migration runner for BaseFAQ module databases. It reads tenant metadata first, then applies supported module migrations to the correct tenant databases.
+`Querify.Tools.Migration` is the tenant-aware migration runner for Querify module databases. It reads tenant metadata first, then applies supported module migrations to the correct tenant databases.
 
 ## What it manages
 
@@ -22,7 +22,7 @@ It uses the tenant database to discover which module database connection strings
 ## Interactive usage
 
 ```bash
-dotnet run --project dotnet/BaseFaq.Tools.Migration
+dotnet run --project dotnet/Querify.Tools.Migration
 ```
 
 The tool prompts for:
@@ -35,13 +35,13 @@ The tool prompts for:
 ### Apply QnA database updates
 
 ```bash
-dotnet run --project dotnet/BaseFaq.Tools.Migration -- --module QnA --command database-update
+dotnet run --project dotnet/Querify.Tools.Migration -- --module QnA --command database-update
 ```
 
 ### Add a new QnA migration
 
 ```bash
-dotnet run --project dotnet/BaseFaq.Tools.Migration -- --module QnA --command migrations-add --migration-name AddExampleChange
+dotnet run --project dotnet/Querify.Tools.Migration -- --module QnA --command migrations-add --migration-name AddExampleChange
 ```
 
 ## Configuration source
@@ -62,8 +62,8 @@ Operationally, that means:
 
 ```bash
 dotnet ef database update \
-  --project dotnet/BaseFaq.Common.EntityFramework.Tenant \
-  --startup-project dotnet/BaseFaq.Tenant.BackOffice.Api
+  --project dotnet/Querify.Common.EntityFramework.Tenant \
+  --startup-project dotnet/Querify.Tenant.BackOffice.Api
 ```
 
 3. Run the migration tool with `database-update` when tenant metadata already exists.

@@ -1,4 +1,4 @@
-# BaseFAQ Documentation
+# Querify Documentation
 
 This folder is the canonical knowledge base for the repository. The root [`../README.md`](../README.md) is the short bootstrap summary. Every other repository-owned `.md` file belongs under `docs/`.
 
@@ -34,7 +34,7 @@ Technical reference for how the .NET backend is organized, which patterns are ma
 - [`backend/architecture/repository-rules.md`](backend/architecture/repository-rules.md) — non-negotiable architecture guardrails and review checklist enforced by the architecture compliance suite.
 - [`backend/architecture/solution-cqrs-write-rules.md`](backend/architecture/solution-cqrs-write-rules.md) — mandatory CQRS write-side rules and module physical-boundary constraints. See `repository-rules.md` for the extended companion.
 - [`backend/architecture/qna-domain-boundary.md`](backend/architecture/qna-domain-boundary.md) — QnA domain project ownership for entities, business rules, and the migration process.
-- [`backend/architecture/basefaq-tenant-worker.md`](backend/architecture/basefaq-tenant-worker.md) — worker host responsibilities, billing/email processing model, sample data, and control-plane constraints.
+- [`backend/architecture/querify-tenant-worker.md`](backend/architecture/querify-tenant-worker.md) — worker host responsibilities, billing/email processing model, sample data, and control-plane constraints.
 
 ### Tools
 
@@ -85,7 +85,7 @@ for how this folder works and when documents move out of it.
 
 ### Integrations (future)
 
-- [`future/integrations/mcp.md`](future/integrations/mcp.md) — complete architecture for `BaseFaq.MCP.Server`: one native .NET server powering five module agents (QnA, Direct, Broadcast, Trust, Tenant), direct MediatR handler calls, per-agent prompts, tool matrix, and 6-phase roadmap.
+- [`future/integrations/mcp.md`](future/integrations/mcp.md) — complete architecture for `Querify.MCP.Server`: one native .NET server powering five module agents (QnA, Direct, Broadcast, Trust, Tenant), direct MediatR handler calls, per-agent prompts, tool matrix, and 6-phase roadmap.
 - [`future/integrations/mcp-source-to-qna.md`](future/integrations/mcp-source-to-qna.md) — deep-dive on the `qna_import_source` tool and `GenerateQnAFromSourceCommand`: AI generation logic, Anthropic SDK, atomic batch creation, and pipeline-specific gaps.
 
 ---
