@@ -72,8 +72,14 @@ function tagMatchesSearch(tag: TagListRow, searchText: string) {
   return tag.name.toLowerCase().includes(searchText.toLowerCase());
 }
 
-function compareDate(left: string | null | undefined, right: string | null | undefined) {
-  return (left ? new Date(left).getTime() : 0) - (right ? new Date(right).getTime() : 0);
+function compareDate(
+  left: string | null | undefined,
+  right: string | null | undefined,
+) {
+  return (
+    (left ? new Date(left).getTime() : 0) -
+    (right ? new Date(right).getTime() : 0)
+  );
 }
 
 function tagLinkedRecordCount(tag: TagListRow) {
@@ -110,7 +116,10 @@ function sortTags(tags: TagListRow[], sorting: string) {
       case "lastupdatedatutc":
         return compareDate(left.lastUpdatedAtUtc, right.lastUpdatedAtUtc);
       default:
-        return compareDate(right.lastUpdatedAtUtc, left.lastUpdatedAtUtc) || left.name.localeCompare(right.name);
+        return (
+          compareDate(right.lastUpdatedAtUtc, left.lastUpdatedAtUtc) ||
+          left.name.localeCompare(right.name)
+        );
     }
   });
 
@@ -250,8 +259,20 @@ export function TagListPage() {
       key: "name",
       header: "Tag",
       cell: (tag) => (
-        <div className="min-w-0 break-words font-medium text-mono [overflow-wrap:anywhere]">
-          {tag.name}
+        <div className="flex min-w-0 gap-3">
+          <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-lg border border-emerald-500/15 bg-emerald-500/[0.055] text-emerald-600 dark:text-emerald-300">
+            <Tags className="size-4" />
+          </span>
+          <div className="min-w-0">
+            <div className="min-w-0 break-words font-medium text-mono [overflow-wrap:anywhere]">
+              {tag.name}
+            </div>
+            <div className="mt-1 text-sm text-muted-foreground">
+              {translateText("{count} linked records", {
+                count: tagLinkedRecordCount(tag),
+              })}
+            </div>
+          </div>
         </div>
       ),
     },
@@ -300,7 +321,7 @@ export function TagListPage() {
     {
       key: "actions",
       header: "Actions",
-      className: "lg:w-[140px]",
+      className: "lg:w-[190px]",
       cell: (tag) => (
         <div
           className="flex min-w-0 flex-wrap items-center justify-start gap-1 lg:justify-end"
@@ -328,9 +349,10 @@ export function TagListPage() {
             </>
           ) : (
             <>
-              <Button asChild variant="ghost" mode="icon">
+              <Button asChild variant="outline" size="sm">
                 <Link to={`/app/tags/${tag.id}/edit`}>
                   <Pencil className="size-4" />
+                  {translateText("Rename")}
                 </Link>
               </Button>
               <ConfirmAction
@@ -344,8 +366,9 @@ export function TagListPage() {
                 isPending={deleteTag.isPending}
                 onConfirm={() => deleteTag.mutateAsync(tag.id)}
                 trigger={
-                  <Button variant="ghost" mode="icon">
+                  <Button variant="ghost" size="sm">
                     <Trash2 className="size-4 text-destructive" />
+                    {translateText("Delete")}
                   </Button>
                 }
               />
@@ -398,6 +421,34 @@ export function TagListPage() {
           />
         </>
       }
+      filters={
+        <div className="space-y-3">
+          <ListFilterSearch
+            value={search}
+            onChange={setSearch}
+            placeholder="Search tags"
+            activeFilterCount={activeFilterCount}
+            onClear={clearFilters}
+            isLoading={filtersLoading}
+          />
+          <ListFilterToolbar isLoading={filtersLoading}>
+            <ListFilterField label="Sort" className="max-w-sm">
+              <Select value={sorting} onValueChange={setSorting}>
+                <SelectTrigger className="w-full" size="lg">
+                  <SelectValue placeholder={translateText("Sort tags")} />
+                </SelectTrigger>
+                <SelectContent>
+                  {sortingOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {translateText(option.label)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </ListFilterField>
+          </ListFilterToolbar>
+        </div>
+      }
     >
       {showMetricsLoadingState ? (
         <SectionGridSkeleton />
@@ -448,34 +499,6 @@ export function TagListPage() {
           relationshipActive ? Boolean(relationshipLoading) : tagQuery.isLoading
         }
         onRowClick={(tag) => navigate(`/app/tags/${tag.id}/edit`)}
-        headingControl={
-          <ListFilterSearch
-            value={search}
-            onChange={setSearch}
-            placeholder="Search tags"
-            activeFilterCount={activeFilterCount}
-            onClear={clearFilters}
-            isLoading={filtersLoading}
-          />
-        }
-        toolbar={
-          <ListFilterToolbar isLoading={filtersLoading}>
-            <ListFilterField label="Sort" className="max-w-sm">
-              <Select value={sorting} onValueChange={setSorting}>
-                <SelectTrigger className="w-full" size="lg">
-                  <SelectValue placeholder={translateText("Sort tags")} />
-                </SelectTrigger>
-                <SelectContent>
-                  {sortingOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {translateText(option.label)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </ListFilterField>
-          </ListFilterToolbar>
-        }
         emptyState={
           <EmptyState
             title={

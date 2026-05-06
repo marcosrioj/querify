@@ -53,15 +53,17 @@ If a shared primitive already matches the use case, do not replace it with ad ho
 ### List pages
 
 - use `ListLayout`
-- keep metrics in `SectionGrid`
-- keep the main record surface in the shared table pattern
+- put the primary search and filter command surface in the `ListLayout` `filters` slot, before metrics and before the result table
+- keep metrics in `SectionGrid` after the filter surface so search pages prioritize finding records before summarizing them
+- keep the main record surface in the shared table pattern; once filters move to `ListLayout`, `DataTable` should focus on result title, result rows, empty/error states, and pagination
 - keep search, quick filters, advanced filters, table content, mobile cards, and pagination in visually grouped surfaces that match the quiet premium card language used by detail pages
 - keep list pages usable at 320, 360, 375, 414, 768, 1024, 1279, 1280, and desktop widths
 - render list records as stacked cards below `xl`, with primary record content, supporting fields, and actions separated inside each card; render the table surface at `xl` and above unless the page intentionally owns a different pattern
 - make filters, search inputs, sort controls, pagination, and actions stack or wrap before they overflow
-- use the shared list filter controls for top-level filter surfaces: put free-text search in `headingControl` with `ListFilterSearch`, put enum and relationship filters in `ListFilterToolbar`, use chips for high-frequency status buckets, and wrap every select in `ListFilterField`
+- use the shared list filter controls for top-level filter surfaces: put free-text search in the `ListLayout` `filters` slot with `ListFilterSearch`, combine search and high-frequency chips with `ListFilterSearchQuickRow` when useful, put enum and relationship filters in `ListFilterToolbar`, and wrap every select in `ListFilterField`
 - every filter surface must show active filter count and a single clear action when filters are active
 - filter controls must show a skeleton loading signal during request refreshes using `isFetching`, not only during first-page `isLoading`
+- row actions on top-level lists should be explicit text+icon buttons where space allows; icon-only row actions need accessible labels and should not be the only discoverable way to open or edit a record
 - long unbroken values such as URLs, external ids, checksums, user agents, and generated keys must wrap inside their card or cell
 - never fix a list overflow only in the page component if the cause is a shared primitive, shell container, or root flex width
 

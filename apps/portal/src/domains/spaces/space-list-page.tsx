@@ -177,16 +177,23 @@ export function SpaceListPage() {
       key: "name",
       header: "Space",
       cell: (space) => (
-        <div className="space-y-1">
-          <div className="font-medium text-mono">{space.name}</div>
-          <div className="text-sm text-muted-foreground">
-            {space.slug} • {space.language}
-          </div>
-          {space.summary ? (
-            <div className="line-clamp-2 text-sm text-muted-foreground">
-              {space.summary}
+        <div className="flex min-w-0 gap-3">
+          <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-lg border border-primary/15 bg-primary/[0.055] text-primary">
+            <FolderKanban className="size-4" />
+          </span>
+          <div className="min-w-0 space-y-1">
+            <div className="min-w-0 break-words font-medium text-mono [overflow-wrap:anywhere]">
+              {space.name}
             </div>
-          ) : null}
+            <div className="text-sm text-muted-foreground">
+              {space.slug} • {space.language}
+            </div>
+            {space.summary ? (
+              <div className="line-clamp-2 text-sm text-muted-foreground">
+                {space.summary}
+              </div>
+            ) : null}
+          </div>
         </div>
       ),
     },
@@ -253,15 +260,22 @@ export function SpaceListPage() {
     {
       key: "actions",
       header: "Actions",
-      className: "lg:w-[120px]",
+      className: "lg:w-[220px]",
       cell: (space) => (
         <div
-          className="flex items-center justify-end gap-1"
+          className="flex min-w-0 flex-wrap items-center justify-start gap-1 lg:justify-end"
           onClick={(event) => event.stopPropagation()}
         >
-          <Button asChild variant="ghost" mode="icon">
+          <Button asChild variant="outline" size="sm">
+            <Link to={`/app/spaces/${space.id}`}>
+              <Eye className="size-4" />
+              {translateText("Open")}
+            </Link>
+          </Button>
+          <Button asChild variant="ghost" size="sm">
             <Link to={`/app/spaces/${space.id}/edit`}>
               <Pencil className="size-4" />
+              {translateText("Edit")}
             </Link>
           </Button>
           <ConfirmAction
@@ -275,8 +289,9 @@ export function SpaceListPage() {
             isPending={deleteSpace.isPending}
             onConfirm={() => deleteSpace.mutateAsync(space.id)}
             trigger={
-              <Button variant="ghost" mode="icon">
+              <Button variant="ghost" size="sm">
                 <Trash2 className="size-4 text-destructive" />
+                {translateText("Delete")}
               </Button>
             }
           />
@@ -304,55 +319,8 @@ export function SpaceListPage() {
           />
         </>
       }
-    >
-      {showMetricsLoadingState ? (
-        <SectionGridSkeleton />
-      ) : (
-        <SectionGrid
-          items={[
-            {
-              title: "Total",
-              value: spaceQuery.data?.totalCount ?? 0,
-              description: debouncedSearch
-                ? translateText("Search: {value}", { value: debouncedSearch })
-                : translateText("QnA spaces in this workspace"),
-              icon: FolderKanban,
-            },
-            {
-              title: "Public",
-              value: publicCount,
-              description: translateText(
-                "Spaces visible outside internal operations",
-              ),
-              icon: Eye,
-            },
-            {
-              title: "Active",
-              value: activeCount,
-              description: translateText(
-                "Spaces available for active QnA work",
-              ),
-              icon: ShieldCheck,
-            },
-            {
-              title: "Questions",
-              value: questionIntakeCount,
-              description: translateText("Spaces accepting new questions"),
-              icon: MessageSquarePlus,
-            },
-          ]}
-        />
-      )}
-      <DataTable
-        title="Spaces"
-        description="Open a space to review its status, curated sources, and question volume."
-        descriptionMode="hint"
-        columns={columns}
-        rows={spaceRows}
-        getRowId={(row) => row.id}
-        loading={spaceQuery.isLoading}
-        onRowClick={(space) => navigate(`/app/spaces/${space.id}`)}
-        headingControl={
+      filters={
+        <div className="space-y-3">
           <ListFilterSearchQuickRow
             search={
               <ListFilterSearch
@@ -421,8 +389,6 @@ export function SpaceListPage() {
               </ListFilterSection>
             }
           />
-        }
-        toolbar={
           <ListFilterToolbar isLoading={spaceQuery.isFetching}>
             <div className="grid w-full gap-3 md:grid-cols-2 xl:grid-cols-4">
               <ListFilterField label="Visibility">
@@ -495,7 +461,56 @@ export function SpaceListPage() {
               </ListFilterField>
             </div>
           </ListFilterToolbar>
-        }
+        </div>
+      }
+    >
+      {showMetricsLoadingState ? (
+        <SectionGridSkeleton />
+      ) : (
+        <SectionGrid
+          items={[
+            {
+              title: "Total",
+              value: spaceQuery.data?.totalCount ?? 0,
+              description: debouncedSearch
+                ? translateText("Search: {value}", { value: debouncedSearch })
+                : translateText("QnA spaces in this workspace"),
+              icon: FolderKanban,
+            },
+            {
+              title: "Public",
+              value: publicCount,
+              description: translateText(
+                "Spaces visible outside internal operations",
+              ),
+              icon: Eye,
+            },
+            {
+              title: "Active",
+              value: activeCount,
+              description: translateText(
+                "Spaces available for active QnA work",
+              ),
+              icon: ShieldCheck,
+            },
+            {
+              title: "Questions",
+              value: questionIntakeCount,
+              description: translateText("Spaces accepting new questions"),
+              icon: MessageSquarePlus,
+            },
+          ]}
+        />
+      )}
+      <DataTable
+        title="Spaces"
+        description="Open a space to review its status, curated sources, and question volume."
+        descriptionMode="hint"
+        columns={columns}
+        rows={spaceRows}
+        getRowId={(row) => row.id}
+        loading={spaceQuery.isLoading}
+        onRowClick={(space) => navigate(`/app/spaces/${space.id}`)}
         emptyState={
           <EmptyState
             title="No spaces in view"

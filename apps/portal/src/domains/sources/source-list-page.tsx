@@ -37,8 +37,12 @@ import {
   Badge,
   Button,
   ConfirmAction,
+  ListFilterChip,
+  ListFilterChipRail,
   ListFilterField,
   ListFilterSearch,
+  ListFilterSearchQuickRow,
+  ListFilterSection,
   ListFilterToolbar,
   SectionGridSkeleton,
   Select,
@@ -81,6 +85,14 @@ const SOURCE_FILTER_DEFAULTS = {
   kind: "all",
   visibility: "all",
 } as const;
+
+const sourceKindBuckets = [
+  { label: "All", value: "all" },
+  ...Object.entries(sourceKindLabels).map(([value, label]) => ({
+    label,
+    value,
+  })),
+] as const;
 
 type SourceRelationshipKind = "space" | "question" | "answer";
 
@@ -133,16 +145,27 @@ function sourceMatchesFilters(
   );
 }
 
-function compareText(left: string | null | undefined, right: string | null | undefined) {
+function compareText(
+  left: string | null | undefined,
+  right: string | null | undefined,
+) {
   return (left ?? "").localeCompare(right ?? "");
 }
 
-function compareDate(left: string | null | undefined, right: string | null | undefined) {
-  return (left ? new Date(left).getTime() : 0) - (right ? new Date(right).getTime() : 0);
+function compareDate(
+  left: string | null | undefined,
+  right: string | null | undefined,
+) {
+  return (
+    (left ? new Date(left).getTime() : 0) -
+    (right ? new Date(right).getTime() : 0)
+  );
 }
 
 function sourceLinkedRecordCount(source: SourceListRow) {
-  return source.spaceUsageCount + source.questionUsageCount + source.answerUsageCount;
+  return (
+    source.spaceUsageCount + source.questionUsageCount + source.answerUsageCount
+  );
 }
 
 function sortSources(sources: SourceListRow[], sorting: string) {
@@ -153,9 +176,15 @@ function sortSources(sources: SourceListRow[], sorting: string) {
     switch (normalizedSorting) {
       case "label asc":
       case "label":
-        return compareText(left.label, right.label) || compareText(left.locator, right.locator);
+        return (
+          compareText(left.label, right.label) ||
+          compareText(left.locator, right.locator)
+        );
       case "label desc":
-        return compareText(right.label, left.label) || compareText(left.locator, right.locator);
+        return (
+          compareText(right.label, left.label) ||
+          compareText(left.locator, right.locator)
+        );
       case "kind asc":
       case "kind":
         return left.kind - right.kind || compareText(left.label, right.label);
@@ -195,7 +224,10 @@ function sortSources(sources: SourceListRow[], sorting: string) {
       case "lastupdatedatutc":
         return compareDate(left.lastUpdatedAtUtc, right.lastUpdatedAtUtc);
       default:
-        return compareDate(right.lastUpdatedAtUtc, left.lastUpdatedAtUtc) || compareText(left.label, right.label);
+        return (
+          compareDate(right.lastUpdatedAtUtc, left.lastUpdatedAtUtc) ||
+          compareText(left.label, right.label)
+        );
     }
   });
 
@@ -225,6 +257,7 @@ export function SourceListPage() {
     resetFilters,
     search,
     setFilter,
+    setFilters,
     setPage,
     setPageSize,
     setSearch,
@@ -239,6 +272,7 @@ export function SourceListPage() {
   const apiKind = kindFilter === "all" ? undefined : Number(kindFilter);
   const apiVisibility =
     visibilityFilter === "all" ? undefined : Number(visibilityFilter);
+  const quickAllActive = kindFilter === "all" && visibilityFilter === "all";
   const activeFilterCount = [
     search.trim(),
     kindFilter !== "all",
@@ -429,16 +463,21 @@ export function SourceListPage() {
       key: "source",
       header: "Source",
       cell: (source) => (
-        <div className="min-w-0 space-y-1">
-          <div className="min-w-0 break-words font-medium text-mono [overflow-wrap:anywhere]">
-            {source.label || translateText("Untitled source")}
-          </div>
-          <div className="break-all text-sm text-muted-foreground">
-            {source.locator}
-          </div>
-          <div className="min-w-0 break-words text-sm text-muted-foreground [overflow-wrap:anywhere]">
-            {source.language}
-            {source.contextNote ? ` • ${source.contextNote}` : ""}
+        <div className="flex min-w-0 gap-3">
+          <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-lg border border-cyan-500/15 bg-cyan-500/[0.055] text-cyan-600 dark:text-cyan-300">
+            <Waypoints className="size-4" />
+          </span>
+          <div className="min-w-0 space-y-1">
+            <div className="min-w-0 break-words font-medium text-mono [overflow-wrap:anywhere]">
+              {source.label || translateText("Untitled source")}
+            </div>
+            <div className="break-all text-sm text-muted-foreground">
+              {source.locator}
+            </div>
+            <div className="min-w-0 break-words text-sm text-muted-foreground [overflow-wrap:anywhere]">
+              {source.language}
+              {source.contextNote ? ` • ${source.contextNote}` : ""}
+            </div>
           </div>
         </div>
       ),
@@ -530,7 +569,7 @@ export function SourceListPage() {
     {
       key: "actions",
       header: "Actions",
-      className: "xl:w-[120px]",
+      className: relationshipActive ? "xl:w-[190px]" : "xl:w-[230px]",
       cell: (source) => (
         <div
           className="flex min-w-0 flex-wrap items-center justify-start gap-1 lg:justify-end"
@@ -560,9 +599,16 @@ export function SourceListPage() {
             </>
           ) : (
             <>
-              <Button asChild variant="ghost" mode="icon">
+              <Button asChild variant="outline" size="sm">
+                <Link to={`/app/sources/${source.id}`}>
+                  <Link2 className="size-4" />
+                  {translateText("Open")}
+                </Link>
+              </Button>
+              <Button asChild variant="ghost" size="sm">
                 <Link to={`/app/sources/${source.id}/edit`}>
                   <Pencil className="size-4" />
+                  {translateText("Edit")}
                 </Link>
               </Button>
               <ConfirmAction
@@ -576,8 +622,9 @@ export function SourceListPage() {
                 isPending={deleteSource.isPending}
                 onConfirm={() => deleteSource.mutateAsync(source.id)}
                 trigger={
-                  <Button variant="ghost" mode="icon">
+                  <Button variant="ghost" size="sm">
                     <Trash2 className="size-4 text-destructive" />
+                    {translateText("Delete")}
                   </Button>
                 }
               />
@@ -632,6 +679,129 @@ export function SourceListPage() {
             }
           />
         </>
+      }
+      filters={
+        <div className="space-y-3">
+          <ListFilterSearchQuickRow
+            search={
+              <ListFilterSearch
+                value={search}
+                onChange={setSearch}
+                placeholder="Search sources"
+                activeFilterCount={activeFilterCount}
+                onClear={clearFilters}
+                isLoading={filtersLoading}
+              />
+            }
+            quickFilters={
+              <ListFilterSection
+                label="Quick filters"
+                activeFilterCount={activeFilterCount}
+                emptyLabel={
+                  relationshipActive ? "All related sources" : "All sources"
+                }
+              >
+                <ListFilterChipRail>
+                  {sourceKindBuckets.map((bucket) => (
+                    <ListFilterChip
+                      key={bucket.value}
+                      active={
+                        bucket.value === "all"
+                          ? quickAllActive
+                          : kindFilter === bucket.value
+                      }
+                      onClick={() => {
+                        if (bucket.value === "all") {
+                          setFilters({
+                            kind: "all",
+                            visibility: "all",
+                          });
+                          return;
+                        }
+
+                        setFilter("kind", bucket.value);
+                      }}
+                    >
+                      {translateText(bucket.label)}
+                    </ListFilterChip>
+                  ))}
+                  <ListFilterChip
+                    active={visibilityFilter === String(VisibilityScope.Public)}
+                    onClick={() =>
+                      setFilter(
+                        "visibility",
+                        visibilityFilter === String(VisibilityScope.Public)
+                          ? "all"
+                          : String(VisibilityScope.Public),
+                      )
+                    }
+                  >
+                    {translateText("Public")}
+                  </ListFilterChip>
+                </ListFilterChipRail>
+              </ListFilterSection>
+            }
+          />
+          <ListFilterToolbar isLoading={filtersLoading}>
+            <div className="grid w-full gap-3 md:grid-cols-2 xl:grid-cols-3">
+              <ListFilterField label="Source kind">
+                <Select
+                  value={kindFilter}
+                  onValueChange={(value) => setFilter("kind", value)}
+                >
+                  <SelectTrigger className="w-full" size="lg">
+                    <SelectValue placeholder={translateText("Source kind")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All kinds</SelectItem>
+                    {Object.entries(sourceKindLabels).map(([value, label]) => (
+                      <SelectItem key={value} value={value}>
+                        {translateText(label)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </ListFilterField>
+              <ListFilterField label="Visibility">
+                <Select
+                  value={visibilityFilter}
+                  onValueChange={(value) => setFilter("visibility", value)}
+                >
+                  <SelectTrigger className="w-full" size="lg">
+                    <SelectValue placeholder={translateText("Visibility")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All visibility</SelectItem>
+                    {Object.entries(visibilityScopeLabels).map(
+                      ([value, label]) => (
+                        <SelectItem key={value} value={value}>
+                          {translateText(label)}
+                        </SelectItem>
+                      ),
+                    )}
+                  </SelectContent>
+                </Select>
+              </ListFilterField>
+              <ListFilterField
+                label="Sort"
+                className="md:col-span-2 xl:col-span-1"
+              >
+                <Select value={sorting} onValueChange={setSorting}>
+                  <SelectTrigger className="w-full" size="lg">
+                    <SelectValue placeholder={translateText("Sort sources")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {sortingOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {translateText(option.label)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </ListFilterField>
+            </div>
+          </ListFilterToolbar>
+        </div>
       }
     >
       {showMetricsLoadingState ? (
@@ -695,77 +865,6 @@ export function SourceListPage() {
             : sourceQuery.isLoading
         }
         onRowClick={(source) => navigate(`/app/sources/${source.id}`)}
-        headingControl={
-          <ListFilterSearch
-            value={search}
-            onChange={setSearch}
-            placeholder="Search sources"
-            activeFilterCount={activeFilterCount}
-            onClear={clearFilters}
-            isLoading={filtersLoading}
-          />
-        }
-        toolbar={
-          <ListFilterToolbar isLoading={filtersLoading}>
-            <div className="grid w-full gap-3 md:grid-cols-2 xl:grid-cols-3">
-              <ListFilterField label="Source kind">
-                <Select
-                  value={kindFilter}
-                  onValueChange={(value) => setFilter("kind", value)}
-                >
-                  <SelectTrigger className="w-full" size="lg">
-                    <SelectValue placeholder={translateText("Source kind")} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All kinds</SelectItem>
-                    {Object.entries(sourceKindLabels).map(([value, label]) => (
-                      <SelectItem key={value} value={value}>
-                        {translateText(label)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </ListFilterField>
-              <ListFilterField label="Visibility">
-                <Select
-                  value={visibilityFilter}
-                  onValueChange={(value) => setFilter("visibility", value)}
-                >
-                  <SelectTrigger className="w-full" size="lg">
-                    <SelectValue placeholder={translateText("Visibility")} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All visibility</SelectItem>
-                    {Object.entries(visibilityScopeLabels).map(
-                      ([value, label]) => (
-                        <SelectItem key={value} value={value}>
-                          {translateText(label)}
-                        </SelectItem>
-                      ),
-                    )}
-                  </SelectContent>
-                </Select>
-              </ListFilterField>
-              <ListFilterField
-                label="Sort"
-                className="md:col-span-2 xl:col-span-1"
-              >
-                <Select value={sorting} onValueChange={setSorting}>
-                  <SelectTrigger className="w-full" size="lg">
-                    <SelectValue placeholder={translateText("Sort sources")} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {sortingOptions.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {translateText(option.label)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </ListFilterField>
-            </div>
-          </ListFilterToolbar>
-        }
         emptyState={
           <EmptyState
             title={
