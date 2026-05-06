@@ -98,6 +98,33 @@ For refresh-token based SPA sessions, also configure:
 - the Portal client as a Single Page Application with Refresh Token Rotation enabled
 - the `https://querify.net` API audience with offline access enabled so Auth0 can issue refresh tokens for `offline_access`
 
+### Required Post Login Action
+
+Create a Post Login Action in Auth0 so the issued access token includes the user name and email claims needed by the Portal APIs.
+
+1. Open the Auth0 Dashboard.
+2. Go to **Actions** > **Library**.
+3. Create a custom Action for the **Login / Post Login** trigger.
+4. Paste this code:
+
+```js
+exports.onExecutePostLogin = async (event, api) => {
+  const ns = 'https://querify.net/';
+  if (event.user.name) {
+    api.accessToken.setCustomClaim(`${ns}name`, event.user.name);
+  }
+  if (event.user.email) {
+    api.accessToken.setCustomClaim(`${ns}email`, event.user.email);
+  }
+};
+```
+
+5. Deploy the Action.
+6. Go to **Actions** > **Flows** > **Login**.
+7. Drag the Action into the **Post Login** flow and apply the flow changes.
+
+Keep the custom-claim namespace aligned with the deployment. The backend accepts namespaced claims ending in `/name` and `/email`; the Portal frontend also reads `https://querify.net/name` and `https://querify.net/email` from access tokens.
+
 Do not assume the Swagger UI client id used by backend APIs is also valid for the Portal app. The Portal needs its own SPA client configuration unless the same Auth0 application was explicitly set up for both use cases.
 
 The frontend logout handler redirects to `VITE_AUTH0_LOGOUT_URI` when set, otherwise it falls back to `{origin}{BASE_URL}login`. That final URL must be present in the Auth0 application's `Allowed Logout URLs`.
