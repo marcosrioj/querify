@@ -1,24 +1,12 @@
 import { useEffect, useMemo } from "react";
-import {
-  FolderKanban,
-  Link2,
-  MessageSquareText,
-  Pencil,
-  Plus,
-  Tags,
-  Trash2,
-} from "lucide-react";
+import { Link2, Pencil, Plus, Tags, Trash2 } from "lucide-react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useQuestion, useRemoveQuestionTag } from "@/domains/questions/hooks";
 import { usePortalTimeZone } from "@/domains/settings/settings-hooks";
 import { useRemoveSpaceTag, useSpace } from "@/domains/spaces/hooks";
 import { useDeleteTag, useTagList } from "@/domains/tags/hooks";
 import type { TagDto } from "@/domains/tags/types";
-import {
-  ListLayout,
-  PageHeader,
-  SectionGrid,
-} from "@/shared/layout/page-layouts";
+import { ListLayout, PageHeader } from "@/shared/layout/page-layouts";
 import { translateText } from "@/shared/lib/i18n-core";
 import { clampPage } from "@/shared/lib/pagination";
 import { formatOptionalDateTimeInTimeZone } from "@/shared/lib/time-zone";
@@ -30,7 +18,7 @@ import {
   ListFilterField,
   ListFilterSearch,
   ListFilterToolbar,
-  SectionGridSkeleton,
+  ListResultSummary,
   Select,
   SelectContent,
   SelectItem,
@@ -238,9 +226,6 @@ export function TagListPage() {
     (total, tag) => total + tag.questionUsageCount,
     0,
   );
-  const showMetricsLoadingState = relationshipActive
-    ? relationshipLoading
-    : tagQuery.isLoading && tagQuery.data === undefined;
 
   const detachTag = (tag: TagListRow) => {
     if (tag.relationship?.parentKind === "space") {
@@ -266,11 +251,6 @@ export function TagListPage() {
           <div className="min-w-0">
             <div className="min-w-0 break-words font-medium text-mono [overflow-wrap:anywhere]">
               {tag.name}
-            </div>
-            <div className="mt-1 text-sm text-muted-foreground">
-              {translateText("{count} linked records", {
-                count: tagLinkedRecordCount(tag),
-              })}
             </div>
           </div>
         </div>
@@ -400,24 +380,7 @@ export function TagListPage() {
                   : translateText("Showing only tags in this context.")
                 : "Maintain the reusable taxonomy that groups spaces and questions."
             }
-            descriptionMode="inline"
-            actions={
-              relationshipActive && scopeParentTo ? (
-                <Button asChild>
-                  <Link to={scopeParentTo}>
-                    <Link2 className="size-4" />
-                    {translateText("Manage relationship")}
-                  </Link>
-                </Button>
-              ) : (
-                <Button asChild>
-                  <Link to="/app/tags/new">
-                    <Plus className="size-4" />
-                    {translateText("New tag")}
-                  </Link>
-                </Button>
-              )
-            }
+            descriptionMode="hint"
           />
         </>
       }
@@ -450,38 +413,6 @@ export function TagListPage() {
         </div>
       }
     >
-      {showMetricsLoadingState ? (
-        <SectionGridSkeleton />
-      ) : (
-        <SectionGrid
-          items={[
-            {
-              title: relationshipActive ? "Related" : "Total",
-              value: relationshipActive
-                ? tagRows.length
-                : (tagQuery.data?.totalCount ?? 0),
-              description: relationshipActive
-                ? translateText("Tags in the current context")
-                : debouncedSearch
-                  ? translateText("Search: {value}", { value: debouncedSearch })
-                  : translateText("Reusable taxonomy labels"),
-              icon: Tags,
-            },
-            {
-              title: "Spaces",
-              value: spaceUsageCount,
-              description: translateText("Tag attachments on Spaces"),
-              icon: FolderKanban,
-            },
-            {
-              title: "Questions",
-              value: questionUsageCount,
-              description: translateText("Tag attachments on Questions"),
-              icon: MessageSquareText,
-            },
-          ]}
-        />
-      )}
       <DataTable
         title={relationshipActive ? "Related tags" : "Tags"}
         description={
@@ -499,6 +430,52 @@ export function TagListPage() {
           relationshipActive ? Boolean(relationshipLoading) : tagQuery.isLoading
         }
         onRowClick={(tag) => navigate(`/app/tags/${tag.id}/edit`)}
+        toolbar={
+          <div className="flex w-full min-w-0 items-center gap-2">
+            <ListResultSummary
+              className="flex-1"
+              isLoading={
+                relationshipActive
+                  ? Boolean(relationshipLoading)
+                  : tagQuery.isLoading && tagQuery.data === undefined
+              }
+              items={[
+                {
+                  label: relationshipActive ? "Related" : "Results",
+                  value: relationshipActive
+                    ? tagRows.length
+                    : (tagQuery.data?.totalCount ?? 0),
+                  tone: "primary",
+                },
+                {
+                  label: "Spaces",
+                  value: spaceUsageCount,
+                  tone: "info",
+                },
+                {
+                  label: "Questions",
+                  value: questionUsageCount,
+                  tone: "success",
+                },
+              ]}
+            />
+            {relationshipActive && scopeParentTo ? (
+              <Button asChild className="ms-auto shrink-0">
+                <Link to={scopeParentTo}>
+                  <Link2 className="size-4" />
+                  {translateText("Manage relationship")}
+                </Link>
+              </Button>
+            ) : (
+              <Button asChild className="ms-auto shrink-0">
+                <Link to="/app/tags/new">
+                  <Plus className="size-4" />
+                  {translateText("New tag")}
+                </Link>
+              </Button>
+            )}
+          </div>
+        }
         emptyState={
           <EmptyState
             title={

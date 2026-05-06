@@ -124,9 +124,9 @@ function ToolbarPageTrail() {
           })}
 
           <BreadcrumbItem className="min-w-0 flex-1 basis-0 overflow-hidden">
-            <div className="flex min-w-0 flex-1 items-center gap-1.5 overflow-hidden">
+            <div className="inline-flex max-w-full min-w-0 items-center gap-1.5 overflow-hidden align-top">
               <h1
-                className="min-w-0 flex-1 truncate text-lg font-semibold leading-7 tracking-normal text-mono sm:text-xl"
+                className="min-w-0 truncate text-lg font-semibold leading-7 tracking-normal text-mono sm:text-xl"
                 title={
                   typeof currentLabel === "string" ? currentLabel : undefined
                 }

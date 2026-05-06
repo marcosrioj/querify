@@ -54,8 +54,11 @@ If a shared primitive already matches the use case, do not replace it with ad ho
 
 - use `ListLayout`
 - put the primary search and filter command surface in the `ListLayout` `filters` slot, before metrics and before the result table
-- keep metrics in `SectionGrid` after the filter surface so search pages prioritize finding records before summarizing them
+- avoid full metric-card grids on search-heavy list pages; they add scroll debt before users reach results, especially on mobile
+- put result counts and supporting list numbers in a compact `ListResultSummary` rail inside the results card instead of separate `SectionGrid` cards unless the page is primarily analytical
+- keep page descriptions and table descriptions as `ContextHint` icon affordances whenever the page already has clear labels and actions; avoid extra explanatory paragraphs above search results
 - keep the main record surface in the shared table pattern; once filters move to `ListLayout`, `DataTable` should focus on result title, result rows, empty/error states, and pagination
+- keep row cells concise on search-heavy lists: show primary identity and durable metadata, not summaries, context notes, or repeated explanatory counts that make mobile cards tall
 - keep search, quick filters, advanced filters, table content, mobile cards, and pagination in visually grouped surfaces that match the quiet premium card language used by detail pages
 - keep list pages usable at 320, 360, 375, 414, 768, 1024, 1279, 1280, and desktop widths
 - render list records as stacked cards below `xl`, with primary record content, supporting fields, and actions separated inside each card; render the table surface at `xl` and above unless the page intentionally owns a different pattern

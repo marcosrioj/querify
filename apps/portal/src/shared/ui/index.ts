@@ -129,6 +129,7 @@ export {
   ListFilterSection,
   ListFilterToolbar,
 } from "@/shared/ui/list-filter-controls";
+export { ListResultSummary } from "@/shared/ui/list-result-summary";
 export {
   DetailPageSkeleton,
   FormCardSkeleton,

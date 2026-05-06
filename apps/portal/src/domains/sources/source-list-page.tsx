@@ -1,13 +1,5 @@
 import { useEffect, useMemo } from "react";
-import {
-  CheckCircle2,
-  Link2,
-  Pencil,
-  Plus,
-  ShieldCheck,
-  Trash2,
-  Waypoints,
-} from "lucide-react";
+import { Link2, Pencil, Plus, Trash2, Waypoints } from "lucide-react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAnswer, useRemoveAnswerSource } from "@/domains/answers/hooks";
 import {
@@ -24,11 +16,7 @@ import {
   sourceKindLabels,
   visibilityScopeLabels,
 } from "@/shared/constants/backend-enums";
-import {
-  ListLayout,
-  PageHeader,
-  SectionGrid,
-} from "@/shared/layout/page-layouts";
+import { ListLayout, PageHeader } from "@/shared/layout/page-layouts";
 import { translateText } from "@/shared/lib/i18n-core";
 import { clampPage } from "@/shared/lib/pagination";
 import { formatOptionalDateTimeInTimeZone } from "@/shared/lib/time-zone";
@@ -44,7 +32,7 @@ import {
   ListFilterSearchQuickRow,
   ListFilterSection,
   ListFilterToolbar,
-  SectionGridSkeleton,
+  ListResultSummary,
   Select,
   SelectContent,
   SelectItem,
@@ -432,9 +420,6 @@ export function SourceListPage() {
       source.answerUsageCount,
     0,
   );
-  const showMetricsLoadingState = relationshipActive
-    ? relationshipLoading
-    : sourceQuery.isLoading && sourceQuery.data === undefined;
 
   const detachSource = (source: SourceListRow) => {
     if (source.relationship?.parentKind === "space") {
@@ -474,10 +459,11 @@ export function SourceListPage() {
             <div className="break-all text-sm text-muted-foreground">
               {source.locator}
             </div>
-            <div className="min-w-0 break-words text-sm text-muted-foreground [overflow-wrap:anywhere]">
-              {source.language}
-              {source.contextNote ? ` • ${source.contextNote}` : ""}
-            </div>
+            {source.language ? (
+              <div className="min-w-0 break-words text-sm text-muted-foreground [overflow-wrap:anywhere]">
+                {source.language}
+              </div>
+            ) : null}
           </div>
         </div>
       ),
@@ -659,24 +645,7 @@ export function SourceListPage() {
                   : translateText("Showing only source links in this context.")
                 : "Maintain the evidence and reusable reference material behind questions and answers."
             }
-            descriptionMode="inline"
-            actions={
-              relationshipActive && scopeParentTo ? (
-                <Button asChild>
-                  <Link to={scopeParentTo}>
-                    <Link2 className="size-4" />
-                    {translateText("Manage relationship")}
-                  </Link>
-                </Button>
-              ) : (
-                <Button asChild>
-                  <Link to="/app/sources/new">
-                    <Plus className="size-4" />
-                    {translateText("New source")}
-                  </Link>
-                </Button>
-              )
-            }
+            descriptionMode="hint"
           />
         </>
       }
@@ -804,46 +773,6 @@ export function SourceListPage() {
         </div>
       }
     >
-      {showMetricsLoadingState ? (
-        <SectionGridSkeleton />
-      ) : (
-        <SectionGrid
-          items={[
-            {
-              title: relationshipActive ? "Related" : "Total",
-              value: relationshipActive
-                ? sourceRows.length
-                : (sourceQuery.data?.totalCount ?? 0),
-              description: relationshipActive
-                ? translateText("Source links in the current context")
-                : debouncedSearch
-                  ? translateText("Search: {value}", { value: debouncedSearch })
-                  : translateText("Reusable source records in this workspace"),
-              icon: Waypoints,
-            },
-            {
-              title: "Public",
-              value: publicSourceCount,
-              description: translateText(
-                "Sources visible without authentication",
-              ),
-              icon: CheckCircle2,
-            },
-            {
-              title: relationshipActive ? "Context" : "Linked records",
-              value: relationshipActive
-                ? translateText(scopeLabel ?? "Scoped")
-                : linkedRecordCount,
-              description: relationshipActive
-                ? translateText("Filtered from a relationship section")
-                : translateText(
-                    "Attachments across spaces, questions, and answers",
-                  ),
-              icon: ShieldCheck,
-            },
-          ]}
-        />
-      )}
       <DataTable
         title={relationshipActive ? "Related sources" : "Sources"}
         description={
@@ -865,6 +794,54 @@ export function SourceListPage() {
             : sourceQuery.isLoading
         }
         onRowClick={(source) => navigate(`/app/sources/${source.id}`)}
+        toolbar={
+          <div className="flex w-full min-w-0 items-center gap-2">
+            <ListResultSummary
+              className="flex-1"
+              isLoading={
+                relationshipActive
+                  ? Boolean(relationshipLoading)
+                  : sourceQuery.isLoading && sourceQuery.data === undefined
+              }
+              items={[
+                {
+                  label: relationshipActive ? "Related" : "Results",
+                  value: relationshipActive
+                    ? sourceRows.length
+                    : (sourceQuery.data?.totalCount ?? 0),
+                  tone: "primary",
+                },
+                {
+                  label: "Public",
+                  value: publicSourceCount,
+                  tone: "info",
+                },
+                {
+                  label: relationshipActive ? "Context" : "Linked records",
+                  value: relationshipActive
+                    ? translateText(scopeLabel ?? "Scoped")
+                    : linkedRecordCount,
+                  tone: "success",
+                },
+              ]}
+            />
+            {relationshipActive && scopeParentTo ? (
+              <Button asChild className="ms-auto shrink-0">
+                <Link to={scopeParentTo}>
+                  <Link2 className="size-4" />
+                  {translateText("Manage relationship")}
+                </Link>
+              </Button>
+            ) : (
+              <Button asChild className="ms-auto shrink-0">
+                <Link to="/app/sources/new">
+                  <Plus className="size-4" />
+                  {translateText("New source")}
+                </Link>
+              </Button>
+            )}
+          </div>
+        }
         emptyState={
           <EmptyState
             title={

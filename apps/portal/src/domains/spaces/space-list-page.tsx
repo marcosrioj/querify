@@ -1,13 +1,5 @@
 import { useEffect } from "react";
-import {
-  Eye,
-  FolderKanban,
-  MessageSquarePlus,
-  Pencil,
-  Plus,
-  ShieldCheck,
-  Trash2,
-} from "lucide-react";
+import { Eye, FolderKanban, Pencil, Plus, Trash2 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { usePortalTimeZone } from "@/domains/settings/settings-hooks";
 import { useDeleteSpace, useSpaceList } from "@/domains/spaces/hooks";
@@ -17,11 +9,7 @@ import {
   VisibilityScope,
   visibilityScopeLabels,
 } from "@/shared/constants/backend-enums";
-import {
-  ListLayout,
-  PageHeader,
-  SectionGrid,
-} from "@/shared/layout/page-layouts";
+import { ListLayout, PageHeader } from "@/shared/layout/page-layouts";
 import { clampPage } from "@/shared/lib/pagination";
 import { formatOptionalDateTimeInTimeZone } from "@/shared/lib/time-zone";
 import { useListQueryState } from "@/shared/lib/use-list-query-state";
@@ -40,7 +28,7 @@ import {
   ListFilterSearchQuickRow,
   ListFilterSection,
   ListFilterToolbar,
-  SectionGridSkeleton,
+  ListResultSummary,
   Select,
   SelectContent,
   SelectItem,
@@ -169,8 +157,6 @@ export function SpaceListPage() {
   const questionIntakeCount = spaceRows.filter(
     (space) => space.acceptsQuestions,
   ).length;
-  const showMetricsLoadingState =
-    spaceQuery.isLoading && spaceQuery.data === undefined;
 
   const columns: DataTableColumn<SpaceDto>[] = [
     {
@@ -188,11 +174,6 @@ export function SpaceListPage() {
             <div className="text-sm text-muted-foreground">
               {space.slug} • {space.language}
             </div>
-            {space.summary ? (
-              <div className="line-clamp-2 text-sm text-muted-foreground">
-                {space.summary}
-              </div>
-            ) : null}
           </div>
         </div>
       ),
@@ -307,15 +288,7 @@ export function SpaceListPage() {
           <PageHeader
             title="Spaces"
             description="Operate QnA spaces by status, visibility, and intake capability."
-            descriptionMode="inline"
-            actions={
-              <Button asChild>
-                <Link to="/app/spaces/new">
-                  <Plus className="size-4" />
-                  {translateText("New space")}
-                </Link>
-              </Button>
-            }
+            descriptionMode="hint"
           />
         </>
       }
@@ -464,44 +437,6 @@ export function SpaceListPage() {
         </div>
       }
     >
-      {showMetricsLoadingState ? (
-        <SectionGridSkeleton />
-      ) : (
-        <SectionGrid
-          items={[
-            {
-              title: "Total",
-              value: spaceQuery.data?.totalCount ?? 0,
-              description: debouncedSearch
-                ? translateText("Search: {value}", { value: debouncedSearch })
-                : translateText("QnA spaces in this workspace"),
-              icon: FolderKanban,
-            },
-            {
-              title: "Public",
-              value: publicCount,
-              description: translateText(
-                "Spaces visible outside internal operations",
-              ),
-              icon: Eye,
-            },
-            {
-              title: "Active",
-              value: activeCount,
-              description: translateText(
-                "Spaces available for active QnA work",
-              ),
-              icon: ShieldCheck,
-            },
-            {
-              title: "Questions",
-              value: questionIntakeCount,
-              description: translateText("Spaces accepting new questions"),
-              icon: MessageSquarePlus,
-            },
-          ]}
-        />
-      )}
       <DataTable
         title="Spaces"
         description="Open a space to review its status, curated sources, and question volume."
@@ -511,6 +446,42 @@ export function SpaceListPage() {
         getRowId={(row) => row.id}
         loading={spaceQuery.isLoading}
         onRowClick={(space) => navigate(`/app/spaces/${space.id}`)}
+        toolbar={
+          <div className="flex w-full min-w-0 items-center gap-2">
+            <ListResultSummary
+              className="flex-1"
+              isLoading={spaceQuery.isLoading && spaceQuery.data === undefined}
+              items={[
+                {
+                  label: "Results",
+                  value: spaceQuery.data?.totalCount ?? 0,
+                  tone: "primary",
+                },
+                {
+                  label: "Public",
+                  value: publicCount,
+                  tone: "info",
+                },
+                {
+                  label: "Active",
+                  value: activeCount,
+                  tone: "success",
+                },
+                {
+                  label: "Accepting questions",
+                  value: questionIntakeCount,
+                  tone: "warning",
+                },
+              ]}
+            />
+            <Button asChild className="ms-auto shrink-0">
+              <Link to="/app/spaces/new">
+                <Plus className="size-4" />
+                {translateText("New space")}
+              </Link>
+            </Button>
+          </div>
+        }
         emptyState={
           <EmptyState
             title="No spaces in view"
