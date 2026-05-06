@@ -91,9 +91,9 @@ export function ListLayout({
     <PageSurface className="space-y-5 lg:space-y-7.5">
       {header}
       {filters ? (
-        <Card className="border-dashed bg-muted/20 shadow-none">
+        <Card className="overflow-hidden border-border/70 bg-linear-to-b from-muted/20 to-background shadow-[0_14px_34px_-30px_rgba(15,23,42,0.55)]">
           <CardContent className="space-y-3 p-4 lg:p-5">
-            <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
+            <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
               {t("Refine view")}
             </p>
             {filters}

@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { X } from "lucide-react";
+import { Search, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,9 +17,9 @@ export function ListFilterToolbar({
   className?: string;
 }) {
   return (
-    <div className={cn("relative grid w-full gap-4", className)}>
+    <div className={cn("relative grid w-full gap-3", className)}>
       {isLoading ? (
-        <div className="pointer-events-none absolute inset-x-0 -top-2 h-1 overflow-hidden rounded-full">
+        <div className="pointer-events-none absolute inset-x-0 -top-1 h-1 overflow-hidden rounded-full">
           <Skeleton className="h-full w-full" />
         </div>
       ) : null}
@@ -51,11 +51,12 @@ export function ListFilterSearch({
             <Skeleton className="h-full w-full" />
           </div>
         ) : null}
+        <Search className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
         <Input
           value={value}
           onChange={(event) => onChange(event.target.value)}
           placeholder={translateText(placeholder)}
-          className="w-full"
+          className="w-full border-border/70 bg-background ps-9 shadow-none"
           variant="lg"
         />
       </div>
@@ -76,7 +77,7 @@ export function ListFilterSearchQuickRow({
   quickFilters: ReactNode;
 }) {
   return (
-    <div className="grid w-full min-w-0 gap-3 xl:grid-cols-[minmax(320px,0.9fr)_minmax(0,1.1fr)] xl:items-end">
+    <div className="grid w-full min-w-0 gap-3 xl:grid-cols-[minmax(320px,0.95fr)_minmax(0,1.05fr)] xl:items-end">
       <div className="min-w-0">{search}</div>
       <div className="min-w-0">{quickFilters}</div>
     </div>
@@ -133,7 +134,7 @@ export function ListFilterSection({
   return (
     <div className="min-w-0 space-y-2">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-xs font-semibold text-muted-foreground">
+        <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
           {translateText(label)}
         </p>
         <div className="flex flex-wrap items-center gap-2">
@@ -157,7 +158,7 @@ export function ListFilterSection({
 
 export function ListFilterChipRail({ children }: { children: ReactNode }) {
   return (
-    <div className="flex min-w-0 gap-1.5 overflow-x-auto rounded-md border border-border/70 bg-muted/30 p-1 [scrollbar-width:none]">
+    <div className="flex min-w-0 gap-1.5 overflow-x-auto rounded-lg border border-border/70 bg-background/70 p-1 shadow-xs shadow-black/5 [scrollbar-width:none]">
       {children}
     </div>
   );
@@ -177,7 +178,10 @@ export function ListFilterChip({
       type="button"
       variant={active ? "secondary" : "ghost"}
       size="sm"
-      className="shrink-0 whitespace-nowrap"
+      className={cn(
+        "shrink-0 whitespace-nowrap border border-transparent",
+        active && "border-border/70 shadow-xs shadow-black/5",
+      )}
       onClick={onClick}
     >
       {children}
@@ -196,7 +200,7 @@ export function ListFilterField({
 }) {
   return (
     <div className={cn("space-y-1.5", className)}>
-      <p className="text-xs font-medium text-muted-foreground">
+      <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
         {translateText(label)}
       </p>
       {children}

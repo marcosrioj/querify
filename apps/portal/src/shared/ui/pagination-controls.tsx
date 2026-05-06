@@ -1,12 +1,12 @@
-import { useMemo } from 'react';
+import { useMemo } from "react";
 import {
   ChevronLeft,
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
   LoaderCircle,
-} from 'lucide-react';
-import { cn } from '@/lib/utils';
+} from "lucide-react";
+import { cn } from "@/lib/utils";
 import {
   Button,
   Select,
@@ -14,19 +14,19 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/shared/ui';
+} from "@/shared/ui";
 import {
   clampPage,
   getVisiblePaginationPages,
   toPageCount,
-} from '@/shared/lib/pagination';
+} from "@/shared/lib/pagination";
 import {
   Pagination,
   PaginationContent,
   PaginationEllipsis,
   PaginationItem,
-} from '@/components/ui/pagination';
-import { usePortalI18n } from '@/shared/lib/use-portal-i18n';
+} from "@/components/ui/pagination";
+import { usePortalI18n } from "@/shared/lib/use-portal-i18n";
 
 const DEFAULT_PAGE_SIZE_OPTIONS = [10, 20, 50, 100];
 
@@ -53,17 +53,20 @@ export function PaginationControls({
   const start = totalCount === 0 ? 0 : (safePage - 1) * pageSize + 1;
   const end = Math.min(totalCount, safePage * pageSize);
   const resolvedPageSizeOptions = useMemo(
-    () => [...new Set([...pageSizeOptions, pageSize])].sort((left, right) => left - right),
+    () =>
+      [...new Set([...pageSizeOptions, pageSize])].sort(
+        (left, right) => left - right,
+      ),
     [pageSize, pageSizeOptions],
   );
   const visiblePages = getVisiblePaginationPages(safePage, pageCount);
   const canGoBackward = safePage > 1;
   const canGoForward = safePage < pageCount;
-  const summaryLabel = totalCount === 1 ? t('item') : t('items');
+  const summaryLabel = totalCount === 1 ? t("item") : t("items");
   const summary =
     totalCount === 0
-      ? t('0 of 0 items')
-      : t('{start}-{end} of {totalCount} {summaryLabel}', {
+      ? t("0 of 0 items")
+      : t("{start}-{end} of {totalCount} {summaryLabel}", {
           start,
           end,
           totalCount,
@@ -84,7 +87,7 @@ export function PaginationControls({
 
   return (
     <div
-      className="border-t border-border pt-4"
+      className="rounded-lg border border-border/70 bg-muted/15 p-3 shadow-xs shadow-black/5"
       aria-live="polite"
       aria-busy={isFetching}
     >
@@ -93,7 +96,7 @@ export function PaginationControls({
           {summary}
         </div>
 
-        <div className="flex min-w-0 items-center gap-2 overflow-x-auto pb-1 whitespace-nowrap sm:ml-auto sm:min-w-max sm:justify-end">
+        <div className="flex min-w-0 items-center gap-2 overflow-x-auto whitespace-nowrap sm:ml-auto sm:min-w-max sm:justify-end">
           {onPageSizeChange ? (
             <Select
               value={String(pageSize)}
@@ -101,7 +104,7 @@ export function PaginationControls({
             >
               <SelectTrigger
                 className="h-7 w-[74px] shrink-0 px-2.5 text-xs"
-                aria-label={t('Rows per page')}
+                aria-label={t("Rows per page")}
               >
                 <SelectValue placeholder={String(pageSize)} />
               </SelectTrigger>
@@ -116,7 +119,10 @@ export function PaginationControls({
           ) : null}
 
           {isFetching ? (
-            <span className="inline-flex shrink-0 items-center text-muted-foreground" aria-hidden="true">
+            <span
+              className="inline-flex shrink-0 items-center text-muted-foreground"
+              aria-hidden="true"
+            >
               <LoaderCircle className="size-3 animate-spin" />
             </span>
           ) : null}
@@ -127,8 +133,8 @@ export function PaginationControls({
             mode="icon"
             disabled={!canGoBackward}
             onClick={() => onPageChange(1)}
-            aria-label={t('First page')}
-            title={t('First page')}
+            aria-label={t("First page")}
+            title={t("First page")}
           >
             <ChevronsLeft className="size-4" />
           </Button>
@@ -139,8 +145,8 @@ export function PaginationControls({
             mode="icon"
             disabled={!canGoBackward}
             onClick={() => onPageChange(safePage - 1)}
-            aria-label={t('Previous page')}
-            title={t('Previous page')}
+            aria-label={t("Previous page")}
+            title={t("Previous page")}
           >
             <ChevronLeft className="size-4" />
           </Button>
@@ -149,16 +155,16 @@ export function PaginationControls({
             <PaginationContent className="flex-nowrap justify-start">
               {pageSequence.map((item) => (
                 <PaginationItem key={String(item)}>
-                  {typeof item === 'number' ? (
+                  {typeof item === "number" ? (
                     <Button
                       type="button"
                       size="sm"
-                      variant={safePage === item ? 'secondary' : 'outline'}
-                      aria-current={safePage === item ? 'page' : undefined}
-                      aria-label={t('Page {page}', { page: item })}
+                      variant={safePage === item ? "secondary" : "outline"}
+                      aria-current={safePage === item ? "page" : undefined}
+                      aria-label={t("Page {page}", { page: item })}
                       className={cn(
-                        'min-w-8 justify-center px-0 text-xs',
-                        safePage === item && 'shadow-xs shadow-black/5',
+                        "min-w-8 justify-center px-0 text-xs",
+                        safePage === item && "shadow-xs shadow-black/5",
                       )}
                       onClick={() => onPageChange(item)}
                     >
@@ -179,8 +185,8 @@ export function PaginationControls({
             mode="icon"
             disabled={!canGoForward}
             onClick={() => onPageChange(safePage + 1)}
-            aria-label={t('Next page')}
-            title={t('Next page')}
+            aria-label={t("Next page")}
+            title={t("Next page")}
           >
             <ChevronRight className="size-4" />
           </Button>
@@ -191,8 +197,8 @@ export function PaginationControls({
             mode="icon"
             disabled={!canGoForward}
             onClick={() => onPageChange(pageCount)}
-            aria-label={t('Last page')}
-            title={t('Last page')}
+            aria-label={t("Last page")}
+            title={t("Last page")}
           >
             <ChevronsRight className="size-4" />
           </Button>

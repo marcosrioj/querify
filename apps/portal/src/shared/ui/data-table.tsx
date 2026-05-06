@@ -60,6 +60,11 @@ export function DataTable<T>({
   onRowClick?: (row: T) => void;
 }) {
   const { t } = usePortalI18n();
+  const primaryColumn = columns[0];
+  const actionColumn = columns.find((column) => column.key === "actions");
+  const detailColumns = columns.filter(
+    (column) => column !== primaryColumn && column !== actionColumn,
+  );
 
   const mobileHeaderLabel = (column: DataTableColumn<T>) => {
     if (column.mobileLabel) {
@@ -83,15 +88,9 @@ export function DataTable<T>({
     ) : null;
 
   return (
-    <Card className="min-w-0 overflow-hidden">
+    <Card className="min-w-0 overflow-hidden bg-linear-to-b from-background to-muted/10">
       {title || description || headingControl || toolbar ? (
-        <CardHeader
-          className={
-            toolbarPlacement === "below"
-              ? "gap-4 md:flex-col md:items-stretch"
-              : "gap-4 md:flex-col md:items-stretch"
-          }
-        >
+        <CardHeader className="gap-4 bg-linear-to-b from-muted/20 to-transparent px-4 py-4 md:flex-col md:items-stretch sm:px-5">
           <CardHeading
             className={
               headingControl && toolbarPlacement === "inline"
@@ -113,24 +112,20 @@ export function DataTable<T>({
               </CardDescription>
             ) : null}
             {headingControl ? (
-              <div className="min-w-0 pt-1">{headingControl}</div>
+              <div className="min-w-0 rounded-lg border border-border/70 bg-background/80 p-3 shadow-xs shadow-black/5">
+                {headingControl}
+              </div>
             ) : null}
           </CardHeading>
           {toolbar ? (
-            <CardToolbar
-              className={
-                toolbarPlacement === "below"
-                  ? "w-full min-w-0 flex-wrap gap-2"
-                  : "w-full min-w-0 flex-wrap gap-2"
-              }
-            >
+            <CardToolbar className="w-full min-w-0 rounded-lg border border-border/70 bg-muted/15 p-3 shadow-xs shadow-black/5">
               {toolbar}
             </CardToolbar>
           ) : null}
         </CardHeader>
       ) : null}
 
-      <CardContent className="min-w-0 space-y-5">
+      <CardContent className="min-w-0 space-y-5 p-4 sm:p-5">
         {errorState ? (
           errorState
         ) : (
@@ -140,22 +135,44 @@ export function DataTable<T>({
                 ? Array.from({ length: 4 }, (_, index) => (
                     <div
                       key={`mobile-loading-${index}`}
-                      className="min-w-0 max-w-full rounded-xl border border-border/80 bg-card p-4"
+                      className="min-w-0 max-w-full overflow-hidden rounded-lg border border-border/70 bg-background/90 shadow-xs shadow-black/5"
                     >
-                      <div className="space-y-3">
-                        {columns.map((column) => (
-                          <div key={column.key} className="space-y-1.5">
-                            <Skeleton className="h-3 w-20" />
-                            <Skeleton className="h-5 w-[75%]" />
-                          </div>
-                        ))}
+                      <div className="border-b border-border/60 bg-muted/15 p-4">
+                        <Skeleton className="h-3 w-24" />
+                        <Skeleton className="mt-2 h-5 w-[78%]" />
+                        <Skeleton className="mt-2 h-4 w-[52%]" />
+                      </div>
+                      <div className="grid gap-2 p-3 sm:grid-cols-2">
+                        {detailColumns.length
+                          ? detailColumns.map((column) => (
+                              <div
+                                key={column.key}
+                                className="rounded-md border border-border/60 bg-muted/10 p-3"
+                              >
+                                <Skeleton className="h-3 w-20" />
+                                <Skeleton className="mt-2 h-5 w-[75%]" />
+                              </div>
+                            ))
+                          : columns.slice(1).map((column) => (
+                              <div
+                                key={column.key}
+                                className="rounded-md border border-border/60 bg-muted/10 p-3"
+                              >
+                                <Skeleton className="h-3 w-20" />
+                                <Skeleton className="mt-2 h-5 w-[75%]" />
+                              </div>
+                            ))}
                       </div>
                     </div>
                   ))
                 : rows.map((row) => (
                     <div
                       key={getRowId(row)}
-                      className="min-w-0 max-w-full overflow-hidden rounded-xl border border-border/80 bg-card p-4 transition-colors hover:border-primary/25 hover:bg-primary/[0.025]"
+                      className={cn(
+                        "min-w-0 max-w-full overflow-hidden rounded-lg border border-border/70 bg-background/90 shadow-xs shadow-black/5 transition-[background-color,border-color,box-shadow,transform]",
+                        onRowClick &&
+                          "hover:-translate-y-0.5 hover:border-primary/25 hover:bg-primary/[0.025] hover:shadow-[var(--shadow-premium-elevated)] focus-visible:border-primary/35 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                      )}
                       onClick={() => onRowClick?.(row)}
                       onKeyDown={(event) => {
                         if (!onRowClick) {
@@ -170,36 +187,80 @@ export function DataTable<T>({
                       role={onRowClick ? "button" : undefined}
                       tabIndex={onRowClick ? 0 : undefined}
                     >
-                      <div className="space-y-3">
-                        {columns.map((column) => (
-                          <div
-                            key={column.key}
-                            className="min-w-0 border-b border-border/60 pb-3 last:border-b-0 last:pb-0"
-                          >
-                            <p className="min-w-0 break-words text-[0.6875rem] font-medium uppercase tracking-[0.16em] text-muted-foreground">
-                              {mobileHeaderLabel(column)}
-                            </p>
-                            <div className="mt-1.5 min-w-0 max-w-full break-words text-sm text-foreground [overflow-wrap:anywhere] [&_[data-slot=button]]:min-w-0 [&_[data-slot=button]]:whitespace-normal">
-                              {translateMaybeString(column.cell(row), t)}
-                            </div>
+                      {primaryColumn ? (
+                        <div className="min-w-0 border-b border-border/60 bg-muted/15 p-4">
+                          <p className="min-w-0 break-words text-[0.6875rem] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                            {mobileHeaderLabel(primaryColumn)}
+                          </p>
+                          <div className="mt-2 min-w-0 max-w-full break-words text-sm text-foreground [overflow-wrap:anywhere] [&_[data-slot=button]]:min-w-0 [&_[data-slot=button]]:whitespace-normal">
+                            {translateMaybeString(primaryColumn.cell(row), t)}
                           </div>
-                        ))}
-                      </div>
+                        </div>
+                      ) : null}
+
+                      {detailColumns.length ? (
+                        <div className="grid min-w-0 gap-2 p-3 sm:grid-cols-2">
+                          {detailColumns.map((column) => (
+                            <div
+                              key={column.key}
+                              className="min-w-0 rounded-md border border-border/60 bg-muted/10 p-3"
+                            >
+                              <p className="min-w-0 break-words text-[0.6875rem] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                                {mobileHeaderLabel(column)}
+                              </p>
+                              <div className="mt-1.5 min-w-0 max-w-full break-words text-sm text-foreground [overflow-wrap:anywhere] [&_[data-slot=button]]:min-w-0 [&_[data-slot=button]]:whitespace-normal">
+                                {translateMaybeString(column.cell(row), t)}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : null}
+
+                      {actionColumn ? (
+                        <div className="min-w-0 border-t border-border/60 bg-muted/10 p-3">
+                          <p className="mb-2 min-w-0 break-words text-[0.6875rem] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                            {mobileHeaderLabel(actionColumn)}
+                          </p>
+                          <div className="min-w-0 max-w-full break-words text-sm text-foreground [overflow-wrap:anywhere] [&_[data-slot=button]]:min-w-0 [&_[data-slot=button]]:whitespace-normal">
+                            {translateMaybeString(actionColumn.cell(row), t)}
+                          </div>
+                        </div>
+                      ) : null}
+
+                      {!primaryColumn &&
+                      !detailColumns.length &&
+                      !actionColumn ? (
+                        <div className="space-y-3 p-4">
+                          {columns.map((column) => (
+                            <div
+                              key={column.key}
+                              className="min-w-0 border-b border-border/60 pb-3 last:border-b-0 last:pb-0"
+                            >
+                              <p className="min-w-0 break-words text-[0.6875rem] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                                {mobileHeaderLabel(column)}
+                              </p>
+                              <div className="mt-1.5 min-w-0 max-w-full break-words text-sm text-foreground [overflow-wrap:anywhere] [&_[data-slot=button]]:min-w-0 [&_[data-slot=button]]:whitespace-normal">
+                                {translateMaybeString(column.cell(row), t)}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : null}
                     </div>
                   ))}
 
               {!loading && rows.length === 0 ? emptyState : null}
             </div>
 
-            <div className="hidden min-w-0 overflow-x-auto overflow-y-hidden rounded-xl border border-border/80 bg-card xl:block">
+            <div className="hidden min-w-0 overflow-x-auto overflow-y-hidden rounded-lg border border-border/70 bg-background/90 shadow-xs shadow-black/5 xl:block">
               <Table className="table-fixed">
-                <TableHeader className="bg-muted/45">
+                <TableHeader className="bg-muted/35">
                   <TableRow>
                     {columns.map((column) => (
                       <TableHead
                         key={column.key}
                         className={cn(
-                          "min-w-0 whitespace-normal break-words [overflow-wrap:anywhere]",
+                          "min-w-0 whitespace-normal break-words text-[0.6875rem] font-semibold uppercase tracking-[0.14em] [overflow-wrap:anywhere]",
                           column.className,
                         )}
                       >
@@ -224,7 +285,7 @@ export function DataTable<T>({
                           key={getRowId(row)}
                           className={
                             onRowClick
-                              ? "cursor-pointer transition-colors hover:bg-primary/[0.025] focus-visible:bg-primary/[0.035]"
+                              ? "cursor-pointer transition-colors hover:bg-primary/[0.025] focus-visible:bg-primary/[0.035] focus-visible:outline-hidden"
                               : undefined
                           }
                           onClick={() => onRowClick?.(row)}
@@ -245,7 +306,7 @@ export function DataTable<T>({
                             <TableCell
                               key={column.key}
                               className={cn(
-                                "min-w-0 align-top break-words [overflow-wrap:anywhere] [&_[data-slot=button]]:min-w-0 [&_[data-slot=button]]:whitespace-normal",
+                                "min-w-0 align-top break-words py-5 [overflow-wrap:anywhere] [&_[data-slot=button]]:min-w-0 [&_[data-slot=button]]:whitespace-normal",
                                 column.className,
                               )}
                             >
