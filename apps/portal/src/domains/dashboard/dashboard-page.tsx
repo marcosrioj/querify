@@ -1,5 +1,8 @@
 import {
+  AlertTriangle,
   ArrowRight,
+  CheckCircle2,
+  CircleGauge,
   Clock3,
   FileCheck2,
   ShieldCheck,
@@ -9,6 +12,7 @@ import {
 import type { ComponentType, ReactNode } from "react";
 import { Link } from "react-router-dom";
 import {
+  type DashboardSignalTone,
   getActivationState,
   getBillingNeedsAttention,
   getBusinessReadout,
@@ -18,14 +22,11 @@ import {
 } from "@/domains/dashboard/dashboard-selectors";
 import { useAnswerList } from "@/domains/answers/hooks";
 import type { AnswerDto } from "@/domains/answers/types";
-import { useBillingWorkspace } from "@/domains/billing/hooks";
+import { useBillingSummary } from "@/domains/billing/hooks";
 import { useTenantMembers } from "@/domains/members/hooks";
 import { useQuestionList } from "@/domains/questions/hooks";
 import type { QuestionDto } from "@/domains/questions/types";
-import {
-  usePortalTimeZone,
-  useUserProfile,
-} from "@/domains/settings/settings-hooks";
+import { useUserProfile } from "@/domains/settings/settings-hooks";
 import { useSourceList } from "@/domains/sources/hooks";
 import { useSpaceList } from "@/domains/spaces/hooks";
 import {
@@ -39,7 +40,10 @@ import {
   tenantSubscriptionStatusPresentation,
 } from "@/shared/constants/enum-ui";
 import { PageHeader, PageSurface } from "@/shared/layout/page-layouts";
-import { formatNumericDateTimeInTimeZone } from "@/shared/lib/time-zone";
+import {
+  DEFAULT_PORTAL_TIME_ZONE,
+  formatNumericDateTimeInTimeZone,
+} from "@/shared/lib/time-zone";
 import { translateText } from "@/shared/lib/i18n-core";
 import {
   AnswerStatusBadge,
@@ -57,25 +61,34 @@ import {
   Skeleton,
 } from "@/shared/ui";
 import { ErrorState } from "@/shared/ui/placeholder-state";
+import { cn } from "@/lib/utils";
+
+const DASHBOARD_QUERY_STALE_TIME = 5 * 60 * 1000;
+const DASHBOARD_QUERY_GC_TIME = 15 * 60 * 1000;
+const DASHBOARD_QUEUE_LIMIT = 4;
 
 function DashboardLoadingState() {
   return (
     <PageSurface className="space-y-5 lg:space-y-7.5">
-      <div className="rounded-2xl border border-border/70 bg-card p-5 shadow-[var(--shadow-premium-card)]">
-        <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_280px]">
-          <div className="space-y-3">
+      <div className="grid gap-5 xl:grid-cols-[minmax(0,1.35fr)_minmax(340px,0.65fr)] lg:gap-7.5">
+        <div className="rounded-2xl border border-border/70 bg-card p-5 shadow-[var(--shadow-premium-card)]">
+          <div className="space-y-5">
             <Skeleton className="h-4 w-24" />
-            <Skeleton className="h-9 w-72" />
+            <Skeleton className="h-14 w-48" />
             <Skeleton className="h-4 w-full max-w-2xl" />
-            <Skeleton className="h-4 w-full max-w-xl" />
+            <Skeleton className="h-10 w-44" />
+            <div className="grid gap-3 sm:grid-cols-3">
+              {Array.from({ length: 3 }).map((_, index) => (
+                <Skeleton key={index} className="h-20 rounded-xl" />
+              ))}
+            </div>
           </div>
-          <Skeleton className="h-28 rounded-xl" />
         </div>
-      </div>
-      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-        {Array.from({ length: 4 }).map((_, index) => (
-          <Skeleton key={index} className="h-36 rounded-xl" />
-        ))}
+        <div className="grid gap-3 sm:grid-cols-3 xl:grid-cols-1">
+          {Array.from({ length: 3 }).map((_, index) => (
+            <Skeleton key={index} className="h-36 rounded-xl" />
+          ))}
+        </div>
       </div>
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_380px]">
         <Skeleton className="h-80 rounded-2xl" />
@@ -178,12 +191,77 @@ type DashboardChartRow = {
   to?: string;
 };
 
+type BusinessReadoutItem = {
+  label: string;
+  value: string;
+  benchmark: string;
+  detail: string;
+  progress?: number;
+  tone: DashboardSignalTone;
+  to: string;
+};
+
 function formatChartNumber(value: number) {
   return new Intl.NumberFormat(undefined, {
     notation: value >= 10000 ? "compact" : "standard",
     maximumFractionDigits: 1,
   }).format(value);
 }
+
+function percentage(value: number, total: number) {
+  return total > 0 ? Math.round((value / total) * 100) : 0;
+}
+
+const signalToneClassNames: Record<
+  DashboardSignalTone,
+  {
+    badge: string;
+    border: string;
+    icon: string;
+    meter: string;
+    text: string;
+  }
+> = {
+  danger: {
+    badge:
+      "border-[var(--color-destructive-alpha)] bg-[var(--color-destructive-soft)] text-[var(--color-destructive-accent)]",
+    border: "border-[var(--color-destructive-alpha)]",
+    icon: "bg-[var(--color-destructive-soft)] text-[var(--color-destructive-accent)] ring-[var(--color-destructive-alpha)]",
+    meter: "bg-[var(--color-destructive-accent)]",
+    text: "text-[var(--color-destructive-accent)]",
+  },
+  info: {
+    badge:
+      "border-[var(--color-info-alpha)] bg-[var(--color-info-soft)] text-[var(--color-info-accent)]",
+    border: "border-[var(--color-info-alpha)]",
+    icon: "bg-[var(--color-info-soft)] text-[var(--color-info-accent)] ring-[var(--color-info-alpha)]",
+    meter: "bg-[var(--color-info-accent)]",
+    text: "text-[var(--color-info-accent)]",
+  },
+  neutral: {
+    badge: "border-border/70 bg-muted/35 text-muted-foreground",
+    border: "border-border/70",
+    icon: "bg-muted/50 text-muted-foreground ring-border/70",
+    meter: "bg-muted-foreground/55",
+    text: "text-muted-foreground",
+  },
+  success: {
+    badge:
+      "border-[var(--color-success-alpha)] bg-[var(--color-success-soft)] text-[var(--color-success-accent)]",
+    border: "border-[var(--color-success-alpha)]",
+    icon: "bg-[var(--color-success-soft)] text-[var(--color-success-accent)] ring-[var(--color-success-alpha)]",
+    meter: "bg-[var(--color-success-accent)]",
+    text: "text-[var(--color-success-accent)]",
+  },
+  warning: {
+    badge:
+      "border-[var(--color-warning-alpha)] bg-[var(--color-warning-soft)] text-[var(--color-warning-accent)]",
+    border: "border-[var(--color-warning-alpha)]",
+    icon: "bg-[var(--color-warning-soft)] text-[var(--color-warning-accent)] ring-[var(--color-warning-alpha)]",
+    meter: "bg-[var(--color-warning-accent)]",
+    text: "text-[var(--color-warning-accent)]",
+  },
+};
 
 function EmptyChart({
   title,
@@ -206,11 +284,13 @@ function HorizontalValueChart({
   data,
   emptyDescription,
   emptyTitle,
+  totalValue,
   valueLabel,
 }: {
   data: DashboardChartRow[];
   emptyDescription: string;
   emptyTitle: string;
+  totalValue: number;
   valueLabel: string;
 }) {
   if (!data.some((entry) => entry.value > 0)) {
@@ -236,8 +316,11 @@ function HorizontalValueChart({
               <span className="min-w-0 truncate text-sm font-medium text-mono">
                 {entry.label}
               </span>
-              <span className="shrink-0 text-sm font-semibold tabular-nums text-mono">
+              <span className="shrink-0 text-right text-sm font-semibold tabular-nums text-mono">
                 {formatChartNumber(entry.value)}
+                <span className="ml-2 text-xs font-medium text-muted-foreground">
+                  {percentage(entry.value, totalValue)}%
+                </span>
               </span>
             </div>
             <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
@@ -284,44 +367,218 @@ const businessReadoutIcons: Record<
   "Trusted coverage": ShieldCheck,
 };
 
-function BusinessReadout({
-  items,
+function signalLabel(tone: DashboardSignalTone) {
+  switch (tone) {
+    case "danger":
+      return "At risk";
+    case "info":
+      return "Watching";
+    case "success":
+      return "On track";
+    case "warning":
+      return "Needs focus";
+    default:
+      return "Not started";
+  }
+}
+
+function ProgressMeter({
+  label,
+  tone,
+  value,
 }: {
-  items: Array<{ label: string; value: string; detail: string; to: string }>;
+  label: string;
+  tone: DashboardSignalTone;
+  value: number;
 }) {
+  const toneClassNames = signalToneClassNames[tone];
+
   return (
-    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-      {items.map((item) => {
-        const Icon = businessReadoutIcons[item.label] ?? ShieldCheck;
-        const content = (
-          <>
-            <div className="flex items-start justify-between gap-3">
-              <p className="min-w-0 text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+    <div className="space-y-1.5">
+      <div className="flex items-center justify-between gap-3 text-xs">
+        <span className="text-muted-foreground">{translateText(label)}</span>
+        <span className="font-semibold tabular-nums text-mono">{value}%</span>
+      </div>
+      <div
+        className="h-1.5 overflow-hidden rounded-full bg-muted"
+        aria-label={translateText(label)}
+        aria-valuemax={100}
+        aria-valuemin={0}
+        aria-valuenow={value}
+        role="progressbar"
+      >
+        <div
+          className={cn(
+            "h-full rounded-full transition-[width] duration-500",
+            toneClassNames.meter,
+          )}
+          style={{ width: `${Math.min(Math.max(value, 0), 100)}%` }}
+        />
+      </div>
+    </div>
+  );
+}
+
+function ExecutiveSummaryCard({
+  draftQuestionCount,
+  nextAction,
+  openQuestionCount,
+  primary,
+}: {
+  draftQuestionCount: number;
+  nextAction: { label: string; description: string; to: string };
+  openQuestionCount: number;
+  primary: BusinessReadoutItem;
+}) {
+  const toneClassNames = signalToneClassNames[primary.tone];
+  const headlineIcon =
+    primary.tone === "success"
+      ? CheckCircle2
+      : primary.tone === "neutral"
+        ? CircleGauge
+        : AlertTriangle;
+  const HeadlineIcon = headlineIcon;
+
+  return (
+    <Card
+      className={cn(
+        "overflow-hidden bg-linear-to-br from-card via-card to-muted/25",
+        toneClassNames.border,
+      )}
+    >
+      <CardContent className="p-5 sm:p-6">
+        <div className="flex min-w-0 flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+          <div className="min-w-0 space-y-4">
+            <Badge
+              variant="outline"
+              appearance="outline"
+              className={cn("gap-1.5", toneClassNames.badge)}
+            >
+              <HeadlineIcon className="size-3.5" />
+              {translateText(signalLabel(primary.tone))}
+            </Badge>
+
+            <div className="space-y-2">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                {translateText(primary.label)}
+              </p>
+              <div className="flex flex-wrap items-end gap-x-3 gap-y-2">
+                <p className="text-5xl font-semibold leading-none text-mono sm:text-6xl">
+                  {primary.value}
+                </p>
+                <p
+                  className={cn(
+                    "pb-1 text-sm font-semibold",
+                    toneClassNames.text,
+                  )}
+                >
+                  {translateText(primary.benchmark)}
+                </p>
+              </div>
+              <p className="max-w-2xl text-sm leading-6 text-muted-foreground">
+                {translateText(primary.detail)}
+              </p>
+            </div>
+          </div>
+
+          <Button asChild className="w-full sm:w-auto lg:shrink-0">
+            <Link to={nextAction.to}>
+              {translateText(nextAction.label)}
+              <ArrowRight className="size-4" />
+            </Link>
+          </Button>
+        </div>
+
+        <div className="mt-6 grid gap-3 sm:grid-cols-2">
+          {[
+            {
+              label: "Draft questions",
+              value: draftQuestionCount,
+              detail: "Needs activation",
+            },
+            {
+              label: "Active questions",
+              value: openQuestionCount,
+              detail: "Needs an answer",
+            },
+          ].map((item) => (
+            <div
+              key={item.label}
+              className="min-w-0 rounded-xl border border-border/70 bg-background/70 p-3"
+            >
+              <p className="text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
                 {translateText(item.label)}
               </p>
-              <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary ring-1 ring-inset ring-primary/15">
-                <Icon className="size-4" />
-              </span>
+              <p className="mt-2 text-2xl font-semibold leading-none text-mono">
+                {item.value}
+              </p>
+              <p className="mt-2 text-xs text-muted-foreground">
+                {translateText(item.detail)}
+              </p>
             </div>
-            <p className="mt-2 text-3xl font-semibold leading-none text-mono">
-              {item.value}
-            </p>
-            <p className="mt-3 text-sm leading-6 text-muted-foreground">
-              {translateText(item.detail)}
-            </p>
-          </>
-        );
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
 
-        return (
-          <Link
-            key={item.label}
-            to={item.to}
-            className="rounded-xl border border-border/70 bg-background/75 p-4 transition-colors hover:border-primary/25 hover:bg-primary/[0.025]"
-          >
-            {content}
-          </Link>
-        );
-      })}
+function ReadoutMetricCard({ item }: { item: BusinessReadoutItem }) {
+  const Icon = businessReadoutIcons[item.label] ?? ShieldCheck;
+  const toneClassNames = signalToneClassNames[item.tone];
+
+  return (
+    <Link
+      to={item.to}
+      className={cn(
+        "group flex min-h-36 min-w-0 flex-col justify-between rounded-xl border bg-card p-4 transition-colors hover:border-primary/25 hover:bg-primary/[0.025]",
+        toneClassNames.border,
+      )}
+    >
+      <div className="flex min-w-0 items-start justify-between gap-3">
+        <p className="min-w-0 text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+          {translateText(item.label)}
+        </p>
+        <span
+          className={cn(
+            "flex size-9 shrink-0 items-center justify-center rounded-lg ring-1 ring-inset",
+            toneClassNames.icon,
+          )}
+        >
+          <Icon className="size-4" />
+        </span>
+      </div>
+
+      <div className="mt-4 min-w-0 space-y-2">
+        <div className="flex flex-wrap items-end gap-x-2 gap-y-1">
+          <p className="text-3xl font-semibold leading-none text-mono">
+            {item.value}
+          </p>
+          <span className={cn("text-xs font-semibold", toneClassNames.text)}>
+            {translateText(item.benchmark)}
+          </span>
+        </div>
+        {item.progress !== undefined ? (
+          <ProgressMeter
+            label={item.label}
+            tone={item.tone}
+            value={item.progress}
+          />
+        ) : null}
+        <p className="text-sm leading-6 text-muted-foreground">
+          {translateText(item.detail)}
+        </p>
+      </div>
+    </Link>
+  );
+}
+
+function BusinessReadout({ items }: { items: BusinessReadoutItem[] }) {
+  return (
+    <div className="grid gap-3 sm:grid-cols-3 xl:grid-cols-1">
+      {items.map((item) => (
+        <ReadoutMetricCard key={item.label} item={item} />
+      ))}
     </div>
   );
 }
@@ -395,15 +652,7 @@ function AnswerQueueRow({ answer }: { answer: AnswerDto }) {
   );
 }
 
-function QueueSectionHeader({
-  count,
-  title,
-  to,
-}: {
-  count: number;
-  title: string;
-  to: string;
-}) {
+function QueueSectionHeader({ title, to }: { title: string; to: string }) {
   return (
     <div className="flex min-w-0 items-center justify-between gap-3">
       <div className="min-w-0">
@@ -412,9 +661,6 @@ function QueueSectionHeader({
         </p>
       </div>
       <div className="flex shrink-0 items-center gap-2">
-        <Badge variant="outline" appearance="outline">
-          {formatChartNumber(count)}
-        </Badge>
         <Button asChild variant="ghost" size="sm">
           <Link to={to}>
             {translateText("Open")}
@@ -492,55 +738,78 @@ function BillingNotice({
 }
 
 export function DashboardPage() {
-  const timeZone = usePortalTimeZone();
   const profileQuery = useUserProfile();
-  const membersQuery = useTenantMembers();
-  const billing = useBillingWorkspace();
+  const timeZone =
+    profileQuery.data?.timeZone?.trim() || DEFAULT_PORTAL_TIME_ZONE;
+  const membersQuery = useTenantMembers({
+    gcTime: DASHBOARD_QUERY_GC_TIME,
+    staleTime: DASHBOARD_QUERY_STALE_TIME,
+  });
+  const billingSummaryQuery = useBillingSummary({
+    gcTime: DASHBOARD_QUERY_GC_TIME,
+    staleTime: DASHBOARD_QUERY_STALE_TIME,
+  });
 
   const spacesQuery = useSpaceList({
     page: 1,
-    pageSize: 100,
-    sorting: "Name ASC",
+    pageSize: 6,
+    sorting: "QuestionCount DESC",
+    gcTime: DASHBOARD_QUERY_GC_TIME,
+    staleTime: DASHBOARD_QUERY_STALE_TIME,
   });
   const questionsSummaryQuery = useQuestionList({
     page: 1,
     pageSize: 1,
     sorting: "LastActivityAtUtc DESC",
+    gcTime: DASHBOARD_QUERY_GC_TIME,
+    staleTime: DASHBOARD_QUERY_STALE_TIME,
   });
   const draftQuestionsQuery = useQuestionList({
     page: 1,
-    pageSize: 5,
+    pageSize: DASHBOARD_QUEUE_LIMIT,
     sorting: "LastActivityAtUtc DESC",
     status: QuestionStatus.Draft,
+    gcTime: DASHBOARD_QUERY_GC_TIME,
+    staleTime: DASHBOARD_QUERY_STALE_TIME,
   });
   const openQuestionsQuery = useQuestionList({
     page: 1,
-    pageSize: 5,
+    pageSize: DASHBOARD_QUEUE_LIMIT,
     sorting: "LastActivityAtUtc DESC",
     status: QuestionStatus.Active,
+    gcTime: DASHBOARD_QUERY_GC_TIME,
+    staleTime: DASHBOARD_QUERY_STALE_TIME,
   });
   const activeAnswersQuery = useAnswerList({
     page: 1,
-    pageSize: 5,
+    pageSize: DASHBOARD_QUEUE_LIMIT,
     sorting: "LastUpdatedAtUtc DESC",
     status: AnswerStatus.Active,
+    gcTime: DASHBOARD_QUERY_GC_TIME,
+    staleTime: DASHBOARD_QUERY_STALE_TIME,
   });
   const acceptedAnswersQuery = useAnswerList({
     page: 1,
     pageSize: 1,
     sorting: "LastUpdatedAtUtc DESC",
     isAccepted: true,
+    gcTime: DASHBOARD_QUERY_GC_TIME,
+    staleTime: DASHBOARD_QUERY_STALE_TIME,
   });
   const sourcesQuery = useSourceList({
     page: 1,
-    pageSize: 100,
+    pageSize: 1,
     sorting: "LastVerifiedAtUtc DESC",
+    gcTime: DASHBOARD_QUERY_GC_TIME,
+    staleTime: DASHBOARD_QUERY_STALE_TIME,
   });
   const publicSourcesQuery = useSourceList({
     page: 1,
     pageSize: 1,
     sorting: "LastVerifiedAtUtc DESC",
     visibility: VisibilityScope.Public,
+    gcTime: DASHBOARD_QUERY_GC_TIME,
+    staleTime: DASHBOARD_QUERY_STALE_TIME,
   });
 
   const isInitialDashboardLoading =
@@ -554,7 +823,7 @@ export function DashboardPage() {
     publicSourcesQuery.isLoading ||
     membersQuery.isLoading ||
     profileQuery.isLoading ||
-    billing.summaryQuery.isLoading;
+    billingSummaryQuery.isLoading;
 
   const hasCriticalError =
     spacesQuery.isError ||
@@ -586,6 +855,7 @@ export function DashboardPage() {
         <PageHeader
           title="Business dashboard"
           description="Priorities, risks, and demand for the QnA operation."
+          descriptionMode="hint"
         />
         <ErrorState
           title="Unable to load dashboard"
@@ -617,7 +887,7 @@ export function DashboardPage() {
   const acceptedAnswerCount = acceptedAnswersQuery.data?.totalCount ?? 0;
   const sourceCount = sourcesQuery.data?.totalCount ?? 0;
   const publicSourceCount = publicSourcesQuery.data?.totalCount ?? 0;
-  const billingSummary = billing.summaryQuery.data;
+  const billingSummary = billingSummaryQuery.data;
   const spaceWorkload = getSpaceWorkloadData(spaces);
   const activation = getActivationState({
     hasProfile: Boolean(profileQuery.data?.givenName),
@@ -638,7 +908,10 @@ export function DashboardPage() {
     sourceCount,
     spaces,
   });
-  const queueQuestions = [...draftQuestions, ...openQuestions].slice(0, 5);
+  const queueQuestions = [...draftQuestions, ...openQuestions].slice(
+    0,
+    DASHBOARD_QUEUE_LIMIT,
+  );
   const businessReadout = getBusinessReadout({
     acceptedAnswerCount,
     openQuestionCount,
@@ -651,6 +924,8 @@ export function DashboardPage() {
     firstDemandQuestionId: queueQuestions[0]?.id,
     firstSpaceId: spaces[0]?.id,
   });
+  const primaryReadout = businessReadout[0] as BusinessReadoutItem;
+  const secondaryReadout = businessReadout.slice(1) as BusinessReadoutItem[];
   const billingNeedsAttention = getBillingNeedsAttention(billingSummary);
 
   return (
@@ -658,14 +933,7 @@ export function DashboardPage() {
       <PageHeader
         title="Business dashboard"
         description="Priorities, risks, and demand for the QnA operation."
-        actions={
-          <Button asChild>
-            <Link to={nextAction.to}>
-              <ArrowRight className="size-4" />
-              {translateText(nextAction.label)}
-            </Link>
-          </Button>
-        }
+        descriptionMode="hint"
       />
 
       {setupProgress < 100 ? (
@@ -679,12 +947,15 @@ export function DashboardPage() {
         />
       ) : null}
 
-      <Panel
-        title="Business priorities"
-        description="The few signals that decide where the team should spend time: unresolved demand, active answers, trusted coverage, and evidence readiness."
-      >
-        <BusinessReadout items={businessReadout} />
-      </Panel>
+      <div className="grid gap-5 xl:grid-cols-[minmax(0,1.35fr)_minmax(340px,0.65fr)] lg:gap-7.5">
+        <ExecutiveSummaryCard
+          draftQuestionCount={draftQuestionCount}
+          nextAction={nextAction}
+          openQuestionCount={openQuestionCount}
+          primary={primaryReadout}
+        />
+        <BusinessReadout items={secondaryReadout} />
+      </div>
 
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_380px] lg:gap-7.5">
         <Panel
@@ -699,7 +970,6 @@ export function DashboardPage() {
           <div className="grid gap-5 lg:grid-cols-2">
             <div className="space-y-3">
               <QueueSectionHeader
-                count={draftQuestionCount + openQuestionCount}
                 title="Questions to resolve"
                 to={
                   queueQuestions[0]
@@ -727,8 +997,7 @@ export function DashboardPage() {
 
             <div className="space-y-3">
               <QueueSectionHeader
-                count={activeAnswerCount}
-                title="Active answers"
+                title="Answers ready for reuse"
                 to={
                   activeAnswers[0]
                     ? `/app/answers/${activeAnswers[0].id}`
@@ -744,7 +1013,7 @@ export function DashboardPage() {
               ) : (
                 <InlineEmptyState
                   title="No active answers yet"
-                  description="Active answers ready for reuse will appear here."
+                  description="Reusable answers will appear here."
                 />
               )}
             </div>
@@ -764,6 +1033,7 @@ export function DashboardPage() {
             data={spaceWorkload}
             emptyTitle="No space demand yet"
             emptyDescription="Questions by space will appear after teams begin routing questions."
+            totalValue={questionCount}
             valueLabel="Questions"
           />
         </Panel>

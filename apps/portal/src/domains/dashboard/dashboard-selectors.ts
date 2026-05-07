@@ -18,6 +18,49 @@ function percentage(value: number, total: number) {
   return total > 0 ? Math.round((value / total) * 100) : 0;
 }
 
+export type DashboardSignalTone =
+  | "danger"
+  | "info"
+  | "neutral"
+  | "success"
+  | "warning";
+
+function demandTone(value: number): DashboardSignalTone {
+  if (value === 0) {
+    return "success";
+  }
+
+  if (value >= 10) {
+    return "danger";
+  }
+
+  return "warning";
+}
+
+function ratioTone(value: number, total: number): DashboardSignalTone {
+  if (total === 0) {
+    return "neutral";
+  }
+
+  if (value >= 80) {
+    return "success";
+  }
+
+  if (value >= 50) {
+    return "warning";
+  }
+
+  return "danger";
+}
+
+function activeAnswersTone(value: number): DashboardSignalTone {
+  if (value > 0) {
+    return "success";
+  }
+
+  return "neutral";
+}
+
 function pickChartFill(index: number) {
   return chartFills[index % chartFills.length];
 }
@@ -197,6 +240,8 @@ export function getBusinessReadout({
   firstSpaceId?: string;
 }) {
   const demandToResolve = draftQuestionCount + openQuestionCount;
+  const trustedCoverage = percentage(acceptedAnswerCount, questionCount);
+  const evidenceReadiness = percentage(publicSourceCount, sourceCount);
   const fallbackSpaceTo = firstSpaceId
     ? `/app/spaces/${firstSpaceId}`
     : "/app/spaces";
@@ -205,10 +250,12 @@ export function getBusinessReadout({
     {
       label: "Demand to resolve",
       value: `${demandToResolve}`,
+      benchmark: "Target 0 waiting",
       detail:
         demandToResolve > 0
           ? "Draft and active questions are waiting to be activated or answered."
           : "No open customer demand in the current queue.",
+      tone: demandTone(demandToResolve),
       to:
         demandToResolve > 0 && firstDemandQuestionId
           ? `/app/questions/${firstDemandQuestionId}`
@@ -217,10 +264,12 @@ export function getBusinessReadout({
     {
       label: "Active answers",
       value: `${activeAnswerCount}`,
+      benchmark: "Reusable knowledge",
       detail:
         activeAnswerCount > 0
           ? "Active answers are ready for reuse across customer journeys."
           : "No active answers are ready for reuse yet.",
+      tone: activeAnswersTone(activeAnswerCount),
       to:
         activeAnswerCount > 0 && firstActiveAnswerId
           ? `/app/answers/${firstActiveAnswerId}`
@@ -228,20 +277,26 @@ export function getBusinessReadout({
     },
     {
       label: "Trusted coverage",
-      value: `${percentage(acceptedAnswerCount, questionCount)}%`,
+      value: `${trustedCoverage}%`,
+      benchmark: "Goal 80% accepted",
       detail:
         questionCount > 0
           ? "Share of questions with an accepted answer."
           : "Create questions before measuring trusted coverage.",
+      progress: trustedCoverage,
+      tone: ratioTone(trustedCoverage, questionCount),
       to: fallbackSpaceTo,
     },
     {
       label: "Evidence readiness",
-      value: `${percentage(publicSourceCount, sourceCount)}%`,
+      value: `${evidenceReadiness}%`,
+      benchmark: "Goal 80% public",
       detail:
         sourceCount > 0
           ? "Share of sources visible publicly for reusable answers."
           : "Add sources before scaling active answers.",
+      progress: evidenceReadiness,
+      tone: ratioTone(evidenceReadiness, sourceCount),
       to: "/app/sources",
     },
   ];

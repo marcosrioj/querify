@@ -44,10 +44,19 @@ export function useAnswerList(params: {
   visibility?: number;
   isAccepted?: boolean;
   enabled?: boolean;
+  staleTime?: number;
+  gcTime?: number;
+  refetchOnMount?: boolean | "always";
 }) {
   const { session, status } = useAuth();
   const { currentTenantId } = useTenant();
-  const { enabled = true, ...requestParams } = params;
+  const {
+    enabled = true,
+    gcTime,
+    refetchOnMount,
+    staleTime,
+    ...requestParams
+  } = params;
 
   return useQuery({
     queryKey: answerKeys.list(currentTenantId, requestParams),
@@ -55,6 +64,9 @@ export function useAnswerList(params: {
       listAnswers(session?.accessToken, currentTenantId, requestParams, signal),
     enabled: enabled && status === "ready" && Boolean(currentTenantId),
     placeholderData: keepPreviousQnaTenantData(currentTenantId),
+    gcTime,
+    refetchOnMount,
+    staleTime,
   });
 }
 

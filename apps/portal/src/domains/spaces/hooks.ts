@@ -38,10 +38,19 @@ export function useSpaceList(params: {
   acceptsQuestions?: boolean;
   acceptsAnswers?: boolean;
   enabled?: boolean;
+  staleTime?: number;
+  gcTime?: number;
+  refetchOnMount?: boolean | "always";
 }) {
   const { session, status } = useAuth();
   const { currentTenantId } = useTenant();
-  const { enabled = true, ...requestParams } = params;
+  const {
+    enabled = true,
+    gcTime,
+    refetchOnMount,
+    staleTime,
+    ...requestParams
+  } = params;
 
   return useQuery({
     queryKey: spaceKeys.list(currentTenantId, requestParams),
@@ -49,6 +58,9 @@ export function useSpaceList(params: {
       listSpaces(session?.accessToken, currentTenantId, requestParams, signal),
     enabled: enabled && status === "ready" && Boolean(currentTenantId),
     placeholderData: keepPreviousQnaTenantData(currentTenantId),
+    gcTime,
+    refetchOnMount,
+    staleTime,
   });
 }
 
