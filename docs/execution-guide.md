@@ -85,6 +85,7 @@ Primary documents:
 
 - [`frontend/architecture/portal-app.md`](frontend/architecture/portal-app.md)
 - [`frontend/architecture/portal-app-ui-prompt-guidance.md`](frontend/architecture/portal-app-ui-prompt-guidance.md)
+- [`frontend/architecture/portal-getting-started-guidance.md`](frontend/architecture/portal-getting-started-guidance.md)
 - [`frontend/architecture/portal-localization.md`](frontend/architecture/portal-localization.md)
 - [`frontend/testing/validation-guide.md`](frontend/testing/validation-guide.md)
 
@@ -197,6 +198,7 @@ Quick-reference reading order per task type. These refine the workflow choices a
 | Seed, migration, or local stack | `local-development` → `seed-tool` → `migration-tool` |
 | Portal domain data flow | `portal-app` → `portal-runtime` → `validation-guide` |
 | Portal page composition / UI | `portal-app-ui-prompt-guidance` → `portal-app` → `validation-guide` |
+| Portal Getting Started / next action guidance | `portal-getting-started-guidance` → `portal-app-ui-prompt-guidance` → `portal-localization` → `validation-guide` |
 | Portal localization | `portal-localization` → `portal-app` → `validation-guide` |
 | Specialized domain, AI, or distribution | `solution-architecture` → `dotnet-backend-overview` → `repository-rules` → `integration-testing-strategy`. If the work becomes a stable pattern, extend the owning doc instead of creating a new taxonomy file. |
 

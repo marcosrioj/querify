@@ -162,6 +162,7 @@ Relationship sections manage children and related records without leaving the or
 ### Progress guidance
 
 - Dashboard progress should be derived from real data where possible.
+- The canonical Getting Started sequence, completion criteria, recommended-next-action ranking, and guidance-surface inventory live in [`portal-getting-started-guidance.md`](portal-getting-started-guidance.md).
 - Dashboard setup progress should not render any setup-progress or completion surface after it reaches 100%.
 - Dedicated Add/Edit setup progress should be form-specific and should disappear when every step is complete.
 - First-run guidance should focus on the next best action.

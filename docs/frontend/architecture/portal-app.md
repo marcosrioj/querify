@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This document is the main frontend guide for `apps/portal`. It covers scope, tech stack, backend contracts, architecture rules, and Portal-specific conventions. For shared UI patterns and page composition rules, use [`portal-app-ui-prompt-guidance.md`](portal-app-ui-prompt-guidance.md).
+This document is the main frontend guide for `apps/portal`. It covers scope, tech stack, backend contracts, architecture rules, and Portal-specific conventions. For shared UI patterns and page composition rules, use [`portal-app-ui-prompt-guidance.md`](portal-app-ui-prompt-guidance.md). For Getting Started, setup progress, empty states, and recommended-next-action logic, use [`portal-getting-started-guidance.md`](portal-getting-started-guidance.md).
 
 ## Scope
 
@@ -119,6 +119,8 @@ Implementation references:
 ## Implementation rules
 
 For shared components, layout standards, form rules, relationship sections, action patterns, visual hierarchy, responsive behavior, state handling, and domain-specific UI patterns, use [`portal-app-ui-prompt-guidance.md`](portal-app-ui-prompt-guidance.md).
+
+For the Portal's Getting Started sequence, setup-progress completion criteria, empty-state inventory, page hints, and recommended-next-action behavior, use [`portal-getting-started-guidance.md`](portal-getting-started-guidance.md).
 
 ## Current implementation notes
 

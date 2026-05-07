@@ -59,6 +59,7 @@ Technical reference for how `apps/portal` is organized, what it consumes from th
 
 - [`frontend/architecture/portal-app.md`](frontend/architecture/portal-app.md) — Portal scope, tech stack, backend contracts, shell architecture, and app-level conventions.
 - [`frontend/architecture/portal-app-ui-prompt-guidance.md`](frontend/architecture/portal-app-ui-prompt-guidance.md) — shared UI patterns and composition rules: layouts, forms, relationships, actions, state handling, visual hierarchy, and responsive behavior.
+- [`frontend/architecture/portal-getting-started-guidance.md`](frontend/architecture/portal-getting-started-guidance.md) — Getting Started, setup-progress, empty-state, page-hint, and recommended-next-action logic with implementation links.
 - [`frontend/architecture/portal-localization.md`](frontend/architecture/portal-localization.md) — language resolution order, RTL/LTR behavior, locale ownership, translation implementation, and API error localization.
 
 ### Tools
@@ -116,6 +117,7 @@ Each type of content has a single owner. Reference that owner; do not copy conte
 | Content type | Single owner | Do not add to |
 |---|---|---|
 | Portal UI rules: layouts, forms, relationships, actions, state handling, visual hierarchy | `frontend/architecture/portal-app-ui-prompt-guidance.md` | `portal-app.md` or any other doc |
+| Portal Getting Started, setup progress, recommended next actions, and guidance-surface inventory | `frontend/architecture/portal-getting-started-guidance.md` | `portal-app-ui-prompt-guidance.md`, `portal-app.md`, or page-specific docs |
 | Backend review checklist | `backend/architecture/repository-rules.md` | `solution-cqrs-write-rules.md` or architecture docs |
 | Standard workstream reading order | `execution-guide.md` → Standard workstreams | workflow or architecture docs |
 | Document authority / reading order for a cross-layer workflow | `execution-guide.md` | individual playbooks or step docs (point here instead) |
