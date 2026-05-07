@@ -14,6 +14,7 @@
     <ItemGroup>
         <ProjectReference Include="..\Querify.Common.Infrastructure.Core\Querify.Common.Infrastructure.Core.csproj"/>
         <ProjectReference Include="..\Querify.Common.Infrastructure.MediatR\Querify.Common.Infrastructure.MediatR.csproj"/>
+        <ProjectReference Include="..\Querify.Common.Infrastructure.Storage\Querify.Common.Infrastructure.Storage.csproj"/>
         <ProjectReference Include="..\Querify.QnA.Common.Domain\Querify.QnA.Common.Domain.csproj"/>
         <ProjectReference Include="..\Querify.QnA.Common.Persistence.QnADb\Querify.QnA.Common.Persistence.QnADb.csproj"/>
         <ProjectReference Include="..\Querify.Models.QnA\Querify.Models.QnA.csproj"/>

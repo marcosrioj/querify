@@ -3,9 +3,13 @@ import { toPagedQuery } from '@/shared/lib/pagination';
 import type { PagedResultDto } from '@/shared/types/api';
 import type {
   SourceCreateRequestDto,
+  SourceDownloadUrlDto,
   SourceDetailDto,
   SourceDto,
   SourceUpdateRequestDto,
+  SourceUploadCompleteRequestDto,
+  SourceUploadIntentRequestDto,
+  SourceUploadIntentResponseDto,
 } from '@/domains/sources/types';
 
 export function listSources(
@@ -95,6 +99,50 @@ export function deleteSource(
     service: 'qna',
     path: `/api/qna/source/${id}`,
     method: 'DELETE',
+    accessToken: requireAccessToken(accessToken),
+    tenantId: requireTenantId(tenantId),
+  });
+}
+
+export function createSourceUploadIntent(
+  accessToken: string | undefined,
+  tenantId: string | undefined,
+  body: SourceUploadIntentRequestDto,
+) {
+  return portalRequest<SourceUploadIntentResponseDto>({
+    service: 'qna',
+    path: '/api/qna/source/upload-intent',
+    method: 'POST',
+    accessToken: requireAccessToken(accessToken),
+    tenantId: requireTenantId(tenantId),
+    body,
+  });
+}
+
+export function completeSourceUpload(
+  accessToken: string | undefined,
+  tenantId: string | undefined,
+  id: string,
+  body: SourceUploadCompleteRequestDto,
+) {
+  return portalRequest<string>({
+    service: 'qna',
+    path: `/api/qna/source/${id}/upload-complete`,
+    method: 'POST',
+    accessToken: requireAccessToken(accessToken),
+    tenantId: requireTenantId(tenantId),
+    body,
+  });
+}
+
+export function getSourceDownloadUrl(
+  accessToken: string | undefined,
+  tenantId: string | undefined,
+  id: string,
+) {
+  return portalRequest<SourceDownloadUrlDto>({
+    service: 'qna',
+    path: `/api/qna/source/${id}/download-url`,
     accessToken: requireAccessToken(accessToken),
     tenantId: requireTenantId(tenantId),
   });

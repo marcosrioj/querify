@@ -14,6 +14,7 @@ import {
   SourceRole,
   VisibilityScope,
   sourceKindLabels,
+  sourceUploadStatusLabels,
   visibilityScopeLabels,
 } from "@/shared/constants/backend-enums";
 import { ListLayout, PageHeader } from "@/shared/layout/page-layouts";
@@ -45,6 +46,7 @@ import { EmptyState, ErrorState } from "@/shared/ui/placeholder-state";
 import {
   SourceKindBadge,
   SourceRoleBadge,
+  SourceUploadStatusBadge,
   VisibilityBadge,
 } from "@/shared/ui/status-badges";
 
@@ -71,6 +73,7 @@ const sortingOptions = [
 
 const SOURCE_FILTER_DEFAULTS = {
   kind: "all",
+  uploadStatus: "all",
   visibility: "all",
 } as const;
 
@@ -115,21 +118,29 @@ function sourceMatchesFilters(
   {
     kindFilter,
     searchText,
+    uploadStatusFilter,
     visibilityFilter,
   }: {
     kindFilter: string;
     searchText: string;
+    uploadStatusFilter: string;
     visibilityFilter: string;
   },
 ) {
   const matchesKind =
     kindFilter === "all" || source.kind === Number(kindFilter);
+  const matchesUploadStatus =
+    uploadStatusFilter === "all" ||
+    source.uploadStatus === Number(uploadStatusFilter);
   const matchesVisibility =
     visibilityFilter === "all" ||
     source.visibility === Number(visibilityFilter);
 
   return (
-    matchesKind && matchesVisibility && sourceMatchesSearch(source, searchText)
+    matchesKind &&
+    matchesUploadStatus &&
+    matchesVisibility &&
+    sourceMatchesSearch(source, searchText)
   );
 }
 
@@ -256,18 +267,24 @@ export function SourceListPage() {
     filterDefaults: SOURCE_FILTER_DEFAULTS,
   });
   const kindFilter = filters.kind;
+  const uploadStatusFilter = filters.uploadStatus;
   const visibilityFilter = filters.visibility;
   const apiKind = kindFilter === "all" ? undefined : Number(kindFilter);
   const apiVisibility =
     visibilityFilter === "all" ? undefined : Number(visibilityFilter);
-  const quickAllActive = kindFilter === "all" && visibilityFilter === "all";
+  const quickAllActive =
+    kindFilter === "all" &&
+    uploadStatusFilter === "all" &&
+    visibilityFilter === "all";
   const activeFilterCount = [
     search.trim(),
     kindFilter !== "all",
+    uploadStatusFilter !== "all",
     visibilityFilter !== "all",
   ].filter(Boolean).length;
   const refinementFilterCount = [
     kindFilter !== "all",
+    uploadStatusFilter !== "all",
     visibilityFilter !== "all",
   ].filter(Boolean).length;
   const clearFilters = () => resetFilters();
@@ -349,12 +366,16 @@ export function SourceListPage() {
           sourceMatchesFilters(source, {
             kindFilter,
             searchText: debouncedSearch,
+            uploadStatusFilter,
             visibilityFilter,
           }),
         ),
         sorting,
       )
-    : ((sourceQuery.data?.items ?? []) as SourceListRow[]);
+    : ((sourceQuery.data?.items ?? []) as SourceListRow[]).filter((source) =>
+        uploadStatusFilter === "all" ||
+        source.uploadStatus === Number(uploadStatusFilter),
+      );
   const relationshipLoading =
     (spaceId && spaceQuery.isLoading && !spaceQuery.data) ||
     (questionId && questionQuery.isLoading && !questionQuery.data) ||
@@ -478,9 +499,22 @@ export function SourceListPage() {
       header: "Type",
       className: "xl:w-[120px]",
       cell: (source) => (
+          <div className="space-y-2">
+            <SourceKindBadge kind={source.kind} />
+            <VisibilityBadge visibility={source.visibility} />
+          </div>
+      ),
+    },
+    {
+      key: "origin",
+      header: "Origin",
+      className: "xl:w-[130px]",
+      cell: (source) => (
         <div className="space-y-2">
-          <SourceKindBadge kind={source.kind} />
-          <VisibilityBadge visibility={source.visibility} />
+          <Badge variant={source.storageKey ? "info" : "outline"} appearance="outline">
+            {translateText(source.storageKey ? "File" : "URL")}
+          </Badge>
+          <SourceUploadStatusBadge status={source.uploadStatus} />
         </div>
       ),
     },
@@ -691,6 +725,7 @@ export function SourceListPage() {
                       if (bucket.value === "all") {
                         setFilters({
                           kind: "all",
+                          uploadStatus: "all",
                           visibility: "all",
                         });
                         return;
@@ -750,6 +785,28 @@ export function SourceListPage() {
                     <SelectContent>
                       <SelectItem value="all">All visibility</SelectItem>
                       {Object.entries(visibilityScopeLabels).map(
+                        ([value, label]) => (
+                          <SelectItem key={value} value={value}>
+                            {translateText(label)}
+                          </SelectItem>
+                        ),
+                      )}
+                    </SelectContent>
+                  </Select>
+                </ListFilterField>
+                <ListFilterField label="Upload status">
+                  <Select
+                    value={uploadStatusFilter}
+                    onValueChange={(value) => setFilter("uploadStatus", value)}
+                  >
+                    <SelectTrigger className="w-full" size="lg">
+                      <SelectValue
+                        placeholder={translateText("Upload status")}
+                      />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All upload status</SelectItem>
+                      {Object.entries(sourceUploadStatusLabels).map(
                         ([value, label]) => (
                           <SelectItem key={value} value={value}>
                             {translateText(label)}

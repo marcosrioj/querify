@@ -122,6 +122,16 @@ export enum SourceRole {
   Reference = 16,
 }
 
+export enum SourceUploadStatus {
+  None = 1,
+  Pending = 6,
+  Uploaded = 11,
+  Verified = 16,
+  Quarantined = 21,
+  Failed = 26,
+  Expired = 31,
+}
+
 export enum ActivityKind {
   QuestionCreated = 1,
   QuestionUpdated = 6,
@@ -260,6 +270,16 @@ export const sourceRoleLabels: Record<SourceRole, string> = {
   [SourceRole.Context]: 'Context',
   [SourceRole.Evidence]: 'Evidence',
   [SourceRole.Reference]: 'Reference',
+};
+
+export const sourceUploadStatusLabels: Record<SourceUploadStatus, string> = {
+  [SourceUploadStatus.None]: 'None',
+  [SourceUploadStatus.Pending]: 'Pending',
+  [SourceUploadStatus.Uploaded]: 'Uploaded',
+  [SourceUploadStatus.Verified]: 'Verified',
+  [SourceUploadStatus.Quarantined]: 'Quarantined',
+  [SourceUploadStatus.Failed]: 'Failed',
+  [SourceUploadStatus.Expired]: 'Expired',
 };
 
 export const activityKindLabels: Record<ActivityKind, string> = {

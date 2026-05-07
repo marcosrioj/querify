@@ -15,6 +15,12 @@ public class RepositoryArchitectureComplianceTests
         "System.String"
     };
 
+    private static readonly HashSet<string> AllowedCommandResponseExceptions = new(StringComparer.Ordinal)
+    {
+        "dotnet/Querify.QnA.Portal.Business.Source/Commands/CreateUploadIntent/SourcesCreateUploadIntentCommand.cs|SourceUploadIntentResponseDto",
+        "dotnet/Querify.QnA.Portal.Business.Source/Commands/CreateUploadIntent/SourcesCreateUploadIntentCommandHandler.cs|SourceUploadIntentResponseDto"
+    };
+
     private static readonly string[] ScopedProjectPrefixes =
     [
         "Querify.QnA.",
@@ -161,6 +167,11 @@ public class RepositoryArchitectureComplianceTests
                     continue;
                 }
 
+                if (IsAllowedCommandResponseException(filePath, normalizedType))
+                {
+                    continue;
+                }
+
                 failures.Add(
                     $"{ToRelativePath(filePath)}: command response type '{responseType.Value.Trim()}' is not allowed.");
             }
@@ -192,6 +203,11 @@ public class RepositoryArchitectureComplianceTests
             {
                 var normalizedType = NormalizeType(match.Groups["type"].Value);
                 if (AllowedSimpleTypes.Contains(normalizedType))
+                {
+                    continue;
+                }
+
+                if (IsAllowedCommandResponseException(filePath, normalizedType))
                 {
                     continue;
                 }
@@ -248,6 +264,11 @@ public class RepositoryArchitectureComplianceTests
                 {
                     var normalizedType = NormalizeType(responseMatch.Groups["type"].Value);
                     if (AllowedSimpleTypes.Contains(normalizedType))
+                    {
+                        continue;
+                    }
+
+                    if (IsAllowedWriteEndpointResponseException(filePath, attributes, normalizedType))
                     {
                         continue;
                     }
@@ -528,6 +549,25 @@ public class RepositoryArchitectureComplianceTests
         return attributes.Contains("[HttpPost", StringComparison.Ordinal) ||
                attributes.Contains("[HttpPut", StringComparison.Ordinal) ||
                attributes.Contains("[HttpPatch", StringComparison.Ordinal);
+    }
+
+    private static bool IsAllowedCommandResponseException(string filePath, string normalizedType)
+    {
+        var key = $"{ToRelativePath(filePath)}|{normalizedType}";
+        return AllowedCommandResponseExceptions.Contains(key);
+    }
+
+    private static bool IsAllowedWriteEndpointResponseException(
+        string filePath,
+        string attributes,
+        string normalizedType)
+    {
+        return string.Equals(
+                   ToRelativePath(filePath),
+                   "dotnet/Querify.QnA.Portal.Business.Source/Controllers/SourceController.cs",
+                   StringComparison.Ordinal) &&
+               string.Equals(normalizedType, "SourceUploadIntentResponseDto", StringComparison.Ordinal) &&
+               attributes.Contains("[HttpPost(\"upload-intent\")]", StringComparison.Ordinal);
     }
 
     private static string NormalizeType(string typeName)

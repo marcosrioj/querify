@@ -22,9 +22,14 @@ internal static class SourceTenantIntegrityExtension
                     $"Source '{source.Id}' cannot expose internal notes publicly.",
                     (int)HttpStatusCode.UnprocessableEntity);
 
-            if (source.LastVerifiedAtUtc is null)
+            if (source.StorageKey is null && source.LastVerifiedAtUtc is null)
                 throw new ApiErrorException(
                     $"Source '{source.Id}' must be verified before public exposure.",
+                    (int)HttpStatusCode.UnprocessableEntity);
+
+            if (source.StorageKey is not null && source.UploadStatus is not SourceUploadStatus.Verified)
+                throw new ApiErrorException(
+                    $"Uploaded source '{source.Id}' must be verified before public exposure.",
                     (int)HttpStatusCode.UnprocessableEntity);
         }
     }

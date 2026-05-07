@@ -1,5 +1,6 @@
 using Querify.Models.QnA.Enums;
 using Querify.QnA.Common.Domain.BusinessRules.Activities;
+using Querify.QnA.Common.Domain.BusinessRules.Sources;
 using Querify.QnA.Common.Persistence.QnADb.DbContext;
 using Querify.QnA.Common.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -194,6 +195,39 @@ public static class TestDataFactory
             MediaType = "text/html",
             Checksum = "sha256:test-source",
             MetadataJson = "{\"type\":\"doc\"}",
+            LastVerifiedAtUtc = DateTime.UtcNow,
+            Visibility = visibility,
+            CreatedBy = "test",
+            UpdatedBy = "test"
+        };
+        dbContext.Sources.Add(entity);
+        await dbContext.SaveChangesAsync();
+        return entity;
+    }
+
+    public static async Task<Source> SeedVerifiedUploadedSourceAsync(
+        QnADbContext dbContext,
+        Guid tenantId,
+        Guid? sourceId = null,
+        string fileName = "manual.pdf",
+        VisibilityScope visibility = VisibilityScope.Internal)
+    {
+        var resolvedSourceId = sourceId ?? Guid.NewGuid();
+        var storageKey = SourceStorageKey.BuildVerifiedKey(tenantId, resolvedSourceId, fileName);
+        var entity = new Source
+        {
+            Id = resolvedSourceId,
+            TenantId = tenantId,
+            Kind = SourceKind.Pdf,
+            Locator = storageKey,
+            StorageKey = storageKey,
+            Label = "Verified upload",
+            ContextNote = "Verified uploaded test source",
+            Language = "en-US",
+            MediaType = "application/pdf",
+            SizeBytes = 12,
+            Checksum = "sha256:verified-upload",
+            UploadStatus = SourceUploadStatus.Verified,
             LastVerifiedAtUtc = DateTime.UtcNow,
             Visibility = visibility,
             CreatedBy = "test",

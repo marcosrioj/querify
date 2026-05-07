@@ -1,0 +1,551 @@
+# Source Upload Implementation Handoff
+
+## Initial State
+
+- Initial command: `git status --short`
+- Initial result: pass; no output, worktree was clean.
+
+## Step 0 - Stage Decision
+
+- Step attempted: 0, stage decision.
+- Scope completed: confirmed Source upload must be staged before implementation because it spans storage infrastructure, model contract, persistence, Portal API behavior, async worker processing, seed/test coverage, Portal UI, localization, validation, and deployment handoff.
+- Files changed:
+  - `docs/future/backend/source-upload-implementation-handoff.md`
+- Commands run:
+  - `git status --short` - pass; no output.
+  - `sed -n '1,260p' docs/future/backend/source-upload.md` - pass.
+  - `sed -n '261,620p' docs/future/backend/source-upload.md` - pass.
+  - `sed -n '621,1080p' docs/future/backend/source-upload.md` - pass.
+  - `sed -n '1081,1540p' docs/future/backend/source-upload.md` - pass.
+  - `rg -n "Step 0|Step 1|Step 2|Step 3|Step 4|Step 5|Step 6|Step 7|Step 8|Step 9|Step 10|Step 11|Step 12" docs/behavior-change-playbook.md` - pass.
+  - `sed -n '1,220p' docs/behavior-change-playbook.md` - pass.
+- Manual verification performed: verified the roadmap requires staged checkpoints and names stages 1 through 8 after Step 0.
+- Intentional pending work: implementation steps 1 through 8.
+- Exact blocker if stopped: none.
+- Exact next step to resume: Step 1, inventory existing Source behavior and normalize the upload concept.
+
+## Step 1 - Inventory And Concept Normalization
+
+- Step attempted: 1, inventory and concept normalization.
+- Scope completed:
+  - Read the required playbook, QnA domain boundary, and repository rules.
+  - Ran the required broad inventory searches across `dotnet`, `apps`, and `docs`.
+  - Confirmed `Source` is owned by `Querify.QnA.Common.Domain.Entities.Source`, with EF configuration in `Querify.QnA.Common.Persistence.QnADb/Configurations/SourceConfiguration.cs`.
+  - Confirmed reusable Source rules currently live in `Querify.QnA.Common.Domain.BusinessRules.Sources` (`SourceRules`, `SourceChecksum`).
+  - Confirmed Portal Source CRUD lives in `Querify.QnA.Portal.Business.Source` through command/query handlers, `SourceService`, `ISourceService`, and `SourceController`.
+  - Confirmed Public QnA projects only project public source references and must not receive upload behavior.
+  - Confirmed seed examples currently create URL-backed public sources in `Querify.Tools.Seed/Application/QnASeedService.cs` from `QnASeedCatalog.*`.
+  - Confirmed Source integration coverage currently exists in `Querify.QnA.Portal.Test.IntegrationTests/Tests/Source/SourceCommandQueryTests.cs`.
+  - Confirmed Portal Source UI surfaces are `apps/portal/src/domains/sources/types.ts`, `api.ts`, `hooks.ts`, `schemas.ts`, `source-form-page.tsx`, `source-detail-page.tsx`, and `source-list-page.tsx`, with enum mirrors/presentation in `shared/constants/backend-enums.ts` and `enum-ui.ts`, and copy in locale JSON files.
+- Canonical concepts confirmed:
+  - `SourceKind` remains the artifact/material type.
+  - `VisibilityScope` remains audience exposure and must not become upload workflow state.
+  - Upload origin will be represented by nullable `StorageKey`.
+  - Upload workflow will be represented by `SourceUploadStatus`.
+  - `Locator` remains the current opaque locator and mirrors `StorageKey` for uploaded sources.
+  - Upload is QnA-owned file ingestion, not a new source kind, not a Trust shortcut, and not Tenant worker/control-plane behavior.
+- Files changed:
+  - `docs/future/backend/source-upload-implementation-handoff.md`
+- Commands run:
+  - `wc -l docs/backend/architecture/qna-domain-boundary.md docs/backend/architecture/repository-rules.md` - pass.
+  - `sed -n '1,260p' docs/backend/architecture/qna-domain-boundary.md` - pass.
+  - `sed -n '1,260p' docs/backend/architecture/repository-rules.md` - pass.
+  - `rg -n "Source|SourceKind|SourceRole|Visibility|Locator|Checksum|MediaType|LastVerifiedAtUtc" dotnet apps docs` - pass; broad output truncated by the shell tool after confirming matches.
+  - `rg --files dotnet/Querify.Models.QnA dotnet/Querify.QnA.Common.Domain dotnet/Querify.QnA.Common.Persistence.QnADb apps/portal/src/domains` - pass.
+  - `rg --files dotnet | rg "(Business\\.Source|SourceController|SourceService|SourceCommand|SourceQuery|SourceFactory|SourceSeed|QnASeed|Source.*Tests|Tests/Source|Source/)"` - pass.
+  - `rg -n "class Source|record Source|interface ISourceService|SourceController|Sources?Create|Sources?Update|Sources?Get|Sources?Delete|SourceDto|SourceDetailDto|SourceCreateRequestDto|SourceUpdateRequestDto" dotnet/Querify.QnA.* dotnet/Querify.Models.QnA dotnet/Querify.Tools.Seed` - pass.
+  - `rg --files apps/portal/src/domains/sources apps/portal/src/shared/constants apps/portal/src/shared/lib/i18n/locales | rg "(sources|backend-enums|enum-ui|en-US)"` - pass.
+  - Targeted `sed` reads of Source entity, EF configuration, rules, checksum helper, DTOs, Portal handlers/service/controller/extension, tests, seed code, Portal Source files, enum files, and public/portal Source projections - pass.
+- Manual verification performed:
+  - Verified current Source CRUD computes checksum from locator and uses `LastVerifiedAtUtc` to gate public visibility.
+  - Verified `SourceTenantIntegrityExtension` repeats public visibility safeguards at save time.
+  - Verified no current upload-specific persisted fields, DTOs, endpoints, storage abstraction, or worker exist.
+- Intentional pending work:
+  - Step 2 storage infrastructure.
+  - Step 3 model contract (`StorageKey`, `SizeBytes`, `UploadStatus`, DTOs, EF config, rules).
+  - Steps 4 through 8 backend behavior, worker, tests, frontend, localization, validation, and deployment handoff.
+- Exact blocker if stopped: none.
+- Exact next step to resume: Step 2, add local MinIO and the shared `Querify.Common.Infrastructure.Storage` project without consuming it from QnA business code.
+
+## Step 2 - Storage Infrastructure
+
+- Step attempted: 2, shared S3-compatible storage infrastructure.
+- Scope completed:
+  - Added local MinIO and one-shot `minio-init` to `devops/local/docker/docker-compose.baseservices.yml`.
+  - Added named `minio` volume.
+  - Pinned images:
+    - `minio/minio:RELEASE.2025-09-07T16-13-09Z`
+    - `minio/mc:RELEASE.2025-08-13T08-35-41Z`
+  - Configured MinIO host ports `5900:9000` and `5901:9001`.
+  - Configured `minio-init` to create the private `querify-sources` bucket idempotently, set anonymous access to `none`, and apply CORS for local browser PUT/HEAD/GET requests.
+  - Added `dotnet/Querify.Common.Infrastructure.Storage` with:
+    - `IObjectStorage`
+    - `ObjectStorageOptions`
+    - `S3ObjectStorage`
+    - `AddObjectStorage(IConfiguration)`
+  - Added `AWSSDK.S3` dependency and added the project to `Querify.sln`.
+  - Added `ObjectStorage` settings to `Querify.QnA.Portal.Api/appsettings.json`.
+  - Added Docker backend overrides for QnA Portal API:
+    - `ObjectStorage__Endpoint=http://minio:9000`
+    - `ObjectStorage__PublicEndpoint=http://localhost:5900`
+  - Kept QnA business/domain/persistence untouched.
+- Files changed:
+  - `Querify.sln`
+  - `devops/local/docker/docker-compose.baseservices.yml`
+  - `devops/local/docker/docker-compose.backend.yml`
+  - `dotnet/Querify.QnA.Portal.Api/appsettings.json`
+  - `dotnet/Querify.Common.Infrastructure.Storage/Querify.Common.Infrastructure.Storage.csproj`
+  - `dotnet/Querify.Common.Infrastructure.Storage/Abstractions/IObjectStorage.cs`
+  - `dotnet/Querify.Common.Infrastructure.Storage/Options/ObjectStorageOptions.cs`
+  - `dotnet/Querify.Common.Infrastructure.Storage/Services/S3ObjectStorage.cs`
+  - `dotnet/Querify.Common.Infrastructure.Storage/Extensions/ServiceCollectionExtensions.cs`
+- Commands run:
+  - `rg -n "Cross-cutting|shared libraries|Shared infrastructure|persistence|section 8|## 8|# 8" docs/backend/architecture/solution-architecture.md docs/backend/architecture/dotnet-backend-overview.md` - pass.
+  - `wc -l docs/backend/architecture/solution-architecture.md docs/backend/architecture/dotnet-backend-overview.md` - pass.
+  - `sed -n '140,190p' docs/backend/architecture/solution-architecture.md` - pass.
+  - `sed -n '84,115p' docs/backend/architecture/dotnet-backend-overview.md` - pass.
+  - `sed -n '1,140p' docs/backend/architecture/dotnet-backend-overview.md` - pass.
+  - `rg --files dotnet | rg "Querify.Common.Infrastructure\\.[^/]+/(.*csproj|Extensions|Options|Services|Abstractions)"` - pass.
+  - `sed -n '1,260p' devops/local/docker/docker-compose.baseservices.yml` - pass.
+  - `sed -n '1,260p' devops/local/docker/docker-compose.backend.yml` - pass.
+  - `rg -n "Add.*\\(IConfiguration|BindConfiguration|ValidateOnStart|IAmazon|ObjectStorage|Rabbit|MassTransit|ForcePath" dotnet/Querify.Common.Infrastructure.* dotnet/Querify.*.Api` - pass.
+  - `curl -s https://api.nuget.org/v3-flatcontainer/awssdk.s3/index.json` - pass; used to select pinned package version `4.0.23`.
+  - Docker Hub tag lookups for `minio/minio` and `minio/mc` - pass; used to select pinned MinIO image tags.
+  - `mkdir -p dotnet/Querify.Common.Infrastructure.Storage/Abstractions dotnet/Querify.Common.Infrastructure.Storage/Options dotnet/Querify.Common.Infrastructure.Storage/Services dotnet/Querify.Common.Infrastructure.Storage/Extensions` - pass.
+  - `dotnet sln Querify.sln add dotnet/Querify.Common.Infrastructure.Storage/Querify.Common.Infrastructure.Storage.csproj` - pass.
+  - `dotnet build dotnet/Querify.Common.Infrastructure.Storage -v minimal` - fail first run; missing `Microsoft.Extensions.Options.DataAnnotations` package reference and nullable AWS `LastModified` handling.
+  - `dotnet build dotnet/Querify.Common.Infrastructure.Storage -v minimal` - pass after patch.
+  - `docker compose -f devops/local/docker/docker-compose.baseservices.yml up -d minio minio-init` - fail; existing compose file requires `REDIS_PASSWORD` during interpolation.
+  - `REDIS_PASSWORD=RedisTempPassword docker compose -f devops/local/docker/docker-compose.baseservices.yml up -d minio minio-init` - fail in sandbox; Docker daemon socket access denied.
+  - Escalated `REDIS_PASSWORD=RedisTempPassword docker compose -f devops/local/docker/docker-compose.baseservices.yml up -d minio minio-init` - fail; Docker daemon is not running at `/home/marcos/.docker/desktop/docker.sock`.
+  - `REDIS_PASSWORD=RedisTempPassword docker compose -f devops/local/docker/docker-compose.baseservices.yml config --services` - pass.
+  - `REDIS_PASSWORD=RedisTempPassword docker compose -f devops/local/docker/docker-compose.baseservices.yml config minio minio-init` - pass.
+  - `curl -i http://localhost:5900/minio/health/live` - fail; no MinIO process was running because Docker daemon is unavailable.
+  - `git status --short` - pass; shows only expected Step 0-2 changes.
+- Manual verification performed:
+  - Confirmed rendered compose includes `minio` and `minio-init`.
+  - Confirmed rendered compose keeps the bucket private with `mc anonymous set none`.
+  - Confirmed rendered compose applies CORS for local Portal origins and `GET`, `PUT`, `HEAD`.
+  - Confirmed `IObjectStorage` exposes only single-object presigned PUT/GET plus metadata, copy, delete, and streaming read operations. No multipart or resumable API was added.
+  - Confirmed `S3ObjectStorage.OpenReadAsync` returns a storage stream wrapper and does not buffer object bytes into memory.
+  - Confirmed presigned URLs use `PublicEndpoint` when configured by creating a separate signing client for browser-reachable URLs.
+  - Confirmed local config uses the runtime MinIO password value matching the compose `Pass123$$` escape pattern used elsewhere in the repo (`Pass123$` in appsettings).
+- Intentional pending work:
+  - Runtime MinIO bucket creation confirmation remains pending because the local Docker daemon is not running.
+  - Console verification at `http://localhost:5901` remains pending for the same environment-only reason.
+  - No QnA business code consumes `IObjectStorage` yet; this is owned by Step 4.
+- Exact blocker if stopped:
+  - Environment-only: Docker Desktop/daemon is not running, so MinIO containers cannot be started and `curl http://localhost:5900/minio/health/live` cannot return 200.
+- Exact next step to resume:
+  - Step 3, add the Source upload model contract, DTOs, EF configuration, and Source domain rules. Before a MinIO smoke test, start Docker and rerun `REDIS_PASSWORD=RedisTempPassword docker compose -f devops/local/docker/docker-compose.baseservices.yml up -d minio minio-init`.
+
+## Step 3 - Model Contract
+
+- Step attempted: 3, Source upload model contract.
+- Scope completed:
+  - Added `Source.StorageKey`, `Source.SizeBytes`, and `Source.UploadStatus`.
+  - Added `SourceUploadStatus` enum with Querify numeric allocation `1, 6, 11, 16, 21, 26, 31`.
+  - Added upload DTOs:
+    - `SourceUploadIntentRequestDto`
+    - `SourceUploadIntentResponseDto`
+    - `SourceUploadCompleteRequestDto`
+    - `SourceDownloadUrlDto`
+  - Updated `SourceDto` with `StorageKey`, `SizeBytes`, and `UploadStatus`.
+  - Added `SourceStorageKey` for deterministic staging/verified/quarantine key creation and conversion.
+  - Added `SourceUploadOptions` with default max upload size, pending expiration, and initial content-type allowlist.
+  - Updated `SourceRules` to reject public visibility before uploaded sources are verified and to reject download unless `StorageKey` is verified.
+  - Updated EF configuration for new fields and the partial unique `(TenantId, StorageKey)` index.
+  - Updated existing Source public-visibility tenant-integrity guard to reject public uploaded sources unless verified.
+  - Updated Portal enum mirror in `apps/portal/src/shared/constants/backend-enums.ts`.
+  - Updated QnA Source DTO projections narrowly in Portal/Public query handlers so required DTO fields do not break affected business builds.
+- Files changed:
+  - `apps/portal/src/shared/constants/backend-enums.ts`
+  - `dotnet/Querify.Models.QnA/Enums/SourceUploadStatus.cs`
+  - `dotnet/Querify.Models.QnA/Dtos/Source/SourceDto.cs`
+  - `dotnet/Querify.Models.QnA/Dtos/Source/SourceUploadIntentRequestDto.cs`
+  - `dotnet/Querify.Models.QnA/Dtos/Source/SourceUploadIntentResponseDto.cs`
+  - `dotnet/Querify.Models.QnA/Dtos/Source/SourceUploadCompleteRequestDto.cs`
+  - `dotnet/Querify.Models.QnA/Dtos/Source/SourceDownloadUrlDto.cs`
+  - `dotnet/Querify.QnA.Common.Domain/Entities/Source.cs`
+  - `dotnet/Querify.QnA.Common.Domain/BusinessRules/Sources/SourceRules.cs`
+  - `dotnet/Querify.QnA.Common.Domain/BusinessRules/Sources/SourceStorageKey.cs`
+  - `dotnet/Querify.QnA.Common.Domain/Options/SourceUploadOptions.cs`
+  - `dotnet/Querify.QnA.Common.Persistence.QnADb/Configurations/SourceConfiguration.cs`
+  - `dotnet/Querify.QnA.Common.Persistence.QnADb/DbContext/TenantIntegrity/SourceTenantIntegrityExtension.cs`
+  - `dotnet/Querify.QnA.Portal.Business.Source/Queries/GetSource/SourcesGetSourceQueryHandler.cs`
+  - `dotnet/Querify.QnA.Portal.Business.Source/Queries/GetSourceList/SourcesGetSourceListQueryHandler.cs`
+  - `dotnet/Querify.QnA.Portal.Business.Space/Queries/GetSpace/SpacesGetSpaceQueryHandler.cs`
+  - `dotnet/Querify.QnA.Portal.Business.Question/Queries/GetQuestion/QuestionsGetQuestionQueryHandler.cs`
+  - `dotnet/Querify.QnA.Portal.Business.Answer/Queries/GetAnswer/AnswersGetAnswerQueryHandler.cs`
+  - `dotnet/Querify.QnA.Portal.Business.Answer/Queries/GetAnswerList/AnswersGetAnswerListQueryHandler.cs`
+  - `dotnet/Querify.QnA.Public.Business.Question/Queries/GetQuestion/QuestionsGetQuestionQueryHandler.cs`
+- Commands run:
+  - `rg --files dotnet/Querify.QnA.Common.Domain dotnet/Querify.Models.QnA dotnet/Querify.QnA.Common.Persistence.QnADb apps/portal/src/shared/constants | sort` - pass.
+  - `rg -n "class .*Options|record .*Options|AllowedContentTypes|Max.*Bytes|BindConfiguration|ValidateOnStart|SourceRules|EnsureVisibilityAllowed|SourceDto|SourceCreateRequestDto" dotnet/Querify.QnA.Common.Domain dotnet/Querify.Models.QnA dotnet/Querify.QnA.Common.Persistence.QnADb dotnet/Querify.QnA.Portal.Business.* apps/portal/src/shared/constants` - pass.
+  - `rg -n "new SourceDto" dotnet/Querify.QnA.*` - pass.
+  - `dotnet build dotnet/Querify.Models.Common -v minimal` - pass.
+  - Parallel `dotnet build dotnet/Querify.Models.QnA -v minimal` - fail due shared `obj` file lock from simultaneous builds, not a compile error.
+  - Parallel `dotnet build dotnet/Querify.QnA.Common.Domain -v minimal` - pass with transient copy warning from simultaneous builds.
+  - Parallel `dotnet build dotnet/Querify.QnA.Common.Persistence.QnADb -v minimal` - pass with transient copy warnings from simultaneous builds.
+  - Sequential `dotnet build dotnet/Querify.Models.Common -v minimal` - pass.
+  - Sequential `dotnet build dotnet/Querify.Models.QnA -v minimal` - pass.
+  - Sequential `dotnet build dotnet/Querify.QnA.Common.Domain -v minimal` - pass.
+  - Sequential `dotnet build dotnet/Querify.QnA.Common.Persistence.QnADb -v minimal` - pass.
+  - `dotnet build dotnet/Querify.QnA.Portal.Business.Source -v minimal` - pass.
+  - `dotnet build dotnet/Querify.QnA.Portal.Business.Space -v minimal` - pass.
+  - `dotnet build dotnet/Querify.QnA.Portal.Business.Question -v minimal` - pass.
+  - `dotnet build dotnet/Querify.QnA.Portal.Business.Answer -v minimal` - pass.
+  - `dotnet build dotnet/Querify.QnA.Public.Business.Question -v minimal` - pass.
+  - `git status --short` - pass; shows expected Step 0-3 changes.
+- Manual verification performed:
+  - Verified `SourceKind` remains artifact type and no upload-origin enum value was added.
+  - Verified upload origin is nullable `StorageKey` and `Locator` can mirror it for uploaded sources.
+  - Verified `SourceStorageKey` strips paths, sanitizes filenames to `[a-zA-Z0-9._-]`, and rejects malformed conversion input.
+  - Verified `EnsureStorageKeyIsDownloadable` requires non-null `StorageKey`, `UploadStatus == Verified`, and a verified key segment.
+  - Verified no EF migration files were created or edited.
+- Intentional pending work:
+  - Manual migration remains pending:
+    - `ALTER TABLE Sources ADD StorageKey nvarchar(1000) NULL;`
+    - `ALTER TABLE Sources ADD SizeBytes bigint NULL;`
+    - `ALTER TABLE Sources ADD UploadStatus int NOT NULL DEFAULT 1;`
+    - `CREATE UNIQUE INDEX IX_Sources_TenantId_StorageKey ON Sources(TenantId, StorageKey) WHERE StorageKey IS NOT NULL;`
+  - Upload handlers, controller endpoints, outbox event, worker verification, tests, frontend upload UI, and translations remain pending.
+- Exact blocker if stopped: none.
+- Exact next step to resume: Step 4, add Portal API upload behavior and durable event publication for `SourceUploadedIntegrationEvent`.
+
+## Step 4 - Portal Backend Upload Behavior
+
+- Step attempted: 4, Portal upload intent, upload completion, download URL, and durable event persistence.
+- Scope completed:
+  - Added Portal-only upload command/query folders under `Querify.QnA.Portal.Business.Source`.
+  - Added `POST /api/qna/source/upload-intent`, `POST /api/qna/source/{id:guid}/upload-complete`, and `GET /api/qna/source/{id:guid}/download-url`.
+  - Added thin `ISourceService` and `SourceService` delegating methods for the three upload endpoints.
+  - Bound and start-validated `SourceUploadOptions` in `Querify.QnA.Portal.Api`.
+  - Registered `IObjectStorage` in the Portal API host.
+  - Added `SourceUploadedIntegrationEvent` contract in `Querify.Models.QnA/Dtos/IntegrationEvents`.
+  - Added tenant-scoped `SourceUploadedOutboxMessage` persistence and `SourceUploadOutboxStatus`.
+  - `upload-complete` now persists `SourceUploadStatus.Uploaded` and a `SourceUploadedOutboxMessage` in the same database transaction.
+  - Avoided MassTransit EF bus-outbox registration in the Portal API because this repo's QnA `DbContext` resolves its tenant database from HTTP session context, and MassTransit outbox delivery would run outside that tenant context.
+- Files changed:
+  - `dotnet/Querify.Models.QnA/Dtos/IntegrationEvents/SourceUploadedIntegrationEvent.cs`
+  - `dotnet/Querify.Models.QnA/Enums/SourceUploadOutboxStatus.cs`
+  - `dotnet/Querify.QnA.Common.Domain/Entities/SourceUploadedOutboxMessage.cs`
+  - `dotnet/Querify.QnA.Common.Persistence.QnADb/Configurations/SourceUploadedOutboxMessageConfiguration.cs`
+  - `dotnet/Querify.QnA.Common.Persistence.QnADb/DbContext/QnADbContext.cs`
+  - `dotnet/Querify.QnA.Portal.Business.Source/Commands/CreateUploadIntent/SourcesCreateUploadIntentCommand.cs`
+  - `dotnet/Querify.QnA.Portal.Business.Source/Commands/CreateUploadIntent/SourcesCreateUploadIntentCommandHandler.cs`
+  - `dotnet/Querify.QnA.Portal.Business.Source/Commands/CompleteUpload/SourcesCompleteUploadCommand.cs`
+  - `dotnet/Querify.QnA.Portal.Business.Source/Commands/CompleteUpload/SourcesCompleteUploadCommandHandler.cs`
+  - `dotnet/Querify.QnA.Portal.Business.Source/Queries/GetDownloadUrl/SourcesGetDownloadUrlQuery.cs`
+  - `dotnet/Querify.QnA.Portal.Business.Source/Queries/GetDownloadUrl/SourcesGetDownloadUrlQueryHandler.cs`
+  - `dotnet/Querify.QnA.Portal.Business.Source/Abstractions/ISourceService.cs`
+  - `dotnet/Querify.QnA.Portal.Business.Source/Service/SourceService.cs`
+  - `dotnet/Querify.QnA.Portal.Business.Source/Controllers/SourceController.cs`
+  - `dotnet/Querify.QnA.Portal.Business.Source/Querify.QnA.Portal.Business.Source.csproj`
+  - `dotnet/Querify.QnA.Portal.Api/Extensions/ServiceCollectionExtensions.cs`
+  - `dotnet/Querify.QnA.Portal.Api/Extensions/EventsServiceCollectionExtensions.cs`
+  - `dotnet/Querify.QnA.Portal.Api/Querify.QnA.Portal.Api.csproj`
+  - `dotnet/Querify.QnA.Portal.Api/appsettings.json`
+- Commands run:
+  - `sed -n '1,220p' dotnet/Querify.QnA.Portal.Business.Source/Abstractions/ISourceService.cs` - pass.
+  - `sed -n '1,260p' dotnet/Querify.QnA.Portal.Business.Source/Service/SourceService.cs` - pass.
+  - `sed -n '1,260p' dotnet/Querify.QnA.Portal.Business.Source/Controllers/SourceController.cs` - pass.
+  - `sed -n '1,220p' dotnet/Querify.QnA.Portal.Api/Extensions/ServiceCollectionExtensions.cs` - pass.
+  - `sed -n '1,220p' dotnet/Querify.QnA.Portal.Api/Extensions/EventsServiceCollectionExtensions.cs` - pass.
+  - `sed -n '1,220p' dotnet/Querify.QnA.Portal.Business.Source/Querify.QnA.Portal.Business.Source.csproj` - pass.
+  - `sed -n '779,951p' docs/future/backend/source-upload.md` - pass.
+  - `sed -n '952,1080p' docs/future/backend/source-upload.md` - pass.
+  - `sed -n '1,280p' dotnet/Querify.Common.EntityFramework.Core/BaseDbContext.cs` - pass.
+  - `sed -n '1,180p' dotnet/Querify.Common.Infrastructure.Core/Services/SessionService.cs` - pass.
+  - `sed -n '1,120p' dotnet/Querify.Tenant.Worker.Api/Infrastructure/TenantWorkerSessionService.cs` - pass.
+  - `dotnet build dotnet/Querify.QnA.Portal.Business.Source -v minimal` - pass.
+  - `dotnet build dotnet/Querify.QnA.Portal.Api -v minimal` - pass.
+  - `git status --short` - pass; shows expected tracked and untracked implementation changes.
+- Manual verification performed:
+  - Verified upload creation filters by current QnA tenant through `ISessionService.GetTenantId(ModuleEnum.QnA)`.
+  - Verified upload intent rejects public visibility before verification, oversize upload declarations, and mismatched content type/filename.
+  - Verified upload completion loads by `(TenantId, SourceId)`, rejects non-pending status with 409, rejects absent or mismatched storage metadata with 422, deletes rejected staging objects, and marks rejected sources `Failed`.
+  - Verified upload completion writes the source `Uploaded` transition and the durable `SourceUploadedOutboxMessage` in one transaction.
+  - Verified download URL queries filter by tenant and require `UploadStatus == Verified` plus a `/verified/` storage key before presigning a private GET URL.
+  - Verified no upload endpoints or behavior were added to `Querify.QnA.Public.*`.
+- Intentional pending work:
+  - Step 5 must add the QnA worker, tenant-aware outbox publisher, MassTransit consumer, streaming verification, malware scan enforcement, verified/quarantine moves, and pending-upload expiry.
+  - Manual migration requirements now include `SourceUploadedOutboxMessages` in addition to Step 3 Source column/index changes.
+- Exact blocker if stopped: none.
+- Exact next step to resume: Step 5, create `Querify.QnA.Worker.Api` and `Querify.QnA.Worker.Business.Source`, then publish `SourceUploadedOutboxMessage` rows from a tenant-aware worker before consuming `SourceUploadedIntegrationEvent`.
+
+## Step 5 - QnA Worker Verification
+
+- Step attempted: 5, worker async verification, scan, quarantine, tenant-aware outbox relay, and pending upload expiry.
+- Scope completed:
+  - Added new product worker host `Querify.QnA.Worker.Api`.
+  - Added new source worker business module `Querify.QnA.Worker.Business.Source`.
+  - Added tenant-aware worker session/context so `QnADbContext` resolves tenant database connections from an explicit worker tenant scope instead of HTTP request state.
+  - Added MassTransit RabbitMQ consumer `SourceUploadedConsumer`, queue `qna.source.uploaded`, and event mapping to `VerifyUploadedSourceCommand`.
+  - Added `SourceUploadedOutboxPublisherHostedService` and `SourceUploadedOutboxProcessor` to relay Step 4 `SourceUploadedOutboxMessage` rows to RabbitMQ per active QnA tenant.
+  - Added `VerifyUploadedSourceCommandHandler`:
+    - idempotently skips non-`Uploaded` sources;
+    - fails malformed/non-staging events without retry;
+    - streams object bytes with `IncrementalHash` for SHA-256;
+    - rechecks object size and content type;
+    - validates magic bytes/file family;
+    - runs `IUploadThreatScanner` before verification;
+    - moves unsafe files to `/quarantine/`;
+    - moves trusted files to `/verified/`, deletes staging, sets `Checksum`, `LastVerifiedAtUtc`, and `UploadStatus=Verified`.
+  - Added `NoopUploadThreatScanner` for Development only when `SourceUpload:ThreatScanningMode=Noop`.
+  - Added startup failure for `Noop` outside Development and for any unsupported scanner mode, so production cannot silently run without malware scanning.
+  - Added `ExpirePendingSourceUploadsCommandHandler` and `PendingSourceUploadExpiryHostedService`.
+  - Added Dockerfile and local Docker Compose service for `querify.qna.worker.api`.
+  - Added both worker projects to `Querify.sln`.
+- Files changed:
+  - `Querify.sln`
+  - `devops/local/docker/docker-compose.backend.yml`
+  - `dotnet/Querify.QnA.Common.Domain/Options/SourceUploadOptions.cs`
+  - `dotnet/Querify.QnA.Worker.Api/Querify.QnA.Worker.Api.csproj`
+  - `dotnet/Querify.QnA.Worker.Api/Program.cs`
+  - `dotnet/Querify.QnA.Worker.Api/appsettings.json`
+  - `dotnet/Querify.QnA.Worker.Api/Dockerfile`
+  - `dotnet/Querify.QnA.Worker.Api/Extensions/ServiceCollectionExtensions.cs`
+  - `dotnet/Querify.QnA.Worker.Api/Infrastructure/QnAWorkerTenantContext.cs`
+  - `dotnet/Querify.QnA.Worker.Api/Infrastructure/QnAWorkerSessionService.cs`
+  - `dotnet/Querify.QnA.Worker.Business.Source/Querify.QnA.Worker.Business.Source.csproj`
+  - `dotnet/Querify.QnA.Worker.Business.Source/Abstractions/IQnAWorkerTenantContext.cs`
+  - `dotnet/Querify.QnA.Worker.Business.Source/Abstractions/IUploadThreatScanner.cs`
+  - `dotnet/Querify.QnA.Worker.Business.Source/Abstractions/ISourceUploadedOutboxProcessor.cs`
+  - `dotnet/Querify.QnA.Worker.Business.Source/Consumers/SourceUploadedConsumer.cs`
+  - `dotnet/Querify.QnA.Worker.Business.Source/Commands/VerifyUploadedSource/VerifyUploadedSourceCommand.cs`
+  - `dotnet/Querify.QnA.Worker.Business.Source/Commands/VerifyUploadedSource/VerifyUploadedSourceCommandHandler.cs`
+  - `dotnet/Querify.QnA.Worker.Business.Source/Commands/ExpirePendingSourceUploads/ExpirePendingSourceUploadsCommand.cs`
+  - `dotnet/Querify.QnA.Worker.Business.Source/Commands/ExpirePendingSourceUploads/ExpirePendingSourceUploadsCommandHandler.cs`
+  - `dotnet/Querify.QnA.Worker.Business.Source/Extensions/ServiceCollectionExtensions.cs`
+  - `dotnet/Querify.QnA.Worker.Business.Source/HostedServices/SourceUploadedOutboxPublisherHostedService.cs`
+  - `dotnet/Querify.QnA.Worker.Business.Source/HostedServices/PendingSourceUploadExpiryHostedService.cs`
+  - `dotnet/Querify.QnA.Worker.Business.Source/Infrastructure/DbContextTableExtensions.cs`
+  - `dotnet/Querify.QnA.Worker.Business.Source/Models/UploadThreatScanResult.cs`
+  - `dotnet/Querify.QnA.Worker.Business.Source/Options/SourceUploadedOutboxProcessingOptions.cs`
+  - `dotnet/Querify.QnA.Worker.Business.Source/Options/PendingSourceUploadExpiryOptions.cs`
+  - `dotnet/Querify.QnA.Worker.Business.Source/Services/NoopUploadThreatScanner.cs`
+  - `dotnet/Querify.QnA.Worker.Business.Source/Services/SourceUploadedOutboxProcessor.cs`
+  - `dotnet/Querify.QnA.Worker.Business.Source/Services/UploadContentInspector.cs`
+- Commands run:
+  - `wc -l docs/backend/architecture/querify-tenant-worker.md docs/backend/architecture/solution-architecture.md` - pass.
+  - `sed -n '1,260p' docs/backend/architecture/querify-tenant-worker.md` - pass.
+  - `sed -n '120,158p' docs/backend/architecture/solution-architecture.md` - pass.
+  - `rg --files dotnet/Querify.Common.Infrastructure.MassTransit dotnet | rg "Consumer|MassTransit|ReceiveEndpoint|UsingRabbitMq|ConfigureResilience|IConsumer"` - pass.
+  - `rg -n "IConsumer|AddMassTransit|UsingRabbitMq|ReceiveEndpoint|ConfigureResilience|IPublishEndpoint" dotnet -g '*.cs'` - pass.
+  - `sed -n '1,220p' dotnet/Querify.Common.Infrastructure.MassTransit/Consumers/BaseConsumer.cs` - pass.
+  - `mkdir -p ...` for worker project folders - pass.
+  - `dotnet sln Querify.sln add dotnet/Querify.QnA.Worker.Business.Source/Querify.QnA.Worker.Business.Source.csproj dotnet/Querify.QnA.Worker.Api/Querify.QnA.Worker.Api.csproj` - pass.
+  - `dotnet build dotnet/Querify.QnA.Worker.Business.Source -v minimal` - fail first run; missing MediatR reference.
+  - `dotnet build dotnet/Querify.QnA.Worker.Business.Source -v minimal` - pass after adding the existing MediatR infrastructure project reference and removing unnecessary direct options package references.
+  - `dotnet build dotnet/Querify.QnA.Worker.Api -v minimal` - fail first run; missing `IQnAWorkerTenantContext` using in `QnAWorkerSessionService`.
+  - `dotnet build dotnet/Querify.QnA.Worker.Api -v minimal` - pass after patch.
+  - `dotnet build dotnet/Querify.QnA.Worker.Business.Source -v minimal` - pass final.
+  - `REDIS_PASSWORD=RedisTempPassword docker compose -f devops/local/docker/docker-compose.baseservices.yml -f devops/local/docker/docker-compose.backend.yml config querify.qna.worker.api` - pass.
+  - `REDIS_PASSWORD=RedisTempPassword docker compose -f devops/local/docker/docker-compose.baseservices.yml up -d postgres rabbitmq minio minio-init` - fail in sandbox; Docker daemon socket access denied.
+  - Escalated `REDIS_PASSWORD=RedisTempPassword docker compose -f devops/local/docker/docker-compose.baseservices.yml up -d postgres rabbitmq minio minio-init` - fail; Docker daemon is not running at `/home/marcos/.docker/desktop/docker.sock`.
+  - `REDIS_PASSWORD=RedisTempPassword docker compose -f devops/local/docker/docker-compose.baseservices.yml -f devops/local/docker/docker-compose.backend.yml up -d querify.qna.worker.api` - fail in sandbox; Docker daemon socket access denied.
+  - Escalated `REDIS_PASSWORD=RedisTempPassword docker compose -f devops/local/docker/docker-compose.baseservices.yml -f devops/local/docker/docker-compose.backend.yml up -d querify.qna.worker.api` - fail; Docker daemon is not running at `/home/marcos/.docker/desktop/docker.sock`.
+  - `git status --short` - pass; shows expected implementation changes.
+- Manual verification performed:
+  - Verified `SourceUploadedConsumer` is a transport adapter only and lets exceptions propagate to MassTransit retry.
+  - Verified worker tenant context is set before MediatR resolves handlers that use `QnADbContext`.
+  - Verified permanent validation failures set `Failed` or `Quarantined` and return without throwing.
+  - Verified storage copy/delete/open failures are not swallowed and can retry.
+  - Verified checksum computation streams object data and stores only a 512-byte prefix for magic-byte validation.
+  - Verified unsafe scanner mode cannot run outside Development with `Noop`.
+  - Verified rendered Docker Compose includes `querify.qna.worker.api` with MinIO/RabbitMQ/Postgres dependencies and Docker-network storage endpoint.
+- Intentional pending work:
+  - Runtime Docker validation, worker container startup, and the MinIO-backed smoke path remain pending because the Docker daemon is not running locally.
+  - Production malware scanner implementation is pending; current code intentionally fails production startup until a supported real scanner mode is configured.
+  - Manual migrations remain pending for Source upload columns/indexes and `SourceUploadedOutboxMessages`.
+- Exact blocker if stopped:
+  - Environment-only: Docker daemon is not running, so required container validation and the smoke path cannot be executed in this environment.
+- Exact next step to resume:
+  - Step 6, add seed data and integration tests. Before rerunning Step 5 runtime validation, start Docker and run:
+    - `REDIS_PASSWORD=RedisTempPassword docker compose -f devops/local/docker/docker-compose.baseservices.yml up -d postgres rabbitmq minio minio-init`
+    - `REDIS_PASSWORD=RedisTempPassword docker compose -f devops/local/docker/docker-compose.baseservices.yml -f devops/local/docker/docker-compose.backend.yml up -d querify.qna.worker.api`
+
+## Step 6 - Seed And Integration Tests
+
+- Step attempted: 6, seed examples and integration coverage.
+- Scope completed:
+  - Added two deterministic synthetic uploaded Source seed examples:
+    - `Manual de produto.pdf`
+    - `Política de privacidade.pdf`
+  - Seeded examples use `/verified/` storage keys, `UploadStatus=Verified`, `SizeBytes`, and deterministic SHA-256 checksum strings.
+  - Added `SourceStorageKeyTests` for path stripping, filename sanitization, staging key format, verified/quarantine conversion, and malformed key handling.
+  - Added Portal upload command/query tests covering valid intent, invalid content type/extension, oversize, public visibility rejection, missing blob, size mismatch, content-type mismatch, duplicate/non-pending complete, happy path outbox write, URL-source download rejection, uploaded/quarantined download rejection, verified download URL, and cross-tenant isolation.
+  - Added explicit in-memory fake object storage for Portal integration tests because storage is outside the Portal handler boundary under test.
+  - Added new worker test project `Querify.QnA.Worker.Test.IntegrationTests`.
+  - Added worker tests for consumer mapping, verified transition, checksum mismatch, magic-byte mismatch, unsafe scan verdict, idempotent non-uploaded status, expired pending upload, and fresh pending upload.
+- Files changed:
+  - `Querify.sln`
+  - `dotnet/Querify.Tools.Seed/Application/QnASeedService.cs`
+  - `dotnet/Querify.QnA.Portal.Test.IntegrationTests/Helpers/FakeObjectStorage.cs`
+  - `dotnet/Querify.QnA.Portal.Test.IntegrationTests/Helpers/TestDataFactory.cs`
+  - `dotnet/Querify.QnA.Portal.Test.IntegrationTests/Tests/Source/SourceStorageKeyTests.cs`
+  - `dotnet/Querify.QnA.Portal.Test.IntegrationTests/Tests/Source/SourceUploadCommandQueryTests.cs`
+  - `dotnet/Querify.QnA.Worker.Test.IntegrationTests/Querify.QnA.Worker.Test.IntegrationTests.csproj`
+  - `dotnet/Querify.QnA.Worker.Test.IntegrationTests/Helpers/TestContext.cs`
+  - `dotnet/Querify.QnA.Worker.Test.IntegrationTests/Helpers/FakeObjectStorage.cs`
+  - `dotnet/Querify.QnA.Worker.Test.IntegrationTests/Helpers/FakeThreatScanner.cs`
+  - `dotnet/Querify.QnA.Worker.Test.IntegrationTests/Helpers/TestOptionsMonitor.cs`
+  - `dotnet/Querify.QnA.Worker.Test.IntegrationTests/Helpers/CapturingMediator.cs`
+  - `dotnet/Querify.QnA.Worker.Test.IntegrationTests/Helpers/TestTenantContext.cs`
+  - `dotnet/Querify.QnA.Worker.Test.IntegrationTests/Tests/Source/SourceUploadedConsumerTests.cs`
+  - `dotnet/Querify.QnA.Worker.Test.IntegrationTests/Tests/Source/VerifyUploadedSourceCommandHandlerTests.cs`
+  - `dotnet/Querify.QnA.Worker.Test.IntegrationTests/Tests/Source/ExpirePendingSourceUploadsCommandHandlerTests.cs`
+  - `dotnet/Querify.QnA.Worker.Business.Source/Consumers/SourceUploadedConsumer.cs`
+- Commands run:
+  - `sed -n '220,360p' docs/behavior-change-playbook.md` - pass.
+  - `sed -n '1,260p' docs/backend/testing/integration-testing-strategy.md` - pass.
+  - `sed -n '1,260p' docs/backend/tools/seed-tool.md` - pass.
+  - `rg --files dotnet/Querify.QnA.Portal.Test.IntegrationTests dotnet/Querify.Tenant.Worker.Test.IntegrationTests dotnet/Querify.Tools.Seed | sort` - pass.
+  - `sed -n '1,320p' dotnet/Querify.QnA.Portal.Test.IntegrationTests/Tests/Source/SourceCommandQueryTests.cs` - pass.
+  - Targeted reads of Portal test helpers, Tenant worker test helpers, seed catalog, and `QnASeedService` - pass.
+  - `dotnet test dotnet/Querify.QnA.Portal.Test.IntegrationTests -v minimal` - pass; 50 tests before adding `SourceStorageKeyTests`.
+  - `dotnet sln Querify.sln add dotnet/Querify.QnA.Worker.Test.IntegrationTests/Querify.QnA.Worker.Test.IntegrationTests.csproj` - pass.
+  - `dotnet test dotnet/Querify.QnA.Worker.Test.IntegrationTests -v minimal` - fail first run; expired pending fixture timestamp was being protected by audit rules and not persisted after insert.
+  - `dotnet test dotnet/Querify.QnA.Worker.Test.IntegrationTests -v minimal` - pass after seeding `CreatedDate` before insert; 8 tests.
+  - `dotnet build dotnet/Querify.Tools.Seed -v minimal` - pass.
+  - `printf '0\n' | dotnet run --project dotnet/Querify.Tools.Seed` - fail; `dotnet run` reported "The build failed" without compiler diagnostics even though `dotnet build` passed.
+  - `printf '0\n' | dotnet run --project dotnet/Querify.Tools.Seed --no-build` - pass; seed tool started, printed configured TenantDb/QnADb, rendered menu, and exited on option `0`.
+  - `printf '0\n' | dotnet run --project dotnet/Querify.Tools.Seed -v minimal` - fail; same no-diagnostics `dotnet run` build failure.
+  - `printf '0\n' | dotnet run --project dotnet/Querify.Tools.Seed --no-restore` - fail; same no-diagnostics `dotnet run` build failure.
+  - `dotnet test dotnet/Querify.QnA.Portal.Test.IntegrationTests -v minimal` - pass after adding `SourceStorageKeyTests`; 54 tests.
+- Manual verification performed:
+  - Verified seed examples are data-only and do not touch MinIO.
+  - Verified tests follow the existing repository integration test pattern using real EF behavior and tenant/session context.
+  - Verified storage fakes are limited to the object-storage boundary and are documented in test helper naming.
+  - Verified worker handler tests exercise streaming verification behavior through `IObjectStorage.OpenReadAsync` and do not require loading whole blobs in tests.
+- Intentional pending work:
+  - Real PostgreSQL/MinIO smoke coverage remains pending because Docker is unavailable in this environment.
+  - Listing `/api/qna/source` after seed remains pending until local Postgres/API runtime is available.
+- Exact blocker if stopped:
+  - Environment-only for actual seed execution and API listing: local Postgres/API stack is not running because Docker daemon is unavailable.
+- Exact next step to resume: Step 7, Portal frontend upload flow and source download UI.
+
+## Step 7 - Portal Frontend
+
+- Step attempted: 7, Portal Sources upload flow, list/status display, and verified download action.
+- Scope completed:
+  - Updated Source frontend DTO types with `StorageKey`, `SizeBytes`, `UploadStatus`, upload-intent/complete DTOs, and download URL DTO.
+  - Added Sources API client functions for `upload-intent`, `upload-complete`, and `download-url`.
+  - Added TanStack Query hooks for upload intent, upload complete, and download URL.
+  - Added `upload-flow.ts` with a single XHR `PUT` upload helper that sends exactly the headers returned by the API and reports upload progress.
+  - Added create-form segmented mode: `External URL` and `File upload`.
+  - File upload mode uses a native file input, file preview, progress bar, public-visibility prevention, and the sequence `createSourceUploadIntent -> uploadSourceFile -> completeSourceUpload -> detail redirect`.
+  - Added `SourceUploadStatus` presentation metadata and `SourceUploadStatusBadge`.
+  - Source detail now shows upload status, origin (`File`/`URL`), size, and a `Download` action only for verified uploaded files.
+  - Source list now shows origin/status and includes an upload-status filter.
+- Files changed:
+  - `apps/portal/src/domains/sources/types.ts`
+  - `apps/portal/src/domains/sources/api.ts`
+  - `apps/portal/src/domains/sources/hooks.ts`
+  - `apps/portal/src/domains/sources/upload-flow.ts`
+  - `apps/portal/src/domains/sources/source-form-page.tsx`
+  - `apps/portal/src/domains/sources/source-detail-page.tsx`
+  - `apps/portal/src/domains/sources/source-list-page.tsx`
+  - `apps/portal/src/shared/constants/enum-ui.ts`
+  - `apps/portal/src/shared/ui/status-badges.tsx`
+- Commands run:
+  - `sed -n '1,260p' docs/frontend/architecture/portal-app.md` - pass.
+  - `sed -n '1,260p' docs/frontend/architecture/portal-app-ui-prompt-guidance.md` - pass.
+  - `sed -n '360,470p' docs/behavior-change-playbook.md` - pass.
+  - `rg --files apps/portal/src/domains/sources apps/portal/src/shared | sort` - pass.
+  - Targeted reads of Sources `types.ts`, `api.ts`, `hooks.ts`, `schemas.ts`, form/list/detail pages, enum constants, enum UI, and badge components - pass.
+  - `npm run lint` in `apps/portal` - fail first run; one new unused `SourceUploadStatus` import in `source-list-page.tsx`.
+  - `npm run lint` in `apps/portal` - pass after patch; 8 pre-existing React hook dependency warnings remain in unrelated files.
+  - `npm run build` in `apps/portal` - pass.
+  - `git status --short` - pass; shows expected implementation changes.
+- Manual verification performed:
+  - Static verification that upload mode does not expose `Visibility.Public`.
+  - Static verification that download action is gated on `StorageKey != null` and `UploadStatus == Verified`.
+  - Static verification that `uploadSourceFile` uses XHR progress and no multipart, chunking, resumable, or stream-through fallback behavior.
+- Intentional pending work:
+  - Manual browser verification is pending because the backend stack, worker, and MinIO are not running locally.
+  - Step 8 localization must propagate new source upload/status/download copy to all locale catalogs.
+- Exact blocker if stopped:
+  - Environment-only for manual functional frontend verification: local Docker/backend/MinIO stack is unavailable.
+- Exact next step to resume: Step 8, localization and final validation/handoff.
+
+## Step 8 - Localization And Final Validation
+
+- Step attempted: 8, localization, final validation, and deployment handoff.
+- Scope completed:
+  - Read the Portal localization guidance and the final behavior-change playbook validation steps.
+  - Added Source upload/status/download copy to every Portal locale catalog.
+  - Verified all 20 locale catalogs have the same key set as `en-US`.
+  - Kept the roadmap-documented `upload-intent` command/endpoint exception explicit in the repository architecture test and repository rules documentation.
+  - Fixed the pending-upload expiry command result from `int` to the repository-allowed simple `bool`.
+  - Re-ran frontend lint/build, focused QnA Portal/Worker integration tests, repository architecture tests, and a full solution build.
+  - Re-rendered Docker Compose config for MinIO, Portal API, and QnA worker to verify storage endpoint wiring.
+- Files changed:
+  - `apps/portal/src/shared/lib/i18n/locales/ar-SA.json`
+  - `apps/portal/src/shared/lib/i18n/locales/bn-BD.json`
+  - `apps/portal/src/shared/lib/i18n/locales/de-DE.json`
+  - `apps/portal/src/shared/lib/i18n/locales/en-US.json`
+  - `apps/portal/src/shared/lib/i18n/locales/es-ES.json`
+  - `apps/portal/src/shared/lib/i18n/locales/fr-FR.json`
+  - `apps/portal/src/shared/lib/i18n/locales/he-IL.json`
+  - `apps/portal/src/shared/lib/i18n/locales/hi-IN.json`
+  - `apps/portal/src/shared/lib/i18n/locales/id-ID.json`
+  - `apps/portal/src/shared/lib/i18n/locales/it-IT.json`
+  - `apps/portal/src/shared/lib/i18n/locales/ja-JP.json`
+  - `apps/portal/src/shared/lib/i18n/locales/ko-KR.json`
+  - `apps/portal/src/shared/lib/i18n/locales/pl-PL.json`
+  - `apps/portal/src/shared/lib/i18n/locales/pt-BR.json`
+  - `apps/portal/src/shared/lib/i18n/locales/ru-RU.json`
+  - `apps/portal/src/shared/lib/i18n/locales/th-TH.json`
+  - `apps/portal/src/shared/lib/i18n/locales/tr-TR.json`
+  - `apps/portal/src/shared/lib/i18n/locales/ur-PK.json`
+  - `apps/portal/src/shared/lib/i18n/locales/vi-VN.json`
+  - `apps/portal/src/shared/lib/i18n/locales/zh-CN.json`
+  - `docs/backend/architecture/repository-rules.md`
+  - `dotnet/Querify.Common.Architecture.Test.IntegrationTest/RepositoryArchitectureComplianceTests.cs`
+  - `dotnet/Querify.QnA.Worker.Business.Source/Commands/ExpirePendingSourceUploads/ExpirePendingSourceUploadsCommand.cs`
+  - `dotnet/Querify.QnA.Worker.Business.Source/Commands/ExpirePendingSourceUploads/ExpirePendingSourceUploadsCommandHandler.cs`
+  - `dotnet/Querify.QnA.Worker.Test.IntegrationTests/Tests/Source/ExpirePendingSourceUploadsCommandHandlerTests.cs`
+  - `docs/future/backend/source-upload-implementation-handoff.md`
+- Commands run:
+  - `sed -n ... docs/frontend/architecture/portal-localization.md` - pass.
+  - `sed -n ... docs/behavior-change-playbook.md` for Steps 10 through 12 - pass.
+  - `node -e "<locale key parity check>"` - pass; all locale key sets match `en-US`: 20 files, 1096 keys.
+  - `rg -n "Source upload submitted|File upload details|All upload status|Upload uses a single presigned|Uploaded files become downloadable|Upload intent created|File verified and ready|Upload verification failed" apps/portal/src/shared/lib/i18n/locales/en-US.json apps/portal/src/shared/lib/i18n/locales/pt-BR.json apps/portal/src/shared/lib/i18n/locales/es-ES.json` - pass.
+  - `npm run lint` in `apps/portal` - pass; 0 errors, 8 pre-existing unrelated React hook dependency warnings.
+  - `npm run build` in `apps/portal` - pass.
+  - `dotnet test dotnet/Querify.QnA.Portal.Test.IntegrationTests -v minimal` - pass; 54 tests.
+  - `dotnet test dotnet/Querify.QnA.Worker.Test.IntegrationTests -v minimal` - pass; 8 tests.
+  - `dotnet build Querify.sln -v minimal` - pass; 0 warnings, 0 errors.
+  - `dotnet test dotnet/Querify.Common.Architecture.Test.IntegrationTest -v minimal` - fail first run; repository architecture test did not yet encode the roadmap-documented `upload-intent` exception and rejected `ExpirePendingSourceUploadsCommand : IRequest<int>`.
+  - `dotnet test dotnet/Querify.Common.Architecture.Test.IntegrationTest -v minimal` - pass after adding the narrow upload-intent exception and changing expiry result to `bool`; 10 tests.
+  - `dotnet test dotnet/Querify.QnA.Worker.Test.IntegrationTests -v minimal` - pass after the expiry result change; 8 tests.
+  - `dotnet build Querify.sln -v minimal` - pass after final validation fix; 0 warnings, 0 errors.
+  - `REDIS_PASSWORD=RedisTempPassword docker compose -f devops/local/docker/docker-compose.baseservices.yml config --services` - pass; rendered `minio` and `minio-init`.
+  - `REDIS_PASSWORD=RedisTempPassword docker compose -f devops/local/docker/docker-compose.baseservices.yml -f devops/local/docker/docker-compose.backend.yml config querify.qna.portal.api querify.qna.worker.api minio minio-init` - pass; rendered MinIO private bucket setup and Portal/Worker object-storage endpoint overrides.
+  - `docker ps` - fail; Docker daemon is not running at `/home/marcos/.docker/desktop/docker.sock`.
+  - `curl -i http://localhost:5900/minio/health/live` - fail; no MinIO process is listening because Docker is unavailable.
+  - `git status --short` - pass; shows expected implementation changes and new files.
+- Manual verification performed:
+  - Verified new locale entries include upload mode labels, required-header/progress errors, upload statuses, origin labels, and verified-download copy.
+  - Verified the repository architecture exception is narrow to `SourceUploadIntentResponseDto` in the documented Source upload-intent command/controller path.
+  - Verified no Source upload behavior was added to `Querify.QnA.Public.*`.
+  - Verified the Compose render keeps the MinIO bucket private and exposes only browser-reachable presigned endpoints through `ObjectStorage__PublicEndpoint=http://localhost:5900`.
+  - Verified the frontend upload path remains single presigned PUT only; no multipart, resumable upload, or API stream-through fallback was introduced.
+- Intentional pending work:
+  - Create and apply database migrations for:
+    - `Sources.StorageKey`, `Sources.SizeBytes`, `Sources.UploadStatus`, and the partial unique `(TenantId, StorageKey)` index.
+    - `SourceUploadedOutboxMessages` with its tenant/status/attempt indexes.
+  - Provide and configure a real production malware scanner implementation; production startup intentionally rejects `SourceUpload:ThreatScanningMode=Noop` and unsupported scanner modes.
+  - Run the MinIO-backed smoke path once Docker/local infrastructure is available:
+    - `upload-intent -> PUT -> upload-complete -> worker verification -> download-url`.
+  - Run manual browser verification against the live Portal/API/worker/MinIO stack after local infrastructure starts.
+  - Execute real seed insertion and API listing against PostgreSQL after local infrastructure starts.
+- Exact blocker if stopped:
+  - Environment-only: Docker daemon is not running, so MinIO, RabbitMQ, Postgres, Portal API, and QnA worker cannot be started for the required end-to-end smoke path in this environment.
+- Exact next step to resume:
+  - Start Docker, apply the required database migration, configure a production-grade malware scanner for non-development environments, then run:
+    - `REDIS_PASSWORD=RedisTempPassword docker compose -f devops/local/docker/docker-compose.baseservices.yml up -d postgres rabbitmq minio minio-init`
+    - `REDIS_PASSWORD=RedisTempPassword docker compose -f devops/local/docker/docker-compose.baseservices.yml -f devops/local/docker/docker-compose.backend.yml up -d querify.qna.portal.api querify.qna.worker.api`
+    - Exercise `POST /api/qna/source/upload-intent`, direct `PUT` to MinIO, `POST /api/qna/source/{id}/upload-complete`, worker verification, and `GET /api/qna/source/{id}/download-url`.

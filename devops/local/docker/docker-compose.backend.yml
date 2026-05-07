@@ -9,6 +9,8 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:5010
+      - ObjectStorage__Endpoint=http://minio:9000
+      - ObjectStorage__PublicEndpoint=http://localhost:5900
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:
@@ -65,6 +67,28 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:5020
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - qf-network
+  querify.qna.worker.api:
+    image: querify.qna.worker.api
+    build:
+      context: ../../..
+      dockerfile: dotnet/Querify.QnA.Worker.Api/Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
+    environment:
+      - DOTNET_ENVIRONMENT=Development
+      - ObjectStorage__Endpoint=http://minio:9000
+      - ObjectStorage__PublicEndpoint=http://localhost:5900
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:

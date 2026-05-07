@@ -18,6 +18,9 @@ public class SourceConfiguration : BaseConfiguration<Source>
             .HasMaxLength(Source.MaxLocatorLength)
             .IsRequired();
 
+        builder.Property(source => source.StorageKey)
+            .HasMaxLength(Source.MaxStorageKeyLength);
+
         builder.Property(source => source.Label)
             .HasMaxLength(Source.MaxLabelLength);
 
@@ -34,6 +37,8 @@ public class SourceConfiguration : BaseConfiguration<Source>
         builder.Property(source => source.MediaType)
             .HasMaxLength(Source.MaxMediaTypeLength);
 
+        builder.Property(source => source.SizeBytes);
+
         builder.Property(source => source.Checksum)
             .HasMaxLength(Source.MaxChecksumLength)
             .IsRequired();
@@ -41,12 +46,20 @@ public class SourceConfiguration : BaseConfiguration<Source>
         builder.Property(source => source.MetadataJson)
             .HasMaxLength(Source.MaxMetadataLength);
 
+        builder.Property(source => source.UploadStatus)
+            .HasDefaultValue(SourceUploadStatus.None)
+            .IsRequired();
+
         builder.Property(source => source.Visibility)
             .HasDefaultValue(VisibilityScope.Internal)
             .IsRequired();
 
         builder.Property(source => source.TenantId)
             .IsRequired();
+
+        builder.HasIndex(source => new { source.TenantId, source.StorageKey })
+            .IsUnique()
+            .HasFilter("\"StorageKey\" IS NOT NULL");
 
         builder.HasMany(source => source.Spaces)
             .WithOne(link => link.Source)

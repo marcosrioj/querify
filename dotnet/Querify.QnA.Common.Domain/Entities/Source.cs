@@ -18,6 +18,7 @@ public class Source : BaseEntity, IMustHaveTenant
     public const int MaxMediaTypeLength = 100;
     public const int MaxChecksumLength = 128;
     public const int MaxMetadataLength = 8000;
+    public const int MaxStorageKeyLength = 1000;
 
     /// <summary>
     ///     Source kind, such as document, ticket, chat, page, or internal note.
@@ -28,6 +29,11 @@ public class Source : BaseEntity, IMustHaveTenant
     ///     Stable pointer to the source, such as a URL, external id, or path.
     /// </summary>
     public required string Locator { get; set; }
+
+    /// <summary>
+    ///     Private object storage key for tenant-uploaded sources; null means the source is external.
+    /// </summary>
+    public string? StorageKey { get; set; }
 
     /// <summary>
     ///     Human-readable label for the source.
@@ -55,6 +61,11 @@ public class Source : BaseEntity, IMustHaveTenant
     public string? MediaType { get; set; }
 
     /// <summary>
+    ///     Expected upload size while pending and confirmed object size after upload completion.
+    /// </summary>
+    public long? SizeBytes { get; set; }
+
+    /// <summary>
     ///     Hash or signature used to detect content changes.
     /// </summary>
     public required string Checksum { get; set; }
@@ -63,6 +74,11 @@ public class Source : BaseEntity, IMustHaveTenant
     ///     Serialized source metadata.
     /// </summary>
     public string? MetadataJson { get; set; }
+
+    /// <summary>
+    ///     Upload workflow state for tenant-hosted files; external sources remain None.
+    /// </summary>
+    public SourceUploadStatus UploadStatus { get; set; } = SourceUploadStatus.None;
 
     /// <summary>
     ///     Audience exposure for the source: internal portal, authenticated external, or public.

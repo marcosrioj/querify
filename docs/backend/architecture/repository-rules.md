@@ -38,13 +38,17 @@ Apply these rules to:
 - Command handlers return only simple values: `Guid`, `bool`, `string`, or `void`.
 - Complex response types belong to query handlers only.
 - Commands must never return DTOs, lists, paged results, or wrapper response objects.
-- Command handlers must never implement `IRequestHandler<TCommand, TComplex>` where `TComplex` is a DTO, list, paged result, or wrapper object.
+- The only current exception is QnA Source `upload-intent`, which returns the short-lived
+  presigned upload credential required for the immediate direct browser PUT.
+- Other command handlers must never implement `IRequestHandler<TCommand, TComplex>` where `TComplex` is a DTO, list, paged result, or wrapper object.
 - No read-after-write inside command flow.
 - Query DTOs are read-side only (`GET` plus query handlers).
 
 ### 2. Write path behavior
 
 - `POST`, `PUT`, and `PATCH` endpoints return simple write outcomes only.
+- The QnA Source `upload-intent` endpoint is the only current exception because it returns
+  the short-lived presigned upload credential tied to the newly-created pending source.
 - Services and controllers stay orchestration-thin.
 - For async write processing, return correlation `Guid` and use `202 Accepted`.
 
@@ -214,7 +218,7 @@ fallback.
 
 ## Required Review Checklist
 
-- command return type is a simple value only
+- command return type is a simple value only, except documented source upload-intent credential creation
 - no read-after-write query in command paths
 - write endpoints and services do not return read DTOs
 - `Handle(...)` is bounded and oversized logic was decomposed using the slicing rules

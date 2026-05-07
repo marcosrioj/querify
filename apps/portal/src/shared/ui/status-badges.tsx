@@ -8,6 +8,7 @@ import {
   QuestionStatus,
   SourceKind,
   SourceRole,
+  SourceUploadStatus,
   SpaceStatus,
   TenantEdition,
   TenantUserRoleType,
@@ -22,6 +23,7 @@ import {
   questionStatusPresentation,
   sourceKindPresentation,
   sourceRolePresentation,
+  sourceUploadStatusPresentation,
   spaceStatusPresentation,
   tenantEditionPresentation,
   tenantUserRolePresentation,
@@ -120,6 +122,12 @@ export function SourceKindBadge({ kind }: { kind: SourceKind }) {
 
 export function SourceRoleBadge({ role }: { role: SourceRole }) {
   const presentation = getPresentation(sourceRolePresentation, role);
+
+  return <BadgeText text={presentation.label} variant={presentation.badgeVariant} />;
+}
+
+export function SourceUploadStatusBadge({ status }: { status: SourceUploadStatus }) {
+  const presentation = getPresentation(sourceUploadStatusPresentation, status);
 
   return <BadgeText text={presentation.label} variant={presentation.badgeVariant} />;
 }

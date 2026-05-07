@@ -34,6 +34,35 @@ public class SourceController(ISourceService sourceService) : ControllerBase
         return StatusCode(StatusCodes.Status201Created, await sourceService.Create(dto, token));
     }
 
+    [HttpPost("upload-intent")]
+    [ProducesResponseType(typeof(SourceUploadIntentResponseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
+    public async Task<IActionResult> CreateUploadIntent([FromBody] SourceUploadIntentRequestDto dto,
+        CancellationToken token)
+    {
+        return Ok(await sourceService.CreateUploadIntent(dto, token));
+    }
+
+    [HttpPost("{id:guid}/upload-complete")]
+    [ProducesResponseType(typeof(Guid), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
+    public async Task<IActionResult> CompleteUpload(Guid id, [FromBody] SourceUploadCompleteRequestDto dto,
+        CancellationToken token)
+    {
+        return Ok(await sourceService.CompleteUpload(id, dto, token));
+    }
+
+    [HttpGet("{id:guid}/download-url")]
+    [ProducesResponseType(typeof(SourceDownloadUrlDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
+    public async Task<IActionResult> GetDownloadUrl(Guid id, CancellationToken token)
+    {
+        return Ok(await sourceService.GetDownloadUrl(id, token));
+    }
+
     [HttpPut("{id:guid}")]
     [ProducesResponseType(typeof(Guid), StatusCodes.Status200OK)]
     public async Task<IActionResult> Update(Guid id, [FromBody] SourceUpdateRequestDto dto,

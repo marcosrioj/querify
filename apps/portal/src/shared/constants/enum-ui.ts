@@ -12,6 +12,7 @@ import {
   QuestionStatus,
   SourceKind,
   SourceRole,
+  SourceUploadStatus,
   SpaceStatus,
   TenantEdition,
   TenantSubscriptionStatus,
@@ -29,6 +30,7 @@ import {
   questionStatusLabels,
   sourceKindLabels,
   sourceRoleLabels,
+  sourceUploadStatusLabels,
   spaceStatusLabels,
   tenantEditionLabels,
   tenantSubscriptionStatusLabels,
@@ -433,6 +435,54 @@ export const sourceRolePresentation = Object.fromEntries(
     },
   ]),
 ) as Record<SourceRole, EnumPresentation>;
+
+export const sourceUploadStatusPresentation: Record<
+  SourceUploadStatus,
+  EnumPresentation
+> = {
+  [SourceUploadStatus.None]: {
+    label: sourceUploadStatusLabels[SourceUploadStatus.None],
+    description: "External source without an upload workflow.",
+    badgeVariant: "outline",
+    sortGroup: 7,
+  },
+  [SourceUploadStatus.Pending]: {
+    label: sourceUploadStatusLabels[SourceUploadStatus.Pending],
+    description: "Upload intent created; file has not completed yet.",
+    badgeVariant: "warning",
+    sortGroup: 2,
+  },
+  [SourceUploadStatus.Uploaded]: {
+    label: sourceUploadStatusLabels[SourceUploadStatus.Uploaded],
+    description: "File uploaded and waiting for worker verification.",
+    badgeVariant: "info",
+    sortGroup: 3,
+  },
+  [SourceUploadStatus.Verified]: {
+    label: sourceUploadStatusLabels[SourceUploadStatus.Verified],
+    description: "File verified and ready for private download.",
+    badgeVariant: "success",
+    sortGroup: 1,
+  },
+  [SourceUploadStatus.Quarantined]: {
+    label: sourceUploadStatusLabels[SourceUploadStatus.Quarantined],
+    description: "File was moved to quarantine.",
+    badgeVariant: "destructive",
+    sortGroup: 0,
+  },
+  [SourceUploadStatus.Failed]: {
+    label: sourceUploadStatusLabels[SourceUploadStatus.Failed],
+    description: "Upload verification failed.",
+    badgeVariant: "destructive",
+    sortGroup: 0,
+  },
+  [SourceUploadStatus.Expired]: {
+    label: sourceUploadStatusLabels[SourceUploadStatus.Expired],
+    description: "Upload intent expired before completion.",
+    badgeVariant: "outline",
+    sortGroup: 6,
+  },
+};
 
 export const activityKindPresentation = Object.fromEntries(
   Object.entries(activityKindLabels).map(([value, label]) => [

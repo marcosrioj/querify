@@ -4,6 +4,7 @@ import {
   QuestionStatus,
   SourceKind,
   SourceRole,
+  SourceUploadStatus,
   SpaceStatus,
   VisibilityScope,
 } from '@/shared/constants/backend-enums';
@@ -13,16 +14,19 @@ export type SourceDto = {
   tenantId: string;
   kind: SourceKind;
   locator: string;
+  storageKey?: string | null;
   label?: string | null;
   contextNote?: string | null;
   externalId?: string | null;
   language: string;
   mediaType?: string | null;
+  sizeBytes?: number | null;
   checksum: string;
   metadataJson?: string | null;
   visibility: VisibilityScope;
   lastVerifiedAtUtc?: string | null;
   lastUpdatedAtUtc?: string | null;
+  uploadStatus: SourceUploadStatus;
   spaceUsageCount: number;
   questionUsageCount: number;
   answerUsageCount: number;
@@ -89,3 +93,31 @@ export type SourceCreateRequestDto = {
 };
 
 export type SourceUpdateRequestDto = SourceCreateRequestDto;
+
+export type SourceUploadIntentRequestDto = {
+  fileName: string;
+  contentType: string;
+  sizeBytes: number;
+  kind: SourceKind;
+  language: string;
+  visibility: VisibilityScope;
+  label?: string | null;
+  contextNote?: string | null;
+};
+
+export type SourceUploadIntentResponseDto = {
+  sourceId: string;
+  uploadUrl: string;
+  requiredHeaders: Record<string, string>;
+  storageKey: string;
+  expiresAtUtc: string;
+};
+
+export type SourceUploadCompleteRequestDto = {
+  clientChecksum?: string | null;
+};
+
+export type SourceDownloadUrlDto = {
+  url: string;
+  expiresAtUtc: string;
+};

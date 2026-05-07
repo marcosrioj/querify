@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm, type UseFormReturn } from "react-hook-form";
-import { Braces, X } from "lucide-react";
+import { Braces, FileUp, Link2, X } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   SourceKind,
@@ -12,9 +12,12 @@ import {
 } from "@/shared/constants/backend-enums";
 import {
   useCreateSource,
+  useCompleteSourceUpload,
+  useCreateSourceUploadIntent,
   useSource,
   useUpdateSource,
 } from "@/domains/sources/hooks";
+import { uploadSourceFile } from "@/domains/sources/upload-flow";
 import {
   sourceFormSchema,
   type SourceFormValues,
@@ -44,6 +47,7 @@ import {
   FormSectionHeading,
   hasSetupText,
   hasSetupValue,
+  Input,
   SidebarSummarySkeleton,
   Textarea,
 } from "@/shared/ui";
@@ -138,8 +142,14 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
   const { id } = useParams();
   const sourceQuery = useSource(mode === "edit" ? id : undefined);
   const createSource = useCreateSource();
+  const createUploadIntent = useCreateSourceUploadIntent();
+  const completeSourceUpload = useCompleteSourceUpload();
   const updateSource = useUpdateSource(id ?? "");
   const initialLanguage = getStoredPortalLanguage() ?? DEFAULT_PORTAL_LANGUAGE;
+  const [createMode, setCreateMode] = useState<"external" | "upload">("external");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   const form = useForm<SourceFormValues>({
     resolver: zodResolver(sourceFormSchema),
@@ -188,7 +198,13 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
   const selectedLanguageOption =
     languageOptions.find((option) => option.value === selectedLanguageValue) ??
     null;
-  const isSubmitting = createSource.isPending || updateSource.isPending;
+  const isUploadMode = mode === "create" && createMode === "upload";
+  const isSubmitting =
+    createSource.isPending ||
+    updateSource.isPending ||
+    createUploadIntent.isPending ||
+    completeSourceUpload.isPending ||
+    (isUploadMode && uploadProgress > 0 && uploadProgress < 100);
   const setupValues = form.watch();
   const setupSteps = [
     {
@@ -199,9 +215,13 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
     },
     {
       id: "locator",
-      label: "Locator",
-      description: "Add the canonical URL, path, ticket, or document locator.",
-      complete: hasSetupText(setupValues.locator, 3),
+      label: isUploadMode ? "File" : "Locator",
+      description: isUploadMode
+        ? "Choose the file that should become this source."
+        : "Add the canonical URL, path, ticket, or document locator.",
+      complete: isUploadMode
+        ? Boolean(selectedFile)
+        : hasSetupText(setupValues.locator, 3),
     },
     {
       id: "language",
@@ -223,7 +243,34 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
       ? "New source"
       : sourceTitle
         ? `${translateText("Edit")} ${sourceTitle}`
-        : "Edit source";
+      : "Edit source";
+  const uploadVisibilityOptions = visibilityOptions.filter(
+    (option) => option.value !== String(VisibilityScope.Public),
+  );
+
+  useEffect(() => {
+    if (!isUploadMode || form.getValues("visibility") !== VisibilityScope.Public) {
+      return;
+    }
+
+    form.setValue("visibility", VisibilityScope.Internal, {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+  }, [form, isUploadMode]);
+
+  useEffect(() => {
+    if (!isUploadMode) {
+      return;
+    }
+
+    if (!form.getValues("locator")) {
+      form.setValue("locator", "upload", {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+    }
+  }, [form, isUploadMode]);
 
   return (
     <DetailLayout
@@ -302,6 +349,44 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
                 <form
                   className="space-y-6"
                   onSubmit={form.handleSubmit(async (values) => {
+                    setUploadError(null);
+
+                    if (isUploadMode) {
+                      if (!selectedFile) {
+                        setUploadError("Choose a file before starting upload.");
+                        return;
+                      }
+
+                      setUploadProgress(0);
+                      const visibility =
+                        Number(values.visibility) === VisibilityScope.Public
+                          ? VisibilityScope.Internal
+                          : (Number(values.visibility) as VisibilityScope);
+                      const intent = await createUploadIntent.mutateAsync({
+                        fileName: selectedFile.name,
+                        contentType:
+                          selectedFile.type || "application/octet-stream",
+                        sizeBytes: selectedFile.size,
+                        kind: Number(values.kind) as SourceKind,
+                        language: values.language,
+                        visibility,
+                        label: values.label || undefined,
+                        contextNote: values.contextNote || undefined,
+                      });
+
+                      await uploadSourceFile({
+                        file: selectedFile,
+                        intentResponse: intent,
+                        onProgress: setUploadProgress,
+                      });
+                      await completeSourceUpload.mutateAsync({
+                        id: intent.sourceId,
+                        body: {},
+                      });
+                      navigate(`/app/sources/${intent.sourceId}`);
+                      return;
+                    }
+
                     const body = {
                       kind: Number(values.kind) as SourceKind,
                       locator: values.locator,
@@ -325,19 +410,109 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
                     navigate(`/app/sources/${id}`);
                   })}
                 >
+                  {mode === "create" ? (
+                    <div className="inline-flex max-w-full rounded-md border border-border bg-muted/20 p-1">
+                      <Button
+                        type="button"
+                        variant={createMode === "external" ? "secondary" : "ghost"}
+                        size="sm"
+                        onClick={() => setCreateMode("external")}
+                      >
+                        <Link2 className="size-4" />
+                        {translateText("External URL")}
+                      </Button>
+                      <Button
+                        type="button"
+                        variant={createMode === "upload" ? "secondary" : "ghost"}
+                        size="sm"
+                        onClick={() => setCreateMode("upload")}
+                      >
+                        <FileUp className="size-4" />
+                        {translateText("File upload")}
+                      </Button>
+                    </div>
+                  ) : null}
                   <FormSectionHeading
                     title="Evidence identity"
                     description="Capture the canonical locator first, then add the operator-facing label and evidence type."
                   />
                   <div className="grid gap-4 lg:grid-cols-6">
-                    <div className="lg:col-span-6">
-                      <TextField
-                        control={form.control}
-                        name="locator"
-                        label="Locator"
-                        description="Use the canonical URL, path, repository URI, ticket reference, or document locator."
-                      />
-                    </div>
+                    {isUploadMode ? (
+                      <div className="lg:col-span-6">
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-1.5">
+                            <FormLabel>{translateText("File")}</FormLabel>
+                            <ContextHint
+                              content={translateText(
+                                "Upload uses a single presigned PUT URL and keeps the source private until worker verification completes.",
+                              )}
+                              label={translateText("File upload details")}
+                            />
+                          </div>
+                          <Input
+                            type="file"
+                            accept=".pdf,.png,.jpg,.jpeg,.mp4,.txt,.md,.markdown,application/pdf,image/png,image/jpeg,video/mp4,text/plain,text/markdown"
+                            onChange={(event) => {
+                              const file = event.currentTarget.files?.[0] ?? null;
+                              setSelectedFile(file);
+                              setUploadProgress(0);
+                              setUploadError(null);
+
+                              if (!file) {
+                                return;
+                              }
+
+                              form.setValue("locator", file.name, {
+                                shouldDirty: true,
+                                shouldValidate: true,
+                              });
+                              form.setValue("mediaType", file.type, {
+                                shouldDirty: true,
+                                shouldValidate: true,
+                              });
+
+                              if (!form.getValues("label")) {
+                                form.setValue("label", file.name, {
+                                  shouldDirty: true,
+                                  shouldValidate: true,
+                                });
+                              }
+                            }}
+                          />
+                          {selectedFile ? (
+                            <p className="break-words text-sm text-muted-foreground">
+                              {translateText("{name} · {size} MB · {type}", {
+                                name: selectedFile.name,
+                                size: (selectedFile.size / 1024 / 1024).toFixed(2),
+                                type: selectedFile.type || "unknown",
+                              })}
+                            </p>
+                          ) : null}
+                          {uploadProgress > 0 ? (
+                            <div className="h-2 overflow-hidden rounded bg-muted">
+                              <div
+                                className="h-full bg-primary transition-all"
+                                style={{ width: `${uploadProgress}%` }}
+                              />
+                            </div>
+                          ) : null}
+                          {uploadError ? (
+                            <p className="text-sm text-destructive">
+                              {translateText(uploadError)}
+                            </p>
+                          ) : null}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="lg:col-span-6">
+                        <TextField
+                          control={form.control}
+                          name="locator"
+                          label="Locator"
+                          description="Use the canonical URL, path, repository URI, ticket reference, or document locator."
+                        />
+                      </div>
+                    )}
                     <div className="lg:col-span-3">
                       <TextField
                         control={form.control}
@@ -375,7 +550,7 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
                       name="visibility"
                       label="Visibility"
                       description="Controls which audiences can see or reuse this source."
-                      options={visibilityOptions}
+                      options={isUploadMode ? uploadVisibilityOptions : visibilityOptions}
                     />
                     <SearchSelectField
                       control={form.control}

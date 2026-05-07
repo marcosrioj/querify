@@ -130,12 +130,76 @@ public sealed class QnASeedService : IQnASeedService
         Guid tenantId,
         int maxSourceCount)
     {
-        return spaceDefinitions
+        var uploadedSources = BuildUploadedSourceSamples(tenantId)
+            .Take(Math.Max(0, maxSourceCount))
+            .ToList();
+        var remainingSourceCount = Math.Max(0, maxSourceCount - uploadedSources.Count);
+
+        uploadedSources.AddRange(spaceDefinitions
             .SelectMany(definition => definition.Items)
             .DistinctBy(item => item.SourceUrl, StringComparer.OrdinalIgnoreCase)
-            .Take(Math.Max(0, maxSourceCount))
-            .Select(item => CreateSource(item, tenantId))
-            .ToList();
+            .Take(remainingSourceCount)
+            .Select(item => CreateSource(item, tenantId)));
+
+        return uploadedSources;
+    }
+
+    private static IEnumerable<Source> BuildUploadedSourceSamples(Guid tenantId)
+    {
+        var productManualSourceId = Guid.Parse("1f6d6a9a-44df-4c8f-8d8d-0e6a4f012001");
+        var privacyPolicySourceId = Guid.Parse("1f6d6a9a-44df-4c8f-8d8d-0e6a4f012002");
+
+        yield return CreateUploadedSource(
+            tenantId,
+            productManualSourceId,
+            "Manual de produto.pdf",
+            "Product manual PDF",
+            184_320,
+            "sha256:5f1a3e9b17f7d913cb6c0a1f3e02a7b8f0d4b8bda19ad16f8a9ad7cb0c7f0001");
+
+        yield return CreateUploadedSource(
+            tenantId,
+            privacyPolicySourceId,
+            "Política de privacidade.pdf",
+            "Privacy policy PDF",
+            96_512,
+            "sha256:5f1a3e9b17f7d913cb6c0a1f3e02a7b8f0d4b8bda19ad16f8a9ad7cb0c7f0002");
+    }
+
+    private static Source CreateUploadedSource(
+        Guid tenantId,
+        Guid sourceId,
+        string fileName,
+        string label,
+        long sizeBytes,
+        string checksum)
+    {
+        var storageKey = SourceStorageKey.BuildVerifiedKey(tenantId, sourceId, fileName);
+        return new Source
+        {
+            Id = sourceId,
+            TenantId = tenantId,
+            Kind = SourceKind.Pdf,
+            Locator = storageKey,
+            StorageKey = storageKey,
+            Label = label,
+            ContextNote = "Seeded uploaded source sample",
+            ExternalId = $"seed-upload-{sourceId:N}",
+            Language = SeedLanguage,
+            MediaType = "application/pdf",
+            SizeBytes = sizeBytes,
+            Checksum = checksum,
+            MetadataJson = JsonSerializer.Serialize(new
+            {
+                source = "seed",
+                storage = "synthetic"
+            }),
+            Visibility = VisibilityScope.Internal,
+            LastVerifiedAtUtc = SeedBaseTimeUtc,
+            UploadStatus = SourceUploadStatus.Verified,
+            CreatedBy = "seed",
+            UpdatedBy = "seed"
+        };
     }
 
     private static Source CreateSource(SeedQuestionDefinition item, Guid tenantId)
