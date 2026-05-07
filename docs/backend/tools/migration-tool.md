@@ -10,6 +10,8 @@ The tool manages supported module databases. Current supported module target: `Q
 
 It uses the tenant database to discover which module database connection strings exist and then applies migrations across those databases.
 
+It does not manage the QnA worker Hangfire storage database. Use [`hangfire-qna-db.md`](hangfire-qna-db.md) for `Querify.QnA.Common.Persistence.HangfireQnaDb` commands.
+
 ## How it works
 
 1. Load the solution root.
@@ -88,5 +90,6 @@ Tenant-integrity code is part of the model change, not a later command-handler t
 ## Related documents
 
 - [`seed-tool.md`](seed-tool.md)
+- [`hangfire-qna-db.md`](hangfire-qna-db.md)
 - [`local-development.md`](local-development.md)
 - [`../architecture/dotnet-backend-overview.md`](../architecture/dotnet-backend-overview.md)

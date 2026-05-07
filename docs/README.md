@@ -43,6 +43,7 @@ Operational guides for running, seeding, migrating, and releasing the backend.
 - [`backend/tools/local-development.md`](backend/tools/local-development.md) — local runtime model, Docker infrastructure, base/backend/frontend container flows, and troubleshooting.
 - [`backend/tools/seed-tool.md`](backend/tools/seed-tool.md) — tenant and module seed workflow, menu options, and sample-data behavior.
 - [`backend/tools/migration-tool.md`](backend/tools/migration-tool.md) — tenant-aware module migration workflow for supported module databases.
+- [`backend/tools/hangfire-qna-db.md`](backend/tools/hangfire-qna-db.md) — QnA worker Hangfire persistence boundary and direct `dotnet ef` commands.
 - [`backend/tools/release-artifacts.md`](backend/tools/release-artifacts.md) — where to keep release plans, rollout checklists, and evidence packages.
 
 ### Testing

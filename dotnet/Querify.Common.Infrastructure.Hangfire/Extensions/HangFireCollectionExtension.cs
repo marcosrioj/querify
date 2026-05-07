@@ -25,7 +25,7 @@ public static class HangFireCollectionExtension
     }
 
     public static void AddHangFire(this IServiceCollection services,
-        IConfiguration configuration, string[]? queues = null)
+        IConfiguration configuration, string[]? queues = null, string? connectionString = null)
     {
         LoadHangFireOptions(services, configuration);
 
@@ -34,13 +34,15 @@ public static class HangFireCollectionExtension
         if (options is null)
             throw new Exception("Hangfire options not found");
 
+        connectionString = ResolveConnectionString(options, connectionString);
         options.WorkerCount = 20;
+        var storageOptions = CreatePostgreSqlStorageOptions(options);
 
         services.AddHangfire(config => config
             .SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
             .UseSimpleAssemblyNameTypeSerializer()
             .UseRecommendedSerializerSettings()
-            .UsePostgreSqlStorage(c => c.UseNpgsqlConnection(options.ConnectionString))
+            .UsePostgreSqlStorage(c => c.UseNpgsqlConnection(connectionString), storageOptions)
             .UseHeartbeatPage(TimeSpan.FromSeconds(30))
             .UseJobsLogger()
         );
@@ -161,5 +163,33 @@ public static class HangFireCollectionExtension
         }
 
         return;
+    }
+
+    private static string ResolveConnectionString(HangFireOptions options, string? connectionString)
+    {
+        if (!string.IsNullOrWhiteSpace(connectionString))
+        {
+            return connectionString;
+        }
+
+        if (!string.IsNullOrWhiteSpace(options.ConnectionString))
+        {
+            return options.ConnectionString;
+        }
+
+        throw new Exception("Hangfire connection string not found");
+    }
+
+    private static PostgreSqlStorageOptions CreatePostgreSqlStorageOptions(HangFireOptions options)
+    {
+        return new PostgreSqlStorageOptions
+        {
+            SchemaName = string.IsNullOrWhiteSpace(options.SchemaName) ? "hangfire" : options.SchemaName,
+            PrepareSchemaIfNecessary = options.PrepareSchemaIfNecessary,
+            StartupConnectionMaxRetries = options.StartupConnectionMaxRetries,
+            StartupConnectionBaseDelay = TimeSpan.FromSeconds(options.StartupConnectionBaseDelaySeconds),
+            StartupConnectionMaxDelay = TimeSpan.FromSeconds(options.StartupConnectionMaxDelaySeconds),
+            AllowDegradedModeWithoutStorage = options.AllowDegradedModeWithoutStorage
+        };
     }
 }

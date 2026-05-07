@@ -27,6 +27,7 @@ The repository root contains one primary `.NET` solution file, `Querify.sln`. It
 | `Querify.QnA.Portal.Api` | authenticated QnA management APIs | `5010` |
 | `Querify.QnA.Public.Api` | public QnA access and public signaling APIs | `5020` |
 | `Querify.Tenant.Worker.Api` | control-plane worker for billing webhooks and email outbox processing | n/a |
+| `Querify.QnA.Worker.Api` | QnA worker for durable source-upload verification jobs and Hangfire dashboard | `5030` |
 
 ## Core architectural patterns
 
@@ -122,6 +123,7 @@ Querify uses separate EF Core context boundaries for module data responsibilitie
 |---|---|---|
 | Tenant | `TenantDbContext` | global tenant metadata, users, tenant memberships, module connection mapping, billing, entitlements, and control-plane background-processing state |
 | QnA | QnA module `DbContext` | tenant-specific QnA module data such as spaces, questions, answers, source links, tag links, workflow state, and activity |
+| QnA Worker | `HangfireQnaDbContext` | QnA worker Hangfire storage boundary for durable operational job state |
 | Direct | `DirectDbContext` | tenant-specific Direct module data such as conversations and conversation messages |
 | Broadcast | `BroadcastDbContext` | tenant-specific Broadcast module data such as external/community threads and captured items |
 | Trust | no active EF context | validation, governance, decision history, and auditability records belong to the Trust module boundary |
@@ -131,6 +133,7 @@ The split matters operationally:
 - tenant metadata is centralized
 - control-plane operational workloads belong with tenant metadata
 - module data lives behind its owning module context
+- worker operational storage lives in a worker-specific persistence project when the provider schema is not module domain state
 - migration and seed tooling must coordinate tenant metadata plus the active module store
 
 Module contexts share the same default `DbContext` pattern. The context class lives under `DbContext/<Module>DbContext.cs`; save-time persistence concerns live under focused `DbContext/<Concern>` folders; and `Extensions` folders are reserved for service registration. `BaseDbContext<TContext>` owns the shared EF behavior: tenant connection resolution, tenant filters and indexes, soft-delete filters and rules, audit rules, UTC date normalization, and save hooks.
@@ -140,6 +143,8 @@ Module persistence uses `OnBeforeSaveChangesRules()` for pre-save invariants and
 Tenant integrity is a mandatory `DbContext` responsibility for tenant module data. When an `IMustHaveTenant` entity references another tenant-owned record, the owning context must validate the relationship before save. The default shape is `DbContext/TenantIntegrity/<Entity>TenantIntegrityExtension.cs`, one focused extension per checked entity or relationship, backed by `TenantIntegrityGuard` and `TenantIntegrityLookupCacheBase` or a module-specific lookup cache that reads referenced records with `IgnoreQueryFilters()`.
 
 `Querify.Direct.Common.Persistence.DirectDb` and `Querify.Broadcast.Common.Persistence.BroadcastDb` contain the current Direct and Broadcast entity, enum, configuration, DbContext, and registration-extension scope. API hosts, business modules, migrations, additional workflow entities, and seed flows for those behaviors belong in the same module boundaries.
+
+`Querify.QnA.Common.Persistence.HangfireQnaDb` is intentionally narrower: it owns the QnA worker's Hangfire storage connection, design-time EF context, registration extension, and migrations boundary. Hangfire's internal storage tables remain provider-owned by `Hangfire.PostgreSql`, with versions pinned in `Querify.Common.Infrastructure.Hangfire`.
 
 ### 6. Multitenancy is part of the request model
 

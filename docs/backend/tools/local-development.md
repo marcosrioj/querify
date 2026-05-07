@@ -86,6 +86,17 @@ Or run the QnA module database update non-interactively:
 dotnet run --project dotnet/Querify.Tools.Migration -- --module QnA --command database-update
 ```
 
+The QnA worker's Hangfire storage is not tenant-discovered. For manual control, apply it directly:
+
+```bash
+dotnet ef database update \
+  --project dotnet/Querify.QnA.Common.Persistence.HangfireQnaDb \
+  --startup-project dotnet/Querify.QnA.Worker.Api \
+  --context HangfireQnaDbContext
+```
+
+For local development, `HangFire:PrepareSchemaIfNecessary=true` also lets `Hangfire.PostgreSql` prepare its provider-owned tables when the worker starts.
+
 If you want full manual schema control from scratch, first migrate `TenantDbContext`, then use `Querify.Tools.Migration` for supported tenant module databases.
 
 Manual tenant database migration:
@@ -105,6 +116,7 @@ dotnet run --project dotnet/Querify.Tenant.Public.Api
 dotnet run --project dotnet/Querify.QnA.Portal.Api
 dotnet run --project dotnet/Querify.QnA.Public.Api
 dotnet run --project dotnet/Querify.Tenant.Worker.Api
+dotnet run --project dotnet/Querify.QnA.Worker.Api
 ```
 
 For the Portal frontend runtime and Auth0 setup, use [`../../frontend/tools/portal-runtime.md`](../../frontend/tools/portal-runtime.md).

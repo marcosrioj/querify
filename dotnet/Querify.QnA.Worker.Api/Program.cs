@@ -4,6 +4,7 @@ using Querify.Common.Infrastructure.Core.Abstractions;
 using Querify.Common.Infrastructure.Hangfire.Extensions;
 using Querify.Common.Infrastructure.Storage.Extensions;
 using Querify.Common.Infrastructure.Telemetry.Extensions;
+using Querify.QnA.Common.Persistence.HangfireQnaDb.Extensions;
 using Querify.QnA.Common.Persistence.QnADb.Extensions;
 using Querify.QnA.Worker.Api.Extensions;
 using Querify.QnA.Worker.Api.Infrastructure;
@@ -46,7 +47,7 @@ public class Program
                 var sourceUploadVerificationOptions = context.Configuration
                     .GetSection(SourceUploadVerificationSweepOptions.SectionName)
                     .Get<SourceUploadVerificationSweepOptions>() ?? new SourceUploadVerificationSweepOptions();
-                services.AddHangFire(context.Configuration, [sourceUploadVerificationOptions.QueueName]);
+                services.AddHangfireQnaDb(context.Configuration, [sourceUploadVerificationOptions.QueueName]);
                 services.AddTelemetry(
                     context.Configuration,
                     context.HostingEnvironment,

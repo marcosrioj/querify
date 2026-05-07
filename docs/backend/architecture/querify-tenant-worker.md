@@ -69,6 +69,18 @@ Fully self-contained email processing module:
 
 The worker intentionally uses a non-request session implementation because these jobs are not triggered by HTTP request context.
 
+## Related QnA Worker Boundary
+
+`Querify.QnA.Worker.Api` is the product-module worker for QnA source-upload verification. It is separate from `Querify.Tenant.Worker.Api` because uploaded-source verification mutates tenant-scoped QnA module data.
+
+The QnA worker uses three persistence boundaries:
+
+- `TenantDbContext` to enumerate active QnA tenants and resolve tenant connection metadata.
+- Tenant-scoped `QnADbContext` to read and update QnA `Source` workflow state.
+- `HangfireQnaDbContext` through `Querify.QnA.Common.Persistence.HangfireQnaDb` for durable Hangfire operational job state.
+
+The Hangfire storage schema is provider-owned by `Hangfire.PostgreSql`; the `HangfireQnaDb` project owns connection, design-time context, registration, and migrations boundary only.
+
 ## Processing model
 
 Each processor follows the same optimistic-locking pattern:

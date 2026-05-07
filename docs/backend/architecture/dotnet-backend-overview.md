@@ -17,7 +17,7 @@ This guide explains how the backend is organized under `dotnet/`, which APIs exi
 | Worker | Responsibility | Data boundary | Local port |
 |---|---|---|---:|
 | `Querify.Tenant.Worker.Api` | control-plane background processing for billing webhooks and email outbox | `TenantDbContext` only | n/a |
-| `Querify.QnA.Worker.Api` | QnA-owned background processing for source upload verification | `TenantDbContext` + tenant-scoped `QnADbContext` | `5030` |
+| `Querify.QnA.Worker.Api` | QnA-owned background processing for source upload verification | `TenantDbContext` + tenant-scoped `QnADbContext` + `HangfireQnaDbContext` | `5030` |
 
 ## Project taxonomy inside `dotnet/`
 
@@ -76,6 +76,7 @@ Current module persistence implementation:
 - QnA:
   - `Querify.QnA.Common.Domain`
   - `Querify.QnA.Common.Persistence.QnADb`
+  - `Querify.QnA.Common.Persistence.HangfireQnaDb`
 - Direct:
   - `Querify.Direct.Common.Persistence.DirectDb`
 - Broadcast:
@@ -93,6 +94,7 @@ Current module persistence implementation:
 - `Querify.Common.EntityFramework.Tenant`: tenant database context, tenant resolution helpers, and shared tenant infrastructure for the control-plane database
 - `Querify.QnA.Common.Domain`: QnA domain entities and reusable entity-related business rules shared by QnA persistence, business features, seed data, and tests
 - `Querify.QnA.Common.Persistence.QnADb`: QnA module database context and persistence
+- `Querify.QnA.Common.Persistence.HangfireQnaDb`: QnA worker Hangfire storage registration, design-time context, and migrations boundary
 - `Querify.Direct.Common.Persistence.DirectDb`: Direct module tenant persistence for conversations and conversation messages
 - `Querify.Broadcast.Common.Persistence.BroadcastDb`: Broadcast module tenant persistence for public/community threads and captured items
 - `Querify.Common.Infrastructure.Core`: shared core abstractions and backend helper services
@@ -187,6 +189,12 @@ The QnA module database stores tenant module data for the QnA module:
 - space, question, and answer tag/source links
 - activity and public signaling metadata derived from activity
 - lifecycle state for questions, answer activation or archival, and activity-backed public signals
+
+### QnA Hangfire database
+
+`HangfireQnaDbContext` owns the QnA worker's durable Hangfire storage boundary. It is not tenant-scoped and it does not contain QnA domain entities. Runtime registration happens through `AddHangfireQnaDb(...)`, which resolves `ConnectionStrings:HangfireQnaDb`, registers the design-time EF context, and delegates provider setup to `Querify.Common.Infrastructure.Hangfire`.
+
+Hangfire's internal tables belong to `Hangfire.PostgreSql`. Keep the provider version pinned through `Querify.Common.Infrastructure.Hangfire`; do not re-create those tables as Querify entities.
 
 Each tenant can point to its own module database connection, which is why module migration and seed tooling must resolve tenant metadata first.
 
