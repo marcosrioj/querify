@@ -15,9 +15,9 @@ services:
       - VITE_AUTH0_PASSWORD_RESET_URL=
       - VITE_AUTH0_LOGOUT_URI=https://dev.portal.querify.net/logout
     networks:
-      - bf-network
+      - qf-network
 
 networks:
-  bf-network:
+  qf-network:
     external: true
-    name: bf-network
+    name: qf-network

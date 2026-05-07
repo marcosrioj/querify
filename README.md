@@ -140,7 +140,7 @@ Use this after the tenant metadata already exists, or when you need to apply QnA
 
 ## Troubleshooting
 
-- `bf-network declared as external, but could not be found`: start the base services first.
+- `qf-network declared as external, but could not be found`: start the base services first.
 - `set REDIS_PASSWORD`: use `./devops/local/docker/base.sh` or export `REDIS_PASSWORD=RedisTempPassword` before manual compose runs.
 - HTTPS trust issues: run `dotnet dev-certs https --trust`.
 - Linux `host.docker.internal` resolution issues: see [`docs/backend/tools/local-development.md`](docs/backend/tools/local-development.md).

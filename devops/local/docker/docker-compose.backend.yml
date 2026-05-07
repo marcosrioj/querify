@@ -12,7 +12,7 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:
-      - bf-network
+      - qf-network
   querify.tenant.backoffice.api:
     image: querify.tenant.backoffice.api
     build:
@@ -26,7 +26,7 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:
-      - bf-network
+      - qf-network
   querify.tenant.portal.api:
     image: querify.tenant.portal.api
     build:
@@ -40,7 +40,7 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:
-      - bf-network
+      - qf-network
   querify.tenant.public.api:
     image: querify.tenant.public.api
     build:
@@ -54,7 +54,7 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:
-      - bf-network
+      - qf-network
   querify.qna.public.api:
     image: querify.qna.public.api
     build:
@@ -68,7 +68,7 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:
-      - bf-network
+      - qf-network
   querify.tenant.worker.api:
     image: querify.tenant.worker.api
     build:
@@ -79,9 +79,9 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:
-      - bf-network
+      - qf-network
 
 networks:
-  bf-network:
+  qf-network:
     external: true
-    name: bf-network
+    name: qf-network

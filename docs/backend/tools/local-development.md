@@ -143,7 +143,7 @@ docker compose -p qf_services \
 
 Notes:
 
-- the app/API stack expects the external Docker network `bf-network`, which is created by the base-services stack
+- the app/API stack expects the external Docker network `qf-network`, which is created by the base-services stack
 - the application images use the repository root as the Docker build context
 - the default appsettings values use `host.docker.internal`, which keeps host and container networking aligned
 - `devops/local/docker/docker-compose.backend.yml` boots the APIs plus `Querify.Tenant.Worker.Api`
@@ -211,7 +211,7 @@ For the Portal SPA callbacks and logout URLs, see [`../../frontend/tools/portal-
 
 ## Common problems
 
-### `network bf-network declared as external, but could not be found`
+### `network qf-network declared as external, but could not be found`
 
 Start the base-services stack first.
 

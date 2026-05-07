@@ -23,9 +23,9 @@ docker compose -p qf_baseservices -f $ComposeFile down --remove-orphans
 
 Write-Banner "Starting base services..."
 
-$networkExists = docker network inspect bf-network 2>$null
+$networkExists = docker network inspect qf-network 2>$null
 if (-not $networkExists) {
-  docker network create bf-network
+  docker network create qf-network
 }
 
 docker compose -p qf_baseservices -f $ComposeFile up -d --force-recreate --no-build --remove-orphans --wait

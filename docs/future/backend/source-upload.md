@@ -7,8 +7,10 @@ This document is the complete design reference for adding **file upload** capabi
 id, repo path); the platform has no way for a tenant to upload a PDF, video, or document and link
 it as a Source.
 
-This document describes the target architecture, the design decisions behind it, the phased
-implementation roadmap, and a self-contained agent prompt for each phase.
+This document describes the target architecture, the design decisions behind it, the implementation
+roadmap, and a self-contained agent prompt for each implementation step. It incorporates the
+deep-research review supplied for this update and defines the current implementation as
+**single presigned PUT only**.
 
 **Status:** designed, not yet built. See [`../README.md`](../README.md).
 
@@ -20,11 +22,13 @@ The `Source` entity already supports the shape needed for a hosted file:
 
 | Field | Today | Used for upload as |
 |---|---|---|
-| `Locator` (required, max 1000) | URL, ticket id, repo path | storage key (`{tenantId}/sources/{id}/{filename}`) |
-| `MediaType` (optional, max 100) | declared content type | resolved content type from the storage HEAD |
+| `Locator` (required, max 1000) | URL, ticket id, repo path | current storage key (`staging/`, then `verified/` or `quarantine/`) |
+| `StorageKey` (new) | not present | nullable explicit storage key for uploaded sources |
+| `MediaType` (optional, max 100) | declared content type | declared content type during `Pending`, resolved content type after `HEAD` |
 | `Checksum` (required, max 128) | `sha256:<hex of locator>` placeholder | real `sha256:<hex of file bytes>` after worker verification |
 | `MetadataJson` (optional, max 8000) | free-form JSON | reserved for extracted metadata |
 | `LastVerifiedAtUtc` (optional) | manual verification timestamp | set by the worker after verification |
+| `SizeBytes` (new) | not present | expected size during `Pending`, confirmed size after `upload-complete` |
 | `Visibility` | audience exposure | unchanged; still gated by `SourceRules.EnsureVisibilityAllowed` |
 | `Kind` | artifact type (`Pdf`, `Video`, ...) | **unchanged** — the kind describes the artifact, not the origin |
 
@@ -37,6 +41,8 @@ What is missing:
    the caller already has a valid `Locator`.
 4. No worker capable of reading a freshly uploaded blob, recomputing the checksum, and marking the
    `Source` as verified.
+5. No explicit production gates for uploaded bytes: staging versus verified keys, malware
+   scanning/quarantine, orphan cleanup, or transactional event publication.
 
 ---
 
@@ -44,29 +50,34 @@ What is missing:
 
 ### One-line summary
 
-Tenant requests a presigned PUT, uploads the file directly to S3-compatible object storage,
-finalizes through a portal endpoint that records `SizeBytes` and `MediaType`, and a QnA worker
-asynchronously verifies the bytes and flips `UploadStatus` to `Verified`.
+Tenant creates an upload intent, receives a short-lived presigned PUT from the backend, uploads the
+file directly to S3-compatible object storage, finalizes through a portal endpoint that records the
+object metadata, and a QnA worker asynchronously validates the bytes, copies the trusted object to
+a verified key, and flips `UploadStatus` to `Verified`.
 
 ### Topology
 
 ```
 Portal (React)              QnA Portal API                Object Storage           QnA Worker
-                            (Querify.QnA.Portal.Api)      (MinIO / S3 / R2)
+                            (Querify.QnA.Portal.Api)      (MinIO local / S3 API)
 ─────────────────           ─────────────────────────     ────────────────         ───────────
 1. POST /upload-intent ───► validate + create
                             Source(Pending)               
-                            presign PUT URL ─────────────► (URL signed)
-                            ◄───────── { url, key, ttl }
-2. PUT (file bytes) ─────────────────────────────────────► stored
+                            presign single PUT URL ──────► staging key signed
+                            ◄───────── { sourceId, url, key, ttl, headers }
+2. PUT (file bytes) ─────────────────────────────────────► stored under staging/
 3. POST /upload-complete ─► HEAD object
+                            validate size/type
                             persist SizeBytes/MediaType
                             UploadStatus = Uploaded
-                            publish SourceUploadedEvent ──► RabbitMQ ─────────────► consume
+                            outbox SourceUploadedEvent ───► RabbitMQ ─────────────► consume event
+                                                                                    send command
                                                                                     stream SHA-256
-                                                                                    verify HEAD
-                                                                                    UploadStatus =
-                                                                                    Verified
+                                                                                    validate MIME/magic
+                                                                                    malware scan
+                                                                                    copy to verified/
+                                                                                    delete staging/
+                                                                                    UploadStatus = Verified
                                                                                     LastVerifiedAtUtc
 4. GET /download-url ─────► presign GET URL
    ◄──── { url }
@@ -82,6 +93,31 @@ Portal (React)              QnA Portal API                Object Storage        
 - The `Locator` field stays an opaque string — URL sources and storage-key sources coexist in the
   same column, no schema split.
 
+### Implementation scope
+
+- **Single presigned PUT only.** No multipart or resumable endpoints. The default max file size is
+  50 MB, configurable per environment and tenant tier.
+- **Local support is mandatory.** `devops/local/docker/docker-compose.baseservices.yml` gets a
+  MinIO service plus an idempotent bucket initializer. Local development, integration tests, S3,
+  R2, and other S3-compatible providers all use the same `IObjectStorage` abstraction.
+- **Shared-by-default for cost.** Production starts with a private shared bucket and tenant-prefixed
+  keys. Bucket-per-tenant, account-per-tenant, or tenant-managed encryption keys are premium or
+  regulated-tier options only.
+- **Uploaded bytes are not trusted.** The presigned URL writes only to a staging key. Downloads are
+  refused until the worker has validated checksum, size, content type, magic bytes, and malware
+  scan result, then copied the object to a verified key.
+- **No API stream-through fallback.** Streaming uploads through the Portal API is intentionally out
+  of scope for the default path because it increases compute, bandwidth, timeout, and scaling cost.
+
+### Presigned PUT limitations
+
+S3-compatible presigned PUTs are simple and cheap, but they cannot be treated as a complete policy
+engine. The backend validates the declared `SizeBytes` and `ContentType` when the intent is created,
+signs a short TTL and required headers for the server-generated staging key, then validates the
+actual object with `HEAD` and streaming reads after upload. If the object is oversized, has the
+wrong type, or fails verification, the system marks the `Source` as `Failed` or `Quarantined` and
+never signs a download URL for it.
+
 ### Why a dedicated QnA worker, not the existing tenant worker
 
 `Querify.Tenant.Worker.Api` is the **control plane** worker — billing webhooks, email outbox,
@@ -90,7 +126,7 @@ and [`../../backend/architecture/solution-architecture.md`](../../backend/archit
 section 7, it must not take ownership of product module workflows.
 
 QnA-owned async work belongs to a new host: `Querify.QnA.Worker.Api`, mirroring the project layout
-of the tenant worker. If that creates too much overhead in early phases, a transitional option is
+of the tenant worker. If that creates too much overhead in early implementation steps, a transitional option is
 to run the consumer as an `IHostedService` inside `Querify.QnA.Portal.Api` and split it out later;
 the integration event contract stays the same.
 
@@ -98,16 +134,24 @@ the integration event contract stays the same.
 
 ## Multi-tenant key strategy
 
-Storage key format:
+Storage key formats:
 
 ```
-{tenantId}/sources/{sourceId}/{sanitized-filename}
+{tenantId}/sources/{sourceId}/staging/{sanitized-filename}
+{tenantId}/sources/{sourceId}/verified/{sanitized-filename}
+{tenantId}/sources/{sourceId}/quarantine/{sanitized-filename}
 ```
 
 - `tenantId` prefix isolates blobs per tenant. A bucket policy can enforce `s3:prefix` per-tenant
   if the credentials are ever scoped down.
-- `sourceId` is generated server-side before the presign call, so the storage key is stable across
-  the two-phase flow even if the client retries.
+- `sourceId` is generated server-side when the intent is created, so all keys are deterministic and
+  retry-safe without exposing tenant-controlled paths.
+- The presigned PUT always targets `staging/`. After successful verification, the worker copies the
+  object to `verified/`, deletes the staging object, and updates `Source.StorageKey` + `Locator` to
+  the verified key.
+- If malware is detected, the worker copies or moves the object to `quarantine/`, updates
+  `Source.StorageKey` to that key, and sets `UploadStatus = Quarantined`. Quarantined objects are
+  never downloadable through `download-url`.
 - `sanitized-filename` only allows `[a-zA-Z0-9._-]`; everything else is replaced with `-`.
 - `(TenantId, StorageKey)` carries a unique partial index in PostgreSQL where `StorageKey IS NOT
   NULL`, preventing duplicate storage references across the tenant.
@@ -119,9 +163,9 @@ because `StorageKey` does not reference another tenant-owned record (per the
 
 ---
 
-## Two-phase write flow
+## API flow with documented playbook exception
 
-### Phase A — `POST /api/qna/source/upload-intent`
+### API step A — `POST /api/qna/source/upload-intent`
 
 Body: `SourceUploadIntentRequestDto`
 
@@ -129,38 +173,60 @@ Body: `SourceUploadIntentRequestDto`
 { FileName, ContentType, SizeBytes, Kind, Language, Visibility, Label?, ContextNote? }
 ```
 
-Handler responsibilities (this is a **query** handler in CQRS terms, not a command — it returns a
-DTO synchronously and creates a placeholder row as a side effect; rationale below):
+Returns `SourceUploadIntentResponseDto { SourceId, UploadUrl, RequiredHeaders, StorageKey,
+ExpiresAtUtc }` (`200 OK`).
+
+Handler is a command with a documented playbook exception
+(`IRequestHandler<TCommand, SourceUploadIntentResponseDto>`):
 
 1. Resolve `tenantId` via `ISessionService.GetTenantId(ModuleEnum.QnA)`.
-2. Validate `ContentType` against an allowlist (`application/pdf`, `image/png`, `image/jpeg`,
-   `video/mp4`, `text/plain`, `text/markdown` initially).
-3. Validate `SizeBytes <= MaxUploadBytes` (50 MB default; configurable).
-4. Generate `sourceId = Guid.NewGuid()`.
-5. Build `storageKey = SourceStorageKey.Build(tenantId, sourceId, fileName)`.
-6. Create `Source` with:
+2. Validate extension + declared `ContentType` against an allowlist (`application/pdf`,
+   `image/png`, `image/jpeg`, `video/mp4`, `text/plain`, `text/markdown` initially).
+3. Validate `0 < SizeBytes <= SourceUploadOptions.MaxUploadBytes` (50 MB default;
+   configurable).
+4. Reject `Visibility.Public` while creating an uploaded source. The source can be made public only
+   after it is `Verified`.
+5. Generate `sourceId = Guid.NewGuid()`.
+6. Build `stagingKey = SourceStorageKey.BuildStagingKey(tenantId, sourceId, fileName)`.
+7. Create `Source` with:
    - `UploadStatus = Pending`
-   - `Locator = storageKey`
-   - `Checksum = SourceChecksum.FromLocator(storageKey)` (placeholder; the worker overwrites this)
-   - `StorageKey = storageKey`
-7. `presign = await objectStorage.PresignPutAsync(storageKey, contentType, maxBytes, ct)`
-8. Return `SourceUploadIntentResponseDto { SourceId, UploadUrl, RequiredHeaders, StorageKey,
-   ExpiresAtUtc }`.
+   - `Locator = stagingKey`
+   - `Checksum = SourceChecksum.FromLocator(stagingKey)` (placeholder; the worker overwrites this)
+   - `StorageKey = stagingKey`
+   - `MediaType = request.ContentType` (declared type; worker later confirms content)
+   - `SizeBytes = request.SizeBytes` (expected size while `Pending`)
+8. Persist the pending source.
+9. `presign = await objectStorage.PresignPutAsync(stagingKey, contentType, request.SizeBytes, ct)`.
+10. Return `SourceUploadIntentResponseDto { SourceId, UploadUrl, RequiredHeaders, StorageKey,
+    ExpiresAtUtc }`.
 
-CQRS rationale: this endpoint returns a DTO and therefore lives under `Queries/`, even though it
-mutates state. This is a deliberate exception driven by the synchronous nature of presigning. The
-alternative — a command returning `Guid` plus a separate query for the URL — duplicates round
-trips and complicates retries. We keep one endpoint and document the exception in the
-implementation prompt.
+Playbook exception:
+
+- `behavior-change-playbook.md` says command handlers return simple values and complex DTOs belong
+  to queries.
+- `upload-intent` is the only exception in this implementation because creating the intent and
+  issuing the short-lived upload credential are one atomic user workflow.
+- Splitting this into a separate command and query adds a round trip without improving persistence
+  safety, because the presigned URL is not persisted and does not mutate domain state.
+- The backend still owns presigned URL generation; the client never signs storage requests and never
+  receives storage credentials.
 
 Failure modes:
 - Invalid content type → `422 Unprocessable Entity` via `ApiErrorException`.
 - Oversized request → `422`.
+- `Visibility.Public` before verification → `422`.
 - Storage unreachable → `503 Service Unavailable` (`ApiErrorException`).
 
-### Phase B — `POST /api/qna/source/{id:guid}/upload-complete`
+Required upload headers:
+- `Content-Type` must match the declared content type used in the signature.
+- Provider-specific encryption headers are included when configured (`x-amz-server-side-encryption`
+  for S3-compatible providers, for example).
+- `Content-Length` is still checked by the API after upload; do not assume every S3-compatible
+  presigned PUT can enforce it at signature time.
 
-Body: `SourceUploadCompleteRequestDto { SourceId, ClientChecksum? }`
+### API step B — `POST /api/qna/source/{id:guid}/upload-complete`
+
+Body: `SourceUploadCompleteRequestDto { ClientChecksum? }`
 
 Returns `Guid` (`200 OK`).
 
@@ -170,13 +236,18 @@ Handler is a real command (`IRequestHandler<TCommand, Guid>`):
 2. If `UploadStatus != Pending`: `409 Conflict` (already finalized).
 3. `head = await objectStorage.HeadAsync(entity.StorageKey, ct)`.
 4. If `head == null`: `422` (the client never PUT the bytes).
-5. Persist `SizeBytes = head.SizeBytes`, `MediaType = head.ContentType`,
+5. If `head.SizeBytes != entity.SizeBytes` or
+   `head.SizeBytes > SourceUploadOptions.MaxUploadBytes`, delete the staging object, set
+   `UploadStatus = Failed`, persist, and return `422`.
+6. If `head.ContentType` is missing, not allowlisted for the declared source kind, or does not
+   match the declared `MediaType`, delete the staging object, set `UploadStatus = Failed`,
+   persist, and return `422`.
+7. Persist `SizeBytes = head.SizeBytes`, `MediaType = head.ContentType`,
    `UploadStatus = Uploaded`, `UpdatedBy = userId`.
-6. `SaveChangesAsync`.
-7. Publish `SourceUploadedIntegrationEvent` via `IPublishEndpoint`. **Outbox transactional
-   pattern is deferred** — see "Known follow-ups" below.
+8. Save the `SourceUploadedIntegrationEvent` through the transactional outbox in the same database
+   transaction as the `Source` update. The dispatcher publishes it to RabbitMQ after commit.
 
-### Phase C — `GET /api/qna/source/{id:guid}/download-url`
+### API step C — `GET /api/qna/source/{id:guid}/download-url`
 
 Returns `SourceDownloadUrlDto { Url, ExpiresAtUtc }` (`200 OK`).
 
@@ -185,10 +256,15 @@ Handler is a query:
 1. Project `{ StorageKey, Visibility, UploadStatus, TenantId }` directly with `AsNoTracking() +
    Select(...)`.
 2. `404` if missing or wrong tenant.
-3. `422` if `StorageKey == null` (URL-only sources should expose `Locator` directly to the client,
+3. Apply the existing `Source` visibility/access rules for the current Portal user before signing.
+4. `422` if `StorageKey == null` (URL-only sources should expose `Locator` directly to the client,
    not via this endpoint).
-4. `presign = await objectStorage.PresignGetAsync(storageKey, downloadTtl, ct)` (5 min default).
-5. Return `{ Url, ExpiresAtUtc }`.
+5. `422` if `UploadStatus != Verified`; uploaded, failed, expired, or quarantined objects are not
+   downloadable.
+6. `422` if the key is not under `/verified/`; this prevents a stale staging or quarantine key from
+   ever being signed.
+7. `presign = await objectStorage.PresignGetAsync(storageKey, downloadTtl, ct)` (5 min default).
+8. Return `{ Url, ExpiresAtUtc }`.
 
 ---
 
@@ -201,18 +277,50 @@ Handler is a query:
   DateTime UploadedAtUtc }
 ```
 
-Consumer (`SourceUploadedConsumer` in `Querify.QnA.Worker.Business.Source`):
+Worker command/query structure:
 
-1. Resolve the tenant-scoped `QnADbContext` connection from the event's `TenantId` (uses
+- `SourceUploadedConsumer` is a transport adapter only. It receives
+  `SourceUploadedIntegrationEvent` and sends `VerifyUploadedSourceCommand` through MediatR.
+- `VerifyUploadedSourceCommandHandler` owns the verification business flow and all state mutation.
+- `PendingSourceUploadExpiryHostedService` is a scheduler adapter only. It sends
+  `ExpirePendingSourceUploadsCommand` through MediatR.
+- Worker business code follows the same command/query layout as Portal business code: commands
+  mutate state and return simple values; queries are used only for read DTOs if a worker read use
+  case is introduced later.
+
+Command (`VerifyUploadedSourceCommandHandler` in
+`Querify.QnA.Worker.Business.Source.Commands.VerifyUploadedSource`):
+
+1. Resolve the tenant-scoped `QnADbContext` connection from the command's `TenantId` (uses
    `Querify.Common.EntityFramework.Tenant` resolution).
-2. Load the `Source`. If `UploadStatus != Uploaded`: ack and exit (idempotent).
-3. Stream the blob via `IObjectStorage.OpenReadAsync(storageKey)`. Compute SHA-256 with
+2. Load the `Source`. If `UploadStatus != Uploaded`: return without changes (idempotent).
+3. Treat `command.StorageKey` as `stagingKey`; if it is not under `/staging/`, mark the source
+   `Failed` and return.
+4. Stream the blob via `IObjectStorage.OpenReadAsync(stagingKey)`. Compute SHA-256 with
    `IncrementalHash.CreateHash(HashAlgorithmName.SHA256)` so the file is never fully materialized.
-4. `head = HeadAsync(storageKey)` — re-read size/content-type for defense in depth.
-5. If `ClientChecksum` was provided and does not match the streamed hash:
+5. Detect the actual file family from magic bytes and compare it with the allowlisted source kind
+   and `MediaType`; never trust the browser-declared content type alone.
+6. `head = HeadAsync(stagingKey)` — re-read size/content-type for defense in depth.
+7. Run `IUploadThreatScanner.ScanAsync(stagingKey, hash metadata, ct)` using a fresh object read or
+   provider-native scan result. Local development may use a no-op scanner, but production must use
+   ClamAV, provider-native malware scanning, or an equivalent managed scanner before anything can
+   become `Verified`.
+8. If `ClientChecksum` was provided and does not match the streamed hash:
+   - delete the staging object because it is not useful for recovery.
    - `UploadStatus = Failed`, persist, log a warning, **do not rethrow** (no retry — permanent
      failure).
-6. Otherwise:
+9. If MIME/magic validation fails:
+   - `UploadStatus = Failed`, persist, delete the staging object, return.
+10. If malware is detected or the scanner returns an unsafe verdict:
+   - `quarantineKey = SourceStorageKey.ToQuarantineKey(stagingKey)`
+   - copy/move the object to `quarantineKey`
+   - `StorageKey = quarantineKey`, `Locator = quarantineKey`, `UploadStatus = Quarantined`
+   - persist and return; do not sign downloads for quarantined objects.
+11. Otherwise:
+   - `verifiedKey = SourceStorageKey.ToVerifiedKey(stagingKey)`
+   - copy the object to `verifiedKey`
+   - delete the staging object
+   - update `StorageKey = verifiedKey`, `Locator = verifiedKey`
    - `Checksum = "sha256:<hex>"`
    - `SizeBytes = head.SizeBytes`
    - `LastVerifiedAtUtc = DateTime.UtcNow`
@@ -223,7 +331,42 @@ Consumer (`SourceUploadedConsumer` in `Querify.QnA.Worker.Business.Source`):
 Retry semantics:
 - Transient storage errors (5xx, timeouts) propagate, MassTransit retries with the standard
   policy.
-- Permanent errors (checksum mismatch, MIME mismatch) flip the row to `Failed` and ack.
+- Permanent errors (checksum mismatch, MIME mismatch, malware detection) flip the row to `Failed`
+  or `Quarantined`; the command returns without throwing so the consumer can acknowledge the
+  message.
+
+---
+
+## Operational process and cost controls
+
+This feature should ship as a bounded, economical upload pipeline:
+
+1. The client asks for an intent; the API authorizes the tenant, validates file metadata, creates a
+   `Pending` source, and returns `sourceId` plus a short-lived presigned PUT.
+2. The browser uploads directly to object storage. The API never proxies file bytes.
+3. The client calls `upload-complete`; the API checks the object exists and that actual size/type
+   still match the intent.
+4. A transactional outbox records the verification event with the same database commit that moves
+   the source to `Uploaded`.
+5. The QnA worker consumer translates the event into `VerifyUploadedSourceCommand`.
+6. The QnA worker command handler streams the object, validates content, scans for malware, and
+   moves trusted bytes from `staging/` to `verified/`.
+7. Downloads are always private presigned GETs, and only for `Verified` objects under `verified/`.
+
+Security and cost rules:
+
+- Bucket/container is private. No public ACLs. CDN can be added later with private origin access.
+- Upload URL TTL defaults to 10 minutes; download URL TTL defaults to 5 minutes.
+- Pending intents older than 24 hours are expired by a sweeper: delete staging object if present and
+  set `UploadStatus = Expired`.
+- Store metadata in PostgreSQL and bytes in object storage. Do not store uploaded binaries in the
+  relational database.
+- Use shared bucket + tenant prefix by default. Dedicated buckets, tenant-managed keys, Object Lock,
+  or longer retention are paid/regulatory tier features.
+- Track per-tenant uploaded bytes, rejected bytes, verified bytes, egress, scanner failures, and
+  pending-intent abandonment. These metrics are needed for quotas and cost attribution.
+- Keep quarantine retention short and explicit. Unsafe objects have security value for triage but
+  also increase privacy and storage exposure.
 
 ---
 
@@ -241,7 +384,7 @@ CREATE UNIQUE INDEX IX_Sources_TenantId_StorageKey
   WHERE StorageKey IS NOT NULL;
 ```
 
-`SourceUploadStatus` enum (Querify numeric allocation `1, 6, 11, 16, 21`):
+`SourceUploadStatus` enum (Querify numeric allocation increments by five):
 
 | Value | Meaning |
 |---|---|
@@ -249,32 +392,116 @@ CREATE UNIQUE INDEX IX_Sources_TenantId_StorageKey
 | `Pending = 6` | Intent issued; the client has not finalized PUT yet. |
 | `Uploaded = 11` | Client confirmed via `upload-complete`; awaiting async verification. |
 | `Verified = 16` | Worker validated checksum, size, and content type. |
-| `Failed = 21` | Verification rejected the upload. |
+| `Quarantined = 21` | Malware scanner or content policy marked the object unsafe. |
+| `Failed = 26` | Verification rejected the upload and no quarantined artifact is retained. |
+| `Expired = 31` | Intent expired before completion; staging object was deleted or absent. |
 
 The Portal mirror (`apps/portal/src/shared/constants/backend-enums.ts`) must be updated in the
 same change per [`../../behavior-change-playbook.md`](../../behavior-change-playbook.md) Step 3.4.
 
 ---
 
-## Phased roadmap
+## Implementation steps
 
-| Phase | Scope | Touches |
-|---|---|---|
-| 0 | Object storage infrastructure | `devops/local/docker/`, new `Querify.Common.Infrastructure.Storage` |
-| 1 | Model contract | `Querify.QnA.Common.Domain`, `Querify.Models.QnA`, `Querify.QnA.Common.Persistence.QnADb` |
-| 2 | Backend behavior (Portal) | `Querify.QnA.Portal.Business.Source`, `Querify.QnA.Portal.Api` |
-| 3 | Async verification worker | new `Querify.QnA.Worker.Api`, new `Querify.QnA.Worker.Business.Source`, integration event |
-| 4 | Seed and integration tests | `Querify.Tools.Seed`, `Querify.QnA.Portal.Test.IntegrationTests`, new `Querify.QnA.Worker.Test.IntegrationTests` |
-| 5 | Portal frontend | `apps/portal/src/domains/sources/` |
-| 6 | Localization | `apps/portal/src/shared/lib/i18n/locales/*.json` (20 locales) |
+This implementation follows [`../../behavior-change-playbook.md`](../../behavior-change-playbook.md)
+instead of treating upload as a one-off API feature.
 
-Each phase below is a **self-contained agent prompt** suitable for execution by a smaller model.
-Each prompt names the documents the executor must read before coding, the exact files to
-create/edit, the Querify rules in scope, and the validation commands.
+| Step | Playbook alignment | Scope | Touches |
+|---|---|---|---|
+| 0 | Step 0 | Confirm staged delivery and capture handoff expectations. | This document |
+| 1 | Steps 1-2 | Inventory existing `Source` behavior and normalize the upload concept. | `dotnet`, `apps`, `docs` search only |
+| 2 | Supporting infrastructure | Add local S3-compatible storage and shared `IObjectStorage`. | `devops/local/docker/`, new `Querify.Common.Infrastructure.Storage` |
+| 3 | Steps 3-5 | Update model contract, enum, DTOs, EF configuration, and manual migration notes. | `Querify.QnA.Common.Domain`, `Querify.Models.QnA`, `Querify.QnA.Common.Persistence.QnADb` |
+| 4 | Step 6 | Add Portal API behavior, including the documented `upload-intent` command DTO exception. | `Querify.QnA.Portal.Business.Source`, `Querify.QnA.Portal.Api` |
+| 5 | Step 6 | Add worker consumers as event adapters and worker commands for verification, scan, quarantine, and pending-expiry processing. | new `Querify.QnA.Worker.Api`, new `Querify.QnA.Worker.Business.Source` |
+| 6 | Steps 7-8 | Add seed data and integration tests. | `Querify.Tools.Seed`, QnA Portal/Worker integration tests |
+| 7 | Step 9 | Add Portal UI, API client hooks, enum presentation, and `en-US` copy keys. | `apps/portal/src/domains/sources/`, `en-US.json` |
+| 8 | Steps 10-12 | Add all locale values, run targeted validation, and write final migration/deployment handoff. | locale files, build/test outputs, release notes |
+
+Each implementation prompt below is self-contained. It names the documents the executor must read
+before coding, the exact files to create/edit, the Querify rules in scope, and the validation
+commands.
 
 ---
 
-## Phase 0 prompt — Storage infrastructure
+## Implementation step 0 prompt — Stage decision
+
+```text
+Querify monorepo. Required reading:
+- docs/behavior-change-playbook.md (Step 0)
+
+GOAL
+Confirm that Source upload is staged before implementation begins.
+
+DECISION
+This change must be staged because it touches model contract, persistence,
+Portal API behavior, object storage infrastructure, async processing, tests,
+Portal UI, and localization.
+
+STAGES
+1. Inventory and concept normalization.
+2. Storage infrastructure.
+3. Model contract.
+4. Backend API behavior.
+5. Async worker behavior.
+6. Seed and integration tests.
+7. Portal frontend.
+8. Localization, validation, and final handoff.
+
+HANDOFF
+Record the current stage, what builds, what is intentionally pending, and the
+manual migration note after each implementation step.
+```
+
+---
+
+## Implementation step 1 prompt — Inventory and concept normalization
+
+```text
+Querify monorepo. Required reading:
+- docs/behavior-change-playbook.md (Steps 0-2)
+- docs/backend/architecture/qna-domain-boundary.md
+- docs/backend/architecture/repository-rules.md
+
+GOAL
+Inventory existing Source behavior and confirm that upload is represented as
+Source-owned file ingestion, not a new artifact kind, not a separate module
+workflow, and not a Trust validation shortcut.
+
+DELIVERABLES
+
+1) Run inventory searches:
+   rg -n "Source|SourceKind|SourceRole|Visibility|Locator|Checksum|MediaType|LastVerifiedAtUtc" dotnet apps docs
+   rg --files dotnet/Querify.Models.QnA dotnet/Querify.QnA.Common.Domain dotnet/Querify.QnA.Common.Persistence.QnADb apps/portal/src/domains
+
+2) Capture the current owning surfaces:
+   - Source entity and EF configuration
+   - Source DTOs
+   - Source command/query handlers
+   - Source controller/service
+   - Source seed examples
+   - Source tests
+   - Portal source screens, hooks, API client, and locale keys
+
+3) Confirm canonical concepts:
+   - `SourceKind` remains artifact type.
+   - `Visibility` remains audience exposure.
+   - Upload origin is represented by nullable `StorageKey`.
+   - Upload workflow is represented by `SourceUploadStatus`.
+   - `Locator` remains the current opaque locator and mirrors `StorageKey` for uploaded sources.
+
+RULES
+- Do not edit code in this step.
+- Do not create placeholder entities.
+- Do not add Trust-owned validation state to QnA.
+
+HANDOFF
+Write the inventory summary before starting the storage/model work.
+```
+
+---
+
+## Implementation step 2 prompt — Storage infrastructure
 
 ```text
 You are working in the Querify monorepo (.NET 10 + multi-tenant + microservices).
@@ -287,25 +514,32 @@ Required reading before coding:
 
 GOAL
 Add shared S3-compatible object storage infrastructure without touching any
-business module. Nothing in this phase consumes the new library.
+business module. Nothing in this implementation step consumes the new library.
+The implementation uses single presigned PUT only; do not add multipart or
+resumable abstractions.
 
 DELIVERABLES
 
 1) Local compose — devops/local/docker/docker-compose.baseservices.yml
    Add a `minio` service following the pattern of postgres/rabbitmq:
-   - image: minio/minio:latest
+   - image: minio/minio:<pinned-RELEASE-tag> (do not commit `latest`)
    - container_name: minio
-   - ports 9000:9000 (S3 API) and 9001:9001 (console)
+   - ports 5900:9000 (S3 API) and 5901:9001 (console)
    - environment MINIO_ROOT_USER=minio, MINIO_ROOT_PASSWORD=Pass123$$
    - named volume `minio` mounted at /data
    - command: server /data --console-address ":9001"
-   - networks: bf-network, extra_hosts host.docker.internal
+   - networks: qf-network, extra_hosts host.docker.internal
    - healthcheck via curl on /minio/health/live
    Add `minio:` to the `volumes:` section of the same compose file.
+   Container-internal ports stay 9000/9001; only the host-published ports are
+   5900/5901.
 
-   Also add a one-shot `minio-init` service that creates the bucket
-   `querify-sources` (idempotent; uses minio/mc, depends_on minio with
-   condition: service_healthy).
+   Also add a one-shot `minio-init` service that creates the private bucket
+   `querify-sources` (idempotent; uses a pinned minio/mc image, depends_on minio with
+   condition: service_healthy). Configure bucket CORS for the local Portal
+   origins so browser PUT/HEAD/GET requests with `Content-Type` and S3
+   checksum/encryption headers work against MinIO. Do not make the bucket
+   anonymous/public.
 
 2) New shared project — dotnet/Querify.Common.Infrastructure.Storage/
    Create csproj net10.0, namespace Querify.Common.Infrastructure.Storage.
@@ -315,18 +549,21 @@ DELIVERABLES
 
    Folder structure (follow other Querify.Common.Infrastructure.* projects):
    - Abstractions/IObjectStorage.cs
-   - Options/ObjectStorageOptions.cs    (Endpoint, Region, AccessKey,
-     SecretKey, Bucket, ForcePathStyle, PresignTtlMinutes)
+   - Options/ObjectStorageOptions.cs    (Endpoint, PublicEndpoint?, Region,
+     AccessKey, SecretKey, Bucket, ForcePathStyle, UploadPresignTtlMinutes,
+     DownloadPresignTtlMinutes, ServerSideEncryptionMode?)
    - Services/S3ObjectStorage.cs
    - Extensions/ServiceCollectionExtensions.cs
                                         (AddObjectStorage(IConfiguration))
 
    IObjectStorage minimal signatures:
      Task<PresignedPutResult> PresignPutAsync(string key, string contentType,
-         long maxBytes, CancellationToken ct);
+         long expectedSizeBytes, CancellationToken ct);
      Task<Uri> PresignGetAsync(string key, TimeSpan ttl,
          CancellationToken ct);
      Task<ObjectMetadata?> HeadAsync(string key, CancellationToken ct);
+     Task CopyAsync(string sourceKey, string destinationKey,
+         CancellationToken ct);
      Task DeleteAsync(string key, CancellationToken ct);
      Task<Stream> OpenReadAsync(string key, CancellationToken ct);
 
@@ -341,43 +578,65 @@ DELIVERABLES
        .ValidateDataAnnotations().ValidateOnStart();
    - register IAmazonS3 as singleton with ForcePathStyle=true and
      ServiceURL=Endpoint
+   - presigned PUT/GET URLs must use PublicEndpoint when configured; this is
+     required when the API runs in Docker via `http://minio:9000` but the
+     browser must upload to `http://localhost:5900`
    - services.AddSingleton<IObjectStorage, S3ObjectStorage>();
 
-3) appsettings.Development.json (QnA Portal Api only for now):
+3) QnA Portal API configuration (`appsettings.json`, or
+   `appsettings.Development.json` if this step adds an environment-specific
+   file):
    "ObjectStorage": {
-     "Endpoint": "http://localhost:9000",
+     "Endpoint": "http://localhost:5900",
+     "PublicEndpoint": "http://localhost:5900",
      "Region": "us-east-1",
      "AccessKey": "minio",
      "SecretKey": "Pass123$$",
      "Bucket": "querify-sources",
      "ForcePathStyle": true,
-     "PresignTtlMinutes": 15
+     "UploadPresignTtlMinutes": 10,
+     "DownloadPresignTtlMinutes": 5,
+     "ServerSideEncryptionMode": null
    }
 
+   When the QnA Portal API runs inside docker-compose.backend.yml, override
+   `ObjectStorage:Endpoint` to `http://minio:9000` for backend/worker storage
+   operations, but keep `ObjectStorage:PublicEndpoint` as
+   `http://localhost:5900` so the frontend receives browser-reachable
+   presigned URLs.
+
 NON-NEGOTIABLE RULES
-- Do not touch Querify.QnA.*, Querify.Tenant.*, Querify.Direct.*, or
-  Querify.Broadcast.* — this phase is infrastructure only.
+- Do not touch Querify.QnA business/domain/persistence projects,
+  Querify.Tenant.*, Querify.Direct.*, or Querify.Broadcast.* — this step is
+  infrastructure only. QnA Portal host configuration may be updated only for
+  `ObjectStorage`.
 - No comments explaining what code does; XML doc only on public surfaces
   (IObjectStorage, ObjectStorageOptions).
 - Do not run EF migrations.
 - Do not introduce parallel helpers (BlobService, FileService); IObjectStorage
   is the single entry point.
+- Do not introduce multipart or resumable APIs in this implementation.
+- Presigned PUT size enforcement is defense-in-depth: validate declared size
+  before signing, then validate actual size with HEAD after upload. Do not
+  claim the presigned URL alone enforces max bytes for every S3-compatible
+  provider.
 
 VALIDATION
 - dotnet build dotnet/Querify.Common.Infrastructure.Storage -v minimal
 - docker compose -f devops/local/docker/docker-compose.baseservices.yml up -d
     minio minio-init
-- curl http://localhost:9000/minio/health/live → 200
-- console at http://localhost:9001 opens; bucket querify-sources exists
+- curl http://localhost:5900/minio/health/live → 200
+- console at http://localhost:5901 opens; bucket querify-sources exists and is
+  private
 
 HANDOFF
-List of projects that build, bucket creation confirmation, next phase: model
+List of projects that build, bucket creation confirmation, next step: model
 contract for Source upload.
 ```
 
 ---
 
-## Phase 1 prompt — Model contract
+## Implementation step 3 prompt — Model contract
 
 ```text
 Querify monorepo. Required reading:
@@ -388,8 +647,8 @@ Querify monorepo. Required reading:
 
 CONTEXT
 Source today supports only external sources via `Locator`. We are adding
-support for tenant-uploaded files. Storage layer already exists (Phase 0:
-Querify.Common.Infrastructure.Storage with IObjectStorage). This phase is
+support for tenant-uploaded files. Storage layer already exists (implementation step 2:
+Querify.Common.Infrastructure.Storage with IObjectStorage). This step is
 model + DTOs + EF only; no handlers, controllers, or frontend.
 
 DESIGN PRINCIPLES
@@ -406,20 +665,23 @@ DELIVERABLES
    Add persisted properties (with mandatory XML doc explaining usage,
    playbook Step 3):
    - string? StorageKey { get; set; }   (max 1000; nullable for URL sources)
-   - long? SizeBytes { get; set; }      (set after upload completes)
+   - long? SizeBytes { get; set; }      (expected size while Pending,
+                                         confirmed size after complete)
    - SourceUploadStatus UploadStatus { get; set; } = SourceUploadStatus.None;
 
    New constant: public const int MaxStorageKeyLength = 1000;
    Do not duplicate CreatedDate/UpdatedDate (already in BaseEntity).
 
 2) dotnet/Querify.Models.QnA/Enums/SourceUploadStatus.cs (NEW)
-   Enum with Querify numeric allocation (1,6,11,16,21 — playbook Step 3.4),
+   Enum with Querify numeric allocation (1,6,11,16,21,26,31 — playbook Step 3.4),
    each value with an XML summary explaining behavior (not naming):
    - None = 1            (URL/external source; no upload associated)
    - Pending = 6         (intent issued; PUT not yet confirmed)
    - Uploaded = 11       (client PUT succeeded; awaiting async processing)
    - Verified = 16       (worker validated checksum/size/MIME)
-   - Failed = 21         (upload rejected; AV scan, invalid MIME, etc.)
+   - Quarantined = 21    (malware/content policy retained unsafe artifact)
+   - Failed = 26         (upload rejected and staging object removed)
+   - Expired = 31        (intent expired before completion)
    Also add the enum to apps/portal/src/shared/constants/backend-enums.ts in
    the same change (playbook Step 3.4).
 
@@ -434,7 +696,7 @@ DELIVERABLES
        IReadOnlyDictionary<string,string> RequiredHeaders, string StorageKey,
        DateTime ExpiresAtUtc
    - SourceUploadCompleteRequestDto.cs:
-       Guid SourceId, string? ClientChecksum (sha256:hex optional)
+       string? ClientChecksum (sha256:hex optional)
    - SourceDownloadUrlDto.cs:
        string Url, DateTime ExpiresAtUtc
 
@@ -454,9 +716,16 @@ DELIVERABLES
 5) dotnet/Querify.QnA.Common.Domain/BusinessRules/Sources/SourceStorageKey.cs
    (NEW)
    Pure static class (no DbContext dependency, playbook Step 3.16):
-     public static string Build(Guid tenantId, Guid sourceId, string fileName)
+     public static string BuildStagingKey(Guid tenantId, Guid sourceId,
+         string fileName)
+     public static string BuildVerifiedKey(Guid tenantId, Guid sourceId,
+         string fileName)
+     public static string ToVerifiedKey(string stagingKey)
+     public static string ToQuarantineKey(string stagingKey)
    Sanitize fileName (strip paths, keep [a-zA-Z0-9._-]). Format:
-     "{tenantId}/sources/{sourceId}/{sanitized}"
+     "{tenantId}/sources/{sourceId}/staging/{sanitized}"
+     "{tenantId}/sources/{sourceId}/verified/{sanitized}"
+     "{tenantId}/sources/{sourceId}/quarantine/{sanitized}"
 
 6) dotnet/Querify.QnA.Common.Domain/BusinessRules/Sources/SourceRules.cs
    Add:
@@ -464,6 +733,16 @@ DELIVERABLES
          VisibilityScope visibility)
    Allow Visibility.Public only when UploadStatus == Verified or
    StorageKey == null (URL source with LastVerifiedAtUtc).
+   Add EnsureStorageKeyIsDownloadable(Source source) used by download-url:
+   StorageKey must be non-null, UploadStatus must be Verified, and the key
+   must contain `/verified/`.
+
+7) dotnet/Querify.QnA.Common.Domain/Options/SourceUploadOptions.cs
+   Shared options consumed by Portal handlers and the worker:
+   - MaxUploadBytes = 52428800
+   - PendingExpirationHours = 24
+   - AllowedContentTypes / extension mapping if the repository has an options
+     pattern for allowlists; otherwise keep the first allowlist in SourceRules.
 
 NON-NEGOTIABLE RULES
 - Do NOT run or generate EF migrations (playbook). Leave a manual migration
@@ -492,12 +771,12 @@ HANDOFF (playbook Step 12)
     CREATE UNIQUE INDEX IX_Sources_TenantId_StorageKey
       ON Sources(TenantId, StorageKey) WHERE StorageKey IS NOT NULL;
 - Nothing intentionally broken.
-- Next phase: handlers + controller (Phase 2).
+- Next step: handlers + controller (implementation step 4).
 ```
 
 ---
 
-## Phase 2 prompt — Backend behavior (Portal)
+## Implementation step 4 prompt — Backend behavior (Portal)
 
 ```text
 Querify monorepo. Required reading:
@@ -507,63 +786,83 @@ Querify monorepo. Required reading:
 - docs/behavior-change-playbook.md (Step 6)
 
 CONTEXT
-- Phase 0 delivered Querify.Common.Infrastructure.Storage with IObjectStorage.
-- Phase 1 added StorageKey/SizeBytes/UploadStatus on Source plus the new DTOs.
-- This phase adds the two-phase flow (intent → direct PUT → complete) to the
-  Portal API (Querify.QnA.Portal.Business.Source) only. Public API does NOT
-  receive uploads (multi-tenant principle: public is read-only).
-- Async event publication (RabbitMQ) is included in this phase; the consumer
-  arrives in Phase 3.
+- Implementation step 2 delivered Querify.Common.Infrastructure.Storage with IObjectStorage.
+- Implementation step 3 added StorageKey/SizeBytes/UploadStatus on Source plus the new DTOs.
+- This step adds the upload flow (intent with presigned URL → direct PUT →
+  complete) to the Portal API (Querify.QnA.Portal.Business.Source) only.
+  Public API does NOT receive uploads (multi-tenant principle: public is
+  read-only).
+- Async event persistence is included in this step through the transactional
+  outbox; the consumer arrives in implementation step 5.
+- The implementation uses single presigned PUT only. Do not add multipart or
+  resumable contracts.
+- `upload-intent` is the only documented exception to the playbook rule that
+  commands return simple values. The exception exists because the returned
+  presigned URL is a short-lived credential derived from the newly-created
+  intent, is not persisted, and is required for the immediate next user step.
 
 DELIVERABLES
 
 In dotnet/Querify.QnA.Portal.Business.Source/, mirror the existing command
 folder layout:
 
-1) Queries/RequestUploadIntent/
-   - SourcesRequestUploadIntentQuery.cs
-       : IRequest<SourceUploadIntentResponseDto>
-   - SourcesRequestUploadIntentQueryHandler.cs
+Shared options:
+- Bind `SourceUploadOptions` from implementation step 3 in the Portal API host.
 
-   Note on CQRS: this endpoint mutates state (creates a Pending Source) but
-   returns a synchronous DTO (the presigned URL). Documented exception to
-   the "commands return Guid" rule. Place in Queries/ to keep the contract.
+1) Commands/CreateUploadIntent/
+   - SourcesCreateUploadIntentCommand.cs
+       : IRequest<SourceUploadIntentResponseDto>
+       { SourceUploadIntentRequestDto Dto }
+   - SourcesCreateUploadIntentCommandHandler.cs
 
    Handler:
    - tenantId via ISessionService.GetTenantId(ModuleEnum.QnA)
-   - validate ContentType allowlist (application/pdf, image/png, image/jpeg,
-     video/mp4, text/plain, text/markdown). 422 on mismatch.
-   - validate SizeBytes <= MaxUploadBytes (50 MB constant in SourceRules).
+   - validate extension + ContentType allowlist (application/pdf, image/png,
+     image/jpeg, video/mp4, text/plain, text/markdown). 422 on mismatch.
+   - add SourceUploadOptions with MaxUploadBytes default 50 MB, bind from
+     configuration, and validate 0 < SizeBytes <= MaxUploadBytes.
+   - reject Visibility.Public; uploaded sources can be made public only after
+     UploadStatus == Verified.
    - sourceId = Guid.NewGuid()
-   - storageKey = SourceStorageKey.Build(tenantId, sourceId, fileName)
-   - new Source { Id = sourceId, UploadStatus = Pending, StorageKey,
-       Locator = storageKey,
-       Checksum = SourceChecksum.FromLocator(storageKey),
-       Kind, Language, Visibility, Label, ContextNote, MediaType =
-       request.ContentType, TenantId, CreatedBy, UpdatedBy }
+   - stagingKey = SourceStorageKey.BuildStagingKey(tenantId, sourceId,
+     fileName)
+   - new Source { Id = sourceId, UploadStatus = Pending,
+       StorageKey = stagingKey,
+       Locator = stagingKey,
+       Checksum = SourceChecksum.FromLocator(stagingKey),
+       Kind, Language, Visibility, Label, ContextNote,
+       MediaType = request.ContentType, SizeBytes = request.SizeBytes,
+       TenantId, CreatedBy, UpdatedBy }
    - dbContext.Sources.Add; SaveChangesAsync
-   - presign = await objectStorage.PresignPutAsync(storageKey, contentType,
-       maxBytes, ct)
-   - return SourceUploadIntentResponseDto.
+   - presign = await objectStorage.PresignPutAsync(stagingKey, contentType,
+       request.SizeBytes, ct)
+   - return SourceUploadIntentResponseDto { SourceId, UploadUrl,
+       RequiredHeaders, StorageKey, ExpiresAtUtc }
 
 2) Commands/CompleteUpload/
    - SourcesCompleteUploadCommand.cs   : IRequest<Guid>
        { Guid SourceId, string? ClientChecksum }
    - SourcesCompleteUploadCommandHandler.cs
 
-   Handler (orchestration phases per repository-rules §3):
+   Handler (orchestration blocks per repository-rules §3):
    - Load Source by (TenantId, Id); 404 if missing.
    - 409 Conflict if UploadStatus != Pending.
    - head = await objectStorage.HeadAsync(entity.StorageKey, ct).
    - 422 if head == null ("Upload not received").
+   - if head.SizeBytes != entity.SizeBytes or head.SizeBytes >
+     SourceUploadOptions.MaxUploadBytes: DeleteAsync(entity.StorageKey), set
+     Failed, save, 422.
+   - if head.ContentType is missing, not allowlisted for the Source.Kind, or
+     does not match entity.MediaType: DeleteAsync(entity.StorageKey), set
+     Failed, save, 422.
    - entity.SizeBytes = head.SizeBytes
    - entity.MediaType = head.ContentType
    - entity.UploadStatus = SourceUploadStatus.Uploaded
    - entity.UpdatedBy = userId
-   - SaveChangesAsync
-   - publishEndpoint.Publish(new SourceUploadedIntegrationEvent {
+   - SaveChangesAsync in a transaction that also writes an outbox message for
+     SourceUploadedIntegrationEvent {
        TenantId, SourceId, StorageKey, ClientChecksum,
-       UploadedAtUtc = DateTime.UtcNow })
+       UploadedAtUtc = DateTime.UtcNow }
    - return entity.Id
 
 3) Queries/GetDownloadUrl/
@@ -572,14 +871,18 @@ folder layout:
    - SourcesGetDownloadUrlQueryHandler.cs
    - AsNoTracking, Select { StorageKey, Visibility, UploadStatus, TenantId }.
    - Filter by TenantId; 404 if missing.
+   - Apply the existing Source visibility/access rules for the current Portal
+     user before signing.
    - 422 if StorageKey == null (URL source: client should use Locator
      directly).
+   - 422 if UploadStatus != Verified.
+   - 422 if StorageKey does not contain `/verified/`.
    - presign GET with configurable TTL (5 min default).
    - return { Url, ExpiresAtUtc }.
 
 4) Service/SourceService.cs + Abstractions/ISourceService.cs
    Add thin delegating methods:
-     Task<SourceUploadIntentResponseDto> RequestUploadIntent(
+     Task<SourceUploadIntentResponseDto> CreateUploadIntent(
          SourceUploadIntentRequestDto dto, CancellationToken token);
      Task<Guid> CompleteUpload(Guid sourceId,
          SourceUploadCompleteRequestDto dto, CancellationToken token);
@@ -609,15 +912,30 @@ folder layout:
    composition root (solution-architecture §1).
    Add project reference: Querify.Common.Infrastructure.Storage in
    Querify.QnA.Portal.Business.Source.csproj.
-   Ensure MassTransit is wired in the host with the Publish endpoint.
+   Bind SourceUploadOptions from "SourceUpload":
+     MaxUploadBytes = 52428800
+     PendingExpirationHours = 24
+   Ensure MassTransit is wired in the host with the transactional outbox or the
+   repository's existing equivalent. Do not publish the event after
+   SaveChangesAsync without an outbox in production code.
+
+8) devops/local/docker/docker-compose.backend.yml
+   When `querify.qna.portal.api` runs in Docker, set:
+   - ObjectStorage__Endpoint=http://minio:9000
+   - ObjectStorage__PublicEndpoint=http://localhost:5900
+   The first value is for backend-to-MinIO operations on the Docker network.
+   The second value is for presigned URLs returned to the browser.
 
 RULES
 - Controller is HTTP-only.
 - Service is thin and delegates via MediatR.
-- Command returns Guid (CompleteUpload). Queries return DTOs.
+- Commands return Guid except `CreateUploadIntent`, which returns
+  `SourceUploadIntentResponseDto` as the documented presigned URL exception.
+  Queries return DTOs.
 - Use ApiErrorException with the appropriate HttpStatusCode.
 - AsNoTracking + Select projection in queries.
 - Do not touch Querify.QnA.Public.* — upload is portal-only.
+- No multipart or resumable code in this implementation.
 
 VALIDATION
 dotnet build dotnet/Querify.QnA.Portal.Business.Source
@@ -625,13 +943,13 @@ dotnet build dotnet/Querify.QnA.Portal.Api
 
 HANDOFF
 - New endpoints: upload-intent, upload-complete, download-url.
-- UploadStatus reaches Uploaded; Verified depends on Phase 3.
-- Tests pending (Phase 4).
+- UploadStatus reaches Uploaded; Verified depends on implementation step 5.
+- Tests pending (implementation step 6).
 ```
 
 ---
 
-## Phase 3 prompt — Worker async verification
+## Implementation step 5 prompt — Worker async verification, scan, and quarantine
 
 ```text
 Querify monorepo. Required reading:
@@ -642,12 +960,15 @@ Querify monorepo. Required reading:
   patterns
 
 CONTEXT
-After upload-complete (Phase 2), Source is in UploadStatus.Uploaded. We need
+After upload-complete (implementation step 4), Source is in UploadStatus.Uploaded. We need
 async processing to:
 1. Recompute SHA-256 from real bytes (not from the locator string).
 2. Confirm SizeBytes and MediaType (defense-in-depth against HEAD lying).
-3. Set LastVerifiedAtUtc + UploadStatus = Verified.
-4. Provide a hook for future AV scan (placeholder for now).
+3. Validate magic bytes / real file family against the allowlist.
+4. Run malware scanning before any uploaded file becomes downloadable.
+5. Copy trusted bytes from `staging/` to `verified/`, delete staging, and set
+   LastVerifiedAtUtc + UploadStatus = Verified.
+6. Move unsafe bytes to `quarantine/` and set UploadStatus = Quarantined.
 
 ARCHITECTURAL DECISION
 Source belongs to the QnA module, but the playbook
@@ -662,37 +983,86 @@ is mechanical.
 
 DELIVERABLES (assuming a dedicated worker)
 
-1) Verify the integration event contract from Phase 2:
+1) Verify the integration event contract from implementation step 4:
    SourceUploadedIntegrationEvent
      { Guid TenantId, Guid SourceId, string StorageKey,
        string? ClientChecksum, DateTime UploadedAtUtc }
 
 2) New project: dotnet/Querify.QnA.Worker.Api/
    - Program.cs: generic IHost, AddMassTransit with consumer registration,
-     queue qna.source.uploaded
+     queue qna.source.uploaded, and AddMediatR for worker commands
    - AddObjectStorage, AddDbContext<QnADbContext>
    - tenant connection resolution mirroring Querify.Tenant.Worker.Api
-   - appsettings with ObjectStorage + ConnectionStrings + RabbitMQ
+   - appsettings with ObjectStorage + SourceUpload + SourceUpload:ThreatScanningMode
+     + ConnectionStrings + RabbitMQ
    - Dockerfile (mirror Querify.Tenant.Worker.Api/Dockerfile)
 
 3) New project: dotnet/Querify.QnA.Worker.Business.Source/
    - Consumers/SourceUploadedConsumer.cs
        : IConsumer<SourceUploadedIntegrationEvent>
+   - Commands/VerifyUploadedSource/VerifyUploadedSourceCommand.cs
+       : IRequest<Guid>
+       { Guid TenantId, Guid SourceId, string StorageKey,
+         string? ClientChecksum, DateTime UploadedAtUtc }
+   - Commands/VerifyUploadedSource/VerifyUploadedSourceCommandHandler.cs
+   - Commands/ExpirePendingSourceUploads/ExpirePendingSourceUploadsCommand.cs
+       : IRequest<int>
+       { DateTime NowUtc }
+   - Commands/ExpirePendingSourceUploads/ExpirePendingSourceUploadsCommandHandler.cs
+   - Abstractions/IUploadThreatScanner.cs
+   - Services/NoopUploadThreatScanner.cs (Development only)
+   - Services/UploadContentInspector.cs (magic-byte validation)
+   - HostedServices/PendingSourceUploadExpiryHostedService.cs
 
    Consumer flow:
-   - resolve QnADbContext for the event's TenantId (use existing
+   - do not put verification business logic in the consumer
+   - map SourceUploadedIntegrationEvent to VerifyUploadedSourceCommand
+   - send the command through MediatR
+   - let MassTransit retry transient command failures according to the
+     receive endpoint retry policy
+
+   VerifyUploadedSourceCommandHandler flow:
+   - resolve QnADbContext for the command's TenantId (use existing
      Querify.Common.EntityFramework.Tenant resolution)
    - load Source; idempotent — return if UploadStatus != Uploaded
-   - using IObjectStorage.OpenReadAsync(storageKey), compute SHA-256 in
+   - stagingKey = command.StorageKey; reject as Failed if it does not contain
+     `/staging/`
+   - using IObjectStorage.OpenReadAsync(stagingKey), compute SHA-256 in
      stream (do NOT materialize the full blob; use IncrementalHash)
    - re-confirm SizeBytes via HeadAsync
+   - validate magic bytes and real type against entity.Kind/entity.MediaType
+   - run IUploadThreatScanner. In Development, NoopUploadThreatScanner is
+     allowed only when SourceUpload:ThreatScanningMode=Noop. In production,
+     fail startup unless a real scanner mode is configured.
    - if ClientChecksum was provided and does not match: UploadStatus =
-     Failed, log warning, persist, return without rethrowing (no retry).
-   - otherwise: entity.Checksum = "sha256:..."; entity.SizeBytes =
-     head.SizeBytes; entity.LastVerifiedAtUtc = DateTime.UtcNow;
-     entity.UploadStatus = SourceUploadStatus.Verified;
-     entity.UpdatedBy = "system:qna-worker"
+     Failed, DeleteAsync(stagingKey), log warning, persist, return without
+     rethrowing (no retry).
+   - if magic/type validation fails: UploadStatus = Failed,
+     DeleteAsync(stagingKey), persist, return without throwing.
+   - if malware/unsafe content is detected: quarantineKey =
+     SourceStorageKey.ToQuarantineKey(stagingKey); CopyAsync(stagingKey,
+     quarantineKey); DeleteAsync(stagingKey); entity.StorageKey =
+     quarantineKey; entity.Locator = quarantineKey; entity.UploadStatus =
+     SourceUploadStatus.Quarantined; persist, return without throwing.
+   - otherwise: verifiedKey = SourceStorageKey.ToVerifiedKey(stagingKey);
+     CopyAsync(stagingKey, verifiedKey); DeleteAsync(stagingKey);
+     entity.StorageKey = verifiedKey; entity.Locator = verifiedKey;
+     entity.Checksum = "sha256:..."; entity.SizeBytes = head.SizeBytes;
+     entity.LastVerifiedAtUtc = DateTime.UtcNow; entity.UploadStatus =
+     SourceUploadStatus.Verified; entity.UpdatedBy = "system:qna-worker"
    - SaveChangesAsync
+
+   PendingSourceUploadExpiryHostedService:
+   - runs on a conservative interval (default 1 hour)
+   - does not mutate Source directly
+   - sends ExpirePendingSourceUploadsCommand through MediatR
+
+   ExpirePendingSourceUploadsCommandHandler:
+   - finds Pending sources older than SourceUpload:PendingExpirationHours
+     (default 24)
+   - deletes staging objects when present
+   - sets UploadStatus = Expired and UpdatedBy = "system:qna-worker"
+   - returns the number of expired sources
 
 4) Service registration extension in
    Querify.QnA.Worker.Business.Source/Extensions/ServiceCollectionExtensions.cs:
@@ -700,39 +1070,48 @@ DELIVERABLES (assuming a dedicated worker)
 
 5) Add both csprojs to Querify.sln.
 
-6) devops/local/docker/docker-compose.backend.yml — add `bf-qna-worker`
-   service following the pattern of other backend services (build context,
-   depends_on postgres/rabbitmq/minio, env vars).
+6) devops/local/docker/docker-compose.backend.yml — add
+   `querify.qna.worker.api` service following the pattern of other backend
+   services (build context, depends_on postgres/rabbitmq/minio, env vars).
+   Set:
+   - ObjectStorage__Endpoint=http://minio:9000
+   - ObjectStorage__PublicEndpoint=http://localhost:5900
 
 RULES
 - Worker does not perform read-after-write on entities of other modules.
-- Consumer is idempotent (filter by UploadStatus == Uploaded).
+- Consumer is a transport adapter only; commands own business behavior.
+- VerifyUploadedSourceCommandHandler is idempotent (filter by UploadStatus ==
+  Uploaded).
 - Do not materialize the full blob — streaming SHA-256 only.
 - Transient errors (storage 5xx) leave the message for MassTransit retry
   (rethrow). Permanent errors (checksum mismatch, MIME mismatch) flip to
-  Failed and ack.
+  Failed or Quarantined and return without throwing.
 - QnADbContext is tenant-scoped — connection string must be resolved from
-  the event TenantId before save.
+  the command TenantId before save.
+- A source is downloadable only after the worker updates its key to
+  `/verified/`.
 
 VALIDATION
 dotnet build dotnet/Querify.QnA.Worker.Api
 dotnet build dotnet/Querify.QnA.Worker.Business.Source
-docker compose up -d bf-qna-worker rabbitmq minio postgres
-- Run /api/qna/source/upload-intent → PUT to presigned URL → upload-complete
-- Inspect consumer logs and Sources.UploadStatus column.
+docker compose -f devops/local/docker/docker-compose.baseservices.yml up -d
+  postgres rabbitmq minio minio-init
+docker compose -f devops/local/docker/docker-compose.backend.yml up -d
+  querify.qna.worker.api
+- Run /api/qna/source/upload-intent → PUT to returned presigned URL →
+  upload-complete
+- Inspect consumer/command logs and Sources.UploadStatus column.
 
-HANDOFF (known follow-ups, not blockers)
-- Transactional outbox so the integration event publishes only when the
-  upload-complete transaction commits. Today an event can be lost if the
-  process dies after SaveChangesAsync but before Publish.
-- AV scan (clamav or equivalent) before Verified.
+HANDOFF
 - Text extraction for AI indexing (depends on AI roadmap).
-- Lifecycle policy on the bucket: drop Pending objects older than 24h.
+- Optional managed/provider-native malware scanner integration if the current
+  implementation starts with ClamAV.
+- Lifecycle/retention policy for quarantine artifacts.
 ```
 
 ---
 
-## Phase 4 prompt — Seed and integration tests
+## Implementation step 6 prompt — Seed and integration tests
 
 ```text
 Querify monorepo. Required reading:
@@ -741,7 +1120,7 @@ Querify monorepo. Required reading:
 - docs/backend/tools/seed-tool.md
 
 CONTEXT
-Phases 1–3 delivered the full upload flow. This phase adds seed examples
+Implementation steps 3-5 delivered the full upload flow. This step adds seed examples
 and integration coverage.
 
 DELIVERABLES
@@ -749,8 +1128,8 @@ DELIVERABLES
 1) dotnet/Querify.Tools.Seed/Application/QnASeedCatalog.*.cs
    Locate the existing Source catalog file. Add 2 deterministic Source
    examples with simulated upload state:
-   - "Manual de produto.pdf" — Kind=Pdf, StorageKey populated, SizeBytes,
-     UploadStatus=Verified, deterministic SHA-256 Checksum
+   - "Manual de produto.pdf" — Kind=Pdf, StorageKey under `/verified/`,
+     SizeBytes, UploadStatus=Verified, deterministic SHA-256 Checksum
    - "Política de privacidade.pdf" — second example
    The seed must NOT actually upload to MinIO; it only populates the entity
    with synthetic StorageKey and Checksum. (Seed is data-only — it does not
@@ -759,14 +1138,19 @@ DELIVERABLES
 2) dotnet/Querify.QnA.Portal.Test.IntegrationTests/Tests/Source/
    SourceUploadCommandQueryTests.cs (real PostgreSQL, mirroring the
    project's existing test patterns):
-   - RequestUploadIntent_ValidPdf_CreatesPendingSourceAndReturnsPresignedUrl
-   - RequestUploadIntent_InvalidContentType_Returns422
-   - RequestUploadIntent_OversizeBytes_Returns422
+   - CreateUploadIntent_ValidPdf_CreatesPendingSourceAndReturnsPresignedUrl
+   - CreateUploadIntent_InvalidContentType_Returns422
+   - CreateUploadIntent_OversizeBytes_Returns422
+   - CreateUploadIntent_PublicVisibility_Returns422
    - CompleteUpload_NoBlobInStorage_Returns422
+   - CompleteUpload_SizeMismatch_DeletesStagingObjectAndReturns422
+   - CompleteUpload_ContentTypeMismatch_DeletesStagingObjectAndReturns422
    - CompleteUpload_StatusNotPending_Returns409
    - CompleteUpload_HappyPath_TransitionsToUploaded
    - GetDownloadUrl_UrlSource_Returns422
-   - GetDownloadUrl_UploadedSource_ReturnsPresignedGet
+   - GetDownloadUrl_UploadedSource_Returns422
+   - GetDownloadUrl_VerifiedSource_ReturnsPresignedGet
+   - GetDownloadUrl_QuarantinedSource_Returns422
    - CrossTenant_SourceVisibility_NotLeaked  (cross-tenant regression)
 
    IObjectStorage is replaced by an in-memory fake ONLY because storage is
@@ -776,15 +1160,24 @@ DELIVERABLES
 
 3) dotnet/Querify.QnA.Portal.Test.IntegrationTests/Common/Factories/
    SourceFactory.cs (update or create):
-   CreateUploadedSource(Guid tenantId, ...) producing entity with
-   StorageKey + UploadStatus=Verified + valid Checksum.
+   CreateVerifiedUploadedSource(Guid tenantId, ...) producing entity with
+   `/verified/` StorageKey + UploadStatus=Verified + valid Checksum.
 
 4) dotnet/Querify.QnA.Worker.Test.IntegrationTests/ (NEW project mirroring
    Querify.Tenant.Worker.Test.IntegrationTests):
    Tests for SourceUploadedConsumer:
-   - HappyPath_VerifiesAndTransitionsToVerified
+   - EventConsumer_MapsEventToVerifyUploadedSourceCommand
+
+   Tests for VerifyUploadedSourceCommandHandler:
+   - HappyPath_CopiesStagingToVerifiedDeletesStagingAndTransitionsToVerified
    - ChecksumMismatch_TransitionsToFailed
+   - MagicBytesMismatch_TransitionsToFailed
+   - MalwareDetected_TransitionsToQuarantined
    - StatusNotUploaded_IsIdempotent
+
+   Tests for ExpirePendingSourceUploadsCommandHandler:
+   - ExpiredPendingSource_DeletesStagingObjectAndTransitionsToExpired
+   - FreshPendingSource_IsIgnored
 
 RULES
 - Use real DB and real EF migrations (testing-strategy).
@@ -800,13 +1193,14 @@ dotnet run --project dotnet/Querify.Tools.Seed
   examples carry StorageKey + UploadStatus=Verified.
 
 HANDOFF
-- Coverage: Portal command/query covered. Worker consumer covered.
+- Coverage: Portal command/query covered. Worker consumer adapters and worker
+  command handlers covered.
 - Pending: i18n, frontend.
 ```
 
 ---
 
-## Phase 5 prompt — Portal frontend (sources domain)
+## Implementation step 7 prompt — Portal frontend (sources domain)
 
 ```text
 Querify monorepo. Required reading:
@@ -815,7 +1209,7 @@ Querify monorepo. Required reading:
 - docs/behavior-change-playbook.md (Step 9)
 
 CONTEXT
-Backend (Phases 1–3) exposes:
+Backend (implementation steps 3-5) exposes:
   POST /api/qna/source/upload-intent           → SourceUploadIntentResponseDto
   POST /api/qna/source/{id}/upload-complete    → Guid
   GET  /api/qna/source/{id}/download-url       → SourceDownloadUrlDto
@@ -834,12 +1228,12 @@ DELIVERABLES
 
 2) apps/portal/src/domains/sources/api.ts
    Three new functions following the existing portalRequest pattern:
-   - requestSourceUploadIntent(accessToken, tenantId, body)
+   - createSourceUploadIntent(accessToken, tenantId, body)
    - completeSourceUpload(accessToken, tenantId, id, body)
    - getSourceDownloadUrl(accessToken, tenantId, id)
 
 3) apps/portal/src/domains/sources/hooks.ts
-   - useRequestSourceUploadIntent (mutation)
+   - useCreateSourceUploadIntent (mutation)
    - useCompleteSourceUpload (mutation)
    - useSourceDownloadUrl(id) (query, enabled=Boolean(id))
    - Invalidate ['sources','list'] and ['sources', id] on completeSourceUpload
@@ -852,13 +1246,17 @@ DELIVERABLES
    - throws a typed error on non-2xx
    - reports progress via optional onProgress callback using XHR
      ProgressEvent (fetch does not expose upload progress)
+   - sends exactly the headers returned by the API. Do not add multipart,
+     chunking, or resumable behavior.
 
 5) apps/portal/src/domains/sources/source-form-page.tsx
    Add an "upload" mode alongside the existing "external URL" mode in the
    create form:
    - segmented control: "External URL" | "File upload"
    - upload mode: <input type="file"> + name/size/MIME preview
-   - on submit: requestSourceUploadIntent → uploadSourceFile (with progress
+   - upload mode must not allow `Visibility.Public`; public exposure is an
+     edit action after `UploadStatus == Verified`.
+   - on submit: createSourceUploadIntent → uploadSourceFile (with progress
      state) → completeSourceUpload → redirect to detail.
    - Follow portal-app-ui-prompt-guidance:
      - shared/ui components (Button, Card, Input, Select)
@@ -868,8 +1266,10 @@ DELIVERABLES
 
 6) apps/portal/src/domains/sources/source-detail-page.tsx
    - Show UploadStatus as a badge (use shared/constants/enum-ui.ts).
-   - If StorageKey != null: a "Download" button that calls
-     useSourceDownloadUrl and navigates to the returned URL.
+   - If StorageKey != null and UploadStatus == Verified: a "Download" button
+     that calls useSourceDownloadUrl and navigates to the returned URL.
+   - For Pending/Uploaded, show the status without offering download.
+   - For Failed/Expired/Quarantined, show the status and no download action.
    - Show SizeBytes formatted (KB/MB) when present.
 
 7) apps/portal/src/domains/sources/source-list-page.tsx
@@ -878,20 +1278,21 @@ DELIVERABLES
 
 8) apps/portal/src/shared/constants/backend-enums.ts
    Add SourceUploadStatus mapped to the same numeric values as the .NET
-   enum (1, 6, 11, 16, 21).
+   enum (1, 6, 11, 16, 21, 26, 31).
 
 9) apps/portal/src/shared/constants/enum-ui.ts
    Add presentation metadata for SourceUploadStatus:
    None=ghost, Pending=warning, Uploaded=info, Verified=success,
-   Failed=destructive.
+   Quarantined=destructive, Failed=destructive, Expired=muted.
 
 RULES
 - TypeScript types mirror .NET DTOs exactly.
-- Do not concatenate translated copy in components (i18n in next phase).
+- Do not concatenate translated copy in components (i18n in the next
+  implementation step).
 - Every editable field must have `description`, `hint`, or visible label
   with ContextHint.
 - No hardcoded English copy — use t() with placeholder keys and add the key
-  to en-US.json. Phase 6 propagates to other locales.
+  to en-US.json. Implementation step 8 propagates to other locales.
 - No horizontal overflow at 320, 360, 768, 1024, 1280.
 - Schema validation via zod (existing *-page.tsx pattern).
 
@@ -908,23 +1309,23 @@ HANDOFF
 
 ---
 
-## Phase 6 prompt — Localization (20 locales)
+## Implementation step 8 prompt — Localization and final handoff
 
 ```text
 Querify monorepo. Required reading:
 - docs/frontend/architecture/portal-localization.md
-- docs/behavior-change-playbook.md (Step 10)
+- docs/behavior-change-playbook.md (Steps 10-12)
 
 CONTEXT
-Phase 5 introduced new copy keys for the sources domain, all with
-en-US placeholder values. This phase propagates them to all 20 locales:
+Implementation step 7 introduced new copy keys for the sources domain, all with
+en-US placeholder values. This step propagates them to all 20 locales:
 en-US, ar-SA, bn-BD, de-DE, es-ES, fr-FR, he-IL, hi-IN, id-ID, it-IT,
 ja-JP, ko-KR, pl-PL, pt-BR, ru-RU, th-TH, tr-TR, ur-PK, vi-VN, zh-CN.
 
 DELIVERABLES
 
 1) Audit apps/portal/src/shared/lib/i18n/locales/en-US.json and list every
-   new key added in Phase 5 (look for sources.upload.*, sources.download.*,
+   new key added in implementation step 7 (look for sources.upload.*, sources.download.*,
    enums.SourceUploadStatus.*).
 
 2) For every locale (except en-US), add EXACTLY the same keys with native
@@ -951,16 +1352,18 @@ DELIVERABLES
    enums.SourceUploadStatus.Pending
    enums.SourceUploadStatus.Uploaded
    enums.SourceUploadStatus.Verified
+   enums.SourceUploadStatus.Quarantined
    enums.SourceUploadStatus.Failed
+   enums.SourceUploadStatus.Expired
 
-5) Validate RTL languages (ar-SA, he-IL, ur-PK): the Phase 5 UI must work
+5) Validate RTL languages (ar-SA, he-IL, ur-PK): the step 7 UI must work
    in RTL — verify dropzone and progress layout (no hardcoded directional
    margin/padding).
 
 RULES
 - Preserve placeholders exactly: {fileName}, {sizeMb}, {percent}.
 - Do not introduce keys that are not present in en-US.
-- Do not leave orphan keys (copy removed during Phase 5).
+- Do not leave orphan keys (copy removed during implementation step 7).
 
 VALIDATION
 cd apps/portal && npm run lint && npm run build
@@ -968,7 +1371,8 @@ Visual: switch language in the portal and open the upload form in pt-BR,
 ar-SA, ja-JP, ko-KR, ur-PK.
 
 FEATURE-LEVEL HANDOFF (final consolidated PR/release notes)
-- Summary of what shipped (intent → PUT → complete → verify async).
+- Summary of what shipped (intent with presigned URL → PUT → complete →
+  worker event adapter → worker command → verify async).
 - Manual EF migration to apply before deploy:
     ALTER TABLE Sources ADD StorageKey nvarchar(1000) NULL;
     ALTER TABLE Sources ADD SizeBytes bigint NULL;
@@ -978,30 +1382,28 @@ FEATURE-LEVEL HANDOFF (final consolidated PR/release notes)
 - ObjectStorage:* environment variables required in production.
 - S3 bucket to provision with multi-tenant prefix-based policy.
 - New worker Querify.QnA.Worker.Api to add to the deployment pipeline.
-- Known follow-ups: transactional outbox, AV scan, text extraction,
-  per-tenant quotas, bucket lifecycle policy for orphan Pending objects
-  older than 24h.
+- Known operational extensions: provider-native malware scanning if the current
+  implementation starts with ClamAV, text extraction, per-tenant quotas, and
+  quarantine retention policy.
 ```
 
 ---
 
-## Known follow-ups (not in scope for the initial roadmap)
+## Operational extensions
 
-1. **Transactional outbox** — the Phase 2 handler publishes the integration event after
-   `SaveChangesAsync`. A crash between the two leaves the row in `Uploaded` without ever firing
-   the event. The fix is to write the event into an outbox table inside the same transaction and
-   publish from a separate dispatcher. MassTransit has built-in outbox support.
-2. **AV scan** — Phase 3 verifies checksum and size but does not scan for malware. Adding a
-   clamav/Cloudmersive step in front of `Verified` is a self-contained follow-up that does not
-   change the public contract.
-3. **Text extraction** — for AI-driven matching/generation (see
+1. **Provider-native malware scanning** — the implementation must have a real scanner before
+   production. If the economical first production path uses ClamAV, regulated or larger tenants can
+   later use provider-native scanning such as cloud storage malware protection.
+2. **Text extraction** — for AI-driven matching/generation (see
    [`../integrations/mcp-source-to-qna.md`](../integrations/mcp-source-to-qna.md)), the worker
    should populate `MetadataJson` with extracted text and structural metadata. Coupled to the AI
    roadmap.
-4. **Per-tenant quotas** — bytes total, file count, max single file. Owned by
-   `Tenant.BackOffice.Business.Billing`, enforced in `RequestUploadIntent` before the presign.
-5. **Bucket lifecycle policy** — auto-expire Pending blobs older than 24h. Pure infrastructure;
-   add to the bucket Terraform/IaC when production storage is provisioned.
-6. **Direct download streaming option** — for cases where presigned GET is undesirable (audit
+3. **Per-tenant quotas** — bytes total, file count, max single file. Owned by
+   `Tenant.BackOffice.Business.Billing`, enforced in `CreateUploadIntent` before a source is
+   created.
+4. **Quarantine retention policy** — retain unsafe objects only as long as the security process
+   requires. Default to short retention because storage cost and privacy exposure grow with every
+   retained artifact.
+5. **Direct download streaming option** — for cases where presigned GET is undesirable (audit
    logging, watermarking), expose a `GET /api/qna/source/{id}/download` that streams through the
    API. Default remains presigned for cost and scalability.
