@@ -4,21 +4,25 @@ import {
   CheckCircle2,
   CircleGauge,
   Clock3,
+  CreditCard,
   FileCheck2,
   ShieldCheck,
   Sparkles,
+  Settings2,
+  UserRound,
   Waypoints,
 } from "lucide-react";
 import type { ComponentType, ReactNode } from "react";
 import { Link } from "react-router-dom";
 import {
+  type DashboardAdministration,
   type DashboardSignalTone,
   getActivationState,
+  getAccountAdministration,
   getBillingNeedsAttention,
   getBusinessReadout,
   getRoleAwareNextAction,
   getSetupProgress,
-  getSpaceWorkloadData,
 } from "@/domains/dashboard/dashboard-selectors";
 import { useAnswerList } from "@/domains/answers/hooks";
 import type { AnswerDto } from "@/domains/answers/types";
@@ -32,6 +36,7 @@ import { useSpaceList } from "@/domains/spaces/hooks";
 import {
   AnswerStatus,
   QuestionStatus,
+  SpaceStatus,
   TenantSubscriptionStatus,
   VisibilityScope,
 } from "@/shared/constants/backend-enums";
@@ -66,6 +71,7 @@ import { cn } from "@/lib/utils";
 const DASHBOARD_QUERY_STALE_TIME = 5 * 60 * 1000;
 const DASHBOARD_QUERY_GC_TIME = 15 * 60 * 1000;
 const DASHBOARD_QUEUE_LIMIT = 4;
+const DASHBOARD_SPACE_PREVIEW_LIMIT = 4;
 
 function DashboardLoadingState() {
   return (
@@ -77,7 +83,7 @@ function DashboardLoadingState() {
             <Skeleton className="h-14 w-48" />
             <Skeleton className="h-4 w-full max-w-2xl" />
             <Skeleton className="h-10 w-44" />
-            <div className="grid gap-3 sm:grid-cols-3">
+            <div className="grid gap-3 sm:grid-cols-2">
               {Array.from({ length: 3 }).map((_, index) => (
                 <Skeleton key={index} className="h-20 rounded-xl" />
               ))}
@@ -183,14 +189,6 @@ function Panel({
   );
 }
 
-type DashboardChartRow = {
-  key: string;
-  label: string;
-  value: number;
-  fill: string;
-  to?: string;
-};
-
 type BusinessReadoutItem = {
   label: string;
   value: string;
@@ -200,17 +198,6 @@ type BusinessReadoutItem = {
   tone: DashboardSignalTone;
   to: string;
 };
-
-function formatChartNumber(value: number) {
-  return new Intl.NumberFormat(undefined, {
-    notation: value >= 10000 ? "compact" : "standard",
-    maximumFractionDigits: 1,
-  }).format(value);
-}
-
-function percentage(value: number, total: number) {
-  return total > 0 ? Math.round((value / total) * 100) : 0;
-}
 
 const signalToneClassNames: Record<
   DashboardSignalTone,
@@ -263,105 +250,12 @@ const signalToneClassNames: Record<
   },
 };
 
-function EmptyChart({
-  title,
-  description,
-}: {
-  title: string;
-  description: string;
-}) {
-  return (
-    <div className="flex min-h-60 flex-col items-center justify-center rounded-xl border border-dashed border-border/70 bg-muted/10 p-6 text-center">
-      <p className="font-medium text-mono">{translateText(title)}</p>
-      <p className="mt-2 max-w-md text-sm leading-6 text-muted-foreground">
-        {translateText(description)}
-      </p>
-    </div>
-  );
-}
-
-function HorizontalValueChart({
-  data,
-  emptyDescription,
-  emptyTitle,
-  totalValue,
-  valueLabel,
-}: {
-  data: DashboardChartRow[];
-  emptyDescription: string;
-  emptyTitle: string;
-  totalValue: number;
-  valueLabel: string;
-}) {
-  if (!data.some((entry) => entry.value > 0)) {
-    return <EmptyChart title={emptyTitle} description={emptyDescription} />;
-  }
-
-  const chartData = data.map((entry) => ({
-    ...entry,
-    label: translateText(entry.label),
-  }));
-  const maxValue = Math.max(...chartData.map((entry) => entry.value), 1);
-
-  return (
-    <div className="space-y-3" aria-label={translateText(valueLabel)}>
-      {chartData.map((entry) => {
-        const barWidth =
-          entry.value > 0
-            ? Math.max(Math.round((entry.value / maxValue) * 100), 2)
-            : 0;
-        const content = (
-          <>
-            <div className="flex min-w-0 items-center justify-between gap-3">
-              <span className="min-w-0 truncate text-sm font-medium text-mono">
-                {entry.label}
-              </span>
-              <span className="shrink-0 text-right text-sm font-semibold tabular-nums text-mono">
-                {formatChartNumber(entry.value)}
-                <span className="ml-2 text-xs font-medium text-muted-foreground">
-                  {percentage(entry.value, totalValue)}%
-                </span>
-              </span>
-            </div>
-            <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
-              <span
-                className="block h-full rounded-full"
-                style={{
-                  backgroundColor: entry.fill,
-                  width: `${barWidth}%`,
-                }}
-              />
-            </div>
-          </>
-        );
-
-        if (entry.to) {
-          return (
-            <Link
-              key={entry.key}
-              to={entry.to}
-              className="block rounded-lg px-1.5 py-1 transition-colors hover:bg-muted/40"
-            >
-              {content}
-            </Link>
-          );
-        }
-
-        return (
-          <div key={entry.key} className="rounded-lg px-1.5 py-1">
-            {content}
-          </div>
-        );
-      })}
-    </div>
-  );
-}
 
 const businessReadoutIcons: Record<
   string,
   ComponentType<{ className?: string }>
 > = {
-  "Draft review": Clock3,
+  "Targets to resolve": Clock3,
   "Reusable questions": ShieldCheck,
   "Reusable answers": FileCheck2,
   "Source visibility": Waypoints,
@@ -424,11 +318,15 @@ function ExecutiveSummaryCard({
   draftQuestionCount,
   nextAction,
   primary,
+  spaceCount,
+  spacesWithQuestionsValue,
 }: {
   activeQuestionCount: number;
   draftQuestionCount: number;
   nextAction: { label: string; description: string; to: string };
   primary: BusinessReadoutItem;
+  spaceCount: number;
+  spacesWithQuestionsValue: string;
 }) {
   const toneClassNames = signalToneClassNames[primary.tone];
   const headlineIcon =
@@ -438,6 +336,29 @@ function ExecutiveSummaryCard({
         ? CircleGauge
         : AlertTriangle;
   const HeadlineIcon = headlineIcon;
+  const summaryMetrics = [
+    {
+      label: "Draft questions",
+      value: draftQuestionCount,
+      detail: translateText("Needs review"),
+    },
+    {
+      label: "Reusable questions",
+      value: activeQuestionCount,
+      detail: translateText("Ready for use"),
+    },
+    {
+      label: "Active Spaces",
+      value: spaceCount,
+      detail: `${spacesWithQuestionsValue} ${translateText(
+        "Active Spaces with questions",
+      )}`,
+    },
+  ] satisfies Array<{
+    label: string;
+    value: number | string;
+    detail: string;
+  }>;
 
   return (
     <Card
@@ -490,18 +411,7 @@ function ExecutiveSummaryCard({
         </div>
 
         <div className="mt-6 grid gap-3 sm:grid-cols-2">
-          {[
-            {
-              label: "Draft questions",
-              value: draftQuestionCount,
-              detail: "Needs review",
-            },
-            {
-              label: "Reusable questions",
-              value: activeQuestionCount,
-              detail: "Ready for use",
-            },
-          ].map((item) => (
+          {summaryMetrics.map((item) => (
             <div
               key={item.label}
               className="min-w-0 rounded-xl border border-border/70 bg-background/70 p-3"
@@ -513,7 +423,7 @@ function ExecutiveSummaryCard({
                 {item.value}
               </p>
               <p className="mt-2 text-xs text-muted-foreground">
-                {translateText(item.detail)}
+                {item.detail}
               </p>
             </div>
           ))}
@@ -579,6 +489,128 @@ function BusinessReadout({ items }: { items: BusinessReadoutItem[] }) {
       {items.map((item) => (
         <ReadoutMetricCard key={item.label} item={item} />
       ))}
+    </div>
+  );
+}
+
+const administrationIcons: Record<
+  string,
+  ComponentType<{ className?: string }>
+> = {
+  Billing: CreditCard,
+  Profile: UserRound,
+  Settings: Settings2,
+};
+
+function AccountAdministrationPanel({
+  administration,
+}: {
+  administration: DashboardAdministration;
+}) {
+  const toneClassNames = signalToneClassNames[administration.tone];
+  const SummaryIcon =
+    administration.tone === "success"
+      ? CheckCircle2
+      : administration.tone === "neutral"
+        ? CircleGauge
+        : AlertTriangle;
+
+  return (
+    <div className="space-y-3">
+      <Link
+        to={administration.to}
+        className={cn(
+          "block rounded-xl border bg-background/70 p-3 transition-colors hover:border-primary/25 hover:bg-primary/[0.025]",
+          toneClassNames.border,
+        )}
+      >
+        <div className="flex min-w-0 items-start gap-2.5">
+          <span
+            className={cn(
+              "flex size-8 shrink-0 items-center justify-center rounded-lg ring-1 ring-inset",
+              toneClassNames.icon,
+            )}
+          >
+            <SummaryIcon className="size-4" />
+          </span>
+          <div className="min-w-0">
+            <div className="flex min-w-0 items-start justify-between gap-2">
+              <p className="min-w-0 text-sm font-semibold leading-5 text-mono">
+                {translateText(administration.label)}
+              </p>
+              <Badge
+                variant="outline"
+                appearance="outline"
+                className={cn(
+                  "shrink-0 text-[0.6875rem]",
+                  toneClassNames.badge,
+                )}
+              >
+                {translateText(signalLabel(administration.tone))}
+              </Badge>
+            </div>
+            <p className="mt-1 text-xs leading-5 text-muted-foreground">
+              {translateText(administration.detail)}
+            </p>
+          </div>
+        </div>
+      </Link>
+
+      <div className="space-y-2">
+        {administration.items.map((item) => {
+          const itemToneClassNames = signalToneClassNames[item.tone];
+          const Icon = administrationIcons[item.label] ?? Settings2;
+
+          return (
+            <Link
+              key={item.key}
+              to={item.to}
+              className="group block rounded-xl border border-border/70 bg-background/70 p-2.5 transition-colors hover:border-primary/25 hover:bg-primary/[0.025]"
+            >
+              <div className="flex min-w-0 items-start gap-2.5">
+                <span
+                  className={cn(
+                    "flex size-8 shrink-0 items-center justify-center rounded-lg ring-1 ring-inset",
+                    itemToneClassNames.icon,
+                  )}
+                >
+                  <Icon className="size-3.5" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="flex min-w-0 items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold text-mono group-hover:text-primary">
+                        {translateText(item.label)}
+                      </p>
+                      <p className="mt-0.5 text-xs leading-5 text-muted-foreground">
+                        {translateText(item.detail)}
+                      </p>
+                    </div>
+                    <p className="shrink-0 text-right text-sm font-semibold tabular-nums text-mono">
+                      {translateText(item.value)}
+                    </p>
+                  </div>
+                  <div className="mt-1.5 flex min-w-0 items-center justify-between gap-3">
+                    <Badge
+                      variant="outline"
+                      appearance="outline"
+                      className={cn("text-[0.6875rem]", itemToneClassNames.badge)}
+                    >
+                      {translateText(signalLabel(item.tone))}
+                    </Badge>
+                    <span className="inline-flex min-w-0 shrink items-center justify-end gap-1 text-xs font-semibold text-primary">
+                      <span className="truncate">
+                        {translateText(item.actionLabel)}
+                      </span>
+                      <ArrowRight className="size-3.5" />
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </Link>
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -752,8 +784,18 @@ export function DashboardPage() {
 
   const spacesQuery = useSpaceList({
     page: 1,
-    pageSize: 6,
+    pageSize: DASHBOARD_SPACE_PREVIEW_LIMIT,
     sorting: "QuestionCount DESC",
+    gcTime: DASHBOARD_QUERY_GC_TIME,
+    staleTime: DASHBOARD_QUERY_STALE_TIME,
+  });
+  const knownSpaceCount = spacesQuery.data?.totalCount ?? 0;
+  const loadedPreviewSpaceCount = spacesQuery.data?.items.length ?? 0;
+  const spacesWithQuestionsQuery = useSpaceList({
+    page: 1,
+    pageSize: Math.max(knownSpaceCount, 1),
+    sorting: "QuestionCount DESC",
+    enabled: knownSpaceCount > loadedPreviewSpaceCount,
     gcTime: DASHBOARD_QUERY_GC_TIME,
     staleTime: DASHBOARD_QUERY_STALE_TIME,
   });
@@ -761,6 +803,7 @@ export function DashboardPage() {
     page: 1,
     pageSize: 1,
     sorting: "LastActivityAtUtc DESC",
+    status: QuestionStatus.Active,
     gcTime: DASHBOARD_QUERY_GC_TIME,
     staleTime: DASHBOARD_QUERY_STALE_TIME,
   });
@@ -806,6 +849,7 @@ export function DashboardPage() {
 
   const isInitialDashboardLoading =
     spacesQuery.isLoading ||
+    spacesWithQuestionsQuery.isLoading ||
     questionsSummaryQuery.isLoading ||
     draftQuestionsQuery.isLoading ||
     activeQuestionsQuery.isLoading ||
@@ -818,6 +862,7 @@ export function DashboardPage() {
 
   const hasCriticalError =
     spacesQuery.isError ||
+    spacesWithQuestionsQuery.isError ||
     questionsSummaryQuery.isError ||
     draftQuestionsQuery.isError ||
     activeQuestionsQuery.isError ||
@@ -832,6 +877,7 @@ export function DashboardPage() {
   if (hasCriticalError) {
     const error =
       spacesQuery.error ??
+      spacesWithQuestionsQuery.error ??
       questionsSummaryQuery.error ??
       draftQuestionsQuery.error ??
       activeQuestionsQuery.error ??
@@ -851,6 +897,7 @@ export function DashboardPage() {
           error={error}
           retry={() => {
             void spacesQuery.refetch();
+            void spacesWithQuestionsQuery.refetch();
             void questionsSummaryQuery.refetch();
             void draftQuestionsQuery.refetch();
             void activeQuestionsQuery.refetch();
@@ -864,6 +911,10 @@ export function DashboardPage() {
   }
 
   const spaces = spacesQuery.data?.items ?? [];
+  const dashboardSpaces = spacesWithQuestionsQuery.data?.items ?? spaces;
+  const activeDashboardSpaces = dashboardSpaces.filter(
+    (space) => space.status === SpaceStatus.Active,
+  );
   const draftQuestions = draftQuestionsQuery.data?.items ?? [];
   const activeQuestions = activeQuestionsQuery.data?.items ?? [];
   const activeAnswers = activeAnswersQuery.data?.items ?? [];
@@ -874,13 +925,26 @@ export function DashboardPage() {
   const activeAnswerCount = activeAnswersQuery.data?.totalCount ?? 0;
   const sourceCount = sourcesQuery.data?.totalCount ?? 0;
   const publicSourceCount = publicSourcesQuery.data?.totalCount ?? 0;
+  const spaceCount = activeDashboardSpaces.length;
+  const spacesWithQuestionsCount = activeDashboardSpaces.filter(
+    (space) => space.questionCount > 0,
+  ).length;
+  const firstSpaceWithoutQuestionId = activeDashboardSpaces.find(
+    (space) => space.questionCount === 0,
+  )?.id;
+  const spacesWithQuestionsValue = `${spacesWithQuestionsCount}`;
   const billingSummary = billingSummaryQuery.data;
-  const spaceWorkload = getSpaceWorkloadData(spaces);
+  const hasCompleteProfile = Boolean(
+    profileQuery.data?.givenName?.trim() &&
+      profileQuery.data.phoneNumber?.trim() &&
+      profileQuery.data.language?.trim() &&
+      profileQuery.data.timeZone?.trim(),
+  );
   const activation = getActivationState({
     hasProfile: Boolean(profileQuery.data?.givenName),
     memberCount,
-    questionCount,
-    spaceCount: spacesQuery.data?.totalCount ?? 0,
+    questionCount: activeQuestionCount,
+    spaceCount,
     activeAnswerCount,
   });
   const setupProgress = getSetupProgress(activation);
@@ -889,8 +953,8 @@ export function DashboardPage() {
     memberCount,
     draftQuestions,
     draftQuestionCount,
-    questionCount,
-    spaces,
+    activeQuestionCount,
+    spaces: dashboardSpaces,
   });
   const queueQuestions = draftQuestions.slice(0, DASHBOARD_QUEUE_LIMIT);
   const businessReadout = getBusinessReadout({
@@ -899,14 +963,21 @@ export function DashboardPage() {
     publicSourceCount,
     activeAnswerCount,
     questionCount,
+    spaceCount,
+    spacesWithQuestionsCount,
     sourceCount,
     firstActiveQuestionId: activeQuestions[0]?.id,
     firstActiveAnswerId: activeAnswers[0]?.id,
     firstDraftQuestionId: queueQuestions[0]?.id,
-    firstSpaceId: spaces[0]?.id,
+    firstSpaceWithoutQuestionId,
+    firstSpaceId: activeDashboardSpaces[0]?.id,
   });
   const primaryReadout = businessReadout[0] as BusinessReadoutItem;
   const secondaryReadout = businessReadout.slice(1) as BusinessReadoutItem[];
+  const accountAdministration = getAccountAdministration({
+    billingSummary,
+    hasCompleteProfile,
+  });
   const billingNeedsAttention = getBillingNeedsAttention(billingSummary);
 
   return (
@@ -934,6 +1005,8 @@ export function DashboardPage() {
           draftQuestionCount={draftQuestionCount}
           nextAction={nextAction}
           primary={primaryReadout}
+          spaceCount={spaceCount}
+          spacesWithQuestionsValue={spacesWithQuestionsValue}
         />
         <BusinessReadout items={secondaryReadout} />
       </div>
@@ -941,7 +1014,7 @@ export function DashboardPage() {
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_380px] lg:gap-7.5">
         <Panel
           title="Workflow queue"
-          description="Draft review appears here; active records are treated as reusable knowledge."
+          description="Draft questions appear here; active records are treated as reusable knowledge."
           action={
             <Button asChild variant="outline" size="sm">
               <Link to={nextAction.to}>{translateText("Open queue")}</Link>
@@ -955,8 +1028,8 @@ export function DashboardPage() {
                 to={
                   queueQuestions[0]
                     ? `/app/questions/${queueQuestions[0].id}`
-                    : spaces[0]
-                      ? `/app/spaces/${spaces[0].id}`
+                    : activeDashboardSpaces[0]
+                      ? `/app/spaces/${activeDashboardSpaces[0].id}`
                       : "/app/spaces"
                 }
               />
@@ -982,8 +1055,8 @@ export function DashboardPage() {
                 to={
                   activeAnswers[0]
                     ? `/app/answers/${activeAnswers[0].id}`
-                    : spaces[0]
-                      ? `/app/spaces/${spaces[0].id}`
+                    : activeDashboardSpaces[0]
+                      ? `/app/spaces/${activeDashboardSpaces[0].id}`
                       : "/app/spaces"
                 }
               />
@@ -1002,21 +1075,17 @@ export function DashboardPage() {
         </Panel>
 
         <Panel
-          title="Questions by space"
-          description="Shows where question knowledge is concentrated across the workspace."
+          title="Account administration"
+          description="Shows account tasks for billing, profile, and workspace settings without extra dashboard API calls."
           action={
             <Button asChild variant="outline" size="sm">
-              <Link to="/app/spaces">{translateText("Review spaces")}</Link>
+              <Link to={accountAdministration.to}>
+                {translateText("Open")}
+              </Link>
             </Button>
           }
         >
-          <HorizontalValueChart
-            data={spaceWorkload}
-            emptyTitle="No question distribution yet"
-            emptyDescription="Questions by space will appear after teams begin routing questions."
-            totalValue={questionCount}
-            valueLabel="Questions"
-          />
+          <AccountAdministrationPanel administration={accountAdministration} />
         </Panel>
       </div>
     </PageSurface>

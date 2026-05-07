@@ -15,8 +15,8 @@ The Portal does not implement Getting Started as a separate wizard. It uses real
 
 | Surface | Implementation |
 |---|---|
-| Dashboard activation state, setup percentage, next-action ranking, business readout, and billing attention flag | [`dashboard-selectors.ts`](../../../apps/portal/src/domains/dashboard/dashboard-selectors.ts) |
-| Dashboard setup focus card, queue guidance, business readout rendering, billing notice, and inline empty states | [`dashboard-page.tsx`](../../../apps/portal/src/domains/dashboard/dashboard-page.tsx) |
+| Dashboard activation state, setup percentage, next-action ranking, business readout, account administration guidance, and billing attention flag | [`dashboard-selectors.ts`](../../../apps/portal/src/domains/dashboard/dashboard-selectors.ts) |
+| Dashboard setup focus card, queue guidance, business readout rendering, account administration panel, billing notice, and inline empty states | [`dashboard-page.tsx`](../../../apps/portal/src/domains/dashboard/dashboard-page.tsx) |
 | Shared detail-page recommended-action card | [`recommended-next-action-card.tsx`](../../../apps/portal/src/domains/qna/recommended-next-action-card.tsx) |
 | Shared setup checklist card | [`progress-checklist.tsx`](../../../apps/portal/src/shared/ui/progress-checklist.tsx) |
 | Shared form setup wrapper | [`form-setup-progress.tsx`](../../../apps/portal/src/shared/ui/form-setup-progress.tsx) |
@@ -50,12 +50,14 @@ Active lifecycle status means a Space, Question, or Answer is available for oper
 
 | Rank | Condition | Label | Destination |
 |---|---|---|---|
-| 1 | No spaces exist | `Start here` | `/app/spaces/new` |
-| 2 | No questions exist | `Open Space` | first Space that accepts questions, otherwise the first Space |
+| 1 | No Spaces exist | `Start here` | `/app/spaces/new` |
+| 2 | Spaces exist but none are active | `Open spaces` | `/app/spaces` |
 | 3 | Draft questions exist | `Review draft questions` | first draft Question, otherwise the selected Space |
-| 4 | Subscription is past due or unpaid | `Review billing` | `/app/billing` |
-| 5 | Member count is one or less | `Invite teammate` | `/app/members` |
-| 6 | None of the above | `Review activity` | selected Space |
+| 4 | No active Questions exist | `Open Space` | first active Space that accepts questions, otherwise the first active Space |
+| 5 | Any active Space has no Questions | `Open Space` | first active Space without Questions |
+| 6 | Subscription is past due or unpaid | `Review billing` | `/app/billing` |
+| 7 | Member count is one or less | `Invite teammate` | `/app/members` |
+| 8 | None of the above | `Review activity` | selected Space |
 
 Billing entitlement problems can also render the dashboard `BillingNotice`. That notice is separate from setup progress and can appear even when the setup focus card is hidden.
 
@@ -64,11 +66,11 @@ Billing entitlement problems can also render the dashboard `BillingNotice`. That
 | Surface | What it guides | Implementation |
 |---|---|---|
 | `SetupFocusCard` | Shows current setup percent and links to `getRoleAwareNextAction` | [`dashboard-page.tsx`](../../../apps/portal/src/domains/dashboard/dashboard-page.tsx) |
-| `ExecutiveSummaryCard` | Promotes the highest business readout and repeats the next action | [`dashboard-page.tsx`](../../../apps/portal/src/domains/dashboard/dashboard-page.tsx) |
-| `BusinessReadout` | Explains draft review, reusable active questions, reusable active answers, and optional source visibility | [`dashboard-selectors.ts`](../../../apps/portal/src/domains/dashboard/dashboard-selectors.ts) |
+| `ExecutiveSummaryCard` | Promotes the highest business readout, repeats the next action, and shows draft questions, reusable questions, active Spaces, and how many active Spaces already have Questions. `Targets to resolve` stays in warning when any active Space has no Questions, and the primary action uses the concrete required action such as `Open Space`. | [`dashboard-page.tsx`](../../../apps/portal/src/domains/dashboard/dashboard-page.tsx) |
+| `BusinessReadout` | Explains unresolved targets, reusable active questions, reusable active answers, and optional source visibility | [`dashboard-selectors.ts`](../../../apps/portal/src/domains/dashboard/dashboard-selectors.ts) |
 | `Workflow queue` | Shows draft questions that need lifecycle review plus active answers ready for reuse | [`dashboard-page.tsx`](../../../apps/portal/src/domains/dashboard/dashboard-page.tsx) |
-| `Questions by space` | Explains where question knowledge is concentrated | [`dashboard-page.tsx`](../../../apps/portal/src/domains/dashboard/dashboard-page.tsx) |
-| Inline empty states | Explain that draft questions, active answers, or question distribution will appear after workflow activity exists | [`dashboard-page.tsx`](../../../apps/portal/src/domains/dashboard/dashboard-page.tsx) |
+| `Account administration` | Shows actionable account work for Billing, Profile, and Settings using the dashboard's existing profile and billing queries | [`dashboard-selectors.ts`](../../../apps/portal/src/domains/dashboard/dashboard-selectors.ts) and [`dashboard-page.tsx`](../../../apps/portal/src/domains/dashboard/dashboard-page.tsx) |
+| Inline empty states | Explain that draft questions or active answers will appear after workflow activity exists | [`dashboard-page.tsx`](../../../apps/portal/src/domains/dashboard/dashboard-page.tsx) |
 
 ## Detail-Page Recommended Actions
 
@@ -76,13 +78,15 @@ Detail pages use `RecommendedNextActionCard` when the page can infer the next op
 
 | Page | Rule order |
 |---|---|
-| [`space-detail-page.tsx`](../../../apps/portal/src/domains/spaces/space-detail-page.tsx) | If the Space blocks questions, show `Review intake rules`. Else if draft questions need action, show `Review draft question`. Else show `Create question`. Missing active answers, accepted answers, or curated sources must not drive the recommended action. |
+| [`space-detail-page.tsx`](../../../apps/portal/src/domains/spaces/space-detail-page.tsx) | If the Space is not active, show `Review status` and skip operational target checks. If the active Space blocks questions, show `Review intake rules`. Else if draft questions need action, show `Review draft question`. Else show `Create question`. Missing active answers, accepted answers, or curated sources must not drive the recommended action. |
 | [`question-detail-page.tsx`](../../../apps/portal/src/domains/questions/question-detail-page.tsx) | If the Question is draft or archived, show `Review status`. Else show `Review activity`. Missing answers, accepted answer, or source links must not drive the recommended action because active Question status already means the Question is available for use. |
 | [`answer-detail-page.tsx`](../../../apps/portal/src/domains/answers/answer-detail-page.tsx) | If the Answer is draft, show `Activate answer`. If archived, show `Reactivate answer`. Else show `Review activity`. Missing source links or accepted state must not drive the recommended action. |
-| [`source-detail-page.tsx`](../../../apps/portal/src/domains/sources/source-detail-page.tsx) | Source-specific relationship review can still guide the operator through Space, Question, and Answer links, but those links are optional and do not make other records incomplete. |
+| [`source-detail-page.tsx`](../../../apps/portal/src/domains/sources/source-detail-page.tsx) | Source-specific relationship review can still guide the operator through active Space, Question, and Answer links, but those links are optional and do not make other records incomplete. Draft or archived relationships do not drive missing-link guidance. |
 | [`activity-detail-page.tsx`](../../../apps/portal/src/domains/activity/activity-detail-page.tsx) | If the event has answer scope, show `Open answer`. Otherwise show `Open question`. |
 
 Each recommended action should be local and concrete. Prefer scrolling or opening the relevant relationship tab when the action can be completed on the same page.
+
+Operational target checks for Space, Question, and Answer relationships must start from active records only. Draft or archived Spaces, Questions, and Answers can still show lifecycle status actions on their own detail pages, but they must not create missing-relationship targets on dashboards, source guidance, or related surfaces.
 
 ## Form Setup Progress
 

@@ -37,6 +37,11 @@ import {
 } from "@/shared/ui";
 import { EmptyState, ErrorState } from "@/shared/ui/placeholder-state";
 import {
+  AnswerStatus,
+  QuestionStatus,
+  SpaceStatus,
+} from "@/shared/constants/backend-enums";
+import {
   AnswerKindBadge,
   AnswerStatusBadge,
   QuestionStatusBadge,
@@ -65,6 +70,18 @@ export function SourceDetailPage() {
   const answersPagination = useLocalPagination({
     items: sourceQuery.data?.answers ?? [],
   });
+  const activeSpaces =
+    sourceQuery.data?.spaces.filter(
+      (space) => space.status === SpaceStatus.Active,
+    ) ?? [];
+  const activeQuestions =
+    sourceQuery.data?.questions.filter(
+      (question) => question.status === QuestionStatus.Active,
+    ) ?? [];
+  const activeAnswers =
+    sourceQuery.data?.answers.filter(
+      (answer) => answer.status === AnswerStatus.Active,
+    ) ?? [];
   const activateRelationshipTab = (tab: string) => {
     setRelationshipTab(tab);
 
@@ -82,28 +99,28 @@ export function SourceDetailPage() {
         to: "/app/sources",
         text: "Return to the source catalog while this source loads.",
       }
-    : sourceQuery.data.spaces.length === 0
+    : activeSpaces.length === 0
       ? {
           label: "Open spaces",
           to: "/app/spaces",
-          text: "No Space curates this source yet. Attach it from a Space when it should become trusted evidence.",
+          text: "No active Space curates this source yet. Attach it from an active Space when it should become trusted evidence.",
         }
-      : sourceQuery.data.questions.length === 0
+      : activeQuestions.length === 0
         ? {
             label: "Review spaces",
             tab: "spaces",
-            text: "This source is curated by a Space. Use those boundaries to decide which questions should reference it.",
+            text: "This source is curated by an active Space. Use those boundaries to decide which active questions should reference it.",
           }
-        : sourceQuery.data.answers.length === 0
+        : activeAnswers.length === 0
           ? {
               label: "Review question links",
               tab: "questions",
-              text: "Questions already use this source. Link it to answers when they need optional evidence or canonical support.",
+              text: "Active Questions already use this source. Link it to active answers when they need optional evidence or canonical support.",
             }
           : {
               label: "Review answer links",
               tab: "answers",
-              text: "This source is cited by answers. Review those links before updating trust metadata.",
+              text: "This source is cited by active answers. Review those links before updating trust metadata.",
             };
 
   if (!id) {

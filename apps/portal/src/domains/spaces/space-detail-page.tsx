@@ -43,6 +43,7 @@ import { useTag, useTagList } from "@/domains/tags/hooks";
 import {
   ChannelKind,
   QuestionStatus,
+  SpaceStatus,
   VisibilityScope,
   activityKindLabels,
   actorKindLabels,
@@ -288,16 +289,19 @@ export function SpaceDetailPage() {
     (spaceQuery.isLoading ||
       questionQuery.isLoading ||
       sourceOptionsQuery.isLoading);
+  const isActiveSpace = spaceQuery.data?.status === SpaceStatus.Active;
   const blocksQuestions = spaceQuery.data
-    ? !spaceQuery.data.acceptsQuestions
+    ? isActiveSpace && !spaceQuery.data.acceptsQuestions
     : false;
   const blocksAnswers = spaceQuery.data
-    ? !spaceQuery.data.acceptsAnswers
+    ? isActiveSpace && !spaceQuery.data.acceptsAnswers
     : false;
   const spaceQuestions = questionQuery.data?.items ?? [];
-  const questionsNeedingAction = spaceQuestions.filter(
-    (question) => question.status === QuestionStatus.Draft,
-  );
+  const questionsNeedingAction = isActiveSpace
+    ? spaceQuestions.filter(
+        (question) => question.status === QuestionStatus.Draft,
+      )
+    : [];
   const contextualActivity = activityQuery.data?.items ?? [];
   const tagsPagination = useLocalPagination({
     items: spaceQuery.data?.tags ?? [],
@@ -410,23 +414,29 @@ export function SpaceDetailPage() {
     );
   }
 
-  const nextAction = blocksQuestions
+  const nextAction = !isActiveSpace
     ? {
-        label: "Review intake rules",
+        label: "Review status",
         to: `/app/spaces/${id}/edit`,
-        text: "Question intake is closed. Reopen it or keep routing work to another Space.",
+        text: "This Space is not active. Activate it before checking operational targets.",
       }
-    : questionsNeedingAction.length > 0
+    : blocksQuestions
       ? {
-          label: "Review draft question",
-          tab: "questions",
-          text: "Draft questions need activation or archive review.",
+          label: "Review intake rules",
+          to: `/app/spaces/${id}/edit`,
+          text: "Question intake is closed. Reopen it or keep routing work to another Space.",
         }
-      : {
-          label: "Create question",
-          tab: "questions",
-          text: "The Space is ready for the next operational question.",
-        };
+      : questionsNeedingAction.length > 0
+        ? {
+            label: "Review draft question",
+            tab: "questions",
+            text: "Draft questions need activation or archive review.",
+          }
+        : {
+            label: "Create question",
+            tab: "questions",
+            text: "The Space is ready for the next operational question.",
+          };
 
   return (
     <DetailLayout
