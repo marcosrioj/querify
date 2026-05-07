@@ -98,7 +98,7 @@ export function SourceDetailPage() {
           ? {
               label: "Review question links",
               tab: "questions",
-              text: "Questions already use this source. Link it to answers that need evidence or canonical support.",
+              text: "Questions already use this source. Link it to answers when they need optional evidence or canonical support.",
             }
           : {
               label: "Review answer links",

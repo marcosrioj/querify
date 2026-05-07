@@ -30,6 +30,7 @@ If those documents do not describe the behavior you are changing, inspect the cl
 - `Querify.Direct.Common.Persistence.DirectDb` and `Querify.Broadcast.Common.Persistence.BroadcastDb` contain their current module entity models. Write or update those entities only for concrete module behavior; do not add placeholder entities or empty folders only to satisfy a split.
 - Command handlers return simple values only. Complex DTOs belong to queries.
 - Portal UI copy is frontend-owned. Backend DTOs should not return translated labels.
+- Portal translation updates must be complete in the same frontend change. Do not add English fallback values to non-`en-US` locale files, and do not leave stale keys for UI copy that was removed or renamed.
 
 ## Step 0: Decide Whether The Change Must Be Staged
 
@@ -416,17 +417,28 @@ Current Portal locale files include:
 Process:
 
 1. Add or update `en-US.json` first.
-2. Translate every changed key in each remaining locale one by one.
-3. Preserve placeholders exactly, such as `{name}` or `{value}`.
-4. Do not concatenate translated fragments in components.
-5. Do not put frontend presentation strings in backend DTOs.
-6. Check RTL languages for direction-sensitive layout issues.
-7. When a key is renamed or replaces another concept, translate the new value in every locale. Do not leave the non-`en-US` values copied from English unless the term is intentionally identical in that language.
-8. Validate that every locale has exactly the same key set as `en-US`; missing or extra keys must be fixed in the same change.
-9. Validate that removed UI copy no longer leaves unused locale keys behind. Search for obsolete keys after deleting fields, enum values, pages, filters, or labels, and remove stale entries from every locale file.
-10. When behavior is consolidated, add keys for the canonical field and remove obsolete copy from every locale file.
+2. Treat changed copy as a key lifecycle: list every added, renamed, and removed user-facing string before editing locale files.
+3. Translate every added or changed key in each remaining locale one by one. Non-`en-US` values must be actual locale text, not copied English placeholders, unless the string is intentionally identical in that language.
+4. Preserve placeholders exactly, such as `{name}` or `{value}`.
+5. Do not concatenate translated fragments in components.
+6. Do not put frontend presentation strings in backend DTOs.
+7. Check RTL languages for direction-sensitive layout issues.
+8. When a key is renamed or replaces another concept, translate the new value in every locale and delete the replaced key from every locale after confirming it has no live references.
+9. Validate that every locale has exactly the same key set as `en-US`; missing or extra keys must be fixed in the same change.
+10. Validate that removed UI copy no longer leaves unused locale keys behind. Search for obsolete keys after deleting fields, enum values, pages, filters, or labels, and remove stale entries from every locale file.
+11. When behavior is consolidated, add keys for the canonical field and remove obsolete copy from every locale file.
 
 When a behavior removes UI copy, remove obsolete keys from every locale file in the same change. This includes legacy copy for renamed fields, deleted filters, removed enum labels, and deleted routes.
+
+Before finishing a Portal copy change, run exact searches for every removed or replaced key outside the locale catalogs:
+
+```bash
+rg -n --fixed-strings "Removed or replaced UI string" apps/portal/src docs --glob '!apps/portal/src/shared/lib/i18n/locales/*.json'
+```
+
+If the search returns no live references, remove that key from every locale file. If it still returns live references, either keep the key or update the remaining caller to the canonical copy before deleting it.
+
+Also check the new or changed keys in every non-`en-US` locale. A changed key whose value still exactly equals the English key is a localization defect unless the text is a proper noun, code token, route, or deliberately untranslated product term.
 
 ## Step 11: Verify The Stage
 
@@ -490,6 +502,8 @@ Localization validation should also confirm:
 - all locale key sets match `apps/portal/src/shared/lib/i18n/locales/en-US.json`
 - changed keys are translated in every non-`en-US` locale
 - removed UI concepts do not leave unused locale keys behind
+- exact searches for removed or replaced copy return no live references outside locale catalogs before the stale keys are deleted
+- newly added non-`en-US` values are reviewed for accidental English fallback values
 
 Documentation validation should also confirm:
 

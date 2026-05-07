@@ -535,33 +535,20 @@ export function QuestionDetailPage() {
                   questionAnswers[0]?.id !== undefined
                     ? `/app/answers/${questionAnswers[0].id}`
                     : `/app/questions/${id}`,
-                text: "Draft answers exist. Open one and activate it before choosing the accepted answer.",
+                text: "Draft answers exist. Open one and activate it when it is ready for reuse.",
               }
-            : !questionQuery.data.acceptedAnswerId
-              ? {
-                  label: "Set accepted answer",
-                  targetId: "question-accepted-answer-picker",
-                  text: "Active answer candidates are ready. Choose the accepted answer that should anchor the canonical resolution.",
-                }
-              : questionQuery.data.sources.length === 0
-                ? {
-                    label: "Attach source",
-                    tab: "sources",
-                    focusTargetId: "question-source-picker",
-                    text: "This question has an accepted answer. Attach evidence so the resolution remains defensible.",
-                  }
-                : {
-                    label: "Review activity",
-                    tab: "activity",
-                    text: "This question has resolution and evidence. Review recent events before the next update.",
-                  };
+            : {
+                label: "Review activity",
+                tab: "activity",
+                text: "This question has active answer candidates. Review recent events before the next update.",
+              };
 
   return (
     <DetailLayout
       header={
         <PageHeader
           title={questionQuery.data?.title ?? "Question"}
-          description="Operate question workflow, accepted answers, source links, tags, and activity from one place."
+          description="Operate question workflow, answers, optional accepted answer, source links, tags, and activity from one place."
           descriptionMode="hint"
           backTo={
             questionQuery.data?.spaceId
@@ -630,7 +617,7 @@ export function QuestionDetailPage() {
               {
                 label: "Accepted answer",
                 description:
-                  "The answer currently selected as the canonical resolution for this question.",
+                  "Optional answer selected as the canonical resolution for this question.",
                 value: questionQuery.data.acceptedAnswer?.headline || "None",
               },
               {
@@ -803,7 +790,7 @@ export function QuestionDetailPage() {
               <div className="space-y-3">
                 <p className="text-sm text-muted-foreground">
                   {translateText(
-                    "Choose the accepted answer that should anchor the canonical resolution for this question.",
+                    "Optionally choose the accepted answer that should anchor the canonical resolution for this question.",
                   )}
                 </p>
                 <SearchSelect
@@ -821,13 +808,13 @@ export function QuestionDetailPage() {
                     startTransition(() => setAcceptedAnswerSearch(value))
                   }
                   resultCountHint={translateText(
-                    "Only active answers can become accepted.",
+                    "Only active answers can be selected.",
                   )}
                 />
                 {(acceptedAnswerOptionsQuery.data?.totalCount ?? 0) ? null : (
                   <p className="text-sm text-muted-foreground">
                     {translateText(
-                      "Activate an answer before it can be accepted.",
+                      "Activate an answer before selecting it here.",
                     )}
                   </p>
                 )}
@@ -893,7 +880,7 @@ export function QuestionDetailPage() {
                 key: "sources",
                 label: "Sources",
                 description:
-                  "Attach evidence so the accepted answer remains defensible.",
+                  "Attach optional evidence or reusable references when this question needs additional context.",
                 icon: Link2,
                 count: questionQuery.data?.sources.length ?? 0,
               },

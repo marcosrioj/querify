@@ -279,7 +279,7 @@ export function AnswerDetailPage() {
           label: "Activate answer",
           run: activateCurrentAnswer,
           disabled: updateAnswerStatus.isPending,
-          text: "This draft is not available for accepted-answer selection yet. Activate it when the content is ready.",
+          text: "This draft is not reusable yet. Activate it when the content is ready.",
         }
       : answerQuery.data.status === AnswerStatus.Archived
         ? {
@@ -288,24 +288,11 @@ export function AnswerDetailPage() {
             disabled: updateAnswerStatus.isPending,
             text: "This answer is archived. Reactivate it only if it should return to the usable knowledge set.",
           }
-        : answerQuery.data.sources.length === 0
-          ? {
-              label: "Attach source",
-              tab: "sources",
-              focusTargetId: "answer-source-picker",
-              text: "Active answers need evidence links before they can be trusted as durable guidance.",
-            }
-          : !answerQuery.data.isAccepted
-            ? {
-                label: "Open question",
-                to: `/app/questions/${answerQuery.data.questionId}`,
-                text: "This answer has supporting evidence. Open the parent question when it should become the accepted resolution.",
-              }
-            : {
-                label: "Review activity",
-                tab: "activity",
-                text: "This accepted answer is active and sourced. Review recent events before changing lifecycle state.",
-              };
+        : {
+            label: "Review activity",
+            tab: "activity",
+            text: "This answer is active. Review recent events before changing lifecycle state.",
+          };
 
   if (!id) {
     return (
@@ -321,7 +308,7 @@ export function AnswerDetailPage() {
       header={
         <PageHeader
           title={answerQuery.data?.headline ?? "Answer"}
-          description="Manage lifecycle status, evidence links, and trust signals for this answer candidate."
+          description="Manage lifecycle status, optional evidence links, and trust signals for this answer candidate."
           descriptionMode="hint"
           backTo={
             answerQuery.data?.questionId
@@ -379,7 +366,7 @@ export function AnswerDetailPage() {
               {
                 label: "Signals",
                 description:
-                  "Vote and accepted-answer signals that indicate whether this candidate is trusted.",
+                  "Vote and optional accepted-answer signals for this candidate.",
                 value: (
                   <div className="flex flex-wrap gap-2">
                     <Badge variant="outline">
@@ -635,7 +622,7 @@ export function AnswerDetailPage() {
                 key: "sources",
                 label: "Sources",
                 description:
-                  "Attach evidence before using this answer as active knowledge.",
+                  "Attach optional evidence or reusable references for this answer.",
                 icon: ShieldCheck,
                 count: answerQuery.data?.sources.length ?? 0,
               },
@@ -729,7 +716,7 @@ export function AnswerDetailPage() {
                 ) : (
                   <EmptyState
                     title="No sources linked yet"
-                    description="Attach evidence or reusable references for this answer."
+                    description="Optional evidence or reusable references can be attached when this answer needs more context."
                   />
                 )}
                 <ChildListPagination

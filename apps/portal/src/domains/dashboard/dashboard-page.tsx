@@ -363,8 +363,8 @@ const businessReadoutIcons: Record<
 > = {
   "Demand to resolve": Clock3,
   "Active answers": FileCheck2,
-  "Evidence readiness": Waypoints,
-  "Trusted coverage": ShieldCheck,
+  "Answer coverage": ShieldCheck,
+  "Source visibility": Waypoints,
 };
 
 function signalLabel(tone: DashboardSignalTone) {
@@ -788,14 +788,6 @@ export function DashboardPage() {
     gcTime: DASHBOARD_QUERY_GC_TIME,
     staleTime: DASHBOARD_QUERY_STALE_TIME,
   });
-  const acceptedAnswersQuery = useAnswerList({
-    page: 1,
-    pageSize: 1,
-    sorting: "LastUpdatedAtUtc DESC",
-    isAccepted: true,
-    gcTime: DASHBOARD_QUERY_GC_TIME,
-    staleTime: DASHBOARD_QUERY_STALE_TIME,
-  });
   const sourcesQuery = useSourceList({
     page: 1,
     pageSize: 1,
@@ -818,7 +810,6 @@ export function DashboardPage() {
     draftQuestionsQuery.isLoading ||
     openQuestionsQuery.isLoading ||
     activeAnswersQuery.isLoading ||
-    acceptedAnswersQuery.isLoading ||
     sourcesQuery.isLoading ||
     publicSourcesQuery.isLoading ||
     membersQuery.isLoading ||
@@ -831,7 +822,6 @@ export function DashboardPage() {
     draftQuestionsQuery.isError ||
     openQuestionsQuery.isError ||
     activeAnswersQuery.isError ||
-    acceptedAnswersQuery.isError ||
     sourcesQuery.isError ||
     publicSourcesQuery.isError;
 
@@ -846,7 +836,6 @@ export function DashboardPage() {
       draftQuestionsQuery.error ??
       openQuestionsQuery.error ??
       activeAnswersQuery.error ??
-      acceptedAnswersQuery.error ??
       sourcesQuery.error ??
       publicSourcesQuery.error;
 
@@ -866,7 +855,6 @@ export function DashboardPage() {
             void draftQuestionsQuery.refetch();
             void openQuestionsQuery.refetch();
             void activeAnswersQuery.refetch();
-            void acceptedAnswersQuery.refetch();
             void sourcesQuery.refetch();
             void publicSourcesQuery.refetch();
           }}
@@ -884,7 +872,6 @@ export function DashboardPage() {
   const draftQuestionCount = draftQuestionsQuery.data?.totalCount ?? 0;
   const openQuestionCount = openQuestionsQuery.data?.totalCount ?? 0;
   const activeAnswerCount = activeAnswersQuery.data?.totalCount ?? 0;
-  const acceptedAnswerCount = acceptedAnswersQuery.data?.totalCount ?? 0;
   const sourceCount = sourcesQuery.data?.totalCount ?? 0;
   const publicSourceCount = publicSourcesQuery.data?.totalCount ?? 0;
   const billingSummary = billingSummaryQuery.data;
@@ -893,7 +880,6 @@ export function DashboardPage() {
     hasProfile: Boolean(profileQuery.data?.givenName),
     memberCount,
     questionCount,
-    sourceCount,
     spaceCount: spacesQuery.data?.totalCount ?? 0,
     activeAnswerCount,
   });
@@ -905,7 +891,6 @@ export function DashboardPage() {
     draftQuestions,
     draftQuestionCount,
     questionCount,
-    sourceCount,
     spaces,
   });
   const queueQuestions = [...draftQuestions, ...openQuestions].slice(
@@ -913,7 +898,6 @@ export function DashboardPage() {
     DASHBOARD_QUEUE_LIMIT,
   );
   const businessReadout = getBusinessReadout({
-    acceptedAnswerCount,
     openQuestionCount,
     draftQuestionCount,
     publicSourceCount,

@@ -197,7 +197,7 @@ export function AnswerFormPage({ mode }: { mode: "create" | "edit" }) {
         header={
           <PageHeader
             title="New answer"
-            description="An answer needs a parent Question before activation, sources, and accepted state are meaningful."
+            description="An answer needs a parent Question before activation and optional relationship links are meaningful."
             descriptionMode="hint"
             backTo="/app/spaces"
           />

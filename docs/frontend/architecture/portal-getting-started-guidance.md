@@ -26,13 +26,12 @@ The Portal does not implement Getting Started as a separate wizard. It uses real
 
 ## Canonical Activation Model
 
-Dashboard setup progress is computed from six booleans in `getActivationState` and `getSetupProgress`.
+Dashboard setup progress is computed from five booleans in `getActivationState` and `getSetupProgress`.
 
 | Step | Complete when | Primary route |
 |---|---|---|
 | Profile | `useUserProfile()` returns a profile with `givenName` | `/app/settings/profile` |
 | Space | workspace has at least one Space | `/app/spaces/new` |
-| Source | workspace has at least one Source | `/app/sources/new` |
 | Teammate | member count is greater than one | `/app/members` |
 | Question | workspace has at least one Question | first accepting Space, then its question flow |
 | Active answer | workspace has at least one active Answer | first open Question or Answer detail |
@@ -41,6 +40,8 @@ The dashboard setup focus card renders only while setup progress is below `100%`
 
 Current behavior: the profile step contributes to setup progress, but `getRoleAwareNextAction` does not currently route directly to profile settings. The next-action ranking is queue-oriented after workspace records exist, so it should not be treated as a one-to-one mirror of every progress checkbox.
 
+Sources and accepted answers are optional relationship features. They can add provenance, curation, and canonical selection, but they must not block setup progress or become mandatory next actions.
+
 ## Dashboard Next-Action Ranking
 
 `getRoleAwareNextAction` is the canonical first-run sequence. Earlier rules win over later rules.
@@ -48,13 +49,12 @@ Current behavior: the profile step contributes to setup progress, but `getRoleAw
 | Rank | Condition | Label | Destination |
 |---|---|---|---|
 | 1 | No spaces exist | `Start here` | `/app/spaces/new` |
-| 2 | No sources exist | `Add first source` | `/app/sources/new` |
-| 3 | No questions exist | `Open Space` | first Space that accepts questions, otherwise the first Space |
-| 4 | Draft questions exist | `Review draft questions` | first draft Question, otherwise the selected Space |
-| 5 | Active questions exist | `Add answer` | first active Question |
-| 6 | Subscription is past due or unpaid | `Review billing` | `/app/billing` |
-| 7 | Member count is one or less | `Invite teammate` | `/app/members` |
-| 8 | None of the above | `Review activity` | selected Space |
+| 2 | No questions exist | `Open Space` | first Space that accepts questions, otherwise the first Space |
+| 3 | Draft questions exist | `Review draft questions` | first draft Question, otherwise the selected Space |
+| 4 | Active questions exist | `Add answer` | first active Question |
+| 5 | Subscription is past due or unpaid | `Review billing` | `/app/billing` |
+| 6 | Member count is one or less | `Invite teammate` | `/app/members` |
+| 7 | None of the above | `Review activity` | selected Space |
 
 Billing entitlement problems can also render the dashboard `BillingNotice`. That notice is separate from setup progress and can appear even when the setup focus card is hidden.
 
@@ -64,7 +64,7 @@ Billing entitlement problems can also render the dashboard `BillingNotice`. That
 |---|---|---|
 | `SetupFocusCard` | Shows current setup percent and links to `getRoleAwareNextAction` | [`dashboard-page.tsx`](../../../apps/portal/src/domains/dashboard/dashboard-page.tsx) |
 | `ExecutiveSummaryCard` | Promotes the highest business readout and repeats the next action | [`dashboard-page.tsx`](../../../apps/portal/src/domains/dashboard/dashboard-page.tsx) |
-| `BusinessReadout` | Explains demand, active answers, trusted coverage, and evidence readiness | [`dashboard-selectors.ts`](../../../apps/portal/src/domains/dashboard/dashboard-selectors.ts) |
+| `BusinessReadout` | Explains demand, active answers, active-answer coverage, and optional source visibility | [`dashboard-selectors.ts`](../../../apps/portal/src/domains/dashboard/dashboard-selectors.ts) |
 | `Priority queue` | Shows draft and active questions plus active answers ready for reuse | [`dashboard-page.tsx`](../../../apps/portal/src/domains/dashboard/dashboard-page.tsx) |
 | `Demand by space` | Explains where question demand is concentrated | [`dashboard-page.tsx`](../../../apps/portal/src/domains/dashboard/dashboard-page.tsx) |
 | Inline empty states | Explain that questions, active answers, or space demand will appear after workflow activity exists | [`dashboard-page.tsx`](../../../apps/portal/src/domains/dashboard/dashboard-page.tsx) |
@@ -75,10 +75,10 @@ Detail pages use `RecommendedNextActionCard` when the page can infer the next op
 
 | Page | Rule order |
 |---|---|
-| [`space-detail-page.tsx`](../../../apps/portal/src/domains/spaces/space-detail-page.tsx) | If the Space blocks questions, show `Review intake rules`. Else if questions need action, show `Resolve first question`; this includes draft questions and non-archived questions without an accepted answer. Else if no curated sources exist, show `Attach source`. Else show `Create question`. |
-| [`question-detail-page.tsx`](../../../apps/portal/src/domains/questions/question-detail-page.tsx) | If the Question is archived, show `Review status`. Else if its Space blocks answers, show `Review answer rules`. Else if no answers exist, show `Create answer`. Else if no active answer candidates exist, show `Activate answer`. Else if no accepted answer is set, show `Set accepted answer`. Else if no sources are attached, show `Attach source`. Else show `Review activity`. |
-| [`answer-detail-page.tsx`](../../../apps/portal/src/domains/answers/answer-detail-page.tsx) | If the Answer is draft, show `Activate answer`. If archived, show `Reactivate answer`. Else if no sources are linked, show `Attach source`. Else if it is not accepted, show `Open question`. Else show `Review activity`. |
-| [`source-detail-page.tsx`](../../../apps/portal/src/domains/sources/source-detail-page.tsx) | If no Spaces curate the Source, show `Open spaces`. Else if no Questions reference it, show `Review spaces`. Else if no Answers cite it, show `Review question links`. Else show `Review answer links`. |
+| [`space-detail-page.tsx`](../../../apps/portal/src/domains/spaces/space-detail-page.tsx) | If the Space blocks questions, show `Review intake rules`. Else if draft questions need action, show `Resolve first question`. Else show `Create question`. Missing accepted answers or curated sources must not drive the recommended action. |
+| [`question-detail-page.tsx`](../../../apps/portal/src/domains/questions/question-detail-page.tsx) | If the Question is archived, show `Review status`. Else if its Space blocks answers, show `Review answer rules`. Else if no answers exist, show `Create answer`. Else if no active answer candidates exist, show `Activate answer`. Else show `Review activity`. Missing accepted answer or source links must not drive the recommended action. |
+| [`answer-detail-page.tsx`](../../../apps/portal/src/domains/answers/answer-detail-page.tsx) | If the Answer is draft, show `Activate answer`. If archived, show `Reactivate answer`. Else show `Review activity`. Missing source links or accepted state must not drive the recommended action. |
+| [`source-detail-page.tsx`](../../../apps/portal/src/domains/sources/source-detail-page.tsx) | Source-specific relationship review can still guide the operator through Space, Question, and Answer links, but those links are optional and do not make other records incomplete. |
 | [`activity-detail-page.tsx`](../../../apps/portal/src/domains/activity/activity-detail-page.tsx) | If the event has answer scope, show `Open answer`. Otherwise show `Open question`. |
 
 Each recommended action should be local and concrete. Prefer scrolling or opening the relevant relationship tab when the action can be completed on the same page.
@@ -109,15 +109,15 @@ Empty states are part of the first-run model when they explain the missing data 
 | Page | Empty guidance currently implemented |
 |---|---|
 | [`space-list-page.tsx`](../../../apps/portal/src/domains/spaces/space-list-page.tsx) | No spaces in view -> create the first QnA Space. |
-| [`source-list-page.tsx`](../../../apps/portal/src/domains/sources/source-list-page.tsx) | No sources in view -> create a Source. Relationship-scoped empty state -> open the parent record to manage the relationship. |
+| [`source-list-page.tsx`](../../../apps/portal/src/domains/sources/source-list-page.tsx) | No sources in view -> create a Source only when optional references are useful. Relationship-scoped empty state -> open the parent record to manage the optional relationship. |
 | [`tag-list-page.tsx`](../../../apps/portal/src/domains/tags/tag-list-page.tsx) | No tags in view -> create the first reusable Tag. Relationship-scoped empty state -> open the parent record to manage the relationship. |
 | [`members-page.tsx`](../../../apps/portal/src/domains/members/members-page.tsx) | No members yet -> add the first teammate. No active tenant -> select a workspace first. |
 | [`tenant-settings-page.tsx`](../../../apps/portal/src/domains/tenants/tenant-settings-page.tsx) | No active tenant workspace -> create or select a workspace before managing public access keys. |
 | [`billing-page.tsx`](../../../apps/portal/src/domains/billing/billing-page.tsx) | No workspace selected, invoices, payments, or entitlement snapshot -> explain what background state is missing. |
-| [`space-detail-page.tsx`](../../../apps/portal/src/domains/spaces/space-detail-page.tsx) | No tags, curated sources, questions, or contextual activity -> explain what will appear after the Space is connected to taxonomy, evidence, questions, or activity. |
-| [`question-detail-page.tsx`](../../../apps/portal/src/domains/questions/question-detail-page.tsx) | No tags, sources, answers, or activity -> explain which relationship or workflow event should come next. |
-| [`answer-detail-page.tsx`](../../../apps/portal/src/domains/answers/answer-detail-page.tsx) | No sources or answer activity -> explain evidence and lifecycle history expectations. |
-| [`source-detail-page.tsx`](../../../apps/portal/src/domains/sources/source-detail-page.tsx) | No Spaces, Question links, Answer links, or metadata JSON -> explain how the Source becomes trusted or cited evidence. |
+| [`space-detail-page.tsx`](../../../apps/portal/src/domains/spaces/space-detail-page.tsx) | No tags, curated sources, questions, or contextual activity -> explain optional taxonomy/source context and required question workflow separately. |
+| [`question-detail-page.tsx`](../../../apps/portal/src/domains/questions/question-detail-page.tsx) | No tags, sources, answers, or activity -> explain required answer workflow separately from optional tags and source links. |
+| [`answer-detail-page.tsx`](../../../apps/portal/src/domains/answers/answer-detail-page.tsx) | No sources or answer activity -> explain optional references and lifecycle history expectations. |
+| [`source-detail-page.tsx`](../../../apps/portal/src/domains/sources/source-detail-page.tsx) | No Spaces, Question links, Answer links, or metadata JSON -> explain optional source reuse and metadata context. |
 
 ## Other Explanatory Guidance
 
@@ -163,6 +163,7 @@ When changing Getting Started or next-action behavior:
 1. Update the owning implementation file in the tables above.
 2. Keep dashboard setup progress derived from real data and hidden at `100%`.
 3. Keep recommended actions action-oriented and route to the nearest place where the user can complete the work.
-4. Update this document with changed steps, criteria, labels, or page inventory.
-5. Update localization catalogs when user-facing strings change.
-6. Validate loading, empty, error, pending, and complete states using [`../testing/validation-guide.md`](../testing/validation-guide.md).
+4. Keep Source links and accepted-answer selection optional unless the backend contract changes.
+5. Update this document with changed steps, criteria, labels, or page inventory.
+6. Update localization catalogs when user-facing strings change.
+7. Validate loading, empty, error, pending, and complete states using [`../testing/validation-guide.md`](../testing/validation-guide.md).

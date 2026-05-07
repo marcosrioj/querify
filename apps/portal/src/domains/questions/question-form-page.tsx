@@ -246,7 +246,7 @@ export function QuestionFormPage({ mode }: { mode: "create" | "edit" }) {
                   <span>{translateText("Quick notes")}</span>
                   <ContextHint
                     content={translateText(
-                      "Questions own workflow, accepted answers, sources, tags, and public feedback.",
+                      "Questions own workflow, answers, optional accepted answer, sources, tags, and public feedback.",
                     )}
                     label={translateText("Quick notes details")}
                   />

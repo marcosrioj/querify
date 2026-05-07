@@ -153,11 +153,11 @@ Relationship sections manage children and related records without leaving the or
 ### QnA workflow surfaces
 
 - Use the centralized enum presentation layer for readable labels, badge variants, descriptions, and sorting groups.
-- Question detail should manage accepted answer, answers, sources, tags, and activity in context.
+- Question detail should manage answers, optional accepted answer, sources, tags, and activity in context.
 - Space detail should manage questions, tags, sources, and activity in context.
-- Answer detail should manage source evidence in context.
+- Answer detail should manage optional source evidence in context.
 - Answer detail should manage answer activity in context.
-- Accepted answer selection should use the searchable select pattern and show only eligible answers.
+- Optional accepted answer selection should use the searchable select pattern and show only eligible answers.
 
 ### Progress guidance
 

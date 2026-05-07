@@ -68,7 +68,6 @@ function pickChartFill(index: number) {
 export type PortalActivationState = {
   hasProfile: boolean;
   hasSpace: boolean;
-  hasSource: boolean;
   hasTeammate: boolean;
   hasQuestion: boolean;
   hasActiveAnswer: boolean;
@@ -84,14 +83,12 @@ export function getSetupProgress(state: PortalActivationState) {
 export function getActivationState({
   hasProfile,
   memberCount,
-  sourceCount,
   spaceCount,
   questionCount,
   activeAnswerCount,
 }: {
   hasProfile: boolean;
   memberCount: number;
-  sourceCount: number;
   spaceCount: number;
   questionCount: number;
   activeAnswerCount: number;
@@ -99,7 +96,6 @@ export function getActivationState({
   return {
     hasProfile,
     hasSpace: spaceCount > 0,
-    hasSource: sourceCount > 0,
     hasTeammate: memberCount > 1,
     hasQuestion: questionCount > 0,
     hasActiveAnswer: activeAnswerCount > 0,
@@ -108,7 +104,6 @@ export function getActivationState({
 
 export function getRoleAwareNextAction({
   spaces,
-  sourceCount,
   questionCount,
   draftQuestions,
   draftQuestionCount,
@@ -117,7 +112,6 @@ export function getRoleAwareNextAction({
   memberCount,
 }: {
   spaces: SpaceDto[];
-  sourceCount: number;
   questionCount: number;
   draftQuestions: QuestionDto[];
   draftQuestionCount: number;
@@ -138,14 +132,6 @@ export function getRoleAwareNextAction({
 
   const questionSpace =
     spaces.find((space) => space.acceptsQuestions) ?? spaces[0];
-
-  if (sourceCount === 0) {
-    return {
-      label: "Add first source",
-      description: "Add trusted evidence before answers start circulating.",
-      to: "/app/sources/new",
-    };
-  }
 
   if (questionCount === 0) {
     return {
@@ -217,7 +203,6 @@ export function getSpaceWorkloadData(spaces: SpaceDto[]) {
 }
 
 export function getBusinessReadout({
-  acceptedAnswerCount,
   publicSourceCount,
   openQuestionCount,
   draftQuestionCount,
@@ -228,7 +213,6 @@ export function getBusinessReadout({
   firstDemandQuestionId,
   firstSpaceId,
 }: {
-  acceptedAnswerCount: number;
   publicSourceCount: number;
   openQuestionCount: number;
   draftQuestionCount: number;
@@ -240,8 +224,11 @@ export function getBusinessReadout({
   firstSpaceId?: string;
 }) {
   const demandToResolve = draftQuestionCount + openQuestionCount;
-  const trustedCoverage = percentage(acceptedAnswerCount, questionCount);
-  const evidenceReadiness = percentage(publicSourceCount, sourceCount);
+  const answerCoverage = Math.min(
+    percentage(activeAnswerCount, questionCount),
+    100,
+  );
+  const sourceVisibility = percentage(publicSourceCount, sourceCount);
   const fallbackSpaceTo = firstSpaceId
     ? `/app/spaces/${firstSpaceId}`
     : "/app/spaces";
@@ -276,27 +263,27 @@ export function getBusinessReadout({
           : fallbackSpaceTo,
     },
     {
-      label: "Trusted coverage",
-      value: `${trustedCoverage}%`,
-      benchmark: "Goal 80% accepted",
+      label: "Answer coverage",
+      value: `${answerCoverage}%`,
+      benchmark: "Active answers",
       detail:
         questionCount > 0
-          ? "Share of questions with an accepted answer."
-          : "Create questions before measuring trusted coverage.",
-      progress: trustedCoverage,
-      tone: ratioTone(trustedCoverage, questionCount),
+          ? "Active reusable answers compared with the current question count."
+          : "Create questions before measuring answer coverage.",
+      progress: answerCoverage,
+      tone: ratioTone(answerCoverage, questionCount),
       to: fallbackSpaceTo,
     },
     {
-      label: "Evidence readiness",
-      value: `${evidenceReadiness}%`,
-      benchmark: "Goal 80% public",
+      label: "Source visibility",
+      value: `${sourceVisibility}%`,
+      benchmark: "Optional context",
       detail:
         sourceCount > 0
-          ? "Share of sources visible publicly for reusable answers."
-          : "Add sources before scaling active answers.",
-      progress: evidenceReadiness,
-      tone: ratioTone(evidenceReadiness, sourceCount),
+          ? "Share of optional source records visible publicly."
+          : "Sources are optional and can be added when answers need references.",
+      progress: sourceVisibility,
+      tone: ratioTone(sourceVisibility, sourceCount),
       to: "/app/sources",
     },
   ];

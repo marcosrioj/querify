@@ -296,10 +296,7 @@ export function SpaceDetailPage() {
     : false;
   const spaceQuestions = questionQuery.data?.items ?? [];
   const questionsNeedingAction = spaceQuestions.filter(
-    (question) =>
-      question.status === QuestionStatus.Draft ||
-      (!question.acceptedAnswerId &&
-        question.status !== QuestionStatus.Archived),
+    (question) => question.status === QuestionStatus.Draft,
   );
   const contextualActivity = activityQuery.data?.items ?? [];
   const tagsPagination = useLocalPagination({
@@ -423,19 +420,13 @@ export function SpaceDetailPage() {
       ? {
           label: "Resolve first question",
           tab: "questions",
-          text: "A question needs an accepted answer decision.",
+          text: "Draft questions need activation or archive review.",
         }
-      : (spaceQuery.data?.curatedSources.length ?? 0) === 0
-        ? {
-            label: "Attach source",
-            tab: "sources",
-            text: "This Space has no curated evidence yet. Attach a reusable Source before scaling answers.",
-          }
-        : {
-            label: "Create question",
-            tab: "questions",
-            text: "The Space is ready for the next operational question.",
-          };
+      : {
+          label: "Create question",
+          tab: "questions",
+          text: "The Space is ready for the next operational question.",
+        };
 
   return (
     <DetailLayout
@@ -513,7 +504,8 @@ export function SpaceDetailPage() {
               },
               {
                 label: "Curated sources",
-                description: "Reusable material that should anchor this space.",
+                description:
+                  "Optional reusable material that can add context to this space.",
                 value: String(spaceQuery.data.curatedSources.length),
               },
               {
@@ -613,9 +605,7 @@ export function SpaceDetailPage() {
                       nextAction.tab === "questions" &&
                         nextAction.label === "Create question"
                         ? "new-question-title"
-                        : nextAction.tab === "sources"
-                          ? "space-source-picker"
-                          : undefined,
+                        : undefined,
                     )
                   }
                 >
@@ -672,7 +662,7 @@ export function SpaceDetailPage() {
                 key: "sources",
                 label: "Curated sources",
                 description:
-                  "Attach reusable evidence that should be trusted inside this Space.",
+                  "Attach optional reusable references for this Space.",
                 icon: Waypoints,
                 count: spaceQuery.data?.curatedSources.length ?? 0,
               },
@@ -835,7 +825,7 @@ export function SpaceDetailPage() {
                 ) : (
                   <EmptyState
                     title="No curated sources yet"
-                    description="Attach reusable material that should anchor this space."
+                    description="Optional reusable material can be attached when this space needs shared context."
                   />
                 )}
                 <ChildListPagination
@@ -1140,9 +1130,9 @@ export function SpaceDetailPage() {
                               ),
                             })}
                           </span>
-                          {!question.acceptedAnswerId ? (
-                            <Badge variant="warning" appearance="outline">
-                              {translateText("Needs answer decision")}
+                          {question.acceptedAnswerId ? (
+                            <Badge variant="success" appearance="outline">
+                              {translateText("Accepted answer")}
                             </Badge>
                           ) : null}
                         </div>
