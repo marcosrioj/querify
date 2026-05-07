@@ -25,7 +25,7 @@ public static class HangFireCollectionExtension
     }
 
     public static void AddHangFire(this IServiceCollection services,
-        ConfigurationManager configuration, string[]? queues = null)
+        IConfiguration configuration, string[]? queues = null)
     {
         LoadHangFireOptions(services, configuration);
 
@@ -72,7 +72,7 @@ public static class HangFireCollectionExtension
     }
 
     public static void AddHangFireInMemory(this IServiceCollection services,
-        ConfigurationManager configuration, string[]? queues = null)
+        IConfiguration configuration, string[]? queues = null)
     {
         LoadHangFireOptions(services, configuration);
 
@@ -120,7 +120,7 @@ public static class HangFireCollectionExtension
     }
 
     public static void UseHangFireDashboard(this IApplicationBuilder app,
-        ConfigurationManager configuration)
+        IConfiguration configuration)
     {
         var options = configuration.GetRequiredSection(HangFireOptions.Name).Get<HangFireOptions>();
 

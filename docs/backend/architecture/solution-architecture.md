@@ -93,9 +93,10 @@ Write and read paths are separated through commands and queries. The usual flow 
 4. The handler executes validation, persistence, and event publication.
 
 The same boundary applies to background processing and broker integration:
-`HostedService -> ProcessorService -> Command/Query` and `Consumer -> Service -> Command/Query`.
+`HostedService -> ProcessorService -> Command/Query`, `Consumer -> Service -> Command/Query`,
+and `Hangfire BackgroundService -> Service -> Command/Query`.
 Feature telemetry starts in the service layer by default, not in controllers, hosted services,
-consumers, command handlers, or query handlers.
+Hangfire background job classes, consumers, command handlers, or query handlers.
 For hosted services, name that coordination layer `*ProcessorService`: it opens telemetry
 and dispatches a command/query, while the command/query owns EF, broker, storage, retry,
 finalization, and domain workflow behavior.

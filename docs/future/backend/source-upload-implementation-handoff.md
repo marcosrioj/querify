@@ -621,3 +621,70 @@
   - None.
 - Exact next step to resume:
   - Continue with the existing deployment pending work above: database migration, production malware scanner configuration, and MinIO-backed smoke path.
+
+## Post-Step 8 - Persisted Hangfire Source Verification
+
+- Step attempted: post-Step 8 architecture follow-up replacing Source upload RabbitMQ/outbox relay with persisted Hangfire.
+- Scope completed:
+  - Removed `SourceUploadedOutboxMessage`, `SourceUploadOutboxStatus`, `SourceUploadedIntegrationEvent`, MassTransit consumer, source-upload outbox processor service, and outbox publisher hosted service from the Source upload flow.
+  - Added `Source.UploadChecksum` so optional client checksums survive `upload-complete` until worker verification without requiring an outbox row.
+  - Migrated `Querify.QnA.Worker.Api` to `Querify.Common.Infrastructure.Hangfire` with PostgreSQL-backed Hangfire storage and queue `qna-source-upload`.
+  - Added `SourceUploadVerificationBackgroundService` as the Hangfire adapter.
+  - Added `SourceUploadVerificationSweepService` for telemetry plus MediatR dispatch.
+  - Added `VerifyUploadedSourcesForAllTenantsCommand` so commands own tenant iteration, EF queries, and verification dispatch.
+  - Made worker terminal upload transitions conditional on `UploadStatus=Uploaded` and the expected staging `StorageKey`, so duplicate/stale Hangfire executions cannot overwrite a source already moved to `Verified`, `Failed`, or `Quarantined`.
+  - Updated Portal detail polling so users see `Uploaded -> Verified/Failed/Quarantined` transitions without a manual refresh.
+  - Updated `docs/behavior-change-playbook.md` and `docs/future/backend/source-upload.md` with the Hangfire background-service pattern.
+- Files changed:
+  - `apps/portal/src/domains/sources/source-detail-page.tsx`
+  - `devops/local/docker/docker-compose.backend.yml`
+  - `devops/local/docker/postgres/create_databases.sql`
+  - `docs/behavior-change-playbook.md`
+  - `docs/future/backend/source-upload.md`
+  - `docs/future/backend/source-upload-implementation-handoff.md`
+  - `dotnet/Querify.Common.Infrastructure.Hangfire/Extensions/HangFireCollectionExtension.cs`
+  - `dotnet/Querify.Models.QnA/Dtos/IntegrationEvents/SourceUploadedIntegrationEvent.cs`
+  - `dotnet/Querify.Models.QnA/Enums/SourceUploadOutboxStatus.cs`
+  - `dotnet/Querify.QnA.Common.Domain/Entities/Source.cs`
+  - `dotnet/Querify.QnA.Common.Domain/Entities/SourceUploadedOutboxMessage.cs`
+  - `dotnet/Querify.QnA.Common.Persistence.QnADb/Configurations/SourceConfiguration.cs`
+  - `dotnet/Querify.QnA.Common.Persistence.QnADb/Configurations/SourceUploadedOutboxMessageConfiguration.cs`
+  - `dotnet/Querify.QnA.Common.Persistence.QnADb/DbContext/QnADbContext.cs`
+  - `dotnet/Querify.QnA.Common.Persistence.QnADb/Migrations/20260507171804_SourceUploadHangfireBacklog.cs`
+  - `dotnet/Querify.QnA.Common.Persistence.QnADb/Migrations/20260507171804_SourceUploadHangfireBacklog.Designer.cs`
+  - `dotnet/Querify.QnA.Common.Persistence.QnADb/Migrations/QnADbContextModelSnapshot.cs`
+  - `dotnet/Querify.QnA.Portal.Business.Source/Commands/CompleteUpload/SourcesCompleteUploadCommandHandler.cs`
+  - `dotnet/Querify.QnA.Portal.Test.IntegrationTests/Tests/Source/SourceUploadCommandQueryTests.cs`
+  - `dotnet/Querify.QnA.Worker.Api/*`
+  - `dotnet/Querify.QnA.Worker.Business.Source/*`
+  - `dotnet/Querify.QnA.Worker.Test.IntegrationTests/Tests/Source/*`
+- Commands run:
+  - `git status --short` - pass.
+  - `dotnet build dotnet/Querify.QnA.Worker.Api -v minimal` - pass; 0 warnings, 0 errors.
+  - `dotnet build dotnet/Querify.Tools.Migration -v minimal` - pass; 0 warnings, 0 errors.
+  - `dotnet ef migrations add SourceUploadHangfireBacklog --project dotnet/Querify.QnA.Common.Persistence.QnADb --startup-project dotnet/Querify.Tools.Migration --context QnADbContext --verbose -- --module QnA` - fail; EF tool build wrapper reported build failed with no compiler diagnostics.
+  - `dotnet ef migrations add SourceUploadHangfireBacklog --project dotnet/Querify.QnA.Common.Persistence.QnADb --startup-project dotnet/Querify.Tools.Migration --context QnADbContext --no-build -- --module QnA` - pass; generated migration after the startup project built successfully.
+  - `dotnet build dotnet/Querify.QnA.Portal.Api -v minimal` - pass; 0 warnings, 0 errors.
+  - `dotnet test dotnet/Querify.QnA.Portal.Test.IntegrationTests -v minimal` - pass; 54 tests.
+  - `dotnet test dotnet/Querify.QnA.Worker.Test.IntegrationTests -v minimal` - pass; 10 tests.
+  - `dotnet test dotnet/Querify.Common.Architecture.Test.IntegrationTest -v minimal` - pass; 10 tests.
+  - `npm run lint` from `apps/portal` - pass with 8 existing warnings in unrelated files.
+  - `npm run build` from `apps/portal` - pass.
+  - `git diff --check` - pass.
+  - `rg -n "SourceUploadedOutbox|SourceUploadOutboxStatus|SourceUploadedIntegrationEvent|SourceUploadedConsumer|ProcessSourceUploadedOutbox|SourceUploadedOutboxProcessor|RabbitMQ|MassTransit|IPublishEndpoint|IConsumer<" dotnet/Querify.QnA.Worker.Api dotnet/Querify.QnA.Worker.Business.Source dotnet/Querify.QnA.Common.Domain dotnet/Querify.QnA.Common.Persistence.QnADb dotnet/Querify.Models.QnA dotnet/Querify.QnA.Portal.Business.Source dotnet/Querify.QnA.Portal.Test.IntegrationTests dotnet/Querify.QnA.Worker.Test.IntegrationTests -g '*.cs' -g '*.csproj' -g '*.json'` - pass; no matches.
+  - `rg -n "StartActivity|ActivitySource|IMediator|mediator\\.Send|GetRequiredService<IMediator>" dotnet/Querify.QnA.Worker.Business.Source/BackgroundServices dotnet/Querify.QnA.Worker.Api/HostedServices -g '*.cs'` - pass; no matches.
+  - `REDIS_PASSWORD=RedisTempPassword docker compose -f devops/local/docker/docker-compose.baseservices.yml up -d postgres minio minio-init` - fail; environment-only, Docker daemon unavailable at `/home/marcos/.docker/desktop/docker.sock`.
+- Manual verification performed:
+  - Verified no Source upload RabbitMQ/MassTransit references remain in QnA Worker API, QnA Worker Source business, QnA Source domain/persistence, or Source upload tests.
+  - Verified Hangfire background job class calls a service, and the service owns telemetry plus MediatR dispatch.
+  - Verified the migration creates Source upload columns and does not create `SourceUploadedOutboxMessages`.
+  - Verified the Portal Source detail page polls while upload status is `Pending` or `Uploaded` and enables download only for `Verified`.
+  - Verified duplicate/stale verification cannot overwrite a terminal upload status through the added worker integration test.
+- Intentional pending work:
+  - Configure production `HangFire:ConnectionString` and create/provision the persistent Hangfire database/schema.
+  - Configure a production-grade malware scanner; `Noop` remains development-only.
+  - Run the MinIO-backed smoke path with Docker/local infrastructure after Docker daemon is running.
+- Exact blocker if stopped:
+  - None for code compilation or automated validation. End-to-end smoke is blocked by local Docker daemon availability.
+- Exact next step to resume:
+  - Provision/configure production Hangfire storage and malware scanning, then run the MinIO-backed `upload-intent -> PUT -> upload-complete -> Hangfire worker verification -> download-url` smoke path.

@@ -264,13 +264,18 @@ Rules:
 - Telemetry spans belong in the service layer by default. The standard flow is
   `Controller -> Service (telemetry) -> Command/Query`,
   `Consumer -> Service (telemetry) -> Command/Query`, or
-  `HostedService -> ProcessorService (telemetry) -> Command/Query`. Do not put feature
-  telemetry first in controllers, consumers, hosted services, command handlers,
-  or query handlers unless the implementation prompt explicitly asks for that exception.
+  `HostedService -> ProcessorService (telemetry) -> Command/Query`. Hangfire jobs follow
+  `Hangfire BackgroundService -> Service (telemetry) -> Command/Query`. Do not put feature
+  telemetry first in controllers, consumers, hosted services, Hangfire background job classes,
+  command handlers, or query handlers unless the implementation prompt explicitly asks for that
+  exception.
 - Hosted-service services use the `ProcessorService` suffix. A `ProcessorService`
   coordinates only: open telemetry, set tags, and call one MediatR command or query.
   It must not own EF queries, broker publish/consume behavior, storage operations,
   retry/finalization rules, or domain decisions.
+- Hangfire background job classes are schedulers/adapters only. They call a service that owns
+  telemetry and dispatches commands/queries. Use persisted Hangfire storage for production jobs
+  whose loss would leave user-visible state stuck or unsafe.
 - Command handlers orchestrate validation, loading, state mutation, persistence, and side effects.
 - Query handlers load and shape read DTOs.
 - Domain decisions and pure business rules live under the owning common domain
@@ -320,7 +325,7 @@ The seed tool may apply EF migrations when it is executed, as described in [`bac
 
 Direct and Broadcast seed data belongs in their own seed services and persistence contexts. Do not seed their behavior through QnA sample data.
 
-Worker API hosts must register `Querify.Common.Infrastructure.Telemetry` with `AddTelemetry(...)`. Each worker business feature should expose a feature-specific `ActivitySourceName`, pass it to the host registration, and start feature spans inside `ProcessorService` classes rather than directly inside hosted services, consumers, commands, or queries. Hosted services must be schedulers only: they resolve/call a `ProcessorService`; that service owns telemetry and MediatR dispatch; the command/query owns workflow behavior.
+Worker API hosts must register `Querify.Common.Infrastructure.Telemetry` with `AddTelemetry(...)`. Each worker business feature should expose a feature-specific `ActivitySourceName`, pass it to the host registration, and start feature spans inside `ProcessorService` classes or Hangfire-called services rather than directly inside hosted services, Hangfire background job classes, consumers, commands, or queries. Hosted services and Hangfire background job classes must be schedulers only: they resolve/call a service; that service owns telemetry and MediatR dispatch; the command/query owns workflow behavior.
 
 ## Step 8: Update Tests
 

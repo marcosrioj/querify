@@ -103,12 +103,12 @@ public sealed class VerifyUploadedSourceCommandHandler(
         }
 
         var computedChecksum = $"sha256:{evidence.Sha256Hex}";
-        if (!ClientChecksumMatches(request.ClientChecksum, computedChecksum))
+        if (!ClientChecksumMatches(entity.UploadChecksum, computedChecksum))
         {
             logger.LogWarning(
                 "Uploaded source {SourceId} failed checksum verification. Expected client checksum {ClientChecksum}; computed {ComputedChecksum}.",
                 entity.Id,
-                request.ClientChecksum,
+                entity.UploadChecksum,
                 computedChecksum);
             await FailSourceAsync(entity, request.StorageKey, deleteStaging: true, cancellationToken);
             return entity.Id;
@@ -116,17 +116,19 @@ public sealed class VerifyUploadedSourceCommandHandler(
 
         var verifiedKey = SourceStorageKey.ToVerifiedKey(request.StorageKey);
         await objectStorage.CopyAsync(request.StorageKey, verifiedKey, cancellationToken);
-        await objectStorage.DeleteAsync(request.StorageKey, cancellationToken);
 
-        entity.StorageKey = verifiedKey;
-        entity.Locator = verifiedKey;
-        entity.Checksum = computedChecksum;
-        entity.SizeBytes = head.SizeBytes;
-        entity.MediaType = normalizedHeadContentType;
-        entity.LastVerifiedAtUtc = DateTime.UtcNow;
-        entity.UploadStatus = SourceUploadStatus.Verified;
-        entity.UpdatedBy = SystemUser;
-        await dbContext.SaveChangesAsync(cancellationToken);
+        var transitioned = await TryMarkVerifiedAsync(
+            entity,
+            request.StorageKey,
+            verifiedKey,
+            computedChecksum,
+            head.SizeBytes,
+            normalizedHeadContentType,
+            cancellationToken);
+        if (transitioned)
+        {
+            await TryDeleteStagingObjectAsync(entity.Id, request.StorageKey, cancellationToken);
+        }
 
         return entity.Id;
     }
@@ -169,14 +171,11 @@ public sealed class VerifyUploadedSourceCommandHandler(
         bool deleteStaging,
         CancellationToken cancellationToken)
     {
-        if (deleteStaging)
+        var transitioned = await TryMarkFailedAsync(entity, cancellationToken);
+        if (transitioned && deleteStaging)
         {
-            await objectStorage.DeleteAsync(stagingKey, cancellationToken);
+            await TryDeleteStagingObjectAsync(entity.Id, stagingKey, cancellationToken);
         }
-
-        entity.UploadStatus = SourceUploadStatus.Failed;
-        entity.UpdatedBy = SystemUser;
-        await dbContext.SaveChangesAsync(cancellationToken);
     }
 
     private async Task QuarantineSourceAsync(
@@ -187,13 +186,14 @@ public sealed class VerifyUploadedSourceCommandHandler(
     {
         var quarantineKey = SourceStorageKey.ToQuarantineKey(stagingKey);
         await objectStorage.CopyAsync(stagingKey, quarantineKey, cancellationToken);
-        await objectStorage.DeleteAsync(stagingKey, cancellationToken);
 
-        entity.StorageKey = quarantineKey;
-        entity.Locator = quarantineKey;
-        entity.UploadStatus = SourceUploadStatus.Quarantined;
-        entity.UpdatedBy = SystemUser;
-        await dbContext.SaveChangesAsync(cancellationToken);
+        var transitioned = await TryMarkQuarantinedAsync(entity, quarantineKey, cancellationToken);
+        if (!transitioned)
+        {
+            return;
+        }
+
+        await TryDeleteStagingObjectAsync(entity.Id, stagingKey, cancellationToken);
 
         logger.LogWarning(
             "Uploaded source {SourceId} was quarantined. Reason: {Reason}",
@@ -223,6 +223,141 @@ public sealed class VerifyUploadedSourceCommandHandler(
         var rightBytes = Encoding.UTF8.GetBytes(right);
         return leftBytes.Length == rightBytes.Length &&
                CryptographicOperations.FixedTimeEquals(leftBytes, rightBytes);
+    }
+
+    private async Task<bool> TryMarkVerifiedAsync(
+        Common.Domain.Entities.Source entity,
+        string stagingKey,
+        string verifiedKey,
+        string computedChecksum,
+        long sizeBytes,
+        string mediaType,
+        CancellationToken cancellationToken)
+    {
+        var verifiedAtUtc = DateTime.UtcNow;
+        var updatedRows = await dbContext.Sources
+            .Where(source => source.TenantId == entity.TenantId &&
+                             source.Id == entity.Id &&
+                             source.UploadStatus == SourceUploadStatus.Uploaded &&
+                             source.StorageKey == stagingKey)
+            .ExecuteUpdateAsync(setters => setters
+                    .SetProperty(source => source.StorageKey, verifiedKey)
+                    .SetProperty(source => source.Locator, verifiedKey)
+                    .SetProperty(source => source.Checksum, computedChecksum)
+                    .SetProperty(source => source.UploadChecksum, (string?)null)
+                    .SetProperty(source => source.SizeBytes, sizeBytes)
+                    .SetProperty(source => source.MediaType, mediaType)
+                    .SetProperty(source => source.LastVerifiedAtUtc, verifiedAtUtc)
+                    .SetProperty(source => source.UploadStatus, SourceUploadStatus.Verified)
+                    .SetProperty(source => source.UpdatedBy, SystemUser),
+                cancellationToken);
+
+        if (updatedRows == 0)
+        {
+            logger.LogInformation(
+                "Skipping verified transition for source {SourceId} because another worker already changed it.",
+                entity.Id);
+            return false;
+        }
+
+        entity.StorageKey = verifiedKey;
+        entity.Locator = verifiedKey;
+        entity.Checksum = computedChecksum;
+        entity.UploadChecksum = null;
+        entity.SizeBytes = sizeBytes;
+        entity.MediaType = mediaType;
+        entity.LastVerifiedAtUtc = verifiedAtUtc;
+        entity.UploadStatus = SourceUploadStatus.Verified;
+        entity.UpdatedBy = SystemUser;
+        return true;
+    }
+
+    private async Task<bool> TryMarkFailedAsync(
+        Common.Domain.Entities.Source entity,
+        CancellationToken cancellationToken)
+    {
+        var currentStorageKey = entity.StorageKey;
+        var updatedRows = await dbContext.Sources
+            .Where(source => source.TenantId == entity.TenantId &&
+                             source.Id == entity.Id &&
+                             source.UploadStatus == SourceUploadStatus.Uploaded &&
+                             source.StorageKey == currentStorageKey)
+            .ExecuteUpdateAsync(setters => setters
+                    .SetProperty(source => source.UploadStatus, SourceUploadStatus.Failed)
+                    .SetProperty(source => source.UploadChecksum, (string?)null)
+                    .SetProperty(source => source.UpdatedBy, SystemUser),
+                cancellationToken);
+
+        if (updatedRows == 0)
+        {
+            logger.LogInformation(
+                "Skipping failed transition for source {SourceId} because another worker already changed it.",
+                entity.Id);
+            return false;
+        }
+
+        entity.UploadStatus = SourceUploadStatus.Failed;
+        entity.UploadChecksum = null;
+        entity.UpdatedBy = SystemUser;
+        return true;
+    }
+
+    private async Task<bool> TryMarkQuarantinedAsync(
+        Common.Domain.Entities.Source entity,
+        string quarantineKey,
+        CancellationToken cancellationToken)
+    {
+        var currentStorageKey = entity.StorageKey;
+        var updatedRows = await dbContext.Sources
+            .Where(source => source.TenantId == entity.TenantId &&
+                             source.Id == entity.Id &&
+                             source.UploadStatus == SourceUploadStatus.Uploaded &&
+                             source.StorageKey == currentStorageKey)
+            .ExecuteUpdateAsync(setters => setters
+                    .SetProperty(source => source.StorageKey, quarantineKey)
+                    .SetProperty(source => source.Locator, quarantineKey)
+                    .SetProperty(source => source.UploadStatus, SourceUploadStatus.Quarantined)
+                    .SetProperty(source => source.UploadChecksum, (string?)null)
+                    .SetProperty(source => source.UpdatedBy, SystemUser),
+                cancellationToken);
+
+        if (updatedRows == 0)
+        {
+            logger.LogInformation(
+                "Skipping quarantined transition for source {SourceId} because another worker already changed it.",
+                entity.Id);
+            return false;
+        }
+
+        entity.StorageKey = quarantineKey;
+        entity.Locator = quarantineKey;
+        entity.UploadStatus = SourceUploadStatus.Quarantined;
+        entity.UploadChecksum = null;
+        entity.UpdatedBy = SystemUser;
+        return true;
+    }
+
+    private async Task TryDeleteStagingObjectAsync(
+        Guid sourceId,
+        string stagingKey,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            await objectStorage.DeleteAsync(stagingKey, cancellationToken);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(
+                ex,
+                "Source {SourceId} transitioned but staging object {StorageKey} could not be deleted.",
+                sourceId,
+                stagingKey);
+        }
     }
 
     private sealed record ObjectEvidence(long SizeBytes, string Sha256Hex, byte[] Prefix);

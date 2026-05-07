@@ -1,4 +1,5 @@
 using System.Security.Cryptography;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Querify.Models.QnA.Enums;
@@ -20,18 +21,19 @@ public class VerifyUploadedSourceCommandHandlerTests
         var storage = new FakeObjectStorage();
         var content = "%PDF-1.7 test"u8.ToArray();
         var source = await SeedUploadedSourceAsync(context, storage, content);
+        source.UploadChecksum = BuildSha256(content);
+        await context.DbContext.SaveChangesAsync();
         var handler = CreateHandler(context, storage);
 
         await handler.Handle(new VerifyUploadedSourceCommand
         {
             TenantId = context.SessionService.TenantId,
             SourceId = source.Id,
-            StorageKey = source.StorageKey!,
-            ClientChecksum = BuildSha256(content),
-            UploadedAtUtc = DateTime.UtcNow
+            StorageKey = source.StorageKey!
         }, CancellationToken.None);
 
         Assert.Equal(SourceUploadStatus.Verified, source.UploadStatus);
+        Assert.Null(source.UploadChecksum);
         Assert.True(SourceStorageKey.IsVerifiedKey(source.StorageKey));
         Assert.Equal(source.StorageKey, source.Locator);
         Assert.NotNull(source.LastVerifiedAtUtc);
@@ -45,18 +47,19 @@ public class VerifyUploadedSourceCommandHandlerTests
         using var context = TestContext.Create();
         var storage = new FakeObjectStorage();
         var source = await SeedUploadedSourceAsync(context, storage, "%PDF-1.7 test"u8.ToArray());
+        source.UploadChecksum = "sha256:0000";
+        await context.DbContext.SaveChangesAsync();
         var handler = CreateHandler(context, storage);
 
         await handler.Handle(new VerifyUploadedSourceCommand
         {
             TenantId = context.SessionService.TenantId,
             SourceId = source.Id,
-            StorageKey = source.StorageKey!,
-            ClientChecksum = "sha256:0000",
-            UploadedAtUtc = DateTime.UtcNow
+            StorageKey = source.StorageKey!
         }, CancellationToken.None);
 
         Assert.Equal(SourceUploadStatus.Failed, source.UploadStatus);
+        Assert.Null(source.UploadChecksum);
         Assert.Contains(source.StorageKey!, storage.DeletedKeys);
     }
 
@@ -72,11 +75,11 @@ public class VerifyUploadedSourceCommandHandlerTests
         {
             TenantId = context.SessionService.TenantId,
             SourceId = source.Id,
-            StorageKey = source.StorageKey!,
-            UploadedAtUtc = DateTime.UtcNow
+            StorageKey = source.StorageKey!
         }, CancellationToken.None);
 
         Assert.Equal(SourceUploadStatus.Failed, source.UploadStatus);
+        Assert.Null(source.UploadChecksum);
         Assert.Contains(source.StorageKey!, storage.DeletedKeys);
     }
 
@@ -92,11 +95,11 @@ public class VerifyUploadedSourceCommandHandlerTests
         {
             TenantId = context.SessionService.TenantId,
             SourceId = source.Id,
-            StorageKey = source.StorageKey!,
-            UploadedAtUtc = DateTime.UtcNow
+            StorageKey = source.StorageKey!
         }, CancellationToken.None);
 
         Assert.Equal(SourceUploadStatus.Quarantined, source.UploadStatus);
+        Assert.Null(source.UploadChecksum);
         Assert.Contains("/quarantine/", source.StorageKey, StringComparison.Ordinal);
         Assert.Equal(source.StorageKey, source.Locator);
     }
@@ -114,13 +117,51 @@ public class VerifyUploadedSourceCommandHandlerTests
         {
             TenantId = context.SessionService.TenantId,
             SourceId = source.Id,
-            StorageKey = source.StorageKey!,
-            UploadedAtUtc = DateTime.UtcNow
+            StorageKey = source.StorageKey!
         }, CancellationToken.None);
 
         Assert.Equal(SourceUploadStatus.Pending, source.UploadStatus);
         Assert.Empty(storage.DeletedKeys);
         Assert.Empty(storage.CopiedKeys);
+    }
+
+    [Fact]
+    public async Task StaleDuplicateAfterVerified_DoesNotOverwriteVerifiedStatus()
+    {
+        using var context = TestContext.Create();
+        var storage = new FakeObjectStorage();
+        var content = "%PDF-1.7 test"u8.ToArray();
+        var source = await SeedUploadedSourceAsync(context, storage, content);
+        var stagingKey = source.StorageKey!;
+        var verifiedKey = SourceStorageKey.ToVerifiedKey(stagingKey);
+        var computedChecksum = BuildSha256(content);
+        var verifiedAtUtc = DateTime.UtcNow;
+
+        storage.Put(verifiedKey, content, "application/pdf");
+        await context.DbContext.Sources
+            .Where(item => item.TenantId == source.TenantId && item.Id == source.Id)
+            .ExecuteUpdateAsync(setters => setters
+                .SetProperty(item => item.StorageKey, verifiedKey)
+                .SetProperty(item => item.Locator, verifiedKey)
+                .SetProperty(item => item.Checksum, computedChecksum)
+                .SetProperty(item => item.UploadChecksum, (string?)null)
+                .SetProperty(item => item.LastVerifiedAtUtc, verifiedAtUtc)
+                .SetProperty(item => item.UploadStatus, SourceUploadStatus.Verified));
+        await storage.DeleteAsync(stagingKey, CancellationToken.None);
+        var handler = CreateHandler(context, storage);
+
+        await handler.Handle(new VerifyUploadedSourceCommand
+        {
+            TenantId = context.SessionService.TenantId,
+            SourceId = source.Id,
+            StorageKey = stagingKey
+        }, CancellationToken.None);
+
+        await context.DbContext.Entry(source).ReloadAsync();
+        Assert.Equal(SourceUploadStatus.Verified, source.UploadStatus);
+        Assert.Equal(verifiedKey, source.StorageKey);
+        Assert.Equal(verifiedKey, source.Locator);
+        Assert.Equal(computedChecksum, source.Checksum);
     }
 
     private static VerifyUploadedSourceCommandHandler CreateHandler(

@@ -1,5 +1,6 @@
-using Querify.Models.QnA.Dtos.IntegrationEvents;
 using Querify.QnA.Worker.Business.Source.Commands.VerifyUploadedSource;
+using Querify.QnA.Worker.Business.Source.Commands.VerifyUploadedSourcesForAllTenants;
+using Querify.QnA.Worker.Business.Source.Options;
 using Querify.QnA.Worker.Business.Source.Services;
 using Querify.QnA.Worker.Test.IntegrationTests.Helpers;
 using Xunit;
@@ -17,19 +18,30 @@ public class SourceUploadVerificationServiceTests
         var mediator = new CapturingMediator();
         var verificationService = new SourceUploadVerificationService(tenantContext, mediator);
 
-        await verificationService.VerifyUploadedAsync(new SourceUploadedIntegrationEvent
-        {
-            TenantId = tenantId,
-            SourceId = sourceId,
-            StorageKey = $"{tenantId}/sources/{sourceId}/staging/manual.pdf",
-            ClientChecksum = "sha256:test",
-            UploadedAtUtc = DateTime.UtcNow
-        }, CancellationToken.None);
+        var storageKey = $"{tenantId}/sources/{sourceId}/staging/manual.pdf";
+        await verificationService.VerifyUploadedAsync(tenantId, sourceId, storageKey, CancellationToken.None);
 
         var command = Assert.IsType<VerifyUploadedSourceCommand>(mediator.LastRequest);
         Assert.Equal(tenantId, command.TenantId);
         Assert.Equal(sourceId, command.SourceId);
-        Assert.Equal("sha256:test", command.ClientChecksum);
+        Assert.Equal(storageKey, command.StorageKey);
         Assert.Equal(Guid.Empty, tenantContext.TenantId);
+    }
+
+    [Fact]
+    public async Task VerifyUploadedSourcesAsync_UsesConfiguredBatchSize()
+    {
+        var mediator = new CapturingMediator();
+        var service = new SourceUploadVerificationSweepService(
+            mediator,
+            new TestOptionsMonitor<SourceUploadVerificationSweepOptions>(new SourceUploadVerificationSweepOptions
+            {
+                BatchSize = 7
+            }));
+
+        await service.VerifyUploadedSourcesAsync(CancellationToken.None);
+
+        var command = Assert.IsType<VerifyUploadedSourcesForAllTenantsCommand>(mediator.LastRequest);
+        Assert.Equal(7, command.BatchSize);
     }
 }

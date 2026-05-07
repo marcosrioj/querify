@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   CheckCircle2,
   Download,
@@ -82,6 +82,7 @@ export function SourceDetailPage() {
   const portalTimeZone = usePortalTimeZone();
   const { id } = useParams();
   const sourceQuery = useSource(id);
+  const { refetch: refetchSource } = sourceQuery;
   const deleteSource = useDeleteSource();
   const downloadUrlQuery = useSourceDownloadUrl(id, false);
   const [relationshipTab, setRelationshipTab] = useState("spaces");
@@ -149,6 +150,21 @@ export function SourceDetailPage() {
   const canDownload =
     Boolean(sourceQuery.data?.storageKey) &&
     sourceQuery.data?.uploadStatus === SourceUploadStatus.Verified;
+  const shouldPollUploadStatus =
+    sourceQuery.data?.uploadStatus === SourceUploadStatus.Pending ||
+    sourceQuery.data?.uploadStatus === SourceUploadStatus.Uploaded;
+
+  useEffect(() => {
+    if (!shouldPollUploadStatus) {
+      return;
+    }
+
+    const intervalId = window.setInterval(() => {
+      void refetchSource();
+    }, 5000);
+
+    return () => window.clearInterval(intervalId);
+  }, [refetchSource, shouldPollUploadStatus]);
 
   if (!id) {
     return (

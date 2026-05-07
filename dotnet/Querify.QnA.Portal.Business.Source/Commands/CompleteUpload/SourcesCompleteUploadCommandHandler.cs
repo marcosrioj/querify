@@ -73,24 +73,13 @@ public sealed class SourcesCompleteUploadCommandHandler(
                 (int)HttpStatusCode.UnprocessableEntity);
         }
 
-        await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
         entity.SizeBytes = head.SizeBytes;
         entity.MediaType = headContentType;
+        entity.UploadChecksum = request.ClientChecksum;
         entity.UploadStatus = SourceUploadStatus.Uploaded;
         entity.UpdatedBy = userId;
 
-        dbContext.SourceUploadedOutboxMessages.Add(new SourceUploadedOutboxMessage
-        {
-            Id = Guid.NewGuid(),
-            TenantId = tenantId,
-            SourceId = entity.Id,
-            StorageKey = entity.StorageKey,
-            ClientChecksum = request.ClientChecksum,
-            UploadedAtUtc = DateTime.UtcNow
-        });
-
         await dbContext.SaveChangesAsync(cancellationToken);
-        await transaction.CommitAsync(cancellationToken);
         return entity.Id;
     }
 
@@ -101,6 +90,7 @@ public sealed class SourcesCompleteUploadCommandHandler(
     {
         await objectStorage.DeleteAsync(entity.StorageKey!, cancellationToken);
         entity.UploadStatus = SourceUploadStatus.Failed;
+        entity.UploadChecksum = null;
         entity.UpdatedBy = userId;
         await dbContext.SaveChangesAsync(cancellationToken);
     }

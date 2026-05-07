@@ -40,7 +40,6 @@ public class QnADbContext : BaseDbContext<QnADbContext>
     public DbSet<SpaceTag> SpaceTags { get; set; }
     public DbSet<SpaceSource> SpaceSources { get; set; }
     public DbSet<QuestionTag> QuestionTags { get; set; }
-    public DbSet<SourceUploadedOutboxMessage> SourceUploadedOutboxMessages { get; set; }
 
     protected override IEnumerable<string> ConfigurationNamespaces =>
     [

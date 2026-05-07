@@ -150,14 +150,17 @@ Hard rule: do not place new behavior in folders that already exist for a differe
    - Put feature telemetry spans in the service layer by default, using
      `Controller -> Service (telemetry) -> Command/Query`,
      `Consumer -> Service (telemetry) -> Command/Query`, or
-     `HostedService -> ProcessorService (telemetry) -> Command/Query`.
+     `HostedService -> ProcessorService (telemetry) -> Command/Query`,
+     or `Hangfire BackgroundService -> Service (telemetry) -> Command/Query`.
    - Do not start feature telemetry spans first in controllers, consumers, hosted services,
-     command handlers, or query handlers unless the implementation prompt explicitly asks
+     Hangfire background job classes, command handlers, or query handlers unless the implementation prompt explicitly asks
      for that exception.
    - Hosted services are schedulers only. They resolve/call a `ProcessorService`.
    - `ProcessorService` classes coordinate only: open telemetry, set tags, and dispatch one
      MediatR command/query. They do not query EF, publish to brokers, call storage, implement
      retry/finalization rules, or make domain decisions.
+   - Hangfire background job classes are schedulers/adapters only. They resolve/call a service
+     that owns telemetry and dispatches one MediatR command/query.
    - Commands/queries own worker workflow behavior after the processor service dispatches them.
    - Pure domain decisions belong under the owning common-domain `BusinessRules/<Feature>`
      folder, not in API or worker `Services`.

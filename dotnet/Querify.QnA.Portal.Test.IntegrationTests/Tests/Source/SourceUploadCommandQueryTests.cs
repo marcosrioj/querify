@@ -162,7 +162,7 @@ public class SourceUploadCommandQueryTests
     }
 
     [Fact]
-    public async Task CompleteUpload_HappyPath_TransitionsToUploadedAndWritesOutbox()
+    public async Task CompleteUpload_HappyPath_TransitionsToUploadedAndStoresUploadChecksum()
     {
         using var context = TestContext.Create();
         var storage = new FakeObjectStorage();
@@ -179,7 +179,7 @@ public class SourceUploadCommandQueryTests
 
         Assert.Equal(source.Id, result);
         Assert.Equal(SourceUploadStatus.Uploaded, source.UploadStatus);
-        Assert.Single(context.DbContext.SourceUploadedOutboxMessages);
+        Assert.Equal("sha256:client", source.UploadChecksum);
     }
 
     [Fact]

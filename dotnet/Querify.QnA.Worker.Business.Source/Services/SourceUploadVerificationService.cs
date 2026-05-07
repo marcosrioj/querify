@@ -1,5 +1,4 @@
 using MediatR;
-using Querify.Models.QnA.Dtos.IntegrationEvents;
 using Querify.QnA.Worker.Business.Source.Abstractions;
 using Querify.QnA.Worker.Business.Source.Commands.VerifyUploadedSource;
 using Querify.QnA.Worker.Business.Source.Infrastructure;
@@ -11,20 +10,22 @@ public sealed class SourceUploadVerificationService(
     IMediator mediator)
     : ISourceUploadVerificationService
 {
-    public async Task VerifyUploadedAsync(SourceUploadedIntegrationEvent message, CancellationToken cancellationToken)
+    public async Task VerifyUploadedAsync(
+        Guid tenantId,
+        Guid sourceId,
+        string storageKey,
+        CancellationToken cancellationToken)
     {
         using var activity = SourceWorkerTelemetry.ActivitySource.StartActivity("source-upload.verify");
-        activity?.SetTag("source.id", message.SourceId);
-        activity?.SetTag("tenant.id", message.TenantId);
+        activity?.SetTag("source.id", sourceId);
+        activity?.SetTag("tenant.id", tenantId);
 
-        using var tenantScope = tenantContext.UseTenant(message.TenantId);
+        using var tenantScope = tenantContext.UseTenant(tenantId);
         await mediator.Send(new VerifyUploadedSourceCommand
         {
-            TenantId = message.TenantId,
-            SourceId = message.SourceId,
-            StorageKey = message.StorageKey,
-            ClientChecksum = message.ClientChecksum,
-            UploadedAtUtc = message.UploadedAtUtc
+            TenantId = tenantId,
+            SourceId = sourceId,
+            StorageKey = storageKey
         }, cancellationToken);
     }
 }

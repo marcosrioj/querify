@@ -70,8 +70,10 @@ Portal (React)              QnA Portal API                Object Storage        
                             validate size/type
                             persist SizeBytes/MediaType
                             UploadStatus = Uploaded
-                            outbox SourceUploadedEvent ───► RabbitMQ ─────────────► consume event
-                                                                                    send command
+                            UploadChecksum = optional client checksum
+                                                                                    Hangfire persisted job
+                                                                                    calls service
+                                                                                    sends command
                                                                                     stream SHA-256
                                                                                     validate MIME/magic
                                                                                     malware scan
@@ -126,9 +128,9 @@ and [`../../backend/architecture/solution-architecture.md`](../../backend/archit
 section 7, it must not take ownership of product module workflows.
 
 QnA-owned async work belongs to a new host: `Querify.QnA.Worker.Api`, mirroring the project layout
-of the tenant worker. If that creates too much overhead in early implementation steps, a transitional option is
-to run the consumer as an `IHostedService` inside `Querify.QnA.Portal.Api` and split it out later;
-the integration event contract stays the same.
+of the tenant worker. Source upload verification uses persisted Hangfire in that worker. Hangfire
+background job classes are adapters only and follow
+`Hangfire BackgroundService -> Service (telemetry) -> Command/Query`.
 
 ---
 
@@ -243,9 +245,10 @@ Handler is a real command (`IRequestHandler<TCommand, Guid>`):
    match the declared `MediaType`, delete the staging object, set `UploadStatus = Failed`,
    persist, and return `422`.
 7. Persist `SizeBytes = head.SizeBytes`, `MediaType = head.ContentType`,
-   `UploadStatus = Uploaded`, `UpdatedBy = userId`.
-8. Save the `SourceUploadedIntegrationEvent` through the transactional outbox in the same database
-   transaction as the `Source` update. The dispatcher publishes it to RabbitMQ after commit.
+   `UploadChecksum = ClientChecksum`, `UploadStatus = Uploaded`, `UpdatedBy = userId`.
+8. Do not publish a broker event from `upload-complete`. `Source.UploadStatus = Uploaded` is the
+   durable backlog. The QnA worker runs a persisted Hangfire recurring job that finds uploaded
+   staging objects and dispatches verification commands.
 
 ### API step C — `GET /api/qna/source/{id:guid}/download-url`
 
@@ -270,17 +273,12 @@ Handler is a query:
 
 ## Async verification (worker)
 
-`SourceUploadedIntegrationEvent` shape:
-
-```
-{ Guid TenantId, Guid SourceId, string StorageKey, string? ClientChecksum,
-  DateTime UploadedAtUtc }
-```
-
 Worker command/query structure:
 
-- `SourceUploadedConsumer` is a transport adapter only. It receives
-  `SourceUploadedIntegrationEvent` and sends `VerifyUploadedSourceCommand` through MediatR.
+- `SourceUploadVerificationBackgroundService` is a Hangfire background job adapter only. It calls
+  `SourceUploadVerificationSweepService`.
+- `SourceUploadVerificationSweepService` owns telemetry and sends
+  `VerifyUploadedSourcesForAllTenantsCommand` through MediatR.
 - `VerifyUploadedSourceCommandHandler` owns the verification business flow and all state mutation.
 - `PendingSourceUploadExpiryHostedService` is a scheduler adapter only. It sends
   `ExpirePendingSourceUploadsCommand` through MediatR.
@@ -306,34 +304,37 @@ Command (`VerifyUploadedSourceCommandHandler` in
    ClamAV, provider-native malware scanning, or an equivalent managed scanner before anything can
    become `Verified`.
 8. If `ClientChecksum` was provided and does not match the streamed hash:
-   - delete the staging object because it is not useful for recovery.
-   - `UploadStatus = Failed`, persist, log a warning, **do not rethrow** (no retry — permanent
-     failure).
+   - conditionally mark `UploadStatus = Failed` only when the row is still `Uploaded` and
+     `StorageKey` still equals the staging key.
+   - delete the staging object after the terminal row transition; log cleanup failure, but **do not
+     rethrow** for a permanent failure.
 9. If MIME/magic validation fails:
-   - `UploadStatus = Failed`, persist, delete the staging object, return.
+   - conditionally mark `UploadStatus = Failed`, delete the staging object after the terminal row
+     transition, return.
 10. If malware is detected or the scanner returns an unsafe verdict:
    - `quarantineKey = SourceStorageKey.ToQuarantineKey(stagingKey)`
-   - copy/move the object to `quarantineKey`
-   - `StorageKey = quarantineKey`, `Locator = quarantineKey`, `UploadStatus = Quarantined`
-   - persist and return; do not sign downloads for quarantined objects.
+   - copy the object to `quarantineKey`
+   - conditionally update `StorageKey = quarantineKey`, `Locator = quarantineKey`,
+     `UploadStatus = Quarantined`
+   - delete the staging object after the terminal row transition; return; do not sign downloads for
+     quarantined objects.
 11. Otherwise:
    - `verifiedKey = SourceStorageKey.ToVerifiedKey(stagingKey)`
    - copy the object to `verifiedKey`
-   - delete the staging object
-   - update `StorageKey = verifiedKey`, `Locator = verifiedKey`
+   - conditionally update `StorageKey = verifiedKey`, `Locator = verifiedKey`
    - `Checksum = "sha256:<hex>"`
    - `SizeBytes = head.SizeBytes`
    - `LastVerifiedAtUtc = DateTime.UtcNow`
    - `UploadStatus = Verified`
    - `UpdatedBy = "system:qna-worker"`
-   - persist.
+   - persist, then delete the staging object.
 
 Retry semantics:
-- Transient storage errors (5xx, timeouts) propagate, MassTransit retries with the standard
-  policy.
+- Transient storage errors (5xx, timeouts) propagate so persisted Hangfire retries the job.
 - Permanent errors (checksum mismatch, MIME mismatch, malware detection) flip the row to `Failed`
-  or `Quarantined`; the command returns without throwing so the consumer can acknowledge the
-  message.
+  or `Quarantined`; the command returns without throwing.
+- Cleanup after a successful terminal row transition is best effort. Downloads still require
+  `UploadStatus = Verified` and a `/verified/` key, so a leftover staging object is not exposed.
 
 ---
 
@@ -346,9 +347,9 @@ This feature should ship as a bounded, economical upload pipeline:
 2. The browser uploads directly to object storage. The API never proxies file bytes.
 3. The client calls `upload-complete`; the API checks the object exists and that actual size/type
    still match the intent.
-4. A transactional outbox records the verification event with the same database commit that moves
-   the source to `Uploaded`.
-5. The QnA worker consumer translates the event into `VerifyUploadedSourceCommand`.
+4. `Source.UploadStatus = Uploaded` becomes the durable backlog.
+5. The QnA worker's persisted Hangfire recurring job finds uploaded staging sources and calls the
+   service layer, which dispatches `VerifyUploadedSourceCommand`.
 6. The QnA worker command handler streams the object, validates content, scans for malware, and
    moves trusted bytes from `staging/` to `verified/`.
 7. Downloads are always private presigned GETs, and only for `Verified` objects under `verified/`.
@@ -413,7 +414,7 @@ instead of treating upload as a one-off API feature.
 | 2 | Supporting infrastructure | Add local S3-compatible storage and shared `IObjectStorage`. | `devops/local/docker/`, new `Querify.Common.Infrastructure.Storage` |
 | 3 | Steps 3-5 | Update model contract, enum, DTOs, EF configuration, and manual migration notes. | `Querify.QnA.Common.Domain`, `Querify.Models.QnA`, `Querify.QnA.Common.Persistence.QnADb` |
 | 4 | Step 6 | Add Portal API behavior, including the documented `upload-intent` command DTO exception. | `Querify.QnA.Portal.Business.Source`, `Querify.QnA.Portal.Api` |
-| 5 | Step 6 | Add worker consumers as event adapters and worker commands for verification, scan, quarantine, and pending-expiry processing. | new `Querify.QnA.Worker.Api`, new `Querify.QnA.Worker.Business.Source` |
+| 5 | Step 6 | Add persisted Hangfire worker jobs and worker commands for verification, scan, quarantine, and pending-expiry processing. | new `Querify.QnA.Worker.Api`, new `Querify.QnA.Worker.Business.Source` |
 | 6 | Steps 7-8 | Add seed data and integration tests. | `Querify.Tools.Seed`, QnA Portal/Worker integration tests |
 | 7 | Step 9 | Add Portal UI, API client hooks, enum presentation, and `en-US` copy keys. | `apps/portal/src/domains/sources/`, `en-US.json` |
 | 8 | Steps 10-12 | Add all locale values, run targeted validation, and write final migration/deployment handoff. | locale files, build/test outputs, release notes |
@@ -792,8 +793,8 @@ CONTEXT
   complete) to the Portal API (Querify.QnA.Portal.Business.Source) only.
   Public API does NOT receive uploads (multi-tenant principle: public is
   read-only).
-- Async event persistence is included in this step through the transactional
-  outbox; the consumer arrives in implementation step 5.
+- Async verification is triggered by the QnA worker's persisted Hangfire backlog sweep in
+  implementation step 5. `Source.UploadStatus = Uploaded` is the durable backlog marker.
 - The implementation uses single presigned PUT only. Do not add multipart or
   resumable contracts.
 - `upload-intent` is the only documented exception to the playbook rule that
@@ -857,12 +858,11 @@ Shared options:
      Failed, save, 422.
    - entity.SizeBytes = head.SizeBytes
    - entity.MediaType = head.ContentType
+   - entity.UploadChecksum = request.ClientChecksum
    - entity.UploadStatus = SourceUploadStatus.Uploaded
    - entity.UpdatedBy = userId
-   - SaveChangesAsync in a transaction that also writes an outbox message for
-     SourceUploadedIntegrationEvent {
-       TenantId, SourceId, StorageKey, ClientChecksum,
-       UploadedAtUtc = DateTime.UtcNow }
+   - SaveChangesAsync. Do not publish a broker event or write a source-upload outbox message.
+     The persisted worker Hangfire job will pick up `Uploaded` staging sources.
    - return entity.Id
 
 3) Queries/GetDownloadUrl/
@@ -899,15 +899,7 @@ Shared options:
        → 200 + SourceDownloadUrlDto
    Use [Authorize] + [ProducesResponseType] for each status code.
 
-6) Define the integration event contract — preferred location is
-   Querify.Models.QnA.Contracts (new Dtos/IntegrationEvents/ folder if
-   absent) OR a new Querify.Models.QnA.Contracts project if the repository
-   pattern requires it. The contract:
-     SourceUploadedIntegrationEvent
-       { Guid TenantId, Guid SourceId, string StorageKey,
-         string? ClientChecksum, DateTime UploadedAtUtc }
-
-7) Querify.QnA.Portal.Api/Extensions/ServiceCollectionExtensions.cs:
+6) Querify.QnA.Portal.Api/Extensions/ServiceCollectionExtensions.cs:
    Ensure AddObjectStorage(configuration) is called once in the host
    composition root (solution-architecture §1).
    Add project reference: Querify.Common.Infrastructure.Storage in
@@ -915,11 +907,8 @@ Shared options:
    Bind SourceUploadOptions from "SourceUpload":
      MaxUploadBytes = 52428800
      PendingExpirationHours = 24
-   Ensure MassTransit is wired in the host with the transactional outbox or the
-   repository's existing equivalent. Do not publish the event after
-   SaveChangesAsync without an outbox in production code.
 
-8) devops/local/docker/docker-compose.backend.yml
+7) devops/local/docker/docker-compose.backend.yml
    When `querify.qna.portal.api` runs in Docker, set:
    - ObjectStorage__Endpoint=http://minio:9000
    - ObjectStorage__PublicEndpoint=http://localhost:5900
@@ -956,8 +945,7 @@ Querify monorepo. Required reading:
 - docs/backend/architecture/querify-tenant-worker.md
 - docs/backend/architecture/solution-architecture.md (§7 control-plane
   workers)
-- Querify.Common.Infrastructure.MassTransit/Extensions and Consumers for
-  patterns
+- Querify.Common.Infrastructure.Hangfire for persisted Hangfire registration
 
 CONTEXT
 After upload-complete (implementation step 4), Source is in UploadStatus.Uploaded. We need
@@ -976,34 +964,31 @@ Source belongs to the QnA module, but the playbook
 control-plane work, not product workflows. Create a new project:
 Querify.QnA.Worker.Api, mirroring the tenant worker layout.
 
-If overhead is a concern, a transitional option is to run the consumer as
-an IHostedService inside Querify.QnA.Portal.Api. Document the choice in the
-handoff but keep the integration event contract identical so a later split
-is mechanical.
+Use persisted Hangfire, not in-memory jobs. `Source.UploadStatus = Uploaded` is the recoverable
+backlog if enqueue/registration is interrupted.
 
 DELIVERABLES (assuming a dedicated worker)
 
-1) Verify the integration event contract from implementation step 4:
-   SourceUploadedIntegrationEvent
-     { Guid TenantId, Guid SourceId, string StorageKey,
-       string? ClientChecksum, DateTime UploadedAtUtc }
-
-2) New project: dotnet/Querify.QnA.Worker.Api/
-   - Program.cs: generic IHost, AddMassTransit with consumer registration,
-     queue qna.source.uploaded, and AddMediatR for worker commands
+1) New project: dotnet/Querify.QnA.Worker.Api/
+   - Program.cs: generic IHost, AddHangFire with PostgreSQL storage and queue
+     `qna-source-upload`
    - AddObjectStorage, AddDbContext<QnADbContext>
    - tenant connection resolution mirroring Querify.Tenant.Worker.Api
    - appsettings with ObjectStorage + SourceUpload + SourceUpload:ThreatScanningMode
-     + ConnectionStrings + RabbitMQ
+     + ConnectionStrings + HangFire
    - Dockerfile (mirror Querify.Tenant.Worker.Api/Dockerfile)
 
-3) New project: dotnet/Querify.QnA.Worker.Business.Source/
-   - Consumers/SourceUploadedConsumer.cs
-       : IConsumer<SourceUploadedIntegrationEvent>
+2) New project: dotnet/Querify.QnA.Worker.Business.Source/
+   - BackgroundServices/SourceUploadVerificationBackgroundService.cs
+       Hangfire adapter only; calls SourceUploadVerificationSweepService
+   - Services/SourceUploadVerificationSweepService.cs
+       owns telemetry and sends VerifyUploadedSourcesForAllTenantsCommand
+   - Commands/VerifyUploadedSourcesForAllTenants/
+       finds active QnA tenants and uploaded staging sources, then dispatches
+       VerifyUploadedSourceCommand
    - Commands/VerifyUploadedSource/VerifyUploadedSourceCommand.cs
        : IRequest<Guid>
-       { Guid TenantId, Guid SourceId, string StorageKey,
-         string? ClientChecksum, DateTime UploadedAtUtc }
+       { Guid TenantId, Guid SourceId, string StorageKey }
    - Commands/VerifyUploadedSource/VerifyUploadedSourceCommandHandler.cs
    - Commands/ExpirePendingSourceUploads/ExpirePendingSourceUploadsCommand.cs
        : IRequest<bool>
@@ -1016,12 +1001,11 @@ DELIVERABLES (assuming a dedicated worker)
    - Common Domain BusinessRules/Sources/SourceUploadContentInspector.cs (magic-byte validation)
    - HostedServices/PendingSourceUploadExpiryHostedService.cs
 
-   Consumer flow:
-   - do not put verification business logic in the consumer
-   - map SourceUploadedIntegrationEvent to VerifyUploadedSourceCommand
-   - send the command through MediatR
-   - let MassTransit retry transient command failures according to the
-     receive endpoint retry policy
+   Hangfire flow:
+   - do not put verification business logic in the Hangfire background job class
+   - Hangfire BackgroundService calls SourceUploadVerificationSweepService
+   - SourceUploadVerificationSweepService opens telemetry and sends MediatR commands
+   - transient failures propagate so Hangfire retries according to persisted job state
 
    VerifyUploadedSourceCommandHandler flow:
    - resolve QnADbContext for the command's TenantId (use existing
@@ -1036,7 +1020,7 @@ DELIVERABLES (assuming a dedicated worker)
    - run IUploadThreatScanner. In Development, NoopUploadThreatScanner is
      allowed only when SourceUpload:ThreatScanningMode=Noop. In production,
      fail startup unless a real scanner mode is configured.
-   - if ClientChecksum was provided and does not match: UploadStatus =
+   - if UploadChecksum was provided and does not match: UploadStatus =
      Failed, DeleteAsync(stagingKey), log warning, persist, return without
      rethrowing (no retry).
    - if magic/type validation fails: UploadStatus = Failed,
@@ -1066,27 +1050,29 @@ DELIVERABLES (assuming a dedicated worker)
    - sets UploadStatus = Expired and UpdatedBy = "system:qna-worker"
    - returns the number of expired sources
 
-4) Service registration extension in
+3) Service registration extension in
    Querify.QnA.Worker.Business.Source/Extensions/ServiceCollectionExtensions.cs:
-   AddSourceWorker(IConfiguration) registers consumer + dependencies.
+   AddSourceWorker(IConfiguration) registers Hangfire-callable background service classes,
+   telemetry-owning services, commands, options, scanner, and pending-expiry hosted service.
 
-5) Add both csprojs to Querify.sln.
+4) Add both csprojs to Querify.sln.
 
-6) devops/local/docker/docker-compose.backend.yml — add
+5) devops/local/docker/docker-compose.backend.yml — add
    `querify.qna.worker.api` service following the pattern of other backend
-   services (build context, depends_on postgres/rabbitmq/minio, env vars).
+   services (build context, depends_on postgres/minio, env vars).
    Set:
    - ObjectStorage__Endpoint=http://minio:9000
    - ObjectStorage__PublicEndpoint=http://localhost:5900
 
 RULES
 - Worker does not perform read-after-write on entities of other modules.
-- Consumer is a transport adapter only; commands own business behavior.
+- Hangfire background job classes are adapters only; services own telemetry and commands own
+  business behavior.
 - VerifyUploadedSourceCommandHandler is idempotent (filter by UploadStatus ==
-  Uploaded).
+  Uploaded and the expected staging StorageKey before terminal transitions).
 - Do not materialize the full blob — streaming SHA-256 only.
-- Transient errors (storage 5xx) leave the message for MassTransit retry
-  (rethrow). Permanent errors (checksum mismatch, MIME mismatch) flip to
+- Transient errors (storage 5xx) propagate for Hangfire retry. Permanent errors
+  (checksum mismatch, MIME mismatch) flip to
   Failed or Quarantined and return without throwing.
 - QnADbContext is tenant-scoped — connection string must be resolved from
   the command TenantId before save.
@@ -1097,12 +1083,12 @@ VALIDATION
 dotnet build dotnet/Querify.QnA.Worker.Api
 dotnet build dotnet/Querify.QnA.Worker.Business.Source
 docker compose -f devops/local/docker/docker-compose.baseservices.yml up -d
-  postgres rabbitmq minio minio-init
+  postgres minio minio-init
 docker compose -f devops/local/docker/docker-compose.backend.yml up -d
   querify.qna.worker.api
 - Run /api/qna/source/upload-intent → PUT to returned presigned URL →
   upload-complete
-- Inspect consumer/command logs and Sources.UploadStatus column.
+- Inspect Hangfire job state, command logs, and Sources.UploadStatus column.
 
 HANDOFF
 - Text extraction for AI indexing (depends on AI roadmap).
@@ -1195,7 +1181,7 @@ dotnet run --project dotnet/Querify.Tools.Seed
   examples carry StorageKey + UploadStatus=Verified.
 
 HANDOFF
-- Coverage: Portal command/query covered. Worker consumer adapters and worker
+- Coverage: Portal command/query covered. Worker Hangfire adapters and worker
   command handlers covered.
 - Pending: i18n, frontend.
 ```

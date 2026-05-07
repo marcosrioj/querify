@@ -16,7 +16,7 @@ COPY ["dotnet/Querify.Common.EntityFramework.Core.Tenant/Querify.Common.EntityFr
 COPY ["dotnet/Querify.Common.Infrastructure.ApiErrorHandling/Querify.Common.Infrastructure.ApiErrorHandling.csproj", "dotnet/Querify.Common.Infrastructure.ApiErrorHandling/"]
 COPY ["dotnet/Querify.Common.Infrastructure.Core/Querify.Common.Infrastructure.Core.csproj", "dotnet/Querify.Common.Infrastructure.Core/"]
 COPY ["dotnet/Querify.Common.Infrastructure.MediatR/Querify.Common.Infrastructure.MediatR.csproj", "dotnet/Querify.Common.Infrastructure.MediatR/"]
-COPY ["dotnet/Querify.Common.Infrastructure.MassTransit/Querify.Common.Infrastructure.MassTransit.csproj", "dotnet/Querify.Common.Infrastructure.MassTransit/"]
+COPY ["dotnet/Querify.Common.Infrastructure.Hangfire/Querify.Common.Infrastructure.Hangfire.csproj", "dotnet/Querify.Common.Infrastructure.Hangfire/"]
 COPY ["dotnet/Querify.Common.Infrastructure.Storage/Querify.Common.Infrastructure.Storage.csproj", "dotnet/Querify.Common.Infrastructure.Storage/"]
 COPY ["dotnet/Querify.Models.Common/Querify.Models.Common.csproj", "dotnet/Querify.Models.Common/"]
 COPY ["dotnet/Querify.Models.QnA/Querify.Models.QnA.csproj", "dotnet/Querify.Models.QnA/"]

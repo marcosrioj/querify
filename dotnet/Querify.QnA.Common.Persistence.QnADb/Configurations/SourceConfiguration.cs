@@ -43,6 +43,9 @@ public class SourceConfiguration : BaseConfiguration<Source>
             .HasMaxLength(Source.MaxChecksumLength)
             .IsRequired();
 
+        builder.Property(source => source.UploadChecksum)
+            .HasMaxLength(Source.MaxUploadChecksumLength);
+
         builder.Property(source => source.MetadataJson)
             .HasMaxLength(Source.MaxMetadataLength);
 

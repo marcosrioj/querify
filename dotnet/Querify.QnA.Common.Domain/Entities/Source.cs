@@ -17,6 +17,7 @@ public class Source : BaseEntity, IMustHaveTenant
     public const int MaxLanguageLength = 50;
     public const int MaxMediaTypeLength = 100;
     public const int MaxChecksumLength = 128;
+    public const int MaxUploadChecksumLength = 256;
     public const int MaxMetadataLength = 8000;
     public const int MaxStorageKeyLength = 1000;
 
@@ -69,6 +70,11 @@ public class Source : BaseEntity, IMustHaveTenant
     ///     Hash or signature used to detect content changes.
     /// </summary>
     public required string Checksum { get; set; }
+
+    /// <summary>
+    ///     Optional client-provided checksum used only while an uploaded file is awaiting worker verification.
+    /// </summary>
+    public string? UploadChecksum { get; set; }
 
     /// <summary>
     ///     Serialized source metadata.

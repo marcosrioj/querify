@@ -96,6 +96,8 @@ Current module persistence implementation:
 - `Querify.Common.Infrastructure.Core`: shared core abstractions and backend helper services
 - `Querify.Common.Infrastructure.ApiErrorHandling`: API error handling conventions and
   `ApiErrorException`, the exception type handlers should use for request-time API failures
+- `Querify.Common.Infrastructure.Hangfire`: persisted Hangfire registration for durable internal
+  background jobs; Hangfire background job classes call services and do not own feature behavior
 - `Querify.Common.Infrastructure.MassTransit`: MassTransit registration and messaging conventions
 - `Querify.Common.Infrastructure.MediatR`: MediatR integration and related pipeline behavior
 - `Querify.Common.Infrastructure.Mvc`: MVC filters and ASP.NET Core glue
@@ -104,7 +106,8 @@ Current module persistence implementation:
 - `Querify.Common.Infrastructure.Telemetry`: shared telemetry wiring (OpenTelemetry tracing, OTLP export).
   API and worker hosts register it at composition root, while feature spans are started in
   services by default (`Controller/Consumer -> Service -> Command/Query`,
-  `HostedService -> ProcessorService -> Command/Query`).
+  `HostedService -> ProcessorService -> Command/Query`,
+  `Hangfire BackgroundService -> Service -> Command/Query`).
   Worker hosted services call `ProcessorService` classes; processor services coordinate
   telemetry plus MediatR dispatch only, while commands/queries own workflow behavior.
 - `Querify.Models.Common`: shared primitive DTOs and common contracts, including `ModuleEnum`

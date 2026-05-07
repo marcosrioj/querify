@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Querify.QnA.Common.Domain.Options;
 using Querify.QnA.Worker.Business.Source.Abstractions;
+using Querify.QnA.Worker.Business.Source.BackgroundServices;
 using Querify.QnA.Worker.Business.Source.Commands.VerifyUploadedSource;
 using Querify.QnA.Worker.Business.Source.HostedServices;
 using Querify.QnA.Worker.Business.Source.Options;
@@ -29,8 +30,8 @@ public static class ServiceCollectionExtensions
                 "At least one source upload content type must be allowed.")
             .ValidateOnStart();
 
-        services.AddOptions<SourceUploadedOutboxProcessingOptions>()
-            .BindConfiguration(SourceUploadedOutboxProcessingOptions.SectionName)
+        services.AddOptions<SourceUploadVerificationSweepOptions>()
+            .BindConfiguration(SourceUploadVerificationSweepOptions.SectionName)
             .ValidateDataAnnotations()
             .ValidateOnStart();
         services.AddOptions<PendingSourceUploadExpiryOptions>()
@@ -42,9 +43,9 @@ public static class ServiceCollectionExtensions
             config.RegisterServicesFromAssemblyContaining<VerifyUploadedSourceCommandHandler>());
 
         services.AddScoped<ISourceUploadVerificationService, SourceUploadVerificationService>();
-        services.AddScoped<ISourceUploadedOutboxProcessorService, SourceUploadedOutboxProcessorService>();
+        services.AddScoped<ISourceUploadVerificationSweepService, SourceUploadVerificationSweepService>();
+        services.AddScoped<SourceUploadVerificationBackgroundService>();
         services.AddSingleton<IPendingSourceUploadExpiryProcessorService, PendingSourceUploadExpiryProcessorService>();
-        services.AddHostedService<SourceUploadedOutboxPublisherHostedService>();
         services.AddHostedService<PendingSourceUploadExpiryHostedService>();
 
         ConfigureThreatScanner(services, configuration, environment);
