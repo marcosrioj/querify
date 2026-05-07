@@ -25,7 +25,7 @@ export type DashboardSignalTone =
   | "success"
   | "warning";
 
-function demandTone(value: number): DashboardSignalTone {
+function queueTone(value: number): DashboardSignalTone {
   if (value === 0) {
     return "success";
   }
@@ -53,7 +53,7 @@ function ratioTone(value: number, total: number): DashboardSignalTone {
   return "danger";
 }
 
-function activeAnswersTone(value: number): DashboardSignalTone {
+function reusableAssetTone(value: number): DashboardSignalTone {
   if (value > 0) {
     return "success";
   }
@@ -107,7 +107,6 @@ export function getRoleAwareNextAction({
   questionCount,
   draftQuestions,
   draftQuestionCount,
-  openQuestions,
   billingSummary,
   memberCount,
 }: {
@@ -115,7 +114,6 @@ export function getRoleAwareNextAction({
   questionCount: number;
   draftQuestions: QuestionDto[];
   draftQuestionCount: number;
-  openQuestions: QuestionDto[];
   billingSummary?: TenantBillingSummaryDto | null;
   memberCount: number;
 }) {
@@ -150,14 +148,6 @@ export function getRoleAwareNextAction({
       to: draftQuestions[0]
         ? `/app/questions/${draftQuestions[0].id}`
         : `/app/spaces/${questionSpace.id}`,
-    };
-  }
-
-  if (openQuestions.length > 0) {
-    return {
-      label: "Add answer",
-      description: "Open questions are waiting for a trusted response.",
-      to: `/app/questions/${openQuestions[0].id}`,
     };
   }
 
@@ -203,29 +193,30 @@ export function getSpaceWorkloadData(spaces: SpaceDto[]) {
 }
 
 export function getBusinessReadout({
+  activeQuestionCount,
   publicSourceCount,
-  openQuestionCount,
   draftQuestionCount,
   activeAnswerCount,
   questionCount,
   sourceCount,
+  firstActiveQuestionId,
   firstActiveAnswerId,
-  firstDemandQuestionId,
+  firstDraftQuestionId,
   firstSpaceId,
 }: {
+  activeQuestionCount: number;
   publicSourceCount: number;
-  openQuestionCount: number;
   draftQuestionCount: number;
   activeAnswerCount: number;
   questionCount: number;
   sourceCount: number;
+  firstActiveQuestionId?: string;
   firstActiveAnswerId?: string;
-  firstDemandQuestionId?: string;
+  firstDraftQuestionId?: string;
   firstSpaceId?: string;
 }) {
-  const demandToResolve = draftQuestionCount + openQuestionCount;
-  const answerCoverage = Math.min(
-    percentage(activeAnswerCount, questionCount),
+  const reusableQuestionCoverage = Math.min(
+    percentage(activeQuestionCount, questionCount),
     100,
   );
   const sourceVisibility = percentage(publicSourceCount, sourceCount);
@@ -235,44 +226,47 @@ export function getBusinessReadout({
 
   return [
     {
-      label: "Demand to resolve",
-      value: `${demandToResolve}`,
-      benchmark: "Target 0 waiting",
+      label: "Draft review",
+      value: `${draftQuestionCount}`,
+      benchmark: "Target 0 drafts",
       detail:
-        demandToResolve > 0
-          ? "Draft and active questions are waiting to be activated or answered."
-          : "No open customer demand in the current queue.",
-      tone: demandTone(demandToResolve),
+        draftQuestionCount > 0
+          ? "Draft questions need activation or archive review."
+          : "No draft questions need lifecycle review.",
+      tone: queueTone(draftQuestionCount),
       to:
-        demandToResolve > 0 && firstDemandQuestionId
-          ? `/app/questions/${firstDemandQuestionId}`
+        draftQuestionCount > 0 && firstDraftQuestionId
+          ? `/app/questions/${firstDraftQuestionId}`
           : fallbackSpaceTo,
     },
     {
-      label: "Active answers",
+      label: "Reusable questions",
+      value: `${activeQuestionCount}`,
+      benchmark: "Active knowledge",
+      detail:
+        activeQuestionCount > 0
+          ? "Active questions are available for operators and automation."
+          : "No active questions are ready for reuse yet.",
+      progress: reusableQuestionCoverage,
+      tone: ratioTone(reusableQuestionCoverage, questionCount),
+      to:
+        activeQuestionCount > 0 && firstActiveQuestionId
+          ? `/app/questions/${firstActiveQuestionId}`
+          : fallbackSpaceTo,
+    },
+    {
+      label: "Reusable answers",
       value: `${activeAnswerCount}`,
-      benchmark: "Reusable knowledge",
+      benchmark: "Active knowledge",
       detail:
         activeAnswerCount > 0
-          ? "Active answers are ready for reuse across customer journeys."
+          ? "Active answers are available for operators and automation."
           : "No active answers are ready for reuse yet.",
-      tone: activeAnswersTone(activeAnswerCount),
+      tone: reusableAssetTone(activeAnswerCount),
       to:
         activeAnswerCount > 0 && firstActiveAnswerId
           ? `/app/answers/${firstActiveAnswerId}`
           : fallbackSpaceTo,
-    },
-    {
-      label: "Answer coverage",
-      value: `${answerCoverage}%`,
-      benchmark: "Active answers",
-      detail:
-        questionCount > 0
-          ? "Active reusable answers compared with the current question count."
-          : "Create questions before measuring answer coverage.",
-      progress: answerCoverage,
-      tone: ratioTone(answerCoverage, questionCount),
-      to: fallbackSpaceTo,
     },
     {
       label: "Source visibility",

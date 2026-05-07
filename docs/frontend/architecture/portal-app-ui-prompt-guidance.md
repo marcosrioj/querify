@@ -153,6 +153,7 @@ Relationship sections manage children and related records without leaving the or
 ### QnA workflow surfaces
 
 - Use the centralized enum presentation layer for readable labels, badge variants, descriptions, and sorting groups.
+- Treat `Active` lifecycle status as available for use and reuse, not as open demand or incomplete work.
 - Question detail should manage answers, optional accepted answer, sources, tags, and activity in context.
 - Space detail should manage questions, tags, sources, and activity in context.
 - Answer detail should manage optional source evidence in context.

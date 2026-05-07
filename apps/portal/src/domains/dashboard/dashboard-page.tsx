@@ -361,9 +361,9 @@ const businessReadoutIcons: Record<
   string,
   ComponentType<{ className?: string }>
 > = {
-  "Demand to resolve": Clock3,
-  "Active answers": FileCheck2,
-  "Answer coverage": ShieldCheck,
+  "Draft review": Clock3,
+  "Reusable questions": ShieldCheck,
+  "Reusable answers": FileCheck2,
   "Source visibility": Waypoints,
 };
 
@@ -420,14 +420,14 @@ function ProgressMeter({
 }
 
 function ExecutiveSummaryCard({
+  activeQuestionCount,
   draftQuestionCount,
   nextAction,
-  openQuestionCount,
   primary,
 }: {
+  activeQuestionCount: number;
   draftQuestionCount: number;
   nextAction: { label: string; description: string; to: string };
-  openQuestionCount: number;
   primary: BusinessReadoutItem;
 }) {
   const toneClassNames = signalToneClassNames[primary.tone];
@@ -494,12 +494,12 @@ function ExecutiveSummaryCard({
             {
               label: "Draft questions",
               value: draftQuestionCount,
-              detail: "Needs activation",
+              detail: "Needs review",
             },
             {
-              label: "Active questions",
-              value: openQuestionCount,
-              detail: "Needs an answer",
+              label: "Reusable questions",
+              value: activeQuestionCount,
+              detail: "Ready for use",
             },
           ].map((item) => (
             <div
@@ -772,7 +772,7 @@ export function DashboardPage() {
     gcTime: DASHBOARD_QUERY_GC_TIME,
     staleTime: DASHBOARD_QUERY_STALE_TIME,
   });
-  const openQuestionsQuery = useQuestionList({
+  const activeQuestionsQuery = useQuestionList({
     page: 1,
     pageSize: DASHBOARD_QUEUE_LIMIT,
     sorting: "LastActivityAtUtc DESC",
@@ -808,7 +808,7 @@ export function DashboardPage() {
     spacesQuery.isLoading ||
     questionsSummaryQuery.isLoading ||
     draftQuestionsQuery.isLoading ||
-    openQuestionsQuery.isLoading ||
+    activeQuestionsQuery.isLoading ||
     activeAnswersQuery.isLoading ||
     sourcesQuery.isLoading ||
     publicSourcesQuery.isLoading ||
@@ -820,7 +820,7 @@ export function DashboardPage() {
     spacesQuery.isError ||
     questionsSummaryQuery.isError ||
     draftQuestionsQuery.isError ||
-    openQuestionsQuery.isError ||
+    activeQuestionsQuery.isError ||
     activeAnswersQuery.isError ||
     sourcesQuery.isError ||
     publicSourcesQuery.isError;
@@ -834,7 +834,7 @@ export function DashboardPage() {
       spacesQuery.error ??
       questionsSummaryQuery.error ??
       draftQuestionsQuery.error ??
-      openQuestionsQuery.error ??
+      activeQuestionsQuery.error ??
       activeAnswersQuery.error ??
       sourcesQuery.error ??
       publicSourcesQuery.error;
@@ -843,7 +843,7 @@ export function DashboardPage() {
       <PageSurface>
         <PageHeader
           title="Business dashboard"
-          description="Priorities, risks, and demand for the QnA operation."
+          description="Priorities, reusable knowledge, and operational context for QnA."
           descriptionMode="hint"
         />
         <ErrorState
@@ -853,7 +853,7 @@ export function DashboardPage() {
             void spacesQuery.refetch();
             void questionsSummaryQuery.refetch();
             void draftQuestionsQuery.refetch();
-            void openQuestionsQuery.refetch();
+            void activeQuestionsQuery.refetch();
             void activeAnswersQuery.refetch();
             void sourcesQuery.refetch();
             void publicSourcesQuery.refetch();
@@ -865,12 +865,12 @@ export function DashboardPage() {
 
   const spaces = spacesQuery.data?.items ?? [];
   const draftQuestions = draftQuestionsQuery.data?.items ?? [];
-  const openQuestions = openQuestionsQuery.data?.items ?? [];
+  const activeQuestions = activeQuestionsQuery.data?.items ?? [];
   const activeAnswers = activeAnswersQuery.data?.items ?? [];
   const memberCount = membersQuery.data?.length ?? 0;
   const questionCount = questionsSummaryQuery.data?.totalCount ?? 0;
   const draftQuestionCount = draftQuestionsQuery.data?.totalCount ?? 0;
-  const openQuestionCount = openQuestionsQuery.data?.totalCount ?? 0;
+  const activeQuestionCount = activeQuestionsQuery.data?.totalCount ?? 0;
   const activeAnswerCount = activeAnswersQuery.data?.totalCount ?? 0;
   const sourceCount = sourcesQuery.data?.totalCount ?? 0;
   const publicSourceCount = publicSourcesQuery.data?.totalCount ?? 0;
@@ -887,25 +887,22 @@ export function DashboardPage() {
   const nextAction = getRoleAwareNextAction({
     billingSummary,
     memberCount,
-    openQuestions,
     draftQuestions,
     draftQuestionCount,
     questionCount,
     spaces,
   });
-  const queueQuestions = [...draftQuestions, ...openQuestions].slice(
-    0,
-    DASHBOARD_QUEUE_LIMIT,
-  );
+  const queueQuestions = draftQuestions.slice(0, DASHBOARD_QUEUE_LIMIT);
   const businessReadout = getBusinessReadout({
-    openQuestionCount,
+    activeQuestionCount,
     draftQuestionCount,
     publicSourceCount,
     activeAnswerCount,
     questionCount,
     sourceCount,
+    firstActiveQuestionId: activeQuestions[0]?.id,
     firstActiveAnswerId: activeAnswers[0]?.id,
-    firstDemandQuestionId: queueQuestions[0]?.id,
+    firstDraftQuestionId: queueQuestions[0]?.id,
     firstSpaceId: spaces[0]?.id,
   });
   const primaryReadout = businessReadout[0] as BusinessReadoutItem;
@@ -916,7 +913,7 @@ export function DashboardPage() {
     <PageSurface className="space-y-5 lg:space-y-7.5">
       <PageHeader
         title="Business dashboard"
-        description="Priorities, risks, and demand for the QnA operation."
+        description="Priorities, reusable knowledge, and operational context for QnA."
         descriptionMode="hint"
       />
 
@@ -933,9 +930,9 @@ export function DashboardPage() {
 
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1.35fr)_minmax(340px,0.65fr)] lg:gap-7.5">
         <ExecutiveSummaryCard
+          activeQuestionCount={activeQuestionCount}
           draftQuestionCount={draftQuestionCount}
           nextAction={nextAction}
-          openQuestionCount={openQuestionCount}
           primary={primaryReadout}
         />
         <BusinessReadout items={secondaryReadout} />
@@ -943,8 +940,8 @@ export function DashboardPage() {
 
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_380px] lg:gap-7.5">
         <Panel
-          title="Priority queue"
-          description="Only work that changes customer resolution or trusted knowledge appears here."
+          title="Workflow queue"
+          description="Draft review appears here; active records are treated as reusable knowledge."
           action={
             <Button asChild variant="outline" size="sm">
               <Link to={nextAction.to}>{translateText("Open queue")}</Link>
@@ -954,7 +951,7 @@ export function DashboardPage() {
           <div className="grid gap-5 lg:grid-cols-2">
             <div className="space-y-3">
               <QueueSectionHeader
-                title="Questions to resolve"
+                title="Draft questions to review"
                 to={
                   queueQuestions[0]
                     ? `/app/questions/${queueQuestions[0].id}`
@@ -973,8 +970,8 @@ export function DashboardPage() {
                 ))
               ) : (
                 <InlineEmptyState
-                  title="No questions need attention"
-                  description="Draft and active questions will appear here."
+                  title="No draft questions need review"
+                  description="Active questions are usable and stay out of the draft queue."
                 />
               )}
             </div>
@@ -1005,8 +1002,8 @@ export function DashboardPage() {
         </Panel>
 
         <Panel
-          title="Demand by space"
-          description="Shows where customer questions are concentrated so ownership and evidence can follow demand."
+          title="Questions by space"
+          description="Shows where question knowledge is concentrated across the workspace."
           action={
             <Button asChild variant="outline" size="sm">
               <Link to="/app/spaces">{translateText("Review spaces")}</Link>
@@ -1015,7 +1012,7 @@ export function DashboardPage() {
         >
           <HorizontalValueChart
             data={spaceWorkload}
-            emptyTitle="No space demand yet"
+            emptyTitle="No question distribution yet"
             emptyDescription="Questions by space will appear after teams begin routing questions."
             totalValue={questionCount}
             valueLabel="Questions"

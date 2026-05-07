@@ -418,7 +418,7 @@ export function SpaceDetailPage() {
       }
     : questionsNeedingAction.length > 0
       ? {
-          label: "Resolve first question",
+          label: "Review draft question",
           tab: "questions",
           text: "Draft questions need activation or archive review.",
         }
@@ -433,7 +433,7 @@ export function SpaceDetailPage() {
       header={
         <PageHeader
           title={spaceQuery.data?.name ?? "Space"}
-          description="Review state, intake rules, questions needing action, connected tags and sources, and the next recommended move."
+          description="Review state, intake rules, draft questions, connected tags and sources, and the next recommended move."
           descriptionMode="hint"
           backTo="/app/spaces"
           breadcrumbs={[{ label: "Space", to: "/app/spaces" }]}

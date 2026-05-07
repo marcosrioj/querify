@@ -295,7 +295,7 @@ export const spaceStatusPresentation: Record<SpaceStatus, EnumPresentation> = {
   },
   [SpaceStatus.Active]: {
     label: spaceStatusLabels[SpaceStatus.Active],
-    description: "Available for active QnA work.",
+    description: "Available for QnA use.",
     badgeVariant: "success",
     sortGroup: 1,
   },
@@ -340,7 +340,7 @@ export const questionStatusPresentation: Record<
   },
   [QuestionStatus.Active]: {
     label: questionStatusLabels[QuestionStatus.Active],
-    description: "Ready for answers and public exposure when visible.",
+    description: "Available as reusable question knowledge.",
     badgeVariant: "success",
     sortGroup: 1,
   },
@@ -394,7 +394,7 @@ export const answerStatusPresentation: Record<AnswerStatus, EnumPresentation> = 
   },
   [AnswerStatus.Active]: {
     label: answerStatusLabels[AnswerStatus.Active],
-    description: "Ready for operational use.",
+    description: "Available as reusable answer knowledge.",
     badgeVariant: "success",
     sortGroup: 1,
   },

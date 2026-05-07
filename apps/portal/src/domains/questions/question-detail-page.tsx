@@ -507,41 +507,23 @@ export function QuestionDetailPage() {
         to: "/app/spaces",
         text: "Return to Spaces while this question loads.",
       }
-    : questionQuery.data.status === QuestionStatus.Archived
+    : questionQuery.data.status === QuestionStatus.Draft
       ? {
           label: "Review status",
           to: `/app/questions/${id}/edit`,
-          text: "This question is archived. Review the status before adding new operational work.",
+          text: "This draft question is not reusable yet. Activate it when it should be available for operators and automation.",
         }
-      : spaceBlocksAnswers
+      : questionQuery.data.status === QuestionStatus.Archived
         ? {
-            label: "Review answer rules",
-            to: questionQuery.data.spaceId
-              ? `/app/spaces/${questionQuery.data.spaceId}/edit`
-              : "/app/spaces",
-            text: "This question cannot receive new answers until the Space accepts answer intake.",
+            label: "Review status",
+            to: `/app/questions/${id}/edit`,
+            text: "This question is archived. Review the status before returning it to active use.",
           }
-        : (answerListQuery.data?.totalCount ?? 0) === 0
-          ? {
-              label: "Create answer",
-              tab: "answers",
-              focusTargetId: "new-answer-headline",
-              text: "Start with a draft answer candidate so this question can move toward resolution.",
-            }
-          : (acceptedAnswerOptionsQuery.data?.totalCount ?? 0) === 0
-            ? {
-                label: "Activate answer",
-                to:
-                  questionAnswers[0]?.id !== undefined
-                    ? `/app/answers/${questionAnswers[0].id}`
-                    : `/app/questions/${id}`,
-                text: "Draft answers exist. Open one and activate it when it is ready for reuse.",
-              }
-            : {
-                label: "Review activity",
-                tab: "activity",
-                text: "This question has active answer candidates. Review recent events before the next update.",
-              };
+        : {
+            label: "Review activity",
+            tab: "activity",
+            text: "This question is active and available for operators and automation.",
+          };
 
   return (
     <DetailLayout
@@ -617,7 +599,7 @@ export function QuestionDetailPage() {
               {
                 label: "Accepted answer",
                 description:
-                  "Optional answer selected as the canonical resolution for this question.",
+                  "Optional answer selected as the canonical response for this question.",
                 value: questionQuery.data.acceptedAnswer?.headline || "None",
               },
               {
@@ -790,7 +772,7 @@ export function QuestionDetailPage() {
               <div className="space-y-3">
                 <p className="text-sm text-muted-foreground">
                   {translateText(
-                    "Optionally choose the accepted answer that should anchor the canonical resolution for this question.",
+                    "Optionally choose the accepted answer that should anchor the canonical response for this question.",
                   )}
                 </p>
                 <SearchSelect
@@ -1478,7 +1460,7 @@ export function QuestionDetailPage() {
                     description={
                       spaceBlocksAnswers
                         ? "This space currently blocks new answer creation."
-                        : "Create the first answer candidate for this question."
+                        : "Optional answers can be added when this question needs reusable response content."
                     }
                   />
                 )}

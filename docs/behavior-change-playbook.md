@@ -31,6 +31,7 @@ If those documents do not describe the behavior you are changing, inspect the cl
 - Command handlers return simple values only. Complex DTOs belong to queries.
 - Portal UI copy is frontend-owned. Backend DTOs should not return translated labels.
 - Portal translation updates must be complete in the same frontend change. Do not add English fallback values to non-`en-US` locale files, and do not leave stale keys for UI copy that was removed or renamed.
+- Portal guidance must treat `Active` lifecycle status as availability for use, reuse, public exposure when visible, and automation. Do not interpret Active Space, Question, or Answer records as unresolved demand or required next actions.
 
 ## Step 0: Decide Whether The Change Must Be Staged
 
@@ -88,7 +89,7 @@ Use these dimensions for module behavior:
 |---|---|---|
 | Module boundary | owning persistence project | Which Querify module owns the behavior: Tenant, QnA, Direct, Broadcast, or Trust. |
 | Space lifecycle state | `SpaceStatus` | Whether a QnA space is draft, active, or archived. Public spaces must be active. |
-| Lifecycle state | `QuestionStatus`, `AnswerStatus` | Where a question or answer is in workflow. |
+| Lifecycle state | `QuestionStatus`, `AnswerStatus` | Where a question or answer is in workflow. Active means available for use/reuse, not unresolved demand. |
 | Audience exposure | `VisibilityScope` | Who can see the item: internal portal users, authenticated external users, or the public. This is not status and not moderation. |
 | Channel | `ChannelKind` | Where a question, vote, feedback, or signal entered the system. |
 | Answer provenance | `AnswerKind` | Whether an answer is official, community-provided, or imported. |
@@ -294,7 +295,7 @@ Process:
 For the QnA operating model, seed examples demonstrate:
 
 - active QnA spaces and canonical questions
-- questions with active lifecycle, accepted answers, and resolution-ready metadata
+- questions and answers with active lifecycle, optional accepted-answer metadata, and reuse-ready metadata
 - source links that explain origin, context, evidence, and reusable references
 - source records with artifact identity, visibility, valid metadata JSON, and verification metadata
 - moderated contribution and accepted-answer behavior when it belongs to QnA
@@ -376,6 +377,7 @@ Process:
 20. For Source screens, keep UI controls, filters, badges, metrics, and setup-progress steps aligned to canonical fields such as `visibility`, verification state, usage counts, and relationship role. If `MetadataJson` is editable, validate JSON before submit and provide a formatting affordance.
 21. Verify loading, empty, error, pending, success, and destructive-action states.
 22. Verify light and dark mode whenever the change touches layout, colors, cards, tables, forms, actions, or badges.
+23. For lifecycle-driven guidance, keep Draft as the review state, Active as the usable/reusable state, and Archived as removed from active use. Do not route users to create answers, attach sources, or choose accepted answers solely because a Question is Active.
 
 For large frontend changes, update one domain at a time and keep each domain buildable before moving to the next.
 
