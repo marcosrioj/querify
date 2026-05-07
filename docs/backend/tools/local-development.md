@@ -50,6 +50,7 @@ What this starts:
 - PostgreSQL
 - RabbitMQ
 - Redis
+- MinIO
 - SMTP4Dev
 - Jaeger
 - Prometheus
@@ -163,6 +164,8 @@ Notes:
 | Tenant Worker API | no HTTP surface; background host only |
 | PostgreSQL | `localhost:5432` |
 | Redis | `localhost:6379` |
+| MinIO API | `http://localhost:5900` |
+| MinIO Console | `http://localhost:5901` |
 | RabbitMQ UI | `http://localhost:15672` |
 | SMTP4Dev | `http://localhost:4590` |
 | Jaeger | `http://localhost:16686` |
