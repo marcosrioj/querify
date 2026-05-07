@@ -1,25 +1,23 @@
 using Querify.Models.QnA.Dtos.IntegrationEvents;
 using Querify.QnA.Worker.Business.Source.Commands.VerifyUploadedSource;
-using Querify.QnA.Worker.Business.Source.Consumers;
 using Querify.QnA.Worker.Business.Source.Services;
 using Querify.QnA.Worker.Test.IntegrationTests.Helpers;
 using Xunit;
 
 namespace Querify.QnA.Worker.Test.IntegrationTests.Tests.Source;
 
-public class SourceUploadedConsumerTests
+public class SourceUploadVerificationServiceTests
 {
     [Fact]
-    public async Task EventConsumer_MapsEventToVerifyUploadedSourceCommand()
+    public async Task VerifyUploadedAsync_MapsEventToVerifyUploadedSourceCommand()
     {
         var tenantId = Guid.NewGuid();
         var sourceId = Guid.NewGuid();
         var tenantContext = new TestTenantContext();
         var mediator = new CapturingMediator();
         var verificationService = new SourceUploadVerificationService(tenantContext, mediator);
-        var consumer = new SourceUploadedConsumer(verificationService);
 
-        await consumer.HandleAsync(new SourceUploadedIntegrationEvent
+        await verificationService.VerifyUploadedAsync(new SourceUploadedIntegrationEvent
         {
             TenantId = tenantId,
             SourceId = sourceId,
