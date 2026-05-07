@@ -9,6 +9,7 @@ SERVICES=(
   querify.tenant.portal.api
   querify.tenant.public.api
   querify.qna.public.api
+  querify.qna.worker.api
   querify.tenant.worker.api
 )
 

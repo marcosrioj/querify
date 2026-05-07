@@ -129,11 +129,14 @@ If you want the entire container stack with the previous single-command behavior
 ./devops/local/docker/docker.sh
 ```
 
+Run `./devops/local/docker/base.sh` first. The full-stack app helper assumes base services are already running.
+
 PowerShell equivalents live beside these scripts under `devops/local/docker/*.ps1`.
 
 Equivalent manual commands:
 
 ```bash
+./devops/local/docker/base.sh
 docker compose -p qf_services -f devops/local/docker/docker-compose.backend.yml up -d --build
 docker compose -p qf_services -f devops/local/docker/docker-compose.frontend.yml up -d --build
 docker compose -p qf_services \
@@ -149,7 +152,7 @@ Notes:
 - the default appsettings values use `host.docker.internal`, which keeps host and container networking aligned
 - `devops/local/docker/docker-compose.backend.yml` boots the APIs plus the Tenant and QnA worker hosts
 - `devops/local/docker/docker-compose.frontend.yml` boots only `querify.portal.app`
-- `./devops/local/docker/docker.sh` combines only `devops/local/docker/docker-compose.backend.yml` and `devops/local/docker/docker-compose.frontend.yml`
+- `./devops/local/docker/docker.sh` combines `devops/local/docker/docker-compose.backend.yml` and `devops/local/docker/docker-compose.frontend.yml` for `qf_services`
 
 ## Service endpoints
 

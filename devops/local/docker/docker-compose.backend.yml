@@ -78,13 +78,6 @@ services:
       dockerfile: dotnet/Querify.QnA.Worker.Api/Dockerfile
     ports:
       - "5030:5030"
-    depends_on:
-      postgres:
-        condition: service_healthy
-      minio:
-        condition: service_healthy
-      minio-init:
-        condition: service_completed_successfully
     environment:
       - DOTNET_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:5030

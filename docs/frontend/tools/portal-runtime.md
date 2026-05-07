@@ -164,7 +164,7 @@ If you also want the backend APIs and worker in containers, start `./devops/loca
 
 PowerShell equivalents live beside these scripts under `devops/local/docker/*.ps1`.
 
-The Portal-only compose file is `devops/local/docker/docker-compose.frontend.yml`. The full-stack helper `./devops/local/docker/docker.sh` combines `devops/local/docker/docker-compose.backend.yml` and `devops/local/docker/docker-compose.frontend.yml`. The Portal is exposed on `http://localhost:5500`.
+The Portal-only compose file is `devops/local/docker/docker-compose.frontend.yml`. The full-stack helper `./devops/local/docker/docker.sh` assumes base services are already running, then combines `devops/local/docker/docker-compose.backend.yml` and `devops/local/docker/docker-compose.frontend.yml` for the app containers. The Portal is exposed on `http://localhost:5500`.
 
 When the local subdomain proxy is active, the frontend Docker compose file points both Portal API base URLs at `//dev.portal.querify.net`. The proxy routes `/api/tenant/*` and `/api/user/*` to the Tenant Portal API and `/api/qna/*` to the QnA Portal API, keeping browser requests same-origin and avoiding local cross-origin TLS failures.
 
