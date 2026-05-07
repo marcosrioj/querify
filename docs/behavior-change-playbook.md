@@ -28,6 +28,7 @@ If those documents do not describe the behavior you are changing, inspect the cl
 - Do not add Broadcast social, public-comment, mention, community-thread, or campaign interaction workflow state to QnA entities.
 - Do not add Trust validation, governance, decision-history, or auditability state to QnA, Direct, Broadcast, or Tenant entities.
 - `Querify.Direct.Common.Persistence.DirectDb` and `Querify.Broadcast.Common.Persistence.BroadcastDb` contain their current module entity models. Write or update those entities only for concrete module behavior; do not add placeholder entities or empty folders only to satisfy a split.
+- Repository artifacts must be written in English even when the prompt, chat, or review request is in another language. This includes code identifiers, comments, tests, seed data labels, documentation, Markdown, `en-US` UI copy keys, and handoff notes. The only expected exceptions are non-`en-US` locale values and external quoted/source material that must stay in its original language.
 - Command handlers return simple values only. Complex DTOs belong to queries.
 - Portal UI copy is frontend-owned. Backend DTOs should not return translated labels.
 - Portal translation updates must be complete in the same frontend change. Do not add English fallback values to non-`en-US` locale files, and do not leave stale keys for UI copy that was removed or renamed.
@@ -362,22 +363,23 @@ Process:
 5. Remove UI controls for deleted backend fields.
 6. Prefer existing shared layouts, state components, field components, confirms, and status badges.
 7. Keep workflows task-oriented and avoid explanatory copy that compensates for unclear UX.
-8. Keep the tenant/workspace switcher in the sidebar header and keep the top toolbar focused on route context and global utilities.
-9. Use `ActionPanel` and `ActionButton` for screen-level and right-rail actions.
-10. Use relationship tabs for child and related records that should be managed in the current screen context.
-11. Keep relationship lists scoped to the current parent entity, including related tags and sources.
-12. Use `ChildListPagination` for local child lists with more than five items; keep top-level list pagination governed by the page API contract.
-13. Use `SearchSelect` or `SearchSelectField` for any select or dropdown backed by a backend list endpoint, including single-selection and relationship-linking flows.
-14. Keep enum-only controls on the normal `Select` primitive and route labels, descriptions, and badge variants through the centralized enum presentation layer.
-15. Give every editable field a concise field-level explanation. Use the shared field `description` prop whenever possible, add `hint` only for secondary caveats, and pair native inputs with a visible label plus `ContextHint`.
-16. For dedicated Add/Edit forms, consider whether `FormSetupProgressCard` needs to be added or updated. Keep it below the main form card, derive steps from current form values, keep the default hide-at-100% behavior, and update [`frontend/architecture/portal-getting-started-guidance.md`](frontend/architecture/portal-getting-started-guidance.md).
-17. When changing dashboard activation criteria, update dashboard setup progress from real workspace data, ensure no setup-progress or completion surface renders after progress reaches 100%, and update [`frontend/architecture/portal-getting-started-guidance.md`](frontend/architecture/portal-getting-started-guidance.md).
-18. Keep top-level list pages usable from 320 CSS pixels through tablet and desktop. Below `xl`, list records should use stacked card rows and the shell should use the header/drawer instead of the fixed sidebar.
-19. Prevent horizontal page overflow at the root, shell, page, card, filter, table, dialog, sheet, popover, pagination, and action levels. Use `min-w-0`, viewport constraints, and word breaking for long URLs, ids, checksums, user agents, and generated tokens.
-20. For Source screens, keep UI controls, filters, badges, metrics, and setup-progress steps aligned to canonical fields such as `visibility`, verification state, usage counts, and relationship role. If `MetadataJson` is editable, validate JSON before submit and provide a formatting affordance.
-21. Verify loading, empty, error, pending, success, and destructive-action states.
-22. Verify light and dark mode whenever the change touches layout, colors, cards, tables, forms, actions, or badges.
-23. For lifecycle-driven guidance, keep Draft as the review state, Active as the usable/reusable state, and Archived as removed from active use. Do not route users to create answers, attach sources, or choose accepted answers solely because a Question is Active.
+8. Keep frontend source text, component names, helper names, comments, and `en-US` copy keys in English. Localize only through the locale catalogs; do not write Portuguese or other non-English source strings directly into components.
+9. Keep the tenant/workspace switcher in the sidebar header and keep the top toolbar focused on route context and global utilities.
+10. Use `ActionPanel` and `ActionButton` for screen-level and right-rail actions.
+11. Use relationship tabs for child and related records that should be managed in the current screen context.
+12. Keep relationship lists scoped to the current parent entity, including related tags and sources.
+13. Use `ChildListPagination` for local child lists with more than five items; keep top-level list pagination governed by the page API contract.
+14. Use `SearchSelect` or `SearchSelectField` for any select or dropdown backed by a backend list endpoint, including single-selection and relationship-linking flows.
+15. Keep enum-only controls on the normal `Select` primitive and route labels, descriptions, and badge variants through the centralized enum presentation layer.
+16. Give every editable field a concise field-level explanation. Use the shared field `description` prop whenever possible, add `hint` only for secondary caveats, and pair native inputs with a visible label plus `ContextHint`.
+17. For dedicated Add/Edit forms, consider whether `FormSetupProgressCard` needs to be added or updated. Keep it below the main form card, derive steps from current form values, keep the default hide-at-100% behavior, and update [`frontend/architecture/portal-getting-started-guidance.md`](frontend/architecture/portal-getting-started-guidance.md).
+18. When changing dashboard activation criteria, update dashboard setup progress from real workspace data, ensure no setup-progress or completion surface renders after progress reaches 100%, and update [`frontend/architecture/portal-getting-started-guidance.md`](frontend/architecture/portal-getting-started-guidance.md).
+19. Keep top-level list pages usable from 320 CSS pixels through tablet and desktop. Below `xl`, list records should use stacked card rows and the shell should use the header/drawer instead of the fixed sidebar.
+20. Prevent horizontal page overflow at the root, shell, page, card, filter, table, dialog, sheet, popover, pagination, and action levels. Use `min-w-0`, viewport constraints, and word breaking for long URLs, ids, checksums, user agents, and generated tokens.
+21. For Source screens, keep UI controls, filters, badges, metrics, and setup-progress steps aligned to canonical fields such as `visibility`, verification state, usage counts, and relationship role. If `MetadataJson` is editable, validate JSON before submit and provide a formatting affordance.
+22. Verify loading, empty, error, pending, success, and destructive-action states.
+23. Verify light and dark mode whenever the change touches layout, colors, cards, tables, forms, actions, or badges.
+24. For lifecycle-driven guidance, keep Draft as the review state, Active as the usable/reusable state, and Archived as removed from active use. Do not route users to create answers, attach sources, or choose accepted answers solely because a Question is Active.
 
 For large frontend changes, update one domain at a time and keep each domain buildable before moving to the next.
 
@@ -509,6 +511,7 @@ Localization validation should also confirm:
 
 Documentation validation should also confirm:
 
+- new or changed repository documentation is written in English even when the task discussion happened in another language
 - documentation names only current fields, enum values, routes, and behaviors
 - exact searches for deleted names return no documentation or locale hits outside historical migrations
 - temporary migration notes are removed once the schema change lands

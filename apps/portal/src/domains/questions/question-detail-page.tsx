@@ -1430,8 +1430,8 @@ export function QuestionDetailPage() {
                           )}
                           {translateText(
                             answer.status === AnswerStatus.Active
-                              ? "Desativar"
-                              : "Ativar",
+                              ? "Archive"
+                              : "Activate",
                           )}
                         </Button>
                         <ConfirmAction

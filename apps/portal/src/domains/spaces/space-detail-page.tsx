@@ -1169,8 +1169,8 @@ export function SpaceDetailPage() {
                           )}
                           {translateText(
                             question.status === QuestionStatus.Active
-                              ? "Desativar"
-                              : "Ativar",
+                              ? "Archive"
+                              : "Activate",
                           )}
                         </Button>
                         <ConfirmAction
