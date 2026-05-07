@@ -3,11 +3,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { translateMaybeString } from "@/shared/lib/i18n-render";
 import { usePortalI18n } from "@/shared/lib/use-portal-i18n";
+import { ContextHint } from "@/shared/ui/context-hint";
 
 type ListResultSummaryItem = {
   key?: string;
   label: ReactNode;
   value: ReactNode;
+  description?: ReactNode;
   tone?: "default" | "primary" | "success" | "info" | "warning";
 };
 
@@ -39,7 +41,7 @@ export function ListResultSummary({
   return (
     <div
       className={cn(
-        "flex min-w-0 gap-1.5 overflow-x-auto [scrollbar-width:none]",
+        "flex min-w-0 flex-wrap content-start items-center justify-start gap-1.5",
         className,
       )}
       aria-label={t("Result summary")}
@@ -50,7 +52,7 @@ export function ListResultSummary({
             (_, index) => (
               <div
                 key={`list-result-summary-skeleton-${index}`}
-                className="inline-flex h-8 min-w-24 shrink-0 items-center gap-2 rounded-md border border-border/70 bg-background/75 px-2.5"
+                className="inline-flex h-8 min-w-24 max-w-full shrink-0 items-center gap-2 rounded-md border border-border/70 bg-background/75 px-2.5"
               >
                 <Skeleton className="h-3 w-12" />
                 <Skeleton className="h-4 w-8" />
@@ -66,14 +68,23 @@ export function ListResultSummary({
                   : `list-result-summary-${index}`)
               }
               className={cn(
-                "inline-flex h-8 min-w-max shrink-0 items-center gap-2 rounded-md border px-2.5",
+                "inline-flex min-h-8 max-w-full shrink-0 flex-wrap items-center gap-x-1.5 gap-y-1 rounded-md border px-2.5 py-1 leading-none",
                 toneClassNames[item.tone ?? "default"],
               )}
             >
-              <div className="text-[0.6875rem] font-semibold uppercase tracking-[0.1em] opacity-75">
-                {translateMaybeString(item.label, t)}
+              <div className="inline-flex min-h-4 min-w-0 max-w-full items-center gap-1 text-[0.6875rem] font-semibold uppercase tracking-[0.1em] opacity-75">
+                <span className="block min-w-0 break-words leading-4 [overflow-wrap:anywhere]">
+                  {translateMaybeString(item.label, t)}
+                </span>
+                {item.description ? (
+                  <ContextHint
+                    content={translateMaybeString(item.description, t)}
+                    label={t("Metric details")}
+                    className="size-3.5 shrink-0 -translate-y-px p-0 text-[inherit] md:size-3.5 [&_i]:block [&_i]:text-[0.75rem] [&_i]:leading-none"
+                  />
+                ) : null}
               </div>
-              <div className="min-w-0 break-words text-sm font-semibold leading-4 text-mono">
+              <div className="flex min-h-4 shrink-0 items-center text-sm font-semibold leading-4 text-mono">
                 {translateMaybeString(item.value, t)}
               </div>
             </div>

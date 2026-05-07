@@ -55,7 +55,8 @@ If a shared primitive already matches the use case, do not replace it with ad ho
 - use `ListLayout`
 - put the primary search and filter command surface in the `ListLayout` `filters` slot, before metrics and before the result table
 - avoid full metric-card grids on search-heavy list pages; they add scroll debt before users reach results, especially on mobile
-- put result counts and supporting list numbers in a compact `ListResultSummary` rail inside the results card instead of separate `SectionGrid` cards unless the page is primarily analytical
+- put result counts and supporting list numbers in a compact `ListResultSummary` rail inside the results card instead of separate `SectionGrid` cards unless the page is primarily analytical; preserve metric explanations as small `ContextHint` icons on each summary item
+- `ListResultSummary` must wrap onto left-aligned rows on mobile instead of scrolling or clipping; let summary chips use the remaining space to the left of the primary create/manage action, which stays visually prioritized and aligned right in the same toolbar
 - keep page descriptions and table descriptions as `ContextHint` icon affordances whenever the page already has clear labels and actions; avoid extra explanatory paragraphs above search results
 - keep the main record surface in the shared table pattern; once filters move to `ListLayout`, `DataTable` should focus on result title, result rows, empty/error states, and pagination
 - keep row cells concise on search-heavy lists: show primary identity and durable metadata, not summaries, context notes, or repeated explanatory counts that make mobile cards tall
@@ -63,7 +64,8 @@ If a shared primitive already matches the use case, do not replace it with ad ho
 - keep list pages usable at 320, 360, 375, 414, 768, 1024, 1279, 1280, and desktop widths
 - render list records as stacked cards below `xl`, with primary record content, supporting fields, and actions separated inside each card; render the table surface at `xl` and above unless the page intentionally owns a different pattern
 - make filters, search inputs, sort controls, pagination, and actions stack or wrap before they overflow
-- use the shared list filter controls for top-level filter surfaces: put free-text search in the `ListLayout` `filters` slot with `ListFilterSearch`, combine search and high-frequency chips with `ListFilterSearchQuickRow` when useful, put enum and relationship filters in `ListFilterToolbar`, and wrap every select in `ListFilterField`
+- use the shared list filter controls for top-level filter surfaces: keep free-text search visible in the `ListLayout` `filters` slot with `ListFilterSearch`, place high-frequency chips, enum filters, relationship filters, and sort controls inside `ListFilterDisclosure`, put grouped controls in `ListFilterToolbar`, and wrap every select in `ListFilterField`
+- top-level list filters should be collapsed by default after the search row; the disclosure trigger sits on the search row, shows the count for active non-search filters, and opens the secondary filter panel without pushing results far down on mobile
 - every filter surface must show active filter count and a single clear action when filters are active
 - filter controls must show a skeleton loading signal during request refreshes using `isFetching`, not only during first-page `isLoading`
 - row actions on top-level lists should be explicit text+icon buttons where space allows; icon-only row actions need accessible labels and should not be the only discoverable way to open or edit a record

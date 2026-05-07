@@ -23,9 +23,9 @@ import {
   ConfirmAction,
   ListFilterChip,
   ListFilterChipRail,
+  ListFilterDisclosure,
   ListFilterField,
   ListFilterSearch,
-  ListFilterSearchQuickRow,
   ListFilterSection,
   ListFilterToolbar,
   ListResultSummary,
@@ -120,6 +120,12 @@ export function SpaceListPage() {
     acceptsQuestionsFilter !== "all",
     acceptsAnswersFilter !== "all",
   ].filter(Boolean).length;
+  const refinementFilterCount = [
+    visibilityFilter !== "all",
+    statusFilter !== "all",
+    acceptsQuestionsFilter !== "all",
+    acceptsAnswersFilter !== "all",
+  ].filter(Boolean).length;
   const clearFilters = () => resetFilters();
 
   const spaceQuery = useSpaceList({
@@ -162,6 +168,7 @@ export function SpaceListPage() {
     {
       key: "name",
       header: "Space",
+      className: "xl:min-w-[360px]",
       cell: (space) => (
         <div className="flex min-w-0 gap-3">
           <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-lg border border-primary/15 bg-primary/[0.055] text-primary">
@@ -181,7 +188,7 @@ export function SpaceListPage() {
     {
       key: "status",
       header: "Status",
-      className: "lg:w-[160px]",
+      className: "xl:w-[170px]",
       cell: (space) => (
         <div className="space-y-2">
           <SpaceStatusBadge status={space.status} />
@@ -211,13 +218,13 @@ export function SpaceListPage() {
     {
       key: "visibility",
       header: "Visibility",
-      className: "lg:w-[180px]",
+      className: "xl:w-[120px]",
       cell: (space) => <VisibilityBadge visibility={space.visibility} />,
     },
     {
       key: "questions",
       header: "Questions",
-      className: "lg:w-[120px]",
+      className: "xl:w-[92px]",
       cell: (space) => (
         <div className="text-sm font-medium text-foreground">
           {space.questionCount}
@@ -227,7 +234,7 @@ export function SpaceListPage() {
     {
       key: "lastUpdatedAtUtc",
       header: "Last update",
-      className: "lg:w-[160px]",
+      className: "xl:w-[128px]",
       cell: (space) => (
         <span className="break-words text-sm text-muted-foreground">
           {formatOptionalDateTimeInTimeZone(
@@ -241,22 +248,22 @@ export function SpaceListPage() {
     {
       key: "actions",
       header: "Actions",
-      className: "lg:w-[220px]",
+      className: "xl:w-[108px]",
       cell: (space) => (
         <div
           className="flex min-w-0 flex-wrap items-center justify-start gap-1 lg:justify-end"
           onClick={(event) => event.stopPropagation()}
         >
-          <Button asChild variant="outline" size="sm">
+          <Button asChild variant="outline" size="sm" mode="icon">
             <Link to={`/app/spaces/${space.id}`}>
               <Eye className="size-4" />
-              {translateText("Open")}
+              <span className="sr-only">{translateText("Open")}</span>
             </Link>
           </Button>
-          <Button asChild variant="ghost" size="sm">
+          <Button asChild variant="ghost" size="sm" mode="icon">
             <Link to={`/app/spaces/${space.id}/edit`}>
               <Pencil className="size-4" />
-              {translateText("Edit")}
+              <span className="sr-only">{translateText("Edit")}</span>
             </Link>
           </Button>
           <ConfirmAction
@@ -270,9 +277,9 @@ export function SpaceListPage() {
             isPending={deleteSpace.isPending}
             onConfirm={() => deleteSpace.mutateAsync(space.id)}
             trigger={
-              <Button variant="ghost" size="sm">
+              <Button variant="ghost" size="sm" mode="icon">
                 <Trash2 className="size-4 text-destructive" />
-                {translateText("Delete")}
+                <span className="sr-only">{translateText("Delete")}</span>
               </Button>
             }
           />
@@ -293,148 +300,153 @@ export function SpaceListPage() {
         </>
       }
       filters={
-        <div className="space-y-3">
-          <ListFilterSearchQuickRow
-            search={
-              <ListFilterSearch
-                value={search}
-                onChange={setSearch}
-                placeholder="Search spaces by name, slug, summary, or language"
-                activeFilterCount={activeFilterCount}
-                onClear={clearFilters}
-                isLoading={spaceQuery.isFetching}
-              />
-            }
-            quickFilters={
-              <ListFilterSection
-                label="Quick filters"
-                activeFilterCount={activeFilterCount}
-                emptyLabel="All spaces"
-              >
-                <ListFilterChipRail>
-                  {spaceStatusBuckets.map((bucket) => (
-                    <ListFilterChip
-                      key={bucket.value}
-                      active={
-                        bucket.value === "all"
-                          ? quickAllActive
-                          : statusFilter === bucket.value
+        <ListFilterDisclosure
+          search={
+            <ListFilterSearch
+              value={search}
+              onChange={setSearch}
+              placeholder="Search spaces by name, slug, summary, or language"
+              activeFilterCount={activeFilterCount}
+              onClear={clearFilters}
+              isLoading={spaceQuery.isFetching}
+            />
+          }
+          activeFilterCount={refinementFilterCount}
+          isLoading={spaceQuery.isFetching}
+        >
+          <div className="space-y-3">
+            <ListFilterSection
+              label="Quick filters"
+              activeFilterCount={refinementFilterCount}
+              emptyLabel="All spaces"
+            >
+              <ListFilterChipRail>
+                {spaceStatusBuckets.map((bucket) => (
+                  <ListFilterChip
+                    key={bucket.value}
+                    active={
+                      bucket.value === "all"
+                        ? quickAllActive
+                        : statusFilter === bucket.value
+                    }
+                    onClick={() => {
+                      if (bucket.value === "all") {
+                        setFilters({
+                          status: "all",
+                          acceptsQuestions: "all",
+                          acceptsAnswers: "all",
+                        });
+                        return;
                       }
-                      onClick={() => {
-                        if (bucket.value === "all") {
-                          setFilters({
-                            status: "all",
-                            acceptsQuestions: "all",
-                            acceptsAnswers: "all",
-                          });
-                          return;
-                        }
 
-                        setFilter("status", bucket.value);
-                      }}
-                    >
-                      {translateText(bucket.label)}
-                    </ListFilterChip>
-                  ))}
-                  <ListFilterChip
-                    active={acceptsQuestionsFilter === "true"}
-                    onClick={() =>
-                      setFilter(
-                        "acceptsQuestions",
-                        acceptsQuestionsFilter === "true" ? "all" : "true",
-                      )
-                    }
+                      setFilter("status", bucket.value);
+                    }}
                   >
-                    {translateText("Questions enabled")}
+                    {translateText(bucket.label)}
                   </ListFilterChip>
-                  <ListFilterChip
-                    active={acceptsAnswersFilter === "true"}
-                    onClick={() =>
-                      setFilter(
-                        "acceptsAnswers",
-                        acceptsAnswersFilter === "true" ? "all" : "true",
-                      )
-                    }
-                  >
-                    {translateText("Answers enabled")}
-                  </ListFilterChip>
-                </ListFilterChipRail>
-              </ListFilterSection>
-            }
-          />
-          <ListFilterToolbar isLoading={spaceQuery.isFetching}>
-            <div className="grid w-full gap-3 md:grid-cols-2 xl:grid-cols-4">
-              <ListFilterField label="Visibility">
-                <Select
-                  value={visibilityFilter}
-                  onValueChange={(value) => setFilter("visibility", value)}
-                >
-                  <SelectTrigger className="w-full" size="lg">
-                    <SelectValue placeholder={translateText("Visibility")} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All visibility</SelectItem>
-                    {Object.entries(visibilityScopeLabels).map(
-                      ([value, label]) => (
-                        <SelectItem key={value} value={value}>
-                          {translateText(label)}
-                        </SelectItem>
-                      ),
-                    )}
-                  </SelectContent>
-                </Select>
-              </ListFilterField>
-              <ListFilterField label="Questions">
-                <Select
-                  value={acceptsQuestionsFilter}
-                  onValueChange={(value) =>
-                    setFilter("acceptsQuestions", value)
+                ))}
+                <ListFilterChip
+                  active={acceptsQuestionsFilter === "true"}
+                  onClick={() =>
+                    setFilter(
+                      "acceptsQuestions",
+                      acceptsQuestionsFilter === "true" ? "all" : "true",
+                    )
                   }
                 >
-                  <SelectTrigger className="w-full" size="lg">
-                    <SelectValue
-                      placeholder={translateText("Question intake")}
-                    />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All question states</SelectItem>
-                    <SelectItem value="true">Questions enabled</SelectItem>
-                    <SelectItem value="false">Questions disabled</SelectItem>
-                  </SelectContent>
-                </Select>
-              </ListFilterField>
-              <ListFilterField label="Answers">
-                <Select
-                  value={acceptsAnswersFilter}
-                  onValueChange={(value) => setFilter("acceptsAnswers", value)}
+                  {translateText("Questions enabled")}
+                </ListFilterChip>
+                <ListFilterChip
+                  active={acceptsAnswersFilter === "true"}
+                  onClick={() =>
+                    setFilter(
+                      "acceptsAnswers",
+                      acceptsAnswersFilter === "true" ? "all" : "true",
+                    )
+                  }
                 >
-                  <SelectTrigger className="w-full" size="lg">
-                    <SelectValue placeholder={translateText("Answer intake")} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All answer states</SelectItem>
-                    <SelectItem value="true">Answers enabled</SelectItem>
-                    <SelectItem value="false">Answers disabled</SelectItem>
-                  </SelectContent>
-                </Select>
-              </ListFilterField>
-              <ListFilterField label="Sort">
-                <Select value={sorting} onValueChange={setSorting}>
-                  <SelectTrigger className="w-full" size="lg">
-                    <SelectValue placeholder={translateText("Sort spaces")} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {sortingOptions.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {translateText(option.label)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </ListFilterField>
-            </div>
-          </ListFilterToolbar>
-        </div>
+                  {translateText("Answers enabled")}
+                </ListFilterChip>
+              </ListFilterChipRail>
+            </ListFilterSection>
+            <ListFilterToolbar isLoading={spaceQuery.isFetching}>
+              <div className="grid w-full gap-3 md:grid-cols-2 xl:grid-cols-4">
+                <ListFilterField label="Visibility">
+                  <Select
+                    value={visibilityFilter}
+                    onValueChange={(value) => setFilter("visibility", value)}
+                  >
+                    <SelectTrigger className="w-full" size="lg">
+                      <SelectValue placeholder={translateText("Visibility")} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All visibility</SelectItem>
+                      {Object.entries(visibilityScopeLabels).map(
+                        ([value, label]) => (
+                          <SelectItem key={value} value={value}>
+                            {translateText(label)}
+                          </SelectItem>
+                        ),
+                      )}
+                    </SelectContent>
+                  </Select>
+                </ListFilterField>
+                <ListFilterField label="Questions">
+                  <Select
+                    value={acceptsQuestionsFilter}
+                    onValueChange={(value) =>
+                      setFilter("acceptsQuestions", value)
+                    }
+                  >
+                    <SelectTrigger className="w-full" size="lg">
+                      <SelectValue
+                        placeholder={translateText("Question intake")}
+                      />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All question states</SelectItem>
+                      <SelectItem value="true">Questions enabled</SelectItem>
+                      <SelectItem value="false">Questions disabled</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </ListFilterField>
+                <ListFilterField label="Answers">
+                  <Select
+                    value={acceptsAnswersFilter}
+                    onValueChange={(value) =>
+                      setFilter("acceptsAnswers", value)
+                    }
+                  >
+                    <SelectTrigger className="w-full" size="lg">
+                      <SelectValue
+                        placeholder={translateText("Answer intake")}
+                      />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All answer states</SelectItem>
+                      <SelectItem value="true">Answers enabled</SelectItem>
+                      <SelectItem value="false">Answers disabled</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </ListFilterField>
+                <ListFilterField label="Sort">
+                  <Select value={sorting} onValueChange={setSorting}>
+                    <SelectTrigger className="w-full" size="lg">
+                      <SelectValue placeholder={translateText("Sort spaces")} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {sortingOptions.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {translateText(option.label)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </ListFilterField>
+              </div>
+            </ListFilterToolbar>
+          </div>
+        </ListFilterDisclosure>
       }
     >
       <DataTable
@@ -447,29 +459,37 @@ export function SpaceListPage() {
         loading={spaceQuery.isLoading}
         onRowClick={(space) => navigate(`/app/spaces/${space.id}`)}
         toolbar={
-          <div className="flex w-full min-w-0 items-center gap-2">
+          <div className="flex w-full min-w-0 flex-wrap items-start gap-2 sm:items-center">
             <ListResultSummary
-              className="flex-1"
+              className="flex-1 basis-0"
               isLoading={spaceQuery.isLoading && spaceQuery.data === undefined}
               items={[
                 {
                   label: "Results",
                   value: spaceQuery.data?.totalCount ?? 0,
+                  description: debouncedSearch
+                    ? translateText("Search: {value}", {
+                        value: debouncedSearch,
+                      })
+                    : "QnA spaces in this workspace",
                   tone: "primary",
                 },
                 {
                   label: "Public",
                   value: publicCount,
+                  description: "Spaces visible outside internal operations",
                   tone: "info",
                 },
                 {
                   label: "Active",
                   value: activeCount,
+                  description: "Spaces available for active QnA work",
                   tone: "success",
                 },
                 {
                   label: "Accepting questions",
                   value: questionIntakeCount,
+                  description: "Spaces accepting new questions",
                   tone: "warning",
                 },
               ]}

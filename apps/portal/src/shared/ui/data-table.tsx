@@ -261,6 +261,7 @@ export function DataTable<T>({
                         key={column.key}
                         className={cn(
                           "min-w-0 whitespace-normal break-words text-[0.6875rem] font-semibold uppercase tracking-[0.14em] [overflow-wrap:anywhere]",
+                          column === primaryColumn && "w-auto",
                           column.className,
                         )}
                       >
@@ -307,6 +308,7 @@ export function DataTable<T>({
                               key={column.key}
                               className={cn(
                                 "min-w-0 align-top break-words py-5 [overflow-wrap:anywhere] [&_[data-slot=button]]:min-w-0 [&_[data-slot=button]]:whitespace-normal",
+                                column === primaryColumn && "w-auto",
                                 column.className,
                               )}
                             >

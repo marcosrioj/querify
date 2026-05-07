@@ -15,6 +15,7 @@ import {
   Badge,
   Button,
   ConfirmAction,
+  ListFilterDisclosure,
   ListFilterField,
   ListFilterSearch,
   ListFilterToolbar,
@@ -243,6 +244,7 @@ export function TagListPage() {
     {
       key: "name",
       header: "Tag",
+      className: "xl:min-w-[420px]",
       cell: (tag) => (
         <div className="flex min-w-0 gap-3">
           <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-lg border border-emerald-500/15 bg-emerald-500/[0.055] text-emerald-600 dark:text-emerald-300">
@@ -259,7 +261,7 @@ export function TagListPage() {
     {
       key: "usage",
       header: relationshipActive ? "Relationship" : "Where used",
-      className: "lg:w-[260px]",
+      className: relationshipActive ? "xl:w-[140px]" : "xl:w-[220px]",
       cell: (tag) =>
         tag.relationship ? (
           <div className="flex min-w-0 flex-wrap gap-2">
@@ -287,7 +289,7 @@ export function TagListPage() {
     {
       key: "lastUpdatedAtUtc",
       header: "Last update",
-      className: "lg:w-[160px]",
+      className: "xl:w-[128px]",
       cell: (tag) => (
         <span className="break-words text-sm text-muted-foreground">
           {formatOptionalDateTimeInTimeZone(
@@ -301,7 +303,7 @@ export function TagListPage() {
     {
       key: "actions",
       header: "Actions",
-      className: "lg:w-[190px]",
+      className: "xl:w-[82px]",
       cell: (tag) => (
         <div
           className="flex min-w-0 flex-wrap items-center justify-start gap-1 lg:justify-end"
@@ -309,30 +311,31 @@ export function TagListPage() {
         >
           {relationshipActive ? (
             <>
-              <Button asChild variant="outline" size="sm">
+              <Button asChild variant="outline" size="sm" mode="icon">
                 <Link to={`/app/tags/${tag.id}/edit`}>
                   <Pencil className="size-4" />
-                  {translateText("Rename")}
+                  <span className="sr-only">{translateText("Rename")}</span>
                 </Link>
               </Button>
               <Button
                 variant="ghost"
                 size="sm"
+                mode="icon"
                 disabled={
                   removeSpaceTag.isPending || removeQuestionTag.isPending
                 }
                 onClick={() => void detachTag(tag)}
               >
                 <Trash2 className="size-4" />
-                {translateText("Detach")}
+                <span className="sr-only">{translateText("Detach")}</span>
               </Button>
             </>
           ) : (
             <>
-              <Button asChild variant="outline" size="sm">
+              <Button asChild variant="outline" size="sm" mode="icon">
                 <Link to={`/app/tags/${tag.id}/edit`}>
                   <Pencil className="size-4" />
-                  {translateText("Rename")}
+                  <span className="sr-only">{translateText("Rename")}</span>
                 </Link>
               </Button>
               <ConfirmAction
@@ -346,9 +349,9 @@ export function TagListPage() {
                 isPending={deleteTag.isPending}
                 onConfirm={() => deleteTag.mutateAsync(tag.id)}
                 trigger={
-                  <Button variant="ghost" size="sm">
+                  <Button variant="ghost" size="sm" mode="icon">
                     <Trash2 className="size-4 text-destructive" />
-                    {translateText("Delete")}
+                    <span className="sr-only">{translateText("Delete")}</span>
                   </Button>
                 }
               />
@@ -385,15 +388,20 @@ export function TagListPage() {
         </>
       }
       filters={
-        <div className="space-y-3">
-          <ListFilterSearch
-            value={search}
-            onChange={setSearch}
-            placeholder="Search tags"
-            activeFilterCount={activeFilterCount}
-            onClear={clearFilters}
-            isLoading={filtersLoading}
-          />
+        <ListFilterDisclosure
+          search={
+            <ListFilterSearch
+              value={search}
+              onChange={setSearch}
+              placeholder="Search tags"
+              activeFilterCount={activeFilterCount}
+              onClear={clearFilters}
+              isLoading={filtersLoading}
+            />
+          }
+          activeFilterCount={0}
+          isLoading={filtersLoading}
+        >
           <ListFilterToolbar isLoading={filtersLoading}>
             <ListFilterField label="Sort" className="max-w-sm">
               <Select value={sorting} onValueChange={setSorting}>
@@ -410,7 +418,7 @@ export function TagListPage() {
               </Select>
             </ListFilterField>
           </ListFilterToolbar>
-        </div>
+        </ListFilterDisclosure>
       }
     >
       <DataTable
@@ -431,9 +439,9 @@ export function TagListPage() {
         }
         onRowClick={(tag) => navigate(`/app/tags/${tag.id}/edit`)}
         toolbar={
-          <div className="flex w-full min-w-0 items-center gap-2">
+          <div className="flex w-full min-w-0 flex-wrap items-start gap-2 sm:items-center">
             <ListResultSummary
-              className="flex-1"
+              className="flex-1 basis-0"
               isLoading={
                 relationshipActive
                   ? Boolean(relationshipLoading)
@@ -445,16 +453,25 @@ export function TagListPage() {
                   value: relationshipActive
                     ? tagRows.length
                     : (tagQuery.data?.totalCount ?? 0),
+                  description: relationshipActive
+                    ? "Tags in the current context"
+                    : debouncedSearch
+                      ? translateText("Search: {value}", {
+                          value: debouncedSearch,
+                        })
+                      : "Reusable taxonomy labels",
                   tone: "primary",
                 },
                 {
                   label: "Spaces",
                   value: spaceUsageCount,
+                  description: "Tag attachments on Spaces",
                   tone: "info",
                 },
                 {
                   label: "Questions",
                   value: questionUsageCount,
+                  description: "Tag attachments on Questions",
                   tone: "success",
                 },
               ]}

@@ -123,9 +123,9 @@ export {
   ListFilterChip,
   ListFilterChipRail,
   ListFilterClearButton,
+  ListFilterDisclosure,
   ListFilterField,
   ListFilterSearch,
-  ListFilterSearchQuickRow,
   ListFilterSection,
   ListFilterToolbar,
 } from "@/shared/ui/list-filter-controls";

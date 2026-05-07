@@ -1,7 +1,12 @@
-import { ReactNode } from "react";
-import { Search, X } from "lucide-react";
+import { ReactNode, useState } from "react";
+import { LoaderCircle, Search, SlidersHorizontal, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
@@ -69,18 +74,53 @@ export function ListFilterSearch({
   );
 }
 
-export function ListFilterSearchQuickRow({
+export function ListFilterDisclosure({
   search,
-  quickFilters,
+  children,
+  activeFilterCount,
+  isLoading = false,
+  defaultOpen = false,
+  label = "Filters",
 }: {
   search: ReactNode;
-  quickFilters: ReactNode;
+  children: ReactNode;
+  activeFilterCount: number;
+  isLoading?: boolean;
+  defaultOpen?: boolean;
+  label?: string;
 }) {
+  const [open, setOpen] = useState(defaultOpen);
+
   return (
-    <div className="grid w-full min-w-0 gap-3 xl:grid-cols-[minmax(320px,0.95fr)_minmax(0,1.05fr)] xl:items-end">
-      <div className="min-w-0">{search}</div>
-      <div className="min-w-0">{quickFilters}</div>
-    </div>
+    <Collapsible open={open} onOpenChange={setOpen}>
+      <div className="grid w-full min-w-0 gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start">
+        <div className="min-w-0">{search}</div>
+        <CollapsibleTrigger asChild>
+          <Button
+            type="button"
+            variant={open || activeFilterCount > 0 ? "secondary" : "outline"}
+            size="lg"
+            className="w-full justify-center sm:w-auto"
+            aria-label={translateText(label)}
+          >
+            {isLoading ? (
+              <LoaderCircle className="size-4 animate-spin" />
+            ) : (
+              <SlidersHorizontal className="size-4" />
+            )}
+            {translateText(label)}
+            {activeFilterCount > 0 ? (
+              <Badge variant="primary" appearance="outline">
+                {activeFilterCount}
+              </Badge>
+            ) : null}
+          </Button>
+        </CollapsibleTrigger>
+      </div>
+      <CollapsibleContent>
+        <div className="pt-3">{children}</div>
+      </CollapsibleContent>
+    </Collapsible>
   );
 }
 
