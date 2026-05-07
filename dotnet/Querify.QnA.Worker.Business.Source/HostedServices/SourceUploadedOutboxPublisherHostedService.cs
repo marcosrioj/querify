@@ -27,9 +27,9 @@ public sealed class SourceUploadedOutboxPublisherHostedService(
             try
             {
                 await using var scope = scopeFactory.CreateAsyncScope();
-                var processor = scope.ServiceProvider.GetRequiredService<ISourceUploadedOutboxProcessor>();
-                var processed = await processor.ProcessBatchAsync(stoppingToken);
-                if (processed > 0)
+                var processorService = scope.ServiceProvider.GetRequiredService<ISourceUploadedOutboxProcessorService>();
+                var processedAny = await processorService.ProcessBatchAsync(stoppingToken);
+                if (processedAny)
                 {
                     continue;
                 }

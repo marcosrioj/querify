@@ -16,6 +16,7 @@
         <ProjectReference Include="..\Querify.Common.Infrastructure.Core\Querify.Common.Infrastructure.Core.csproj"/>
         <ProjectReference Include="..\Querify.Common.Infrastructure.MassTransit\Querify.Common.Infrastructure.MassTransit.csproj"/>
         <ProjectReference Include="..\Querify.Common.Infrastructure.Storage\Querify.Common.Infrastructure.Storage.csproj"/>
+        <ProjectReference Include="..\Querify.Common.Infrastructure.Telemetry\Querify.Common.Infrastructure.Telemetry.csproj"/>
         <ProjectReference Include="..\Querify.Models.QnA\Querify.Models.QnA.csproj"/>
         <ProjectReference Include="..\Querify.QnA.Common.Persistence.QnADb\Querify.QnA.Common.Persistence.QnADb.csproj"/>
         <ProjectReference Include="..\Querify.QnA.Worker.Business.Source\Querify.QnA.Worker.Business.Source.csproj"/>

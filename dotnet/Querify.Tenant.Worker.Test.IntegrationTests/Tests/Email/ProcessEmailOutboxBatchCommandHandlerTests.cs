@@ -1,8 +1,8 @@
 using Querify.Common.EntityFramework.Tenant.Entities;
 using Querify.Common.EntityFramework.Tenant.Enums;
 using Querify.Common.Infrastructure.ApiErrorHandling.Exception;
+using Querify.Tenant.Worker.Business.Email.Commands.ProcessEmailOutboxBatch;
 using Querify.Tenant.Worker.Business.Email.Options;
-using Querify.Tenant.Worker.Business.Email.Services;
 using Querify.Tenant.Worker.Test.IntegrationTests.Helpers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -10,7 +10,7 @@ using Xunit;
 
 namespace Querify.Tenant.Worker.Test.IntegrationTests.Tests.Email;
 
-public class EmailOutboxProcessorTests
+public class ProcessEmailOutboxBatchCommandHandlerTests
 {
     private static EmailProcessingOptions DefaultOptions => new()
     {
@@ -20,14 +20,14 @@ public class EmailOutboxProcessorTests
         MaxRetryCount = 3
     };
 
-    private static EmailOutboxProcessor CreateProcessor(
+    private static ProcessEmailOutboxBatchCommandHandler CreateHandler(
         Querify.Common.EntityFramework.Tenant.TenantDbContext dbContext,
         FakeMediator mediator,
         EmailProcessingOptions? options = null)
     {
         var monitor = new TestOptionsMonitor<EmailProcessingOptions>(options ?? DefaultOptions);
-        var logger = NullLogger<EmailOutboxProcessor>.Instance;
-        return new EmailOutboxProcessor(dbContext, mediator, monitor, logger);
+        var logger = NullLogger<ProcessEmailOutboxBatchCommandHandler>.Instance;
+        return new ProcessEmailOutboxBatchCommandHandler(dbContext, mediator, monitor, logger);
     }
 
     private static async Task<EmailOutbox> SeedPendingItemAsync(
@@ -63,11 +63,11 @@ public class EmailOutboxProcessorTests
         // The real handler throws; the fake mediator simulates that.
         var mediator = new FakeMediator();
         mediator.EnqueueException(new ApiErrorException("No email provider is implemented yet."));
-        var processor = CreateProcessor(context.DbContext, mediator);
+        var handler = CreateHandler(context.DbContext, mediator);
 
-        var processed = await processor.ProcessBatchAsync(CancellationToken.None);
+        var processedAny = await handler.Handle(new ProcessEmailOutboxBatchCommand(), CancellationToken.None);
 
-        Assert.Equal(1, processed);
+        Assert.True(processedAny);
 
         var item = await context.DbContext.EmailOutboxes
             .AsNoTracking()
@@ -94,9 +94,9 @@ public class EmailOutboxProcessorTests
 
         var mediator = new FakeMediator();
         mediator.EnqueueException(new ApiErrorException("No email provider is implemented yet."));
-        var processor = CreateProcessor(context.DbContext, mediator, options);
+        var handler = CreateHandler(context.DbContext, mediator, options);
 
-        await processor.ProcessBatchAsync(CancellationToken.None);
+        await handler.Handle(new ProcessEmailOutboxBatchCommand(), CancellationToken.None);
 
         var item = await context.DbContext.EmailOutboxes
             .AsNoTracking()
@@ -115,11 +115,11 @@ public class EmailOutboxProcessorTests
             lockedUntilDateUtc: DateTime.UtcNow.AddHours(1));
 
         var mediator = new FakeMediator();
-        var processor = CreateProcessor(context.DbContext, mediator);
+        var handler = CreateHandler(context.DbContext, mediator);
 
-        var processed = await processor.ProcessBatchAsync(CancellationToken.None);
+        var processedAny = await handler.Handle(new ProcessEmailOutboxBatchCommand(), CancellationToken.None);
 
-        Assert.Equal(0, processed);
+        Assert.False(processedAny);
         Assert.Equal(0, mediator.SendCallCount);
     }
 
@@ -129,11 +129,11 @@ public class EmailOutboxProcessorTests
         using var context = TestContext.Create();
 
         var mediator = new FakeMediator();
-        var processor = CreateProcessor(context.DbContext, mediator);
+        var handler = CreateHandler(context.DbContext, mediator);
 
-        var processed = await processor.ProcessBatchAsync(CancellationToken.None);
+        var processedAny = await handler.Handle(new ProcessEmailOutboxBatchCommand(), CancellationToken.None);
 
-        Assert.Equal(0, processed);
+        Assert.False(processedAny);
         Assert.Equal(0, mediator.SendCallCount);
     }
 
@@ -145,11 +145,11 @@ public class EmailOutboxProcessorTests
 
         // FakeMediator does NOT throw → simulates a future successful provider
         var mediator = new FakeMediator();
-        var processor = CreateProcessor(context.DbContext, mediator);
+        var handler = CreateHandler(context.DbContext, mediator);
 
-        var processed = await processor.ProcessBatchAsync(CancellationToken.None);
+        var processedAny = await handler.Handle(new ProcessEmailOutboxBatchCommand(), CancellationToken.None);
 
-        Assert.Equal(1, processed);
+        Assert.True(processedAny);
 
         var item = await context.DbContext.EmailOutboxes
             .AsNoTracking()

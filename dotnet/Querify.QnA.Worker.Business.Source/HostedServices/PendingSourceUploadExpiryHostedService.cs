@@ -1,19 +1,13 @@
-using MediatR;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Querify.Common.EntityFramework.Tenant;
-using Querify.Models.Common.Enums;
 using Querify.QnA.Worker.Business.Source.Abstractions;
-using Querify.QnA.Worker.Business.Source.Commands.ExpirePendingSourceUploads;
 using Querify.QnA.Worker.Business.Source.Options;
 
 namespace Querify.QnA.Worker.Business.Source.HostedServices;
 
 public sealed class PendingSourceUploadExpiryHostedService(
-    IServiceScopeFactory scopeFactory,
+    IPendingSourceUploadExpiryProcessorService expiryProcessorService,
     IOptionsMonitor<PendingSourceUploadExpiryOptions> optionsMonitor,
     ILogger<PendingSourceUploadExpiryHostedService> logger)
     : BackgroundService
@@ -31,7 +25,7 @@ public sealed class PendingSourceUploadExpiryHostedService(
 
             try
             {
-                await ExpireAllTenantsAsync(stoppingToken);
+                await expiryProcessorService.ExpireAllTenantsAsync(stoppingToken);
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {
@@ -43,28 +37,6 @@ public sealed class PendingSourceUploadExpiryHostedService(
             }
 
             await Task.Delay(options.PollingInterval, stoppingToken);
-        }
-    }
-
-    private async Task ExpireAllTenantsAsync(CancellationToken cancellationToken)
-    {
-        await using var listScope = scopeFactory.CreateAsyncScope();
-        var tenantDbContext = listScope.ServiceProvider.GetRequiredService<TenantDbContext>();
-        var tenantIds = await tenantDbContext.Tenants
-            .AsNoTracking()
-            .Where(tenant => tenant.Module == ModuleEnum.QnA && tenant.IsActive)
-            .OrderBy(tenant => tenant.Id)
-            .Select(tenant => tenant.Id)
-            .ToListAsync(cancellationToken);
-
-        foreach (var tenantId in tenantIds)
-        {
-            await using var tenantScope = scopeFactory.CreateAsyncScope();
-            var tenantContext = tenantScope.ServiceProvider.GetRequiredService<IQnAWorkerTenantContext>();
-            using var activeTenant = tenantContext.UseTenant(tenantId);
-            var mediator = tenantScope.ServiceProvider.GetRequiredService<IMediator>();
-            await mediator.Send(new ExpirePendingSourceUploadsCommand { NowUtc = DateTime.UtcNow },
-                cancellationToken);
         }
     }
 }

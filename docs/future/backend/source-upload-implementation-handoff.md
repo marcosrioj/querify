@@ -282,7 +282,7 @@
   - Added new source worker business module `Querify.QnA.Worker.Business.Source`.
   - Added tenant-aware worker session/context so `QnADbContext` resolves tenant database connections from an explicit worker tenant scope instead of HTTP request state.
   - Added MassTransit RabbitMQ consumer `SourceUploadedConsumer`, queue `qna.source.uploaded`, and event mapping to `VerifyUploadedSourceCommand`.
-  - Added `SourceUploadedOutboxPublisherHostedService` and `SourceUploadedOutboxProcessor` to relay Step 4 `SourceUploadedOutboxMessage` rows to RabbitMQ per active QnA tenant.
+  - Added `SourceUploadedOutboxPublisherHostedService`, `SourceUploadedOutboxProcessorService`, and `ProcessSourceUploadedOutboxCommandHandler` to relay Step 4 `SourceUploadedOutboxMessage` rows to RabbitMQ per active QnA tenant.
   - Added `VerifyUploadedSourceCommandHandler`:
     - idempotently skips non-`Uploaded` sources;
     - fails malformed/non-staging events without retry;
@@ -311,7 +311,7 @@
   - `dotnet/Querify.QnA.Worker.Business.Source/Querify.QnA.Worker.Business.Source.csproj`
   - `dotnet/Querify.QnA.Worker.Business.Source/Abstractions/IQnAWorkerTenantContext.cs`
   - `dotnet/Querify.QnA.Worker.Business.Source/Abstractions/IUploadThreatScanner.cs`
-  - `dotnet/Querify.QnA.Worker.Business.Source/Abstractions/ISourceUploadedOutboxProcessor.cs`
+  - `dotnet/Querify.QnA.Worker.Business.Source/Abstractions/ISourceUploadedOutboxProcessorService.cs`
   - `dotnet/Querify.QnA.Worker.Business.Source/Consumers/SourceUploadedConsumer.cs`
   - `dotnet/Querify.QnA.Worker.Business.Source/Commands/VerifyUploadedSource/VerifyUploadedSourceCommand.cs`
   - `dotnet/Querify.QnA.Worker.Business.Source/Commands/VerifyUploadedSource/VerifyUploadedSourceCommandHandler.cs`
@@ -325,8 +325,8 @@
   - `dotnet/Querify.QnA.Worker.Business.Source/Options/SourceUploadedOutboxProcessingOptions.cs`
   - `dotnet/Querify.QnA.Worker.Business.Source/Options/PendingSourceUploadExpiryOptions.cs`
   - `dotnet/Querify.QnA.Worker.Business.Source/Services/NoopUploadThreatScanner.cs`
-  - `dotnet/Querify.QnA.Worker.Business.Source/Services/SourceUploadedOutboxProcessor.cs`
-  - `dotnet/Querify.QnA.Worker.Business.Source/Services/UploadContentInspector.cs`
+  - `dotnet/Querify.QnA.Worker.Business.Source/Services/SourceUploadedOutboxProcessorService.cs`
+  - `dotnet/Querify.QnA.Common.Domain/BusinessRules/Sources/SourceUploadContentInspector.cs`
 - Commands run:
   - `wc -l docs/backend/architecture/querify-tenant-worker.md docs/backend/architecture/solution-architecture.md` - pass.
   - `sed -n '1,260p' docs/backend/architecture/querify-tenant-worker.md` - pass.
@@ -549,3 +549,75 @@
     - `REDIS_PASSWORD=RedisTempPassword docker compose -f devops/local/docker/docker-compose.baseservices.yml up -d postgres rabbitmq minio minio-init`
     - `REDIS_PASSWORD=RedisTempPassword docker compose -f devops/local/docker/docker-compose.baseservices.yml -f devops/local/docker/docker-compose.backend.yml up -d querify.qna.portal.api querify.qna.worker.api`
     - Exercise `POST /api/qna/source/upload-intent`, direct `PUT` to MinIO, `POST /api/qna/source/{id}/upload-complete`, worker verification, and `GET /api/qna/source/{id}/download-url`.
+
+## Post-Step 8 - Worker Telemetry And ProcessorService Refactor
+
+- Step attempted: post-Step 8 architecture follow-up for worker telemetry placement and processor naming.
+- Scope completed:
+  - Registered QnA worker feature telemetry at host startup.
+  - Moved Source upload consumer telemetry behind `SourceUploadVerificationService`.
+  - Renamed Source upload worker processors to `*ProcessorService`.
+  - Split hosted-service orchestration from business workflow:
+    - Hosted services now schedule/resolve processor services only.
+    - Processor services open telemetry, set tags, and dispatch a single command.
+    - Commands own tenant iteration, EF, publish/finalization, retry, and expiry workflow.
+  - Moved uploaded-content magic-byte/domain validation from worker `Services` to `Querify.QnA.Common.Domain.BusinessRules.Sources`.
+  - Applied the same `HostedService -> ProcessorService -> Command/Query` pattern to Tenant worker Billing and Email processors.
+  - Updated architecture documentation and this roadmap to encode the pattern.
+- Files changed:
+  - `docs/backend/architecture/dotnet-backend-overview.md`
+  - `docs/backend/architecture/querify-tenant-worker.md`
+  - `docs/backend/architecture/repository-rules.md`
+  - `docs/backend/architecture/solution-architecture.md`
+  - `docs/behavior-change-playbook.md`
+  - `docs/future/backend/source-upload.md`
+  - `docs/future/backend/source-upload-implementation-handoff.md`
+  - `dotnet/Querify.QnA.Worker.Api/Program.cs`
+  - `dotnet/Querify.QnA.Worker.Api/Querify.QnA.Worker.Api.csproj`
+  - `dotnet/Querify.QnA.Common.Domain/BusinessRules/Sources/SourceUploadContentInspector.cs`
+  - `dotnet/Querify.QnA.Worker.Business.Source/Abstractions/*ProcessorService.cs`
+  - `dotnet/Querify.QnA.Worker.Business.Source/Abstractions/ISourceUploadVerificationService.cs`
+  - `dotnet/Querify.QnA.Worker.Business.Source/Commands/ExpirePendingSourceUploadsForAllTenants/*`
+  - `dotnet/Querify.QnA.Worker.Business.Source/Commands/ProcessSourceUploadedOutbox/*`
+  - `dotnet/Querify.QnA.Worker.Business.Source/Consumers/SourceUploadedConsumer.cs`
+  - `dotnet/Querify.QnA.Worker.Business.Source/Extensions/ServiceCollectionExtensions.cs`
+  - `dotnet/Querify.QnA.Worker.Business.Source/HostedServices/*HostedService.cs`
+  - `dotnet/Querify.QnA.Worker.Business.Source/Infrastructure/SourceWorkerTelemetry.cs`
+  - `dotnet/Querify.QnA.Worker.Business.Source/Services/*ProcessorService.cs`
+  - `dotnet/Querify.QnA.Worker.Business.Source/Services/SourceUploadVerificationService.cs`
+  - `dotnet/Querify.QnA.Worker.Test.IntegrationTests/Tests/Source/*`
+  - `dotnet/Querify.Tenant.Worker.Business.Billing/Abstractions/*ProcessorService.cs`
+  - `dotnet/Querify.Tenant.Worker.Business.Billing/Commands/ProcessBillingWebhookInboxBatch/*`
+  - `dotnet/Querify.Tenant.Worker.Business.Billing/Extensions/ServiceCollectionExtensions.cs`
+  - `dotnet/Querify.Tenant.Worker.Business.Billing/HostedServices/BillingWebhookInboxProcessorHostedService.cs`
+  - `dotnet/Querify.Tenant.Worker.Business.Billing/Services/BillingWebhookInboxProcessorService.cs`
+  - `dotnet/Querify.Tenant.Worker.Business.Email/Abstractions/*ProcessorService.cs`
+  - `dotnet/Querify.Tenant.Worker.Business.Email/Commands/ProcessEmailOutboxBatch/*`
+  - `dotnet/Querify.Tenant.Worker.Business.Email/Extensions/ServiceCollectionExtensions.cs`
+  - `dotnet/Querify.Tenant.Worker.Business.Email/HostedServices/EmailOutboxProcessorHostedService.cs`
+  - `dotnet/Querify.Tenant.Worker.Business.Email/Services/EmailOutboxProcessorService.cs`
+  - `dotnet/Querify.Tenant.Worker.Test.IntegrationTests/Tests/Billing/ProcessBillingWebhookInboxBatchCommandHandlerTests.cs`
+  - `dotnet/Querify.Tenant.Worker.Test.IntegrationTests/Tests/Email/ProcessEmailOutboxBatchCommandHandlerTests.cs`
+- Commands run:
+  - `git status --short` - pass.
+  - `dotnet build dotnet/Querify.QnA.Worker.Api -v minimal` - pass; 0 warnings, 0 errors.
+  - `dotnet test dotnet/Querify.QnA.Worker.Test.IntegrationTests -v minimal` - pass; 8 tests.
+  - `dotnet build dotnet/Querify.Tenant.Worker.Api -v minimal` - pass; 0 warnings, 0 errors.
+  - `dotnet test dotnet/Querify.Tenant.Worker.Test.IntegrationTests -v minimal` - pass; 12 tests.
+  - `dotnet test dotnet/Querify.Common.Architecture.Test.IntegrationTest -v minimal` - pass; 10 tests.
+  - `git diff --check` - pass.
+  - `rg -n "StartActivity|ActivitySource|IMediator|mediator\\.Send|GetRequiredService<IMediator>" dotnet/*/HostedServices dotnet/Querify.*.Worker.Business.*/HostedServices -g '*.cs'` - pass; no matches.
+  - `rg -n "IRequest<int>|IRequestHandler<[^>]+, int>" dotnet -g '*.cs'` - pass; no matches.
+  - `rg -n "\\bIBillingWebhookInboxProcessor\\b|\\bIEmailOutboxProcessor\\b|\\bISourceUploadedOutboxProcessor\\b|\\bIPendingSourceUploadExpiryProcessor\\b|\\bBillingWebhookInboxProcessor\\b|\\bEmailOutboxProcessor\\b|\\bSourceUploadedOutboxProcessor\\b|\\bPendingSourceUploadExpiryProcessor\\b|\\bUploadContentInspector\\b" docs dotnet -g '*.md' -g '*.cs'` - pass; no obsolete names.
+  - `rg -n "HostedService -> Service|HostedService/Consumer -> ProcessorService|HostedService/Consumer -> Service" docs -g '*.md' -g '!docs/future/backend/source-upload-implementation-handoff.md'` - pass; no matches.
+- Manual verification performed:
+  - Verified every worker hosted service is scheduler-only and resolves/calls a processor service.
+  - Verified processor services contain telemetry plus MediatR dispatch only.
+  - Verified Source uploaded-content validation is in common-domain `BusinessRules/Sources`.
+  - Verified consumer telemetry is behind `SourceUploadVerificationService`.
+- Intentional pending work:
+  - No additional pending work from this refactor.
+- Exact blocker if stopped:
+  - None.
+- Exact next step to resume:
+  - Continue with the existing deployment pending work above: database migration, production malware scanner configuration, and MinIO-backed smoke path.

@@ -124,10 +124,10 @@ Apply these rules to:
 
 | Location | Allowed | Not allowed |
 |---|---|---|
-| `Commands/<Action>` | write request plus handler orchestration | read DTO shaping, query concerns |
+| `Commands/<Action>` | write request plus handler orchestration, including worker batch workflow behavior | read DTO shaping, query concerns |
 | `Queries/<Action>` | read handlers plus projection mapping | write mutations |
-| `Controllers` | HTTP mapping such as status code, routing, request and response transport | business rules, data access logic |
-| `Service` | use-case orchestration and coordination | HTTP concerns, DTO projection for reads after write |
+| `Controllers` | HTTP mapping such as status code, routing, request and response transport | business rules, data access logic, feature telemetry spans |
+| `Service` | thin application coordination, MediatR dispatch, and feature telemetry spans | HTTP concerns, DTO projection for reads after write, EF workflow, broker behavior, storage behavior, domain decisions |
 | `Abstractions` | interfaces and contracts only | implementations or behavior |
 | `Extensions` | DI and composition wiring only | business logic |
 | `DbContext` | context classes and save-time persistence concerns such as tenant integrity, audit, soft delete, and auto history | command/query orchestration or feature business workflow |
@@ -147,6 +147,20 @@ Hard rule: do not place new behavior in folders that already exist for a differe
    - `Handle(...)` coordinates phases and delegates behavior.
    - Keep behavior in the owning action boundary and feature-local collaborators.
    - Do not move use-case behavior into controllers, generic helpers, transport services, or persistence entities.
+   - Put feature telemetry spans in the service layer by default, using
+     `Controller -> Service (telemetry) -> Command/Query`,
+     `Consumer -> Service (telemetry) -> Command/Query`, or
+     `HostedService -> ProcessorService (telemetry) -> Command/Query`.
+   - Do not start feature telemetry spans first in controllers, consumers, hosted services,
+     command handlers, or query handlers unless the implementation prompt explicitly asks
+     for that exception.
+   - Hosted services are schedulers only. They resolve/call a `ProcessorService`.
+   - `ProcessorService` classes coordinate only: open telemetry, set tags, and dispatch one
+     MediatR command/query. They do not query EF, publish to brokers, call storage, implement
+     retry/finalization rules, or make domain decisions.
+   - Commands/queries own worker workflow behavior after the processor service dispatches them.
+   - Pure domain decisions belong under the owning common-domain `BusinessRules/<Feature>`
+     folder, not in API or worker `Services`.
 
 3. Slice by explicit phases.
    - Use this order as default: validate -> authorize -> load -> apply domain behavior -> persist -> publish or integrate.

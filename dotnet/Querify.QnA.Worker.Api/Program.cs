@@ -1,10 +1,12 @@
 using Querify.Common.EntityFramework.Tenant.Extensions;
 using Querify.Common.Infrastructure.Core.Abstractions;
 using Querify.Common.Infrastructure.Storage.Extensions;
+using Querify.Common.Infrastructure.Telemetry.Extensions;
 using Querify.QnA.Common.Persistence.QnADb.Extensions;
 using Querify.QnA.Worker.Api.Extensions;
 using Querify.QnA.Worker.Api.Infrastructure;
 using Querify.QnA.Worker.Business.Source.Abstractions;
+using Querify.QnA.Worker.Business.Source.Infrastructure;
 
 namespace Querify.QnA.Worker.Api;
 
@@ -31,6 +33,10 @@ public class Program
                 services.AddTenantDb(context.Configuration.GetConnectionString("TenantDb"));
                 services.AddQnADb();
                 services.AddObjectStorage(context.Configuration);
+                services.AddTelemetry(
+                    context.Configuration,
+                    context.HostingEnvironment,
+                    SourceWorkerTelemetry.ActivitySourceName);
                 services.AddQnAWorkerFeatures(context.Configuration, context.HostingEnvironment);
             })
             .Build();

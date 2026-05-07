@@ -1006,12 +1006,14 @@ DELIVERABLES (assuming a dedicated worker)
          string? ClientChecksum, DateTime UploadedAtUtc }
    - Commands/VerifyUploadedSource/VerifyUploadedSourceCommandHandler.cs
    - Commands/ExpirePendingSourceUploads/ExpirePendingSourceUploadsCommand.cs
-       : IRequest<int>
+       : IRequest<bool>
        { DateTime NowUtc }
    - Commands/ExpirePendingSourceUploads/ExpirePendingSourceUploadsCommandHandler.cs
+   - Processor services coordinate telemetry and dispatch commands; hosted services do not
+     own Source upload workflow behavior directly.
    - Abstractions/IUploadThreatScanner.cs
    - Services/NoopUploadThreatScanner.cs (Development only)
-   - Services/UploadContentInspector.cs (magic-byte validation)
+   - Common Domain BusinessRules/Sources/SourceUploadContentInspector.cs (magic-byte validation)
    - HostedServices/PendingSourceUploadExpiryHostedService.cs
 
    Consumer flow:

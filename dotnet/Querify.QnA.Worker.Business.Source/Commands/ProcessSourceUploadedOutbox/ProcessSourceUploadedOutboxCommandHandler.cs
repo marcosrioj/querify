@@ -1,4 +1,5 @@
 using MassTransit;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -12,18 +13,18 @@ using Querify.QnA.Worker.Business.Source.Abstractions;
 using Querify.QnA.Worker.Business.Source.Infrastructure;
 using Querify.QnA.Worker.Business.Source.Options;
 
-namespace Querify.QnA.Worker.Business.Source.Services;
+namespace Querify.QnA.Worker.Business.Source.Commands.ProcessSourceUploadedOutbox;
 
-public sealed class SourceUploadedOutboxProcessor(
+public sealed class ProcessSourceUploadedOutboxCommandHandler(
     TenantDbContext tenantDbContext,
     IServiceScopeFactory scopeFactory,
     IOptionsMonitor<SourceUploadedOutboxProcessingOptions> optionsMonitor,
-    ILogger<SourceUploadedOutboxProcessor> logger)
-    : ISourceUploadedOutboxProcessor
+    ILogger<ProcessSourceUploadedOutboxCommandHandler> logger)
+    : IRequestHandler<ProcessSourceUploadedOutboxCommand, bool>
 {
     private const string TableName = "SourceUploadedOutboxMessages";
 
-    public async Task<int> ProcessBatchAsync(CancellationToken cancellationToken = default)
+    public async Task<bool> Handle(ProcessSourceUploadedOutboxCommand request, CancellationToken cancellationToken)
     {
         var tenantIds = await tenantDbContext.Tenants
             .AsNoTracking()
@@ -44,7 +45,7 @@ public sealed class SourceUploadedOutboxProcessor(
             }
         }
 
-        return processedCount;
+        return processedCount > 0;
     }
 
     private async Task<int> ProcessTenantBatchAsync(Guid tenantId, CancellationToken cancellationToken)

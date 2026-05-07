@@ -26,7 +26,7 @@ public static class ServiceCollectionExtensions
         services.AddMediatR(config =>
             config.RegisterServicesFromAssemblyContaining<DispatchBillingWebhookInboxCommandHandler>());
 
-        services.AddScoped<IBillingWebhookInboxProcessor, BillingWebhookInboxProcessor>();
+        services.AddScoped<IBillingWebhookInboxProcessorService, BillingWebhookInboxProcessorService>();
         services.AddScoped<IBillingProvider, StripeBillingProvider>();
         services.AddScoped<IBillingProviderResolver, BillingProviderResolver>();
         services.AddScoped<IBillingWebhookDispatcher, BillingWebhookDispatcher>();

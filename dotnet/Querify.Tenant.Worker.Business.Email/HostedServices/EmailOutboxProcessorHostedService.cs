@@ -30,9 +30,9 @@ public sealed class EmailOutboxProcessorHostedService(
             try
             {
                 using var scope = serviceScopeFactory.CreateScope();
-                var processor = scope.ServiceProvider.GetRequiredService<IEmailOutboxProcessor>();
-                var claimedCount = await processor.ProcessBatchAsync(stoppingToken);
-                var delay = claimedCount > 0 ? TimeSpan.Zero : options.PollingInterval;
+                var processorService = scope.ServiceProvider.GetRequiredService<IEmailOutboxProcessorService>();
+                var processedAny = await processorService.ProcessBatchAsync(stoppingToken);
+                var delay = processedAny ? TimeSpan.Zero : options.PollingInterval;
 
                 if (delay > TimeSpan.Zero)
                 {

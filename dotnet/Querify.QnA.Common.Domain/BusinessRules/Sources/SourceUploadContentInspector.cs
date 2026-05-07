@@ -1,14 +1,13 @@
 using System.Text;
 using Querify.Models.QnA.Enums;
-using Querify.QnA.Common.Domain.BusinessRules.Sources;
 
-namespace Querify.QnA.Worker.Business.Source.Services;
+namespace Querify.QnA.Common.Domain.BusinessRules.Sources;
 
-public sealed class UploadContentInspector
+public static class SourceUploadContentInspector
 {
     private static readonly UTF8Encoding StrictUtf8 = new(false, true);
 
-    public bool IsAllowed(SourceKind kind, string? contentType, ReadOnlySpan<byte> prefix)
+    public static bool IsAllowed(SourceKind kind, string? contentType, ReadOnlySpan<byte> prefix)
     {
         var normalizedContentType = SourceRules.NormalizeContentType(contentType);
         if (!SourceRules.IsUploadContentTypeAllowed(kind, normalizedContentType))

@@ -41,8 +41,9 @@ public static class ServiceCollectionExtensions
         services.AddMediatR(config =>
             config.RegisterServicesFromAssemblyContaining<VerifyUploadedSourceCommandHandler>());
 
-        services.AddScoped<UploadContentInspector>();
-        services.AddScoped<ISourceUploadedOutboxProcessor, SourceUploadedOutboxProcessor>();
+        services.AddScoped<ISourceUploadVerificationService, SourceUploadVerificationService>();
+        services.AddScoped<ISourceUploadedOutboxProcessorService, SourceUploadedOutboxProcessorService>();
+        services.AddSingleton<IPendingSourceUploadExpiryProcessorService, PendingSourceUploadExpiryProcessorService>();
         services.AddHostedService<SourceUploadedOutboxPublisherHostedService>();
         services.AddHostedService<PendingSourceUploadExpiryHostedService>();
 

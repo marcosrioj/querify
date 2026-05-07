@@ -10,7 +10,6 @@ using Querify.QnA.Common.Domain.BusinessRules.Sources;
 using Querify.QnA.Common.Domain.Options;
 using Querify.QnA.Common.Persistence.QnADb.DbContext;
 using Querify.QnA.Worker.Business.Source.Abstractions;
-using Querify.QnA.Worker.Business.Source.Services;
 
 namespace Querify.QnA.Worker.Business.Source.Commands.VerifyUploadedSource;
 
@@ -18,7 +17,6 @@ public sealed class VerifyUploadedSourceCommandHandler(
     QnADbContext dbContext,
     IObjectStorage objectStorage,
     IUploadThreatScanner threatScanner,
-    UploadContentInspector contentInspector,
     IOptions<SourceUploadOptions> uploadOptions,
     ILogger<VerifyUploadedSourceCommandHandler> logger)
     : IRequestHandler<VerifyUploadedSourceCommand, Guid>
@@ -98,7 +96,7 @@ public sealed class VerifyUploadedSourceCommandHandler(
             return entity.Id;
         }
 
-        if (!contentInspector.IsAllowed(entity.Kind, normalizedHeadContentType, evidence.Prefix))
+        if (!SourceUploadContentInspector.IsAllowed(entity.Kind, normalizedHeadContentType, evidence.Prefix))
         {
             await FailSourceAsync(entity, request.StorageKey, deleteStaging: true, cancellationToken);
             return entity.Id;

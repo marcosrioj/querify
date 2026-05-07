@@ -1,8 +1,8 @@
 using Querify.Common.EntityFramework.Tenant.Entities;
 using Querify.Common.EntityFramework.Tenant.Enums;
 using Querify.Models.Tenant.Enums;
+using Querify.Tenant.Worker.Business.Billing.Commands.ProcessBillingWebhookInboxBatch;
 using Querify.Tenant.Worker.Business.Billing.Options;
-using Querify.Tenant.Worker.Business.Billing.Services;
 using Querify.Tenant.Worker.Test.IntegrationTests.Helpers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -10,7 +10,7 @@ using Xunit;
 
 namespace Querify.Tenant.Worker.Test.IntegrationTests.Tests.Billing;
 
-public class BillingWebhookInboxProcessorTests
+public class ProcessBillingWebhookInboxBatchCommandHandlerTests
 {
     private static BillingProcessingOptions DefaultOptions => new()
     {
@@ -20,14 +20,14 @@ public class BillingWebhookInboxProcessorTests
         MaxRetryCount = 3
     };
 
-    private static BillingWebhookInboxProcessor CreateProcessor(
+    private static ProcessBillingWebhookInboxBatchCommandHandler CreateHandler(
         Querify.Common.EntityFramework.Tenant.TenantDbContext dbContext,
         FakeMediator mediator,
         BillingProcessingOptions? options = null)
     {
         var monitor = new TestOptionsMonitor<BillingProcessingOptions>(options ?? DefaultOptions);
-        var logger = NullLogger<BillingWebhookInboxProcessor>.Instance;
-        return new BillingWebhookInboxProcessor(dbContext, mediator, monitor, logger);
+        var logger = NullLogger<ProcessBillingWebhookInboxBatchCommandHandler>.Instance;
+        return new ProcessBillingWebhookInboxBatchCommandHandler(dbContext, mediator, monitor, logger);
     }
 
     private static async Task<BillingWebhookInbox> SeedPendingItemAsync(
@@ -59,11 +59,11 @@ public class BillingWebhookInboxProcessorTests
         var seeded = await SeedPendingItemAsync(context.DbContext);
 
         var mediator = new FakeMediator();
-        var processor = CreateProcessor(context.DbContext, mediator);
+        var handler = CreateHandler(context.DbContext, mediator);
 
-        var processed = await processor.ProcessBatchAsync(CancellationToken.None);
+        var processedAny = await handler.Handle(new ProcessBillingWebhookInboxBatchCommand(), CancellationToken.None);
 
-        Assert.Equal(1, processed);
+        Assert.True(processedAny);
         Assert.Equal(1, mediator.SendCallCount);
 
         var item = await context.DbContext.BillingWebhookInboxes
@@ -84,11 +84,11 @@ public class BillingWebhookInboxProcessorTests
 
         var mediator = new FakeMediator();
         mediator.EnqueueException(new InvalidOperationException("transient error"));
-        var processor = CreateProcessor(context.DbContext, mediator);
+        var handler = CreateHandler(context.DbContext, mediator);
 
-        var processed = await processor.ProcessBatchAsync(CancellationToken.None);
+        var processedAny = await handler.Handle(new ProcessBillingWebhookInboxBatchCommand(), CancellationToken.None);
 
-        Assert.Equal(1, processed);
+        Assert.True(processedAny);
 
         var item = await context.DbContext.BillingWebhookInboxes
             .AsNoTracking()
@@ -116,9 +116,9 @@ public class BillingWebhookInboxProcessorTests
 
         var mediator = new FakeMediator();
         mediator.EnqueueException(new InvalidOperationException("permanent error"));
-        var processor = CreateProcessor(context.DbContext, mediator, options);
+        var handler = CreateHandler(context.DbContext, mediator, options);
 
-        await processor.ProcessBatchAsync(CancellationToken.None);
+        await handler.Handle(new ProcessBillingWebhookInboxBatchCommand(), CancellationToken.None);
 
         var item = await context.DbContext.BillingWebhookInboxes
             .AsNoTracking()
@@ -138,11 +138,11 @@ public class BillingWebhookInboxProcessorTests
             lockedUntilDateUtc: DateTime.UtcNow.AddHours(1));
 
         var mediator = new FakeMediator();
-        var processor = CreateProcessor(context.DbContext, mediator);
+        var handler = CreateHandler(context.DbContext, mediator);
 
-        var processed = await processor.ProcessBatchAsync(CancellationToken.None);
+        var processedAny = await handler.Handle(new ProcessBillingWebhookInboxBatchCommand(), CancellationToken.None);
 
-        Assert.Equal(0, processed);
+        Assert.False(processedAny);
         Assert.Equal(0, mediator.SendCallCount);
     }
 
@@ -155,11 +155,11 @@ public class BillingWebhookInboxProcessorTests
             nextAttemptDateUtc: DateTime.UtcNow.AddHours(1));
 
         var mediator = new FakeMediator();
-        var processor = CreateProcessor(context.DbContext, mediator);
+        var handler = CreateHandler(context.DbContext, mediator);
 
-        var processed = await processor.ProcessBatchAsync(CancellationToken.None);
+        var processedAny = await handler.Handle(new ProcessBillingWebhookInboxBatchCommand(), CancellationToken.None);
 
-        Assert.Equal(0, processed);
+        Assert.False(processedAny);
     }
 
     [Fact]
@@ -168,11 +168,11 @@ public class BillingWebhookInboxProcessorTests
         using var context = TestContext.Create();
 
         var mediator = new FakeMediator();
-        var processor = CreateProcessor(context.DbContext, mediator);
+        var handler = CreateHandler(context.DbContext, mediator);
 
-        var processed = await processor.ProcessBatchAsync(CancellationToken.None);
+        var processedAny = await handler.Handle(new ProcessBillingWebhookInboxBatchCommand(), CancellationToken.None);
 
-        Assert.Equal(0, processed);
+        Assert.False(processedAny);
         Assert.Equal(0, mediator.SendCallCount);
     }
 
@@ -193,11 +193,11 @@ public class BillingWebhookInboxProcessorTests
             MaxRetryCount = DefaultOptions.MaxRetryCount
         };
         var mediator = new FakeMediator();
-        var processor = CreateProcessor(context.DbContext, mediator, options);
+        var handler = CreateHandler(context.DbContext, mediator, options);
 
-        var processed = await processor.ProcessBatchAsync(CancellationToken.None);
+        var processedAny = await handler.Handle(new ProcessBillingWebhookInboxBatchCommand(), CancellationToken.None);
 
-        Assert.Equal(2, processed);
+        Assert.True(processedAny);
         Assert.Equal(2, mediator.SendCallCount);
     }
 }

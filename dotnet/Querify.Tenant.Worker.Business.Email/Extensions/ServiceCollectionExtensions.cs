@@ -28,7 +28,7 @@ public static class ServiceCollectionExtensions
         services.AddMediatR(config =>
             config.RegisterServicesFromAssemblyContaining<SendEmailOutboxCommandHandler>());
 
-        services.AddScoped<IEmailOutboxProcessor, EmailOutboxProcessor>();
+        services.AddScoped<IEmailOutboxProcessorService, EmailOutboxProcessorService>();
         services.AddHostedService<EmailOutboxProcessorHostedService>();
 
         return services;

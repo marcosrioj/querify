@@ -1,28 +1,27 @@
+using MediatR;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Querify.Common.EntityFramework.Tenant;
 using Querify.Common.EntityFramework.Tenant.Entities;
 using Querify.Common.EntityFramework.Tenant.Enums;
 using Querify.Common.EntityFramework.Tenant.Extensions;
 using Querify.Tenant.Worker.Business.Email.Abstractions;
 using Querify.Tenant.Worker.Business.Email.Commands.SendEmailOutbox;
-using Querify.Tenant.Worker.Business.Email.Infrastructure;
 using Querify.Tenant.Worker.Business.Email.Options;
-using MediatR;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
-namespace Querify.Tenant.Worker.Business.Email.Services;
+namespace Querify.Tenant.Worker.Business.Email.Commands.ProcessEmailOutboxBatch;
 
-public sealed class EmailOutboxProcessor(
+public sealed class ProcessEmailOutboxBatchCommandHandler(
     TenantDbContext dbContext,
     IMediator mediator,
     IOptionsMonitor<EmailProcessingOptions> optionsMonitor,
-    ILogger<EmailOutboxProcessor> logger)
-    : IEmailOutboxProcessor
+    ILogger<ProcessEmailOutboxBatchCommandHandler> logger)
+    : IRequestHandler<ProcessEmailOutboxBatchCommand, bool>
 {
     private const string TableName = "EmailOutboxes";
 
-    public async Task<int> ProcessBatchAsync(CancellationToken cancellationToken = default)
+    public async Task<bool> Handle(ProcessEmailOutboxBatchCommand request, CancellationToken cancellationToken)
     {
         var options = optionsMonitor.CurrentValue;
 
@@ -31,17 +30,13 @@ public sealed class EmailOutboxProcessor(
             logger.LogDebug(
                 "Skipping email outbox polling because table {TableName} does not exist yet. Apply the TenantDb migration before enabling this processor.",
                 TableName);
-            return 0;
+            return false;
         }
-
-        using var activity = EmailWorkerTelemetry.ActivitySource.StartActivity("email-outbox.process-batch");
-        activity?.SetTag("worker.processor", "email-outbox");
-        activity?.SetTag("worker.batch_size", options.BatchSize);
 
         var claimedItems = await ClaimBatchAsync(options, cancellationToken);
         if (claimedItems.Count == 0)
         {
-            return 0;
+            return false;
         }
 
         logger.LogInformation(
@@ -87,7 +82,7 @@ public sealed class EmailOutboxProcessor(
                 result.FailureReason);
         }
 
-        return claimedItems.Count;
+        return claimedItems.Count > 0;
     }
 
     private async Task<List<EmailOutbox>> ClaimBatchAsync(

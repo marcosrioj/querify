@@ -1,28 +1,27 @@
+using MediatR;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Querify.Common.EntityFramework.Tenant;
 using Querify.Common.EntityFramework.Tenant.Entities;
 using Querify.Common.EntityFramework.Tenant.Enums;
 using Querify.Common.EntityFramework.Tenant.Extensions;
 using Querify.Tenant.Worker.Business.Billing.Abstractions;
 using Querify.Tenant.Worker.Business.Billing.Commands.DispatchBillingWebhookInbox;
-using Querify.Tenant.Worker.Business.Billing.Infrastructure;
 using Querify.Tenant.Worker.Business.Billing.Options;
-using MediatR;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
-namespace Querify.Tenant.Worker.Business.Billing.Services;
+namespace Querify.Tenant.Worker.Business.Billing.Commands.ProcessBillingWebhookInboxBatch;
 
-public sealed class BillingWebhookInboxProcessor(
+public sealed class ProcessBillingWebhookInboxBatchCommandHandler(
     TenantDbContext dbContext,
     IMediator mediator,
     IOptionsMonitor<BillingProcessingOptions> optionsMonitor,
-    ILogger<BillingWebhookInboxProcessor> logger)
-    : IBillingWebhookInboxProcessor
+    ILogger<ProcessBillingWebhookInboxBatchCommandHandler> logger)
+    : IRequestHandler<ProcessBillingWebhookInboxBatchCommand, bool>
 {
     private const string TableName = "BillingWebhookInboxes";
 
-    public async Task<int> ProcessBatchAsync(CancellationToken cancellationToken = default)
+    public async Task<bool> Handle(ProcessBillingWebhookInboxBatchCommand request, CancellationToken cancellationToken)
     {
         var options = optionsMonitor.CurrentValue;
 
@@ -31,17 +30,13 @@ public sealed class BillingWebhookInboxProcessor(
             logger.LogDebug(
                 "Skipping billing webhook inbox polling because table {TableName} does not exist yet. Apply the TenantDb migration before enabling this processor.",
                 TableName);
-            return 0;
+            return false;
         }
-
-        using var activity = BillingWorkerTelemetry.ActivitySource.StartActivity("billing-webhook-inbox.process-batch");
-        activity?.SetTag("worker.processor", "billing-webhook-inbox");
-        activity?.SetTag("worker.batch_size", options.BatchSize);
 
         var claimedItems = await ClaimBatchAsync(options, cancellationToken);
         if (claimedItems.Count == 0)
         {
-            return 0;
+            return false;
         }
 
         logger.LogInformation(
@@ -89,7 +84,7 @@ public sealed class BillingWebhookInboxProcessor(
                 result.FailureReason);
         }
 
-        return claimedItems.Count;
+        return claimedItems.Count > 0;
     }
 
     private async Task<List<BillingWebhookInbox>> ClaimBatchAsync(

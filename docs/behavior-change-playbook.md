@@ -238,6 +238,7 @@ Relevant module locations:
 - Tenant worker host: `dotnet/Querify.Tenant.Worker.Api`
 - Tenant business modules: `dotnet/Querify.Tenant.<Surface>.Business.<Feature>`
 - QnA API hosts: `dotnet/Querify.QnA.Portal.Api`, `dotnet/Querify.QnA.Public.Api`
+- QnA worker host: `dotnet/Querify.QnA.Worker.Api`
 - QnA business modules: `dotnet/Querify.QnA.<Surface>.Business.<Feature>`
 - Direct persistence module: `dotnet/Querify.Direct.Common.Persistence.DirectDb`
 - Broadcast persistence module: `dotnet/Querify.Broadcast.Common.Persistence.BroadcastDb`
@@ -260,8 +261,21 @@ Rules:
 
 - Controllers map HTTP only.
 - Services stay thin and delegate to MediatR.
+- Telemetry spans belong in the service layer by default. The standard flow is
+  `Controller -> Service (telemetry) -> Command/Query`,
+  `Consumer -> Service (telemetry) -> Command/Query`, or
+  `HostedService -> ProcessorService (telemetry) -> Command/Query`. Do not put feature
+  telemetry first in controllers, consumers, hosted services, command handlers,
+  or query handlers unless the implementation prompt explicitly asks for that exception.
+- Hosted-service services use the `ProcessorService` suffix. A `ProcessorService`
+  coordinates only: open telemetry, set tags, and call one MediatR command or query.
+  It must not own EF queries, broker publish/consume behavior, storage operations,
+  retry/finalization rules, or domain decisions.
 - Command handlers orchestrate validation, loading, state mutation, persistence, and side effects.
 - Query handlers load and shape read DTOs.
+- Domain decisions and pure business rules live under the owning common domain
+  `BusinessRules/<Feature>` folder. Do not keep domain behavior in worker or API
+  `Services`; move it to the common domain rules and call it from commands/queries.
 - Write endpoints return simple write results.
 - GET endpoints return read DTOs.
 - Action route segments use lowercase kebab-case.
@@ -305,6 +319,8 @@ For the QnA operating model, seed examples demonstrate:
 The seed tool may apply EF migrations when it is executed, as described in [`backend/tools/seed-tool.md`](backend/tools/seed-tool.md). Do not use that runtime behavior as a substitute for the manual migration step during model work.
 
 Direct and Broadcast seed data belongs in their own seed services and persistence contexts. Do not seed their behavior through QnA sample data.
+
+Worker API hosts must register `Querify.Common.Infrastructure.Telemetry` with `AddTelemetry(...)`. Each worker business feature should expose a feature-specific `ActivitySourceName`, pass it to the host registration, and start feature spans inside `ProcessorService` classes rather than directly inside hosted services, consumers, commands, or queries. Hosted services must be schedulers only: they resolve/call a `ProcessorService`; that service owns telemetry and MediatR dispatch; the command/query owns workflow behavior.
 
 ## Step 8: Update Tests
 

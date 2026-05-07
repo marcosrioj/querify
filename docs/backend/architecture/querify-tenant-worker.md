@@ -34,29 +34,31 @@ Contains only:
 
 Fully self-contained billing processing module:
 
-- `Abstractions/IBillingWebhookInboxProcessor.cs`
+- `Abstractions/IBillingWebhookInboxProcessorService.cs`
 - `Abstractions/IBillingProvider.cs`, `IBillingProviderResolver.cs`, `IBillingWebhookDispatcher.cs`, `IBillingWebhookEventHandler.cs`
 - `Abstractions/WorkItemExecutionResult.cs`
 - `Commands/DispatchBillingWebhookInbox/`: MediatR command and handler
+- `Commands/ProcessBillingWebhookInboxBatch/`: MediatR command and handler for batch claim/finalize workflow
 - `EventHandlers/`: normalized billing event handlers for Stripe foundation events
 - `HostedServices/BillingWebhookInboxProcessorHostedService.cs`
 - `Infrastructure/BillingWorkerTelemetry.cs`: activity source `Querify.Tenant.Worker.Billing`
 - `Models/`: provider-agnostic normalized billing webhook event model
 - `Options/BillingProcessingOptions.cs`, `StripeBillingOptions.cs`
-- `Services/BillingWebhookInboxProcessor.cs`, `BillingStateService.cs`, `BillingTenantResolver.cs`, `StripeBillingProvider.cs`, `StripeWebhookEventMapper.cs`
+- `Services/BillingWebhookInboxProcessorService.cs`, `BillingStateService.cs`, `BillingTenantResolver.cs`, `StripeBillingProvider.cs`, `StripeWebhookEventMapper.cs`
 - `Extensions/ServiceCollectionExtensions.cs`: `AddBillingBusiness(config)` registers everything
 
 ### Business.Email
 
 Fully self-contained email processing module:
 
-- `Abstractions/IEmailOutboxProcessor.cs`
+- `Abstractions/IEmailOutboxProcessorService.cs`
 - `Abstractions/WorkItemExecutionResult.cs`
 - `Commands/SendEmailOutbox/`: MediatR command and handler
+- `Commands/ProcessEmailOutboxBatch/`: MediatR command and handler for batch claim/finalize workflow
 - `HostedServices/EmailOutboxProcessorHostedService.cs`
 - `Infrastructure/EmailWorkerTelemetry.cs`: activity source `Querify.Tenant.Worker.Email`
 - `Options/EmailProcessingOptions.cs`, `EmailDeliveryOptions.cs`
-- `Services/EmailOutboxProcessor.cs`
+- `Services/EmailOutboxProcessorService.cs`
 - `Extensions/ServiceCollectionExtensions.cs`: `AddEmailBusiness(config)` registers everything
 
 ## Architectural boundaries
@@ -77,6 +79,28 @@ Each processor follows the same optimistic-locking pattern:
 4. On success, mark `Completed`. On exception, schedule retry with backoff. On terminal failure, mark `Failed`.
 
 The hosted service polls in a loop: if items were processed it immediately loops again; if the batch was empty it waits for `PollingInterval`.
+
+## Telemetry model
+
+Worker API hosts register `Querify.Common.Infrastructure.Telemetry` with `AddTelemetry(...)`
+and pass every worker feature `ActivitySourceName` to that host registration.
+
+Feature telemetry spans belong in the service layer first. The default worker flows are:
+
+```text
+HostedService -> ProcessorService (telemetry) -> Command/Query
+Consumer -> Service (telemetry) -> Command/Query
+```
+
+Do not start feature telemetry spans directly in hosted services, consumers, command handlers,
+or query handlers unless a specific implementation prompt documents that exception.
+
+Hosted services are schedulers only. They resolve/call a `ProcessorService`.
+The processor service coordinates only: open telemetry, set tags, and dispatch one
+MediatR command/query. EF queries, broker publish/consume behavior, retry/finalization
+rules, storage operations, and domain workflow decisions belong in commands/queries.
+Pure domain rules belong in the owning common-domain `BusinessRules/<Feature>` folder,
+not in worker `Services`.
 
 ## Runtime model
 
@@ -101,7 +125,8 @@ Processing flow:
 - polls `TenantDbContext.BillingWebhookInboxes`
 - checks that the table exists before polling, which is safe before migrations are applied
 - claims work in batches using status plus lease fields for multi-instance-safe processing
-- sends `DispatchBillingWebhookInboxCommand` via MediatR
+- `BillingWebhookInboxProcessorService` opens telemetry and sends `ProcessBillingWebhookInboxBatchCommand`
+- the batch command claims work, sends `DispatchBillingWebhookInboxCommand` via MediatR, and finalizes retry state
 - resolves the billing provider and normalizes the persisted webhook payload into internal billing event kinds
 - dispatches to idempotent billing handlers that upsert control-plane billing state and reconcile tenant entitlements
 - records retry timing, attempt counts, and terminal failure state
@@ -149,7 +174,8 @@ Processing flow:
 - polls `TenantDbContext.EmailOutboxes`
 - checks that the table exists before polling
 - claims work in batches with lease-based processing markers
-- sends `SendEmailOutboxCommand` via MediatR
+- `EmailOutboxProcessorService` opens telemetry and sends `ProcessEmailOutboxBatchCommand`
+- the batch command claims work, sends `SendEmailOutboxCommand` via MediatR, and finalizes retry state
 - records retries, failures, and completion timestamps
 - disabled by default in `appsettings.json` until the persistence model and real delivery handler are ready
 

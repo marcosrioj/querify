@@ -6,7 +6,6 @@ using Querify.QnA.Common.Domain.BusinessRules.Sources;
 using Querify.QnA.Common.Domain.Options;
 using Querify.QnA.Common.Domain.Entities;
 using Querify.QnA.Worker.Business.Source.Commands.VerifyUploadedSource;
-using Querify.QnA.Worker.Business.Source.Services;
 using Querify.QnA.Worker.Test.IntegrationTests.Helpers;
 using Xunit;
 
@@ -133,7 +132,6 @@ public class VerifyUploadedSourceCommandHandlerTests
             context.DbContext,
             storage,
             new FakeThreatScanner(scannerIsSafe),
-            new UploadContentInspector(),
             Options.Create(new SourceUploadOptions()),
             NullLogger<VerifyUploadedSourceCommandHandler>.Instance);
     }

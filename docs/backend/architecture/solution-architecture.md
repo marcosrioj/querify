@@ -92,6 +92,14 @@ Write and read paths are separated through commands and queries. The usual flow 
 3. The service dispatches a MediatR command or query.
 4. The handler executes validation, persistence, and event publication.
 
+The same boundary applies to background processing and broker integration:
+`HostedService -> ProcessorService -> Command/Query` and `Consumer -> Service -> Command/Query`.
+Feature telemetry starts in the service layer by default, not in controllers, hosted services,
+consumers, command handlers, or query handlers.
+For hosted services, name that coordination layer `*ProcessorService`: it opens telemetry
+and dispatches a command/query, while the command/query owns EF, broker, storage, retry,
+finalization, and domain workflow behavior.
+
 The write-side rules are formalized in [`solution-cqrs-write-rules.md`](solution-cqrs-write-rules.md).
 
 ### 4. Controllers stay thin
