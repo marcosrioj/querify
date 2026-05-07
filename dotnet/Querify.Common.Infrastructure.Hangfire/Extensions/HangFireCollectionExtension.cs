@@ -127,8 +127,6 @@ public static class HangFireCollectionExtension
         if (options?.Dashboard is null)
             throw new Exception("Hangfire Dashboard options not found");
 
-        Console.WriteLine(options.ConnectionString);
-
         if (!options.Dashboard.Enabled)
         {
             return;

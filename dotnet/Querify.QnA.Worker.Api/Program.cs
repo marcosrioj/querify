@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Hosting;
 using Querify.Common.EntityFramework.Tenant.Extensions;
 using Querify.Common.Infrastructure.Core.Abstractions;
 using Querify.Common.Infrastructure.Hangfire.Extensions;
@@ -26,6 +27,13 @@ public class Program
             {
                 logging.SetMinimumLevel(LogLevel.Information);
                 logging.AddConsole();
+            })
+            .ConfigureWebHostDefaults(webBuilder =>
+            {
+                webBuilder.Configure((context, app) =>
+                {
+                    app.UseHangFireDashboard(context.Configuration);
+                });
             })
             .ConfigureServices((context, services) =>
             {

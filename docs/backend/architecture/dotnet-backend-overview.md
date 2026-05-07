@@ -17,6 +17,7 @@ This guide explains how the backend is organized under `dotnet/`, which APIs exi
 | Worker | Responsibility | Data boundary | Local port |
 |---|---|---|---:|
 | `Querify.Tenant.Worker.Api` | control-plane background processing for billing webhooks and email outbox | `TenantDbContext` only | n/a |
+| `Querify.QnA.Worker.Api` | QnA-owned background processing for source upload verification | `TenantDbContext` + tenant-scoped `QnADbContext` | `5030` |
 
 ## Project taxonomy inside `dotnet/`
 
@@ -35,6 +36,7 @@ These projects contain ASP.NET Core startup, middleware, and DI registration:
 ### Worker hosts
 
 - `Querify.Tenant.Worker.Api`
+- `Querify.QnA.Worker.Api`
 
 ### Business modules
 
@@ -263,6 +265,7 @@ dotnet run --project dotnet/Querify.Tenant.Public.Api
 dotnet run --project dotnet/Querify.QnA.Portal.Api
 dotnet run --project dotnet/Querify.QnA.Public.Api
 dotnet run --project dotnet/Querify.Tenant.Worker.Api
+dotnet run --project dotnet/Querify.QnA.Worker.Api
 ```
 
 For the full local operations model, see [`../tools/local-development.md`](../tools/local-development.md).
