@@ -79,6 +79,25 @@ Depending on the flow, you may also need:
 
 Use [`../../backend/tools/local-development.md`](../../backend/tools/local-development.md) for the supported backend bootstrap flow.
 
+## Portal SignalR notifications
+
+The Portal uses `VITE_PORTAL_QNA_API_URL` plus `/api/qna/hubs/portal-notifications` for realtime
+notifications.
+
+Runtime expectations:
+
+- The browser should create one SignalR connection for the authenticated Portal session.
+- The normal connection URL does not include `tenantId`; the hub subscribes the session to all QnA
+  workspaces allowed for the user.
+- Switching workspace should not create repeated `/negotiate` requests and should not clear the
+  notifications popup.
+- The notifications popup lists realtime events received by this browser across the user's
+  workspaces. Each item includes the workspace label.
+- Opening a notification for a different workspace prompts for confirmation before the Portal
+  changes the active workspace and follows the notification link.
+- Source upload status is the first supported notification type, but the frontend presenter registry
+  is structured for additional notification types.
+
 ## Auth0 local configuration
 
 For `http://localhost:5500`, the Portal SPA client should allow:

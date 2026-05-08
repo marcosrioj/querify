@@ -15,7 +15,6 @@ import { translateText } from "@/shared/lib/i18n-core";
 
 export type PortalNotificationPresentation = {
   title: string;
-  description: string;
   badgeLabel: string;
   badgeVariant: BadgeVariant;
   resourceLabel: string;
@@ -82,17 +81,11 @@ function presentSourceUploadStatusChanged(
   const statusPresentation = sourceUploadStatusPresentation[status];
   const statusLabel =
     statusPresentation?.label ?? sourceUploadStatusLabels[status] ?? "Updated";
-  const reason = payload?.reason?.trim();
 
   return {
     title: translateText("Source upload {status}", {
       status: translateText(statusLabel).toLowerCase(),
     }),
-    description:
-      reason ||
-      translateText(
-        statusPresentation?.description ?? "Source upload status changed.",
-      ),
     badgeLabel: statusLabel,
     badgeVariant: statusPresentation?.badgeVariant ?? "info",
     resourceLabel: translateText("Source"),
@@ -126,7 +119,6 @@ export function presentPortalNotification(
     title: translateText("{resource} notification", {
       resource: resourceLabel,
     }),
-    description: notification.type,
     badgeLabel: moduleLabel,
     badgeVariant: "outline",
     resourceLabel,

@@ -63,7 +63,8 @@ Operational constraints reflected in the frontend:
 - tenant-scoped backend calls require `X-Tenant-Id`
 - Portal realtime connects to `Querify.QnA.Portal.Api` through SignalR at
   `/api/qna/hubs/portal-notifications`, sends the Auth0 access token through the SignalR access
-  token factory, and validates the selected `tenantId` during hub connection
+  token factory, and normally connects without a `tenantId` query so the backend can subscribe the
+  session to every QnA workspace the user is allowed to access
 - tenant summaries expose `module`, backed by `ModuleEnum` values: Tenant, QnA, Direct, Broadcast, and Trust
 - pagination contracts use `SkipCount`, `MaxResultCount`, and `Sorting`
 - backend error payloads follow `{ ErrorCode, MessageError, Data }`; the frontend also accepts camelCase fields defensively
@@ -85,6 +86,37 @@ API errors shown in toasts, confirmation failures, or page placeholders must go 
 - The fixed sidebar is a desktop-only pattern. Below the `xl` breakpoint, use the mobile/tablet header and drawer.
 - Keep the JavaScript shell breakpoint in `useIsMobile` aligned with the Tailwind breakpoint used by the sidebar and mobile header. Do not let React render one shell mode while CSS displays another.
 - The Portal must work down to a 320 CSS pixel viewport. Root, shell, and page flex containers must allow shrinking with `min-w-0`.
+
+## Realtime Notifications
+
+The Portal notification layer is user-global, not scoped to the currently selected workspace.
+
+- `PortalNotificationsProvider` opens one SignalR connection per authenticated Portal session.
+  Tenant switching must not recreate the connection or clear the notification inbox.
+- The normal frontend connection calls `buildPortalNotificationsHubUrl()` without `tenantId`. The
+  hub authorizes the user, loads the allowed tenant cache, and joins the connection to all allowed
+  QnA tenant/module groups for the user. A `tenantId` query is still supported as a scoped
+  connection mode, but the hub must reject it when the tenant is not allowed for the current user.
+- The inbox is an in-memory browser inbox for the authenticated user. It is cleared on logout or
+  user change, not on workspace change. It is not a durable notification store.
+- Every notification item must identify the notification's `tenantId` using the user's known
+  workspace summaries. If the workspace cannot be resolved locally, show a safe fallback such as
+  `Unknown workspace`.
+- Notification list rows should stay concise: title, status/resource metadata, workspace, and time.
+  Do not render payload descriptions in the list by default.
+- Presentation is centralized in `shared/realtime/portal-notification-presenters.ts`. Source upload
+  status is only the first presenter; new notification types should add presenters instead of
+  special-casing the shell menu.
+- Domain-specific realtime handlers may update tenant-scoped query caches only after checking that
+  `notification.tenantId === currentTenantId`. The global inbox should still record notifications
+  from every allowed workspace.
+- Clicking a notification for the current workspace marks it read and navigates normally. Clicking a
+  notification for another workspace must ask for confirmation before changing workspace. On
+  confirmation, refresh the allowed-tenant cache, set the notification workspace as current, then
+  navigate to the notification target. If the workspace is no longer available to the user, show an
+  error and do not navigate.
+- Any new notification UI strings must be added to every file in
+  `apps/portal/src/shared/lib/i18n/locales/*.json`.
 
 ## Fast Refresh-safe exports
 

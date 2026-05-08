@@ -11,7 +11,7 @@ This guide explains how the backend is organized under `dotnet/`, which APIs exi
 | `Querify.Tenant.BackOffice.Api` | global administration of tenants, tenant users, billing, and tenant metadata | Auth0 JWT | none by default | `5000` |
 | `Querify.Tenant.Portal.Api` | tenant workspace settings and tenant-member operations | Auth0 JWT | `X-Tenant-Id` for tenant-scoped operations | `5002` |
 | `Querify.Tenant.Public.Api` | public tenant ingress endpoints such as Stripe webhooks | public surface | none | `5004` |
-| `Querify.QnA.Portal.Api` | authenticated QnA management for spaces, questions, answers, tags, sources, workflow, activity, and Portal SignalR notifications | Auth0 JWT | `X-Tenant-Id` for HTTP APIs; SignalR validates `tenantId` on connect | `5010` |
+| `Querify.QnA.Portal.Api` | authenticated QnA management for spaces, questions, answers, tags, sources, workflow, activity, and Portal SignalR notifications | Auth0 JWT | `X-Tenant-Id` for HTTP APIs; SignalR authorizes the user and joins all allowed QnA tenant groups by default | `5010` |
 | `Querify.QnA.Public.Api` | public QnA access plus vote and feedback signaling over questions and answers | public surface | `X-Client-Key` | `5020` |
 
 | Worker | Responsibility | Data boundary | Local port |
@@ -111,6 +111,10 @@ Current module persistence implementation:
   contracts, options, extensions, hubs, notification envelopes, groups, and SignalR publishers live
   under its `Portal/` folder. Product-specific events and notification commands stay in the owning
   business feature project.
+  Portal notification hubs support a user-global connection mode: when no `tenantId` query is sent,
+  the hub loads the user's allowed tenant ids for the configured module and joins the connection to
+  every allowed tenant/module group. If a `tenantId` query is sent, the hub treats it as a scoped
+  connection and rejects tenants the user is not allowed to access.
 - `Querify.Common.Infrastructure.Swagger`: Swagger/OpenAPI wiring
 - `Querify.Common.Infrastructure.Telemetry`: shared telemetry wiring (OpenTelemetry tracing, OTLP export).
   API and worker hosts register it at composition root, while feature spans are started in

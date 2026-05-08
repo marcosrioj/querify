@@ -21,19 +21,32 @@ public sealed class PortalNotificationsHub(
 
     public override async Task OnConnectedAsync()
     {
-        var tenantId = ResolveTenantId();
         var userId = sessionService.GetUserId();
+        var allowedTenants = await GetAllowedTenantIdsAsync(
+            userId,
+            Context.ConnectionAborted);
+        var moduleKey = options.Value.Module.ToString();
+        allowedTenants.TryGetValue(moduleKey, out var moduleTenantIds);
+        moduleTenantIds ??= [];
 
-        if (!await IsTenantAllowedAsync(userId, tenantId, Context.ConnectionAborted))
+        var requestedTenantId = ResolveTenantId();
+        if (requestedTenantId is not null && !moduleTenantIds.Contains(requestedTenantId.Value))
         {
             Context.Abort();
             throw new HubException("Tenant is not allowed for the current user.");
         }
 
-        await Groups.AddToGroupAsync(
-            Context.ConnectionId,
-            PortalNotificationGroups.TenantModule(tenantId, options.Value.Module),
-            Context.ConnectionAborted);
+        IEnumerable<Guid> connectionTenantIds =
+            requestedTenantId is Guid scopedTenantId ? [scopedTenantId] : moduleTenantIds;
+
+        foreach (var tenantId in connectionTenantIds)
+        {
+            await Groups.AddToGroupAsync(
+                Context.ConnectionId,
+                PortalNotificationGroups.TenantModule(tenantId, options.Value.Module),
+                Context.ConnectionAborted);
+        }
+
         await Groups.AddToGroupAsync(
             Context.ConnectionId,
             PortalNotificationGroups.User(userId),
@@ -42,21 +55,25 @@ public sealed class PortalNotificationsHub(
         await base.OnConnectedAsync();
     }
 
-    private Guid ResolveTenantId()
+    private Guid? ResolveTenantId()
     {
         var rawTenantId = Context.GetHttpContext()?.Request.Query["tenantId"].FirstOrDefault();
-        if (string.IsNullOrWhiteSpace(rawTenantId) || !Guid.TryParse(rawTenantId, out var tenantId))
+        if (string.IsNullOrWhiteSpace(rawTenantId))
+        {
+            return null;
+        }
+
+        if (!Guid.TryParse(rawTenantId, out var tenantId))
         {
             Context.Abort();
-            throw new HubException("A valid tenantId query parameter is required.");
+            throw new HubException("The tenantId query parameter must be a valid tenant id.");
         }
 
         return tenantId;
     }
 
-    private async Task<bool> IsTenantAllowedAsync(
+    private async Task<IReadOnlyDictionary<string, IReadOnlyCollection<Guid>>> GetAllowedTenantIdsAsync(
         Guid userId,
-        Guid tenantId,
         CancellationToken cancellationToken)
     {
         var allowedTenants = await allowedTenantStore.GetAllowedTenantIds(userId, cancellationToken);
@@ -70,7 +87,6 @@ public sealed class PortalNotificationsHub(
                 cancellationToken: cancellationToken);
         }
 
-        return allowedTenants.TryGetValue(options.Value.Module.ToString(), out var tenantIds) &&
-            tenantIds.Contains(tenantId);
+        return allowedTenants;
     }
 }

@@ -3,7 +3,6 @@ import type { PropsWithChildren } from "react";
 import { HubConnectionBuilder, LogLevel } from "@microsoft/signalr";
 import { useAuth } from "@/platform/auth/use-auth";
 import { logger } from "@/platform/telemetry/logger";
-import { useTenant } from "@/platform/tenant/use-tenant";
 import { buildPortalNotificationsHubUrl } from "@/shared/realtime/portal-notifications-client";
 import {
   PortalNotificationsContext,
@@ -32,7 +31,6 @@ function getNotificationInboxId(notification: PortalNotificationEnvelope) {
 
 export function PortalNotificationsProvider({ children }: PropsWithChildren) {
   const { getAccessToken, status, user } = useAuth();
-  const { currentTenantId } = useTenant();
   const handlersRef = useRef(new Set<PortalNotificationHandler>());
   const getAccessTokenRef = useRef(getAccessToken);
   const userIdRef = useRef<string | undefined>(undefined);
@@ -90,14 +88,14 @@ export function PortalNotificationsProvider({ children }: PropsWithChildren) {
   }, []);
 
   useEffect(() => {
-    if (status !== "ready" || !currentTenantId) {
+    if (status !== "ready") {
       setConnectionState("idle");
       return;
     }
 
     let disposed = false;
     const connection = new HubConnectionBuilder()
-      .withUrl(buildPortalNotificationsHubUrl(currentTenantId), {
+      .withUrl(buildPortalNotificationsHubUrl(), {
         accessTokenFactory: async () =>
           (await getAccessTokenRef.current()) ?? "",
       })
@@ -172,7 +170,7 @@ export function PortalNotificationsProvider({ children }: PropsWithChildren) {
       connection.off("portalNotification");
       void connection.stop();
     };
-  }, [currentTenantId, status]);
+  }, [status]);
 
   const value = useMemo(
     () => ({

@@ -2,9 +2,11 @@ import { RuntimeEnv } from "@/platform/runtime/env";
 
 const HUB_PATH = "/api/qna/hubs/portal-notifications";
 
-export function buildPortalNotificationsHubUrl(tenantId: string) {
+export function buildPortalNotificationsHubUrl(tenantId?: string) {
   const url = new URL(HUB_PATH, normalizeUrlBase(RuntimeEnv.qnaPortalApiUrl));
-  url.searchParams.set("tenantId", tenantId);
+  if (tenantId) {
+    url.searchParams.set("tenantId", tenantId);
+  }
   return url.toString();
 }
 
@@ -16,7 +18,10 @@ function normalizeUrlBase(baseUrl: string) {
   }
 
   if (trimmed.startsWith("/")) {
-    return new URL(trimmed, globalThis.location?.origin ?? "http://localhost").toString();
+    return new URL(
+      trimmed,
+      globalThis.location?.origin ?? "http://localhost",
+    ).toString();
   }
 
   return trimmed;
