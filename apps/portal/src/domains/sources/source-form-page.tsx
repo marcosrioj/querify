@@ -552,6 +552,8 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
   const isEditingUploadedSource =
     mode === "edit" && Boolean(sourceQuery.data?.storageKey);
   const shouldValidateExternalUrl = !isUploadMode && !isEditingUploadedSource;
+  const locatorFieldLabel =
+    mode === "create" && createMode === "external" ? "External URL" : "Locator";
   const showExternalUrlValidationLoader =
     shouldValidateExternalUrl &&
     externalUrlValidation.status === "validating" &&
@@ -567,7 +569,7 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
   const setupSteps = [
     {
       id: "locator",
-      label: isUploadMode ? "File" : "Locator",
+      label: isUploadMode ? "File" : locatorFieldLabel,
       description: isUploadMode
         ? "Choose the file that should become this source."
         : "Add a reachable HTTP or HTTPS URL for the source artifact.",
@@ -1007,13 +1009,15 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
                             <FormItem>
                               <div className="flex items-center gap-1.5">
                                 <FormLabel>
-                                  {translateText("Locator")}
+                                  {translateText(locatorFieldLabel)}
                                 </FormLabel>
                                 <ContextHint
                                   content={translateText(
                                     "Use a reachable HTTP or HTTPS URL for the source artifact.",
                                   )}
-                                  label={translateText("Locator details")}
+                                  label={translateText(
+                                    `${locatorFieldLabel} details`,
+                                  )}
                                 />
                               </div>
                               <FormControl>
