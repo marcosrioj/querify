@@ -17,6 +17,25 @@ export type PortalNotificationsContextValue = {
   subscribe: (handler: PortalNotificationHandler) => () => void;
 };
 
+export type PortalNotificationInboxItem<TPayload = unknown> = {
+  id: string;
+  notification: PortalNotificationEnvelope<TPayload>;
+  receivedAtUtc: string;
+  readAtUtc?: string;
+};
+
+export type PortalNotificationsInboxContextValue = {
+  notifications: PortalNotificationInboxItem[];
+  unreadCount: number;
+  markNotificationRead: (id: string) => void;
+  markAllNotificationsRead: () => void;
+  clearNotifications: () => void;
+};
+
 export const PortalNotificationsContext = createContext<
   PortalNotificationsContextValue | undefined
+>(undefined);
+
+export const PortalNotificationsInboxContext = createContext<
+  PortalNotificationsInboxContextValue | undefined
 >(undefined);
