@@ -15,6 +15,7 @@ public sealed class S3ObjectStorage : IObjectStorage, IDisposable
 
     private readonly IAmazonS3 _client;
     private readonly ObjectStorageOptions _options;
+    private readonly string _presignEndpoint;
     private readonly IAmazonS3 _presignClient;
     private readonly bool _disposePresignClient;
 
@@ -26,6 +27,7 @@ public sealed class S3ObjectStorage : IObjectStorage, IDisposable
         var publicEndpoint = string.IsNullOrWhiteSpace(_options.PublicEndpoint)
             ? _options.Endpoint
             : _options.PublicEndpoint;
+        _presignEndpoint = publicEndpoint;
 
         if (StringComparer.OrdinalIgnoreCase.Equals(publicEndpoint, _options.Endpoint))
         {
@@ -73,7 +75,7 @@ public sealed class S3ObjectStorage : IObjectStorage, IDisposable
             requiredHeaders[ServerSideEncryptionHeader] = _options.ServerSideEncryptionMode;
         }
 
-        var url = _presignClient.GetPreSignedURL(request);
+        var url = NormalizePresignedUrl(_presignClient.GetPreSignedURL(request));
         return Task.FromResult(new PresignedPutResult(new Uri(url), requiredHeaders, expiresAtUtc));
     }
 
@@ -90,7 +92,7 @@ public sealed class S3ObjectStorage : IObjectStorage, IDisposable
             Expires = DateTime.UtcNow.Add(ttl)
         };
 
-        var url = _presignClient.GetPreSignedURL(request);
+        var url = NormalizePresignedUrl(_presignClient.GetPreSignedURL(request));
         return Task.FromResult(new Uri(url));
     }
 
@@ -198,8 +200,31 @@ public sealed class S3ObjectStorage : IObjectStorage, IDisposable
         {
             ServiceURL = endpoint,
             AuthenticationRegion = region,
-            ForcePathStyle = forcePathStyle
+            ForcePathStyle = forcePathStyle,
+            UseHttp = IsHttpEndpoint(endpoint)
         };
+    }
+
+    private static bool IsHttpEndpoint(string endpoint)
+    {
+        return Uri.TryCreate(endpoint, UriKind.Absolute, out var uri) &&
+               uri.Scheme == Uri.UriSchemeHttp;
+    }
+
+    private string NormalizePresignedUrl(string url)
+    {
+        if (!Uri.TryCreate(_presignEndpoint, UriKind.Absolute, out var endpointUri))
+        {
+            return url;
+        }
+
+        var builder = new UriBuilder(url)
+        {
+            Scheme = endpointUri.Scheme,
+            Port = endpointUri.IsDefaultPort ? -1 : endpointUri.Port
+        };
+
+        return builder.Uri.ToString();
     }
 
     private sealed class S3ObjectResponseStream(GetObjectResponse response) : Stream

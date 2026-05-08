@@ -35,7 +35,14 @@ public static class ServiceCollectionExtensions
         {
             ServiceURL = endpoint,
             AuthenticationRegion = region,
-            ForcePathStyle = forcePathStyle
+            ForcePathStyle = forcePathStyle,
+            UseHttp = IsHttpEndpoint(endpoint)
         };
+    }
+
+    private static bool IsHttpEndpoint(string endpoint)
+    {
+        return Uri.TryCreate(endpoint, UriKind.Absolute, out var uri) &&
+               uri.Scheme == Uri.UriSchemeHttp;
     }
 }
