@@ -11,6 +11,8 @@ public interface ISourceService
     Task<Guid> CompleteUpload(Guid sourceId, SourceUploadCompleteRequestDto dto, CancellationToken token);
     Task Delete(Guid id, CancellationToken token);
     Task<SourceDownloadUrlDto> GetDownloadUrl(Guid id, CancellationToken token);
+    Task<SourceExternalUrlInspectionDto> InspectExternalUrl(SourceExternalUrlInspectionRequestDto dto,
+        CancellationToken token);
 
     Task<PagedResultDto<SourceDto>>
         GetAll(SourceGetAllRequestDto requestDto, CancellationToken token);

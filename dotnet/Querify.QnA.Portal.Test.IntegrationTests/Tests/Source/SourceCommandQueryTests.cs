@@ -28,7 +28,6 @@ public class SourceCommandQueryTests
                 Locator = "https://docs.example.test/qna/reset-password",
                 Label = "Reset password guide",
                 ContextNote = "Portal",
-                ExternalId = "DOC-42",
                 Language = "en-US",
                 MediaType = "text/html",
                 MetadataJson = "{\"category\":\"support\"}",
@@ -70,7 +69,6 @@ public class SourceCommandQueryTests
                 Locator = "https://docs.example.test/qna/updated-source",
                 Label = source.Label,
                 ContextNote = source.ContextNote,
-                ExternalId = source.ExternalId,
                 Language = source.Language,
                 MediaType = source.MediaType,
                 MetadataJson = source.MetadataJson,
@@ -80,6 +78,7 @@ public class SourceCommandQueryTests
         }, CancellationToken.None);
 
         Assert.Equal("https://docs.example.test/qna/updated-source", source.Locator);
+        Assert.Equal("DOC-1", source.ExternalId);
         Assert.NotEqual("sha256:test-source", source.Checksum);
         Assert.StartsWith("sha256:", source.Checksum);
         Assert.Equal(71, source.Checksum.Length);
@@ -101,7 +100,6 @@ public class SourceCommandQueryTests
                     Locator = "https://docs.example.test/qna/unverified",
                     Label = "Unverified source",
                     ContextNote = null,
-                    ExternalId = null,
                     Language = "en-US",
                     MediaType = "text/html",
                     MetadataJson = null,

@@ -6,7 +6,7 @@ import {
   SourceUploadStatus,
   SpaceStatus,
   VisibilityScope,
-} from '@/shared/constants/backend-enums';
+} from "@/shared/constants/backend-enums";
 
 export type SourceDto = {
   id: string;
@@ -81,7 +81,6 @@ export type SourceCreateRequestDto = {
   locator: string;
   label?: string | null;
   contextNote?: string | null;
-  externalId?: string | null;
   language: string;
   mediaType?: string | null;
   metadataJson?: string | null;
@@ -91,6 +90,20 @@ export type SourceCreateRequestDto = {
 
 export type SourceUpdateRequestDto = SourceCreateRequestDto;
 
+export type SourceExternalUrlInspectionRequestDto = {
+  locator: string;
+};
+
+export type SourceExternalUrlInspectionDto = {
+  isReachable: boolean;
+  status?: number | null;
+  statusText?: string | null;
+  finalUrl?: string | null;
+  contentType?: string | null;
+  contentLengthBytes?: number | null;
+  lastModified?: string | null;
+};
+
 export type SourceUploadIntentRequestDto = {
   fileName: string;
   contentType: string;
@@ -99,6 +112,7 @@ export type SourceUploadIntentRequestDto = {
   visibility: VisibilityScope;
   label?: string | null;
   contextNote?: string | null;
+  metadataJson?: string | null;
 };
 
 export type SourceUploadIntentResponseDto = {

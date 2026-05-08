@@ -9,6 +9,7 @@ using Querify.QnA.Portal.Business.Source.Commands.UpdateSource;
 using Querify.QnA.Portal.Business.Source.Queries.GetDownloadUrl;
 using Querify.QnA.Portal.Business.Source.Queries.GetSource;
 using Querify.QnA.Portal.Business.Source.Queries.GetSourceList;
+using Querify.QnA.Portal.Business.Source.Queries.InspectExternalUrl;
 using MediatR;
 
 namespace Querify.QnA.Portal.Business.Source.Service;
@@ -53,6 +54,13 @@ public sealed class SourceService(IMediator mediator) : ISourceService
     public Task<SourceDownloadUrlDto> GetDownloadUrl(Guid id, CancellationToken token)
     {
         return mediator.Send(new SourcesGetDownloadUrlQuery { Id = id }, token);
+    }
+
+    public Task<SourceExternalUrlInspectionDto> InspectExternalUrl(SourceExternalUrlInspectionRequestDto dto,
+        CancellationToken token)
+    {
+        ArgumentNullException.ThrowIfNull(dto);
+        return mediator.Send(new SourcesInspectExternalUrlQuery { Request = dto }, token);
     }
 
     public Task<Guid> Update(Guid id, SourceUpdateRequestDto dto, CancellationToken token)

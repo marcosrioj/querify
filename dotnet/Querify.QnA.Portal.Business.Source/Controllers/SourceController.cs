@@ -43,6 +43,15 @@ public class SourceController(ISourceService sourceService) : ControllerBase
         return Ok(await sourceService.CreateUploadIntent(dto, token));
     }
 
+    [HttpPost("external-url-inspection")]
+    [ProducesResponseType(typeof(SourceExternalUrlInspectionDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
+    public async Task<IActionResult> InspectExternalUrl([FromBody] SourceExternalUrlInspectionRequestDto dto,
+        CancellationToken token)
+    {
+        return Ok(await sourceService.InspectExternalUrl(dto, token));
+    }
+
     [HttpPost("{id:guid}/upload-complete")]
     [ProducesResponseType(typeof(Guid), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

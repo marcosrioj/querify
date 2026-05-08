@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
 import { useForm, type UseFormReturn } from "react-hook-form";
-import { Braces, FileUp, Link2, X } from "lucide-react";
+import { Braces, FileUp, Link2, LoaderCircle, X } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   VisibilityScope,
@@ -12,9 +12,11 @@ import {
   useCreateSource,
   useCompleteSourceUpload,
   useCreateSourceUploadIntent,
+  useInspectSourceExternalUrl,
   useSource,
   useUpdateSource,
 } from "@/domains/sources/hooks";
+import type { SourceExternalUrlInspectionDto } from "@/domains/sources/types";
 import { uploadSourceFile } from "@/domains/sources/upload-flow";
 import {
   sourceFormSchema,
@@ -65,6 +67,324 @@ import {
 } from "@/shared/lib/language";
 
 const visibilityOptions = backendEnumSelectOptions(visibilityScopeLabels);
+const GENERATED_SOURCE_METADATA_KEY = "sourceInspection";
+
+type JsonObject = Record<string, unknown>;
+
+type ExternalUrlValidationState = {
+  status: "idle" | "scheduled" | "validating" | "valid" | "invalid";
+  locator?: string;
+  message?: string;
+};
+
+type ExternalUrlInspection = {
+  contentLengthBytes?: number;
+  contentType?: string;
+  finalUrl: string;
+  lastModified?: string;
+  status: number;
+  statusText: string;
+};
+
+type InspectSourceExternalUrl = (
+  locator: string,
+  signal: AbortSignal,
+) => Promise<SourceExternalUrlInspectionDto>;
+
+const EXTERNAL_URL_BROWSER_VALIDATION_MESSAGE =
+  "Browser blocked or could not complete the link check.";
+const EXTERNAL_URL_HTTP_STATUS_REASONS: Record<number, string> = {
+  300: "multiple choices.",
+  301: "moved permanently.",
+  302: "found at another address.",
+  303: "see another location.",
+  304: "not modified.",
+  305: "proxy required.",
+  307: "temporary redirect.",
+  308: "permanent redirect.",
+  400: "bad request.",
+  401: "login required.",
+  402: "payment required.",
+  403: "access blocked.",
+  404: "not found.",
+  405: "method not allowed.",
+  406: "not acceptable.",
+  407: "proxy login required.",
+  408: "request timed out.",
+  409: "conflict.",
+  410: "link no longer exists.",
+  411: "length required.",
+  412: "precondition failed.",
+  413: "response too large.",
+  414: "link is too long.",
+  415: "unsupported media type.",
+  416: "range not available.",
+  417: "expectation failed.",
+  418: "unexpected server response.",
+  421: "misdirected request.",
+  422: "invalid request.",
+  423: "locked.",
+  424: "failed dependency.",
+  425: "too early to retry.",
+  426: "upgrade required.",
+  428: "precondition required.",
+  429: "too many checks.",
+  431: "headers too large.",
+  451: "blocked by legal rules.",
+  500: "site error.",
+  501: "check method not supported.",
+  502: "bad gateway.",
+  503: "site unavailable.",
+  504: "request timed out.",
+  505: "HTTP version not supported.",
+  506: "server configuration error.",
+  507: "insufficient storage.",
+  508: "loop detected.",
+  510: "extension required.",
+  511: "network login required.",
+};
+
+function isJsonObject(value: unknown): value is JsonObject {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function parseMetadataJson(value: string | null | undefined) {
+  const trimmed = value?.trim();
+  if (!trimmed) {
+    return {};
+  }
+
+  const parsed = JSON.parse(trimmed);
+  return isJsonObject(parsed) ? parsed : {};
+}
+
+function setGeneratedMetadata(
+  form: UseFormReturn<SourceFormValues>,
+  metadata: JsonObject,
+) {
+  let currentMetadata: JsonObject;
+
+  try {
+    currentMetadata = parseMetadataJson(form.getValues("metadataJson"));
+  } catch {
+    return;
+  }
+
+  const existingGeneratedMetadata = isJsonObject(
+    currentMetadata[GENERATED_SOURCE_METADATA_KEY],
+  )
+    ? currentMetadata[GENERATED_SOURCE_METADATA_KEY]
+    : {};
+  const nextMetadata = {
+    ...currentMetadata,
+    [GENERATED_SOURCE_METADATA_KEY]: {
+      ...existingGeneratedMetadata,
+      ...metadata,
+    },
+  };
+
+  form.setValue("metadataJson", JSON.stringify(nextMetadata, null, 2), {
+    shouldDirty: true,
+    shouldValidate: true,
+  });
+}
+
+function inferMediaTypeFromUrl(locator: string) {
+  const path = new URL(locator).pathname.toLowerCase();
+
+  if (path.endsWith(".pdf")) return "application/pdf";
+  if (path.endsWith(".png")) return "image/png";
+  if (path.endsWith(".jpg") || path.endsWith(".jpeg")) return "image/jpeg";
+  if (path.endsWith(".mp4")) return "video/mp4";
+  if (path.endsWith(".md") || path.endsWith(".markdown"))
+    return "text/markdown";
+  if (path.endsWith(".txt")) return "text/plain";
+  if (path.endsWith(".html") || path.endsWith(".htm")) return "text/html";
+
+  return "application/octet-stream";
+}
+
+function buildLabelFromExternalUrl(locator: string) {
+  const url = new URL(locator);
+  const lastPathSegment = url.pathname.split("/").filter(Boolean).at(-1);
+
+  if (!lastPathSegment) {
+    return url.hostname;
+  }
+
+  return decodeURIComponent(lastPathSegment).replace(/\.[a-z0-9]+$/i, "");
+}
+
+function buildExternalUrlMetadata(
+  locator: string,
+  inspection: ExternalUrlInspection,
+) {
+  const url = new URL(locator);
+  return {
+    contentLengthBytes: inspection.contentLengthBytes,
+    contentType: inspection.contentType,
+    finalUrl: inspection.finalUrl,
+    host: url.hostname,
+    lastModified: inspection.lastModified,
+    origin: "external-url",
+    path: url.pathname,
+    status: inspection.status,
+    statusText: inspection.statusText,
+    url: locator,
+    validatedAtUtc: new Date().toISOString(),
+  };
+}
+
+function buildFileUploadMetadata(file: File) {
+  return {
+    contentType: file.type || "application/octet-stream",
+    fileName: file.name,
+    lastModifiedAtUtc: new Date(file.lastModified).toISOString(),
+    origin: "file-upload",
+    sizeBytes: file.size,
+    stagedAtUtc: new Date().toISOString(),
+  };
+}
+
+function normalizeHeaderContentType(contentType: string | null) {
+  return contentType?.split(";", 1)[0].trim().toLowerCase() || undefined;
+}
+
+function parseContentLength(contentLength: string | null) {
+  if (!contentLength) {
+    return undefined;
+  }
+
+  const parsed = Number(contentLength);
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : undefined;
+}
+
+async function fetchExternalUrl(
+  locator: string,
+  method: "HEAD" | "GET",
+  signal: AbortSignal,
+) {
+  return fetch(locator, {
+    cache: "no-store",
+    method,
+    redirect: "follow",
+    signal,
+  });
+}
+
+function getExternalUrlHttpErrorMessage(status: number) {
+  return `HTTP ${status}: ${
+    EXTERNAL_URL_HTTP_STATUS_REASONS[status] ?? "unrecognized status."
+  }`;
+}
+
+function buildExternalUrlInspectionFromPortal(
+  locator: string,
+  result: SourceExternalUrlInspectionDto,
+) {
+  const status = result.status ?? 0;
+
+  if (!result.isReachable || status < 200 || status >= 300) {
+    return {
+      message:
+        status > 0
+          ? getExternalUrlHttpErrorMessage(status)
+          : EXTERNAL_URL_BROWSER_VALIDATION_MESSAGE,
+      ok: false as const,
+    };
+  }
+
+  return {
+    inspection: {
+      contentLengthBytes: result.contentLengthBytes ?? undefined,
+      contentType:
+        normalizeHeaderContentType(result.contentType ?? null) ??
+        inferMediaTypeFromUrl(locator),
+      finalUrl: result.finalUrl ?? locator,
+      lastModified: result.lastModified ?? undefined,
+      status,
+      statusText: result.statusText ?? "",
+    },
+    ok: true as const,
+  };
+}
+
+async function inspectExternalUrl(
+  locator: string,
+  signal: AbortSignal,
+  inspectFromPortal: InspectSourceExternalUrl,
+) {
+  let url: URL;
+
+  try {
+    url = new URL(locator);
+  } catch {
+    return {
+      message: "Use an HTTP or HTTPS URL.",
+      ok: false as const,
+    };
+  }
+
+  if (url.protocol !== "http:" && url.protocol !== "https:") {
+    return {
+      message: "Use an HTTP or HTTPS URL.",
+      ok: false as const,
+    };
+  }
+
+  try {
+    let response = await fetchExternalUrl(url.toString(), "HEAD", signal);
+    if (!response.ok && (response.status === 405 || response.status === 501)) {
+      response = await fetchExternalUrl(url.toString(), "GET", signal);
+    }
+
+    if (!response.ok) {
+      return {
+        message: getExternalUrlHttpErrorMessage(response.status),
+        ok: false as const,
+      };
+    }
+
+    const contentType =
+      normalizeHeaderContentType(response.headers.get("content-type")) ??
+      inferMediaTypeFromUrl(url.toString());
+
+    return {
+      inspection: {
+        contentLengthBytes: parseContentLength(
+          response.headers.get("content-length"),
+        ),
+        contentType,
+        finalUrl: response.url || url.toString(),
+        lastModified: response.headers.get("last-modified") ?? undefined,
+        status: response.status,
+        statusText: response.statusText,
+      },
+      ok: true as const,
+    };
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "AbortError") {
+      throw error;
+    }
+
+    try {
+      const portalResult = await inspectFromPortal(url.toString(), signal);
+      return buildExternalUrlInspectionFromPortal(url.toString(), portalResult);
+    } catch (portalError) {
+      if (
+        portalError instanceof DOMException &&
+        portalError.name === "AbortError"
+      ) {
+        throw portalError;
+      }
+    }
+
+    return {
+      message: EXTERNAL_URL_BROWSER_VALIDATION_MESSAGE,
+      ok: false as const,
+    };
+  }
+}
 
 function MetadataJsonEditor({
   form,
@@ -141,12 +461,17 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
   const createSource = useCreateSource();
   const createUploadIntent = useCreateSourceUploadIntent();
   const completeSourceUpload = useCompleteSourceUpload();
+  const inspectSourceExternalUrl = useInspectSourceExternalUrl();
   const updateSource = useUpdateSource(id ?? "");
   const initialLanguage = getStoredPortalLanguage() ?? DEFAULT_PORTAL_LANGUAGE;
-  const [createMode, setCreateMode] = useState<"external" | "upload">("external");
+  const [createMode, setCreateMode] = useState<"external" | "upload">(
+    "external",
+  );
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [externalUrlValidation, setExternalUrlValidation] =
+    useState<ExternalUrlValidationState>({ status: "idle" });
 
   const form = useForm<SourceFormValues>({
     resolver: zodResolver(sourceFormSchema),
@@ -154,7 +479,6 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
       locator: "",
       label: "",
       contextNote: "",
-      externalId: "",
       language: initialLanguage,
       mediaType: "",
       checksum: "",
@@ -173,7 +497,6 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
       locator: sourceQuery.data.locator,
       label: sourceQuery.data.label ?? "",
       contextNote: sourceQuery.data.contextNote ?? "",
-      externalId: sourceQuery.data.externalId ?? "",
       language: sourceQuery.data.language,
       mediaType: sourceQuery.data.mediaType ?? "",
       checksum: sourceQuery.data.checksum,
@@ -190,15 +513,24 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
     keywords: [option.code, option.label, option.direction],
   }));
   const selectedLanguageValue = form.watch("language");
+  const locatorValue = form.watch("locator");
   const selectedLanguageOption =
     languageOptions.find((option) => option.value === selectedLanguageValue) ??
     null;
   const isUploadMode = mode === "create" && createMode === "upload";
+  const isEditingUploadedSource =
+    mode === "edit" && Boolean(sourceQuery.data?.storageKey);
+  const shouldValidateExternalUrl = !isUploadMode && !isEditingUploadedSource;
+  const showExternalUrlValidationLoader =
+    shouldValidateExternalUrl &&
+    externalUrlValidation.status === "validating" &&
+    externalUrlValidation.locator === locatorValue?.trim();
   const isSubmitting =
     createSource.isPending ||
     updateSource.isPending ||
     createUploadIntent.isPending ||
     completeSourceUpload.isPending ||
+    externalUrlValidation.status === "validating" ||
     (isUploadMode && uploadProgress > 0 && uploadProgress < 100);
   const setupValues = form.watch();
   const setupSteps = [
@@ -207,7 +539,7 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
       label: isUploadMode ? "File" : "Locator",
       description: isUploadMode
         ? "Choose the file that should become this source."
-        : "Add the canonical URL, path, ticket, or document locator.",
+        : "Add a reachable HTTP or HTTPS URL for the source artifact.",
       complete: isUploadMode
         ? Boolean(selectedFile)
         : hasSetupText(setupValues.locator, 3),
@@ -232,13 +564,16 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
       ? "New source"
       : sourceTitle
         ? `${translateText("Edit")} ${sourceTitle}`
-      : "Edit source";
+        : "Edit source";
   const uploadVisibilityOptions = visibilityOptions.filter(
     (option) => option.value !== String(VisibilityScope.Public),
   );
 
   useEffect(() => {
-    if (!isUploadMode || form.getValues("visibility") !== VisibilityScope.Public) {
+    if (
+      !isUploadMode ||
+      form.getValues("visibility") !== VisibilityScope.Public
+    ) {
       return;
     }
 
@@ -260,6 +595,107 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
       });
     }
   }, [form, isUploadMode]);
+
+  useEffect(() => {
+    if (!shouldValidateExternalUrl) {
+      setExternalUrlValidation({ status: "idle" });
+      form.clearErrors("locator");
+      return;
+    }
+
+    const locator = locatorValue?.trim() ?? "";
+    if (!locator) {
+      setExternalUrlValidation({ status: "idle" });
+      form.clearErrors("locator");
+      return;
+    }
+
+    const controller = new AbortController();
+    let isCancelled = false;
+    setExternalUrlValidation({ locator, status: "scheduled" });
+    const timeout = window.setTimeout(async () => {
+      if (isCancelled) {
+        return;
+      }
+
+      setExternalUrlValidation({ locator, status: "validating" });
+
+      try {
+        const result = await inspectExternalUrl(
+          locator,
+          controller.signal,
+          (targetLocator, signal) =>
+            inspectSourceExternalUrl({ locator: targetLocator }, signal),
+        );
+
+        if (!result.ok) {
+          if (isCancelled) {
+            return;
+          }
+
+          setExternalUrlValidation({
+            locator,
+            message: result.message,
+            status: "invalid",
+          });
+          form.setError("locator", { message: translateText(result.message) });
+          return;
+        }
+
+        const contentType =
+          result.inspection.contentType ?? inferMediaTypeFromUrl(locator);
+        if (isCancelled) {
+          return;
+        }
+
+        form.clearErrors("locator");
+        form.setValue("mediaType", contentType, {
+          shouldDirty: true,
+          shouldValidate: true,
+        });
+
+        if (!form.getValues("label")) {
+          form.setValue(
+            "label",
+            buildLabelFromExternalUrl(result.inspection.finalUrl),
+            {
+              shouldDirty: true,
+              shouldValidate: true,
+            },
+          );
+        }
+
+        setGeneratedMetadata(
+          form,
+          buildExternalUrlMetadata(locator, result.inspection),
+        );
+        setExternalUrlValidation({ locator, status: "valid" });
+      } catch (error) {
+        if (isCancelled) {
+          return;
+        }
+
+        if (error instanceof DOMException && error.name === "AbortError") {
+          return;
+        }
+
+        setExternalUrlValidation({
+          locator,
+          message: EXTERNAL_URL_BROWSER_VALIDATION_MESSAGE,
+          status: "invalid",
+        });
+        form.setError("locator", {
+          message: translateText(EXTERNAL_URL_BROWSER_VALIDATION_MESSAGE),
+        });
+      }
+    }, 1000);
+
+    return () => {
+      isCancelled = true;
+      window.clearTimeout(timeout);
+      controller.abort();
+    };
+  }, [form, inspectSourceExternalUrl, locatorValue, shouldValidateExternalUrl]);
 
   return (
     <DetailLayout
@@ -339,6 +775,23 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
                   onSubmit={form.handleSubmit(async (values) => {
                     setUploadError(null);
 
+                    if (
+                      shouldValidateExternalUrl &&
+                      (externalUrlValidation.status !== "valid" ||
+                        externalUrlValidation.locator !== values.locator.trim())
+                    ) {
+                      const message =
+                        externalUrlValidation.status === "scheduled" ||
+                        externalUrlValidation.status === "validating"
+                          ? "Link check is still running."
+                          : (externalUrlValidation.message ??
+                            "Link check failed.");
+                      form.setError("locator", {
+                        message: translateText(message),
+                      });
+                      return;
+                    }
+
                     if (isUploadMode) {
                       if (!selectedFile) {
                         setUploadError("Choose a file before starting upload.");
@@ -359,6 +812,7 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
                         visibility,
                         label: values.label || undefined,
                         contextNote: values.contextNote || undefined,
+                        metadataJson: values.metadataJson?.trim() || undefined,
                       });
 
                       await uploadSourceFile({
@@ -378,7 +832,6 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
                       locator: values.locator,
                       label: values.label || undefined,
                       contextNote: values.contextNote || undefined,
-                      externalId: values.externalId || undefined,
                       language: values.language,
                       mediaType: values.mediaType || undefined,
                       metadataJson: values.metadataJson?.trim() || undefined,
@@ -400,7 +853,9 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
                     <div className="inline-flex max-w-full rounded-md border border-border bg-muted/20 p-1">
                       <Button
                         type="button"
-                        variant={createMode === "external" ? "secondary" : "ghost"}
+                        variant={
+                          createMode === "external" ? "secondary" : "ghost"
+                        }
                         size="sm"
                         onClick={() => setCreateMode("external")}
                       >
@@ -409,7 +864,9 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
                       </Button>
                       <Button
                         type="button"
-                        variant={createMode === "upload" ? "secondary" : "ghost"}
+                        variant={
+                          createMode === "upload" ? "secondary" : "ghost"
+                        }
                         size="sm"
                         onClick={() => setCreateMode("upload")}
                       >
@@ -439,12 +896,21 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
                             type="file"
                             accept=".pdf,.png,.jpg,.jpeg,.mp4,.txt,.md,.markdown,application/pdf,image/png,image/jpeg,video/mp4,text/plain,text/markdown"
                             onChange={(event) => {
-                              const file = event.currentTarget.files?.[0] ?? null;
+                              const file =
+                                event.currentTarget.files?.[0] ?? null;
                               setSelectedFile(file);
                               setUploadProgress(0);
                               setUploadError(null);
 
                               if (!file) {
+                                form.setValue("locator", "", {
+                                  shouldDirty: true,
+                                  shouldValidate: true,
+                                });
+                                form.setValue("mediaType", "", {
+                                  shouldDirty: true,
+                                  shouldValidate: true,
+                                });
                                 return;
                               }
 
@@ -452,10 +918,18 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
                                 shouldDirty: true,
                                 shouldValidate: true,
                               });
-                              form.setValue("mediaType", file.type, {
-                                shouldDirty: true,
-                                shouldValidate: true,
-                              });
+                              form.setValue(
+                                "mediaType",
+                                file.type || "application/octet-stream",
+                                {
+                                  shouldDirty: true,
+                                  shouldValidate: true,
+                                },
+                              );
+                              setGeneratedMetadata(
+                                form,
+                                buildFileUploadMetadata(file),
+                              );
 
                               if (!form.getValues("label")) {
                                 form.setValue("label", file.name, {
@@ -469,7 +943,9 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
                             <p className="break-words text-sm text-muted-foreground">
                               {translateText("{name} · {size} MB · {type}", {
                                 name: selectedFile.name,
-                                size: (selectedFile.size / 1024 / 1024).toFixed(2),
+                                size: (selectedFile.size / 1024 / 1024).toFixed(
+                                  2,
+                                ),
                                 type: selectedFile.type || "unknown",
                               })}
                             </p>
@@ -491,11 +967,48 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
                       </div>
                     ) : (
                       <div className="lg:col-span-6">
-                        <TextField
+                        <FormField
                           control={form.control}
                           name="locator"
-                          label="Locator"
-                          description="Use the canonical URL, path, repository URI, ticket reference, or document locator."
+                          render={({ field }) => (
+                            <FormItem>
+                              <div className="flex items-center gap-1.5">
+                                <FormLabel>
+                                  {translateText("Locator")}
+                                </FormLabel>
+                                <ContextHint
+                                  content={translateText(
+                                    "Use a reachable HTTP or HTTPS URL for the source artifact.",
+                                  )}
+                                  label={translateText("Locator details")}
+                                />
+                              </div>
+                              <FormControl>
+                                <div className="relative">
+                                  <Input
+                                    {...field}
+                                    className={
+                                      showExternalUrlValidationLoader
+                                        ? "pr-10"
+                                        : undefined
+                                    }
+                                  />
+                                  {showExternalUrlValidationLoader ? (
+                                    <LoaderCircle
+                                      className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 animate-spin text-muted-foreground"
+                                      aria-hidden="true"
+                                    />
+                                  ) : null}
+                                </div>
+                              </FormControl>
+                              <FormDescription className="sr-only">
+                                {translateText(
+                                  "Use a reachable HTTP or HTTPS URL for the source artifact.",
+                                )}
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
                         />
                       </div>
                     )}
@@ -519,7 +1032,7 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
                   </div>
                   <FormSectionHeading
                     title="Classification"
-                    description="Set who can reuse the source and how external systems should recognize it."
+                    description="Set who can reuse the source and review detected source metadata."
                   />
                   <div className="grid gap-4 md:grid-cols-2">
                     <SelectField
@@ -527,36 +1040,37 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
                       name="visibility"
                       label="Visibility"
                       description="Controls which audiences can see or reuse this source."
-                      options={isUploadMode ? uploadVisibilityOptions : visibilityOptions}
-                    />
-                    <SearchSelectField
-                      control={form.control}
-                      name="language"
-                      label="Language"
-                      description="Use the main locale for this source content."
-                      options={languageOptions}
-                      selectedOption={selectedLanguageOption}
-                      searchPlaceholder="Search languages"
-                      emptyMessage="No languages found."
-                      resultCountHint={translateText(
-                        "{count} languages available",
-                        {
-                          count: portalLanguageOptions.length,
-                        },
-                      )}
-                    />
-                    <TextField
-                      control={form.control}
-                      name="externalId"
-                      label="External ID"
-                      description="Identifier from the upstream connector, repository, or source system."
+                      options={
+                        isUploadMode
+                          ? uploadVisibilityOptions
+                          : visibilityOptions
+                      }
                     />
                     <TextField
                       control={form.control}
                       name="mediaType"
                       label="Media type"
-                      description="MIME type or source format such as text/html, application/pdf, or text/markdown."
+                      description="Detected MIME type from the file or reachable external URL."
+                      readOnly
                     />
+                    <div className="md:col-span-2">
+                      <SearchSelectField
+                        control={form.control}
+                        name="language"
+                        label="Language"
+                        description="Use the main locale for this source content."
+                        options={languageOptions}
+                        selectedOption={selectedLanguageOption}
+                        searchPlaceholder="Search languages"
+                        emptyMessage="No languages found."
+                        resultCountHint={translateText(
+                          "{count} languages available",
+                          {
+                            count: portalLanguageOptions.length,
+                          },
+                        )}
+                      />
+                    </div>
                   </div>
                   <FormSectionHeading
                     title="Verification and metadata"

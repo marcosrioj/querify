@@ -8,6 +8,7 @@ import {
   deleteSource,
   getSource,
   getSourceDownloadUrl,
+  inspectSourceExternalUrl,
   listSources,
   updateSource,
 } from "@/domains/sources/api";
@@ -27,6 +28,7 @@ import { translateText } from "@/shared/lib/i18n-core";
 import type {
   SourceCreateRequestDto,
   SourceDetailDto,
+  SourceExternalUrlInspectionRequestDto,
   SourceUploadCompleteRequestDto,
   SourceUploadIntentRequestDto,
   SourceUpdateRequestDto,
@@ -149,6 +151,22 @@ export function useCreateSourceUploadIntent() {
   });
 }
 
+export function useInspectSourceExternalUrl() {
+  const { session } = useAuth();
+  const { currentTenantId } = useTenant();
+
+  return useCallback(
+    (body: SourceExternalUrlInspectionRequestDto, signal?: AbortSignal) =>
+      inspectSourceExternalUrl(
+        session?.accessToken,
+        currentTenantId,
+        body,
+        signal,
+      ),
+    [currentTenantId, session?.accessToken],
+  );
+}
+
 export function useCompleteSourceUpload() {
   const { session } = useAuth();
   const { currentTenantId } = useTenant();
@@ -208,7 +226,8 @@ export function useSourceUploadStatusNotifications(id: string | undefined) {
             ? {
                 ...current,
                 uploadStatus: notification.payload.uploadStatus,
-                storageKey: notification.payload.storageKey ?? current.storageKey,
+                storageKey:
+                  notification.payload.storageKey ?? current.storageKey,
                 checksum: notification.payload.checksum ?? current.checksum,
               }
             : current,

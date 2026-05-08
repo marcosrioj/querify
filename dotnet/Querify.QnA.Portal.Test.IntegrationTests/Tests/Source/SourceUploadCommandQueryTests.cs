@@ -42,6 +42,7 @@ public class SourceUploadCommandQueryTests
         Assert.Equal(source.StorageKey, source.Locator);
         Assert.True(SourceStorageKey.IsStagingKey(source.StorageKey));
         Assert.Equal("application/pdf", source.MediaType);
+        Assert.Equal("{\"origin\":\"file-upload\"}", source.MetadataJson);
         Assert.Equal("https://storage.example.test/", $"{result.UploadUrl[..29]}");
         Assert.Equal("application/pdf", result.RequiredHeaders["Content-Type"]);
     }
@@ -336,7 +337,8 @@ public class SourceUploadCommandQueryTests
             Language = "en-US",
             Visibility = VisibilityScope.Internal,
             Label = "Manual",
-            ContextNote = "Test upload"
+            ContextNote = "Test upload",
+            MetadataJson = "{\"origin\":\"file-upload\"}"
         };
     }
 

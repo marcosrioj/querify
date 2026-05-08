@@ -41,6 +41,7 @@ public sealed class SourcesCreateUploadIntentCommandHandler(
             StorageKey = stagingKey,
             Label = request.Dto.Label,
             ContextNote = request.Dto.ContextNote,
+            MetadataJson = request.Dto.MetadataJson,
             Language = request.Dto.Language,
             MediaType = contentType,
             SizeBytes = request.Dto.SizeBytes,

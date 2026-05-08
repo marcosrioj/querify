@@ -1,16 +1,22 @@
-import { portalRequest, requireAccessToken, requireTenantId } from '@/platform/api/http-client';
-import { toPagedQuery } from '@/shared/lib/pagination';
-import type { PagedResultDto } from '@/shared/types/api';
+import {
+  portalRequest,
+  requireAccessToken,
+  requireTenantId,
+} from "@/platform/api/http-client";
+import { toPagedQuery } from "@/shared/lib/pagination";
+import type { PagedResultDto } from "@/shared/types/api";
 import type {
   SourceCreateRequestDto,
   SourceDownloadUrlDto,
   SourceDetailDto,
   SourceDto,
+  SourceExternalUrlInspectionDto,
+  SourceExternalUrlInspectionRequestDto,
   SourceUpdateRequestDto,
   SourceUploadCompleteRequestDto,
   SourceUploadIntentRequestDto,
   SourceUploadIntentResponseDto,
-} from '@/domains/sources/types';
+} from "@/domains/sources/types";
 
 export function listSources(
   accessToken: string | undefined,
@@ -31,8 +37,8 @@ export function listSources(
   signal?: AbortSignal,
 ) {
   return portalRequest<PagedResultDto<SourceDto>>({
-    service: 'qna',
-    path: '/api/qna/source',
+    service: "qna",
+    path: "/api/qna/source",
     accessToken: requireAccessToken(accessToken),
     tenantId: requireTenantId(tenantId),
     query: toPagedQuery(page, pageSize, sorting, {
@@ -50,7 +56,7 @@ export function getSource(
   signal?: AbortSignal,
 ) {
   return portalRequest<SourceDetailDto>({
-    service: 'qna',
+    service: "qna",
     path: `/api/qna/source/${id}`,
     accessToken: requireAccessToken(accessToken),
     tenantId: requireTenantId(tenantId),
@@ -64,9 +70,9 @@ export function createSource(
   body: SourceCreateRequestDto,
 ) {
   return portalRequest<string>({
-    service: 'qna',
-    path: '/api/qna/source',
-    method: 'POST',
+    service: "qna",
+    path: "/api/qna/source",
+    method: "POST",
     accessToken: requireAccessToken(accessToken),
     tenantId: requireTenantId(tenantId),
     body,
@@ -80,9 +86,9 @@ export function updateSource(
   body: SourceUpdateRequestDto,
 ) {
   return portalRequest<string>({
-    service: 'qna',
+    service: "qna",
     path: `/api/qna/source/${id}`,
-    method: 'PUT',
+    method: "PUT",
     accessToken: requireAccessToken(accessToken),
     tenantId: requireTenantId(tenantId),
     body,
@@ -95,9 +101,9 @@ export function deleteSource(
   id: string,
 ) {
   return portalRequest<void>({
-    service: 'qna',
+    service: "qna",
     path: `/api/qna/source/${id}`,
-    method: 'DELETE',
+    method: "DELETE",
     accessToken: requireAccessToken(accessToken),
     tenantId: requireTenantId(tenantId),
   });
@@ -109,12 +115,29 @@ export function createSourceUploadIntent(
   body: SourceUploadIntentRequestDto,
 ) {
   return portalRequest<SourceUploadIntentResponseDto>({
-    service: 'qna',
-    path: '/api/qna/source/upload-intent',
-    method: 'POST',
+    service: "qna",
+    path: "/api/qna/source/upload-intent",
+    method: "POST",
     accessToken: requireAccessToken(accessToken),
     tenantId: requireTenantId(tenantId),
     body,
+  });
+}
+
+export function inspectSourceExternalUrl(
+  accessToken: string | undefined,
+  tenantId: string | undefined,
+  body: SourceExternalUrlInspectionRequestDto,
+  signal?: AbortSignal,
+) {
+  return portalRequest<SourceExternalUrlInspectionDto>({
+    service: "qna",
+    path: "/api/qna/source/external-url-inspection",
+    method: "POST",
+    accessToken: requireAccessToken(accessToken),
+    tenantId: requireTenantId(tenantId),
+    body,
+    signal,
   });
 }
 
@@ -125,9 +148,9 @@ export function completeSourceUpload(
   body: SourceUploadCompleteRequestDto,
 ) {
   return portalRequest<string>({
-    service: 'qna',
+    service: "qna",
     path: `/api/qna/source/${id}/upload-complete`,
-    method: 'POST',
+    method: "POST",
     accessToken: requireAccessToken(accessToken),
     tenantId: requireTenantId(tenantId),
     body,
@@ -141,7 +164,7 @@ export function getSourceDownloadUrl(
   signal?: AbortSignal,
 ) {
   return portalRequest<SourceDownloadUrlDto>({
-    service: 'qna',
+    service: "qna",
     path: `/api/qna/source/${id}/download-url`,
     accessToken: requireAccessToken(accessToken),
     tenantId: requireTenantId(tenantId),
