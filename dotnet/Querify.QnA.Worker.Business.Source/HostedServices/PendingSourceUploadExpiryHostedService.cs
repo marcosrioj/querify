@@ -1,3 +1,4 @@
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -7,13 +8,15 @@ using Querify.QnA.Worker.Business.Source.Options;
 namespace Querify.QnA.Worker.Business.Source.HostedServices;
 
 public sealed class PendingSourceUploadExpiryHostedService(
-    IPendingSourceUploadExpiryProcessorService expiryProcessorService,
+    IServiceScopeFactory serviceScopeFactory,
     IOptionsMonitor<PendingSourceUploadExpiryOptions> optionsMonitor,
     ILogger<PendingSourceUploadExpiryHostedService> logger)
     : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        logger.LogInformation("Pending source upload expiry hosted service started.");
+
         while (!stoppingToken.IsCancellationRequested)
         {
             var options = optionsMonitor.CurrentValue;
@@ -25,6 +28,9 @@ public sealed class PendingSourceUploadExpiryHostedService(
 
             try
             {
+                using var scope = serviceScopeFactory.CreateScope();
+                var expiryProcessorService =
+                    scope.ServiceProvider.GetRequiredService<IPendingSourceUploadExpiryProcessorService>();
                 await expiryProcessorService.ExpireAllTenantsAsync(stoppingToken);
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
@@ -38,5 +44,7 @@ public sealed class PendingSourceUploadExpiryHostedService(
 
             await Task.Delay(options.PollingInterval, stoppingToken);
         }
+
+        logger.LogInformation("Pending source upload expiry hosted service stopped.");
     }
 }

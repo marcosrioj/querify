@@ -45,7 +45,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ISourceUploadVerificationService, SourceUploadVerificationService>();
         services.AddScoped<ISourceUploadVerificationSweepService, SourceUploadVerificationSweepService>();
         services.AddScoped<SourceUploadVerificationBackgroundService>();
-        services.AddSingleton<IPendingSourceUploadExpiryProcessorService, PendingSourceUploadExpiryProcessorService>();
+        services.AddScoped<IPendingSourceUploadExpiryProcessorService, PendingSourceUploadExpiryProcessorService>();
         services.AddHostedService<PendingSourceUploadExpiryHostedService>();
 
         ConfigureThreatScanner(services, configuration, environment);
