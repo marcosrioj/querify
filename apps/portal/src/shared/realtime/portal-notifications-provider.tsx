@@ -15,6 +15,8 @@ import type { PortalNotificationEnvelope } from "@/shared/realtime/portal-notifi
 
 const RECONNECT_DELAYS_MS = [0, 2000, 5000, 10000, 30000];
 const NOTIFICATION_INBOX_LIMIT = 50;
+const NOTIFICATION_INBOX_STORAGE_KEY_PREFIX =
+  "querify.portal.notifications.inbox";
 
 function getNotificationInboxId(notification: PortalNotificationEnvelope) {
   return (
@@ -29,14 +31,99 @@ function getNotificationInboxId(notification: PortalNotificationEnvelope) {
   );
 }
 
+function getNotificationInboxStorageKey(userId?: string) {
+  if (!userId) {
+    return undefined;
+  }
+
+  return `${NOTIFICATION_INBOX_STORAGE_KEY_PREFIX}:${userId}`;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function isStoredNotificationInboxItem(
+  value: unknown,
+): value is PortalNotificationInboxItem {
+  if (
+    !isRecord(value) ||
+    typeof value.id !== "string" ||
+    typeof value.receivedAtUtc !== "string" ||
+    (value.readAtUtc !== undefined && typeof value.readAtUtc !== "string")
+  ) {
+    return false;
+  }
+
+  const notification = value.notification;
+
+  return (
+    isRecord(notification) &&
+    (notification.notificationId === undefined ||
+      typeof notification.notificationId === "string") &&
+    typeof notification.occurredAtUtc === "string" &&
+    typeof notification.type === "string" &&
+    typeof notification.module === "string" &&
+    typeof notification.tenantId === "string" &&
+    typeof notification.resourceKind === "string" &&
+    typeof notification.resourceId === "string" &&
+    typeof notification.version === "number"
+  );
+}
+
+function readNotificationInboxFromStorage(
+  storageKey: string,
+): PortalNotificationInboxItem[] {
+  try {
+    const rawNotifications = globalThis.localStorage?.getItem(storageKey);
+    if (!rawNotifications) {
+      return [];
+    }
+
+    const parsedNotifications: unknown = JSON.parse(rawNotifications);
+    if (!Array.isArray(parsedNotifications)) {
+      return [];
+    }
+
+    return parsedNotifications
+      .filter(isStoredNotificationInboxItem)
+      .slice(0, NOTIFICATION_INBOX_LIMIT);
+  } catch (error) {
+    logger.warn("Portal notifications inbox could not be restored", error);
+    return [];
+  }
+}
+
+function writeNotificationInboxToStorage(
+  storageKey: string,
+  notifications: PortalNotificationInboxItem[],
+) {
+  try {
+    if (notifications.length === 0) {
+      globalThis.localStorage?.removeItem(storageKey);
+      return;
+    }
+
+    globalThis.localStorage?.setItem(
+      storageKey,
+      JSON.stringify(notifications.slice(0, NOTIFICATION_INBOX_LIMIT)),
+    );
+  } catch (error) {
+    logger.warn("Portal notifications inbox could not be persisted", error);
+  }
+}
+
 export function PortalNotificationsProvider({ children }: PropsWithChildren) {
   const { getAccessToken, status, user } = useAuth();
   const handlersRef = useRef(new Set<PortalNotificationHandler>());
   const getAccessTokenRef = useRef(getAccessToken);
-  const userIdRef = useRef<string | undefined>(undefined);
+  const hydratedStorageKeyRef = useRef<string | undefined>(undefined);
   const [notifications, setNotifications] = useState<
     PortalNotificationInboxItem[]
   >([]);
+  const [notificationStorageKey, setNotificationStorageKey] = useState<
+    string | undefined
+  >(undefined);
   const [connectionState, setConnectionState] =
     useState<PortalNotificationsConnectionState>("idle");
 
@@ -47,18 +134,40 @@ export function PortalNotificationsProvider({ children }: PropsWithChildren) {
   useEffect(() => {
     if (status !== "ready") {
       if (status === "unauthenticated") {
+        hydratedStorageKeyRef.current = undefined;
+        setNotificationStorageKey(undefined);
         setNotifications([]);
       }
-      userIdRef.current = undefined;
       return;
     }
 
-    if (userIdRef.current && user?.id && userIdRef.current !== user.id) {
+    const nextStorageKey = getNotificationInboxStorageKey(user?.id);
+    if (!nextStorageKey) {
+      hydratedStorageKeyRef.current = undefined;
+      setNotificationStorageKey(undefined);
       setNotifications([]);
+      return;
     }
 
-    userIdRef.current = user?.id;
+    if (hydratedStorageKeyRef.current === nextStorageKey) {
+      return;
+    }
+
+    hydratedStorageKeyRef.current = nextStorageKey;
+    setNotificationStorageKey(nextStorageKey);
+    setNotifications(readNotificationInboxFromStorage(nextStorageKey));
   }, [status, user?.id]);
+
+  useEffect(() => {
+    if (
+      !notificationStorageKey ||
+      hydratedStorageKeyRef.current !== notificationStorageKey
+    ) {
+      return;
+    }
+
+    writeNotificationInboxToStorage(notificationStorageKey, notifications);
+  }, [notificationStorageKey, notifications]);
 
   const subscribe = useCallback((handler: PortalNotificationHandler) => {
     handlersRef.current.add(handler);
