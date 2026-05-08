@@ -3,25 +3,36 @@ using Querify.Models.QnA.Events;
 using Querify.QnA.Worker.Api.Consumers;
 using Querify.QnA.Worker.Business.Source.Abstractions;
 using Querify.QnA.Worker.Business.Source.Commands.VerifyUploadedSource;
-using Querify.QnA.Worker.Business.Source.Services;
+using Querify.QnA.Worker.Business.Source.Consumers;
 using Querify.QnA.Worker.Test.IntegrationTests.Helpers;
 using Xunit;
 
 namespace Querify.QnA.Worker.Test.IntegrationTests.Tests.Source;
 
-public class SourceUploadVerificationServiceTests
+public class SourceUploadCompletedConsumerServiceTests
 {
     [Fact]
-    public async Task VerifyUploadedAsync_MapsEventToVerifyUploadedSourceCommand()
+    public async Task ProcessAsync_MapsEventToVerifyUploadedSourceCommand()
     {
         var tenantId = Guid.NewGuid();
         var sourceId = Guid.NewGuid();
         var tenantContext = new TestTenantContext();
         var mediator = new CapturingMediator();
-        var verificationService = new SourceUploadVerificationService(tenantContext, mediator);
+        var consumerService = new SourceUploadCompletedConsumerService(tenantContext, mediator);
 
         var storageKey = $"{tenantId}/sources/{sourceId}/staging/manual.pdf";
-        await verificationService.VerifyUploadedAsync(tenantId, sourceId, storageKey, CancellationToken.None);
+        await consumerService.ProcessAsync(new SourceUploadCompletedIntegrationEvent
+        {
+            EventId = Guid.NewGuid(),
+            OccurredAtUtc = DateTime.UtcNow,
+            TenantId = tenantId,
+            SourceId = sourceId,
+            StorageKey = storageKey,
+            ClientChecksum = "sha256:client",
+            ContentType = "application/pdf",
+            SizeBytes = 12,
+            CompletedByUserId = Guid.NewGuid().ToString()
+        }, CancellationToken.None);
 
         var command = Assert.IsType<VerifyUploadedSourceCommand>(mediator.LastRequest);
         Assert.Equal(tenantId, command.TenantId);
@@ -31,14 +42,14 @@ public class SourceUploadVerificationServiceTests
     }
 
     [Fact]
-    public async Task SourceUploadCompletedConsumer_MapsMessageToVerificationService()
+    public async Task SourceUploadCompletedConsumer_MapsMessageToConsumerService()
     {
         var tenantId = Guid.NewGuid();
         var sourceId = Guid.NewGuid();
         var storageKey = $"{tenantId}/sources/{sourceId}/staging/manual.pdf";
-        var verificationService = new CapturingSourceUploadVerificationService();
+        var consumerService = new CapturingSourceUploadCompletedConsumerService();
         var consumer = new SourceUploadCompletedConsumer(
-            verificationService,
+            consumerService,
             NullLogger<SourceUploadCompletedConsumer>.Instance);
 
         await consumer.HandleAsync(new SourceUploadCompletedIntegrationEvent
@@ -54,28 +65,22 @@ public class SourceUploadVerificationServiceTests
             CompletedByUserId = Guid.NewGuid().ToString()
         }, CancellationToken.None);
 
-        Assert.Equal(tenantId, verificationService.TenantId);
-        Assert.Equal(sourceId, verificationService.SourceId);
-        Assert.Equal(storageKey, verificationService.StorageKey);
-        Assert.Equal(1, verificationService.CallCount);
+        Assert.Equal(tenantId, consumerService.IntegrationEvent?.TenantId);
+        Assert.Equal(sourceId, consumerService.IntegrationEvent?.SourceId);
+        Assert.Equal(storageKey, consumerService.IntegrationEvent?.StorageKey);
+        Assert.Equal(1, consumerService.CallCount);
     }
 
-    private sealed class CapturingSourceUploadVerificationService : ISourceUploadVerificationService
+    private sealed class CapturingSourceUploadCompletedConsumerService : ISourceUploadCompletedConsumerService
     {
-        public Guid TenantId { get; private set; }
-        public Guid SourceId { get; private set; }
-        public string? StorageKey { get; private set; }
+        public SourceUploadCompletedIntegrationEvent? IntegrationEvent { get; private set; }
         public int CallCount { get; private set; }
 
-        public Task VerifyUploadedAsync(
-            Guid tenantId,
-            Guid sourceId,
-            string storageKey,
+        public Task ProcessAsync(
+            SourceUploadCompletedIntegrationEvent integrationEvent,
             CancellationToken cancellationToken)
         {
-            TenantId = tenantId;
-            SourceId = sourceId;
-            StorageKey = storageKey;
+            IntegrationEvent = integrationEvent;
             CallCount++;
             return Task.CompletedTask;
         }

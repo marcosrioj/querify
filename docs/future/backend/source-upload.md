@@ -286,7 +286,7 @@ Handler is a query:
 Worker command/query structure:
 
 - `SourceUploadCompletedConsumer` is the RabbitMQ adapter. It does not own verification logic.
-- `SourceUploadVerificationService` owns telemetry, enters the event tenant context, and sends
+- `SourceUploadCompletedConsumerService` owns telemetry, enters the event tenant context, and sends
   `VerifyUploadedSourceCommand` through MediatR.
 - `VerifyUploadedSourceCommandHandler` owns the verification business flow and all state mutation.
 - `VerifyUploadedSourceCommandHandler` publishes `SourceUploadStatusChangedIntegrationEvent` after
@@ -1030,7 +1030,7 @@ DELIVERABLES (assuming a dedicated worker)
 
    Hangfire flow:
    - do not put verification business logic in the Hangfire background job class
-   - Hangfire BackgroundService calls SourceUploadVerificationSweepService
+   - BackgroundService (Hangfire) calls SourceUploadVerificationSweepService
    - SourceUploadVerificationSweepService opens telemetry and sends MediatR commands
    - transient failures propagate so Hangfire retries according to persisted job state
 

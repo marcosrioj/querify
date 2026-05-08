@@ -102,18 +102,20 @@ and pass every worker feature `ActivitySourceName` to that host registration.
 Feature telemetry spans belong in the service layer first. The default worker flows are:
 
 ```text
-HostedService -> ProcessorService (Telemetry) -> Hosted (Only folder) -> Command/Query
-Consumer -> Service (Telemetry) -> Consumers (Only folder) -> Command/Query
-Hangfire BackgroundService -> Service (Telemetry) -> BackgroundServices (Only folder) -> Command/Query
-Event -> NotificationService (Telemetry) -> Command/Query
+Controller -> Service -> Command/Query
+Consumer -> ConsumerService -> Command/Query
+HostedService -> ProcessorService -> Command/Query
+BackgroundService (Hangfire) -> Service -> Command/Query
+Event -> NotificationService -> Command/Query
 ```
 
 Do not start feature telemetry spans directly in hosted services, consumers, command handlers,
 or query handlers unless a specific implementation prompt documents that exception.
 
-`Consumers`, `Hosted`, and `BackgroundServices` folders are adapter-only folders. They call the
-telemetry-owning service layer, and command/query handlers own workflow behavior.
+Consumers, hosted services, Hangfire background job classes, and events are adapter-only entrypoints.
+They call the named service layer, and command/query handlers own workflow behavior.
 
+Consumers resolve/call a `ConsumerService`.
 Hosted services are schedulers only. They resolve/call a `ProcessorService`.
 The processor service coordinates only: open telemetry, set tags, and dispatch one
 MediatR command/query. EF queries, broker publish/consume behavior, retry/finalization

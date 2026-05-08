@@ -5,7 +5,7 @@ using Querify.QnA.Worker.Business.Source.Abstractions;
 namespace Querify.QnA.Worker.Api.Consumers;
 
 public sealed class SourceUploadCompletedConsumer(
-    ISourceUploadVerificationService verificationService,
+    ISourceUploadCompletedConsumerService consumerService,
     ILogger<SourceUploadCompletedConsumer> logger)
     : IConsumer<SourceUploadCompletedIntegrationEvent>
 {
@@ -24,10 +24,6 @@ public sealed class SourceUploadCompletedConsumer(
             message.TenantId,
             message.StorageKey);
 
-        await verificationService.VerifyUploadedAsync(
-            message.TenantId,
-            message.SourceId,
-            message.StorageKey,
-            cancellationToken);
+        await consumerService.ProcessAsync(message, cancellationToken);
     }
 }

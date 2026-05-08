@@ -1,8 +1,8 @@
+using Microsoft.EntityFrameworkCore;
 using Querify.QnA.Common.Domain.BusinessRules.Spaces;
 using Querify.QnA.Common.Persistence.QnADb.DbContext;
-using Microsoft.EntityFrameworkCore;
 
-namespace Querify.QnA.Portal.Business.Space.Commands;
+namespace Querify.QnA.Portal.Business.Space.Infrastructure;
 
 internal static class SpaceSlugResolver
 {

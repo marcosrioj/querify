@@ -115,12 +115,13 @@ Current module persistence implementation:
 - `Querify.Common.Infrastructure.Telemetry`: shared telemetry wiring (OpenTelemetry tracing, OTLP export).
   API and worker hosts register it at composition root, while feature spans are started in
   services by default:
-  `Controller -> Service (Telemetry) -> Command/Query`,
-  `Consumer -> Service (Telemetry) -> Consumers (Only folder) -> Command/Query`,
-  `HostedService -> ProcessorService (Telemetry) -> Hosted (Only folder) -> Command/Query`,
-  `Hangfire BackgroundService -> Service (Telemetry) -> BackgroundServices (Only folder) -> Command/Query`,
-  and `Event -> NotificationService (Telemetry) -> Command/Query`.
-  Worker hosted services call `ProcessorService` classes; processor services coordinate
+  `Controller -> Service -> Command/Query`,
+  `Consumer -> ConsumerService -> Command/Query`,
+  `HostedService -> ProcessorService -> Command/Query`,
+  `BackgroundService (Hangfire) -> Service -> Command/Query`,
+  and `Event -> NotificationService -> Command/Query`.
+  Worker hosted services call `ProcessorService` classes; broker consumers call
+  `ConsumerService` classes; processor and consumer services coordinate
   telemetry plus MediatR dispatch only, while commands/queries own workflow behavior.
 - `Querify.Models.Common`: shared primitive DTOs and common contracts, including `ModuleEnum`
 - `Querify.Models.QnA`: QnA-facing contracts

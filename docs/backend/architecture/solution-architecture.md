@@ -96,17 +96,18 @@ Write and read paths are separated through commands and queries. The usual flow 
 The same boundary applies to background processing, broker integration, and notifications:
 
 ```text
-Controller -> Service (Telemetry) -> Command/Query
-Consumer -> Service (Telemetry) -> Consumers (Only folder) -> Command/Query
-HostedService -> ProcessorService (Telemetry) -> Hosted (Only folder) -> Command/Query
-Hangfire BackgroundService -> Service (Telemetry) -> BackgroundServices (Only folder) -> Command/Query
-Event -> NotificationService (Telemetry) -> Command/Query
+Controller -> Service -> Command/Query
+Consumer -> ConsumerService -> Command/Query
+HostedService -> ProcessorService -> Command/Query
+BackgroundService (Hangfire) -> Service -> Command/Query
+Event -> NotificationService -> Command/Query
 ```
 
-`Consumers`, `Hosted`, and `BackgroundServices` are adapter-only folders. Feature behavior still
-belongs in the command/query boundary after the telemetry-owning service dispatches it.
+Consumers, hosted services, Hangfire background job classes, and events are adapter-only entrypoints.
+Feature behavior still belongs in the command/query boundary after the named service dispatches it.
 Feature telemetry starts in the service layer by default, not in controllers, hosted services,
 Hangfire background job classes, consumers, command handlers, or query handlers.
+For broker consumers, name the coordination layer `*ConsumerService`.
 For hosted services, name that coordination layer `*ProcessorService`: it opens telemetry
 and dispatches a command/query, while the command/query owns EF, broker, storage, retry,
 finalization, and domain workflow behavior.

@@ -5,7 +5,7 @@ using Querify.Models.Common.Enums;
 using Querify.Models.QnA.Dtos.Space;
 using Querify.QnA.Common.Domain.BusinessRules.Spaces;
 using Querify.QnA.Common.Persistence.QnADb.DbContext;
-using Querify.QnA.Portal.Business.Space.Commands;
+using Querify.QnA.Portal.Business.Space.Infrastructure;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 

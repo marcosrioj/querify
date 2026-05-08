@@ -87,8 +87,8 @@ Keep event versioning explicit in queue/exchange names, for example:
 Follow the existing backend architecture rule:
 
 ```text
-Consumer -> Service (Telemetry) -> Consumers (Only folder) -> Command/Query
-Event -> NotificationService (Telemetry) -> Command/Query
+Consumer -> ConsumerService -> Command/Query
+Event -> NotificationService -> Command/Query
 ```
 
 Do not put verification logic directly in consumers.
@@ -218,7 +218,7 @@ Keep the user flow simple:
 7. Worker verifies the source and updates the database.
 8. Worker publishes status changed.
 9. Portal API notification flow handles the event:
-   `SourceUploadStatusChangedConsumer -> SourceUploadStatusChangedNotificationService (Telemetry) -> NotifySourceUploadStatusChangedCommand`.
+   `SourceUploadStatusChangedConsumer -> SourceUploadStatusChangedNotificationService -> NotifySourceUploadStatusChangedCommand`.
 10. The notification command publishes the status through the shared Portal SignalR publisher.
 11. Frontend updates the current source row/form state without polling.
 

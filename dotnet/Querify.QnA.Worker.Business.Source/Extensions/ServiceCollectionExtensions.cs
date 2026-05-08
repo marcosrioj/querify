@@ -5,6 +5,7 @@ using Microsoft.Extensions.Hosting;
 using Querify.QnA.Common.Domain.Options;
 using Querify.QnA.Worker.Business.Source.Abstractions;
 using Querify.QnA.Worker.Business.Source.Commands.VerifyUploadedSource;
+using Querify.QnA.Worker.Business.Source.Consumers;
 using Querify.QnA.Worker.Business.Source.HostedServices;
 using Querify.QnA.Worker.Business.Source.Options;
 using Querify.QnA.Worker.Business.Source.Services;
@@ -37,7 +38,7 @@ public static class ServiceCollectionExtensions
         services.AddMediatR(config =>
             config.RegisterServicesFromAssemblyContaining<VerifyUploadedSourceCommandHandler>());
 
-        services.AddScoped<ISourceUploadVerificationService, SourceUploadVerificationService>();
+        services.AddScoped<ISourceUploadCompletedConsumerService, SourceUploadCompletedConsumerService>();
         services.AddScoped<IPendingSourceUploadExpiryProcessorService, PendingSourceUploadExpiryProcessorService>();
         services.AddHostedService<PendingSourceUploadExpiryHostedService>();
 

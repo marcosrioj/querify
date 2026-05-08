@@ -302,6 +302,85 @@ public class RepositoryArchitectureComplianceTests
     }
 
     [Fact]
+    public void CommandAndQueryFiles_MustLiveInsideActionFolders()
+    {
+        var failures = new List<string>();
+
+        foreach (var filePath in EnumerateSourceFiles())
+        {
+            var relativePath = ToRelativePath(filePath);
+            var boundary = GetCommandOrQueryBoundary(relativePath);
+            if (boundary is null)
+            {
+                continue;
+            }
+
+            var parts = relativePath.Split('/');
+            var boundaryIndex = Array.IndexOf(parts, boundary);
+            var isInsideActionFolder = parts.Length == boundaryIndex + 3;
+            if (!isInsideActionFolder)
+            {
+                failures.Add($"{relativePath}: {boundary} files must live inside one action folder.");
+                continue;
+            }
+
+            var fileName = parts[^1];
+            var hasExpectedSuffix = string.Equals(boundary, "Commands", StringComparison.Ordinal)
+                ? fileName.EndsWith("Command.cs", StringComparison.Ordinal) ||
+                  fileName.EndsWith("CommandHandler.cs", StringComparison.Ordinal)
+                : fileName.EndsWith("Query.cs", StringComparison.Ordinal) ||
+                  fileName.EndsWith("QueryHandler.cs", StringComparison.Ordinal);
+
+            if (!hasExpectedSuffix)
+            {
+                failures.Add($"{relativePath}: {boundary} action files must be commands/queries or their handlers.");
+            }
+        }
+
+        Assert.True(failures.Count == 0, BuildFailureMessage(failures));
+    }
+
+    [Fact]
+    public void BrokerConsumers_MustDelegateToConsumerServiceOrNotificationService()
+    {
+        var failures = new List<string>();
+
+        foreach (var filePath in EnumerateSourceFiles())
+        {
+            var relativePath = ToRelativePath(filePath);
+            if (relativePath.StartsWith("dotnet/Querify.Common.Infrastructure.MassTransit/", StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            if (relativePath.Contains(".Test.", StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            var source = File.ReadAllText(filePath);
+            if (!source.Contains(": IConsumer<", StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            if (source.Contains("IMediator", StringComparison.Ordinal) ||
+                source.Contains("mediator.Send", StringComparison.Ordinal))
+            {
+                failures.Add($"{relativePath}: consumers must delegate to a ConsumerService or NotificationService instead of MediatR directly.");
+            }
+
+            if (!source.Contains("ConsumerService", StringComparison.Ordinal) &&
+                !source.Contains("NotificationService", StringComparison.Ordinal))
+            {
+                failures.Add($"{relativePath}: consumer must inject a ConsumerService or NotificationService.");
+            }
+        }
+
+        Assert.True(failures.Count == 0, BuildFailureMessage(failures));
+    }
+
+    [Fact]
     public void QnABusinessProjects_MustMirrorFeatureBoundaries()
     {
         var failures = new List<string>();
@@ -573,6 +652,16 @@ public class RepositoryArchitectureComplianceTests
     private static string NormalizeType(string typeName)
     {
         return Regex.Replace(typeName, @"\s+", string.Empty).Replace("?", string.Empty);
+    }
+
+    private static string? GetCommandOrQueryBoundary(string relativePath)
+    {
+        if (relativePath.Contains("/Commands/", StringComparison.Ordinal))
+        {
+            return "Commands";
+        }
+
+        return relativePath.Contains("/Queries/", StringComparison.Ordinal) ? "Queries" : null;
     }
 
     private static string BuildFailureMessage(IEnumerable<string> failures)

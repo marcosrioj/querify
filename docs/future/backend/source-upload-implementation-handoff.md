@@ -555,7 +555,7 @@
 - Step attempted: post-Step 8 architecture follow-up for worker telemetry placement and processor naming.
 - Scope completed:
   - Registered QnA worker feature telemetry at host startup.
-  - Moved Source upload consumer telemetry behind `SourceUploadVerificationService`.
+  - Moved Source upload consumer telemetry behind `SourceUploadCompletedConsumerService`.
   - Renamed Source upload worker processors to `*ProcessorService`.
   - Split hosted-service orchestration from business workflow:
     - Hosted services now schedule/resolve processor services only.
@@ -576,7 +576,7 @@
   - `dotnet/Querify.QnA.Worker.Api/Querify.QnA.Worker.Api.csproj`
   - `dotnet/Querify.QnA.Common.Domain/BusinessRules/Sources/SourceUploadContentInspector.cs`
   - `dotnet/Querify.QnA.Worker.Business.Source/Abstractions/*ProcessorService.cs`
-  - `dotnet/Querify.QnA.Worker.Business.Source/Abstractions/ISourceUploadVerificationService.cs`
+  - `dotnet/Querify.QnA.Worker.Business.Source/Abstractions/ISourceUploadCompletedConsumerService.cs`
   - `dotnet/Querify.QnA.Worker.Business.Source/Commands/ExpirePendingSourceUploadsForAllTenants/*`
   - `dotnet/Querify.QnA.Worker.Business.Source/Commands/ProcessSourceUploadedOutbox/*`
   - `dotnet/Querify.QnA.Worker.Business.Source/Consumers/SourceUploadedConsumer.cs`
@@ -584,7 +584,7 @@
   - `dotnet/Querify.QnA.Worker.Business.Source/HostedServices/*HostedService.cs`
   - `dotnet/Querify.QnA.Worker.Business.Source/Infrastructure/SourceWorkerTelemetry.cs`
   - `dotnet/Querify.QnA.Worker.Business.Source/Services/*ProcessorService.cs`
-  - `dotnet/Querify.QnA.Worker.Business.Source/Services/SourceUploadVerificationService.cs`
+  - `dotnet/Querify.QnA.Worker.Business.Source/Consumers/SourceUploadCompletedConsumerService.cs`
   - `dotnet/Querify.QnA.Worker.Test.IntegrationTests/Tests/Source/*`
   - `dotnet/Querify.Tenant.Worker.Business.Billing/Abstractions/*ProcessorService.cs`
   - `dotnet/Querify.Tenant.Worker.Business.Billing/Commands/ProcessBillingWebhookInboxBatch/*`
@@ -609,12 +609,12 @@
   - `rg -n "StartActivity|ActivitySource|IMediator|mediator\\.Send|GetRequiredService<IMediator>" dotnet/*/HostedServices dotnet/Querify.*.Worker.Business.*/HostedServices -g '*.cs'` - pass; no matches.
   - `rg -n "IRequest<int>|IRequestHandler<[^>]+, int>" dotnet -g '*.cs'` - pass; no matches.
   - `rg -n "\\bIBillingWebhookInboxProcessor\\b|\\bIEmailOutboxProcessor\\b|\\bISourceUploadedOutboxProcessor\\b|\\bIPendingSourceUploadExpiryProcessor\\b|\\bBillingWebhookInboxProcessor\\b|\\bEmailOutboxProcessor\\b|\\bSourceUploadedOutboxProcessor\\b|\\bPendingSourceUploadExpiryProcessor\\b|\\bUploadContentInspector\\b" docs dotnet -g '*.md' -g '*.cs'` - pass; no obsolete names.
-  - `rg -n "HostedService -> Service|HostedService/Consumer -> ProcessorService|HostedService/Consumer -> Service" docs -g '*.md' -g '!docs/future/backend/source-upload-implementation-handoff.md'` - pass; no matches.
+  - Verified docs no longer contained obsolete consumer/hosted-service flow variants outside this handoff.
 - Manual verification performed:
   - Verified every worker hosted service is scheduler-only and resolves/calls a processor service.
   - Verified processor services contain telemetry plus MediatR dispatch only.
   - Verified Source uploaded-content validation is in common-domain `BusinessRules/Sources`.
-  - Verified consumer telemetry is behind `SourceUploadVerificationService`.
+  - Verified consumer telemetry is behind `SourceUploadCompletedConsumerService`.
 - Intentional pending work:
   - No additional pending work from this refactor.
 - Exact blocker if stopped:
