@@ -15,9 +15,11 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ISourceService, SourceService>();
         services.AddScoped<ISourceUploadCompletedEventPublisher, MassTransitSourceUploadCompletedEventPublisher>();
         services.AddScoped<ISourceUploadStatusChangedNotificationService, SourceUploadStatusChangedNotificationService>();
+        services.AddMemoryCache();
+        services.AddSingleton<SourceExternalUrlInspectionCoordinator>();
         services
-            .AddHttpClient(SourcesInspectExternalUrlQueryHandler.HttpClientName)
-            .ConfigureHttpClient(client => client.Timeout = TimeSpan.FromSeconds(10))
+            .AddHttpClient(SourceExternalUrlInspectionCoordinator.HttpClientName)
+            .ConfigureHttpClient(client => client.Timeout = TimeSpan.FromSeconds(5))
             .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
             {
                 AllowAutoRedirect = false

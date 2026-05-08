@@ -81,11 +81,6 @@ public class Source : BaseEntity, IMustHaveTenant
     public required VisibilityScope Visibility { get; set; }
 
     /// <summary>
-    ///     Timestamp of the last trust or freshness verification.
-    /// </summary>
-    public DateTime? LastVerifiedAtUtc { get; set; }
-
-    /// <summary>
     ///     Spaces that curate or expose this source.
     /// </summary>
     public ICollection<SpaceSource> Spaces { get; set; } = [];

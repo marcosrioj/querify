@@ -45,6 +45,7 @@ public sealed class SourcesCreateSourceCommandHandler(
         entity.Locator = request.Locator;
         entity.Label = request.Label;
         entity.ContextNote = request.ContextNote;
+        entity.ExternalId = request.ExternalId;
         entity.Language = request.Language;
         entity.MediaType = request.MediaType;
         entity.Checksum = SourceChecksum.FromLocator(request.Locator);

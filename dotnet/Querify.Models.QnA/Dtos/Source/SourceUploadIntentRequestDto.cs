@@ -11,5 +11,6 @@ public class SourceUploadIntentRequestDto
     public required VisibilityScope Visibility { get; set; }
     public string? Label { get; set; }
     public string? ContextNote { get; set; }
+    public string? ExternalId { get; set; }
     public string? MetadataJson { get; set; }
 }

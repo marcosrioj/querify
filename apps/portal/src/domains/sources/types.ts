@@ -81,6 +81,7 @@ export type SourceCreateRequestDto = {
   locator: string;
   label?: string | null;
   contextNote?: string | null;
+  externalId?: string | null;
   language: string;
   mediaType?: string | null;
   metadataJson?: string | null;
@@ -112,6 +113,7 @@ export type SourceUploadIntentRequestDto = {
   visibility: VisibilityScope;
   label?: string | null;
   contextNote?: string | null;
+  externalId?: string | null;
   metadataJson?: string | null;
 };
 

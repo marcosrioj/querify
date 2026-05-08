@@ -9,6 +9,10 @@ export const sourceFormSchema = z.object({
     .string()
     .max(2000, "Keep the context note within 2,000 characters.")
     .optional(),
+  externalId: z
+    .string()
+    .max(250, "Keep the external ID within the backend limit.")
+    .optional(),
   language: z
     .string()
     .min(2, "Language is required.")

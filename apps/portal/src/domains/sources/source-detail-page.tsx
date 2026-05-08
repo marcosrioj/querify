@@ -187,8 +187,7 @@ export function SourceDetailPage() {
               },
               {
                 label: "Upload status",
-                description:
-                  "File workflow state for uploaded sources.",
+                description: "File workflow state for uploaded sources.",
                 value: (
                   <SourceUploadStatusBadge
                     status={sourceQuery.data.uploadStatus}
@@ -246,9 +245,20 @@ export function SourceDetailPage() {
             tone="secondary"
             disabled={downloadUrlQuery.isFetching}
             onClick={async () => {
+              const downloadWindow = window.open("", "_blank");
+              if (downloadWindow) {
+                downloadWindow.opener = null;
+              }
+
               const result = await downloadUrlQuery.refetch();
               if (result.data?.url) {
-                window.location.assign(result.data.url);
+                if (downloadWindow) {
+                  downloadWindow.location.href = result.data.url;
+                } else {
+                  window.open(result.data.url, "_blank", "noopener,noreferrer");
+                }
+              } else {
+                downloadWindow?.close();
               }
             }}
           >
@@ -368,7 +378,8 @@ export function SourceDetailPage() {
                   },
                   {
                     label: "Size",
-                    description: "Stored file size when this source is uploaded.",
+                    description:
+                      "Stored file size when this source is uploaded.",
                     value: formatBytes(sourceQuery.data.sizeBytes),
                   },
                 ]}

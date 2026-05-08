@@ -68,6 +68,23 @@ import {
 
 const visibilityOptions = backendEnumSelectOptions(visibilityScopeLabels);
 const GENERATED_SOURCE_METADATA_KEY = "sourceInspection";
+const GENERATED_SOURCE_METADATA_FIELDS = new Set([
+  "contentLengthBytes",
+  "contentType",
+  "fileName",
+  "finalUrl",
+  "host",
+  "lastModified",
+  "lastModifiedAtUtc",
+  "origin",
+  "path",
+  "sizeBytes",
+  "stagedAtUtc",
+  "status",
+  "statusText",
+  "url",
+  "validatedAtUtc",
+]);
 
 type JsonObject = Record<string, unknown>;
 
@@ -82,6 +99,7 @@ type ExternalUrlInspection = {
   contentType?: string;
   finalUrl: string;
   lastModified?: string;
+  mediaType?: string;
   status: number;
   statusText: string;
 };
@@ -155,10 +173,32 @@ function parseMetadataJson(value: string | null | undefined) {
   }
 
   const parsed = JSON.parse(trimmed);
-  return isJsonObject(parsed) ? parsed : {};
+  if (!isJsonObject(parsed)) {
+    throw new Error("Metadata JSON must be an object.");
+  }
+
+  return parsed;
 }
 
-function setGeneratedMetadata(
+function pruneEmptyMetadataFields(metadata: JsonObject) {
+  return Object.fromEntries(
+    Object.entries(metadata).filter(([, value]) => value !== undefined),
+  );
+}
+
+function preserveUserSourceInspectionMetadata(metadata: unknown) {
+  if (!isJsonObject(metadata)) {
+    return {};
+  }
+
+  return Object.fromEntries(
+    Object.entries(metadata).filter(
+      ([key]) => !GENERATED_SOURCE_METADATA_FIELDS.has(key),
+    ),
+  );
+}
+
+function setSourceInspectionMetadata(
   form: UseFormReturn<SourceFormValues>,
   metadata: JsonObject,
 ) {
@@ -170,18 +210,21 @@ function setGeneratedMetadata(
     return;
   }
 
-  const existingGeneratedMetadata = isJsonObject(
-    currentMetadata[GENERATED_SOURCE_METADATA_KEY],
-  )
-    ? currentMetadata[GENERATED_SOURCE_METADATA_KEY]
-    : {};
+  const sourceInspectionMetadata = {
+    ...preserveUserSourceInspectionMetadata(
+      currentMetadata[GENERATED_SOURCE_METADATA_KEY],
+    ),
+    ...pruneEmptyMetadataFields(metadata),
+  };
   const nextMetadata = {
     ...currentMetadata,
-    [GENERATED_SOURCE_METADATA_KEY]: {
-      ...existingGeneratedMetadata,
-      ...metadata,
-    },
   };
+
+  if (Object.keys(sourceInspectionMetadata).length > 0) {
+    nextMetadata[GENERATED_SOURCE_METADATA_KEY] = sourceInspectionMetadata;
+  } else {
+    delete nextMetadata[GENERATED_SOURCE_METADATA_KEY];
+  }
 
   form.setValue("metadataJson", JSON.stringify(nextMetadata, null, 2), {
     shouldDirty: true,
@@ -215,34 +258,17 @@ function buildLabelFromExternalUrl(locator: string) {
   return decodeURIComponent(lastPathSegment).replace(/\.[a-z0-9]+$/i, "");
 }
 
-function buildExternalUrlMetadata(
-  locator: string,
-  inspection: ExternalUrlInspection,
-) {
-  const url = new URL(locator);
+function buildExternalUrlMetadata(inspection: ExternalUrlInspection) {
   return {
     contentLengthBytes: inspection.contentLengthBytes,
     contentType: inspection.contentType,
-    finalUrl: inspection.finalUrl,
-    host: url.hostname,
-    lastModified: inspection.lastModified,
-    origin: "external-url",
-    path: url.pathname,
-    status: inspection.status,
-    statusText: inspection.statusText,
-    url: locator,
-    validatedAtUtc: new Date().toISOString(),
   };
 }
 
 function buildFileUploadMetadata(file: File) {
   return {
-    contentType: file.type || "application/octet-stream",
-    fileName: file.name,
-    lastModifiedAtUtc: new Date(file.lastModified).toISOString(),
-    origin: "file-upload",
-    sizeBytes: file.size,
-    stagedAtUtc: new Date().toISOString(),
+    contentType: file.type || undefined,
+    contentLengthBytes: file.size,
   };
 }
 
@@ -297,11 +323,12 @@ function buildExternalUrlInspectionFromPortal(
   return {
     inspection: {
       contentLengthBytes: result.contentLengthBytes ?? undefined,
-      contentType:
-        normalizeHeaderContentType(result.contentType ?? null) ??
-        inferMediaTypeFromUrl(locator),
+      contentType: result.contentType ?? undefined,
       finalUrl: result.finalUrl ?? locator,
       lastModified: result.lastModified ?? undefined,
+      mediaType:
+        normalizeHeaderContentType(result.contentType ?? null) ??
+        inferMediaTypeFromUrl(locator),
       status,
       statusText: result.statusText ?? "",
     },
@@ -345,8 +372,9 @@ async function inspectExternalUrl(
       };
     }
 
-    const contentType =
-      normalizeHeaderContentType(response.headers.get("content-type")) ??
+    const contentType = response.headers.get("content-type") ?? undefined;
+    const mediaType =
+      normalizeHeaderContentType(contentType ?? null) ??
       inferMediaTypeFromUrl(url.toString());
 
     return {
@@ -357,6 +385,7 @@ async function inspectExternalUrl(
         contentType,
         finalUrl: response.url || url.toString(),
         lastModified: response.headers.get("last-modified") ?? undefined,
+        mediaType,
         status: response.status,
         statusText: response.statusText,
       },
@@ -479,6 +508,7 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
       locator: "",
       label: "",
       contextNote: "",
+      externalId: "",
       language: initialLanguage,
       mediaType: "",
       checksum: "",
@@ -497,6 +527,7 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
       locator: sourceQuery.data.locator,
       label: sourceQuery.data.label ?? "",
       contextNote: sourceQuery.data.contextNote ?? "",
+      externalId: sourceQuery.data.externalId ?? "",
       language: sourceQuery.data.language,
       mediaType: sourceQuery.data.mediaType ?? "",
       checksum: sourceQuery.data.checksum,
@@ -643,7 +674,7 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
         }
 
         const contentType =
-          result.inspection.contentType ?? inferMediaTypeFromUrl(locator);
+          result.inspection.mediaType ?? inferMediaTypeFromUrl(locator);
         if (isCancelled) {
           return;
         }
@@ -665,9 +696,9 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
           );
         }
 
-        setGeneratedMetadata(
+        setSourceInspectionMetadata(
           form,
-          buildExternalUrlMetadata(locator, result.inspection),
+          buildExternalUrlMetadata(result.inspection),
         );
         setExternalUrlValidation({ locator, status: "valid" });
       } catch (error) {
@@ -812,6 +843,7 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
                         visibility,
                         label: values.label || undefined,
                         contextNote: values.contextNote || undefined,
+                        externalId: values.externalId || undefined,
                         metadataJson: values.metadataJson?.trim() || undefined,
                       });
 
@@ -832,6 +864,7 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
                       locator: values.locator,
                       label: values.label || undefined,
                       contextNote: values.contextNote || undefined,
+                      externalId: values.externalId || undefined,
                       language: values.language,
                       mediaType: values.mediaType || undefined,
                       metadataJson: values.metadataJson?.trim() || undefined,
@@ -926,7 +959,7 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
                                   shouldValidate: true,
                                 },
                               );
-                              setGeneratedMetadata(
+                              setSourceInspectionMetadata(
                                 form,
                                 buildFileUploadMetadata(file),
                               );
@@ -1053,24 +1086,28 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
                       description="Detected MIME type from the file or reachable external URL."
                       readOnly
                     />
-                    <div className="md:col-span-2">
-                      <SearchSelectField
-                        control={form.control}
-                        name="language"
-                        label="Language"
-                        description="Use the main locale for this source content."
-                        options={languageOptions}
-                        selectedOption={selectedLanguageOption}
-                        searchPlaceholder="Search languages"
-                        emptyMessage="No languages found."
-                        resultCountHint={translateText(
-                          "{count} languages available",
-                          {
-                            count: portalLanguageOptions.length,
-                          },
-                        )}
-                      />
-                    </div>
+                    <SearchSelectField
+                      control={form.control}
+                      name="language"
+                      label="Language"
+                      description="Use the main locale for this source content."
+                      options={languageOptions}
+                      selectedOption={selectedLanguageOption}
+                      searchPlaceholder="Search languages"
+                      emptyMessage="No languages found."
+                      resultCountHint={translateText(
+                        "{count} languages available",
+                        {
+                          count: portalLanguageOptions.length,
+                        },
+                      )}
+                    />
+                    <TextField
+                      control={form.control}
+                      name="externalId"
+                      label="External ID"
+                      description="Identifier from the upstream connector, repository, or source system."
+                    />
                   </div>
                   <FormSectionHeading
                     title="Verification and metadata"
