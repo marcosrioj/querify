@@ -7,7 +7,6 @@ public class SourceUploadIntentRequestDto
     public required string FileName { get; set; }
     public required string ContentType { get; set; }
     public required long SizeBytes { get; set; }
-    public required SourceKind Kind { get; set; }
     public required string Language { get; set; }
     public required VisibilityScope Visibility { get; set; }
     public string? Label { get; set; }

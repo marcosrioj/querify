@@ -18,29 +18,9 @@ public static class SourceRules
             ["text/markdown"] = [".md", ".markdown"]
         };
 
-    private static readonly IReadOnlyDictionary<SourceKind, string[]> ContentTypesByKind =
-        new Dictionary<SourceKind, string[]>
-        {
-            [SourceKind.Article] = ["text/plain", "text/markdown", "application/pdf"],
-            [SourceKind.WebPage] = ["text/plain", "text/markdown"],
-            [SourceKind.Pdf] = ["application/pdf"],
-            [SourceKind.Video] = ["video/mp4"],
-            [SourceKind.Repository] = ["text/plain", "text/markdown"],
-            [SourceKind.ProductNote] = ["text/plain", "text/markdown", "application/pdf"],
-            [SourceKind.InternalNote] = ["text/plain", "text/markdown"],
-            [SourceKind.GovernanceRecord] = ["text/plain", "text/markdown", "application/pdf"],
-            [SourceKind.AuditRecord] = ["text/plain", "text/markdown", "application/pdf"],
-            [SourceKind.Other] = ["application/pdf", "image/png", "image/jpeg", "video/mp4", "text/plain", "text/markdown"]
-        };
-
     public static void EnsureVisibilityAllowed(Source entity, VisibilityScope visibility)
     {
         if (visibility is not VisibilityScope.Public) return;
-
-        if (entity.Kind is SourceKind.InternalNote)
-            throw new ApiErrorException(
-                "Internal notes cannot be exposed publicly.",
-                (int)HttpStatusCode.UnprocessableEntity);
 
         if (entity.StorageKey is null && entity.LastVerifiedAtUtc is null)
             throw new ApiErrorException(
@@ -91,7 +71,7 @@ public static class SourceRules
                 (int)HttpStatusCode.UnprocessableEntity);
     }
 
-    public static bool IsUploadContentTypeAllowed(SourceKind kind, string? contentType,
+    public static bool IsUploadContentTypeAllowed(string? contentType,
         IEnumerable<string>? configuredAllowedContentTypes = null)
     {
         var normalizedContentType = NormalizeContentType(contentType);
@@ -111,8 +91,7 @@ public static class SourceRules
             return false;
         }
 
-        return ContentTypesByKind.TryGetValue(kind, out var allowedForKind) &&
-               allowedForKind.Contains(normalizedContentType, StringComparer.OrdinalIgnoreCase);
+        return ExtensionsByContentType.ContainsKey(normalizedContentType);
     }
 
     public static bool IsUploadFileNameAllowed(string fileName, string? contentType)

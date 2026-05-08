@@ -15,12 +15,17 @@ internal static class SourceTenantIntegrityExtension
         {
             var source = entry.Entity;
 
-            if (source.Visibility is not VisibilityScope.Public) continue;
-
-            if (source.Kind == SourceKind.InternalNote)
+            if (string.IsNullOrWhiteSpace(source.Checksum))
                 throw new ApiErrorException(
-                    $"Source '{source.Id}' cannot expose internal notes publicly.",
-                    (int)HttpStatusCode.UnprocessableEntity);
+                    $"Source '{source.Id}' must include a non-empty checksum.",
+                    (int)HttpStatusCode.BadRequest);
+
+            if (source.Checksum.Length > Source.MaxChecksumLength)
+                throw new ApiErrorException(
+                    $"Source '{source.Id}' checksum exceeds {Source.MaxChecksumLength} characters.",
+                    (int)HttpStatusCode.BadRequest);
+
+            if (source.Visibility is not VisibilityScope.Public) continue;
 
             if (source.StorageKey is null && source.LastVerifiedAtUtc is null)
                 throw new ApiErrorException(

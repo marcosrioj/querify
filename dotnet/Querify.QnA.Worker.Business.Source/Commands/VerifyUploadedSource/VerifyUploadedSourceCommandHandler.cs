@@ -129,7 +129,10 @@ public sealed class VerifyUploadedSourceCommandHandler(
             return entity.Id;
         }
 
-        if (!SourceUploadContentInspector.IsAllowed(entity.Kind, normalizedHeadContentType, evidence.Prefix))
+        if (!SourceUploadContentInspector.IsAllowed(
+                normalizedHeadContentType,
+                evidence.Prefix,
+                uploadOptions.Value.AllowedContentTypes))
         {
             await FailSourceAsync(
                 entity,
@@ -141,12 +144,12 @@ public sealed class VerifyUploadedSourceCommandHandler(
         }
 
         var computedChecksum = $"sha256:{evidence.Sha256Hex}";
-        if (!ClientChecksumMatches(entity.UploadChecksum, computedChecksum))
+        if (!ClientChecksumMatches(entity.Checksum, request.StorageKey, computedChecksum))
         {
             logger.LogWarning(
                 "Uploaded source {SourceId} failed checksum verification. Expected client checksum {ClientChecksum}; computed {ComputedChecksum}.",
                 entity.Id,
-                entity.UploadChecksum,
+                entity.Checksum,
                 computedChecksum);
             await FailSourceAsync(
                 entity,
@@ -258,17 +261,17 @@ public sealed class VerifyUploadedSourceCommandHandler(
             reason ?? "Scanner returned unsafe verdict.");
     }
 
-    private static bool ClientChecksumMatches(string? clientChecksum, string computedChecksum)
+    private static bool ClientChecksumMatches(string? persistedChecksum, string stagingKey, string computedChecksum)
     {
-        if (string.IsNullOrWhiteSpace(clientChecksum))
+        var normalized = SourceChecksum.NormalizeOptional(persistedChecksum);
+        if (normalized is null)
         {
-            return true;
+            return false;
         }
 
-        var normalized = clientChecksum.Trim().ToLowerInvariant();
-        if (!normalized.StartsWith("sha256:", StringComparison.Ordinal))
+        if (SourceChecksum.IsLocatorChecksum(normalized, stagingKey))
         {
-            normalized = $"sha256:{normalized}";
+            return true;
         }
 
         return FixedTimeEquals(normalized, computedChecksum);
@@ -326,7 +329,6 @@ public sealed class VerifyUploadedSourceCommandHandler(
                     .SetProperty(source => source.StorageKey, verifiedKey)
                     .SetProperty(source => source.Locator, verifiedKey)
                     .SetProperty(source => source.Checksum, computedChecksum)
-                    .SetProperty(source => source.UploadChecksum, (string?)null)
                     .SetProperty(source => source.SizeBytes, sizeBytes)
                     .SetProperty(source => source.MediaType, mediaType)
                     .SetProperty(source => source.LastVerifiedAtUtc, verifiedAtUtc)
@@ -345,7 +347,6 @@ public sealed class VerifyUploadedSourceCommandHandler(
         entity.StorageKey = verifiedKey;
         entity.Locator = verifiedKey;
         entity.Checksum = computedChecksum;
-        entity.UploadChecksum = null;
         entity.SizeBytes = sizeBytes;
         entity.MediaType = mediaType;
         entity.LastVerifiedAtUtc = verifiedAtUtc;
@@ -359,6 +360,8 @@ public sealed class VerifyUploadedSourceCommandHandler(
         CancellationToken cancellationToken)
     {
         var currentStorageKey = entity.StorageKey;
+        var currentChecksum = SourceChecksum.NormalizeOptional(entity.Checksum) ??
+                              SourceChecksum.FromLocator(currentStorageKey ?? entity.Locator);
         var updatedRows = await dbContext.Sources
             .Where(source => source.TenantId == entity.TenantId &&
                              source.Id == entity.Id &&
@@ -366,7 +369,7 @@ public sealed class VerifyUploadedSourceCommandHandler(
                              source.StorageKey == currentStorageKey)
             .ExecuteUpdateAsync(setters => setters
                     .SetProperty(source => source.UploadStatus, SourceUploadStatus.Failed)
-                    .SetProperty(source => source.UploadChecksum, (string?)null)
+                    .SetProperty(source => source.Checksum, currentChecksum)
                     .SetProperty(source => source.UpdatedBy, SystemUser),
                 cancellationToken);
 
@@ -379,7 +382,7 @@ public sealed class VerifyUploadedSourceCommandHandler(
         }
 
         entity.UploadStatus = SourceUploadStatus.Failed;
-        entity.UploadChecksum = null;
+        entity.Checksum = currentChecksum;
         entity.UpdatedBy = SystemUser;
         return true;
     }
@@ -390,6 +393,8 @@ public sealed class VerifyUploadedSourceCommandHandler(
         CancellationToken cancellationToken)
     {
         var currentStorageKey = entity.StorageKey;
+        var currentChecksum = SourceChecksum.NormalizeOptional(entity.Checksum) ??
+                              SourceChecksum.FromLocator(currentStorageKey ?? entity.Locator);
         var updatedRows = await dbContext.Sources
             .Where(source => source.TenantId == entity.TenantId &&
                              source.Id == entity.Id &&
@@ -399,7 +404,7 @@ public sealed class VerifyUploadedSourceCommandHandler(
                     .SetProperty(source => source.StorageKey, quarantineKey)
                     .SetProperty(source => source.Locator, quarantineKey)
                     .SetProperty(source => source.UploadStatus, SourceUploadStatus.Quarantined)
-                    .SetProperty(source => source.UploadChecksum, (string?)null)
+                    .SetProperty(source => source.Checksum, currentChecksum)
                     .SetProperty(source => source.UpdatedBy, SystemUser),
                 cancellationToken);
 
@@ -414,7 +419,7 @@ public sealed class VerifyUploadedSourceCommandHandler(
         entity.StorageKey = quarantineKey;
         entity.Locator = quarantineKey;
         entity.UploadStatus = SourceUploadStatus.Quarantined;
-        entity.UploadChecksum = null;
+        entity.Checksum = currentChecksum;
         entity.UpdatedBy = SystemUser;
         return true;
     }

@@ -52,7 +52,6 @@ import {
   AnswerKindBadge,
   AnswerStatusBadge,
   QuestionStatusBadge,
-  SourceKindBadge,
   SourceRoleBadge,
   SourceUploadStatusBadge,
   SpaceStatusBadge,
@@ -176,14 +175,8 @@ export function SourceDetailPage() {
           <SidebarSummarySkeleton />
         ) : sourceQuery.data ? (
           <DetailOverviewCard
-            description="This summarizes source type, visibility, verification metadata, and connector identifiers."
+            description="This summarizes source visibility, verification metadata, and connector identifiers."
             highlights={[
-              {
-                label: "Kind",
-                description:
-                  "The type of evidence or reusable reference this source represents.",
-                value: <SourceKindBadge kind={sourceQuery.data.kind} />,
-              },
               {
                 label: "Visibility",
                 description:

@@ -33,8 +33,6 @@ public sealed class SourcesGetSourceListQueryHandler(
                 EF.Functions.ILike(source.Language, $"%{request.Request.SearchText}%") ||
                 EF.Functions.ILike(source.MediaType ?? string.Empty, $"%{request.Request.SearchText}%"));
 
-        if (request.Request.Kind is not null) query = query.Where(source => source.Kind == request.Request.Kind);
-
         if (request.Request.Visibility is not null)
             query = query.Where(source => source.Visibility == request.Request.Visibility);
 
@@ -44,8 +42,6 @@ public sealed class SourcesGetSourceListQueryHandler(
                 query.OrderByDescending(source => source.UpdatedDate ?? source.CreatedDate),
             "lastupdatedatutc asc" or "updateddate asc" => query.OrderBy(source =>
                 source.UpdatedDate ?? source.CreatedDate),
-            "kind" or "kind asc" => query.OrderBy(source => source.Kind).ThenBy(source => source.Label),
-            "kind desc" => query.OrderByDescending(source => source.Kind).ThenBy(source => source.Label),
             "label" or "label asc" => query.OrderBy(source => source.Label).ThenBy(source => source.Locator),
             "label desc" => query.OrderByDescending(source => source.Label),
             "locator" or "locator asc" => query.OrderBy(source => source.Locator),
@@ -83,7 +79,6 @@ public sealed class SourcesGetSourceListQueryHandler(
             {
                 Id = entity.Id,
                 TenantId = entity.TenantId,
-                Kind = entity.Kind,
                 Locator = entity.Locator,
                 StorageKey = entity.StorageKey,
                 Label = entity.Label,

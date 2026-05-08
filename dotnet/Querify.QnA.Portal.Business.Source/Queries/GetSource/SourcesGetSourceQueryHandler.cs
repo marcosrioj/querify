@@ -24,7 +24,6 @@ public sealed class SourcesGetSourceQueryHandler(
             {
                 Id = source.Id,
                 TenantId = source.TenantId,
-                Kind = source.Kind,
                 Locator = source.Locator,
                 StorageKey = source.StorageKey,
                 Label = source.Label,

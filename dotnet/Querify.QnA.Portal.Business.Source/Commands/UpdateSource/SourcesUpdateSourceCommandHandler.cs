@@ -41,7 +41,6 @@ public sealed class SourcesUpdateSourceCommandHandler(
         SourceUpdateRequestDto request,
         string userId)
     {
-        entity.Kind = request.Kind;
         entity.Locator = request.Locator;
         entity.Label = request.Label;
         entity.ContextNote = request.ContextNote;

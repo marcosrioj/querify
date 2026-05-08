@@ -55,7 +55,6 @@ public sealed class AnswersGetAnswerQueryHandler(
                         {
                             Id = source.Source.Id,
                             TenantId = source.Source.TenantId,
-                            Kind = source.Source.Kind,
                             Locator = source.Source.Locator,
                             StorageKey = source.Source.StorageKey,
                             Label = source.Source.Label,

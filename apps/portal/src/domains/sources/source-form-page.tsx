@@ -4,10 +4,8 @@ import { useForm, type UseFormReturn } from "react-hook-form";
 import { Braces, FileUp, Link2, X } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
-  SourceKind,
   VisibilityScope,
   backendEnumSelectOptions,
-  sourceKindLabels,
   visibilityScopeLabels,
 } from "@/shared/constants/backend-enums";
 import {
@@ -66,7 +64,6 @@ import {
   portalLanguageOptions,
 } from "@/shared/lib/language";
 
-const sourceKindOptions = backendEnumSelectOptions(sourceKindLabels);
 const visibilityOptions = backendEnumSelectOptions(visibilityScopeLabels);
 
 function MetadataJsonEditor({
@@ -154,7 +151,6 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
   const form = useForm<SourceFormValues>({
     resolver: zodResolver(sourceFormSchema),
     defaultValues: {
-      kind: SourceKind.Article,
       locator: "",
       label: "",
       contextNote: "",
@@ -174,7 +170,6 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
     }
 
     form.reset({
-      kind: sourceQuery.data.kind,
       locator: sourceQuery.data.locator,
       label: sourceQuery.data.label ?? "",
       contextNote: sourceQuery.data.contextNote ?? "",
@@ -207,12 +202,6 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
     (isUploadMode && uploadProgress > 0 && uploadProgress < 100);
   const setupValues = form.watch();
   const setupSteps = [
-    {
-      id: "source-type",
-      label: "Source type",
-      description: "Choose what kind of evidence this source represents.",
-      complete: hasSetupValue(setupValues.kind),
-    },
     {
       id: "locator",
       label: isUploadMode ? "File" : "Locator",
@@ -304,9 +293,8 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
               <KeyValueList
                 items={[
                   {
-                    label: "Kinds",
-                    value:
-                      "Article, web page, ticket, repository, chat, and more",
+                    label: "Identity",
+                    value: "Stable locator, label, and media type",
                   },
                   {
                     label: "Visibility",
@@ -337,7 +325,7 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
                   <span>{translateText("Source details")}</span>
                   <ContextHint
                     content={translateText(
-                      "Start with the locator and classification, then capture visibility and verification metadata.",
+                      "Start with the locator and media type, then capture visibility and verification metadata.",
                     )}
                     label={translateText("Form details")}
                   />
@@ -367,7 +355,6 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
                         contentType:
                           selectedFile.type || "application/octet-stream",
                         sizeBytes: selectedFile.size,
-                        kind: Number(values.kind) as SourceKind,
                         language: values.language,
                         visibility,
                         label: values.label || undefined,
@@ -388,7 +375,6 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
                     }
 
                     const body = {
-                      kind: Number(values.kind) as SourceKind,
                       locator: values.locator,
                       label: values.label || undefined,
                       contextNote: values.contextNote || undefined,
@@ -434,7 +420,7 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
                   ) : null}
                   <FormSectionHeading
                     title="Evidence identity"
-                    description="Capture the canonical locator first, then add the operator-facing label and evidence type."
+                    description="Capture the canonical locator first, then add the operator-facing label and media type."
                   />
                   <div className="grid gap-4 lg:grid-cols-6">
                     {isUploadMode ? (
@@ -513,21 +499,12 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
                         />
                       </div>
                     )}
-                    <div className="lg:col-span-3">
+                    <div className="lg:col-span-6">
                       <TextField
                         control={form.control}
                         name="label"
                         label="Label"
                         description="Human-readable name shown when operators choose this source."
-                      />
-                    </div>
-                    <div className="lg:col-span-3">
-                      <SelectField
-                        control={form.control}
-                        name="kind"
-                        label="Source kind"
-                        description="The type of evidence or reusable reference this source represents."
-                        options={sourceKindOptions}
                       />
                     </div>
                     <div className="lg:col-span-6">

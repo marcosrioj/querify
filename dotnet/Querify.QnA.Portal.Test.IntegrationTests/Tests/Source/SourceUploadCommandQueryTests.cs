@@ -164,7 +164,7 @@ public class SourceUploadCommandQueryTests
     }
 
     [Fact]
-    public async Task CompleteUpload_HappyPath_TransitionsToUploadedAndStoresUploadChecksum()
+    public async Task CompleteUpload_HappyPath_TransitionsToUploadedAndStoresChecksum()
     {
         using var context = TestContext.Create();
         var storage = new FakeObjectStorage();
@@ -182,12 +182,31 @@ public class SourceUploadCommandQueryTests
 
         Assert.Equal(source.Id, result);
         Assert.Equal(SourceUploadStatus.Uploaded, source.UploadStatus);
-        Assert.Equal("sha256:client", source.UploadChecksum);
+        Assert.Equal("sha256:client", source.Checksum);
         var completedEvent = Assert.Single(completedEvents.PublishedEvents);
         Assert.Equal(context.SessionService.TenantId, completedEvent.TenantId);
         Assert.Equal(source.Id, completedEvent.SourceId);
         Assert.Equal(source.StorageKey, completedEvent.StorageKey);
-        Assert.Equal("sha256:client", completedEvent.ClientChecksum);
+    }
+
+    [Fact]
+    public async Task CompleteUpload_WithoutClientChecksum_KeepsNonEmptyChecksum()
+    {
+        using var context = TestContext.Create();
+        var storage = new FakeObjectStorage();
+        var content = "%PDF-1.7 test"u8.ToArray();
+        var source = await CreatePendingUploadAsync(context, storage, expectedSizeBytes: content.LongLength);
+        storage.Put(source.StorageKey!, content, "application/pdf");
+        var handler = CreateCompleteHandler(context, storage);
+
+        await handler.Handle(new SourcesCompleteUploadCommand
+        {
+            SourceId = source.Id
+        }, CancellationToken.None);
+
+        Assert.Equal(SourceUploadStatus.Uploaded, source.UploadStatus);
+        Assert.False(string.IsNullOrWhiteSpace(source.Checksum));
+        Assert.Equal(SourceChecksum.FromLocator(source.Locator), source.Checksum);
     }
 
     [Fact]
@@ -314,7 +333,6 @@ public class SourceUploadCommandQueryTests
             FileName = "manual.pdf",
             ContentType = "application/pdf",
             SizeBytes = 12,
-            Kind = SourceKind.Pdf,
             Language = "en-US",
             Visibility = VisibilityScope.Internal,
             Label = "Manual",

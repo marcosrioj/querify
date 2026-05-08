@@ -21,7 +21,7 @@ public class VerifyUploadedSourceCommandHandlerTests
         var storage = new FakeObjectStorage();
         var content = "%PDF-1.7 test"u8.ToArray();
         var source = await SeedUploadedSourceAsync(context, storage, content);
-        source.UploadChecksum = BuildSha256(content);
+        source.Checksum = BuildSha256(content);
         await context.DbContext.SaveChangesAsync();
         var statusEvents = new CapturingSourceUploadStatusChangedEventPublisher();
         var handler = CreateHandler(context, storage, statusEvents: statusEvents);
@@ -34,7 +34,6 @@ public class VerifyUploadedSourceCommandHandlerTests
         }, CancellationToken.None);
 
         Assert.Equal(SourceUploadStatus.Verified, source.UploadStatus);
-        Assert.Null(source.UploadChecksum);
         Assert.True(SourceStorageKey.IsVerifiedKey(source.StorageKey));
         Assert.Equal(source.StorageKey, source.Locator);
         Assert.NotNull(source.LastVerifiedAtUtc);
@@ -52,7 +51,7 @@ public class VerifyUploadedSourceCommandHandlerTests
         using var context = TestContext.Create();
         var storage = new FakeObjectStorage();
         var source = await SeedUploadedSourceAsync(context, storage, "%PDF-1.7 test"u8.ToArray());
-        source.UploadChecksum = "sha256:0000";
+        source.Checksum = "sha256:0000";
         await context.DbContext.SaveChangesAsync();
         var statusEvents = new CapturingSourceUploadStatusChangedEventPublisher();
         var handler = CreateHandler(context, storage, statusEvents: statusEvents);
@@ -65,7 +64,6 @@ public class VerifyUploadedSourceCommandHandlerTests
         }, CancellationToken.None);
 
         Assert.Equal(SourceUploadStatus.Failed, source.UploadStatus);
-        Assert.Null(source.UploadChecksum);
         Assert.Contains(source.StorageKey!, storage.DeletedKeys);
         var statusEvent = Assert.Single(statusEvents.PublishedEvents);
         Assert.Equal(SourceUploadStatus.Failed, statusEvent.UploadStatus);
@@ -87,7 +85,6 @@ public class VerifyUploadedSourceCommandHandlerTests
         }, CancellationToken.None);
 
         Assert.Equal(SourceUploadStatus.Failed, source.UploadStatus);
-        Assert.Null(source.UploadChecksum);
         Assert.Contains(source.StorageKey!, storage.DeletedKeys);
     }
 
@@ -108,7 +105,6 @@ public class VerifyUploadedSourceCommandHandlerTests
         }, CancellationToken.None);
 
         Assert.Equal(SourceUploadStatus.Quarantined, source.UploadStatus);
-        Assert.Null(source.UploadChecksum);
         Assert.Contains("/quarantine/", source.StorageKey, StringComparison.Ordinal);
         Assert.Equal(source.StorageKey, source.Locator);
         var statusEvent = Assert.Single(statusEvents.PublishedEvents);
@@ -155,7 +151,6 @@ public class VerifyUploadedSourceCommandHandlerTests
                 .SetProperty(item => item.StorageKey, verifiedKey)
                 .SetProperty(item => item.Locator, verifiedKey)
                 .SetProperty(item => item.Checksum, computedChecksum)
-                .SetProperty(item => item.UploadChecksum, (string?)null)
                 .SetProperty(item => item.LastVerifiedAtUtc, verifiedAtUtc)
                 .SetProperty(item => item.UploadStatus, SourceUploadStatus.Verified));
         await storage.DeleteAsync(stagingKey, CancellationToken.None);
@@ -202,14 +197,13 @@ public class VerifyUploadedSourceCommandHandlerTests
         {
             Id = sourceId,
             TenantId = context.SessionService.TenantId,
-            Kind = SourceKind.Pdf,
             Locator = storageKey,
             StorageKey = storageKey,
             Label = "Manual",
             Language = "en-US",
             MediaType = "application/pdf",
             SizeBytes = content.LongLength,
-            Checksum = "sha256:pending",
+            Checksum = SourceChecksum.FromLocator(storageKey),
             UploadStatus = uploadStatus,
             Visibility = VisibilityScope.Internal,
             CreatedBy = "test",

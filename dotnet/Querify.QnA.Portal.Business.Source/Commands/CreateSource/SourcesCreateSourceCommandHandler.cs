@@ -23,7 +23,6 @@ public sealed class SourcesCreateSourceCommandHandler(
         var entity = new Common.Domain.Entities.Source
         {
             TenantId = tenantId,
-            Kind = request.Request.Kind,
             Locator = request.Request.Locator,
             Language = request.Request.Language,
             Checksum = SourceChecksum.FromLocator(request.Request.Locator),
@@ -43,7 +42,6 @@ public sealed class SourcesCreateSourceCommandHandler(
         SourceCreateRequestDto request,
         string userId)
     {
-        entity.Kind = request.Kind;
         entity.Locator = request.Locator;
         entity.Label = request.Label;
         entity.ContextNote = request.ContextNote;

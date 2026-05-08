@@ -72,19 +72,18 @@ public class EntityConstraintsTests
     }
 
     [Fact]
-    public async Task Source_ThrowsWhenInternalNoteIsPublic()
+    public async Task Source_ThrowsWhenChecksumIsEmpty()
     {
         using var context = TestContext.Create();
 
         var source = new SourceEntity
         {
             TenantId = context.SessionService.TenantId,
-            Kind = SourceKind.InternalNote,
-            Locator = "internal://note/1",
-            Label = "Internal note",
+            Locator = "https://example.test/source/empty-checksum",
+            Label = "Missing checksum",
             Language = "en-US",
-            Checksum = "sha256:internal-note-1",
-            Visibility = VisibilityScope.Public,
+            Checksum = "",
+            Visibility = VisibilityScope.Internal,
             LastVerifiedAtUtc = DateTime.UtcNow,
             CreatedBy = "test",
             UpdatedBy = "test"

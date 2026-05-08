@@ -37,7 +37,6 @@ public sealed class SourcesCreateUploadIntentCommandHandler(
         {
             Id = sourceId,
             TenantId = tenantId,
-            Kind = request.Dto.Kind,
             Locator = stagingKey,
             StorageKey = stagingKey,
             Label = request.Dto.Label,
@@ -85,10 +84,10 @@ public sealed class SourcesCreateUploadIntentCommandHandler(
                 "Uploaded sources cannot be public before verification.",
                 (int)HttpStatusCode.UnprocessableEntity);
 
-        if (!SourceRules.IsUploadContentTypeAllowed(request.Kind, request.ContentType, options.AllowedContentTypes) ||
+        if (!SourceRules.IsUploadContentTypeAllowed(request.ContentType, options.AllowedContentTypes) ||
             !SourceRules.IsUploadFileNameAllowed(request.FileName, request.ContentType))
             throw new ApiErrorException(
-                "Upload content type is not allowed for this source kind.",
+                "Upload content type is not allowed for sources.",
                 (int)HttpStatusCode.UnprocessableEntity);
     }
 }

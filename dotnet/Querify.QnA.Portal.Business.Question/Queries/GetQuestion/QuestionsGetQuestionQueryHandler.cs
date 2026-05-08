@@ -139,7 +139,6 @@ public sealed class QuestionsGetQuestionQueryHandler(
                 {
                     Id = link.Source.Id,
                     TenantId = link.Source.TenantId,
-                    Kind = link.Source.Kind,
                     Locator = link.Source.Locator,
                     StorageKey = link.Source.StorageKey,
                     Label = link.Source.Label,

@@ -25,7 +25,6 @@ public class SourceCommandQueryTests
         {
             Request = new SourceCreateRequestDto
             {
-                Kind = SourceKind.Article,
                 Locator = "https://docs.example.test/qna/reset-password",
                 Label = "Reset password guide",
                 ContextNote = "Portal",
@@ -68,7 +67,6 @@ public class SourceCommandQueryTests
             Id = source.Id,
             Request = new SourceUpdateRequestDto
             {
-                Kind = source.Kind,
                 Locator = "https://docs.example.test/qna/updated-source",
                 Label = source.Label,
                 ContextNote = source.ContextNote,
@@ -100,7 +98,6 @@ public class SourceCommandQueryTests
             {
                 Request = new SourceCreateRequestDto
                 {
-                    Kind = SourceKind.Article,
                     Locator = "https://docs.example.test/qna/unverified",
                     Label = "Unverified source",
                     ContextNote = null,

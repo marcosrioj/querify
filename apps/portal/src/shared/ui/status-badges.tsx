@@ -6,7 +6,6 @@ import {
   AnswerStatus,
   ChannelKind,
   QuestionStatus,
-  SourceKind,
   SourceRole,
   SourceUploadStatus,
   SpaceStatus,
@@ -21,7 +20,6 @@ import {
   answerStatusPresentation,
   channelKindPresentation,
   questionStatusPresentation,
-  sourceKindPresentation,
   sourceRolePresentation,
   sourceUploadStatusPresentation,
   spaceStatusPresentation,
@@ -110,12 +108,6 @@ export function AnswerKindBadge({ kind }: { kind: AnswerKind }) {
 
 export function AnswerStatusBadge({ status }: { status: AnswerStatus }) {
   const presentation = getPresentation(answerStatusPresentation, status);
-
-  return <BadgeText text={presentation.label} variant={presentation.badgeVariant} />;
-}
-
-export function SourceKindBadge({ kind }: { kind: SourceKind }) {
-  const presentation = getPresentation(sourceKindPresentation, kind);
 
   return <BadgeText text={presentation.label} variant={presentation.badgeVariant} />;
 }

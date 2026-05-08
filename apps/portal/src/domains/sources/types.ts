@@ -2,7 +2,6 @@ import {
   AnswerKind,
   AnswerStatus,
   QuestionStatus,
-  SourceKind,
   SourceRole,
   SourceUploadStatus,
   SpaceStatus,
@@ -12,7 +11,6 @@ import {
 export type SourceDto = {
   id: string;
   tenantId: string;
-  kind: SourceKind;
   locator: string;
   storageKey?: string | null;
   label?: string | null;
@@ -80,7 +78,6 @@ export type SourceDetailDto = SourceDto & {
 };
 
 export type SourceCreateRequestDto = {
-  kind: SourceKind;
   locator: string;
   label?: string | null;
   contextNote?: string | null;
@@ -98,7 +95,6 @@ export type SourceUploadIntentRequestDto = {
   fileName: string;
   contentType: string;
   sizeBytes: number;
-  kind: SourceKind;
   language: string;
   visibility: VisibilityScope;
   label?: string | null;

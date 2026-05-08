@@ -67,7 +67,7 @@ public sealed class SourcesCompleteUploadCommandHandler(
         var headContentType = SourceRules.NormalizeContentType(head.ContentType);
         var declaredContentType = SourceRules.NormalizeContentType(entity.MediaType);
         if (headContentType is null ||
-            !SourceRules.IsUploadContentTypeAllowed(entity.Kind, headContentType, uploadOptions.Value.AllowedContentTypes) ||
+            !SourceRules.IsUploadContentTypeAllowed(headContentType, uploadOptions.Value.AllowedContentTypes) ||
             !StringComparer.OrdinalIgnoreCase.Equals(headContentType, declaredContentType))
         {
             await RejectUploadedObjectAsync(entity, userId, cancellationToken);
@@ -76,9 +76,15 @@ public sealed class SourcesCompleteUploadCommandHandler(
                 (int)HttpStatusCode.UnprocessableEntity);
         }
 
+        var normalizedClientChecksum = SourceChecksum.NormalizeOptional(request.ClientChecksum);
+        if (normalizedClientChecksum?.Length > Common.Domain.Entities.Source.MaxChecksumLength)
+            throw new ApiErrorException(
+                "Client checksum exceeds the allowed limit.",
+                (int)HttpStatusCode.UnprocessableEntity);
+
         entity.SizeBytes = head.SizeBytes;
         entity.MediaType = headContentType;
-        entity.UploadChecksum = request.ClientChecksum;
+        entity.Checksum = normalizedClientChecksum ?? SourceChecksum.FromLocator(entity.Locator);
         entity.UploadStatus = SourceUploadStatus.Uploaded;
         entity.UpdatedBy = userId;
 
@@ -91,7 +97,6 @@ public sealed class SourcesCompleteUploadCommandHandler(
             TenantId = tenantId,
             SourceId = entity.Id,
             StorageKey = entity.StorageKey!,
-            ClientChecksum = entity.UploadChecksum,
             ContentType = entity.MediaType!,
             SizeBytes = head.SizeBytes,
             CompletedByUserId = userId
@@ -107,7 +112,11 @@ public sealed class SourcesCompleteUploadCommandHandler(
     {
         await objectStorage.DeleteAsync(entity.StorageKey!, cancellationToken);
         entity.UploadStatus = SourceUploadStatus.Failed;
-        entity.UploadChecksum = null;
+        if (string.IsNullOrWhiteSpace(entity.Checksum))
+        {
+            entity.Checksum = SourceChecksum.FromLocator(entity.Locator);
+        }
+
         entity.UpdatedBy = userId;
         await dbContext.SaveChangesAsync(cancellationToken);
     }

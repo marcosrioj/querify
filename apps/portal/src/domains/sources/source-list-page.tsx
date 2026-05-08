@@ -17,7 +17,6 @@ import { useRemoveSpaceSource, useSpace } from "@/domains/spaces/hooks";
 import {
   SourceRole,
   VisibilityScope,
-  sourceKindLabels,
   sourceUploadStatusLabels,
   visibilityScopeLabels,
 } from "@/shared/constants/backend-enums";
@@ -48,7 +47,6 @@ import { DataTable, type DataTableColumn } from "@/shared/ui/data-table";
 import { PaginationControls } from "@/shared/ui/pagination-controls";
 import { EmptyState, ErrorState } from "@/shared/ui/placeholder-state";
 import {
-  SourceKindBadge,
   SourceRoleBadge,
   SourceUploadStatusBadge,
   VisibilityBadge,
@@ -59,8 +57,6 @@ const sortingOptions = [
   { value: "LastUpdatedAtUtc ASC", label: "Last update oldest" },
   { value: "Label ASC", label: "Label A-Z" },
   { value: "Label DESC", label: "Label Z-A" },
-  { value: "Kind ASC", label: "Kind A-Z" },
-  { value: "Kind DESC", label: "Kind Z-A" },
   { value: "LastVerifiedAtUtc DESC", label: "Verification newest" },
   { value: "LastVerifiedAtUtc ASC", label: "Verification oldest" },
   { value: "Locator ASC", label: "Locator" },
@@ -76,18 +72,9 @@ const sortingOptions = [
 ];
 
 const SOURCE_FILTER_DEFAULTS = {
-  kind: "all",
   uploadStatus: "all",
   visibility: "all",
 } as const;
-
-const sourceKindBuckets = [
-  { label: "All", value: "all" },
-  ...Object.entries(sourceKindLabels).map(([value, label]) => ({
-    label,
-    value,
-  })),
-] as const;
 
 type SourceRelationshipKind = "space" | "question" | "answer";
 
@@ -120,19 +107,15 @@ function sourceMatchesSearch(source: SourceListRow, searchText: string) {
 function sourceMatchesFilters(
   source: SourceListRow,
   {
-    kindFilter,
     searchText,
     uploadStatusFilter,
     visibilityFilter,
   }: {
-    kindFilter: string;
     searchText: string;
     uploadStatusFilter: string;
     visibilityFilter: string;
   },
 ) {
-  const matchesKind =
-    kindFilter === "all" || source.kind === Number(kindFilter);
   const matchesUploadStatus =
     uploadStatusFilter === "all" ||
     source.uploadStatus === Number(uploadStatusFilter);
@@ -141,7 +124,6 @@ function sourceMatchesFilters(
     source.visibility === Number(visibilityFilter);
 
   return (
-    matchesKind &&
     matchesUploadStatus &&
     matchesVisibility &&
     sourceMatchesSearch(source, searchText)
@@ -188,11 +170,6 @@ function sortSources(sources: SourceListRow[], sorting: string) {
           compareText(right.label, left.label) ||
           compareText(left.locator, right.locator)
         );
-      case "kind asc":
-      case "kind":
-        return left.kind - right.kind || compareText(left.label, right.label);
-      case "kind desc":
-        return right.kind - left.kind || compareText(left.label, right.label);
       case "lastverifiedatutc asc":
       case "lastverifiedatutc":
         return compareDate(left.lastVerifiedAtUtc, right.lastVerifiedAtUtc);
@@ -271,24 +248,19 @@ export function SourceListPage() {
     defaultSorting: "LastUpdatedAtUtc DESC",
     filterDefaults: SOURCE_FILTER_DEFAULTS,
   });
-  const kindFilter = filters.kind;
   const uploadStatusFilter = filters.uploadStatus;
   const visibilityFilter = filters.visibility;
-  const apiKind = kindFilter === "all" ? undefined : Number(kindFilter);
   const apiVisibility =
     visibilityFilter === "all" ? undefined : Number(visibilityFilter);
   const quickAllActive =
-    kindFilter === "all" &&
     uploadStatusFilter === "all" &&
     visibilityFilter === "all";
   const activeFilterCount = [
     search.trim(),
-    kindFilter !== "all",
     uploadStatusFilter !== "all",
     visibilityFilter !== "all",
   ].filter(Boolean).length;
   const refinementFilterCount = [
-    kindFilter !== "all",
     uploadStatusFilter !== "all",
     visibilityFilter !== "all",
   ].filter(Boolean).length;
@@ -302,7 +274,6 @@ export function SourceListPage() {
     pageSize,
     sorting,
     searchText: debouncedSearch || undefined,
-    kind: apiKind,
     visibility: apiVisibility,
     enabled: !relationshipActive,
   });
@@ -369,7 +340,6 @@ export function SourceListPage() {
     ? sortSources(
         relationshipRows.filter((source) =>
           sourceMatchesFilters(source, {
-            kindFilter,
             searchText: debouncedSearch,
             uploadStatusFilter,
             visibilityFilter,
@@ -500,14 +470,11 @@ export function SourceListPage() {
       ),
     },
     {
-      key: "kind",
-      header: "Type",
+      key: "visibility",
+      header: "Visibility",
       className: "xl:w-[120px]",
       cell: (source) => (
-          <div className="space-y-2">
-            <SourceKindBadge kind={source.kind} />
-            <VisibilityBadge visibility={source.visibility} />
-          </div>
+        <VisibilityBadge visibility={source.visibility} />
       ),
     },
     {
@@ -718,30 +685,17 @@ export function SourceListPage() {
               }
             >
               <ListFilterChipRail>
-                {sourceKindBuckets.map((bucket) => (
-                  <ListFilterChip
-                    key={bucket.value}
-                    active={
-                      bucket.value === "all"
-                        ? quickAllActive
-                        : kindFilter === bucket.value
-                    }
-                    onClick={() => {
-                      if (bucket.value === "all") {
-                        setFilters({
-                          kind: "all",
-                          uploadStatus: "all",
-                          visibility: "all",
-                        });
-                        return;
-                      }
-
-                      setFilter("kind", bucket.value);
-                    }}
-                  >
-                    {translateText(bucket.label)}
-                  </ListFilterChip>
-                ))}
+                <ListFilterChip
+                  active={quickAllActive}
+                  onClick={() => {
+                    setFilters({
+                      uploadStatus: "all",
+                      visibility: "all",
+                    });
+                  }}
+                >
+                  {translateText("All")}
+                </ListFilterChip>
                 <ListFilterChip
                   active={visibilityFilter === String(VisibilityScope.Public)}
                   onClick={() =>
@@ -759,26 +713,6 @@ export function SourceListPage() {
             </ListFilterSection>
             <ListFilterToolbar isLoading={filtersLoading}>
               <div className="grid w-full gap-3 md:grid-cols-2 xl:grid-cols-3">
-                <ListFilterField label="Source kind">
-                  <Select
-                    value={kindFilter}
-                    onValueChange={(value) => setFilter("kind", value)}
-                  >
-                    <SelectTrigger className="w-full" size="lg">
-                      <SelectValue placeholder={translateText("Source kind")} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All kinds</SelectItem>
-                      {Object.entries(sourceKindLabels).map(
-                        ([value, label]) => (
-                          <SelectItem key={value} value={value}>
-                            {translateText(label)}
-                          </SelectItem>
-                        ),
-                      )}
-                    </SelectContent>
-                  </Select>
-                </ListFilterField>
                 <ListFilterField label="Visibility">
                   <Select
                     value={visibilityFilter}

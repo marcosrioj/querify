@@ -1,5 +1,4 @@
 using System.Text;
-using Querify.Models.QnA.Enums;
 
 namespace Querify.QnA.Common.Domain.BusinessRules.Sources;
 
@@ -7,10 +6,13 @@ public static class SourceUploadContentInspector
 {
     private static readonly UTF8Encoding StrictUtf8 = new(false, true);
 
-    public static bool IsAllowed(SourceKind kind, string? contentType, ReadOnlySpan<byte> prefix)
+    public static bool IsAllowed(
+        string? contentType,
+        ReadOnlySpan<byte> prefix,
+        IEnumerable<string>? configuredAllowedContentTypes = null)
     {
         var normalizedContentType = SourceRules.NormalizeContentType(contentType);
-        if (!SourceRules.IsUploadContentTypeAllowed(kind, normalizedContentType))
+        if (!SourceRules.IsUploadContentTypeAllowed(normalizedContentType, configuredAllowedContentTypes))
         {
             return false;
         }

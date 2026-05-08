@@ -179,7 +179,6 @@ public sealed class QnASeedService : IQnASeedService
         {
             Id = sourceId,
             TenantId = tenantId,
-            Kind = SourceKind.Pdf,
             Locator = storageKey,
             StorageKey = storageKey,
             Label = label,
@@ -208,7 +207,6 @@ public sealed class QnASeedService : IQnASeedService
         {
             Id = Guid.NewGuid(),
             TenantId = tenantId,
-            Kind = ResolveSourceKind(item),
             Locator = item.SourceUrl,
             Label = item.SourceLabel,
             ContextNote = BuildSourceContextNote(item),
@@ -730,9 +728,10 @@ public sealed class QnASeedService : IQnASeedService
     private static string BuildChecksum(SeedQuestionDefinition item)
     {
         var payload = string.Join('|', item.SourceName, item.SourceLabel, item.SourceUrl, item.Question, item.Answer);
-        return Convert
+        var hash = Convert
             .ToHexString(System.Security.Cryptography.SHA256.HashData(Encoding.UTF8.GetBytes(payload)))
             .ToLowerInvariant();
+        return $"sha256:{hash}";
     }
 
     private static string BuildSourceMetadataJson(SeedQuestionDefinition item)
@@ -750,7 +749,6 @@ public sealed class QnASeedService : IQnASeedService
             ["answerPreview"] = item.ShortAnswer,
             ["helpfulFeedbackPercent"] = Math.Clamp(item.HelpfulFeedbackPercent, 0, 100),
             ["aiConfidenceScore"] = Math.Clamp(item.AiConfidenceScore, 0, 100),
-            ["sourceKind"] = ResolveSourceKind(item).ToString(),
             ["mediaType"] = ResolveMediaType(item),
             ["lastCatalogRefreshUtc"] = SeedBaseTimeUtc.ToString("O")
         };
@@ -784,33 +782,6 @@ public sealed class QnASeedService : IQnASeedService
             item.Answer,
             $"Operational guidance: treat this as the canonical {product} answer for {businessArea} when the customer is asking the same policy or workflow question. Confirm account-specific state, eligibility, dates, regional availability, and any irreversible action before applying it.",
             $"Source handling: cite \"{item.SourceLabel}\" as the primary public reference. Re-check the source when feedback turns negative, confidence drops below the confidence threshold, or the upstream product flow changes.");
-    }
-
-    private static SourceKind ResolveSourceKind(SeedQuestionDefinition item)
-    {
-        var source = $"{item.SourceName} {item.SourceLabel} {item.SourceUrl}";
-
-        if (ContainsAny(source, "terms", "policy", "policies", "real id", "identification", "signature services"))
-        {
-            return SourceKind.GovernanceRecord;
-        }
-
-        if (ContainsAny(source, "whatcanibring/items", "premium plans", "basic plans", "managed accounts", "package intercept"))
-        {
-            return SourceKind.ProductNote;
-        }
-
-        if (ContainsAny(source, "docs.github.com", "support.google.com", "support.apple.com", "support.spotify.com", "slack.com/help", "airbnb.com/help"))
-        {
-            return SourceKind.Article;
-        }
-
-        if (ContainsAny(source, "tsa.gov", "usps.com", "airbnb.com"))
-        {
-            return SourceKind.WebPage;
-        }
-
-        return SourceKind.Article;
     }
 
     private static string ResolveMediaType(SeedQuestionDefinition item)

@@ -4,7 +4,6 @@ namespace Querify.Models.QnA.Dtos.Source;
 
 public class SourceUpdateRequestDto
 {
-    public required SourceKind Kind { get; set; }
     public required string Locator { get; set; }
     public string? Label { get; set; }
     public string? ContextNote { get; set; }

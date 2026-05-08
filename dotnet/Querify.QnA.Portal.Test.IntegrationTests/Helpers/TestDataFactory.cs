@@ -186,7 +186,6 @@ public static class TestDataFactory
         var entity = new Source
         {
             TenantId = tenantId,
-            Kind = SourceKind.Article,
             Locator = locator ?? "https://example.test/doc/1",
             Label = "Reset password doc",
             ContextNote = "Section 1",
@@ -218,7 +217,6 @@ public static class TestDataFactory
         {
             Id = resolvedSourceId,
             TenantId = tenantId,
-            Kind = SourceKind.Pdf,
             Locator = storageKey,
             StorageKey = storageKey,
             Label = "Verified upload",

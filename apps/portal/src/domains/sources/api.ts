@@ -20,14 +20,12 @@ export function listSources(
     pageSize,
     sorting,
     searchText,
-    kind,
     visibility,
   }: {
     page: number;
     pageSize: number;
     sorting?: string;
     searchText?: string;
-    kind?: number;
     visibility?: number;
   },
   signal?: AbortSignal,
@@ -39,7 +37,6 @@ export function listSources(
     tenantId: requireTenantId(tenantId),
     query: toPagedQuery(page, pageSize, sorting, {
       SearchText: searchText,
-      Kind: kind,
       Visibility: visibility,
     }),
     signal,

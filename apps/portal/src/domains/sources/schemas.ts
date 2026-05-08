@@ -1,9 +1,8 @@
 import { z } from 'zod';
-import { SourceKind, VisibilityScope } from '@/shared/constants/backend-enums';
+import { VisibilityScope } from '@/shared/constants/backend-enums';
 import { numericEnumSchema } from '@/shared/lib/zod';
 
 export const sourceFormSchema = z.object({
-  kind: numericEnumSchema(SourceKind),
   locator: z.string().min(3, 'Locator is required.'),
   label: z.string().max(200, 'Keep the label concise.').optional(),
   contextNote: z.string().max(2000, 'Keep the context note within 2,000 characters.').optional(),

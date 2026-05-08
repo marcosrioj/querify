@@ -94,7 +94,7 @@ Use these dimensions for module behavior:
 | Audience exposure | `VisibilityScope` | Who can see the item: internal portal users, authenticated external users, or the public. This is not status and not moderation. |
 | Channel | `ChannelKind` | Where a question, vote, feedback, or signal entered the system. |
 | Answer provenance | `AnswerKind` | Whether an answer is official, community-provided, or imported. |
-| Source material type | `SourceKind` | What artifact is linked: article, page, ticket, transcript, audit record, and so on. |
+| Source artifact identity | `Locator`, `StorageKey`, and `MediaType` on `Source` | Which artifact is linked and where it can be resolved. |
 | Source relationship role | `SourceRole` | Why a source is attached: origin, context, evidence, or reference. |
 | Actor type | `ActorKind` | Who or what caused an activity event. |
 | Event journal | `ActivityKind` | Question status events, answer status events, feedback signals, and vote signals. This is not current state. |
@@ -105,7 +105,7 @@ Common consolidation rules:
 - A space status enum should not be duplicated by kind/mode enums plus publication timestamps.
 - A question type enum should not duplicate origin channel, lifecycle status, or the parent space mode.
 - Duplicate question detection is not persisted as QnA question state. Intake processes such as Direct, Broadcast, imports, or QnA-owned creation flows may use vector search to resolve an existing question before creating a new canonical question.
-- A source kind should describe the artifact. A source role should describe why it is linked. Visibility should describe whether the source is internal-only, authenticated external, or public.
+- Source locator and media fields should describe the artifact. A source role should describe why it is linked. Visibility should describe whether the source is internal-only, authenticated external, or public.
 - Source trust or validation behavior belongs to relationship context or Trust-owned validation, not a source-wide shortcut in QnA.
 - An activity kind should describe a supported status event or public signal, not a field that can be edited directly.
 - Generic edits, accepted-answer selection, reports, and creation shortcuts should rely on entity state, relationship state, or audit fields instead of broad activity values.
@@ -142,7 +142,7 @@ Process:
 11. Preserve existing behavior semantics by moving callers to the canonical field.
 12. Keep entities state-only.
 13. Keep `required` semantics explicit. Do not set silent defaults to make construction easier.
-14. For `Source`, keep artifact identity, audience exposure, and relationship context separate: `Kind` and locator fields identify the material, `Visibility` controls who can see it, and `SourceRole` explains why it is attached.
+14. For `Source`, keep artifact identity, audience exposure, and relationship context separate: locator, storage, and media fields identify the material, `Visibility` controls who can see it, and `SourceRole` explains why it is attached.
 15. Do not create placeholder module entities. If a needed owning entity is still missing and the stage does not explicitly introduce it, leave a handoff note instead.
 16. For QnA, put reusable entity-related rules under `Querify.QnA.Common.Domain.BusinessRules`; these rules must not depend on `QnADbContext`, EF queries, service registration, or HTTP controllers.
 17. When a new or changed entity implements `IMustHaveTenant` and references another tenant-owned entity, update the owning `DbContext` to enforce tenant integrity before save.

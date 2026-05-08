@@ -105,7 +105,6 @@ public sealed class BigDataSeedService : IBigDataSeedService
         dbContext.Database.ExecuteSqlInterpolated($"""
             INSERT INTO "Sources" (
                 "Id",
-                "Kind",
                 "Locator",
                 "Label",
                 "ContextNote",
@@ -124,7 +123,6 @@ public sealed class BigDataSeedService : IBigDataSeedService
                 "IsDeleted")
             SELECT
                 ('12000000-0000-0000-0000-' || lpad(to_hex(source_index::bigint), 12, '0'))::uuid,
-                {(int)SourceKind.InternalNote},
                 'seed-big-data://source/' || source_index,
                 'Seed Big Data Source ' || source_index,
                 'Synthetic source for performance data.',

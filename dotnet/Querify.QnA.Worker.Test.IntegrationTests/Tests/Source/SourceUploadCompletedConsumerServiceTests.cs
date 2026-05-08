@@ -28,7 +28,6 @@ public class SourceUploadCompletedConsumerServiceTests
             TenantId = tenantId,
             SourceId = sourceId,
             StorageKey = storageKey,
-            ClientChecksum = "sha256:client",
             ContentType = "application/pdf",
             SizeBytes = 12,
             CompletedByUserId = Guid.NewGuid().ToString()
@@ -59,7 +58,6 @@ public class SourceUploadCompletedConsumerServiceTests
             TenantId = tenantId,
             SourceId = sourceId,
             StorageKey = storageKey,
-            ClientChecksum = "sha256:client",
             ContentType = "application/pdf",
             SizeBytes = 12,
             CompletedByUserId = Guid.NewGuid().ToString()

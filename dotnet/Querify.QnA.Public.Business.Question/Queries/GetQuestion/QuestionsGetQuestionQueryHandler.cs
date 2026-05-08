@@ -136,7 +136,6 @@ public sealed class QuestionsGetQuestionQueryHandler(
                         {
                             Id = source.Source.Id,
                             TenantId = source.Source.TenantId,
-                            Kind = source.Source.Kind,
                             Locator = source.Source.Locator,
                             StorageKey = source.Source.StorageKey,
                             Label = source.Source.Label,
@@ -208,7 +207,6 @@ public sealed class QuestionsGetQuestionQueryHandler(
                 {
                     Id = link.Source.Id,
                     TenantId = link.Source.TenantId,
-                    Kind = link.Source.Kind,
                     Locator = link.Source.Locator,
                     StorageKey = link.Source.StorageKey,
                     Label = link.Source.Label,

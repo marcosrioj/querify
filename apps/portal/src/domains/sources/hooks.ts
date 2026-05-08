@@ -39,7 +39,6 @@ export function useSourceList(params: {
   pageSize: number;
   sorting?: string;
   searchText?: string;
-  kind?: number;
   visibility?: number;
   enabled?: boolean;
   staleTime?: number;

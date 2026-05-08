@@ -10,7 +10,6 @@ import {
   ChannelKind,
   ModuleEnum,
   QuestionStatus,
-  SourceKind,
   SourceRole,
   SourceUploadStatus,
   SpaceStatus,
@@ -28,7 +27,6 @@ import {
   billingProviderLabels,
   channelKindLabels,
   questionStatusLabels,
-  sourceKindLabels,
   sourceRoleLabels,
   sourceUploadStatusLabels,
   spaceStatusLabels,
@@ -407,22 +405,6 @@ export const answerStatusPresentation: Record<AnswerStatus, EnumPresentation> = 
     sortGroup: 5,
   },
 };
-
-export const sourceKindPresentation = Object.fromEntries(
-  Object.entries(sourceKindLabels).map(([value, label]) => [
-    value,
-    {
-      label,
-      description: "Source material type.",
-      badgeVariant:
-        Number(value) === SourceKind.GovernanceRecord ||
-        Number(value) === SourceKind.AuditRecord
-          ? "primary"
-          : "secondary",
-      sortGroup: Number(value),
-    },
-  ]),
-) as Record<SourceKind, EnumPresentation>;
 
 export const sourceRolePresentation = Object.fromEntries(
   Object.entries(sourceRoleLabels).map(([value, label]) => [

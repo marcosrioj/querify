@@ -102,19 +102,6 @@ export enum AnswerStatus {
   Archived = 11,
 }
 
-export enum SourceKind {
-  Article = 1,
-  WebPage = 6,
-  Pdf = 11,
-  Video = 16,
-  Repository = 21,
-  ProductNote = 26,
-  InternalNote = 31,
-  GovernanceRecord = 36,
-  AuditRecord = 41,
-  Other = 46,
-}
-
 export enum SourceRole {
   Origin = 1,
   Context = 6,
@@ -250,19 +237,6 @@ export const answerStatusLabels: Record<AnswerStatus, string> = {
   [AnswerStatus.Draft]: 'Draft',
   [AnswerStatus.Active]: 'Active',
   [AnswerStatus.Archived]: 'Archived',
-};
-
-export const sourceKindLabels: Record<SourceKind, string> = {
-  [SourceKind.Article]: 'Article',
-  [SourceKind.WebPage]: 'Web page',
-  [SourceKind.Pdf]: 'PDF',
-  [SourceKind.Video]: 'Video',
-  [SourceKind.Repository]: 'Repository',
-  [SourceKind.ProductNote]: 'Product note',
-  [SourceKind.InternalNote]: 'Internal note',
-  [SourceKind.GovernanceRecord]: 'Governance record',
-  [SourceKind.AuditRecord]: 'Audit record',
-  [SourceKind.Other]: 'Other',
 };
 
 export const sourceRoleLabels: Record<SourceRole, string> = {
