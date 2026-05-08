@@ -70,7 +70,8 @@ export function useSpace(id: string | undefined) {
 
   return useQuery({
     queryKey: spaceKeys.detail(currentTenantId, id ?? "unknown"),
-    queryFn: () => getSpace(session?.accessToken, currentTenantId, id ?? ""),
+    queryFn: ({ signal }) =>
+      getSpace(session?.accessToken, currentTenantId, id ?? "", signal),
     enabled: status === "ready" && Boolean(currentTenantId) && Boolean(id),
   });
 }

@@ -76,7 +76,8 @@ export function useAnswer(id: string | undefined) {
 
   return useQuery({
     queryKey: answerKeys.detail(currentTenantId, id ?? "unknown"),
-    queryFn: () => getAnswer(session?.accessToken, currentTenantId, id ?? ""),
+    queryFn: ({ signal }) =>
+      getAnswer(session?.accessToken, currentTenantId, id ?? "", signal),
     enabled: status === "ready" && Boolean(currentTenantId) && Boolean(id),
   });
 }

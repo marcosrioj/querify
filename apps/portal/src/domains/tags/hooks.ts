@@ -48,7 +48,8 @@ export function useTag(id: string | undefined) {
 
   return useQuery({
     queryKey: tagKeys.detail(currentTenantId, id ?? "unknown"),
-    queryFn: () => getTag(session?.accessToken, currentTenantId, id ?? ""),
+    queryFn: ({ signal }) =>
+      getTag(session?.accessToken, currentTenantId, id ?? "", signal),
     enabled: status === "ready" && Boolean(currentTenantId) && Boolean(id),
   });
 }

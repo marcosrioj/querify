@@ -58,12 +58,14 @@ export function getAnswer(
   accessToken: string | undefined,
   tenantId: string | undefined,
   id: string,
+  signal?: AbortSignal,
 ) {
   return portalRequest<AnswerDto>({
     service: 'qna',
     path: `/api/qna/answer/${id}`,
     accessToken: requireAccessToken(accessToken),
     tenantId: requireTenantId(tenantId),
+    signal,
   });
 }
 

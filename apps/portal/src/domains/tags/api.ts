@@ -39,12 +39,14 @@ export function getTag(
   accessToken: string | undefined,
   tenantId: string | undefined,
   id: string,
+  signal?: AbortSignal,
 ) {
   return portalRequest<TagDto>({
     service: 'qna',
     path: `/api/qna/tag/${id}`,
     accessToken: requireAccessToken(accessToken),
     tenantId: requireTenantId(tenantId),
+    signal,
   });
 }
 

@@ -50,12 +50,14 @@ export function getSource(
   accessToken: string | undefined,
   tenantId: string | undefined,
   id: string,
+  signal?: AbortSignal,
 ) {
   return portalRequest<SourceDetailDto>({
     service: 'qna',
     path: `/api/qna/source/${id}`,
     accessToken: requireAccessToken(accessToken),
     tenantId: requireTenantId(tenantId),
+    signal,
   });
 }
 
@@ -139,11 +141,13 @@ export function getSourceDownloadUrl(
   accessToken: string | undefined,
   tenantId: string | undefined,
   id: string,
+  signal?: AbortSignal,
 ) {
   return portalRequest<SourceDownloadUrlDto>({
     service: 'qna',
     path: `/api/qna/source/${id}/download-url`,
     accessToken: requireAccessToken(accessToken),
     tenantId: requireTenantId(tenantId),
+    signal,
   });
 }

@@ -74,7 +74,8 @@ export function useSource(id: string | undefined) {
 
   return useQuery({
     queryKey: sourceKeys.detail(currentTenantId, id ?? "unknown"),
-    queryFn: () => getSource(session?.accessToken, currentTenantId, id ?? ""),
+    queryFn: ({ signal }) =>
+      getSource(session?.accessToken, currentTenantId, id ?? "", signal),
     enabled: status === "ready" && Boolean(currentTenantId) && Boolean(id),
   });
 }
@@ -269,9 +270,18 @@ export function useSourceDownloadUrl(id: string | undefined, enabled = false) {
   const { currentTenantId } = useTenant();
 
   return useQuery({
-    queryKey: [...sourceKeys.detail(currentTenantId, id ?? "unknown"), "download-url"],
-    queryFn: () =>
-      getSourceDownloadUrl(session?.accessToken, currentTenantId, id ?? ""),
-    enabled: enabled && status === "ready" && Boolean(currentTenantId) && Boolean(id),
+    queryKey: [
+      ...sourceKeys.detail(currentTenantId, id ?? "unknown"),
+      "download-url",
+    ],
+    queryFn: ({ signal }) =>
+      getSourceDownloadUrl(
+        session?.accessToken,
+        currentTenantId,
+        id ?? "",
+        signal,
+      ),
+    enabled:
+      enabled && status === "ready" && Boolean(currentTenantId) && Boolean(id),
   });
 }

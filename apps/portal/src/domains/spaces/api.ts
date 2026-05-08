@@ -54,12 +54,14 @@ export function getSpace(
   accessToken: string | undefined,
   tenantId: string | undefined,
   id: string,
+  signal?: AbortSignal,
 ) {
   return portalRequest<SpaceDetailDto>({
     service: 'qna',
     path: `/api/qna/space/${id}`,
     accessToken: requireAccessToken(accessToken),
     tenantId: requireTenantId(tenantId),
+    signal,
   });
 }
 

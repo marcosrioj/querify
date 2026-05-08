@@ -45,7 +45,8 @@ export function useActivity(id: string | undefined) {
 
   return useQuery({
     queryKey: activityKeys.detail(currentTenantId, id ?? "unknown"),
-    queryFn: () => getActivity(session?.accessToken, currentTenantId, id ?? ""),
+    queryFn: ({ signal }) =>
+      getActivity(session?.accessToken, currentTenantId, id ?? "", signal),
     enabled: status === "ready" && Boolean(currentTenantId) && Boolean(id),
   });
 }

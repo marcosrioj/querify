@@ -50,11 +50,13 @@ export function getActivity(
   accessToken: string | undefined,
   tenantId: string | undefined,
   id: string,
+  signal?: AbortSignal,
 ) {
   return portalRequest<ActivityDto>({
     service: 'qna',
     path: `/api/qna/activity/${id}`,
     accessToken: requireAccessToken(accessToken),
     tenantId: requireTenantId(tenantId),
+    signal,
   });
 }

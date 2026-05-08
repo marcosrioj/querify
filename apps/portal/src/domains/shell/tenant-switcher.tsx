@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Building2, Check, ChevronsUpDown, LoaderCircle } from "lucide-react";
 import { flushSync } from "react-dom";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useMatches, useNavigate } from "react-router-dom";
 import {
   Command,
   CommandEmpty,
@@ -28,8 +28,6 @@ import {
   TenantUserRoleBadge,
 } from "@/shared/ui/status-badges";
 
-const GUID_PATH_SEGMENT_PATTERN =
-  /(?:^|\/)[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}(?=\/|$)/i;
 const tenantScopedQueryRoots = new Set([
   "qna",
   "members",
@@ -38,14 +36,37 @@ const tenantScopedQueryRoots = new Set([
   "tenant-domain",
 ]);
 
-function hasGuidPathSegment(pathname: string) {
-  return GUID_PATH_SEGMENT_PATTERN.test(pathname);
+function isTenantScopedPortalQueryKey(queryKey: readonly unknown[]) {
+  return (
+    queryKey[0] === "portal" &&
+    typeof queryKey[1] === "string" &&
+    tenantScopedQueryRoots.has(queryKey[1])
+  );
+}
+
+function hasIdSearchParam(search: string) {
+  const searchParams = new URLSearchParams(search);
+
+  for (const [key, value] of searchParams) {
+    const normalizedKey = key.trim();
+    const isIdParam =
+      normalizedKey === "id" ||
+      normalizedKey.endsWith("Id") ||
+      normalizedKey.endsWith("ID");
+
+    if (isIdParam && value.trim()) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 export function TenantSwitcher() {
   const { t } = usePortalI18n();
   const [open, setOpen] = useState(false);
   const location = useLocation();
+  const matches = useMatches();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { tenants, currentTenantId, setCurrentTenantId, isLoading } =
@@ -54,6 +75,9 @@ export function TenantSwitcher() {
   const currentTenant =
     tenants.find((tenant) => tenant.id === currentTenantId) ?? tenants[0];
   const selectedTenantId = currentTenantId ?? currentTenant?.id;
+  const currentUrlHasId =
+    matches.some((match) => Boolean(match.params.id)) ||
+    hasIdSearchParam(location.search);
 
   async function handleTenantChange(tenantId: string) {
     if (tenantId === selectedTenantId || refreshAllowedTenantCache.isPending) {
@@ -66,11 +90,17 @@ export function TenantSwitcher() {
         return;
       }
 
-      if (hasGuidPathSegment(location.pathname)) {
-        // Call navigate and setCurrentTenantId without flushSync so React 18
-        // batches both updates in the same render — the old page never gets
-        // a render with the new tenant ID, preventing spurious API calls.
-        navigate("/app/dashboard", { replace: true, state: null });
+      if (currentUrlHasId) {
+        await queryClient.cancelQueries({
+          predicate: (query) => isTenantScopedPortalQueryKey(query.queryKey),
+        });
+        await Promise.resolve(
+          navigate("/app/dashboard", {
+            replace: true,
+            state: null,
+            flushSync: true,
+          }),
+        );
         setCurrentTenantId(tenantId);
         return;
       }
@@ -80,11 +110,7 @@ export function TenantSwitcher() {
       });
 
       await queryClient.invalidateQueries({
-        predicate: (query) =>
-          Array.isArray(query.queryKey) &&
-          query.queryKey[0] === "portal" &&
-          typeof query.queryKey[1] === "string" &&
-          tenantScopedQueryRoots.has(query.queryKey[1]),
+        predicate: (query) => isTenantScopedPortalQueryKey(query.queryKey),
         refetchType: "active",
       });
     } catch {
