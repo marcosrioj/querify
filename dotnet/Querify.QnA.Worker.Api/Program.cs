@@ -10,7 +10,6 @@ using Querify.QnA.Worker.Api.Extensions;
 using Querify.QnA.Worker.Api.Infrastructure;
 using Querify.QnA.Worker.Business.Source.Abstractions;
 using Querify.QnA.Worker.Business.Source.Infrastructure;
-using Querify.QnA.Worker.Business.Source.Options;
 
 namespace Querify.QnA.Worker.Api;
 
@@ -44,10 +43,7 @@ public class Program
                 services.AddTenantDb(context.Configuration.GetConnectionString("TenantDb"));
                 services.AddQnADb();
                 services.AddObjectStorage(context.Configuration);
-                var sourceUploadVerificationOptions = context.Configuration
-                    .GetSection(SourceUploadVerificationSweepOptions.SectionName)
-                    .Get<SourceUploadVerificationSweepOptions>() ?? new SourceUploadVerificationSweepOptions();
-                services.AddHangfireQnaDb(context.Configuration, [sourceUploadVerificationOptions.QueueName]);
+                services.AddHangfireQnaDb(context.Configuration);
                 services.AddTelemetry(
                     context.Configuration,
                     context.HostingEnvironment,

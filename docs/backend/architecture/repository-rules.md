@@ -148,13 +148,16 @@ Hard rule: do not place new behavior in folders that already exist for a differe
    - Keep behavior in the owning action boundary and feature-local collaborators.
    - Do not move use-case behavior into controllers, generic helpers, transport services, or persistence entities.
    - Put feature telemetry spans in the service layer by default, using
-     `Controller -> Service (telemetry) -> Command/Query`,
-     `Consumer -> Service (telemetry) -> Command/Query`, or
-     `HostedService -> ProcessorService (telemetry) -> Command/Query`,
-     or `Hangfire BackgroundService -> Service (telemetry) -> Command/Query`.
+     `Controller -> Service (Telemetry) -> Command/Query`,
+     `Consumer -> Service (Telemetry) -> Consumers (Only folder) -> Command/Query`,
+     `HostedService -> ProcessorService (Telemetry) -> Hosted (Only folder) -> Command/Query`,
+     `Hangfire BackgroundService -> Service (Telemetry) -> BackgroundServices (Only folder) -> Command/Query`,
+     or `Event -> NotificationService (Telemetry) -> Command/Query`.
    - Do not start feature telemetry spans first in controllers, consumers, hosted services,
      Hangfire background job classes, command handlers, or query handlers unless the implementation prompt explicitly asks
      for that exception.
+   - `Consumers`, `Hosted`, and `BackgroundServices` folders are adapter-only folders. They call
+     services and do not own command/query behavior.
    - Hosted services are schedulers only. They resolve/call a `ProcessorService`.
    - `ProcessorService` classes coordinate only: open telemetry, set tags, and dispatch one
      MediatR command/query. They do not query EF, publish to brokers, call storage, implement

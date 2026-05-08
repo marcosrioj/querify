@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
@@ -17,9 +18,15 @@ import {
 } from "@/domains/qna/query-keys";
 import { useAuth } from "@/platform/auth/use-auth";
 import { useTenant } from "@/platform/tenant/use-tenant";
+import {
+  PORTAL_NOTIFICATION_TYPES,
+  type SourceUploadStatusChangedNotificationPayload,
+} from "@/shared/realtime/portal-notification-types";
+import { usePortalNotifications } from "@/shared/realtime/use-portal-notifications";
 import { translateText } from "@/shared/lib/i18n-core";
 import type {
   SourceCreateRequestDto,
+  SourceDetailDto,
   SourceUploadCompleteRequestDto,
   SourceUploadIntentRequestDto,
   SourceUpdateRequestDto,
@@ -171,6 +178,90 @@ export function useCompleteSourceUpload() {
       ]);
     },
   });
+}
+
+export function useSourceUploadStatusNotifications(id: string | undefined) {
+  const queryClient = useQueryClient();
+  const { currentTenantId } = useTenant();
+
+  const handleNotification = useCallback(
+    (notification: {
+      tenantId: string;
+      resourceKind: string;
+      resourceId: string;
+      payload: SourceUploadStatusChangedNotificationPayload;
+    }) => {
+      if (
+        !id ||
+        !currentTenantId ||
+        notification.tenantId !== currentTenantId ||
+        notification.resourceKind !== "source" ||
+        notification.resourceId !== id
+      ) {
+        return;
+      }
+
+      queryClient.setQueryData<SourceDetailDto>(
+        sourceKeys.detail(currentTenantId, id),
+        (current) =>
+          current
+            ? {
+                ...current,
+                uploadStatus: notification.payload.uploadStatus,
+                storageKey: notification.payload.storageKey ?? current.storageKey,
+                checksum: notification.payload.checksum ?? current.checksum,
+              }
+            : current,
+      );
+
+      void queryClient.invalidateQueries({
+        queryKey: sourceKeys.detail(currentTenantId, id),
+      });
+      void queryClient.invalidateQueries({
+        queryKey: sourceKeys.all(currentTenantId),
+      });
+    },
+    [currentTenantId, id, queryClient],
+  );
+
+  usePortalNotifications<SourceUploadStatusChangedNotificationPayload>(
+    PORTAL_NOTIFICATION_TYPES.SOURCE_UPLOAD_STATUS_CHANGED,
+    handleNotification,
+  );
+}
+
+export function useSourceUploadStatusListNotifications() {
+  const queryClient = useQueryClient();
+  const { currentTenantId } = useTenant();
+
+  const handleNotification = useCallback(
+    (notification: {
+      tenantId: string;
+      resourceKind: string;
+      payload: SourceUploadStatusChangedNotificationPayload;
+    }) => {
+      if (
+        !currentTenantId ||
+        notification.tenantId !== currentTenantId ||
+        notification.resourceKind !== "source"
+      ) {
+        return;
+      }
+
+      void queryClient.invalidateQueries({
+        queryKey: sourceKeys.all(currentTenantId),
+      });
+      void queryClient.invalidateQueries({
+        queryKey: qnaTenantKey(currentTenantId),
+      });
+    },
+    [currentTenantId, queryClient],
+  );
+
+  usePortalNotifications<SourceUploadStatusChangedNotificationPayload>(
+    PORTAL_NOTIFICATION_TYPES.SOURCE_UPLOAD_STATUS_CHANGED,
+    handleNotification,
+  );
 }
 
 export function useSourceDownloadUrl(id: string | undefined, enabled = false) {

@@ -27,7 +27,7 @@ The repository root contains one primary `.NET` solution file, `Querify.sln`. It
 | `Querify.QnA.Portal.Api` | authenticated QnA management APIs | `5010` |
 | `Querify.QnA.Public.Api` | public QnA access and public signaling APIs | `5020` |
 | `Querify.Tenant.Worker.Api` | control-plane worker for billing webhooks and email outbox processing | n/a |
-| `Querify.QnA.Worker.Api` | QnA worker for durable source-upload verification jobs and Hangfire dashboard | `5030` |
+| `Querify.QnA.Worker.Api` | QnA worker for RabbitMQ source-upload verification and Hangfire-backed operational jobs | `5030` |
 
 ## Core architectural patterns
 
@@ -93,9 +93,18 @@ Write and read paths are separated through commands and queries. The usual flow 
 3. The service dispatches a MediatR command or query.
 4. The handler executes validation, persistence, and event publication.
 
-The same boundary applies to background processing and broker integration:
-`HostedService -> ProcessorService -> Command/Query`, `Consumer -> Service -> Command/Query`,
-and `Hangfire BackgroundService -> Service -> Command/Query`.
+The same boundary applies to background processing, broker integration, and notifications:
+
+```text
+Controller -> Service (Telemetry) -> Command/Query
+Consumer -> Service (Telemetry) -> Consumers (Only folder) -> Command/Query
+HostedService -> ProcessorService (Telemetry) -> Hosted (Only folder) -> Command/Query
+Hangfire BackgroundService -> Service (Telemetry) -> BackgroundServices (Only folder) -> Command/Query
+Event -> NotificationService (Telemetry) -> Command/Query
+```
+
+`Consumers`, `Hosted`, and `BackgroundServices` are adapter-only folders. Feature behavior still
+belongs in the command/query boundary after the telemetry-owning service dispatches it.
 Feature telemetry starts in the service layer by default, not in controllers, hosted services,
 Hangfire background job classes, consumers, command handlers, or query handlers.
 For hosted services, name that coordination layer `*ProcessorService`: it opens telemetry

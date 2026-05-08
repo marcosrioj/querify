@@ -26,6 +26,7 @@ It is not the BackOffice UI and it does not own BackOffice API concerns.
 - `lucide-react` for icons
 - `sonner` for toast notifications
 - `react-intl` for frontend-owned localization and RTL or LTR handling
+- `@microsoft/signalr` for Portal realtime notifications from backend hubs
 
 ## Repository structure
 
@@ -40,6 +41,7 @@ apps/portal/
       ui/          # reusable components (tables, forms, placeholders, badges)
       layout/      # page layout primitives, shells, navigation
       lib/         # utilities, i18n, language config
+      realtime/    # SignalR Portal notification client/provider/hooks
       constants/   # backend enum UI metadata
       types/       # shared TypeScript types
     components/    # demo/legacy components
@@ -59,10 +61,15 @@ Operational constraints reflected in the frontend:
 
 - protected flows require Auth0 JWT authentication
 - tenant-scoped backend calls require `X-Tenant-Id`
+- Portal realtime connects to `Querify.QnA.Portal.Api` through SignalR at
+  `/api/qna/hubs/portal-notifications`, sends the Auth0 access token through the SignalR access
+  token factory, and validates the selected `tenantId` during hub connection
 - tenant summaries expose `module`, backed by `ModuleEnum` values: Tenant, QnA, Direct, Broadcast, and Trust
 - pagination contracts use `SkipCount`, `MaxResultCount`, and `Sorting`
 - backend error payloads follow `{ ErrorCode, MessageError, Data }`; the frontend also accepts camelCase fields defensively
 - Portal UI translation is frontend-owned; backend DTOs do not provide translated labels
+- SignalR notifications are UX acceleration only. Domain pages must still load authoritative state
+  through normal API queries on page load and refresh.
 
 API errors shown in toasts, confirmation failures, or page placeholders must go through `src/platform/api/api-error.ts`. That module normalizes `MessageError`, maps dynamic backend messages to stable frontend messages, and sends the result through the Portal i18n catalogs. Do not render raw backend error strings directly in components.
 

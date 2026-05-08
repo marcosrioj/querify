@@ -11,13 +11,13 @@ This guide explains how the backend is organized under `dotnet/`, which APIs exi
 | `Querify.Tenant.BackOffice.Api` | global administration of tenants, tenant users, billing, and tenant metadata | Auth0 JWT | none by default | `5000` |
 | `Querify.Tenant.Portal.Api` | tenant workspace settings and tenant-member operations | Auth0 JWT | `X-Tenant-Id` for tenant-scoped operations | `5002` |
 | `Querify.Tenant.Public.Api` | public tenant ingress endpoints such as Stripe webhooks | public surface | none | `5004` |
-| `Querify.QnA.Portal.Api` | authenticated QnA management for spaces, questions, answers, tags, sources, workflow, and activity | Auth0 JWT | `X-Tenant-Id` | `5010` |
+| `Querify.QnA.Portal.Api` | authenticated QnA management for spaces, questions, answers, tags, sources, workflow, activity, and Portal SignalR notifications | Auth0 JWT | `X-Tenant-Id` for HTTP APIs; SignalR validates `tenantId` on connect | `5010` |
 | `Querify.QnA.Public.Api` | public QnA access plus vote and feedback signaling over questions and answers | public surface | `X-Client-Key` | `5020` |
 
 | Worker | Responsibility | Data boundary | Local port |
 |---|---|---|---:|
 | `Querify.Tenant.Worker.Api` | control-plane background processing for billing webhooks and email outbox | `TenantDbContext` only | n/a |
-| `Querify.QnA.Worker.Api` | QnA-owned background processing for source upload verification | `TenantDbContext` + tenant-scoped `QnADbContext` + `HangfireQnaDbContext` | `5030` |
+| `Querify.QnA.Worker.Api` | QnA-owned background processing for RabbitMQ source upload verification and operational jobs | `TenantDbContext` + tenant-scoped `QnADbContext` + `HangfireQnaDbContext` | `5030` |
 
 ## Project taxonomy inside `dotnet/`
 
@@ -102,16 +102,24 @@ Current module persistence implementation:
   `ApiErrorException`, the exception type handlers should use for request-time API failures
 - `Querify.Common.Infrastructure.Hangfire`: persisted Hangfire registration for durable internal
   background jobs; Hangfire background job classes call services and do not own feature behavior
-- `Querify.Common.Infrastructure.MassTransit`: MassTransit registration and messaging conventions
+- `Querify.Common.Infrastructure.MassTransit`: MassTransit registration and messaging conventions,
+  including RabbitMQ consumers for event-driven source upload verification and Portal notifications
 - `Querify.Common.Infrastructure.MediatR`: MediatR integration and related pipeline behavior
 - `Querify.Common.Infrastructure.Mvc`: MVC filters and ASP.NET Core glue
 - `Querify.Common.Infrastructure.Sentry`: Sentry integration
+- `Querify.Common.Infrastructure.Signalr`: shared SignalR infrastructure. Portal-specific base
+  contracts, options, extensions, hubs, notification envelopes, groups, and SignalR publishers live
+  under its `Portal/` folder. Product-specific events and notification commands stay in the owning
+  business feature project.
 - `Querify.Common.Infrastructure.Swagger`: Swagger/OpenAPI wiring
 - `Querify.Common.Infrastructure.Telemetry`: shared telemetry wiring (OpenTelemetry tracing, OTLP export).
   API and worker hosts register it at composition root, while feature spans are started in
-  services by default (`Controller/Consumer -> Service -> Command/Query`,
-  `HostedService -> ProcessorService -> Command/Query`,
-  `Hangfire BackgroundService -> Service -> Command/Query`).
+  services by default:
+  `Controller -> Service (Telemetry) -> Command/Query`,
+  `Consumer -> Service (Telemetry) -> Consumers (Only folder) -> Command/Query`,
+  `HostedService -> ProcessorService (Telemetry) -> Hosted (Only folder) -> Command/Query`,
+  `Hangfire BackgroundService -> Service (Telemetry) -> BackgroundServices (Only folder) -> Command/Query`,
+  and `Event -> NotificationService (Telemetry) -> Command/Query`.
   Worker hosted services call `ProcessorService` classes; processor services coordinate
   telemetry plus MediatR dispatch only, while commands/queries own workflow behavior.
 - `Querify.Models.Common`: shared primitive DTOs and common contracts, including `ModuleEnum`
@@ -195,6 +203,10 @@ The QnA module database stores tenant module data for the QnA module:
 `HangfireQnaDbContext` owns the QnA worker's durable Hangfire storage boundary. It is not tenant-scoped and it does not contain QnA domain entities. Runtime registration happens through `AddHangfireQnaDb(...)`, which resolves `ConnectionStrings:HangfireQnaDb`, registers the design-time EF context, and delegates provider setup to `Querify.Common.Infrastructure.Hangfire`.
 
 Hangfire's internal tables belong to `Hangfire.PostgreSql`. Keep the provider version pinned through `Querify.Common.Infrastructure.Hangfire`; do not re-create those tables as Querify entities.
+
+Source upload verification is RabbitMQ-driven, not a recurring Hangfire sweep. Hangfire remains
+available in the QnA worker for unrelated operational jobs and a future low-frequency
+reconciliation job if stuck `Uploaded` sources need to be re-enqueued.
 
 Each tenant can point to its own module database connection, which is why module migration and seed tooling must resolve tenant metadata first.
 

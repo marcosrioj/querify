@@ -4,7 +4,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Querify.QnA.Common.Domain.Options;
 using Querify.QnA.Worker.Business.Source.Abstractions;
-using Querify.QnA.Worker.Business.Source.BackgroundServices;
 using Querify.QnA.Worker.Business.Source.Commands.VerifyUploadedSource;
 using Querify.QnA.Worker.Business.Source.HostedServices;
 using Querify.QnA.Worker.Business.Source.Options;
@@ -30,10 +29,6 @@ public static class ServiceCollectionExtensions
                 "At least one source upload content type must be allowed.")
             .ValidateOnStart();
 
-        services.AddOptions<SourceUploadVerificationSweepOptions>()
-            .BindConfiguration(SourceUploadVerificationSweepOptions.SectionName)
-            .ValidateDataAnnotations()
-            .ValidateOnStart();
         services.AddOptions<PendingSourceUploadExpiryOptions>()
             .BindConfiguration(PendingSourceUploadExpiryOptions.SectionName)
             .ValidateDataAnnotations()
@@ -43,8 +38,6 @@ public static class ServiceCollectionExtensions
             config.RegisterServicesFromAssemblyContaining<VerifyUploadedSourceCommandHandler>());
 
         services.AddScoped<ISourceUploadVerificationService, SourceUploadVerificationService>();
-        services.AddScoped<ISourceUploadVerificationSweepService, SourceUploadVerificationSweepService>();
-        services.AddScoped<SourceUploadVerificationBackgroundService>();
         services.AddScoped<IPendingSourceUploadExpiryProcessorService, PendingSourceUploadExpiryProcessorService>();
         services.AddHostedService<PendingSourceUploadExpiryHostedService>();
 

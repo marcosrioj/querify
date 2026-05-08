@@ -23,7 +23,8 @@ public class VerifyUploadedSourceCommandHandlerTests
         var source = await SeedUploadedSourceAsync(context, storage, content);
         source.UploadChecksum = BuildSha256(content);
         await context.DbContext.SaveChangesAsync();
-        var handler = CreateHandler(context, storage);
+        var statusEvents = new CapturingSourceUploadStatusChangedEventPublisher();
+        var handler = CreateHandler(context, storage, statusEvents: statusEvents);
 
         await handler.Handle(new VerifyUploadedSourceCommand
         {
@@ -39,6 +40,10 @@ public class VerifyUploadedSourceCommandHandlerTests
         Assert.NotNull(source.LastVerifiedAtUtc);
         Assert.Contains(storage.CopiedKeys, item => item.DestinationKey == source.StorageKey);
         Assert.Contains(storage.DeletedKeys, key => SourceStorageKey.IsStagingKey(key));
+        var statusEvent = Assert.Single(statusEvents.PublishedEvents);
+        Assert.Equal(SourceUploadStatus.Verified, statusEvent.UploadStatus);
+        Assert.Equal(source.Id, statusEvent.SourceId);
+        Assert.Equal(context.SessionService.TenantId, statusEvent.TenantId);
     }
 
     [Fact]
@@ -49,7 +54,8 @@ public class VerifyUploadedSourceCommandHandlerTests
         var source = await SeedUploadedSourceAsync(context, storage, "%PDF-1.7 test"u8.ToArray());
         source.UploadChecksum = "sha256:0000";
         await context.DbContext.SaveChangesAsync();
-        var handler = CreateHandler(context, storage);
+        var statusEvents = new CapturingSourceUploadStatusChangedEventPublisher();
+        var handler = CreateHandler(context, storage, statusEvents: statusEvents);
 
         await handler.Handle(new VerifyUploadedSourceCommand
         {
@@ -61,6 +67,8 @@ public class VerifyUploadedSourceCommandHandlerTests
         Assert.Equal(SourceUploadStatus.Failed, source.UploadStatus);
         Assert.Null(source.UploadChecksum);
         Assert.Contains(source.StorageKey!, storage.DeletedKeys);
+        var statusEvent = Assert.Single(statusEvents.PublishedEvents);
+        Assert.Equal(SourceUploadStatus.Failed, statusEvent.UploadStatus);
     }
 
     [Fact]
@@ -89,7 +97,8 @@ public class VerifyUploadedSourceCommandHandlerTests
         using var context = TestContext.Create();
         var storage = new FakeObjectStorage();
         var source = await SeedUploadedSourceAsync(context, storage, "%PDF-1.7 test"u8.ToArray());
-        var handler = CreateHandler(context, storage, scannerIsSafe: false);
+        var statusEvents = new CapturingSourceUploadStatusChangedEventPublisher();
+        var handler = CreateHandler(context, storage, scannerIsSafe: false, statusEvents: statusEvents);
 
         await handler.Handle(new VerifyUploadedSourceCommand
         {
@@ -102,6 +111,8 @@ public class VerifyUploadedSourceCommandHandlerTests
         Assert.Null(source.UploadChecksum);
         Assert.Contains("/quarantine/", source.StorageKey, StringComparison.Ordinal);
         Assert.Equal(source.StorageKey, source.Locator);
+        var statusEvent = Assert.Single(statusEvents.PublishedEvents);
+        Assert.Equal(SourceUploadStatus.Quarantined, statusEvent.UploadStatus);
     }
 
     [Fact]
@@ -167,13 +178,15 @@ public class VerifyUploadedSourceCommandHandlerTests
     private static VerifyUploadedSourceCommandHandler CreateHandler(
         TestContext context,
         FakeObjectStorage storage,
-        bool scannerIsSafe = true)
+        bool scannerIsSafe = true,
+        CapturingSourceUploadStatusChangedEventPublisher? statusEvents = null)
     {
         return new VerifyUploadedSourceCommandHandler(
             context.DbContext,
             storage,
             new FakeThreatScanner(scannerIsSafe),
             Options.Create(new SourceUploadOptions()),
+            statusEvents ?? new CapturingSourceUploadStatusChangedEventPublisher(),
             NullLogger<VerifyUploadedSourceCommandHandler>.Instance);
     }
 

@@ -73,9 +73,11 @@ The worker intentionally uses a non-request session implementation because these
 
 `Querify.QnA.Worker.Api` is the product-module worker for QnA source-upload verification. It is separate from `Querify.Tenant.Worker.Api` because uploaded-source verification mutates tenant-scoped QnA module data.
 
+Source-upload verification is RabbitMQ-driven: the Portal API publishes upload-completed events, the QnA worker consumes them, enters the event tenant context, and dispatches the verification command through a service. Hangfire remains configured in the QnA worker for unrelated operational jobs and possible future reconciliation, but it is not the primary source-upload verification trigger.
+
 The QnA worker uses three persistence boundaries:
 
-- `TenantDbContext` to enumerate active QnA tenants and resolve tenant connection metadata.
+- `TenantDbContext` to resolve tenant connection metadata.
 - Tenant-scoped `QnADbContext` to read and update QnA `Source` workflow state.
 - `HangfireQnaDbContext` through `Querify.QnA.Common.Persistence.HangfireQnaDb` for durable Hangfire operational job state.
 
@@ -100,12 +102,17 @@ and pass every worker feature `ActivitySourceName` to that host registration.
 Feature telemetry spans belong in the service layer first. The default worker flows are:
 
 ```text
-HostedService -> ProcessorService (telemetry) -> Command/Query
-Consumer -> Service (telemetry) -> Command/Query
+HostedService -> ProcessorService (Telemetry) -> Hosted (Only folder) -> Command/Query
+Consumer -> Service (Telemetry) -> Consumers (Only folder) -> Command/Query
+Hangfire BackgroundService -> Service (Telemetry) -> BackgroundServices (Only folder) -> Command/Query
+Event -> NotificationService (Telemetry) -> Command/Query
 ```
 
 Do not start feature telemetry spans directly in hosted services, consumers, command handlers,
 or query handlers unless a specific implementation prompt documents that exception.
+
+`Consumers`, `Hosted`, and `BackgroundServices` folders are adapter-only folders. They call the
+telemetry-owning service layer, and command/query handlers own workflow behavior.
 
 Hosted services are schedulers only. They resolve/call a `ProcessorService`.
 The processor service coordinates only: open telemetry, set tags, and dispatch one

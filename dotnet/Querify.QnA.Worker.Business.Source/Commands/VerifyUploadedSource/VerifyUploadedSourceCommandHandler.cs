@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Querify.Common.Infrastructure.Storage.Abstractions;
 using Querify.Models.QnA.Enums;
+using Querify.Models.QnA.Events;
 using Querify.QnA.Common.Domain.BusinessRules.Sources;
 using Querify.QnA.Common.Domain.Options;
 using Querify.QnA.Common.Persistence.QnADb.DbContext;
@@ -18,6 +19,7 @@ public sealed class VerifyUploadedSourceCommandHandler(
     IObjectStorage objectStorage,
     IUploadThreatScanner threatScanner,
     IOptions<SourceUploadOptions> uploadOptions,
+    ISourceUploadStatusChangedEventPublisher statusChangedEventPublisher,
     ILogger<VerifyUploadedSourceCommandHandler> logger)
     : IRequestHandler<VerifyUploadedSourceCommand, Guid>
 {
@@ -47,25 +49,46 @@ public sealed class VerifyUploadedSourceCommandHandler(
                 "Skipping source upload verification for source {SourceId} because status is {UploadStatus}.",
                 entity.Id,
                 entity.UploadStatus);
+
+            if (IsTerminalUploadStatus(entity.UploadStatus))
+            {
+                await PublishStatusChangedAsync(entity, reason: null, cancellationToken);
+            }
+
             return entity.Id;
         }
 
         if (entity.StorageKey != request.StorageKey || !SourceStorageKey.IsStagingKey(request.StorageKey))
         {
-            await FailSourceAsync(entity, request.StorageKey, deleteStaging: false, cancellationToken);
+            await FailSourceAsync(
+                entity,
+                request.StorageKey,
+                deleteStaging: false,
+                "Storage key did not match the uploaded source.",
+                cancellationToken);
             return entity.Id;
         }
 
         var head = await objectStorage.HeadAsync(request.StorageKey, cancellationToken);
         if (head is null)
         {
-            await FailSourceAsync(entity, request.StorageKey, deleteStaging: false, cancellationToken);
+            await FailSourceAsync(
+                entity,
+                request.StorageKey,
+                deleteStaging: false,
+                "Uploaded object was not found in storage.",
+                cancellationToken);
             return entity.Id;
         }
 
         if (head.SizeBytes != entity.SizeBytes || head.SizeBytes > uploadOptions.Value.MaxUploadBytes)
         {
-            await FailSourceAsync(entity, request.StorageKey, deleteStaging: true, cancellationToken);
+            await FailSourceAsync(
+                entity,
+                request.StorageKey,
+                deleteStaging: true,
+                "Uploaded object size does not match the upload intent.",
+                cancellationToken);
             return entity.Id;
         }
 
@@ -75,7 +98,12 @@ public sealed class VerifyUploadedSourceCommandHandler(
             normalizedEntityContentType is null ||
             !StringComparer.OrdinalIgnoreCase.Equals(normalizedHeadContentType, normalizedEntityContentType))
         {
-            await FailSourceAsync(entity, request.StorageKey, deleteStaging: true, cancellationToken);
+            await FailSourceAsync(
+                entity,
+                request.StorageKey,
+                deleteStaging: true,
+                "Uploaded object content type does not match the upload intent.",
+                cancellationToken);
             return entity.Id;
         }
 
@@ -92,13 +120,23 @@ public sealed class VerifyUploadedSourceCommandHandler(
         var evidence = await ReadObjectEvidenceAsync(request.StorageKey, cancellationToken);
         if (evidence.SizeBytes != head.SizeBytes)
         {
-            await FailSourceAsync(entity, request.StorageKey, deleteStaging: true, cancellationToken);
+            await FailSourceAsync(
+                entity,
+                request.StorageKey,
+                deleteStaging: true,
+                "Uploaded object size changed while verification was running.",
+                cancellationToken);
             return entity.Id;
         }
 
         if (!SourceUploadContentInspector.IsAllowed(entity.Kind, normalizedHeadContentType, evidence.Prefix))
         {
-            await FailSourceAsync(entity, request.StorageKey, deleteStaging: true, cancellationToken);
+            await FailSourceAsync(
+                entity,
+                request.StorageKey,
+                deleteStaging: true,
+                "Uploaded object contents do not match the allowed source type.",
+                cancellationToken);
             return entity.Id;
         }
 
@@ -110,7 +148,12 @@ public sealed class VerifyUploadedSourceCommandHandler(
                 entity.Id,
                 entity.UploadChecksum,
                 computedChecksum);
-            await FailSourceAsync(entity, request.StorageKey, deleteStaging: true, cancellationToken);
+            await FailSourceAsync(
+                entity,
+                request.StorageKey,
+                deleteStaging: true,
+                "Uploaded object checksum does not match the provided checksum.",
+                cancellationToken);
             return entity.Id;
         }
 
@@ -128,6 +171,7 @@ public sealed class VerifyUploadedSourceCommandHandler(
         if (transitioned)
         {
             await TryDeleteStagingObjectAsync(entity.Id, request.StorageKey, cancellationToken);
+            await PublishStatusChangedAsync(entity, reason: null, cancellationToken);
         }
 
         return entity.Id;
@@ -169,13 +213,21 @@ public sealed class VerifyUploadedSourceCommandHandler(
         Common.Domain.Entities.Source entity,
         string stagingKey,
         bool deleteStaging,
+        string reason,
         CancellationToken cancellationToken)
     {
         var transitioned = await TryMarkFailedAsync(entity, cancellationToken);
-        if (transitioned && deleteStaging)
+        if (!transitioned)
+        {
+            return;
+        }
+
+        if (deleteStaging)
         {
             await TryDeleteStagingObjectAsync(entity.Id, stagingKey, cancellationToken);
         }
+
+        await PublishStatusChangedAsync(entity, reason, cancellationToken);
     }
 
     private async Task QuarantineSourceAsync(
@@ -194,6 +246,11 @@ public sealed class VerifyUploadedSourceCommandHandler(
         }
 
         await TryDeleteStagingObjectAsync(entity.Id, stagingKey, cancellationToken);
+
+        await PublishStatusChangedAsync(
+            entity,
+            reason ?? "Scanner returned unsafe verdict.",
+            cancellationToken);
 
         logger.LogWarning(
             "Uploaded source {SourceId} was quarantined. Reason: {Reason}",
@@ -215,6 +272,31 @@ public sealed class VerifyUploadedSourceCommandHandler(
         }
 
         return FixedTimeEquals(normalized, computedChecksum);
+    }
+
+    private async Task PublishStatusChangedAsync(
+        Common.Domain.Entities.Source entity,
+        string? reason,
+        CancellationToken cancellationToken)
+    {
+        await statusChangedEventPublisher.PublishAsync(new SourceUploadStatusChangedIntegrationEvent
+        {
+            EventId = Guid.NewGuid(),
+            OccurredAtUtc = DateTime.UtcNow,
+            TenantId = entity.TenantId,
+            SourceId = entity.Id,
+            UploadStatus = entity.UploadStatus,
+            StorageKey = entity.StorageKey,
+            Checksum = entity.Checksum,
+            Reason = reason
+        }, cancellationToken);
+    }
+
+    private static bool IsTerminalUploadStatus(SourceUploadStatus uploadStatus)
+    {
+        return uploadStatus is SourceUploadStatus.Verified or
+            SourceUploadStatus.Failed or
+            SourceUploadStatus.Quarantined;
     }
 
     private static bool FixedTimeEquals(string left, string right)

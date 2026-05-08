@@ -5,8 +5,10 @@ using Querify.Common.Infrastructure.ApiErrorHandling.Exception;
 using Querify.Common.Infrastructure.Storage.Options;
 using Querify.Models.QnA.Dtos.Source;
 using Querify.Models.QnA.Enums;
+using Querify.Models.QnA.Events;
 using Querify.QnA.Common.Domain.BusinessRules.Sources;
 using Querify.QnA.Common.Domain.Options;
+using Querify.QnA.Portal.Business.Source.Abstractions;
 using Querify.QnA.Portal.Business.Source.Commands.CompleteUpload;
 using Querify.QnA.Portal.Business.Source.Commands.CreateUploadIntent;
 using Querify.QnA.Portal.Business.Source.Queries.GetDownloadUrl;
@@ -169,7 +171,8 @@ public class SourceUploadCommandQueryTests
         var content = "%PDF-1.7 test"u8.ToArray();
         var source = await CreatePendingUploadAsync(context, storage, expectedSizeBytes: content.LongLength);
         storage.Put(source.StorageKey!, content, "application/pdf");
-        var handler = CreateCompleteHandler(context, storage);
+        var completedEvents = new CapturingSourceUploadCompletedEventPublisher();
+        var handler = CreateCompleteHandler(context, storage, completedEvents);
 
         var result = await handler.Handle(new SourcesCompleteUploadCommand
         {
@@ -180,6 +183,11 @@ public class SourceUploadCommandQueryTests
         Assert.Equal(source.Id, result);
         Assert.Equal(SourceUploadStatus.Uploaded, source.UploadStatus);
         Assert.Equal("sha256:client", source.UploadChecksum);
+        var completedEvent = Assert.Single(completedEvents.PublishedEvents);
+        Assert.Equal(context.SessionService.TenantId, completedEvent.TenantId);
+        Assert.Equal(source.Id, completedEvent.SourceId);
+        Assert.Equal(source.StorageKey, completedEvent.StorageKey);
+        Assert.Equal("sha256:client", completedEvent.ClientChecksum);
     }
 
     [Fact]
@@ -277,13 +285,15 @@ public class SourceUploadCommandQueryTests
 
     private static SourcesCompleteUploadCommandHandler CreateCompleteHandler(
         TestContext context,
-        FakeObjectStorage storage)
+        FakeObjectStorage storage,
+        CapturingSourceUploadCompletedEventPublisher? completedEvents = null)
     {
         return new SourcesCompleteUploadCommandHandler(
             context.DbContext,
             context.SessionService,
             storage,
-            Options.Create(UploadOptions));
+            Options.Create(UploadOptions),
+            completedEvents ?? new CapturingSourceUploadCompletedEventPublisher());
     }
 
     private static SourcesGetDownloadUrlQueryHandler CreateDownloadHandler(
@@ -323,5 +333,18 @@ public class SourceUploadCommandQueryTests
         var intent = await handler.Handle(new SourcesCreateUploadIntentCommand { Dto = request },
             CancellationToken.None);
         return await context.DbContext.Sources.SingleAsync(source => source.Id == intent.SourceId);
+    }
+
+    private sealed class CapturingSourceUploadCompletedEventPublisher : ISourceUploadCompletedEventPublisher
+    {
+        public List<SourceUploadCompletedIntegrationEvent> PublishedEvents { get; } = [];
+
+        public Task PublishAsync(
+            SourceUploadCompletedIntegrationEvent integrationEvent,
+            CancellationToken cancellationToken)
+        {
+            PublishedEvents.Add(integrationEvent);
+            return Task.CompletedTask;
+        }
     }
 }

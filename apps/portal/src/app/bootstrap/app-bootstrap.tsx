@@ -8,6 +8,7 @@ import { TenantProvider } from '@/providers/tenant-provider';
 import { ThemeProvider } from '@/providers/theme-provider';
 import { ToastProvider } from '@/providers/toast-provider';
 import { AppErrorBoundary } from '@/platform/telemetry/error-boundary';
+import { PortalNotificationsProvider } from '@/shared/realtime/portal-notifications-provider';
 
 export function AppBootstrap() {
   return (
@@ -18,8 +19,10 @@ export function AppBootstrap() {
             <AuthProvider>
               <I18nProvider>
                 <TenantProvider>
-                  <ToastProvider />
-                  <RouterProvider router={AppRouter} />
+                  <PortalNotificationsProvider>
+                    <ToastProvider />
+                    <RouterProvider router={AppRouter} />
+                  </PortalNotificationsProvider>
                 </TenantProvider>
               </I18nProvider>
             </AuthProvider>

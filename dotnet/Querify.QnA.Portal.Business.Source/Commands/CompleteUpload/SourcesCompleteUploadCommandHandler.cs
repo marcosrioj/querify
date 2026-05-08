@@ -7,10 +7,12 @@ using Querify.Common.Infrastructure.Core.Abstractions;
 using Querify.Common.Infrastructure.Storage.Abstractions;
 using Querify.Models.Common.Enums;
 using Querify.Models.QnA.Enums;
+using Querify.Models.QnA.Events;
 using Querify.QnA.Common.Domain.BusinessRules.Sources;
 using Querify.QnA.Common.Domain.Entities;
 using Querify.QnA.Common.Domain.Options;
 using Querify.QnA.Common.Persistence.QnADb.DbContext;
+using Querify.QnA.Portal.Business.Source.Abstractions;
 
 namespace Querify.QnA.Portal.Business.Source.Commands.CompleteUpload;
 
@@ -18,7 +20,8 @@ public sealed class SourcesCompleteUploadCommandHandler(
     QnADbContext dbContext,
     ISessionService sessionService,
     IObjectStorage objectStorage,
-    IOptions<SourceUploadOptions> uploadOptions)
+    IOptions<SourceUploadOptions> uploadOptions,
+    ISourceUploadCompletedEventPublisher eventPublisher)
     : IRequestHandler<SourcesCompleteUploadCommand, Guid>
 {
     public async Task<Guid> Handle(SourcesCompleteUploadCommand request, CancellationToken cancellationToken)
@@ -80,6 +83,20 @@ public sealed class SourcesCompleteUploadCommandHandler(
         entity.UpdatedBy = userId;
 
         await dbContext.SaveChangesAsync(cancellationToken);
+
+        await eventPublisher.PublishAsync(new SourceUploadCompletedIntegrationEvent
+        {
+            EventId = Guid.NewGuid(),
+            OccurredAtUtc = DateTime.UtcNow,
+            TenantId = tenantId,
+            SourceId = entity.Id,
+            StorageKey = entity.StorageKey!,
+            ClientChecksum = entity.UploadChecksum,
+            ContentType = entity.MediaType!,
+            SizeBytes = head.SizeBytes,
+            CompletedByUserId = userId
+        }, cancellationToken);
+
         return entity.Id;
     }
 

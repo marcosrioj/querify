@@ -12,7 +12,10 @@ roadmap, and a self-contained agent prompt for each implementation step. It inco
 deep-research review supplied for this update and defines the current implementation as
 **single presigned PUT only**.
 
-**Status:** designed, not yet built. See [`../README.md`](../README.md).
+**Status:** implemented for the core presigned upload flow, RabbitMQ-driven verification, and
+Portal SignalR status notifications. Earlier staged prompts in this document that describe
+Hangfire as the primary source-upload verification trigger are historical and superseded by the
+event-driven runtime described below. See [`../README.md`](../README.md).
 
 ---
 
@@ -32,17 +35,19 @@ The `Source` entity already supports the shape needed for a hosted file:
 | `Visibility` | audience exposure | unchanged; still gated by `SourceRules.EnsureVisibilityAllowed` |
 | `Kind` | artifact type (`Pdf`, `Video`, ...) | **unchanged** — the kind describes the artifact, not the origin |
 
-What is missing:
+Implemented runtime pieces:
 
-1. No object storage in the local stack (`devops/local/docker/docker-compose.baseservices.yml` has
-   PostgreSQL, RabbitMQ, Redis, SMTP4Dev, Prometheus, Grafana, Alertmanager, Jaeger — no MinIO/S3).
-2. No shared `IObjectStorage` abstraction in `Querify.Common.Infrastructure.*`.
-3. No upload endpoints on the Portal API. The current `SourceController` is plain CRUD and assumes
-   the caller already has a valid `Locator`.
-4. No worker capable of reading a freshly uploaded blob, recomputing the checksum, and marking the
-   `Source` as verified.
-5. No explicit production gates for uploaded bytes: staging versus verified keys, malware
-   scanning/quarantine, orphan cleanup, or transactional event publication.
+1. Local object storage is provided through MinIO while production remains S3-compatible-provider
+   agnostic.
+2. `Querify.Common.Infrastructure.Storage` owns the shared `IObjectStorage` abstraction.
+3. `Querify.QnA.Portal.Api` exposes upload intent, upload completion, and verified download URL
+   endpoints through the Source service and command/query boundary.
+4. `Querify.QnA.Worker.Api` verifies uploaded bytes from RabbitMQ `SourceUploadCompleted` events,
+   recomputes checksum, validates content, scans, and transitions each source to a terminal upload
+   status.
+5. `Querify.Common.Infrastructure.Signalr` owns the reusable Portal SignalR foundation, while
+   Source-specific notification events, services, and commands live in
+   `Querify.QnA.Portal.Business.Source`.
 
 ---
 
@@ -71,9 +76,9 @@ Portal (React)              QnA Portal API                Object Storage        
                             persist SizeBytes/MediaType
                             UploadStatus = Uploaded
                             UploadChecksum = optional client checksum
-                                                                                    Hangfire persisted job
-                                                                                    calls service
-                                                                                    sends command
+                            publish SourceUploadCompleted ─────────────────────────► RabbitMQ
+                                                                                    consume event
+                                                                                    service sends command
                                                                                     stream SHA-256
                                                                                     validate MIME/magic
                                                                                     malware scan
@@ -81,7 +86,10 @@ Portal (React)              QnA Portal API                Object Storage        
                                                                                     delete staging/
                                                                                     UploadStatus = Verified
                                                                                     LastVerifiedAtUtc
-4. GET /download-url ─────► presign GET URL
+                                                                                    publish status changed
+                            consume status changed
+                            SignalR tenant notification ───────────────────────────► Portal UI
+4. GET /download-url ─────► presign GET URL after Verified
    ◄──── { url }
 ```
 
@@ -127,10 +135,12 @@ entitlements. Per [`../../backend/architecture/querify-tenant-worker.md`](../../
 and [`../../backend/architecture/solution-architecture.md`](../../backend/architecture/solution-architecture.md)
 section 7, it must not take ownership of product module workflows.
 
-QnA-owned async work belongs to a new host: `Querify.QnA.Worker.Api`, mirroring the project layout
-of the tenant worker. Source upload verification uses persisted Hangfire in that worker. Hangfire
-background job classes are adapters only and follow
-`Hangfire BackgroundService -> Service (telemetry) -> Command/Query`.
+QnA-owned async work belongs to `Querify.QnA.Worker.Api`, mirroring the project layout of the
+tenant worker. Source upload verification is RabbitMQ-driven: the Portal API publishes
+`SourceUploadCompletedIntegrationEvent` after `upload-complete`, and the QnA worker consumer calls a
+service that dispatches `VerifyUploadedSourceCommand`. Hangfire remains installed and configured in
+the worker for unrelated operational jobs and future reconciliation, but it is not the primary
+source-upload verification trigger.
 
 ---
 
@@ -246,9 +256,9 @@ Handler is a real command (`IRequestHandler<TCommand, Guid>`):
    persist, and return `422`.
 7. Persist `SizeBytes = head.SizeBytes`, `MediaType = head.ContentType`,
    `UploadChecksum = ClientChecksum`, `UploadStatus = Uploaded`, `UpdatedBy = userId`.
-8. Do not publish a broker event from `upload-complete`. `Source.UploadStatus = Uploaded` is the
-   durable backlog. The QnA worker runs a persisted Hangfire recurring job that finds uploaded
-   staging objects and dispatches verification commands.
+8. After the database save succeeds, publish `SourceUploadCompletedIntegrationEvent`. If this
+   publish fails after the commit, the row can remain `Uploaded`; a future low-frequency
+   reconciliation job can use Hangfire to find and re-enqueue those stuck sources.
 
 ### API step C — `GET /api/qna/source/{id:guid}/download-url`
 
@@ -275,11 +285,12 @@ Handler is a query:
 
 Worker command/query structure:
 
-- `SourceUploadVerificationBackgroundService` is a Hangfire background job adapter only. It calls
-  `SourceUploadVerificationSweepService`.
-- `SourceUploadVerificationSweepService` owns telemetry and sends
-  `VerifyUploadedSourcesForAllTenantsCommand` through MediatR.
+- `SourceUploadCompletedConsumer` is the RabbitMQ adapter. It does not own verification logic.
+- `SourceUploadVerificationService` owns telemetry, enters the event tenant context, and sends
+  `VerifyUploadedSourceCommand` through MediatR.
 - `VerifyUploadedSourceCommandHandler` owns the verification business flow and all state mutation.
+- `VerifyUploadedSourceCommandHandler` publishes `SourceUploadStatusChangedIntegrationEvent` after
+  terminal transitions (`Verified`, `Failed`, `Quarantined`).
 - `PendingSourceUploadExpiryHostedService` is a scheduler adapter only. It sends
   `ExpirePendingSourceUploadsCommand` through MediatR.
 - Worker business code follows the same command/query layout as Portal business code: commands
@@ -330,11 +341,13 @@ Command (`VerifyUploadedSourceCommandHandler` in
    - persist, then delete the staging object.
 
 Retry semantics:
-- Transient storage errors (5xx, timeouts) propagate so persisted Hangfire retries the job.
+- Transient storage errors (5xx, timeouts) propagate so MassTransit/RabbitMQ retries the message.
 - Permanent errors (checksum mismatch, MIME mismatch, malware detection) flip the row to `Failed`
   or `Quarantined`; the command returns without throwing.
 - Cleanup after a successful terminal row transition is best effort. Downloads still require
   `UploadStatus = Verified` and a `/verified/` key, so a leftover staging object is not exposed.
+- If status-event publishing fails after a terminal database transition, a retry sees the terminal
+  status and republishes the status notification without mutating the source again.
 
 ---
 
@@ -347,12 +360,16 @@ This feature should ship as a bounded, economical upload pipeline:
 2. The browser uploads directly to object storage. The API never proxies file bytes.
 3. The client calls `upload-complete`; the API checks the object exists and that actual size/type
    still match the intent.
-4. `Source.UploadStatus = Uploaded` becomes the durable backlog.
-5. The QnA worker's persisted Hangfire recurring job finds uploaded staging sources and calls the
-   service layer, which dispatches `VerifyUploadedSourceCommand`.
+4. `Source.UploadStatus = Uploaded` becomes the durable state for the pending verification.
+5. The QnA Portal API publishes `SourceUploadCompletedIntegrationEvent`; the QnA worker consumes it
+   and calls the service layer, which dispatches `VerifyUploadedSourceCommand`.
 6. The QnA worker command handler streams the object, validates content, scans for malware, and
    moves trusted bytes from `staging/` to `verified/`.
-7. Downloads are always private presigned GETs, and only for `Verified` objects under `verified/`.
+7. The worker publishes `SourceUploadStatusChangedIntegrationEvent`; the Portal API consumer calls
+   `SourceUploadStatusChangedNotificationService`, which opens telemetry and sends
+   `NotifySourceUploadStatusChangedCommand`. The command publishes the generic SignalR envelope to
+   authorized Portal clients through `IPortalNotificationPublisher`.
+8. Downloads are always private presigned GETs, and only for `Verified` objects under `verified/`.
 
 Security and cost rules:
 
@@ -414,7 +431,7 @@ instead of treating upload as a one-off API feature.
 | 2 | Supporting infrastructure | Add local S3-compatible storage and shared `IObjectStorage`. | `devops/local/docker/`, new `Querify.Common.Infrastructure.Storage` |
 | 3 | Steps 3-5 | Update model contract, enum, DTOs, EF configuration, and manual migration notes. | `Querify.QnA.Common.Domain`, `Querify.Models.QnA`, `Querify.QnA.Common.Persistence.QnADb` |
 | 4 | Step 6 | Add Portal API behavior, including the documented `upload-intent` command DTO exception. | `Querify.QnA.Portal.Business.Source`, `Querify.QnA.Portal.Api` |
-| 5 | Step 6 | Add persisted Hangfire worker jobs and worker commands for verification, scan, quarantine, and pending-expiry processing. | new `Querify.QnA.Worker.Api`, new `Querify.QnA.Worker.Business.Source` |
+| 5 | Step 6 | Add RabbitMQ worker consumers and worker commands for verification, scan, quarantine, status notification, and pending-expiry processing. Keep Hangfire available for unrelated future jobs. | `Querify.QnA.Worker.Api`, `Querify.QnA.Worker.Business.Source`, `Querify.QnA.Portal.Api` |
 | 6 | Steps 7-8 | Add seed data and integration tests. | `Querify.Tools.Seed`, QnA Portal/Worker integration tests |
 | 7 | Step 9 | Add Portal UI, API client hooks, enum presentation, and `en-US` copy keys. | `apps/portal/src/domains/sources/`, `en-US.json` |
 | 8 | Steps 10-12 | Add all locale values, run targeted validation, and write final migration/deployment handoff. | locale files, build/test outputs, release notes |
@@ -779,6 +796,10 @@ HANDOFF (playbook Step 12)
 
 ## Implementation step 4 prompt — Backend behavior (Portal)
 
+> Historical note: this prompt was written before the event-driven verification change. The current
+> implementation publishes `SourceUploadCompletedIntegrationEvent` after upload completion instead of
+> relying on the old recurring Hangfire verification sweep.
+
 ```text
 Querify monorepo. Required reading:
 - docs/backend/architecture/solution-cqrs-write-rules.md
@@ -793,8 +814,9 @@ CONTEXT
   complete) to the Portal API (Querify.QnA.Portal.Business.Source) only.
   Public API does NOT receive uploads (multi-tenant principle: public is
   read-only).
-- Async verification is triggered by the QnA worker's persisted Hangfire backlog sweep in
-  implementation step 5. `Source.UploadStatus = Uploaded` is the durable backlog marker.
+- Async verification is triggered by the QnA worker's RabbitMQ `SourceUploadCompleted` consumer in
+  implementation step 5. `Source.UploadStatus = Uploaded` is persisted state, but not the primary
+  polling trigger.
 - The implementation uses single presigned PUT only. Do not add multipart or
   resumable contracts.
 - `upload-intent` is the only documented exception to the playbook rule that
@@ -861,8 +883,9 @@ Shared options:
    - entity.UploadChecksum = request.ClientChecksum
    - entity.UploadStatus = SourceUploadStatus.Uploaded
    - entity.UpdatedBy = userId
-   - SaveChangesAsync. Do not publish a broker event or write a source-upload outbox message.
-     The persisted worker Hangfire job will pick up `Uploaded` staging sources.
+   - SaveChangesAsync. After the database save succeeds, publish
+     SourceUploadCompletedIntegrationEvent. If publishing fails after commit, a future reconciliation
+     job can find stuck `Uploaded` staging sources.
    - return entity.Id
 
 3) Queries/GetDownloadUrl/
@@ -939,6 +962,10 @@ HANDOFF
 ---
 
 ## Implementation step 5 prompt — Worker async verification, scan, and quarantine
+
+> Historical note: this prompt originally used Hangfire as the primary verification trigger. The
+> current implementation keeps Hangfire ready for future jobs, but source-upload verification is
+> RabbitMQ-driven through the QnA worker consumer.
 
 ```text
 Querify monorepo. Required reading:

@@ -6,6 +6,10 @@
 
 It is separate from tenant-scoped `QnADbContext` because Hangfire jobs are operational worker state, not QnA domain entities. The QnA worker still uses `QnADbContext` for tenant module data, but Hangfire job metadata lives in `HangfireQnaDb`.
 
+Source upload verification is RabbitMQ-driven now. Hangfire remains available for future QnA
+operational jobs and may be used later for a low-frequency reconciliation job that finds stuck
+`Uploaded` sources, but the recurring source-upload verification sweep is no longer registered.
+
 ## Runtime configuration
 
 The QnA worker reads the storage connection from:

@@ -11,7 +11,7 @@ Copy `apps/portal/.env.example` to `.env` and configure the Portal client values
 | Variable | Meaning |
 |---|---|
 | `VITE_PORTAL_TENANT_API_URL` | Tenant Portal API base URL |
-| `VITE_PORTAL_QNA_API_URL` | QnA Portal API base URL |
+| `VITE_PORTAL_QNA_API_URL` | QnA Portal API base URL; also used for the Portal SignalR hub at `/api/qna/hubs/portal-notifications` |
 | `VITE_AUTH0_DOMAIN` | Auth0 domain |
 | `VITE_AUTH0_AUDIENCE` | Auth0 API audience |
 | `VITE_AUTH0_CLIENT_ID` | Portal SPA client id |
@@ -166,7 +166,7 @@ PowerShell equivalents live beside these scripts under `devops/local/docker/*.ps
 
 The Portal-only compose file is `devops/local/docker/docker-compose.frontend.yml`. The full-stack helper `./devops/local/docker/docker.sh` assumes base services are already running, then combines `devops/local/docker/docker-compose.backend.yml` and `devops/local/docker/docker-compose.frontend.yml` for the app containers. The Portal is exposed on `http://localhost:5500`.
 
-When the local subdomain proxy is active, the frontend Docker compose file points both Portal API base URLs at `//dev.portal.querify.net`. The proxy routes `/api/tenant/*` and `/api/user/*` to the Tenant Portal API and `/api/qna/*` to the QnA Portal API, keeping browser requests same-origin and avoiding local cross-origin TLS failures.
+When the local subdomain proxy is active, the frontend Docker compose file points both Portal API base URLs at `//dev.portal.querify.net`. The proxy routes `/api/tenant/*` and `/api/user/*` to the Tenant Portal API and `/api/qna/*` to the QnA Portal API, including `/api/qna/hubs/portal-notifications` for SignalR, keeping browser requests same-origin and avoiding local cross-origin TLS failures.
 
 ## Current gaps
 

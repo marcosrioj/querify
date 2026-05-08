@@ -7,7 +7,11 @@ import {
   useRemoveQuestionSource,
 } from "@/domains/questions/hooks";
 import { usePortalTimeZone } from "@/domains/settings/settings-hooks";
-import { useDeleteSource, useSourceList } from "@/domains/sources/hooks";
+import {
+  useDeleteSource,
+  useSourceList,
+  useSourceUploadStatusListNotifications,
+} from "@/domains/sources/hooks";
 import type { SourceDto } from "@/domains/sources/types";
 import { useRemoveSpaceSource, useSpace } from "@/domains/spaces/hooks";
 import {
@@ -236,6 +240,7 @@ function sortSources(sources: SourceListRow[], sorting: string) {
 export function SourceListPage() {
   const navigate = useNavigate();
   const portalTimeZone = usePortalTimeZone();
+  useSourceUploadStatusListNotifications();
   const [searchParams] = useSearchParams();
   const spaceId = searchParams.get("spaceId") ?? "";
   const questionId = searchParams.get("questionId") ?? "";

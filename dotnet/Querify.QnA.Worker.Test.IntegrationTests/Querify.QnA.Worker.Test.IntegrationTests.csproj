@@ -28,6 +28,7 @@
         <ProjectReference Include="..\Querify.Models.QnA\Querify.Models.QnA.csproj"/>
         <ProjectReference Include="..\Querify.QnA.Common.Domain\Querify.QnA.Common.Domain.csproj"/>
         <ProjectReference Include="..\Querify.QnA.Common.Persistence.QnADb\Querify.QnA.Common.Persistence.QnADb.csproj"/>
+        <ProjectReference Include="..\Querify.QnA.Worker.Api\Querify.QnA.Worker.Api.csproj"/>
         <ProjectReference Include="..\Querify.QnA.Worker.Business.Source\Querify.QnA.Worker.Business.Source.csproj"/>
     </ItemGroup>
 

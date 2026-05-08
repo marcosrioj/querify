@@ -43,6 +43,7 @@ detail to start implementation without additional context.
 ### Backend
 
 - [`backend/source-upload.md`](backend/source-upload.md) — file upload for QnA `Source`: presigned URL flow, MinIO/S3 abstraction, async verification worker, two-phase write (intent → PUT → complete), and a 7-phase implementation roadmap with self-contained agent prompts.
+- [`backend/source-upload-event-driven-signalr-prompt.md`](backend/source-upload-event-driven-signalr-prompt.md) — implementation prompt for replacing recurring source-upload verification with a RabbitMQ consumer and reusable Portal SignalR notification foundation.
 
 ### Integrations
 
