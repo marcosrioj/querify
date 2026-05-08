@@ -25,6 +25,7 @@ COPY ["dotnet/Querify.Models.QnA/Querify.Models.QnA.csproj", "dotnet/Querify.Mod
 COPY ["dotnet/Querify.Models.Tenant/Querify.Models.Tenant.csproj", "dotnet/Querify.Models.Tenant/"]
 COPY ["dotnet/Querify.Models.User/Querify.Models.User.csproj", "dotnet/Querify.Models.User/"]
 COPY ["dotnet/Querify.QnA.Common.Domain/Querify.QnA.Common.Domain.csproj", "dotnet/Querify.QnA.Common.Domain/"]
+COPY ["dotnet/Querify.QnA.Common.Persistence.HangfireQnaDb/Querify.QnA.Common.Persistence.HangfireQnaDb.csproj", "dotnet/Querify.QnA.Common.Persistence.HangfireQnaDb/"]
 COPY ["dotnet/Querify.QnA.Common.Persistence.QnADb/Querify.QnA.Common.Persistence.QnADb.csproj", "dotnet/Querify.QnA.Common.Persistence.QnADb/"]
 RUN dotnet restore "dotnet/Querify.QnA.Worker.Api/Querify.QnA.Worker.Api.csproj"
 COPY . .
