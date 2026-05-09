@@ -451,7 +451,7 @@ export function AnswerDetailPage() {
         layout="bar"
         description="Answer actions and parent navigation."
       >
-        <ActionButton asChild tone="secondary">
+        <ActionButton asChild tone="primary">
           <Link to={`/app/answers/${id}/edit`}>
             <Pencil className="size-4" />
             {translateText("Edit")}

@@ -260,7 +260,7 @@ export function SpaceListPage() {
               <span className="sr-only">{translateText("Open")}</span>
             </Link>
           </Button>
-          <Button asChild variant="ghost" size="sm" mode="icon">
+          <Button asChild variant="primary" size="sm" mode="icon">
             <Link to={`/app/spaces/${space.id}/edit`}>
               <Pencil className="size-4" />
               <span className="sr-only">{translateText("Edit")}</span>

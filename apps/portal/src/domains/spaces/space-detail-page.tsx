@@ -578,7 +578,7 @@ export function SpaceDetailPage() {
         layout="bar"
         description="Record-level actions for this Space."
       >
-        <ActionButton asChild tone="secondary">
+        <ActionButton asChild tone="primary">
           <Link to={`/app/spaces/${id}/edit`}>
             <Pencil className="size-4" />
             {translateText("Edit")}

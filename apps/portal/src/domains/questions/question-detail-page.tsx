@@ -656,7 +656,7 @@ export function QuestionDetailPage() {
     >
       {ActivationVisibilityDialog}
       <ActionPanel layout="bar" description="Question actions and navigation.">
-        <ActionButton asChild tone="secondary">
+        <ActionButton asChild tone="primary">
           <Link to={`/app/questions/${id}/edit`}>
             <Pencil className="size-4" />
             {translateText("Edit")}
