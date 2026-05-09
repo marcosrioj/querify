@@ -3,8 +3,8 @@ import {
   AnswerStatus,
   SourceRole,
   VisibilityScope,
-} from '@/shared/constants/backend-enums';
-import type { SourceDto } from '@/domains/sources/types';
+} from "@/shared/constants/backend-enums";
+import type { SourceDto } from "@/domains/sources/types";
 
 export type AnswerSourceLinkDto = {
   id: string;
@@ -31,6 +31,7 @@ export type AnswerDto = {
   sort: number;
   isAccepted: boolean;
   isOfficial: boolean;
+  createdAtUtc?: string | null;
   lastUpdatedAtUtc?: string | null;
   voteScore: number;
   sources: AnswerSourceLinkDto[];
@@ -48,7 +49,7 @@ export type AnswerCreateRequestDto = {
   sort: number;
 };
 
-export type AnswerUpdateRequestDto = Omit<AnswerCreateRequestDto, 'questionId'>;
+export type AnswerUpdateRequestDto = Omit<AnswerCreateRequestDto, "questionId">;
 
 export type AnswerSourceLinkCreateRequestDto = {
   answerId: string;

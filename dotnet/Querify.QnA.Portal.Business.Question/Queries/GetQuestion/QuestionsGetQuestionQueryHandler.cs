@@ -44,6 +44,7 @@ public sealed class QuestionsGetQuestionQueryHandler(
                 Sort = question.Sort,
                 AcceptedAnswerId = question.AcceptedAnswerId,
                 LastActivityAtUtc = question.LastActivityAtUtc,
+                CreatedAtUtc = question.CreatedDate,
                 LastUpdatedAtUtc = question.UpdatedDate ?? question.CreatedDate
             })
             .FirstOrDefaultAsync(cancellationToken);

@@ -3,7 +3,6 @@ using Querify.Common.Infrastructure.ApiErrorHandling.Exception;
 using Querify.Common.Infrastructure.Core.Abstractions;
 using Querify.Models.Common.Enums;
 using Querify.Models.QnA.Dtos.Source;
-using Querify.QnA.Common.Domain.BusinessRules.Sources;
 using Querify.QnA.Common.Persistence.QnADb.DbContext;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -41,13 +40,11 @@ public sealed class SourcesUpdateSourceCommandHandler(
         SourceUpdateRequestDto request,
         string userId)
     {
-        entity.Locator = request.Locator;
         entity.Label = request.Label;
         entity.ContextNote = request.ContextNote;
         entity.ExternalId = request.ExternalId;
         entity.Language = request.Language;
         entity.MediaType = request.MediaType;
-        entity.Checksum = SourceChecksum.FromLocator(request.Locator);
         entity.MetadataJson = request.MetadataJson;
         entity.UpdatedBy = userId;
     }

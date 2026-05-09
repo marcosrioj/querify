@@ -77,6 +77,10 @@ function formatBytes(value?: number | null) {
   });
 }
 
+function isExternalUrl(locator: string | null | undefined) {
+  return /^https?:\/\//i.test(locator?.trim() ?? "");
+}
+
 export function SourceDetailPage() {
   const navigate = useNavigate();
   const portalTimeZone = usePortalTimeZone();
@@ -150,6 +154,7 @@ export function SourceDetailPage() {
   const canDownload =
     Boolean(sourceQuery.data?.storageKey) &&
     sourceQuery.data?.uploadStatus === SourceUploadStatus.Verified;
+  const canOpenExternalUrl = isExternalUrl(sourceQuery.data?.locator);
 
   if (!id) {
     return (
@@ -210,6 +215,24 @@ export function SourceDetailPage() {
                 description: "Use the main locale for this source content.",
                 value: sourceQuery.data.language || "Not set",
               },
+              {
+                label: "Created date",
+                description: "Record creation timestamp.",
+                value: formatOptionalDateTimeInTimeZone(
+                  sourceQuery.data.createdAtUtc,
+                  portalTimeZone,
+                  translateText("Not set"),
+                ),
+              },
+              {
+                label: "Update date",
+                description: "Most recent record update timestamp.",
+                value: formatOptionalDateTimeInTimeZone(
+                  sourceQuery.data.lastUpdatedAtUtc,
+                  portalTimeZone,
+                  translateText("Not set"),
+                ),
+              },
             ]}
           />
         ) : null
@@ -222,6 +245,18 @@ export function SourceDetailPage() {
             {translateText("Edit")}
           </Link>
         </ActionButton>
+        {canOpenExternalUrl ? (
+          <ActionButton asChild tone="secondary">
+            <a
+              href={sourceQuery.data?.locator}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <ExternalLink className="size-4" />
+              {translateText("Open")}
+            </a>
+          </ActionButton>
+        ) : null}
         {canDownload ? (
           <ActionButton
             tone="secondary"

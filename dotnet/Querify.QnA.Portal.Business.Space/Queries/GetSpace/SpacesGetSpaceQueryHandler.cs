@@ -35,6 +35,7 @@ public sealed class SpacesGetSpaceQueryHandler(
                 AcceptsQuestions = space.AcceptsQuestions,
                 AcceptsAnswers = space.AcceptsAnswers,
                 QuestionCount = space.Questions.Count,
+                CreatedAtUtc = space.CreatedDate,
                 LastUpdatedAtUtc = space.UpdatedDate ?? space.CreatedDate,
                 Tags = space.Tags
                     .OrderBy(link => link.Tag.Name)

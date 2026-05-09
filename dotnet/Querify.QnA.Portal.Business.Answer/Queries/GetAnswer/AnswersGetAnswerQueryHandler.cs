@@ -40,6 +40,7 @@ public sealed class AnswersGetAnswerQueryHandler(
                 Sort = answer.Sort,
                 IsAccepted = answer.Question.AcceptedAnswerId == answer.Id,
                 IsOfficial = answer.Kind == AnswerKind.Official,
+                CreatedAtUtc = answer.CreatedDate,
                 LastUpdatedAtUtc = answer.UpdatedDate ?? answer.CreatedDate,
                 VoteScore = 0,
                 Sources = answer.Sources

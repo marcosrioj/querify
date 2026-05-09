@@ -238,6 +238,10 @@ function inferMediaTypeFromUrl(locator: string) {
   return "application/octet-stream";
 }
 
+function isExternalUrl(locator: string | null | undefined) {
+  return /^https?:\/\//i.test(locator?.trim() ?? "");
+}
+
 function buildLabelFromExternalUrl(locator: string) {
   const url = new URL(locator);
   const lastPathSegment = url.pathname.split("/").filter(Boolean).at(-1);
@@ -536,11 +540,13 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
     languageOptions.find((option) => option.value === selectedLanguageValue) ??
     null;
   const isUploadMode = mode === "create" && createMode === "upload";
-  const isEditingUploadedSource =
-    mode === "edit" && Boolean(sourceQuery.data?.storageKey);
-  const shouldValidateExternalUrl = !isUploadMode && !isEditingUploadedSource;
+  const shouldValidateExternalUrl =
+    mode === "create" && createMode === "external";
   const locatorFieldLabel =
-    mode === "create" && createMode === "external" ? "External URL" : "Locator";
+    (mode === "create" && createMode === "external") ||
+    (mode === "edit" && isExternalUrl(locatorValue))
+      ? "External URL"
+      : "Locator";
   const showExternalUrlValidationLoader =
     shouldValidateExternalUrl &&
     externalUrlValidation.status === "validating" &&
@@ -817,23 +823,28 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
                       return;
                     }
 
-                    const body = {
-                      locator: values.locator,
+                    if (mode === "create") {
+                      const createdId = await createSource.mutateAsync({
+                        locator: values.locator,
+                        label: values.label || undefined,
+                        contextNote: values.contextNote || undefined,
+                        externalId: values.externalId || undefined,
+                        language: values.language,
+                        mediaType: values.mediaType || undefined,
+                        metadataJson: values.metadataJson?.trim() || undefined,
+                      });
+                      navigate(`/app/sources/${createdId}`);
+                      return;
+                    }
+
+                    await updateSource.mutateAsync({
                       label: values.label || undefined,
                       contextNote: values.contextNote || undefined,
                       externalId: values.externalId || undefined,
                       language: values.language,
                       mediaType: values.mediaType || undefined,
                       metadataJson: values.metadataJson?.trim() || undefined,
-                    };
-
-                    if (mode === "create") {
-                      const createdId = await createSource.mutateAsync(body);
-                      navigate(`/app/sources/${createdId}`);
-                      return;
-                    }
-
-                    await updateSource.mutateAsync(body);
+                    });
                     navigate(`/app/sources/${id}`);
                   })}
                 >
@@ -977,6 +988,7 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
                                 <div className="relative">
                                   <Input
                                     {...field}
+                                    readOnly={mode === "edit"}
                                     className={
                                       showExternalUrlValidationLoader
                                         ? "pr-10"
@@ -1025,21 +1037,12 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
                     description="Set source language and review detected source metadata."
                   />
                   <div className="grid gap-4 md:grid-cols-2">
-                    <SearchSelectField
+                    <TextField
                       control={form.control}
-                      name="language"
-                      label="Language"
-                      description="Use the main locale for this source content."
-                      options={languageOptions}
-                      selectedOption={selectedLanguageOption}
-                      searchPlaceholder="Search languages"
-                      emptyMessage="No languages found."
-                      resultCountHint={translateText(
-                        "{count} languages available",
-                        {
-                          count: portalLanguageOptions.length,
-                        },
-                      )}
+                      name="mediaType"
+                      label="Media type"
+                      description="Detected MIME type from the file or reachable external URL."
+                      readOnly
                     />
                     <TextField
                       control={form.control}
@@ -1048,12 +1051,21 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
                       description="Identifier from the upstream connector, repository, or source system."
                     />
                     <div className="md:col-span-2">
-                      <TextField
+                      <SearchSelectField
                         control={form.control}
-                        name="mediaType"
-                        label="Media type"
-                        description="Detected MIME type from the file or reachable external URL."
-                        readOnly
+                        name="language"
+                        label="Language"
+                        description="Use the main locale for this source content."
+                        options={languageOptions}
+                        selectedOption={selectedLanguageOption}
+                        searchPlaceholder="Search languages"
+                        emptyMessage="No languages found."
+                        resultCountHint={translateText(
+                          "{count} languages available",
+                          {
+                            count: portalLanguageOptions.length,
+                          },
+                        )}
                       />
                     </div>
                   </div>

@@ -21,6 +21,7 @@ export type SourceDto = {
   sizeBytes?: number | null;
   checksum: string;
   metadataJson?: string | null;
+  createdAtUtc?: string | null;
   lastUpdatedAtUtc?: string | null;
   uploadStatus: SourceUploadStatus;
   spaceUsageCount: number;
@@ -85,7 +86,7 @@ export type SourceCreateRequestDto = {
   metadataJson?: string | null;
 };
 
-export type SourceUpdateRequestDto = SourceCreateRequestDto;
+export type SourceUpdateRequestDto = Omit<SourceCreateRequestDto, "locator">;
 
 export type SourceExternalUrlInspectionRequestDto = {
   locator: string;

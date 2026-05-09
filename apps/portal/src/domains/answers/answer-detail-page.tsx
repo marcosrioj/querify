@@ -423,6 +423,24 @@ export function AnswerDetailPage() {
                   "Model confidence score available for this answer candidate.",
                 value: String(answerQuery.data.aiConfidenceScore),
               },
+              {
+                label: "Created date",
+                description: "Record creation timestamp.",
+                value: formatOptionalDateTimeInTimeZone(
+                  answerQuery.data.createdAtUtc,
+                  portalTimeZone,
+                  translateText("Not set"),
+                ),
+              },
+              {
+                label: "Update date",
+                description: "Most recent record update timestamp.",
+                value: formatOptionalDateTimeInTimeZone(
+                  answerQuery.data.lastUpdatedAtUtc,
+                  portalTimeZone,
+                  translateText("Not set"),
+                ),
+              },
             ]}
           />
         ) : null

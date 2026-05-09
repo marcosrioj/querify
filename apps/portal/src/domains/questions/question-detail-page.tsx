@@ -631,6 +631,24 @@ export function QuestionDetailPage() {
                 description: "Lower values appear earlier in curated ordering.",
                 value: String(questionQuery.data.sort),
               },
+              {
+                label: "Created date",
+                description: "Record creation timestamp.",
+                value: formatOptionalDateTimeInTimeZone(
+                  questionQuery.data.createdAtUtc,
+                  portalTimeZone,
+                  translateText("Not set"),
+                ),
+              },
+              {
+                label: "Update date",
+                description: "Most recent record update timestamp.",
+                value: formatOptionalDateTimeInTimeZone(
+                  questionQuery.data.lastUpdatedAtUtc,
+                  portalTimeZone,
+                  translateText("Not set"),
+                ),
+              },
             ]}
           />
         ) : null

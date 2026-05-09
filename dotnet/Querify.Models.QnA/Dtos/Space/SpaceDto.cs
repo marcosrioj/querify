@@ -15,5 +15,6 @@ public class SpaceDto
     public required bool AcceptsQuestions { get; set; }
     public required bool AcceptsAnswers { get; set; }
     public required int QuestionCount { get; set; }
+    public DateTime? CreatedAtUtc { get; set; }
     public DateTime? LastUpdatedAtUtc { get; set; }
 }

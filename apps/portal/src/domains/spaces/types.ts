@@ -1,6 +1,6 @@
-import { SpaceStatus, VisibilityScope } from '@/shared/constants/backend-enums';
-import type { SourceDto } from '@/domains/sources/types';
-import type { TagDto } from '@/domains/tags/types';
+import { SpaceStatus, VisibilityScope } from "@/shared/constants/backend-enums";
+import type { SourceDto } from "@/domains/sources/types";
+import type { TagDto } from "@/domains/tags/types";
 
 export type SpaceDto = {
   id: string;
@@ -14,6 +14,7 @@ export type SpaceDto = {
   acceptsQuestions: boolean;
   acceptsAnswers: boolean;
   questionCount: number;
+  createdAtUtc?: string | null;
   lastUpdatedAtUtc?: string | null;
 };
 

@@ -178,6 +178,24 @@ export function ActivityDetailPage() {
                   />
                 ),
               },
+              {
+                label: "Created date",
+                description: "Record creation timestamp.",
+                value: formatOptionalDateTimeInTimeZone(
+                  activityQuery.data.createdAtUtc,
+                  portalTimeZone,
+                  translateText("Not set"),
+                ),
+              },
+              {
+                label: "Update date",
+                description: "Most recent record update timestamp.",
+                value: formatOptionalDateTimeInTimeZone(
+                  activityQuery.data.lastUpdatedAtUtc,
+                  portalTimeZone,
+                  translateText("Not set"),
+                ),
+              },
             ]}
           />
         ) : null

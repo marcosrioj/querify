@@ -51,10 +51,12 @@ public class SourceCommandQueryTests
     }
 
     [Fact]
-    public async Task UpdateSource_RecomputesChecksumFromLocator()
+    public async Task UpdateSource_DoesNotChangeLocatorOrChecksum()
     {
         using var context = TestContext.Create();
         var source = await TestDataFactory.SeedSourceAsync(context.DbContext, context.SessionService.TenantId);
+        var originalLocator = source.Locator;
+        var originalChecksum = source.Checksum;
 
         var updateHandler =
             new SourcesUpdateSourceCommandHandler(context.DbContext, context.SessionService);
@@ -63,7 +65,6 @@ public class SourceCommandQueryTests
             Id = source.Id,
             Request = new SourceUpdateRequestDto
             {
-                Locator = "https://docs.example.test/qna/updated-source",
                 Label = source.Label,
                 ContextNote = source.ContextNote,
                 ExternalId = "DOC-2",
@@ -73,11 +74,9 @@ public class SourceCommandQueryTests
             }
         }, CancellationToken.None);
 
-        Assert.Equal("https://docs.example.test/qna/updated-source", source.Locator);
+        Assert.Equal(originalLocator, source.Locator);
         Assert.Equal("DOC-2", source.ExternalId);
-        Assert.NotEqual("sha256:test-source", source.Checksum);
-        Assert.StartsWith("sha256:", source.Checksum);
-        Assert.Equal(71, source.Checksum.Length);
+        Assert.Equal(originalChecksum, source.Checksum);
     }
 
 }

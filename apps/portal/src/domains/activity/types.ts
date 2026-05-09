@@ -1,4 +1,4 @@
-import { ActivityKind, ActorKind } from '@/shared/constants/backend-enums';
+import { ActivityKind, ActorKind } from "@/shared/constants/backend-enums";
 
 export type ActivityDto = {
   id: string;
@@ -16,4 +16,6 @@ export type ActivityDto = {
   notes?: string | null;
   metadataJson?: string | null;
   occurredAtUtc: string;
+  createdAtUtc?: string | null;
+  lastUpdatedAtUtc?: string | null;
 };

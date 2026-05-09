@@ -87,7 +87,9 @@ public sealed class ActivitiesGetActivityListQueryHandler(
                 UserAgent = activity.UserAgent,
                 Notes = activity.Notes,
                 MetadataJson = activity.MetadataJson,
-                OccurredAtUtc = activity.OccurredAtUtc
+                OccurredAtUtc = activity.OccurredAtUtc,
+                CreatedAtUtc = activity.CreatedDate ?? activity.OccurredAtUtc,
+                LastUpdatedAtUtc = activity.UpdatedDate ?? activity.CreatedDate ?? activity.OccurredAtUtc
             })
             .ToListAsync(cancellationToken);
 

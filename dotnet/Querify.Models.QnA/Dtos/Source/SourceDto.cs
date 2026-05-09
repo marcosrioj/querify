@@ -17,6 +17,7 @@ public class SourceDto
     public required string Checksum { get; set; }
     public string? MetadataJson { get; set; }
     public required SourceUploadStatus UploadStatus { get; set; }
+    public DateTime? CreatedAtUtc { get; set; }
     public DateTime? LastUpdatedAtUtc { get; set; }
     public int SpaceUsageCount { get; set; }
     public int QuestionUsageCount { get; set; }

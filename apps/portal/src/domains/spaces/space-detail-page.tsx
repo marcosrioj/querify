@@ -550,6 +550,24 @@ export function SpaceDetailPage() {
                   </Badge>
                 ),
               },
+              {
+                label: "Created date",
+                description: "Record creation timestamp.",
+                value: formatOptionalDateTimeInTimeZone(
+                  spaceQuery.data.createdAtUtc,
+                  portalTimeZone,
+                  translateText("Not set"),
+                ),
+              },
+              {
+                label: "Update date",
+                description: "Most recent record update timestamp.",
+                value: formatOptionalDateTimeInTimeZone(
+                  spaceQuery.data.lastUpdatedAtUtc,
+                  portalTimeZone,
+                  translateText("Not set"),
+                ),
+              },
             ]}
           />
         ) : null

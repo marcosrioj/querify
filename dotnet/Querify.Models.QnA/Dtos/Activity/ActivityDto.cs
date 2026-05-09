@@ -19,4 +19,6 @@ public class ActivityDto
     public string? Notes { get; set; }
     public string? MetadataJson { get; set; }
     public required DateTime OccurredAtUtc { get; set; }
+    public DateTime? CreatedAtUtc { get; set; }
+    public DateTime? LastUpdatedAtUtc { get; set; }
 }

@@ -19,6 +19,7 @@ public class AnswerDto
     public required int Sort { get; set; }
     public required bool IsAccepted { get; set; }
     public required bool IsOfficial { get; set; }
+    public DateTime? CreatedAtUtc { get; set; }
     public DateTime? LastUpdatedAtUtc { get; set; }
     public required int VoteScore { get; set; }
     public IReadOnlyList<AnswerSourceLinkDto> Sources { get; set; } = [];

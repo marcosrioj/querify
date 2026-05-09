@@ -2,7 +2,6 @@ namespace Querify.Models.QnA.Dtos.Source;
 
 public class SourceUpdateRequestDto
 {
-    public required string Locator { get; set; }
     public string? Label { get; set; }
     public string? ContextNote { get; set; }
     public string? ExternalId { get; set; }

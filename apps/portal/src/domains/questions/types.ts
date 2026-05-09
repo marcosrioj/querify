@@ -3,11 +3,11 @@ import {
   QuestionStatus,
   SourceRole,
   VisibilityScope,
-} from '@/shared/constants/backend-enums';
-import type { ActivityDto } from '@/domains/activity/types';
-import type { AnswerDto } from '@/domains/answers/types';
-import type { SourceDto } from '@/domains/sources/types';
-import type { TagDto } from '@/domains/tags/types';
+} from "@/shared/constants/backend-enums";
+import type { ActivityDto } from "@/domains/activity/types";
+import type { AnswerDto } from "@/domains/answers/types";
+import type { SourceDto } from "@/domains/sources/types";
+import type { TagDto } from "@/domains/tags/types";
 
 export type QuestionDto = {
   id: string;
@@ -25,6 +25,7 @@ export type QuestionDto = {
   sort: number;
   acceptedAnswerId?: string | null;
   lastActivityAtUtc?: string | null;
+  createdAtUtc?: string | null;
   lastUpdatedAtUtc?: string | null;
 };
 
@@ -56,7 +57,10 @@ export type QuestionCreateRequestDto = {
   sort: number;
 };
 
-export type QuestionUpdateRequestDto = Omit<QuestionCreateRequestDto, 'spaceId'> & {
+export type QuestionUpdateRequestDto = Omit<
+  QuestionCreateRequestDto,
+  "spaceId"
+> & {
   acceptedAnswerId?: string | null;
 };
 

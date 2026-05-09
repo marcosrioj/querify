@@ -35,6 +35,7 @@ public sealed class SourcesGetSourceQueryHandler(
                 Checksum = source.Checksum,
                 MetadataJson = source.MetadataJson,
                 UploadStatus = source.UploadStatus,
+                CreatedAtUtc = source.CreatedDate,
                 LastUpdatedAtUtc = source.UpdatedDate ?? source.CreatedDate,
                 SpaceUsageCount = source.Spaces.Count,
                 QuestionUsageCount = source.Questions.Count,
