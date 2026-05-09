@@ -2,10 +2,14 @@ const readEnv = (value: string | undefined, fallback = '') =>
   value && value.trim().length > 0 ? value : fallback;
 
 const qnaPortalApiUrl = readEnv(import.meta.env.VITE_PORTAL_QNA_API_URL, 'http://localhost:5010');
+const systemUrls = {
+  s3Url: readEnv(import.meta.env.VITE_PORTAL_SYSTEM_S3_URL),
+} as const;
 
 export const RuntimeEnv = {
   appName: 'Querify QnA Portal',
   baseUrl: import.meta.env.BASE_URL ?? '/',
+  systemUrls,
   qnaPortalApiUrl,
   tenantPortalApiUrl: readEnv(
     import.meta.env.VITE_PORTAL_TENANT_API_URL,

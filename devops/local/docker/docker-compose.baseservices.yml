@@ -78,6 +78,7 @@ services:
     container_name: minio
     restart: always
     ports:
+      - '9000:9000'
       - '5900:9000'
       - '5901:9001'
     environment:

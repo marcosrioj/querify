@@ -3,6 +3,7 @@ import {
   requireAccessToken,
   requireTenantId,
 } from "@/platform/api/http-client";
+import { resolveObjectStorageUrl } from "@/platform/runtime/system-urls";
 import { toPagedQuery } from "@/shared/lib/pagination";
 import type { PagedResultDto } from "@/shared/types/api";
 import type {
@@ -118,7 +119,10 @@ export function createSourceUploadIntent(
     accessToken: requireAccessToken(accessToken),
     tenantId: requireTenantId(tenantId),
     body,
-  });
+  }).then((response) => ({
+    ...response,
+    uploadUrl: resolveObjectStorageUrl(response.uploadUrl),
+  }));
 }
 
 export function inspectSourceExternalUrl(
@@ -166,5 +170,8 @@ export function getSourceDownloadUrl(
     accessToken: requireAccessToken(accessToken),
     tenantId: requireTenantId(tenantId),
     signal,
-  });
+  }).then((response) => ({
+    ...response,
+    url: resolveObjectStorageUrl(response.url),
+  }));
 }

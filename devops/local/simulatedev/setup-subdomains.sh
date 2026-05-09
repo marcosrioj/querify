@@ -28,6 +28,9 @@ PORTAL_APP_PORT="${PORTAL_APP_PORT:-5500}"
 QNA_PORTAL_PORT="${QNA_PORTAL_PORT:-5010}"
 QNA_PUBLIC_PORT="${QNA_PUBLIC_PORT:-5020}"
 TEST_PORT="${TEST_PORT:-5999}"
+OBJECT_STORAGE_ENDPOINT_HOST="${OBJECT_STORAGE_ENDPOINT_HOST:-$UPSTREAM_HOST}"
+OBJECT_STORAGE_ENDPOINT_PORT="${OBJECT_STORAGE_ENDPOINT_PORT:-9000}"
+OBJECT_STORAGE_SIGNED_HOST="${OBJECT_STORAGE_SIGNED_HOST:-localhost:5900}"
 
 check_dependencies() {
   if ! command -v docker >/dev/null 2>&1; then
@@ -86,6 +89,21 @@ server {
     server_name dev.portal.querify.net;
     ssl_certificate /etc/nginx/certs/dev.querify.net.crt;
     ssl_certificate_key /etc/nginx/certs/dev.querify.net.key;
+
+    location /s3/ {
+        client_max_body_size 60m;
+        proxy_pass http://$OBJECT_STORAGE_ENDPOINT_HOST:$OBJECT_STORAGE_ENDPOINT_PORT/;
+        proxy_http_version 1.1;
+        proxy_request_buffering off;
+        proxy_buffering off;
+        proxy_set_header Host $OBJECT_STORAGE_SIGNED_HOST;
+        proxy_set_header Cookie "";
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Host \$host;
+        proxy_set_header X-Forwarded-Prefix /s3;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+    }
 
     location /api/tenant/ {
         proxy_pass http://$UPSTREAM_HOST:$TENANT_PORTAL_PORT;
@@ -331,6 +349,7 @@ print_summary() {
   echo "  dev.portal.querify.net/api/tenant -> $UPSTREAM_HOST:$TENANT_PORTAL_PORT"
   echo "  dev.portal.querify.net/api/user   -> $UPSTREAM_HOST:$TENANT_PORTAL_PORT"
   echo "  dev.portal.querify.net/api/qna    -> $UPSTREAM_HOST:$QNA_PORTAL_PORT"
+  echo "  dev.portal.querify.net/s3         -> $OBJECT_STORAGE_ENDPOINT_HOST:$OBJECT_STORAGE_ENDPOINT_PORT"
   echo "  dev.tenant.backoffice.querify.net -> $UPSTREAM_HOST:$TENANT_BACKOFFICE_PORT"
   echo "  dev.tenant.public.querify.net     -> $UPSTREAM_HOST:$TENANT_PUBLIC_PORT"
   echo "  dev.tenant.portal.querify.net     -> $UPSTREAM_HOST:$TENANT_PORTAL_PORT"
@@ -340,6 +359,7 @@ print_summary() {
   echo
   echo "Generated Nginx config:"
   echo "  $NGINX_CONF_FILE"
+  echo "Object storage signed host header: $OBJECT_STORAGE_SIGNED_HOST"
   echo
   echo "Forward external 80 -> machine 80."
   echo "Forward external 443 -> machine 443."

@@ -12,6 +12,7 @@ Copy `apps/portal/.env.example` to `.env` and configure the Portal client values
 |---|---|
 | `VITE_PORTAL_TENANT_API_URL` | Tenant Portal API base URL |
 | `VITE_PORTAL_QNA_API_URL` | QnA Portal API base URL; also used for the Portal SignalR hub at `/api/qna/hubs/portal-notifications` |
+| `VITE_PORTAL_SYSTEM_S3_URL` | optional browser-facing S3 proxy base URL; local subdomain Docker uses `//dev.portal.querify.net/s3` |
 | `VITE_AUTH0_DOMAIN` | Auth0 domain |
 | `VITE_AUTH0_AUDIENCE` | Auth0 API audience |
 | `VITE_AUTH0_CLIENT_ID` | Portal SPA client id |
