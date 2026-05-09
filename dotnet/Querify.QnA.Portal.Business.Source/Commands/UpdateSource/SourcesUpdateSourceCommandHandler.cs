@@ -49,14 +49,6 @@ public sealed class SourcesUpdateSourceCommandHandler(
         entity.MediaType = request.MediaType;
         entity.Checksum = SourceChecksum.FromLocator(request.Locator);
         entity.MetadataJson = request.MetadataJson;
-
-        if (request.MarkVerified)
-        {
-            entity.LastVerifiedAtUtc = DateTime.UtcNow;
-        }
-
-        SourceRules.EnsureVisibilityAllowed(entity, request.Visibility);
-        entity.Visibility = request.Visibility;
         entity.UpdatedBy = userId;
     }
 }

@@ -26,13 +26,11 @@ export function listSources(
     pageSize,
     sorting,
     searchText,
-    visibility,
   }: {
     page: number;
     pageSize: number;
     sorting?: string;
     searchText?: string;
-    visibility?: number;
   },
   signal?: AbortSignal,
 ) {
@@ -43,7 +41,6 @@ export function listSources(
     tenantId: requireTenantId(tenantId),
     query: toPagedQuery(page, pageSize, sorting, {
       SearchText: searchText,
-      Visibility: visibility,
     }),
     signal,
   });

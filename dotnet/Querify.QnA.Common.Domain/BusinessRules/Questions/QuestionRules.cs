@@ -1,7 +1,6 @@
 using System.Net;
 using Querify.Common.Infrastructure.ApiErrorHandling.Exception;
 using Querify.Models.QnA.Enums;
-using Querify.QnA.Common.Domain.BusinessRules.Sources;
 using Querify.QnA.Common.Domain.Entities;
 
 namespace Querify.QnA.Common.Domain.BusinessRules.Questions;
@@ -26,9 +25,6 @@ public static class QuestionRules
             throw new ApiErrorException(
                 "Only active questions can be exposed publicly.",
                 (int)HttpStatusCode.UnprocessableEntity);
-
-        foreach (var sourceLink in entity.Sources)
-            SourceRules.EnsureReferenceSupportsPublicVisibility(visibility, sourceLink.Source, sourceLink.Role);
 
         if (entity.AcceptedAnswer is not null &&
             entity.AcceptedAnswer.Visibility is not VisibilityScope.Public)
@@ -76,8 +72,6 @@ public static class QuestionRules
         Guid tenantId,
         string userId)
     {
-        SourceRules.EnsureReferenceSupportsPublicVisibility(question.Visibility, source, role);
-
         return new QuestionSourceLink
         {
             TenantId = tenantId,

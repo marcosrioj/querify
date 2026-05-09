@@ -4,11 +4,6 @@ import { useForm, type UseFormReturn } from "react-hook-form";
 import { Braces, FileUp, Link2, LoaderCircle, X } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
-  VisibilityScope,
-  backendEnumSelectOptions,
-  visibilityScopeLabels,
-} from "@/shared/constants/backend-enums";
-import {
   useCreateSource,
   useCompleteSourceUpload,
   useCreateSourceUploadIntent,
@@ -46,7 +41,6 @@ import {
   FormCardSkeleton,
   FormSectionHeading,
   hasSetupText,
-  hasSetupValue,
   Input,
   SidebarSummarySkeleton,
   Textarea,
@@ -54,8 +48,6 @@ import {
 import { ErrorState } from "@/shared/ui/placeholder-state";
 import {
   SearchSelectField,
-  SelectField,
-  SwitchField,
   TextField,
   TextareaField,
 } from "@/shared/ui/form-fields";
@@ -66,7 +58,6 @@ import {
   portalLanguageOptions,
 } from "@/shared/lib/language";
 
-const visibilityOptions = backendEnumSelectOptions(visibilityScopeLabels);
 const GENERATED_SOURCE_METADATA_KEY = "sourceInspection";
 const GENERATED_SOURCE_METADATA_FIELDS = new Set([
   "contentLengthBytes",
@@ -513,8 +504,6 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
       mediaType: "",
       checksum: "",
       metadataJson: "",
-      visibility: VisibilityScope.Internal,
-      markVerified: false,
     },
   });
 
@@ -532,8 +521,6 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
       mediaType: sourceQuery.data.mediaType ?? "",
       checksum: sourceQuery.data.checksum,
       metadataJson: sourceQuery.data.metadataJson ?? "",
-      visibility: sourceQuery.data.visibility,
-      markVerified: false,
     });
   }, [form, sourceQuery.data]);
 
@@ -583,12 +570,6 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
       description: "Set the locale code for this source content.",
       complete: hasSetupText(setupValues.language, 2),
     },
-    {
-      id: "visibility",
-      label: "Visibility",
-      description: "Choose who can see or reuse this source.",
-      complete: hasSetupValue(setupValues.visibility),
-    },
   ];
   const backTo = mode === "edit" && id ? `/app/sources/${id}` : "/app/sources";
   const sourceTitle = sourceQuery.data?.label || sourceQuery.data?.locator;
@@ -598,24 +579,6 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
       : sourceTitle
         ? `${translateText("Edit")} ${sourceTitle}`
         : "Edit source";
-  const uploadVisibilityOptions = visibilityOptions.filter(
-    (option) => option.value !== String(VisibilityScope.Public),
-  );
-
-  useEffect(() => {
-    if (
-      !isUploadMode ||
-      form.getValues("visibility") !== VisibilityScope.Public
-    ) {
-      return;
-    }
-
-    form.setValue("visibility", VisibilityScope.Internal, {
-      shouldDirty: true,
-      shouldValidate: true,
-    });
-  }, [form, isUploadMode]);
-
   useEffect(() => {
     if (!isUploadMode) {
       return;
@@ -735,7 +698,7 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
       header={
         <PageHeader
           title={pageTitle}
-          description="Capture locator, visibility, and verification metadata for reusable evidence."
+          description="Capture locator, media type, and metadata for reusable evidence."
           descriptionMode="hint"
           backTo={backTo}
         />
@@ -751,7 +714,7 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
                   <span>{translateText("Quick notes")}</span>
                   <ContextHint
                     content={translateText(
-                      "Good sources are durable, clearly classified, and explicit about who can see them.",
+                      "Good sources are durable, clearly classified, and easy to reuse from questions and answers.",
                     )}
                     label={translateText("Quick notes details")}
                   />
@@ -765,10 +728,7 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
                     label: "Identity",
                     value: "Stable locator, label, and media type",
                   },
-                  {
-                    label: "Visibility",
-                    value: "Internal, authenticated, or public",
-                  },
+                  { label: "Language", value: "Locale used by the source" },
                   { label: "Metadata", value: "Optional valid JSON object" },
                 ]}
               />
@@ -794,7 +754,7 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
                   <span>{translateText("Source details")}</span>
                   <ContextHint
                     content={translateText(
-                      "Start with the locator and media type, then capture visibility and verification metadata.",
+                      "Start with the locator and media type, then capture language and metadata.",
                     )}
                     label={translateText("Form details")}
                   />
@@ -832,17 +792,12 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
                       }
 
                       setUploadProgress(0);
-                      const visibility =
-                        Number(values.visibility) === VisibilityScope.Public
-                          ? VisibilityScope.Internal
-                          : (Number(values.visibility) as VisibilityScope);
                       const intent = await createUploadIntent.mutateAsync({
                         fileName: selectedFile.name,
                         contentType:
                           selectedFile.type || "application/octet-stream",
                         sizeBytes: selectedFile.size,
                         language: values.language,
-                        visibility,
                         label: values.label || undefined,
                         contextNote: values.contextNote || undefined,
                         externalId: values.externalId || undefined,
@@ -870,8 +825,6 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
                       language: values.language,
                       mediaType: values.mediaType || undefined,
                       metadataJson: values.metadataJson?.trim() || undefined,
-                      visibility: Number(values.visibility) as VisibilityScope,
-                      markVerified: values.markVerified,
                     };
 
                     if (mode === "create") {
@@ -922,7 +875,7 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
                             <FormLabel>{translateText("File")}</FormLabel>
                             <ContextHint
                               content={translateText(
-                                "Upload uses a single presigned PUT URL and keeps the source private until worker verification completes.",
+                                "Upload uses a single presigned PUT URL and keeps the source pending until worker verification completes.",
                               )}
                               label={translateText("File upload details")}
                             />
@@ -1069,27 +1022,9 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
                   </div>
                   <FormSectionHeading
                     title="Classification"
-                    description="Set who can reuse the source and review detected source metadata."
+                    description="Set source language and review detected source metadata."
                   />
                   <div className="grid gap-4 md:grid-cols-2">
-                    <SelectField
-                      control={form.control}
-                      name="visibility"
-                      label="Visibility"
-                      description="Controls which audiences can see or reuse this source."
-                      options={
-                        isUploadMode
-                          ? uploadVisibilityOptions
-                          : visibilityOptions
-                      }
-                    />
-                    <TextField
-                      control={form.control}
-                      name="mediaType"
-                      label="Media type"
-                      description="Detected MIME type from the file or reachable external URL."
-                      readOnly
-                    />
                     <SearchSelectField
                       control={form.control}
                       name="language"
@@ -1112,19 +1047,22 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
                       label="External ID"
                       description="Identifier from the upstream connector, repository, or source system."
                     />
+                    <div className="md:col-span-2">
+                      <TextField
+                        control={form.control}
+                        name="mediaType"
+                        label="Media type"
+                        description="Detected MIME type from the file or reachable external URL."
+                        readOnly
+                      />
+                    </div>
                   </div>
                   <FormSectionHeading
                     title="Verification and metadata"
-                    description="Refresh verification state and keep optional structured metadata close to system fields."
+                    description="Review source state and keep optional structured metadata close to system fields."
                   />
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <SwitchField
-                      control={form.control}
-                      name="markVerified"
-                      label="Mark verified now"
-                      description="Set the verification timestamp when saving this source."
-                    />
-                    {mode === "edit" ? (
+                  {mode === "edit" ? (
+                    <div className="grid gap-4 md:grid-cols-2">
                       <TextField
                         control={form.control}
                         name="checksum"
@@ -1132,8 +1070,8 @@ export function SourceFormPage({ mode }: { mode: "create" | "edit" }) {
                         description="Read-only value generated by the backend from the locator."
                         readOnly
                       />
-                    ) : null}
-                  </div>
+                    </div>
+                  ) : null}
                   <MetadataJsonEditor form={form} />
                   <div className="flex flex-wrap items-center gap-3">
                     <Button type="submit" disabled={isSubmitting}>

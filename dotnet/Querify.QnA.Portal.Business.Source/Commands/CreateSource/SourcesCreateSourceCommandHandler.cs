@@ -26,7 +26,6 @@ public sealed class SourcesCreateSourceCommandHandler(
             Locator = request.Request.Locator,
             Language = request.Request.Language,
             Checksum = SourceChecksum.FromLocator(request.Request.Locator),
-            Visibility = request.Request.Visibility,
             CreatedBy = userId,
             UpdatedBy = userId
         };
@@ -50,14 +49,6 @@ public sealed class SourcesCreateSourceCommandHandler(
         entity.MediaType = request.MediaType;
         entity.Checksum = SourceChecksum.FromLocator(request.Locator);
         entity.MetadataJson = request.MetadataJson;
-
-        if (request.MarkVerified)
-        {
-            entity.LastVerifiedAtUtc = DateTime.UtcNow;
-        }
-
-        SourceRules.EnsureVisibilityAllowed(entity, request.Visibility);
-        entity.Visibility = request.Visibility;
         entity.UpdatedBy = userId;
     }
 }

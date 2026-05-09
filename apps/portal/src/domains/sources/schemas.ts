@@ -1,6 +1,4 @@
 import { z } from "zod";
-import { VisibilityScope } from "@/shared/constants/backend-enums";
-import { numericEnumSchema } from "@/shared/lib/zod";
 
 export const sourceFormSchema = z.object({
   locator: z.string().min(3, "Locator is required."),
@@ -38,8 +36,6 @@ export const sourceFormSchema = z.object({
         return false;
       }
     }, "Enter valid JSON."),
-  visibility: numericEnumSchema(VisibilityScope),
-  markVerified: z.boolean(),
 });
 
 export type SourceFormValues = z.infer<typeof sourceFormSchema>;

@@ -50,10 +50,6 @@ public class SourceConfiguration : BaseConfiguration<Source>
             .HasDefaultValue(SourceUploadStatus.None)
             .IsRequired();
 
-        builder.Property(source => source.Visibility)
-            .HasDefaultValue(VisibilityScope.Internal)
-            .IsRequired();
-
         builder.Property(source => source.TenantId)
             .IsRequired();
 

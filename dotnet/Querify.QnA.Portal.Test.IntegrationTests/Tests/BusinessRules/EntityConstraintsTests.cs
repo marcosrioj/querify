@@ -83,8 +83,6 @@ public class EntityConstraintsTests
             Label = "Missing checksum",
             Language = "en-US",
             Checksum = "",
-            Visibility = VisibilityScope.Internal,
-            LastVerifiedAtUtc = DateTime.UtcNow,
             CreatedBy = "test",
             UpdatedBy = "test"
         };

@@ -319,7 +319,6 @@ public sealed class VerifyUploadedSourceCommandHandler(
         string mediaType,
         CancellationToken cancellationToken)
     {
-        var verifiedAtUtc = DateTime.UtcNow;
         var updatedRows = await dbContext.Sources
             .Where(source => source.TenantId == entity.TenantId &&
                              source.Id == entity.Id &&
@@ -331,7 +330,6 @@ public sealed class VerifyUploadedSourceCommandHandler(
                     .SetProperty(source => source.Checksum, computedChecksum)
                     .SetProperty(source => source.SizeBytes, sizeBytes)
                     .SetProperty(source => source.MediaType, mediaType)
-                    .SetProperty(source => source.LastVerifiedAtUtc, verifiedAtUtc)
                     .SetProperty(source => source.UploadStatus, SourceUploadStatus.Verified)
                     .SetProperty(source => source.UpdatedBy, SystemUser),
                 cancellationToken);
@@ -349,7 +347,6 @@ public sealed class VerifyUploadedSourceCommandHandler(
         entity.Checksum = computedChecksum;
         entity.SizeBytes = sizeBytes;
         entity.MediaType = mediaType;
-        entity.LastVerifiedAtUtc = verifiedAtUtc;
         entity.UploadStatus = SourceUploadStatus.Verified;
         entity.UpdatedBy = SystemUser;
         return true;

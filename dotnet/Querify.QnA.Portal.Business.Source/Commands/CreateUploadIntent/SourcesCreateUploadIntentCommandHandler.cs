@@ -48,7 +48,6 @@ public sealed class SourcesCreateUploadIntentCommandHandler(
             SizeBytes = request.Dto.SizeBytes,
             Checksum = SourceChecksum.FromLocator(stagingKey),
             UploadStatus = SourceUploadStatus.Pending,
-            Visibility = request.Dto.Visibility,
             CreatedBy = userId,
             UpdatedBy = userId
         };
@@ -79,11 +78,6 @@ public sealed class SourcesCreateUploadIntentCommandHandler(
         if (request.SizeBytes <= 0 || request.SizeBytes > options.MaxUploadBytes)
             throw new ApiErrorException(
                 "Upload size exceeds the allowed limit.",
-                (int)HttpStatusCode.UnprocessableEntity);
-
-        if (request.Visibility is VisibilityScope.Public)
-            throw new ApiErrorException(
-                "Uploaded sources cannot be public before verification.",
                 (int)HttpStatusCode.UnprocessableEntity);
 
         if (!SourceRules.IsUploadContentTypeAllowed(request.ContentType, options.AllowedContentTypes) ||

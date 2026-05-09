@@ -150,8 +150,6 @@ public sealed class QuestionsGetQuestionQueryHandler(
                     Checksum = link.Source.Checksum,
                     MetadataJson = link.Source.MetadataJson,
                     UploadStatus = link.Source.UploadStatus,
-                    Visibility = link.Source.Visibility,
-                    LastVerifiedAtUtc = link.Source.LastVerifiedAtUtc,
                     LastUpdatedAtUtc = link.Source.UpdatedDate ?? link.Source.CreatedDate,
                     SpaceUsageCount = link.Source.Spaces.Count,
                     QuestionUsageCount = link.Source.Questions.Count,

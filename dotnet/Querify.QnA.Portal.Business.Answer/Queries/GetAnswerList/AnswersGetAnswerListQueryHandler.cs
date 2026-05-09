@@ -125,8 +125,6 @@ public sealed class AnswersGetAnswerListQueryHandler(
                             Checksum = source.Source.Checksum,
                             MetadataJson = source.Source.MetadataJson,
                             UploadStatus = source.Source.UploadStatus,
-                            Visibility = source.Source.Visibility,
-                            LastVerifiedAtUtc = source.Source.LastVerifiedAtUtc,
                             LastUpdatedAtUtc = source.Source.UpdatedDate ?? source.Source.CreatedDate,
                             SpaceUsageCount = source.Source.Spaces.Count,
                             QuestionUsageCount = source.Source.Questions.Count,

@@ -71,7 +71,6 @@ public class ExpirePendingSourceUploadsCommandHandlerTests
             SizeBytes = 12,
             Checksum = SourceChecksum.FromLocator(storageKey),
             UploadStatus = SourceUploadStatus.Pending,
-            Visibility = VisibilityScope.Internal,
             CreatedDate = createdAtUtc,
             CreatedBy = "test",
             UpdatedBy = "test"

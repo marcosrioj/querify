@@ -18,36 +18,6 @@ public static class SourceRules
             ["text/markdown"] = [".md", ".markdown"]
         };
 
-    public static void EnsureVisibilityAllowed(Source entity, VisibilityScope visibility)
-    {
-        if (visibility is not VisibilityScope.Public) return;
-
-        if (entity.StorageKey is null && entity.LastVerifiedAtUtc is null)
-            throw new ApiErrorException(
-                "Sources must be verified before public exposure.",
-                (int)HttpStatusCode.UnprocessableEntity);
-
-        EnsurePublicVisibilityAllowedForUploadStatus(entity, visibility);
-    }
-
-    public static void EnsurePublicVisibilityAllowedForUploadStatus(Source source,
-        VisibilityScope visibility)
-    {
-        if (visibility is not VisibilityScope.Public || source.StorageKey is null)
-        {
-            return;
-        }
-
-        if (source.UploadStatus is SourceUploadStatus.Verified)
-        {
-            return;
-        }
-
-        throw new ApiErrorException(
-            "Uploaded sources must be verified before public exposure.",
-            (int)HttpStatusCode.UnprocessableEntity);
-    }
-
     public static void EnsureStorageKeyIsDownloadable(Source source)
     {
         EnsureStorageKeyIsDownloadable(source.StorageKey, source.UploadStatus);
@@ -117,17 +87,4 @@ public static class SourceRules
         return contentType.Split(';', 2)[0].Trim().ToLowerInvariant();
     }
 
-    public static void EnsureReferenceSupportsPublicVisibility(
-        VisibilityScope ownerVisibility,
-        Source source,
-        SourceRole role)
-    {
-        if (ownerVisibility is not VisibilityScope.Public) return;
-
-        if (role is SourceRole.Reference &&
-            source.Visibility is not VisibilityScope.Public)
-            throw new ApiErrorException(
-                "Public references require a publicly visible source.",
-                (int)HttpStatusCode.UnprocessableEntity);
-    }
 }

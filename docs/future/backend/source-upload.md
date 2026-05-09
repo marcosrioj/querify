@@ -30,10 +30,7 @@ The `Source` entity already supports the shape needed for a hosted file:
 | `MediaType` (optional, max 100) | declared content type | declared content type during `Pending`, resolved content type after `HEAD` |
 | `Checksum` (required, max 128) | `sha256:<hex of locator>` placeholder | real `sha256:<hex of file bytes>` after worker verification |
 | `MetadataJson` (optional, max 8000) | free-form JSON | reserved for extracted metadata |
-| `LastVerifiedAtUtc` (optional) | manual verification timestamp | set by the worker after verification |
 | `SizeBytes` (new) | not present | expected size during `Pending`, confirmed size after `upload-complete` |
-| `Visibility` | audience exposure | unchanged; still gated by `SourceRules.EnsureVisibilityAllowed` |
-| `Kind` | artifact type (`Pdf`, `Video`, ...) | **unchanged** — the kind describes the artifact, not the origin |
 
 Implemented runtime pieces:
 
@@ -75,7 +72,6 @@ Portal (React)              QnA Portal API                Object Storage        
                             validate size/type
                             persist SizeBytes/MediaType
                             UploadStatus = Uploaded
-                            UploadChecksum = optional client checksum
                             publish SourceUploadCompleted ─────────────────────────► RabbitMQ
                                                                                     consume event
                                                                                     service sends command
@@ -85,7 +81,6 @@ Portal (React)              QnA Portal API                Object Storage        
                                                                                     copy to verified/
                                                                                     delete staging/
                                                                                     UploadStatus = Verified
-                                                                                    LastVerifiedAtUtc
                                                                                     publish status changed
                             consume status changed
                             SignalR tenant notification ───────────────────────────► Portal UI
@@ -182,7 +177,7 @@ because `StorageKey` does not reference another tenant-owned record (per the
 Body: `SourceUploadIntentRequestDto`
 
 ```
-{ FileName, ContentType, SizeBytes, Kind, Language, Visibility, Label?, ContextNote? }
+{ FileName, ContentType, SizeBytes, Language, Label?, ContextNote?, ExternalId?, MetadataJson? }
 ```
 
 Returns `SourceUploadIntentResponseDto { SourceId, UploadUrl, RequiredHeaders, StorageKey,
@@ -196,20 +191,18 @@ Handler is a command with a documented playbook exception
    `image/png`, `image/jpeg`, `video/mp4`, `text/plain`, `text/markdown` initially).
 3. Validate `0 < SizeBytes <= SourceUploadOptions.MaxUploadBytes` (50 MB default;
    configurable).
-4. Reject `Visibility.Public` while creating an uploaded source. The source can be made public only
-   after it is `Verified`.
-5. Generate `sourceId = Guid.NewGuid()`.
-6. Build `stagingKey = SourceStorageKey.BuildStagingKey(tenantId, sourceId, fileName)`.
-7. Create `Source` with:
+4. Generate `sourceId = Guid.NewGuid()`.
+5. Build `stagingKey = SourceStorageKey.BuildStagingKey(tenantId, sourceId, fileName)`.
+6. Create `Source` with:
    - `UploadStatus = Pending`
    - `Locator = stagingKey`
    - `Checksum = SourceChecksum.FromLocator(stagingKey)` (placeholder; the worker overwrites this)
    - `StorageKey = stagingKey`
    - `MediaType = request.ContentType` (declared type; worker later confirms content)
    - `SizeBytes = request.SizeBytes` (expected size while `Pending`)
-8. Persist the pending source.
-9. `presign = await objectStorage.PresignPutAsync(stagingKey, contentType, request.SizeBytes, ct)`.
-10. Return `SourceUploadIntentResponseDto { SourceId, UploadUrl, RequiredHeaders, StorageKey,
+7. Persist the pending source.
+8. `presign = await objectStorage.PresignPutAsync(stagingKey, contentType, request.SizeBytes, ct)`.
+9. Return `SourceUploadIntentResponseDto { SourceId, UploadUrl, RequiredHeaders, StorageKey,
     ExpiresAtUtc }`.
 
 Playbook exception:
@@ -226,7 +219,6 @@ Playbook exception:
 Failure modes:
 - Invalid content type → `422 Unprocessable Entity` via `ApiErrorException`.
 - Oversized request → `422`.
-- `Visibility.Public` before verification → `422`.
 - Storage unreachable → `503 Service Unavailable` (`ApiErrorException`).
 
 Required upload headers:
@@ -251,11 +243,12 @@ Handler is a real command (`IRequestHandler<TCommand, Guid>`):
 5. If `head.SizeBytes != entity.SizeBytes` or
    `head.SizeBytes > SourceUploadOptions.MaxUploadBytes`, delete the staging object, set
    `UploadStatus = Failed`, persist, and return `422`.
-6. If `head.ContentType` is missing, not allowlisted for the declared source kind, or does not
+6. If `head.ContentType` is missing, not allowlisted, or does not
    match the declared `MediaType`, delete the staging object, set `UploadStatus = Failed`,
    persist, and return `422`.
 7. Persist `SizeBytes = head.SizeBytes`, `MediaType = head.ContentType`,
-   `UploadChecksum = ClientChecksum`, `UploadStatus = Uploaded`, `UpdatedBy = userId`.
+   `Checksum = ClientChecksum ?? SourceChecksum.FromLocator(entity.Locator)`,
+   `UploadStatus = Uploaded`, `UpdatedBy = userId`.
 8. After the database save succeeds, publish `SourceUploadCompletedIntegrationEvent`. If this
    publish fails after the commit, the row can remain `Uploaded`; a future low-frequency
    reconciliation job can use Hangfire to find and re-enqueue those stuck sources.
@@ -335,7 +328,6 @@ Command (`VerifyUploadedSourceCommandHandler` in
    - conditionally update `StorageKey = verifiedKey`, `Locator = verifiedKey`
    - `Checksum = "sha256:<hex>"`
    - `SizeBytes = head.SizeBytes`
-   - `LastVerifiedAtUtc = DateTime.UtcNow`
    - `UploadStatus = Verified`
    - `UpdatedBy = "system:qna-worker"`
    - persist, then delete the staging object.
@@ -489,7 +481,7 @@ workflow, and not a Trust validation shortcut.
 DELIVERABLES
 
 1) Run inventory searches:
-   rg -n "Source|SourceKind|SourceRole|Visibility|Locator|Checksum|MediaType|LastVerifiedAtUtc" dotnet apps docs
+   rg -n "Source|SourceRole|Locator|Checksum|MediaType|StorageKey|UploadStatus" dotnet apps docs
    rg --files dotnet/Querify.Models.QnA dotnet/Querify.QnA.Common.Domain dotnet/Querify.QnA.Common.Persistence.QnADb apps/portal/src/domains
 
 2) Capture the current owning surfaces:
@@ -502,8 +494,8 @@ DELIVERABLES
    - Portal source screens, hooks, API client, and locale keys
 
 3) Confirm canonical concepts:
-   - `SourceKind` remains artifact type.
-   - `Visibility` remains audience exposure.
+   - Upload artifact classification is represented by `MediaType`.
+   - Source audience exposure is no longer part of the Source model.
    - Upload origin is represented by nullable `StorageKey`.
    - Upload workflow is represented by `SourceUploadStatus`.
    - `Locator` remains the current opaque locator and mirrors `StorageKey` for uploaded sources.
@@ -672,9 +664,9 @@ model + DTOs + EF only; no handlers, controllers, or frontend.
 DESIGN PRINCIPLES
 - Keep `Locator` as the opaque key: external URL for URL sources, storage
   key for uploaded sources.
-- Do not introduce a new SourceKind for "uploaded" — Kind describes the
-  ARTIFACT (Pdf/Video/...), not the origin (playbook Step 2). Origin is
-  derived from the presence of StorageKey.
+- Do not reintroduce an artifact-kind field; the content type and upload
+  status describe uploaded artifacts, and origin is derived from the presence
+  of `StorageKey`.
 - Source remains anemic (repository-rules §6).
 
 DELIVERABLES
@@ -706,9 +698,9 @@ DELIVERABLES
 3) dotnet/Querify.Models.QnA/Dtos/Source/ — NEW DTOs (feature-folder layout,
    repository-rules §7):
    - SourceUploadIntentRequestDto.cs:
-       string FileName, string ContentType, long SizeBytes, SourceKind Kind,
-       string Language, VisibilityScope Visibility, string? Label,
-       string? ContextNote
+       string FileName, string ContentType, long SizeBytes, string Language,
+       string? Label, string? ContextNote, string? ExternalId,
+       string? MetadataJson
    - SourceUploadIntentResponseDto.cs:
        Guid SourceId, string UploadUrl,
        IReadOnlyDictionary<string,string> RequiredHeaders, string StorageKey,
@@ -746,11 +738,6 @@ DELIVERABLES
      "{tenantId}/sources/{sourceId}/quarantine/{sanitized}"
 
 6) dotnet/Querify.QnA.Common.Domain/BusinessRules/Sources/SourceRules.cs
-   Add:
-     EnsurePublicVisibilityAllowedForUploadStatus(Source source,
-         VisibilityScope visibility)
-   Allow Visibility.Public only when UploadStatus == Verified or
-   StorageKey == null (URL source with LastVerifiedAtUtc).
    Add EnsureStorageKeyIsDownloadable(Source source) used by download-url:
    StorageKey must be non-null, UploadStatus must be Verified, and the key
    must contain `/verified/`.
@@ -844,8 +831,6 @@ Shared options:
      image/jpeg, video/mp4, text/plain, text/markdown). 422 on mismatch.
    - add SourceUploadOptions with MaxUploadBytes default 50 MB, bind from
      configuration, and validate 0 < SizeBytes <= MaxUploadBytes.
-   - reject Visibility.Public; uploaded sources can be made public only after
-     UploadStatus == Verified.
    - sourceId = Guid.NewGuid()
    - stagingKey = SourceStorageKey.BuildStagingKey(tenantId, sourceId,
      fileName)
@@ -853,7 +838,7 @@ Shared options:
        StorageKey = stagingKey,
        Locator = stagingKey,
        Checksum = SourceChecksum.FromLocator(stagingKey),
-       Kind, Language, Visibility, Label, ContextNote,
+       Language, Label, ContextNote, ExternalId, MetadataJson,
        MediaType = request.ContentType, SizeBytes = request.SizeBytes,
        TenantId, CreatedBy, UpdatedBy }
    - dbContext.Sources.Add; SaveChangesAsync
@@ -875,12 +860,12 @@ Shared options:
    - if head.SizeBytes != entity.SizeBytes or head.SizeBytes >
      SourceUploadOptions.MaxUploadBytes: DeleteAsync(entity.StorageKey), set
      Failed, save, 422.
-   - if head.ContentType is missing, not allowlisted for the Source.Kind, or
+   - if head.ContentType is missing, not allowlisted, or
      does not match entity.MediaType: DeleteAsync(entity.StorageKey), set
      Failed, save, 422.
    - entity.SizeBytes = head.SizeBytes
    - entity.MediaType = head.ContentType
-   - entity.UploadChecksum = request.ClientChecksum
+   - entity.Checksum = request.ClientChecksum ?? SourceChecksum.FromLocator(entity.Locator)
    - entity.UploadStatus = SourceUploadStatus.Uploaded
    - entity.UpdatedBy = userId
    - SaveChangesAsync. After the database save succeeds, publish
@@ -892,10 +877,8 @@ Shared options:
    - SourcesGetDownloadUrlQuery.cs
        : IRequest<SourceDownloadUrlDto> { Guid Id }
    - SourcesGetDownloadUrlQueryHandler.cs
-   - AsNoTracking, Select { StorageKey, Visibility, UploadStatus, TenantId }.
+   - AsNoTracking, Select { StorageKey, UploadStatus, TenantId }.
    - Filter by TenantId; 404 if missing.
-   - Apply the existing Source visibility/access rules for the current Portal
-     user before signing.
    - 422 if StorageKey == null (URL source: client should use Locator
      directly).
    - 422 if UploadStatus != Verified.
@@ -982,7 +965,7 @@ async processing to:
 3. Validate magic bytes / real file family against the allowlist.
 4. Run malware scanning before any uploaded file becomes downloadable.
 5. Copy trusted bytes from `staging/` to `verified/`, delete staging, and set
-   LastVerifiedAtUtc + UploadStatus = Verified.
+   `UploadStatus = Verified`.
 6. Move unsafe bytes to `quarantine/` and set UploadStatus = Quarantined.
 
 ARCHITECTURAL DECISION
@@ -1043,11 +1026,11 @@ DELIVERABLES (assuming a dedicated worker)
    - using IObjectStorage.OpenReadAsync(stagingKey), compute SHA-256 in
      stream (do NOT materialize the full blob; use IncrementalHash)
    - re-confirm SizeBytes via HeadAsync
-   - validate magic bytes and real type against entity.Kind/entity.MediaType
+   - validate magic bytes and real type against entity.MediaType
    - run IUploadThreatScanner. In Development, NoopUploadThreatScanner is
      allowed only when SourceUpload:ThreatScanningMode=Noop. In production,
      fail startup unless a real scanner mode is configured.
-   - if UploadChecksum was provided and does not match: UploadStatus =
+   - if a client checksum was provided and does not match: UploadStatus =
      Failed, DeleteAsync(stagingKey), log warning, persist, return without
      rethrowing (no retry).
    - if magic/type validation fails: UploadStatus = Failed,
@@ -1061,8 +1044,8 @@ DELIVERABLES (assuming a dedicated worker)
      CopyAsync(stagingKey, verifiedKey); DeleteAsync(stagingKey);
      entity.StorageKey = verifiedKey; entity.Locator = verifiedKey;
      entity.Checksum = "sha256:..."; entity.SizeBytes = head.SizeBytes;
-     entity.LastVerifiedAtUtc = DateTime.UtcNow; entity.UploadStatus =
-     SourceUploadStatus.Verified; entity.UpdatedBy = "system:qna-worker"
+     entity.UploadStatus = SourceUploadStatus.Verified;
+     entity.UpdatedBy = "system:qna-worker"
    - SaveChangesAsync
 
    PendingSourceUploadExpiryHostedService:
@@ -1143,7 +1126,7 @@ DELIVERABLES
 1) dotnet/Querify.Tools.Seed/Application/QnASeedCatalog.*.cs
    Locate the existing Source catalog file. Add 2 deterministic Source
    examples with simulated upload state:
-   - "Manual de produto.pdf" — Kind=Pdf, StorageKey under `/verified/`,
+   - "Manual de produto.pdf" — StorageKey under `/verified/`,
      SizeBytes, UploadStatus=Verified, deterministic SHA-256 Checksum
    - "Política de privacidade.pdf" — second example
    The seed must NOT actually upload to MinIO; it only populates the entity
@@ -1269,8 +1252,6 @@ DELIVERABLES
    create form:
    - segmented control: "External URL" | "File upload"
    - upload mode: <input type="file"> + name/size/MIME preview
-   - upload mode must not allow `Visibility.Public`; public exposure is an
-     edit action after `UploadStatus == Verified`.
    - on submit: createSourceUploadIntent → uploadSourceFile (with progress
      state) → completeSourceUpload → redirect to detail.
    - Follow portal-app-ui-prompt-guidance:

@@ -38,8 +38,8 @@
   - Confirmed Source integration coverage currently exists in `Querify.QnA.Portal.Test.IntegrationTests/Tests/Source/SourceCommandQueryTests.cs`.
   - Confirmed Portal Source UI surfaces are `apps/portal/src/domains/sources/types.ts`, `api.ts`, `hooks.ts`, `schemas.ts`, `source-form-page.tsx`, `source-detail-page.tsx`, and `source-list-page.tsx`, with enum mirrors/presentation in `shared/constants/backend-enums.ts` and `enum-ui.ts`, and copy in locale JSON files.
 - Canonical concepts confirmed:
-  - `SourceKind` remains the artifact/material type.
-  - `VisibilityScope` remains audience exposure and must not become upload workflow state.
+  - `MediaType` represents the artifact/material format.
+  - `VisibilityScope` remains audience exposure for Spaces, Questions, and Answers; it is not Source workflow state.
   - Upload origin will be represented by nullable `StorageKey`.
   - Upload workflow will be represented by `SourceUploadStatus`.
   - `Locator` remains the current opaque locator and mirrors `StorageKey` for uploaded sources.
@@ -50,15 +50,15 @@
   - `wc -l docs/backend/architecture/qna-domain-boundary.md docs/backend/architecture/repository-rules.md` - pass.
   - `sed -n '1,260p' docs/backend/architecture/qna-domain-boundary.md` - pass.
   - `sed -n '1,260p' docs/backend/architecture/repository-rules.md` - pass.
-  - `rg -n "Source|SourceKind|SourceRole|Visibility|Locator|Checksum|MediaType|LastVerifiedAtUtc" dotnet apps docs` - pass; broad output truncated by the shell tool after confirming matches.
+  - `rg -n "Source|SourceRole|Locator|Checksum|MediaType|StorageKey|UploadStatus" dotnet apps docs` - pass; broad output truncated by the shell tool after confirming matches.
   - `rg --files dotnet/Querify.Models.QnA dotnet/Querify.QnA.Common.Domain dotnet/Querify.QnA.Common.Persistence.QnADb apps/portal/src/domains` - pass.
   - `rg --files dotnet | rg "(Business\\.Source|SourceController|SourceService|SourceCommand|SourceQuery|SourceFactory|SourceSeed|QnASeed|Source.*Tests|Tests/Source|Source/)"` - pass.
   - `rg -n "class Source|record Source|interface ISourceService|SourceController|Sources?Create|Sources?Update|Sources?Get|Sources?Delete|SourceDto|SourceDetailDto|SourceCreateRequestDto|SourceUpdateRequestDto" dotnet/Querify.QnA.* dotnet/Querify.Models.QnA dotnet/Querify.Tools.Seed` - pass.
   - `rg --files apps/portal/src/domains/sources apps/portal/src/shared/constants apps/portal/src/shared/lib/i18n/locales | rg "(sources|backend-enums|enum-ui|en-US)"` - pass.
   - Targeted `sed` reads of Source entity, EF configuration, rules, checksum helper, DTOs, Portal handlers/service/controller/extension, tests, seed code, Portal Source files, enum files, and public/portal Source projections - pass.
 - Manual verification performed:
-  - Verified current Source CRUD computes checksum from locator and uses `LastVerifiedAtUtc` to gate public visibility.
-  - Verified `SourceTenantIntegrityExtension` repeats public visibility safeguards at save time.
+  - Verified current Source CRUD computes checksum from locator.
+  - Verified `SourceTenantIntegrityExtension` enforces non-empty Source checksum at save time.
   - Verified no current upload-specific persisted fields, DTOs, endpoints, storage abstraction, or worker exist.
 - Intentional pending work:
   - Step 2 storage infrastructure.
@@ -198,7 +198,7 @@
   - `dotnet build dotnet/Querify.QnA.Public.Business.Question -v minimal` - pass.
   - `git status --short` - pass; shows expected Step 0-3 changes.
 - Manual verification performed:
-  - Verified `SourceKind` remains artifact type and no upload-origin enum value was added.
+  - Verified artifact format is represented by `MediaType` and no upload-origin enum value was added.
   - Verified upload origin is nullable `StorageKey` and `Locator` can mirror it for uploaded sources.
   - Verified `SourceStorageKey` strips paths, sanitizes filenames to `[a-zA-Z0-9._-]`, and rejects malformed conversion input.
   - Verified `EnsureStorageKeyIsDownloadable` requires non-null `StorageKey`, `UploadStatus == Verified`, and a verified key segment.
@@ -291,7 +291,7 @@
     - validates magic bytes/file family;
     - runs `IUploadThreatScanner` before verification;
     - moves unsafe files to `/quarantine/`;
-    - moves trusted files to `/verified/`, deletes staging, sets `Checksum`, `LastVerifiedAtUtc`, and `UploadStatus=Verified`.
+    - moves trusted files to `/verified/`, deletes staging, sets `Checksum` and `UploadStatus=Verified`.
   - Added `NoopUploadThreatScanner` for Development only when `SourceUpload:ThreatScanningMode=Noop`.
   - Added startup failure for `Noop` outside Development and for any unsupported scanner mode, so production cannot silently run without malware scanning.
   - Added `ExpirePendingSourceUploadsCommandHandler` and `PendingSourceUploadExpiryHostedService`.
@@ -460,7 +460,7 @@
   - `npm run build` in `apps/portal` - pass.
   - `git status --short` - pass; shows expected implementation changes.
 - Manual verification performed:
-  - Static verification that upload mode does not expose `Visibility.Public`.
+  - Static verification that upload mode only exposes upload state and metadata controls.
   - Static verification that download action is gated on `StorageKey != null` and `UploadStatus == Verified`.
   - Static verification that `uploadSourceFile` uses XHR progress and no multipart, chunking, resumable, or stream-through fallback behavior.
 - Intentional pending work:
@@ -627,7 +627,7 @@
 - Step attempted: post-Step 8 architecture follow-up replacing Source upload RabbitMQ/outbox relay with persisted Hangfire.
 - Scope completed:
   - Removed `SourceUploadedOutboxMessage`, `SourceUploadOutboxStatus`, `SourceUploadedIntegrationEvent`, MassTransit consumer, source-upload outbox processor service, and outbox publisher hosted service from the Source upload flow.
-  - Added `Source.UploadChecksum` so optional client checksums survive `upload-complete` until worker verification without requiring an outbox row.
+  - Reused `Source.Checksum` so optional client checksums survive `upload-complete` until worker verification without requiring an outbox row.
   - Migrated `Querify.QnA.Worker.Api` to `Querify.Common.Infrastructure.Hangfire` with PostgreSQL-backed Hangfire storage and queue `qna-source-upload`.
   - Added `SourceUploadVerificationBackgroundService` as the Hangfire adapter.
   - Added `SourceUploadVerificationSweepService` for telemetry plus MediatR dispatch.

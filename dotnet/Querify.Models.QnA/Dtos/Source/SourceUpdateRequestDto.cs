@@ -1,5 +1,3 @@
-using Querify.Models.QnA.Enums;
-
 namespace Querify.Models.QnA.Dtos.Source;
 
 public class SourceUpdateRequestDto
@@ -11,6 +9,4 @@ public class SourceUpdateRequestDto
     public required string Language { get; set; }
     public string? MediaType { get; set; }
     public string? MetadataJson { get; set; }
-    public required VisibilityScope Visibility { get; set; }
-    public required bool MarkVerified { get; set; }
 }

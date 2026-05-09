@@ -16,9 +16,7 @@ import type { SourceDto } from "@/domains/sources/types";
 import { useRemoveSpaceSource, useSpace } from "@/domains/spaces/hooks";
 import {
   SourceRole,
-  VisibilityScope,
   sourceUploadStatusLabels,
-  visibilityScopeLabels,
 } from "@/shared/constants/backend-enums";
 import { ListLayout, PageHeader } from "@/shared/layout/page-layouts";
 import { translateText } from "@/shared/lib/i18n-core";
@@ -49,7 +47,6 @@ import { EmptyState, ErrorState } from "@/shared/ui/placeholder-state";
 import {
   SourceRoleBadge,
   SourceUploadStatusBadge,
-  VisibilityBadge,
 } from "@/shared/ui/status-badges";
 
 const sortingOptions = [
@@ -57,8 +54,6 @@ const sortingOptions = [
   { value: "LastUpdatedAtUtc ASC", label: "Last update oldest" },
   { value: "Label ASC", label: "Label A-Z" },
   { value: "Label DESC", label: "Label Z-A" },
-  { value: "LastVerifiedAtUtc DESC", label: "Verification newest" },
-  { value: "LastVerifiedAtUtc ASC", label: "Verification oldest" },
   { value: "Locator ASC", label: "Locator" },
   { value: "Locator DESC", label: "Locator Z-A" },
   { value: "LinkedRecordCount DESC", label: "Linked records high-low" },
@@ -73,7 +68,6 @@ const sortingOptions = [
 
 const SOURCE_FILTER_DEFAULTS = {
   uploadStatus: "all",
-  visibility: "all",
 } as const;
 
 type SourceRelationshipKind = "space" | "question" | "answer";
@@ -109,25 +103,16 @@ function sourceMatchesFilters(
   {
     searchText,
     uploadStatusFilter,
-    visibilityFilter,
   }: {
     searchText: string;
     uploadStatusFilter: string;
-    visibilityFilter: string;
   },
 ) {
   const matchesUploadStatus =
     uploadStatusFilter === "all" ||
     source.uploadStatus === Number(uploadStatusFilter);
-  const matchesVisibility =
-    visibilityFilter === "all" ||
-    source.visibility === Number(visibilityFilter);
 
-  return (
-    matchesUploadStatus &&
-    matchesVisibility &&
-    sourceMatchesSearch(source, searchText)
-  );
+  return matchesUploadStatus && sourceMatchesSearch(source, searchText);
 }
 
 function compareText(
@@ -170,11 +155,6 @@ function sortSources(sources: SourceListRow[], sorting: string) {
           compareText(right.label, left.label) ||
           compareText(left.locator, right.locator)
         );
-      case "lastverifiedatutc asc":
-      case "lastverifiedatutc":
-        return compareDate(left.lastVerifiedAtUtc, right.lastVerifiedAtUtc);
-      case "lastverifiedatutc desc":
-        return compareDate(right.lastVerifiedAtUtc, left.lastVerifiedAtUtc);
       case "locator asc":
       case "locator":
         return compareText(left.locator, right.locator);
@@ -249,21 +229,14 @@ export function SourceListPage() {
     filterDefaults: SOURCE_FILTER_DEFAULTS,
   });
   const uploadStatusFilter = filters.uploadStatus;
-  const visibilityFilter = filters.visibility;
-  const apiVisibility =
-    visibilityFilter === "all" ? undefined : Number(visibilityFilter);
-  const quickAllActive =
-    uploadStatusFilter === "all" &&
-    visibilityFilter === "all";
+  const quickAllActive = uploadStatusFilter === "all";
   const activeFilterCount = [
     search.trim(),
     uploadStatusFilter !== "all",
-    visibilityFilter !== "all",
   ].filter(Boolean).length;
-  const refinementFilterCount = [
-    uploadStatusFilter !== "all",
-    visibilityFilter !== "all",
-  ].filter(Boolean).length;
+  const refinementFilterCount = [uploadStatusFilter !== "all"].filter(
+    Boolean,
+  ).length;
   const clearFilters = () => resetFilters();
 
   const spaceQuery = useSpace(spaceId || undefined);
@@ -274,7 +247,6 @@ export function SourceListPage() {
     pageSize,
     sorting,
     searchText: debouncedSearch || undefined,
-    visibility: apiVisibility,
     enabled: !relationshipActive,
   });
   const deleteSource = useDeleteSource();
@@ -342,14 +314,14 @@ export function SourceListPage() {
           sourceMatchesFilters(source, {
             searchText: debouncedSearch,
             uploadStatusFilter,
-            visibilityFilter,
           }),
         ),
         sorting,
       )
-    : ((sourceQuery.data?.items ?? []) as SourceListRow[]).filter((source) =>
-        uploadStatusFilter === "all" ||
-        source.uploadStatus === Number(uploadStatusFilter),
+    : ((sourceQuery.data?.items ?? []) as SourceListRow[]).filter(
+        (source) =>
+          uploadStatusFilter === "all" ||
+          source.uploadStatus === Number(uploadStatusFilter),
       );
   const relationshipLoading =
     (spaceId && spaceQuery.isLoading && !spaceQuery.data) ||
@@ -409,9 +381,6 @@ export function SourceListPage() {
     sourceQuery.data?.totalCount,
   ]);
 
-  const publicSourceCount = sourceRows.filter(
-    (source) => source.visibility === VisibilityScope.Public,
-  ).length;
   const linkedRecordCount = sourceRows.reduce(
     (total, source) =>
       total +
@@ -470,20 +439,15 @@ export function SourceListPage() {
       ),
     },
     {
-      key: "visibility",
-      header: "Visibility",
-      className: "xl:w-[120px]",
-      cell: (source) => (
-        <VisibilityBadge visibility={source.visibility} />
-      ),
-    },
-    {
       key: "origin",
       header: "Origin",
       className: "xl:w-[130px]",
       cell: (source) => (
         <div className="space-y-2">
-          <Badge variant={source.storageKey ? "info" : "outline"} appearance="outline">
+          <Badge
+            variant={source.storageKey ? "info" : "outline"}
+            appearance="outline"
+          >
             {translateText(source.storageKey ? "File" : "URL")}
           </Badge>
           <SourceUploadStatusBadge status={source.uploadStatus} />
@@ -534,20 +498,6 @@ export function SourceListPage() {
             </Badge>
           </div>
         ),
-    },
-    {
-      key: "lastVerifiedAtUtc",
-      header: "Verified",
-      className: "xl:w-[128px]",
-      cell: (source) => (
-        <span className="break-words text-sm text-muted-foreground">
-          {formatOptionalDateTimeInTimeZone(
-            source.lastVerifiedAtUtc,
-            portalTimeZone,
-            translateText("Not verified"),
-          )}
-        </span>
-      ),
     },
     {
       key: "lastUpdatedAtUtc",
@@ -690,49 +640,15 @@ export function SourceListPage() {
                   onClick={() => {
                     setFilters({
                       uploadStatus: "all",
-                      visibility: "all",
                     });
                   }}
                 >
                   {translateText("All")}
                 </ListFilterChip>
-                <ListFilterChip
-                  active={visibilityFilter === String(VisibilityScope.Public)}
-                  onClick={() =>
-                    setFilter(
-                      "visibility",
-                      visibilityFilter === String(VisibilityScope.Public)
-                        ? "all"
-                        : String(VisibilityScope.Public),
-                    )
-                  }
-                >
-                  {translateText("Public")}
-                </ListFilterChip>
               </ListFilterChipRail>
             </ListFilterSection>
             <ListFilterToolbar isLoading={filtersLoading}>
-              <div className="grid w-full gap-3 md:grid-cols-2 xl:grid-cols-3">
-                <ListFilterField label="Visibility">
-                  <Select
-                    value={visibilityFilter}
-                    onValueChange={(value) => setFilter("visibility", value)}
-                  >
-                    <SelectTrigger className="w-full" size="lg">
-                      <SelectValue placeholder={translateText("Visibility")} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All visibility</SelectItem>
-                      {Object.entries(visibilityScopeLabels).map(
-                        ([value, label]) => (
-                          <SelectItem key={value} value={value}>
-                            {translateText(label)}
-                          </SelectItem>
-                        ),
-                      )}
-                    </SelectContent>
-                  </Select>
-                </ListFilterField>
+              <div className="grid w-full gap-3 md:grid-cols-2">
                 <ListFilterField label="Upload status">
                   <Select
                     value={uploadStatusFilter}
@@ -755,10 +671,7 @@ export function SourceListPage() {
                     </SelectContent>
                   </Select>
                 </ListFilterField>
-                <ListFilterField
-                  label="Sort"
-                  className="md:col-span-2 xl:col-span-1"
-                >
+                <ListFilterField label="Sort">
                   <Select value={sorting} onValueChange={setSorting}>
                     <SelectTrigger className="w-full" size="lg">
                       <SelectValue
@@ -785,7 +698,7 @@ export function SourceListPage() {
         description={
           relationshipActive
             ? "This list is scoped to the selected relationship. Detach removes the link, not the source record."
-            : "Open a source to review visibility and external identifiers."
+            : "Open a source to review locator, metadata, and external identifiers."
         }
         descriptionMode="hint"
         columns={columns}
@@ -824,12 +737,6 @@ export function SourceListPage() {
                         })
                       : "Reusable source records in this workspace",
                   tone: "primary",
-                },
-                {
-                  label: "Public",
-                  value: publicSourceCount,
-                  description: "Sources visible without authentication",
-                  tone: "info",
                 },
                 {
                   label: relationshipActive ? "Context" : "Linked records",

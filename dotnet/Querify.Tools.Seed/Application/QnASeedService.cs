@@ -193,8 +193,6 @@ public sealed class QnASeedService : IQnASeedService
                 source = "seed",
                 storage = "synthetic"
             }),
-            Visibility = VisibilityScope.Internal,
-            LastVerifiedAtUtc = SeedBaseTimeUtc,
             UploadStatus = SourceUploadStatus.Verified,
             CreatedBy = "seed",
             UpdatedBy = "seed"
@@ -215,13 +213,10 @@ public sealed class QnASeedService : IQnASeedService
             MediaType = ResolveMediaType(item),
             Checksum = BuildChecksum(item),
             MetadataJson = BuildSourceMetadataJson(item),
-            Visibility = VisibilityScope.Public,
-            LastVerifiedAtUtc = BuildVerifiedAtUtc(item),
             CreatedBy = "seed",
             UpdatedBy = "seed"
         };
 
-        SourceRules.EnsureVisibilityAllowed(source, source.Visibility);
         return source;
     }
 

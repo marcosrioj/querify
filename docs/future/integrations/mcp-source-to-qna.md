@@ -65,27 +65,25 @@ use case and must be populated by the pipeline.
 
 | Field | Value set by pipeline |
 |---|---|
-| `Kind` | Determined from URL or tool parameter (see table below) |
 | `Locator` | The URL |
 | `Label` | Page title extracted from HTML |
 | `Language` | From tool parameter |
+| `MediaType` | Determined from URL response or tool parameter (see table below) |
 | `Checksum` | SHA-256 of the raw fetched content |
 | `MetadataJson` | Generation metadata (see convention below) |
-| `Visibility` | `Internal` |
-| `LastVerifiedAtUtc` | Time of fetch |
 
-### SourceKind selection
+### Source media type selection
 
-| Source type | `SourceKind` value |
+| Source type | `MediaType` value |
 |---|---|
-| Blog post, help article | `Article` (1) |
-| Documentation page, general web page | `WebPage` (2) |
-| PDF document | `Pdf` (3) |
-| Video transcript | `Video` (4) |
-| README, changelog, code file | `Repository` (5) |
-| Release note, product update | `ProductNote` (6) |
-| Internal wiki, Notion, Confluence | `InternalNote` (7) |
-| Policy, contract, terms | `GovernanceRecord` (8) |
+| Blog post, help article | `text/html` |
+| Documentation page, general web page | `text/html` |
+| PDF document | `application/pdf` |
+| Video transcript | `text/plain` |
+| README, changelog, code file | `text/markdown` or `text/plain` |
+| Release note, product update | `text/html` |
+| Internal wiki, Notion, Confluence | `text/html` |
+| Policy, contract, terms | `application/pdf` or `text/html` |
 | Audit log, decision record | `AuditRecord` (9) |
 
 ### `MetadataJson` convention
@@ -135,7 +133,7 @@ public async Task<string> ImportSource(
     [McpServerToolParameter] Guid tenantId,
     [McpServerToolParameter(Description = "URL of the source")] string url,
     [McpServerToolParameter(Description = "Target space ID")] Guid spaceId,
-    [McpServerToolParameter] SourceKind sourceKind = SourceKind.WebPage,
+    [McpServerToolParameter] string sourceMediaType = "text/html",
     [McpServerToolParameter] int maxPairs = 5,
     [McpServerToolParameter] string language = "en",
     CancellationToken ct = default)
@@ -150,7 +148,7 @@ public async Task<string> ImportSource(
     {
         SpaceId = spaceId,
         SourceLocator = url,
-        SourceKind = sourceKind,
+        SourceMediaType = sourceMediaType,
         SourceLabel = title,
         Language = language,
         Checksum = checksum,
@@ -206,7 +204,7 @@ public record GenerateQnAFromSourceCommand : IRequest<GenerateQnAResult>
     public required Guid SpaceId { get; init; }
     public Guid? ExistingSourceId { get; init; }    // null = create new source
     public string? SourceLocator { get; init; }
-    public SourceKind SourceKind { get; init; }
+    public string? SourceMediaType { get; init; }
     public string? SourceLabel { get; init; }
     public string Language { get; init; } = "en";
     public required string Checksum { get; init; }

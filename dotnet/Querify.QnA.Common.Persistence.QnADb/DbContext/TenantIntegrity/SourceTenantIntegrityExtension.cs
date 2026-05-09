@@ -1,5 +1,4 @@
 using Querify.Common.Infrastructure.ApiErrorHandling.Exception;
-using Querify.Models.QnA.Enums;
 using Querify.QnA.Common.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using System.Net;
@@ -25,17 +24,6 @@ internal static class SourceTenantIntegrityExtension
                     $"Source '{source.Id}' checksum exceeds {Source.MaxChecksumLength} characters.",
                     (int)HttpStatusCode.BadRequest);
 
-            if (source.Visibility is not VisibilityScope.Public) continue;
-
-            if (source.StorageKey is null && source.LastVerifiedAtUtc is null)
-                throw new ApiErrorException(
-                    $"Source '{source.Id}' must be verified before public exposure.",
-                    (int)HttpStatusCode.UnprocessableEntity);
-
-            if (source.StorageKey is not null && source.UploadStatus is not SourceUploadStatus.Verified)
-                throw new ApiErrorException(
-                    $"Uploaded source '{source.Id}' must be verified before public exposure.",
-                    (int)HttpStatusCode.UnprocessableEntity);
         }
     }
 }

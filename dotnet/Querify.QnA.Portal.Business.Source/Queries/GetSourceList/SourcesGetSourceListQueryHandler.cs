@@ -33,9 +33,6 @@ public sealed class SourcesGetSourceListQueryHandler(
                 EF.Functions.ILike(source.Language, $"%{request.Request.SearchText}%") ||
                 EF.Functions.ILike(source.MediaType ?? string.Empty, $"%{request.Request.SearchText}%"));
 
-        if (request.Request.Visibility is not null)
-            query = query.Where(source => source.Visibility == request.Request.Visibility);
-
         query = request.Request.Sorting?.Trim().ToLowerInvariant() switch
         {
             "lastupdatedatutc" or "lastupdatedatutc desc" or "updateddate" or "updateddate desc" =>
@@ -46,9 +43,6 @@ public sealed class SourcesGetSourceListQueryHandler(
             "label desc" => query.OrderByDescending(source => source.Label),
             "locator" or "locator asc" => query.OrderBy(source => source.Locator),
             "locator desc" => query.OrderByDescending(source => source.Locator),
-            "lastverifiedatutc" or "lastverifiedatutc asc" =>
-                query.OrderBy(source => source.LastVerifiedAtUtc),
-            "lastverifiedatutc desc" => query.OrderByDescending(source => source.LastVerifiedAtUtc),
             "spaceusagecount" or "spaceusagecount asc" => query.OrderBy(source => source.Spaces.Count),
             "spaceusagecount desc" => query.OrderByDescending(source => source.Spaces.Count),
             "questionusagecount" or "questionusagecount asc" => query.OrderBy(source => source.Questions.Count),
@@ -90,8 +84,6 @@ public sealed class SourcesGetSourceListQueryHandler(
                 Checksum = entity.Checksum,
                 MetadataJson = entity.MetadataJson,
                 UploadStatus = entity.UploadStatus,
-                Visibility = entity.Visibility,
-                LastVerifiedAtUtc = entity.LastVerifiedAtUtc,
                 LastUpdatedAtUtc = entity.UpdatedDate ?? entity.CreatedDate,
                 SpaceUsageCount = entity.Spaces.Count,
                 QuestionUsageCount = entity.Questions.Count,

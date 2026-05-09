@@ -36,7 +36,6 @@ public class VerifyUploadedSourceCommandHandlerTests
         Assert.Equal(SourceUploadStatus.Verified, source.UploadStatus);
         Assert.True(SourceStorageKey.IsVerifiedKey(source.StorageKey));
         Assert.Equal(source.StorageKey, source.Locator);
-        Assert.NotNull(source.LastVerifiedAtUtc);
         Assert.Contains(storage.CopiedKeys, item => item.DestinationKey == source.StorageKey);
         Assert.Contains(storage.DeletedKeys, key => SourceStorageKey.IsStagingKey(key));
         var statusEvent = Assert.Single(statusEvents.PublishedEvents);
@@ -142,7 +141,6 @@ public class VerifyUploadedSourceCommandHandlerTests
         var stagingKey = source.StorageKey!;
         var verifiedKey = SourceStorageKey.ToVerifiedKey(stagingKey);
         var computedChecksum = BuildSha256(content);
-        var verifiedAtUtc = DateTime.UtcNow;
 
         storage.Put(verifiedKey, content, "application/pdf");
         await context.DbContext.Sources
@@ -151,7 +149,6 @@ public class VerifyUploadedSourceCommandHandlerTests
                 .SetProperty(item => item.StorageKey, verifiedKey)
                 .SetProperty(item => item.Locator, verifiedKey)
                 .SetProperty(item => item.Checksum, computedChecksum)
-                .SetProperty(item => item.LastVerifiedAtUtc, verifiedAtUtc)
                 .SetProperty(item => item.UploadStatus, SourceUploadStatus.Verified));
         await storage.DeleteAsync(stagingKey, CancellationToken.None);
         var handler = CreateHandler(context, storage);
@@ -205,7 +202,6 @@ public class VerifyUploadedSourceCommandHandlerTests
             SizeBytes = content.LongLength,
             Checksum = SourceChecksum.FromLocator(storageKey),
             UploadStatus = uploadStatus,
-            Visibility = VisibilityScope.Internal,
             CreatedBy = "test",
             UpdatedBy = "test"
         };

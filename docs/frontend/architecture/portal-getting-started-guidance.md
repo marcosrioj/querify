@@ -67,7 +67,7 @@ Billing entitlement problems can also render the dashboard `BillingNotice`. That
 |---|---|---|
 | `SetupFocusCard` | Shows current setup percent and links to `getRoleAwareNextAction` | [`dashboard-page.tsx`](../../../apps/portal/src/domains/dashboard/dashboard-page.tsx) |
 | `ExecutiveSummaryCard` | Promotes the highest business readout, repeats the next action, and shows draft questions, reusable questions, active Spaces, and how many active Spaces already have Questions. `Targets to resolve` stays in warning when any active Space has no Questions, and the primary action uses the concrete required action such as `Open Space`. | [`dashboard-page.tsx`](../../../apps/portal/src/domains/dashboard/dashboard-page.tsx) |
-| `BusinessReadout` | Explains unresolved targets, reusable active questions, reusable active answers, and optional source visibility | [`dashboard-selectors.ts`](../../../apps/portal/src/domains/dashboard/dashboard-selectors.ts) |
+| `BusinessReadout` | Explains unresolved targets, reusable active questions, reusable active answers, and available source records | [`dashboard-selectors.ts`](../../../apps/portal/src/domains/dashboard/dashboard-selectors.ts) |
 | `Workflow queue` | Shows draft questions that need lifecycle review plus active answers ready for reuse | [`dashboard-page.tsx`](../../../apps/portal/src/domains/dashboard/dashboard-page.tsx) |
 | `Account administration` | Shows actionable account work for Billing, Profile, and Settings using the dashboard's existing profile and billing queries | [`dashboard-selectors.ts`](../../../apps/portal/src/domains/dashboard/dashboard-selectors.ts) and [`dashboard-page.tsx`](../../../apps/portal/src/domains/dashboard/dashboard-page.tsx) |
 | Inline empty states | Explain that draft questions or active answers will appear after workflow activity exists | [`dashboard-page.tsx`](../../../apps/portal/src/domains/dashboard/dashboard-page.tsx) |
@@ -95,7 +95,7 @@ Dedicated create/edit forms use `FormSetupProgressCard`, which wraps `ProgressCh
 | Form page | Steps and completion criteria |
 |---|---|
 | [`space-form-page.tsx`](../../../apps/portal/src/domains/spaces/space-form-page.tsx) | `Name and slug`: both have at least 2 trimmed characters. `Language`: at least 2 trimmed characters. `Status`: value exists. `Visibility`: value exists. |
-| [`source-form-page.tsx`](../../../apps/portal/src/domains/sources/source-form-page.tsx) | `Source type`: value exists. `Locator`: at least 3 trimmed characters. `Language`: at least 2 trimmed characters. `Visibility`: value exists. |
+| [`source-form-page.tsx`](../../../apps/portal/src/domains/sources/source-form-page.tsx) | `Source type`: value exists. `Locator`: at least 3 trimmed characters. `Language`: at least 2 trimmed characters. |
 | [`question-form-page.tsx`](../../../apps/portal/src/domains/questions/question-form-page.tsx) | `Space`: value exists. `Title`: at least 3 trimmed characters. `Status`: value exists. `Visibility`: value exists. `Origin channel`: value exists. |
 | [`answer-form-page.tsx`](../../../apps/portal/src/domains/answers/answer-form-page.tsx) | `Question`: value exists. `Headline`: at least 3 trimmed characters. `Answer kind`: value exists. `Visibility`: value exists. |
 | [`tag-form-page.tsx`](../../../apps/portal/src/domains/tags/tag-form-page.tsx) | `Tag name`: at least 2 trimmed characters. |

@@ -29,7 +29,6 @@ public sealed class SourcesGetDownloadUrlQueryHandler(
             .Where(source => source.TenantId == tenantId && source.Id == request.Id)
             .Select(source => new SourceDownloadReadModel(
                 source.StorageKey,
-                source.Visibility,
                 source.UploadStatus,
                 source.TenantId))
             .FirstOrDefaultAsync(cancellationToken);
@@ -53,7 +52,6 @@ public sealed class SourcesGetDownloadUrlQueryHandler(
 
     private sealed record SourceDownloadReadModel(
         string? StorageKey,
-        VisibilityScope Visibility,
         SourceUploadStatus UploadStatus,
         Guid TenantId);
 }

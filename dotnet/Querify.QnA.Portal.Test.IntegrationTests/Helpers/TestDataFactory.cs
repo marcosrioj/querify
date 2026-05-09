@@ -180,8 +180,7 @@ public static class TestDataFactory
     public static async Task<Source> SeedSourceAsync(
         QnADbContext dbContext,
         Guid tenantId,
-        string? locator = null,
-        VisibilityScope visibility = VisibilityScope.Internal)
+        string? locator = null)
     {
         var entity = new Source
         {
@@ -194,8 +193,6 @@ public static class TestDataFactory
             MediaType = "text/html",
             Checksum = "sha256:test-source",
             MetadataJson = "{\"type\":\"doc\"}",
-            LastVerifiedAtUtc = DateTime.UtcNow,
-            Visibility = visibility,
             CreatedBy = "test",
             UpdatedBy = "test"
         };
@@ -208,8 +205,7 @@ public static class TestDataFactory
         QnADbContext dbContext,
         Guid tenantId,
         Guid? sourceId = null,
-        string fileName = "manual.pdf",
-        VisibilityScope visibility = VisibilityScope.Internal)
+        string fileName = "manual.pdf")
     {
         var resolvedSourceId = sourceId ?? Guid.NewGuid();
         var storageKey = SourceStorageKey.BuildVerifiedKey(tenantId, resolvedSourceId, fileName);
@@ -226,8 +222,6 @@ public static class TestDataFactory
             SizeBytes = 12,
             Checksum = "sha256:verified-upload",
             UploadStatus = SourceUploadStatus.Verified,
-            LastVerifiedAtUtc = DateTime.UtcNow,
-            Visibility = visibility,
             CreatedBy = "test",
             UpdatedBy = "test"
         };

@@ -230,7 +230,8 @@ export function getAccountAdministration({
   hasCompleteProfile: boolean;
 }): DashboardAdministration {
   const billingTone = getBillingTone(billingSummary);
-  const billingNeedsAttention = billingTone === "danger" || billingTone === "warning";
+  const billingNeedsAttention =
+    billingTone === "danger" || billingTone === "warning";
   const profileTone: DashboardSignalTone = hasCompleteProfile
     ? "success"
     : "warning";
@@ -287,7 +288,8 @@ export function getAccountAdministration({
         key: "settings",
         label: "Settings",
         value: "Open",
-        detail: "Review tenant, general, and security settings before scaling access.",
+        detail:
+          "Review tenant, general, and security settings before scaling access.",
         actionLabel: "Open settings",
         tone: "info",
         to: "/app/settings/tenant",
@@ -298,7 +300,6 @@ export function getAccountAdministration({
 
 export function getBusinessReadout({
   activeQuestionCount,
-  publicSourceCount,
   draftQuestionCount,
   activeAnswerCount,
   questionCount,
@@ -312,7 +313,6 @@ export function getBusinessReadout({
   firstSpaceId,
 }: {
   activeQuestionCount: number;
-  publicSourceCount: number;
   draftQuestionCount: number;
   activeAnswerCount: number;
   questionCount: number;
@@ -329,7 +329,6 @@ export function getBusinessReadout({
     percentage(activeQuestionCount, questionCount),
     100,
   );
-  const sourceVisibility = percentage(publicSourceCount, sourceCount);
   const spacesWithoutQuestionsCount = Math.max(
     spaceCount - spacesWithQuestionsCount,
     0,
@@ -400,15 +399,14 @@ export function getBusinessReadout({
           : fallbackSpaceTo,
     },
     {
-      label: "Source visibility",
-      value: `${sourceVisibility}%`,
+      label: "Sources",
+      value: `${sourceCount}`,
       benchmark: "Optional context",
       detail:
         sourceCount > 0
-          ? "Share of optional source records visible publicly."
+          ? "Source records are available as reusable references."
           : "Sources are optional and can be added when answers need references.",
-      progress: sourceVisibility,
-      tone: ratioTone(sourceVisibility, sourceCount),
+      tone: reusableAssetTone(sourceCount),
       to: "/app/sources",
     },
   ];

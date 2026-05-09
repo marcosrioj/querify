@@ -21,8 +21,6 @@ export type SourceDto = {
   sizeBytes?: number | null;
   checksum: string;
   metadataJson?: string | null;
-  visibility: VisibilityScope;
-  lastVerifiedAtUtc?: string | null;
   lastUpdatedAtUtc?: string | null;
   uploadStatus: SourceUploadStatus;
   spaceUsageCount: number;
@@ -85,8 +83,6 @@ export type SourceCreateRequestDto = {
   language: string;
   mediaType?: string | null;
   metadataJson?: string | null;
-  visibility: VisibilityScope;
-  markVerified: boolean;
 };
 
 export type SourceUpdateRequestDto = SourceCreateRequestDto;
@@ -110,7 +106,6 @@ export type SourceUploadIntentRequestDto = {
   contentType: string;
   sizeBytes: number;
   language: string;
-  visibility: VisibilityScope;
   label?: string | null;
   contextNote?: string | null;
   externalId?: string | null;

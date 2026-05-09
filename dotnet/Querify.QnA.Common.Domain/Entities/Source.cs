@@ -76,11 +76,6 @@ public class Source : BaseEntity, IMustHaveTenant
     public SourceUploadStatus UploadStatus { get; set; } = SourceUploadStatus.None;
 
     /// <summary>
-    ///     Audience exposure for the source: internal portal, authenticated external, or public.
-    /// </summary>
-    public required VisibilityScope Visibility { get; set; }
-
-    /// <summary>
     ///     Spaces that curate or expose this source.
     /// </summary>
     public ICollection<SpaceSource> Spaces { get; set; } = [];

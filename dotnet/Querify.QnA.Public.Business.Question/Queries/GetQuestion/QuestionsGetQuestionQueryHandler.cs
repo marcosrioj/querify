@@ -123,7 +123,6 @@ public sealed class QuestionsGetQuestionQueryHandler(
                 LastUpdatedAtUtc = answer.UpdatedDate ?? answer.CreatedDate,
                 VoteScore = 0,
                 Sources = answer.Sources
-                    .Where(source => source.Source.Visibility == VisibilityScope.Public)
                     .OrderBy(source => source.Order)
                     .Select(source => new AnswerSourceLinkDto
                     {
@@ -147,8 +146,6 @@ public sealed class QuestionsGetQuestionQueryHandler(
                             Checksum = source.Source.Checksum,
                             MetadataJson = source.Source.MetadataJson,
                             UploadStatus = source.Source.UploadStatus,
-                            Visibility = source.Source.Visibility,
-                            LastVerifiedAtUtc = source.Source.LastVerifiedAtUtc,
                             LastUpdatedAtUtc = source.Source.UpdatedDate ?? source.Source.CreatedDate,
                             SpaceUsageCount = source.Source.Spaces.Count,
                             QuestionUsageCount = source.Source.Questions.Count,
@@ -193,8 +190,7 @@ public sealed class QuestionsGetQuestionQueryHandler(
             .AsNoTracking()
             .Where(link =>
                 link.TenantId == tenantId &&
-                link.QuestionId == questionId &&
-                link.Source.Visibility == VisibilityScope.Public)
+                link.QuestionId == questionId)
             .OrderBy(link => link.Order)
             .Select(link => new QuestionSourceLinkDto
             {
@@ -218,8 +214,6 @@ public sealed class QuestionsGetQuestionQueryHandler(
                     Checksum = link.Source.Checksum,
                     MetadataJson = link.Source.MetadataJson,
                     UploadStatus = link.Source.UploadStatus,
-                    Visibility = link.Source.Visibility,
-                    LastVerifiedAtUtc = link.Source.LastVerifiedAtUtc,
                     LastUpdatedAtUtc = link.Source.UpdatedDate ?? link.Source.CreatedDate,
                     SpaceUsageCount = link.Source.Spaces.Count,
                     QuestionUsageCount = link.Source.Questions.Count,

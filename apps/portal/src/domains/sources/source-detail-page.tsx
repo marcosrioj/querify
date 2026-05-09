@@ -165,7 +165,7 @@ export function SourceDetailPage() {
       header={
         <PageHeader
           title={sourceQuery.data?.label || "Source"}
-          description="Review visibility, verification metadata, and connector identifiers for this reusable source."
+          description="Review locator, metadata, and connector identifiers for this reusable source."
           descriptionMode="hint"
           backTo="/app/sources"
         />
@@ -175,16 +175,8 @@ export function SourceDetailPage() {
           <SidebarSummarySkeleton />
         ) : sourceQuery.data ? (
           <DetailOverviewCard
-            description="This summarizes source visibility, verification metadata, and connector identifiers."
+            description="This summarizes source storage state, metadata, and connector identifiers."
             highlights={[
-              {
-                label: "Visibility",
-                description:
-                  "Controls which audiences can see or reuse this source.",
-                value: (
-                  <VisibilityBadge visibility={sourceQuery.data.visibility} />
-                ),
-              },
               {
                 label: "Upload status",
                 description: "File workflow state for uploaded sources.",
@@ -217,16 +209,6 @@ export function SourceDetailPage() {
                 label: "Language",
                 description: "Use the main locale for this source content.",
                 value: sourceQuery.data.language || "Not set",
-              },
-              {
-                label: "Last verified",
-                description:
-                  "Verification timestamp used to show when this source was last checked.",
-                value: formatOptionalDateTimeInTimeZone(
-                  sourceQuery.data.lastVerifiedAtUtc,
-                  portalTimeZone,
-                  translateText("Not set"),
-                ),
               },
             ]}
           />
@@ -694,14 +676,6 @@ export function SourceDetailPage() {
                   {
                     label: "Media type",
                     value: sourceQuery.data.mediaType || "Not set",
-                  },
-                  {
-                    label: "Last verified",
-                    value: formatOptionalDateTimeInTimeZone(
-                      sourceQuery.data.lastVerifiedAtUtc,
-                      portalTimeZone,
-                      translateText("Not set"),
-                    ),
                   },
                   {
                     label: "Spaces",

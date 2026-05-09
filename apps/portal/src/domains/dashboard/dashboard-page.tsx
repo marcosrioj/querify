@@ -38,7 +38,6 @@ import {
   QuestionStatus,
   SpaceStatus,
   TenantSubscriptionStatus,
-  VisibilityScope,
 } from "@/shared/constants/backend-enums";
 import {
   billingInvoiceStatusPresentation,
@@ -250,7 +249,6 @@ const signalToneClassNames: Record<
   },
 };
 
-
 const businessReadoutIcons: Record<
   string,
   ComponentType<{ className?: string }>
@@ -258,7 +256,7 @@ const businessReadoutIcons: Record<
   "Targets to resolve": Clock3,
   "Reusable questions": ShieldCheck,
   "Reusable answers": FileCheck2,
-  "Source visibility": Waypoints,
+  Sources: Waypoints,
 };
 
 function signalLabel(tone: DashboardSignalTone) {
@@ -594,7 +592,10 @@ function AccountAdministrationPanel({
                     <Badge
                       variant="outline"
                       appearance="outline"
-                      className={cn("text-[0.6875rem]", itemToneClassNames.badge)}
+                      className={cn(
+                        "text-[0.6875rem]",
+                        itemToneClassNames.badge,
+                      )}
                     >
                       {translateText(signalLabel(item.tone))}
                     </Badge>
@@ -834,15 +835,7 @@ export function DashboardPage() {
   const sourcesQuery = useSourceList({
     page: 1,
     pageSize: 1,
-    sorting: "LastVerifiedAtUtc DESC",
-    gcTime: DASHBOARD_QUERY_GC_TIME,
-    staleTime: DASHBOARD_QUERY_STALE_TIME,
-  });
-  const publicSourcesQuery = useSourceList({
-    page: 1,
-    pageSize: 1,
-    sorting: "LastVerifiedAtUtc DESC",
-    visibility: VisibilityScope.Public,
+    sorting: "LastUpdatedAtUtc DESC",
     gcTime: DASHBOARD_QUERY_GC_TIME,
     staleTime: DASHBOARD_QUERY_STALE_TIME,
   });
@@ -855,7 +848,6 @@ export function DashboardPage() {
     activeQuestionsQuery.isLoading ||
     activeAnswersQuery.isLoading ||
     sourcesQuery.isLoading ||
-    publicSourcesQuery.isLoading ||
     membersQuery.isLoading ||
     profileQuery.isLoading ||
     billingSummaryQuery.isLoading;
@@ -867,8 +859,7 @@ export function DashboardPage() {
     draftQuestionsQuery.isError ||
     activeQuestionsQuery.isError ||
     activeAnswersQuery.isError ||
-    sourcesQuery.isError ||
-    publicSourcesQuery.isError;
+    sourcesQuery.isError;
 
   if (isInitialDashboardLoading) {
     return <DashboardLoadingState />;
@@ -882,8 +873,7 @@ export function DashboardPage() {
       draftQuestionsQuery.error ??
       activeQuestionsQuery.error ??
       activeAnswersQuery.error ??
-      sourcesQuery.error ??
-      publicSourcesQuery.error;
+      sourcesQuery.error;
 
     return (
       <PageSurface>
@@ -903,7 +893,6 @@ export function DashboardPage() {
             void activeQuestionsQuery.refetch();
             void activeAnswersQuery.refetch();
             void sourcesQuery.refetch();
-            void publicSourcesQuery.refetch();
           }}
         />
       </PageSurface>
@@ -924,7 +913,6 @@ export function DashboardPage() {
   const activeQuestionCount = activeQuestionsQuery.data?.totalCount ?? 0;
   const activeAnswerCount = activeAnswersQuery.data?.totalCount ?? 0;
   const sourceCount = sourcesQuery.data?.totalCount ?? 0;
-  const publicSourceCount = publicSourcesQuery.data?.totalCount ?? 0;
   const spaceCount = activeDashboardSpaces.length;
   const spacesWithQuestionsCount = activeDashboardSpaces.filter(
     (space) => space.questionCount > 0,
@@ -936,9 +924,9 @@ export function DashboardPage() {
   const billingSummary = billingSummaryQuery.data;
   const hasCompleteProfile = Boolean(
     profileQuery.data?.givenName?.trim() &&
-      profileQuery.data.phoneNumber?.trim() &&
-      profileQuery.data.language?.trim() &&
-      profileQuery.data.timeZone?.trim(),
+    profileQuery.data.phoneNumber?.trim() &&
+    profileQuery.data.language?.trim() &&
+    profileQuery.data.timeZone?.trim(),
   );
   const activation = getActivationState({
     hasProfile: Boolean(profileQuery.data?.givenName),
@@ -960,7 +948,6 @@ export function DashboardPage() {
   const businessReadout = getBusinessReadout({
     activeQuestionCount,
     draftQuestionCount,
-    publicSourceCount,
     activeAnswerCount,
     questionCount,
     spaceCount,
@@ -1079,9 +1066,7 @@ export function DashboardPage() {
           description="Shows account tasks for billing, profile, and workspace settings without extra dashboard API calls."
           action={
             <Button asChild variant="outline" size="sm">
-              <Link to={accountAdministration.to}>
-                {translateText("Open")}
-              </Link>
+              <Link to={accountAdministration.to}>{translateText("Open")}</Link>
             </Button>
           }
         >

@@ -86,21 +86,6 @@ public class SourceUploadCommandQueryTests
     }
 
     [Fact]
-    public async Task CreateUploadIntent_PublicVisibility_Returns422()
-    {
-        using var context = TestContext.Create();
-        var handler = CreateIntentHandler(context, new FakeObjectStorage());
-        var request = ValidIntentRequest();
-        request.Visibility = VisibilityScope.Public;
-
-        var exception = await Assert.ThrowsAsync<ApiErrorException>(() => handler.Handle(
-            new SourcesCreateUploadIntentCommand { Dto = request },
-            CancellationToken.None));
-
-        Assert.Equal((int)HttpStatusCode.UnprocessableEntity, exception.ErrorCode);
-    }
-
-    [Fact]
     public async Task CompleteUpload_NoBlobInStorage_Returns422()
     {
         using var context = TestContext.Create();
@@ -278,7 +263,7 @@ public class SourceUploadCommandQueryTests
     }
 
     [Fact]
-    public async Task CrossTenant_SourceVisibility_NotLeaked()
+    public async Task CrossTenant_Source_NotLeaked()
     {
         using var context = TestContext.Create();
         var otherTenantId = Guid.NewGuid();
@@ -337,7 +322,6 @@ public class SourceUploadCommandQueryTests
             ContentType = "application/pdf",
             SizeBytes = 12,
             Language = "en-US",
-            Visibility = VisibilityScope.Internal,
             Label = "Manual",
             ContextNote = "Test upload",
             ExternalId = "UPLOAD-1",
