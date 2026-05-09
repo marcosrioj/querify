@@ -247,7 +247,7 @@ export const sourceRoleLabels: Record<SourceRole, string> = {
 };
 
 export const sourceUploadStatusLabels: Record<SourceUploadStatus, string> = {
-  [SourceUploadStatus.None]: 'None',
+  [SourceUploadStatus.None]: 'External',
   [SourceUploadStatus.Pending]: 'Pending',
   [SourceUploadStatus.Uploaded]: 'Uploaded',
   [SourceUploadStatus.Verified]: 'Verified',

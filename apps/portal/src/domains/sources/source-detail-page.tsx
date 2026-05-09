@@ -155,6 +155,10 @@ export function SourceDetailPage() {
     Boolean(sourceQuery.data?.storageKey) &&
     sourceQuery.data?.uploadStatus === SourceUploadStatus.Verified;
   const canOpenExternalUrl = isExternalUrl(sourceQuery.data?.locator);
+  const showExternalUploadStatusOnly =
+    canOpenExternalUrl &&
+    !sourceQuery.data?.storageKey &&
+    sourceQuery.data?.uploadStatus === SourceUploadStatus.None;
 
   if (!id) {
     return (
@@ -184,7 +188,9 @@ export function SourceDetailPage() {
             highlights={[
               {
                 label: "Upload status",
-                description: "File workflow state for uploaded sources.",
+                description: showExternalUploadStatusOnly
+                  ? "External source without an upload workflow."
+                  : "File workflow state for uploaded sources.",
                 value: (
                   <SourceUploadStatusBadge
                     status={sourceQuery.data.uploadStatus}
@@ -378,9 +384,14 @@ export function SourceDetailPage() {
                   },
                   {
                     label: "Upload status",
-                    description:
-                      "Uploaded files become downloadable only after verification.",
-                    value: (
+                    description: showExternalUploadStatusOnly
+                      ? "External source without an upload workflow."
+                      : "Uploaded files become downloadable only after verification.",
+                    value: showExternalUploadStatusOnly ? (
+                      <SourceUploadStatusBadge
+                        status={sourceQuery.data.uploadStatus}
+                      />
+                    ) : (
                       <div className="flex flex-wrap items-center gap-2">
                         <SourceUploadStatusBadge
                           status={sourceQuery.data.uploadStatus}

@@ -16,6 +16,7 @@ import type { SourceDto } from "@/domains/sources/types";
 import { useRemoveSpaceSource, useSpace } from "@/domains/spaces/hooks";
 import {
   SourceRole,
+  SourceUploadStatus,
   sourceUploadStatusLabels,
 } from "@/shared/constants/backend-enums";
 import { ListLayout, PageHeader } from "@/shared/layout/page-layouts";
@@ -96,6 +97,18 @@ function sourceMatchesSearch(source: SourceListRow, searchText: string) {
   ]
     .filter(Boolean)
     .some((value) => String(value).toLowerCase().includes(normalizedSearch));
+}
+
+function isExternalUrl(locator: string | null | undefined) {
+  return /^https?:\/\//i.test(locator?.trim() ?? "");
+}
+
+function shouldShowExternalUploadStatusOnly(source: SourceDto) {
+  return (
+    !source.storageKey &&
+    source.uploadStatus === SourceUploadStatus.None &&
+    isExternalUrl(source.locator)
+  );
 }
 
 function sourceMatchesFilters(
@@ -428,12 +441,8 @@ export function SourceListPage() {
             </div>
             <div className="break-all text-sm text-muted-foreground">
               {source.locator}
+              {source.language ? ` • ${source.language}` : null}
             </div>
-            {source.language ? (
-              <div className="min-w-0 break-words text-sm text-muted-foreground [overflow-wrap:anywhere]">
-                {source.language}
-              </div>
-            ) : null}
           </div>
         </div>
       ),
@@ -444,12 +453,14 @@ export function SourceListPage() {
       className: "xl:w-[130px]",
       cell: (source) => (
         <div className="space-y-2">
-          <Badge
-            variant={source.storageKey ? "info" : "outline"}
-            appearance="outline"
-          >
-            {translateText(source.storageKey ? "File" : "URL")}
-          </Badge>
+          {shouldShowExternalUploadStatusOnly(source) ? null : (
+            <Badge
+              variant={source.storageKey ? "info" : "outline"}
+              appearance="outline"
+            >
+              {translateText(source.storageKey ? "File" : "URL")}
+            </Badge>
+          )}
           <SourceUploadStatusBadge status={source.uploadStatus} />
         </div>
       ),
