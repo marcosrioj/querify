@@ -162,7 +162,9 @@ function ToolbarActions({ compact }: { compact: boolean }) {
           : "max-h-24 translate-y-0 opacity-100",
       )}
     >
-      <NotificationsMenu />
+      <div className="hidden xl:block">
+        <NotificationsMenu />
+      </div>
       <PortalCommandDialog />
       <div className="hidden xl:block">
         <UserMenu />
