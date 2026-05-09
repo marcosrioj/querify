@@ -28,7 +28,7 @@ PORTAL_APP_PORT="${PORTAL_APP_PORT:-5500}"
 QNA_PORTAL_PORT="${QNA_PORTAL_PORT:-5010}"
 QNA_PUBLIC_PORT="${QNA_PUBLIC_PORT:-5020}"
 TEST_PORT="${TEST_PORT:-5999}"
-OBJECT_STORAGE_ENDPOINT_HOST="${OBJECT_STORAGE_ENDPOINT_HOST:-$UPSTREAM_HOST}"
+OBJECT_STORAGE_ENDPOINT_HOST="${OBJECT_STORAGE_ENDPOINT_HOST:-}"
 OBJECT_STORAGE_ENDPOINT_PORT="${OBJECT_STORAGE_ENDPOINT_PORT:-9000}"
 OBJECT_STORAGE_SIGNED_HOST="${OBJECT_STORAGE_SIGNED_HOST:-localhost:5900}"
 
@@ -60,6 +60,23 @@ check_dependencies() {
 create_directories() {
   mkdir -p "$NGINX_CONF_DIR"
   mkdir -p "$HOSTS_BACKUP_DIR"
+}
+
+ensure_docker_network() {
+  docker network inspect qf-network >/dev/null 2>&1 || docker network create qf-network >/dev/null
+}
+
+resolve_object_storage_endpoint_host() {
+  if [[ -n "$OBJECT_STORAGE_ENDPOINT_HOST" ]]; then
+    return
+  fi
+
+  if docker ps --format '{{.Names}}' | grep -qx 'minio'; then
+    OBJECT_STORAGE_ENDPOINT_HOST="minio"
+    return
+  fi
+
+  OBJECT_STORAGE_ENDPOINT_HOST="$UPSTREAM_HOST"
 }
 
 write_nginx_config() {
@@ -368,6 +385,8 @@ print_summary() {
 main() {
   check_dependencies
   create_directories
+  ensure_docker_network
+  resolve_object_storage_endpoint_host
   write_nginx_config
   update_hosts_file
   start_proxy

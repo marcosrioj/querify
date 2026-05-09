@@ -16,7 +16,13 @@ param(
 $ErrorActionPreference = "Stop"
 
 if ([string]::IsNullOrWhiteSpace($ObjectStorageEndpointHost)) {
-    $ObjectStorageEndpointHost = $UpstreamHost
+    $minioContainerName = docker ps --format "{{.Names}}" | Where-Object { $_ -eq "minio" } | Select-Object -First 1
+    if ($minioContainerName) {
+        $ObjectStorageEndpointHost = "minio"
+    }
+    else {
+        $ObjectStorageEndpointHost = $UpstreamHost
+    }
 }
 
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
@@ -77,6 +83,11 @@ if (-not (Test-Path -Path $certFile -PathType Leaf) -or -not (Test-Path -Path $c
 
 New-Item -ItemType Directory -Path $nginxConfDir -Force | Out-Null
 New-Item -ItemType Directory -Path $hostsBackupDir -Force | Out-Null
+
+$networkExists = docker network inspect qf-network 2>$null
+if (-not $networkExists) {
+    docker network create qf-network | Out-Null
+}
 
 $nginxTemplate = @'
 map $http_upgrade $connection_upgrade {
