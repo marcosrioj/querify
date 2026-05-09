@@ -11,3 +11,10 @@ services:
       - ./certs:/etc/nginx/certs:ro
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    networks:
+      - qf-network
+
+networks:
+  qf-network:
+    external: true
+    name: qf-network
