@@ -213,7 +213,7 @@ public static class TestDataFactory
         {
             Id = resolvedSourceId,
             TenantId = tenantId,
-            Locator = storageKey,
+            Locator = SourceStorageKey.ToLocator(storageKey),
             StorageKey = storageKey,
             Label = "Verified upload",
             ContextNote = "Verified uploaded test source",

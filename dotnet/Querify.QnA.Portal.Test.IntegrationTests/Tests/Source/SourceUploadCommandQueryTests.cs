@@ -39,8 +39,9 @@ public class SourceUploadCommandQueryTests
 
         var source = await context.DbContext.Sources.SingleAsync(source => source.Id == result.SourceId);
         Assert.Equal(SourceUploadStatus.Pending, source.UploadStatus);
-        Assert.Equal(source.StorageKey, source.Locator);
+        Assert.Equal("Staging/manual.pdf", source.Locator);
         Assert.True(SourceStorageKey.IsStagingKey(source.StorageKey));
+        Assert.Equal(SourceChecksum.FromLocator(source.StorageKey!), source.Checksum);
         Assert.Equal("UPLOAD-1", source.ExternalId);
         Assert.Equal("application/pdf", source.MediaType);
         Assert.Equal("{\"sourceInspection\":{\"contentType\":\"application/pdf\",\"contentLengthBytes\":12}}",
@@ -194,7 +195,7 @@ public class SourceUploadCommandQueryTests
 
         Assert.Equal(SourceUploadStatus.Uploaded, source.UploadStatus);
         Assert.False(string.IsNullOrWhiteSpace(source.Checksum));
-        Assert.Equal(SourceChecksum.FromLocator(source.Locator), source.Checksum);
+        Assert.Equal(SourceChecksum.FromLocator(source.StorageKey!), source.Checksum);
     }
 
     [Fact]
@@ -250,7 +251,7 @@ public class SourceUploadCommandQueryTests
         var storage = new FakeObjectStorage();
         var source = await CreatePendingUploadAsync(context, storage);
         source.StorageKey = SourceStorageKey.ToQuarantineKey(source.StorageKey!);
-        source.Locator = source.StorageKey;
+        source.Locator = SourceStorageKey.ToLocator(source.StorageKey!);
         source.UploadStatus = SourceUploadStatus.Quarantined;
         await context.DbContext.SaveChangesAsync();
         var handler = CreateDownloadHandler(context, storage);

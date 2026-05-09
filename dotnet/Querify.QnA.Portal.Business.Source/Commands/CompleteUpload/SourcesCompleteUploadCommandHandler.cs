@@ -84,7 +84,7 @@ public sealed class SourcesCompleteUploadCommandHandler(
 
         entity.SizeBytes = head.SizeBytes;
         entity.MediaType = headContentType;
-        entity.Checksum = normalizedClientChecksum ?? SourceChecksum.FromLocator(entity.Locator);
+        entity.Checksum = normalizedClientChecksum ?? SourceChecksum.FromLocator(entity.StorageKey!);
         entity.UploadStatus = SourceUploadStatus.Uploaded;
         entity.UpdatedBy = userId;
 
@@ -114,7 +114,7 @@ public sealed class SourcesCompleteUploadCommandHandler(
         entity.UploadStatus = SourceUploadStatus.Failed;
         if (string.IsNullOrWhiteSpace(entity.Checksum))
         {
-            entity.Checksum = SourceChecksum.FromLocator(entity.Locator);
+            entity.Checksum = SourceChecksum.FromLocator(entity.StorageKey!);
         }
 
         entity.UpdatedBy = userId;

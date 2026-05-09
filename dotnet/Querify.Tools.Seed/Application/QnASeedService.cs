@@ -179,7 +179,7 @@ public sealed class QnASeedService : IQnASeedService
         {
             Id = sourceId,
             TenantId = tenantId,
-            Locator = storageKey,
+            Locator = SourceStorageKey.ToLocator(storageKey),
             StorageKey = storageKey,
             Label = label,
             ContextNote = "Seeded uploaded source sample",

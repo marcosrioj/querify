@@ -35,7 +35,7 @@ public class VerifyUploadedSourceCommandHandlerTests
 
         Assert.Equal(SourceUploadStatus.Verified, source.UploadStatus);
         Assert.True(SourceStorageKey.IsVerifiedKey(source.StorageKey));
-        Assert.Equal(source.StorageKey, source.Locator);
+        Assert.Equal(SourceStorageKey.ToLocator(source.StorageKey!), source.Locator);
         Assert.Contains(storage.CopiedKeys, item => item.DestinationKey == source.StorageKey);
         Assert.Contains(storage.DeletedKeys, key => SourceStorageKey.IsStagingKey(key));
         var statusEvent = Assert.Single(statusEvents.PublishedEvents);
@@ -105,7 +105,7 @@ public class VerifyUploadedSourceCommandHandlerTests
 
         Assert.Equal(SourceUploadStatus.Quarantined, source.UploadStatus);
         Assert.Contains("/quarantine/", source.StorageKey, StringComparison.Ordinal);
-        Assert.Equal(source.StorageKey, source.Locator);
+        Assert.Equal(SourceStorageKey.ToLocator(source.StorageKey!), source.Locator);
         var statusEvent = Assert.Single(statusEvents.PublishedEvents);
         Assert.Equal(SourceUploadStatus.Quarantined, statusEvent.UploadStatus);
     }
@@ -147,7 +147,7 @@ public class VerifyUploadedSourceCommandHandlerTests
             .Where(item => item.TenantId == source.TenantId && item.Id == source.Id)
             .ExecuteUpdateAsync(setters => setters
                 .SetProperty(item => item.StorageKey, verifiedKey)
-                .SetProperty(item => item.Locator, verifiedKey)
+                .SetProperty(item => item.Locator, SourceStorageKey.ToLocator(verifiedKey))
                 .SetProperty(item => item.Checksum, computedChecksum)
                 .SetProperty(item => item.UploadStatus, SourceUploadStatus.Verified));
         await storage.DeleteAsync(stagingKey, CancellationToken.None);
@@ -163,7 +163,7 @@ public class VerifyUploadedSourceCommandHandlerTests
         await context.DbContext.Entry(source).ReloadAsync();
         Assert.Equal(SourceUploadStatus.Verified, source.UploadStatus);
         Assert.Equal(verifiedKey, source.StorageKey);
-        Assert.Equal(verifiedKey, source.Locator);
+        Assert.Equal(SourceStorageKey.ToLocator(verifiedKey), source.Locator);
         Assert.Equal(computedChecksum, source.Checksum);
     }
 
@@ -194,7 +194,7 @@ public class VerifyUploadedSourceCommandHandlerTests
         {
             Id = sourceId,
             TenantId = context.SessionService.TenantId,
-            Locator = storageKey,
+            Locator = SourceStorageKey.ToLocator(storageKey),
             StorageKey = storageKey,
             Label = "Manual",
             Language = "en-US",

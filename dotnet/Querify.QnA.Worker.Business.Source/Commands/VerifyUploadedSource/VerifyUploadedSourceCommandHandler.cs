@@ -161,12 +161,14 @@ public sealed class VerifyUploadedSourceCommandHandler(
         }
 
         var verifiedKey = SourceStorageKey.ToVerifiedKey(request.StorageKey);
+        var verifiedLocator = SourceStorageKey.ToLocator(verifiedKey);
         await objectStorage.CopyAsync(request.StorageKey, verifiedKey, cancellationToken);
 
         var transitioned = await TryMarkVerifiedAsync(
             entity,
             request.StorageKey,
             verifiedKey,
+            verifiedLocator,
             computedChecksum,
             head.SizeBytes,
             normalizedHeadContentType,
@@ -240,9 +242,10 @@ public sealed class VerifyUploadedSourceCommandHandler(
         CancellationToken cancellationToken)
     {
         var quarantineKey = SourceStorageKey.ToQuarantineKey(stagingKey);
+        var quarantineLocator = SourceStorageKey.ToLocator(quarantineKey);
         await objectStorage.CopyAsync(stagingKey, quarantineKey, cancellationToken);
 
-        var transitioned = await TryMarkQuarantinedAsync(entity, quarantineKey, cancellationToken);
+        var transitioned = await TryMarkQuarantinedAsync(entity, quarantineKey, quarantineLocator, cancellationToken);
         if (!transitioned)
         {
             return;
@@ -314,6 +317,7 @@ public sealed class VerifyUploadedSourceCommandHandler(
         Common.Domain.Entities.Source entity,
         string stagingKey,
         string verifiedKey,
+        string verifiedLocator,
         string computedChecksum,
         long sizeBytes,
         string mediaType,
@@ -326,7 +330,7 @@ public sealed class VerifyUploadedSourceCommandHandler(
                              source.StorageKey == stagingKey)
             .ExecuteUpdateAsync(setters => setters
                     .SetProperty(source => source.StorageKey, verifiedKey)
-                    .SetProperty(source => source.Locator, verifiedKey)
+                    .SetProperty(source => source.Locator, verifiedLocator)
                     .SetProperty(source => source.Checksum, computedChecksum)
                     .SetProperty(source => source.SizeBytes, sizeBytes)
                     .SetProperty(source => source.MediaType, mediaType)
@@ -343,7 +347,7 @@ public sealed class VerifyUploadedSourceCommandHandler(
         }
 
         entity.StorageKey = verifiedKey;
-        entity.Locator = verifiedKey;
+        entity.Locator = verifiedLocator;
         entity.Checksum = computedChecksum;
         entity.SizeBytes = sizeBytes;
         entity.MediaType = mediaType;
@@ -387,6 +391,7 @@ public sealed class VerifyUploadedSourceCommandHandler(
     private async Task<bool> TryMarkQuarantinedAsync(
         Common.Domain.Entities.Source entity,
         string quarantineKey,
+        string quarantineLocator,
         CancellationToken cancellationToken)
     {
         var currentStorageKey = entity.StorageKey;
@@ -399,7 +404,7 @@ public sealed class VerifyUploadedSourceCommandHandler(
                              source.StorageKey == currentStorageKey)
             .ExecuteUpdateAsync(setters => setters
                     .SetProperty(source => source.StorageKey, quarantineKey)
-                    .SetProperty(source => source.Locator, quarantineKey)
+                    .SetProperty(source => source.Locator, quarantineLocator)
                     .SetProperty(source => source.UploadStatus, SourceUploadStatus.Quarantined)
                     .SetProperty(source => source.Checksum, currentChecksum)
                     .SetProperty(source => source.UpdatedBy, SystemUser),
@@ -414,7 +419,7 @@ public sealed class VerifyUploadedSourceCommandHandler(
         }
 
         entity.StorageKey = quarantineKey;
-        entity.Locator = quarantineKey;
+        entity.Locator = quarantineLocator;
         entity.UploadStatus = SourceUploadStatus.Quarantined;
         entity.Checksum = currentChecksum;
         entity.UpdatedBy = SystemUser;

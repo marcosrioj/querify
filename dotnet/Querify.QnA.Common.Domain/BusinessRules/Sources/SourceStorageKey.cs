@@ -30,6 +30,12 @@ public static partial class SourceStorageKey
         return ConvertStagingKey(stagingKey, QuarantineSegment);
     }
 
+    public static string ToLocator(string storageKey)
+    {
+        var segments = ParseKey(storageKey);
+        return $"{ToLocatorStage(segments.Stage)}/{segments.FileName}";
+    }
+
     public static bool IsStagingKey(string? key)
     {
         return IsKeyInStage(key, StagingSegment);
@@ -64,6 +70,17 @@ public static partial class SourceStorageKey
         }
 
         return $"{segments.TenantId}/sources/{segments.SourceId}/{targetStage}/{segments.FileName}";
+    }
+
+    private static string ToLocatorStage(string stage)
+    {
+        return stage switch
+        {
+            StagingSegment => "Staging",
+            VerifiedSegment => "Verified",
+            QuarantineSegment => "Quarantine",
+            _ => $"{char.ToUpperInvariant(stage[0])}{stage[1..]}"
+        };
     }
 
     private static bool IsKeyInStage(string? key, string stage)

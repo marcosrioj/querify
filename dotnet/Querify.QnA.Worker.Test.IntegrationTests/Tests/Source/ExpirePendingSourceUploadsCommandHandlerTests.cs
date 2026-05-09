@@ -63,7 +63,7 @@ public class ExpirePendingSourceUploadsCommandHandlerTests
         {
             Id = sourceId,
             TenantId = context.SessionService.TenantId,
-            Locator = storageKey,
+            Locator = SourceStorageKey.ToLocator(storageKey),
             StorageKey = storageKey,
             Label = "Manual",
             Language = "en-US",

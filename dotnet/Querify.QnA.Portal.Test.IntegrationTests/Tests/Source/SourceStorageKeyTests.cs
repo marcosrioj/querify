@@ -35,6 +35,14 @@ public class SourceStorageKeyTests
     }
 
     [Fact]
+    public void ToLocator_ReturnsStageAndFileNameOnly()
+    {
+        var verifiedKey = SourceStorageKey.BuildVerifiedKey(Guid.NewGuid(), Guid.NewGuid(), "Marcos-Resume.pdf");
+
+        Assert.Equal("Verified/Marcos-Resume.pdf", SourceStorageKey.ToLocator(verifiedKey));
+    }
+
+    [Fact]
     public void IsVerifiedKey_ReturnsFalseForMalformedKeys()
     {
         Assert.False(SourceStorageKey.IsVerifiedKey("not/a/source/key"));

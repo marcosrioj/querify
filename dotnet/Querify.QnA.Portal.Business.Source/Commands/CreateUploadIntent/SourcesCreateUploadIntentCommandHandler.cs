@@ -33,11 +33,12 @@ public sealed class SourcesCreateUploadIntentCommandHandler(
         var sourceId = Guid.NewGuid();
         var contentType = SourceRules.NormalizeContentType(request.Dto.ContentType)!;
         var stagingKey = SourceStorageKey.BuildStagingKey(tenantId, sourceId, request.Dto.FileName);
+        var locator = SourceStorageKey.ToLocator(stagingKey);
         var entity = new Common.Domain.Entities.Source
         {
             Id = sourceId,
             TenantId = tenantId,
-            Locator = stagingKey,
+            Locator = locator,
             StorageKey = stagingKey,
             Label = request.Dto.Label,
             ContextNote = request.Dto.ContextNote,
