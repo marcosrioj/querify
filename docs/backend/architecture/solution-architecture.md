@@ -150,6 +150,12 @@ Module contexts share the same default `DbContext` pattern. The context class li
 
 Module persistence uses `OnBeforeSaveChangesRules()` for pre-save invariants and tenant integrity, then lets `BaseDbContext<TContext>` apply soft delete, audit, and date normalization, and finally uses `OnBeforeSaveChanges()` for auto history so history rows include audit state.
 
+Date/time persistence is UTC-only. Backend code should generate timestamps with `DateTime.UtcNow`
+or equivalent provider UTC values, and new DTO timestamp properties should use a `Utc` suffix unless
+they are inherited audit fields. Existing provider/internal fields without the suffix must still
+store UTC values. Local timezone conversion is a presentation concern owned by the consuming edge,
+such as the Portal.
+
 Tenant integrity is a mandatory `DbContext` responsibility for tenant module data. When an `IMustHaveTenant` entity references another tenant-owned record, the owning context must validate the relationship before save. The default shape is `DbContext/TenantIntegrity/<Entity>TenantIntegrityExtension.cs`, one focused extension per checked entity or relationship, backed by `TenantIntegrityGuard` and `TenantIntegrityLookupCacheBase` or a module-specific lookup cache that reads referenced records with `IgnoreQueryFilters()`.
 
 `Querify.Direct.Common.Persistence.DirectDb` and `Querify.Broadcast.Common.Persistence.BroadcastDb` contain the current Direct and Broadcast entity, enum, configuration, DbContext, and registration-extension scope. API hosts, business modules, migrations, additional workflow entities, and seed flows for those behaviors belong in the same module boundaries.

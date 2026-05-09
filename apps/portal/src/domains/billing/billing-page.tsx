@@ -13,6 +13,7 @@ import type {
   BillingInvoiceDto,
   BillingPaymentDto,
 } from '@/domains/billing/types';
+import { usePortalTimeZone } from '@/domains/settings/settings-hooks';
 import { usePermission } from '@/platform/permissions/use-permission';
 import { useTenant } from '@/platform/tenant/use-tenant';
 import {
@@ -53,7 +54,11 @@ import {
   type TenantSubscriptionStatus,
 } from '@/shared/constants/backend-enums';
 
-function formatDateTime(value: string | null | undefined, language: string) {
+function formatDateTime(
+  value: string | null | undefined,
+  language: string,
+  timeZone: string,
+) {
   if (!value) {
     return translateText('Not available', undefined, language);
   }
@@ -61,6 +66,7 @@ function formatDateTime(value: string | null | undefined, language: string) {
   return new Intl.DateTimeFormat(language, {
     dateStyle: 'medium',
     timeStyle: 'short',
+    timeZone,
   }).format(new Date(value));
 }
 
@@ -68,6 +74,7 @@ function formatPeriod(
   startValue: string | null | undefined,
   endValue: string | null | undefined,
   language: string,
+  timeZone: string,
 ) {
   if (!startValue && !endValue) {
     return translateText('Not scheduled', undefined, language);
@@ -76,7 +83,7 @@ function formatPeriod(
   if (!startValue) {
     return translateText(
       'Until {value}',
-      { value: formatDateTime(endValue, language) },
+      { value: formatDateTime(endValue, language, timeZone) },
       language,
     );
   }
@@ -84,12 +91,12 @@ function formatPeriod(
   if (!endValue) {
     return translateText(
       'From {value}',
-      { value: formatDateTime(startValue, language) },
+      { value: formatDateTime(startValue, language, timeZone) },
       language,
     );
   }
 
-  return `${formatDateTime(startValue, language)} - ${formatDateTime(endValue, language)}`;
+  return `${formatDateTime(startValue, language, timeZone)} - ${formatDateTime(endValue, language, timeZone)}`;
 }
 
 function formatMoney(
@@ -195,12 +202,14 @@ function InvoiceHistoryCard({
   error,
   onRetry,
   language,
+  timeZone,
 }: {
   invoices: BillingInvoiceDto[];
   isError: boolean;
   error: unknown;
   onRetry: () => void;
   language: string;
+  timeZone: string;
 }) {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(5);
@@ -265,6 +274,7 @@ function InvoiceHistoryCard({
                             invoice.dueDateUtc ||
                             invoice.createdDateUtc,
                           language,
+                          timeZone,
                         )}
                       </p>
                     </div>
@@ -326,6 +336,7 @@ function InvoiceHistoryCard({
                             invoice.dueDateUtc ||
                             invoice.createdDateUtc,
                           language,
+                          timeZone,
                         )}
                       </TableCell>
                       <TableCell>
@@ -380,12 +391,14 @@ function PaymentHistoryCard({
   error,
   onRetry,
   language,
+  timeZone,
 }: {
   payments: BillingPaymentDto[];
   isError: boolean;
   error: unknown;
   onRetry: () => void;
   language: string;
+  timeZone: string;
 }) {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(5);
@@ -448,6 +461,7 @@ function PaymentHistoryCard({
                         {formatDateTime(
                           payment.paidAtUtc || payment.createdDateUtc,
                           language,
+                          timeZone,
                         )}
                       </p>
                     </div>
@@ -512,6 +526,7 @@ function PaymentHistoryCard({
                         {formatDateTime(
                           payment.paidAtUtc || payment.createdDateUtc,
                           language,
+                          timeZone,
                         )}
                       </TableCell>
                       <TableCell>
@@ -560,6 +575,7 @@ function PaymentHistoryCard({
 
 export function BillingPage() {
   const { language } = usePortalI18n();
+  const timeZone = usePortalTimeZone();
   const { currentTenant, isLoading: isTenantLoading } = useTenant();
   const canManageBilling = usePermission('billing.manage');
   const {
@@ -761,12 +777,13 @@ export function BillingPage() {
                     subscription?.currentPeriodEndUtc ||
                       summary?.currentPeriodEndUtc,
                     language,
+                    timeZone,
                   ),
                 },
                 {
                   label: translateText('Grace period', undefined, language),
                   value: summary?.graceUntilUtc
-                    ? formatDateTime(summary.graceUntilUtc, language)
+                    ? formatDateTime(summary.graceUntilUtc, language, timeZone)
                     : translateText('Not in grace period', undefined, language),
                 },
                 {
@@ -872,13 +889,14 @@ export function BillingPage() {
                       ? formatDateTime(
                           summary.entitlement.effectiveUntilUtc,
                           language,
+                          timeZone,
                         )
                       : translateText('Not available', undefined, language),
                   },
                   {
                     label: translateText('Updated', undefined, language),
                     value: summary.entitlement.updatedAtUtc
-                      ? formatDateTime(summary.entitlement.updatedAtUtc, language)
+                      ? formatDateTime(summary.entitlement.updatedAtUtc, language, timeZone)
                       : translateText('Not available', undefined, language),
                   },
                 ]}
@@ -909,6 +927,7 @@ export function BillingPage() {
           void invoicesQuery.refetch();
         }}
         language={language}
+        timeZone={timeZone}
       />
 
       <PaymentHistoryCard
@@ -919,6 +938,7 @@ export function BillingPage() {
           void paymentsQuery.refetch();
         }}
         language={language}
+        timeZone={timeZone}
       />
     </PageSurface>
   );

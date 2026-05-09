@@ -25,14 +25,48 @@ public class UsersUpdateUserProfileCommandHandler(TenantDbContext dbContext, ISe
         user.GivenName = request.GivenName;
         user.SurName = request.SurName;
         user.PhoneNumber = request.PhoneNumber ?? string.Empty;
-        user.Language = string.IsNullOrWhiteSpace(request.Language)
-            ? null
-            : request.Language.Trim();
-        user.TimeZone = string.IsNullOrWhiteSpace(request.TimeZone)
-            ? null
-            : request.TimeZone.Trim();
+        user.Language = NormalizeOptionalText(request.Language);
+        user.TimeZone = NormalizeTimeZone(request.TimeZone);
 
         dbContext.Users.Update(user);
         await dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    private static string? NormalizeOptionalText(string? value)
+    {
+        return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+    }
+
+    private static string? NormalizeTimeZone(string? timeZone)
+    {
+        var normalizedTimeZone = NormalizeOptionalText(timeZone);
+        if (normalizedTimeZone is null)
+        {
+            return null;
+        }
+
+        if (IsSupportedTimeZone(normalizedTimeZone))
+        {
+            return normalizedTimeZone;
+        }
+
+        throw new ApiErrorException("Time zone is invalid.", errorCode: (int)HttpStatusCode.UnprocessableEntity);
+    }
+
+    private static bool IsSupportedTimeZone(string timeZone)
+    {
+        try
+        {
+            _ = TimeZoneInfo.FindSystemTimeZoneById(timeZone);
+            return true;
+        }
+        catch (TimeZoneNotFoundException)
+        {
+            return false;
+        }
+        catch (InvalidTimeZoneException)
+        {
+            return false;
+        }
     }
 }

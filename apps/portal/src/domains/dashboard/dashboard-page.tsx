@@ -45,8 +45,8 @@ import {
 } from "@/shared/constants/enum-ui";
 import { PageHeader, PageSurface } from "@/shared/layout/page-layouts";
 import {
-  DEFAULT_PORTAL_TIME_ZONE,
   formatNumericDateTimeInTimeZone,
+  resolvePortalTimeZone,
 } from "@/shared/lib/time-zone";
 import { translateText } from "@/shared/lib/i18n-core";
 import {
@@ -772,8 +772,7 @@ function BillingNotice({
 
 export function DashboardPage() {
   const profileQuery = useUserProfile();
-  const timeZone =
-    profileQuery.data?.timeZone?.trim() || DEFAULT_PORTAL_TIME_ZONE;
+  const timeZone = resolvePortalTimeZone(profileQuery.data?.timeZone);
   const membersQuery = useTenantMembers({
     gcTime: DASHBOARD_QUERY_GC_TIME,
     staleTime: DASHBOARD_QUERY_STALE_TIME,

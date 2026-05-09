@@ -155,6 +155,24 @@ Implementation references:
 - `apps/portal/src/shared/lib/language.ts`
 - `apps/portal/src/shared/lib/i18n/locales/*.json`
 
+## Date and time rendering
+
+The Portal treats backend timestamps as UTC instants. Backend DTO fields that end in `Utc` must be
+rendered through `apps/portal/src/shared/lib/time-zone.ts` or an equivalent formatter that passes an
+explicit `timeZone` option to `Intl.DateTimeFormat`.
+
+Timezone resolution for authenticated Portal screens is:
+
+1. `User.TimeZone` from the Tenant Portal profile endpoint, when present and supported by the browser
+2. `UTC`
+
+The browser timezone is available as a selectable IANA timezone value in the profile picker, but it
+is not an implicit display fallback. Do not rely on `Intl.DateTimeFormat(...)`, `toLocaleString(...)`,
+`toLocaleDateString(...)`, or `toLocaleTimeString(...)` without an explicit `timeZone` for user-facing
+timestamps, because that silently applies the browser's local timezone. Sorting and comparisons may
+use `new Date(value).getTime()` because those operations compare instants rather than render local
+time.
+
 ## Implementation rules
 
 For shared components, layout standards, form rules, relationship sections, action patterns, visual hierarchy, responsive behavior, state handling, and domain-specific UI patterns, use [`portal-app-ui-prompt-guidance.md`](portal-app-ui-prompt-guidance.md).

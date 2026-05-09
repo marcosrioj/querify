@@ -120,6 +120,15 @@ Apply these rules to:
 - Tenant lookup code must read referenced rows with `IgnoreQueryFilters()` so soft-delete and tenant filters do not hide invalid or missing relationships.
 - Do not add empty tenant-integrity extensions for entities with no tenant-owned relationships; record that no rule is needed in the change notes or tests instead.
 
+### 9. UTC date and time contract
+
+- Persisted backend timestamps must represent UTC instants.
+- Use `DateTime.UtcNow` or provider UTC values such as Unix epoch conversion with `.UtcDateTime` for generated timestamps.
+- Do not use `DateTime.Now`, `DateTime.Today`, `DateTimeOffset.Now`, or `.ToLocalTime()` in backend code. The architecture compliance suite enforces this.
+- Name new persisted and DTO timestamp properties with a `Utc` suffix when they are not inherited from `BaseEntity`/`AuditableEntity`; existing provider/internal fields without the suffix must still store UTC values.
+- `BaseDbContext<TContext>` normalizes tracked `DateTime` and nullable `DateTime` values to UTC before save. `Local` values are converted, and unspecified values are treated as already-UTC.
+- Backend APIs return UTC timestamps. User-facing timezone conversion belongs at the presentation edge, such as the Portal date rendering helpers.
+
 ## Folder Ownership Rules
 
 | Location | Allowed | Not allowed |

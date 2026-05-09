@@ -122,6 +122,10 @@ const API_ERROR_MESSAGE_ALIASES: Array<{
     message: 'The request is invalid.',
   },
   {
+    pattern: /^Time zone is invalid\.$/,
+    message: 'The submitted data is invalid.',
+  },
+  {
     pattern: /^Stripe .+\.$/,
     message: 'The request is invalid.',
   },

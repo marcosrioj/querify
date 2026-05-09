@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { Bell, BellDot, CheckCheck, Inbox, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { usePortalTimeZone } from "@/domains/settings/settings-hooks";
 import { useRefreshAllowedTenantCache } from "@/domains/tenants/hooks";
 import { cn } from "@/lib/utils";
 import { useTenant } from "@/platform/tenant/use-tenant";
@@ -34,17 +35,22 @@ type NotificationNavigationTarget = {
   tenantLabel: string;
 };
 
-function formatNotificationTime(input: string) {
+function formatNotificationTime(
+  input: string,
+  language: string,
+  timeZone: string,
+) {
   const date = new Date(input);
   if (Number.isNaN(date.getTime())) {
     return input;
   }
 
-  return new Intl.DateTimeFormat(undefined, {
+  return new Intl.DateTimeFormat(language, {
     month: "short",
     day: "2-digit",
     hour: "2-digit",
     minute: "2-digit",
+    timeZone,
   }).format(date);
 }
 
@@ -52,15 +58,21 @@ function NotificationRow({
   item,
   onNavigate,
   tenantLabel,
+  language,
+  timeZone,
 }: {
   item: PortalNotificationInboxItem;
   onNavigate: (target: NotificationNavigationTarget) => void;
   tenantLabel: string;
+  language: string;
+  timeZone: string;
 }) {
   const presentation = presentPortalNotification(item.notification);
   const isUnread = !item.readAtUtc;
   const timeLabel = formatNotificationTime(
     item.notification.occurredAtUtc || item.receivedAtUtc,
+    language,
+    timeZone,
   );
   const content = (
     <div className="flex min-w-0 items-start gap-3 p-3">
@@ -142,7 +154,8 @@ export function NotificationsMenu({
 }: {
   triggerVariant?: "outline" | "ghost";
 }) {
-  const { t } = usePortalI18n();
+  const { language, t } = usePortalI18n();
+  const timeZone = usePortalTimeZone();
   const navigate = useNavigate();
   const refreshAllowedTenantCache = useRefreshAllowedTenantCache();
   const { currentTenantId, setCurrentTenantId, tenants } = useTenant();
@@ -285,6 +298,8 @@ export function NotificationsMenu({
                     item={item}
                     onNavigate={handleNotificationNavigation}
                     tenantLabel={getTenantLabel(item.notification.tenantId)}
+                    language={language}
+                    timeZone={timeZone}
                   />
                 ))}
               </div>

@@ -124,6 +124,10 @@ public class RepositoryArchitectureComplianceTests
         new(@"\bclass\s+(?<name>\w*RequestDto)\s*:\s*(?<base>[A-Za-z_][A-Za-z0-9_<>,\.\?]*)",
             RegexOptions.Multiline | RegexOptions.Compiled);
 
+    private static readonly Regex ProhibitedLocalClockRegex =
+        new(@"\bDateTime\.(Now|Today)\b|\bDateTimeOffset\.Now\b|\.ToLocalTime\s*\(",
+            RegexOptions.Compiled);
+
     private static readonly string RepositoryRoot = FindRepositoryRoot();
     private static readonly string DotnetRoot = Path.Combine(RepositoryRoot, "dotnet");
 
@@ -374,6 +378,24 @@ public class RepositoryArchitectureComplianceTests
                 !source.Contains("NotificationService", StringComparison.Ordinal))
             {
                 failures.Add($"{relativePath}: consumer must inject a ConsumerService or NotificationService.");
+            }
+        }
+
+        Assert.True(failures.Count == 0, BuildFailureMessage(failures));
+    }
+
+    [Fact]
+    public void DotnetCode_MustUseUtcTimeBoundaries()
+    {
+        var failures = new List<string>();
+
+        foreach (var filePath in EnumerateSourceFiles())
+        {
+            var source = File.ReadAllText(filePath);
+            foreach (Match match in ProhibitedLocalClockRegex.Matches(source))
+            {
+                failures.Add(
+                    $"{ToRelativePath(filePath)}: local clock usage '{match.Value.Trim()}' is not allowed; use UTC timestamps and apply user-facing time zones at the edge.");
             }
         }
 

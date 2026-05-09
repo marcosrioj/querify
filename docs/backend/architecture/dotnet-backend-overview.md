@@ -227,6 +227,12 @@ Tenant module persistence should follow these default conventions unless a modul
 - put module invariants that must run before audit/history in `OnBeforeSaveChangesRules()`
 - put auto-history capture in `OnBeforeSaveChanges()` so it runs after soft-delete and audit fields are applied
 
+Date/time persistence is UTC-only. Backend code should generate timestamps with `DateTime.UtcNow`
+or equivalent provider UTC values, and new DTO timestamp properties should use a `Utc` suffix unless
+they are inherited audit fields. Existing provider/internal fields without the suffix must still
+store UTC values. Local timezone conversion is a presentation concern owned by the consuming edge,
+such as the Portal.
+
 Tenant integrity is a `DbContext` responsibility, not a command-handler convention. If an `IMustHaveTenant` entity references another tenant-owned record, the owning module context must enforce the relationship before save.
 
 The default tenant-integrity pattern is:

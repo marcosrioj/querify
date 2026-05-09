@@ -25,6 +25,26 @@ The Tenant Portal user profile now exposes:
 - `timeZone`
 
 `language` is a nullable string that stores a locale code such as `en-US`, `pt-BR`, or `ar-SA`.
+`timeZone` is a nullable string that stores an IANA timezone id such as `UTC` or
+`America/Vancouver`.
+
+## Timezone source of truth
+
+Portal timestamp display resolves timezone in this order:
+
+1. `User.TimeZone` from the Tenant Portal profile endpoint, when present and supported by the browser
+2. `UTC`
+
+The browser timezone is not a fallback for timestamp display. It is only a browser-provided IANA
+timezone value that the user can explicitly save to their profile. Components must pass the resolved
+Portal timezone into `Intl.DateTimeFormat` instead of letting browser locale APIs choose a timezone
+implicitly.
+
+Implementation references:
+
+- `apps/portal/src/shared/lib/time-zone.ts`
+- `apps/portal/src/domains/settings/settings-hooks.ts`
+- `apps/portal/src/domains/settings/profile-settings-page.tsx`
 
 ## Supported Portal language options
 

@@ -130,4 +130,64 @@ public class UserProfileCommandQueryTests
         Assert.NotNull(updated);
         Assert.Equal(string.Empty, updated!.PhoneNumber);
     }
+
+    [Fact]
+    public async Task UpdateUserProfile_TrimsAndPersistsSupportedTimeZone()
+    {
+        var currentUserId = Guid.NewGuid();
+        using var context = TestContext.Create(userId: currentUserId);
+
+        await TestDataFactory.SeedUserAsync(
+            context.DbContext,
+            id: currentUserId,
+            givenName: "Before",
+            surName: "BeforeSur",
+            email: "before@example.test",
+            externalId: "ext-before",
+            phoneNumber: "555-0000",
+            role: UserRoleType.Member);
+
+        var handler = new UsersUpdateUserProfileCommandHandler(context.DbContext, context.SessionService);
+        await handler.Handle(new UsersUpdateUserProfileCommand
+        {
+            GivenName = "After",
+            SurName = "AfterSur",
+            PhoneNumber = "555-0400",
+            TimeZone = "  America/Vancouver  "
+        }, CancellationToken.None);
+
+        var updated = await context.DbContext.Users.FindAsync(currentUserId);
+        Assert.NotNull(updated);
+        Assert.Equal("America/Vancouver", updated!.TimeZone);
+    }
+
+    [Fact]
+    public async Task UpdateUserProfile_RejectsUnsupportedTimeZone()
+    {
+        var currentUserId = Guid.NewGuid();
+        using var context = TestContext.Create(userId: currentUserId);
+
+        await TestDataFactory.SeedUserAsync(
+            context.DbContext,
+            id: currentUserId,
+            givenName: "Before",
+            surName: "BeforeSur",
+            email: "before@example.test",
+            externalId: "ext-before",
+            phoneNumber: "555-0000",
+            role: UserRoleType.Member);
+
+        var handler = new UsersUpdateUserProfileCommandHandler(context.DbContext, context.SessionService);
+        var exception = await Assert.ThrowsAsync<ApiErrorException>(() => handler.Handle(
+            new UsersUpdateUserProfileCommand
+            {
+                GivenName = "After",
+                SurName = "AfterSur",
+                PhoneNumber = "555-0500",
+                TimeZone = "Not/A_Time_Zone"
+            },
+            CancellationToken.None));
+
+        Assert.Equal(422, exception.ErrorCode);
+    }
 }
