@@ -102,6 +102,11 @@ server {
 
 server {
     listen 80;
+    server_name dev.portal.querify.net;
+    return 308 https://dev.portal.querify.net\$request_uri;
+}
+
+server {
     listen 443 ssl;
     server_name dev.portal.querify.net;
     ssl_certificate /etc/nginx/certs/dev.querify.net.crt;

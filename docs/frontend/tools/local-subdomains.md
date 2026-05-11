@@ -18,7 +18,7 @@ The approach is intentionally decoupled from host-machine Nginx:
 
 - Nginx runs in Docker with config generated inside `devops/local/simulatedev/runtime/`
 - Nginx publishes `80:80` and `443:443`
-- HTTP and HTTPS requests are proxied to the mapped local app and API ports
+- HTTP requests to `dev.portal.querify.net` redirect to HTTPS; other HTTP and HTTPS requests are proxied to the mapped local app and API ports
 - hosts-file entries are always updated by setup and removed by teardown using marker blocks
 - cleanup scripts stop the proxy container and remove managed hosts entries
 
