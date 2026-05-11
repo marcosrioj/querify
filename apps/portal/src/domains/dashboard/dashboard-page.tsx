@@ -70,6 +70,7 @@ import { cn } from "@/lib/utils";
 const DASHBOARD_QUERY_STALE_TIME = 5 * 60 * 1000;
 const DASHBOARD_QUERY_GC_TIME = 15 * 60 * 1000;
 const DASHBOARD_QUEUE_LIMIT = 4;
+const DASHBOARD_TARGET_LIST_LIMIT = 50;
 const DASHBOARD_SPACE_PREVIEW_LIMIT = 4;
 
 function DashboardLoadingState() {
@@ -198,6 +199,15 @@ type BusinessReadoutItem = {
   to: string;
 };
 
+type ResolutionTargetItem = {
+  key: string;
+  badge: string;
+  title: string;
+  detail: string;
+  to: string;
+  updatedAtUtc?: string | null;
+};
+
 const signalToneClassNames: Record<
   DashboardSignalTone,
   {
@@ -311,20 +321,77 @@ function ProgressMeter({
   );
 }
 
+function ResolutionTargetList({
+  targets,
+  timeZone,
+}: {
+  targets: ResolutionTargetItem[];
+  timeZone: string;
+}) {
+  if (targets.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="mt-5 max-h-80 space-y-2 overflow-y-auto pr-1">
+      {targets.map((target) => (
+        <Link
+          key={target.key}
+          to={target.to}
+          className="group flex min-w-0 flex-col gap-3 rounded-xl border border-border/70 bg-background/75 p-3 transition-colors hover:border-primary/25 hover:bg-primary/[0.025] sm:flex-row sm:items-start sm:justify-between"
+        >
+          <div className="min-w-0 space-y-1.5">
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge variant="outline" appearance="outline" size="sm">
+                {translateText(target.badge)}
+              </Badge>
+              <Badge variant="warning" appearance="outline" size="sm">
+                {translateText("Needs review")}
+              </Badge>
+            </div>
+            <p className="truncate text-sm font-semibold text-mono group-hover:text-primary">
+              {target.title}
+            </p>
+            <p className="text-xs leading-5 text-muted-foreground">
+              {translateText(target.detail)}
+            </p>
+          </div>
+          <div className="flex shrink-0 items-center justify-between gap-3 text-xs text-muted-foreground sm:flex-col sm:items-end">
+            {target.updatedAtUtc ? (
+              <span>
+                {formatNumericDateTimeInTimeZone(
+                  target.updatedAtUtc,
+                  timeZone,
+                )}
+              </span>
+            ) : null}
+            <span className="inline-flex items-center gap-1 font-semibold text-primary">
+              {translateText("Open")}
+              <ArrowRight className="size-3.5" />
+            </span>
+          </div>
+        </Link>
+      ))}
+    </div>
+  );
+}
+
 function ExecutiveSummaryCard({
   activeQuestionCount,
-  draftQuestionCount,
   nextAction,
   primary,
+  resolutionTargets,
   spaceCount,
   spacesWithQuestionsValue,
+  timeZone,
 }: {
   activeQuestionCount: number;
-  draftQuestionCount: number;
   nextAction: { label: string; description: string; to: string };
   primary: BusinessReadoutItem;
+  resolutionTargets: ResolutionTargetItem[];
   spaceCount: number;
   spacesWithQuestionsValue: string;
+  timeZone: string;
 }) {
   const toneClassNames = signalToneClassNames[primary.tone];
   const headlineIcon =
@@ -335,11 +402,6 @@ function ExecutiveSummaryCard({
         : AlertTriangle;
   const HeadlineIcon = headlineIcon;
   const summaryMetrics = [
-    {
-      label: "Draft questions",
-      value: draftQuestionCount,
-      detail: translateText("Needs review"),
-    },
     {
       label: "Reusable questions",
       value: activeQuestionCount,
@@ -385,18 +447,24 @@ function ExecutiveSummaryCard({
                 <p className="text-5xl font-semibold leading-none text-mono sm:text-6xl">
                   {primary.value}
                 </p>
-                <p
-                  className={cn(
-                    "pb-1 text-sm font-semibold",
-                    toneClassNames.text,
-                  )}
-                >
-                  {translateText(primary.benchmark)}
-                </p>
+                {primary.benchmark ? (
+                  <p
+                    className={cn(
+                      "pb-1 text-sm font-semibold",
+                      toneClassNames.text,
+                    )}
+                  >
+                    {translateText(primary.benchmark)}
+                  </p>
+                ) : null}
               </div>
               <p className="max-w-2xl text-sm leading-6 text-muted-foreground">
                 {translateText(primary.detail)}
               </p>
+              <ResolutionTargetList
+                targets={resolutionTargets}
+                timeZone={timeZone}
+              />
             </div>
           </div>
 
@@ -809,7 +877,7 @@ export function DashboardPage() {
   });
   const draftQuestionsQuery = useQuestionList({
     page: 1,
-    pageSize: DASHBOARD_QUEUE_LIMIT,
+    pageSize: DASHBOARD_TARGET_LIST_LIMIT,
     sorting: "LastActivityAtUtc DESC",
     status: QuestionStatus.Draft,
     gcTime: DASHBOARD_QUERY_GC_TIME,
@@ -916,9 +984,28 @@ export function DashboardPage() {
   const spacesWithQuestionsCount = activeDashboardSpaces.filter(
     (space) => space.questionCount > 0,
   ).length;
-  const firstSpaceWithoutQuestionId = activeDashboardSpaces.find(
+  const spacesWithoutQuestions = activeDashboardSpaces.filter(
     (space) => space.questionCount === 0,
-  )?.id;
+  );
+  const firstSpaceWithoutQuestionId = spacesWithoutQuestions[0]?.id;
+  const resolutionTargets: ResolutionTargetItem[] = [
+    ...draftQuestions.map((question) => ({
+      key: `question-${question.id}`,
+      badge: "Question",
+      title: question.title,
+      detail: "Review draft questions",
+      to: `/app/questions/${question.id}`,
+      updatedAtUtc: question.lastActivityAtUtc,
+    })),
+    ...spacesWithoutQuestions.map((space) => ({
+      key: `space-${space.id}`,
+      badge: "Space",
+      title: space.name,
+      detail: "Create question",
+      to: `/app/spaces/${space.id}`,
+      updatedAtUtc: space.lastUpdatedAtUtc,
+    })),
+  ];
   const spacesWithQuestionsValue = `${spacesWithQuestionsCount}`;
   const billingSummary = billingSummaryQuery.data;
   const hasCompleteProfile = Boolean(
@@ -988,11 +1075,12 @@ export function DashboardPage() {
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1.35fr)_minmax(340px,0.65fr)] lg:gap-7.5">
         <ExecutiveSummaryCard
           activeQuestionCount={activeQuestionCount}
-          draftQuestionCount={draftQuestionCount}
           nextAction={nextAction}
           primary={primaryReadout}
+          resolutionTargets={resolutionTargets}
           spaceCount={spaceCount}
           spacesWithQuestionsValue={spacesWithQuestionsValue}
+          timeZone={timeZone}
         />
         <BusinessReadout items={secondaryReadout} />
       </div>

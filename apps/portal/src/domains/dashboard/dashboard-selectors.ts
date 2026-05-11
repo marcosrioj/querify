@@ -346,13 +346,9 @@ export function getBusinessReadout({
         ? `/app/spaces/${firstSpaceWithoutQuestionId}`
         : fallbackSpaceTo;
   const draftReviewDetail =
-    draftQuestionCount > 0
-      ? hasSpacesWithoutQuestions
-        ? "Draft questions and Spaces without Questions need review."
-        : "Draft questions need activation or archive review."
-      : hasSpacesWithoutQuestions
-        ? "Spaces without questions need a Question before activity review is clear."
-        : "No targets need review before normal activity.";
+    unresolvedTargetCount > 0
+      ? "Resolve pending items before normal activity continues."
+      : "No targets need review before normal activity.";
   const draftReviewTone: DashboardSignalTone =
     draftQuestionCount > 0
       ? queueTone(draftQuestionCount)
@@ -364,7 +360,7 @@ export function getBusinessReadout({
     {
       label: "Targets to resolve",
       value: `${unresolvedTargetCount}`,
-      benchmark: "Target 0 open targets",
+      benchmark: "",
       detail: draftReviewDetail,
       tone: draftReviewTone,
       to: draftReviewTo,
