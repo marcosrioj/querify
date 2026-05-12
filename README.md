@@ -1,6 +1,24 @@
 # Querify
 
-Querify is a multi-tenant knowledge platform built from a React portal, multiple `.NET 10` APIs, tenant-aware PostgreSQL databases, and background worker services.
+Querify is a multi-tenant Question-to-Knowledge platform built from a React 19 portal, multiple `.NET 10` APIs, tenant-aware PostgreSQL databases, and background worker services.
+
+The backend uses ASP.NET Core, EF Core, CQRS with MediatR, Auth0 JWT authentication, RabbitMQ through MassTransit, Hangfire-backed worker storage, SignalR portal notifications, S3-compatible object storage for sources, OpenTelemetry tracing, and Sentry. The frontend uses Vite, Tailwind CSS, TanStack Query/Table, `react-hook-form`, `zod`, `react-intl`, and Auth0 SPA authentication.
+
+## What is Querify?
+
+Querify is a Question-to-Knowledge OS that turns customer, community, and team questions into reusable knowledge assets. It helps organizations answer private conversations, public comments, shared community discussions, and formal decision flows with consistent knowledge, while learning from every interaction to improve the next response.
+
+AI is treated as a cross-cutting capability, not as a separate product module. In the current QnA model, questions and answers already carry `AiConfidenceScore` so generated or suggested content can be reviewed with an explicit confidence signal. The product architecture also defines MCP-based AI tools so assistants such as Claude, GPT, Cursor, VS Code Copilot, or other MCP-compatible clients can query spaces, create QnA drafts, and eventually run Source-to-Q&A generation workflows.
+
+The planned AI path is human-in-the-loop: fetch or receive source material, extract structured Q&A candidates with an LLM provider such as Anthropic Claude or a provider-agnostic OpenAI/Azure OpenAI adapter, store drafts with provenance and confidence metadata, then let a curator activate, edit, or discard the result.
+
+The platform is organized around five modules:
+
+- `Tenant`: controls workspace identity, access, billing, entitlements, database connections, and platform operations.
+- `QnA`: stores reusable questions, canonical answers, sources, tags, visibility, versions, and knowledge gaps.
+- `Direct`: resolves private 1:1 conversations across support, sales, success, partner, and logged-in customer flows.
+- `Broadcast`: captures and coordinates responses for public, shared, social, and community interactions.
+- `Trust`: records validation, votes, decisions, rationale, and audit history when confidence and transparency matter.
 
 This `README` is intentionally short. It explains what the repository is and how to bootstrap the essential local stack. All repository-owned documentation lives under [`docs/README.md`](docs/README.md).
 
