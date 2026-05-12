@@ -4,7 +4,7 @@
 
 This is the work-routing guide for the repository. Use it to decide how work should be framed, which boundary owns it, and which documents to read together.
 
-**Business context** lives in [`business/value_proposition.md`](business/value_proposition.md) (pt-BR). Read it first when the work touches module ownership, cross-module flows, or the product value proposition.
+**Business context** lives in [`business/value_proposition/value_proposition.md`](business/value_proposition/value_proposition.md) (pt-BR). Read it first when the work touches module ownership, cross-module flows, or the product value proposition.
 
 **Technical context** lives in the `backend/` and `frontend/` document trees. This guide routes you to the right one.
 
@@ -58,7 +58,7 @@ Use this workflow when the request changes:
 
 Primary documents:
 
-- [`business/value_proposition.md`](business/value_proposition.md) when Querify module ownership or cross-module flow is part of the change
+- [`business/value_proposition/value_proposition.md`](business/value_proposition/value_proposition.md) when Querify module ownership or cross-module flow is part of the change
 - [`backend/architecture/solution-architecture.md`](backend/architecture/solution-architecture.md)
 - [`backend/architecture/dotnet-backend-overview.md`](backend/architecture/dotnet-backend-overview.md)
 - [`backend/architecture/solution-cqrs-write-rules.md`](backend/architecture/solution-cqrs-write-rules.md)
@@ -105,7 +105,7 @@ Use this workflow when the change crosses the Portal and APIs together, for exam
 
 Start in this order:
 
-1. [`business/value_proposition.md`](business/value_proposition.md) when the change depends on the Querify module split across Tenant, QnA, Direct, Broadcast, or Trust.
+1. [`business/value_proposition/value_proposition.md`](business/value_proposition/value_proposition.md) when the change depends on the Querify module split across Tenant, QnA, Direct, Broadcast, or Trust.
 2. [`backend/architecture/solution-architecture.md`](backend/architecture/solution-architecture.md) to identify ownership boundaries.
 3. The owning backend guide in [`backend/architecture`](backend/architecture).
 4. The owning frontend guide in [`frontend/architecture`](frontend/architecture).
@@ -179,7 +179,7 @@ Use the module and runtime docs to identify the real ownership boundary first, t
 
 Start with:
 
-- [`business/value_proposition.md`](business/value_proposition.md) for Querify module boundaries and cross-module flow ownership
+- [`business/value_proposition/value_proposition.md`](business/value_proposition/value_proposition.md) for Querify module boundaries and cross-module flow ownership
 - [`backend/architecture/solution-architecture.md`](backend/architecture/solution-architecture.md) for system and data ownership
 - [`backend/architecture/dotnet-backend-overview.md`](backend/architecture/dotnet-backend-overview.md) for concrete API and persistence surfaces
 - [`frontend/architecture/portal-app.md`](frontend/architecture/portal-app.md) when the Portal UI, profile settings, or consent-facing flows are affected

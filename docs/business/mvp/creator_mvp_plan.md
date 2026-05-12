@@ -2,9 +2,9 @@
 
 Data de referencia: 2026-05-11.
 
-Este documento transforma os escopos completos de [`value_proposition.md`](value_proposition.md),
-[`ai_product_modules_strategy.md`](ai_product_modules_strategy.md) e
-[`pricing_strategy.md`](pricing_strategy.md) em um MVP mais rapido de entregar, com todos os
+Este documento transforma os escopos completos de [`value_proposition.md`](../value_proposition/value_proposition.md),
+[`ai_product_modules_strategy.md`](../value_proposition/ai_product_modules_strategy.md) e
+[`pricing_strategy.md`](../value_proposition/pricing_strategy.md) em um MVP mais rapido de entregar, com todos os
 modulos de produto funcionando em versao minima: QnA, Direct, Broadcast e Trust.
 
 O publico-alvo inicial e o influenciador, creator, especialista independente, infoprodutor pequeno,

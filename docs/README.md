@@ -17,7 +17,7 @@ These guides apply across the entire repository, regardless of whether the work 
 
 Documents for understanding what the product does, why each module exists, and where behavioral ownership lives. Read this before making decisions about which module should own a new behavior.
 
-- [`business/value_proposition.md`](business/value_proposition.md) — module split (Tenant, QnA, Direct, Broadcast, Trust), value proposition, ownership rules, cross-module handoff model, and 20 business flow scenarios.
+- [`business/value_proposition/value_proposition.md`](business/value_proposition/value_proposition.md) — module split (Tenant, QnA, Direct, Broadcast, Trust), value proposition, ownership rules, cross-module handoff model, and 20 business flow scenarios.
 
 > This document is written in Portuguese (pt-BR). It describes the product domain, not the technical implementation.
 
@@ -96,7 +96,7 @@ for how this folder works and when documents move out of it.
 
 1. [`../README.md`](../README.md) — shortest path to a working local environment.
 2. [`execution-guide.md`](execution-guide.md) — choose the correct workstream and owning document boundary.
-3. [`business/value_proposition.md`](business/value_proposition.md) — when the work depends on module ownership or cross-module flows.
+3. [`business/value_proposition/value_proposition.md`](business/value_proposition/value_proposition.md) — when the work depends on module ownership or cross-module flows.
 4. [`behavior-change-playbook.md`](behavior-change-playbook.md) — when the change crosses more than one layer.
 5. [`backend/tools/local-development.md`](backend/tools/local-development.md) — to bring up the local stack.
 6. The owning architecture document for the boundary you are changing.
