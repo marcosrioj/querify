@@ -3,6 +3,9 @@
 /.tmp/
 /.vscode/
 
+.claude/settings.local.json
+.claude/agent-memory-local/
+
 **/.obsidian/
 **/node_modules/
 **/bin/
@@ -17,4 +20,3 @@
 
 dotnet/Querify.Sample.Ai.Generation/appsettings.json
 Querify.sln.DotSettings.user
-
