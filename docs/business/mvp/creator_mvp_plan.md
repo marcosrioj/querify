@@ -23,13 +23,16 @@ O MVP deve ter todos os modulos, mas em corte pequeno:
 | Modulo | Corte MVP para creator |
 | --- | --- |
 | QnA | Mini base publica de perguntas e respostas, com AI draft e fonte simples. |
-| Direct | Inbox privado proprio via formulario/link, com sugestao de resposta baseada no QnA. |
-| Broadcast | Importacao manual/CSV de comentarios e perguntas publicas, agrupamento e resposta sugerida. |
-| Trust | Aprovacao simples, historico de mudanca e registro de decisao para respostas sensiveis. |
+| Direct | Inbox privado conectado a pelo menos um canal automatico, com sugestao e envio de resposta baseada no QnA. |
+| Broadcast | Integracao automatica com pelo menos uma rede social para capturar, persistir, agrupar e responder comentarios. |
+| Trust | Policy gate automatico, historico de mudanca e registro de decisao para respostas sensiveis. |
 
-Nao tentar entregar no MVP: automacao profunda de Instagram/TikTok/WhatsApp, inbox social completo,
-webhooks de todos os canais, agente autonomo, analytics enterprise, votes sofisticados ou workflows
-complexos de governanca.
+O MVP nao e aceito sem um canal social automatico de ponta a ponta. O corte minimo deve cobrir:
+configuracao OAuth/API do canal, persistencia da conexao, escuta de eventos ou polling incremental,
+persistencia das mensagens/comentarios, geracao de resposta, policy gate do Trust e escrita da
+resposta de volta no canal quando permitido. Nao tentar entregar no MVP: automacao profunda de todos
+os providers, inbox social completo para todos os canais, agente autonomo irrestrito, analytics
+enterprise, votes sofisticados ou workflows complexos de governanca.
 
 ## Por Que Esse MVP Faz Sentido
 
@@ -88,7 +91,7 @@ Mensagem curta:
 
 Mensagem em uma frase:
 
-> Querify ajuda creators a responder menos no manual, vender com mais clareza e descobrir o que a
+> Querify ajuda creators a repetir menos respostas, vender com mais clareza e descobrir o que a
 > audiencia quer saber em seguida.
 
 ## ICP Do MVP
@@ -124,12 +127,12 @@ site, comunidade ou resposta de DM.
 Funcionalidades MVP:
 
 - Criar space "Creator Hub".
-- Criar perguntas e respostas manualmente.
+- Criar perguntas e respostas a partir de canais conectados, fontes publicas e drafts de IA.
 - Gerar rascunho com IA a partir de:
-  - texto colado;
   - URL publica;
   - FAQ existente;
-  - descricao de produto/curso/mentoria.
+  - descricao de produto/curso/mentoria;
+  - mensagens e comentarios capturados pelos canais conectados.
 - Publicar resposta como publica ou interna.
 - Copiar link de pergunta/resposta.
 - Feedback simples: util / nao util.
@@ -153,11 +156,13 @@ Valor para creator:
 
 Objetivo:
 
-Permitir que seguidores facam perguntas privadas sem depender de integracao com Instagram ou
-WhatsApp no MVP.
+Permitir que seguidores facam perguntas privadas por canal conectado ou link proprio, com captura,
+persistencia e resposta pelo canal configurado.
 
 Funcionalidades MVP:
 
+- Configurar pelo menos um canal automatico de entrada e saida para Direct quando o provider
+  suportar mensagem privada.
 - Link publico "Pergunte ao creator".
 - Formulario privado:
   - nome;
@@ -169,18 +174,17 @@ Funcionalidades MVP:
 - Listar inbox de perguntas privadas.
 - Sugerir resposta com base no QnA.
 - Acoes:
-  - responder manualmente;
-  - copiar resposta;
+  - enviar resposta pelo canal configurado;
+  - registrar status de entrega;
   - marcar como resolvida;
   - criar lacuna para QnA;
   - promover resposta final para QnA como draft.
 
 Limites MVP:
 
-- Nao enviar DM real para Instagram/TikTok no inicio.
 - Nao ter SLA/ticketing complexo.
-- Nao ter agente autonomo.
-- Resposta pode ser enviada por email simples, ou copiada para o canal externo.
+- Nao ter agente autonomo multicanal irrestrito.
+- Resposta automatica deve passar pelo policy gate do Trust antes de envio quando houver risco.
 
 Valor para creator:
 
@@ -192,19 +196,18 @@ Valor para creator:
 
 Objetivo:
 
-Capturar perguntas publicas em volume pequeno, agrupar repeticoes e sugerir resposta publica.
+Capturar perguntas publicas de um canal social conectado, agrupar repeticoes e responder pelo
+proprio canal quando permitido.
 
 Funcionalidades MVP:
 
-- Criar thread Broadcast manual:
-  - post;
-  - video;
-  - live;
-  - aula;
-  - campanha;
-  - lancamento.
-- Colar comentarios manualmente ou importar CSV.
-- Marcar origem: Instagram, TikTok, YouTube, LinkedIn, X, comunidade, outro.
+- Configurar pelo menos uma rede social com OAuth/API, escopos, conta externa e status da conexao.
+- Descobrir ou sincronizar automaticamente posts, videos, lives, aulas, campanhas ou lancamentos
+  disponiveis no provider escolhido.
+- Escutar comentarios por webhook quando existir, ou por polling incremental quando o provider nao
+  oferecer webhook suficiente.
+- Persistir evento bruto, thread, item, autor externo, id externo e status de processamento.
+- Marcar origem: Instagram, TikTok, YouTube, LinkedIn, X, comunidade ou outro provider suportado.
 - Classificar itens:
   - pergunta;
   - objecao;
@@ -214,14 +217,17 @@ Funcionalidades MVP:
   - spam/ignorar.
 - Agrupar perguntas parecidas.
 - Sugerir resposta publica com base no QnA.
+- Enviar resposta pelo canal conectado quando o provider permitir escrita.
+- Registrar tentativa, sucesso, falha e id externo da resposta enviada.
 - Criar lacuna QnA quando o tema aparece varias vezes.
 - Encaminhar para Direct quando exigir dado privado.
 
 Limites MVP:
 
-- Sem OAuth/social API no primeiro corte.
-- Sem responder automaticamente em redes sociais.
-- Sem social listening em tempo real.
+- Um provider social automatico e obrigatorio; os demais providers podem entrar depois.
+- Sem cobertura completa de todos os formatos de cada rede social.
+- Sem social listening universal em tempo real; polling incremental e suficiente quando webhook nao
+  estiver disponivel.
 - Sem moderacao avancada.
 
 Valor para creator:
@@ -230,7 +236,7 @@ Valor para creator:
 - Ajuda a responder publicamente com consistencia.
 - Transforma campanha/lancamento em mapa de duvidas.
 
-### 4. Trust: Simple Approval Log
+### 4. Trust: Automated Policy Log
 
 Objetivo:
 
@@ -238,7 +244,7 @@ Dar confianca sem criar governanca pesada.
 
 Funcionalidades MVP:
 
-- Marcar resposta como "precisa revisar" quando envolver:
+- Detectar risco automaticamente quando resposta envolver:
   - preco;
   - promessa de resultado;
   - garantia;
@@ -246,14 +252,16 @@ Funcionalidades MVP:
   - parceria;
   - regra de comunidade;
   - desconto ou oferta.
-- Aprovar resposta antes de publicar.
+- Aplicar policy gate antes de publicar ou responder no canal.
 - Registrar:
-  - quem aprovou;
+  - qual regra decidiu;
   - quando;
   - o que mudou;
   - racional curto.
+- Permitir envio automatico quando a regra permitir.
+- Bloquear envio automatico quando a regra classificar risco alto.
 - Historico simples de versoes.
-- Voltar resposta para draft quando houver contestacao.
+- Voltar resposta para draft quando o conteudo mudar e invalidar a decisao anterior.
 
 Limites MVP:
 
@@ -261,6 +269,7 @@ Limites MVP:
 - Sem workflow multi-participante complexo.
 - Sem auditoria regulatoria completa.
 - Sem governanca DAO/comunidade.
+- Sem fila de revisao humana como requisito do MVP.
 
 Valor para creator:
 
@@ -278,19 +287,20 @@ Follower envia pergunta pelo Ask Me Inbox
   -> Direct busca resposta no QnA
   -> se nao existe, Direct cria lacuna
   -> QnA cria resposta draft
-  -> Trust aprova se for sensivel
+  -> Trust aplica policy se for sensivel
   -> QnA publica resposta
 ```
 
 Fluxo 2: comentarios viram conteudo.
 
 ```text
-Creator cola comentarios de um post
-  -> Broadcast cria thread e itens
+Canal social conectado recebe comentario
+  -> Broadcast valida webhook ou executa polling incremental
+  -> Broadcast persiste evento, thread e item
   -> Broadcast agrupa perguntas repetidas
   -> QnA sugere resposta reutilizavel
-  -> Trust aprova se houver promessa/risco
-  -> Creator copia resposta publica ou transforma em post
+  -> Trust aplica policy se houver promessa/risco
+  -> Broadcast escreve resposta no canal ou transforma em post planejado
 ```
 
 Fluxo 3: resposta publicada reduz retrabalho.
@@ -309,21 +319,24 @@ Creator publica link do Answer Hub
 
 - Usar QnA existente como base principal.
 - Criar um Public Creator Hub usando QnA Public.
-- Criar Direct minimo com formulario publico e inbox no Portal.
-- Criar Broadcast minimo com thread manual/importacao CSV.
-- Criar Trust minimo como approval/history para QnA Answer.
+- Criar Direct minimo com canal automatico de entrada/saida quando o provider suportar mensagem
+  privada, alem do formulario publico como rota propria.
+- Criar Broadcast minimo com conexao automatica de uma rede social, listener, persistencia,
+  classificacao, agrupamento e escrita de resposta.
+- Criar Trust minimo como policy/decision history para QnA Answer e respostas de canal.
 - Usar IA apenas para:
   - gerar draft;
   - sugerir resposta;
   - classificar comentario;
   - agrupar temas;
   - resumir lacuna.
-- Manter human approval antes de publicar ou responder.
+- Manter policy gate do Trust antes de publicar ou responder.
 
 ### Nao Fazer No MVP
 
-- Instagram API, TikTok API, YouTube API ou WhatsApp API como dependencia inicial.
-- Auto-resposta em canal externo.
+- Todos os providers sociais no primeiro release; entregar um provider automatico homologado e
+  manter os demais atras da mesma interface de adaptador.
+- Publicacao irrestrita sem Trust/policy gate.
 - Multi-agent runtime completo.
 - MCP como parte obrigatoria da experiencia do creator.
 - Billing complexo por modulo.
@@ -338,11 +351,11 @@ Componentes minimos:
 | Area | Implementacao MVP |
 | --- | --- |
 | QnA | Reusar spaces, questions, answers, sources, tags, activity. |
-| Direct | `Conversation`, `ConversationMessage`, API Portal/Public minima, form publico. |
-| Broadcast | `Thread`, `Item`, API Portal minima, importacao CSV/text paste. |
-| Trust | Entidade simples de `ReviewDecision` ou `ApprovalRecord` ligada a QnA answer/question. |
-| IA | Service compartilhado para draft/suggestion/classification, sem agente autonomo. |
-| Portal | Uma area "Creator Hub" com tabs: Answers, Inbox, Comments, Review. |
+| Direct | `Conversation`, `ConversationMessage`, API Portal/Public minima, listener e writer quando o provider suportar DM. |
+| Broadcast | `ChannelConnection`, `Thread`, `Item`, `ChannelEvent`, `OutboundReply`, API Portal/Webhook/Worker. |
+| Trust | Entidade simples de `PolicyDecision` ligada a QnA answer/question e respostas de canal. |
+| IA | Service compartilhado para draft/suggestion/classification com policy gate antes de envio. |
+| Portal | Uma area "Creator Hub" com tabs: Answers, Inbox, Comments, Policy. |
 | Public | Pagina publica do creator com busca QnA e botao "Ask privately". |
 
 Sequencia de implementacao:
@@ -350,8 +363,8 @@ Sequencia de implementacao:
 1. Creator Hub publico com QnA.
 2. Direct Ask Me Inbox.
 3. AI answer suggestion para Direct.
-4. Broadcast Comment Collector manual.
-5. Trust Simple Approval Log.
+4. Broadcast Automatic Channel Integration.
+5. Trust Automated Policy Log.
 6. Pricing limits no Tenant/Billing.
 
 ## Roadmap De Entrega
@@ -381,13 +394,13 @@ Entregaveis:
 
 Aceite:
 
-- Um seguidor envia pergunta; o creator ve no inbox e responde/copia resposta.
+- Um seguidor envia pergunta; o creator ve no inbox e a resposta e enviada pelo canal configurado.
 
 ### Semana 3: AI Draft E Suggestion
 
 Entregaveis:
 
-- Gerar resposta draft no QnA a partir de texto colado.
+- Gerar resposta draft no QnA a partir de conteudo capturado ou URL publica.
 - Sugerir resposta Direct com base no QnA.
 - Criar lacuna QnA a partir de Direct.
 
@@ -395,32 +408,36 @@ Aceite:
 
 - Uma pergunta privada sem resposta vira draft QnA em menos de 2 minutos.
 
-### Semana 4: Broadcast Manual
+### Semana 4: Broadcast Automatic Channel
 
 Entregaveis:
 
-- Criar thread de post/video/live.
-- Colar/importar comentarios.
+- Configurar uma conta social por OAuth/API.
+- Sincronizar post/video/live do provider escolhido.
+- Escutar comentarios por webhook ou polling incremental.
+- Persistir evento bruto, thread, item e autor externo.
 - Classificar comentario.
 - Agrupar perguntas parecidas.
 - Sugerir resposta publica.
+- Enviar resposta pelo canal quando liberada pelo Trust/policy gate.
 
 Aceite:
 
-- O creator importa 50 comentarios e ve os 5 principais temas.
+- O sistema captura 50 comentarios do canal conectado, mostra os 5 principais temas e registra
+  tentativas de resposta no provider.
 
 ### Semana 5: Trust Simples
 
 Entregaveis:
 
 - Marcar resposta como sensivel.
-- Aprovar/rejeitar resposta.
-- Guardar racional curto e historico.
-- Bloquear publicacao se precisa revisar.
+- Avaliar regra de policy automaticamente.
+- Guardar racional curto, regra aplicada e historico.
+- Bloquear publicacao ou envio quando a regra classificar risco alto.
 
 Aceite:
 
-- Resposta de preco/garantia nao publica sem aprovacao.
+- Resposta de preco/garantia nao publica nem responde em canal sem decisao de policy registrada.
 
 ### Semana 6: Pricing, Limits E Launch
 
@@ -458,16 +475,16 @@ Inclui:
 - 1 space.
 - 50 perguntas QnA.
 - 100 perguntas privadas Direct/mes.
-- 100 comentarios Broadcast importados/mes.
+- 1 canal social conectado.
+- 100 comentarios Broadcast capturados/mes.
 - 100 AI suggestions/mes.
-- Trust approval log simples.
+- Trust policy log simples.
 - 1 usuario.
 - Branding Querify discreto.
 
 Nao inclui:
 
-- Integracoes externas.
-- Auto-resposta.
+- Agente autonomo irrestrito.
 - Colaboradores.
 - Exportacao avancada.
 
@@ -479,9 +496,10 @@ Inclui:
 - 3 spaces.
 - 300 perguntas QnA.
 - 1.000 perguntas privadas Direct/mes.
-- 1.000 comentarios Broadcast importados/mes.
+- 2 canais sociais conectados.
+- 1.000 comentarios Broadcast capturados/mes.
 - 500 AI suggestions/mes.
-- Trust approval log.
+- Trust policy log.
 - 2 usuarios.
 - Remocao de branding.
 - Exportacao CSV.
@@ -495,10 +513,11 @@ Inclui:
 - 10 spaces.
 - 1.000 perguntas QnA.
 - 5.000 perguntas privadas Direct/mes.
-- 10.000 comentarios Broadcast importados/mes.
+- 5 canais sociais conectados.
+- 10.000 comentarios Broadcast capturados/mes.
 - 2.500 AI suggestions/mes.
 - 5 usuarios.
-- Workflow de revisao simples.
+- Regras de policy simples.
 - Relatorio de temas recorrentes.
 - Prioridade em futuras integracoes.
 
@@ -507,7 +526,7 @@ Inclui:
 | Uso extra | Preco |
 | --- | ---: |
 | 500 AI suggestions extras | US$ 5 |
-| 1.000 comentarios importados extras | US$ 5 |
+| 1.000 comentarios capturados extras | US$ 5 |
 | 1.000 perguntas privadas extras | US$ 10 |
 | Usuario extra | US$ 5/mes no Growth; US$ 10/mes no Pro |
 
@@ -529,7 +548,7 @@ limite muito baixo:
 
 - 10 QnAs.
 - 10 perguntas privadas.
-- 10 comentarios importados.
+- 10 comentarios capturados.
 - 10 AI suggestions.
 - branding Querify.
 
@@ -554,13 +573,13 @@ Promessas realistas:
 - Economizar tempo.
 - Responder com mais consistencia.
 - Transformar duvidas em conteudo.
-- Reduzir repeticao manual.
+- Reduzir repeticao operacional.
 - Criar uma base que cresce com a audiencia.
 
 Evitar prometer:
 
 - "IA vende sozinha."
-- "Automacao total de Instagram."
+- "Automacao total de todos os canais."
 - "Substitui atendimento humano."
 - "Garante mais vendas."
 
@@ -572,7 +591,7 @@ Evitar prometer:
 | Stan/Beacons | Vender produto digital | Querify explica produto, reduz objecoes e revela lacunas. |
 | Manychat | Automacao de DM/comentario | Querify cria memoria reutilizavel, nao so fluxo de mensagem. |
 | Substack/Patreon | Monetizacao e comunidade | Querify transforma perguntas da comunidade em conhecimento. |
-| Google Doc/Notion FAQ | Documento manual | Querify conecta FAQ, inbox, comentarios e aprovacao. |
+| Google Doc/Notion FAQ | Documento estatico | Querify conecta FAQ, inbox, comentarios e policy. |
 
 O diferencial nao e "mais canais". O diferencial e **a pergunta virar ativo**.
 
@@ -584,7 +603,7 @@ Produto:
 - Primeira pergunta privada recebida: dentro da primeira semana.
 - 10 QnAs criadas por creator ativo.
 - 30% das perguntas Direct viram QnA draft.
-- 20% dos comentarios importados entram em cluster recorrente.
+- 20% dos comentarios capturados entram em cluster recorrente.
 - 50% dos creators ativos usam resposta sugerida ao menos uma vez por semana.
 
 Negocio:
@@ -600,29 +619,30 @@ Negocio:
 | Risco | Mitigacao |
 | --- | --- |
 | Creator achar caro comparado a Linktree | Plano Starter US$ 19 anualizado e foco em economia de tempo/resposta. |
-| Produto parecer incompleto sem Instagram API | Vender como hub + inbox proprio primeiro; APIs entram como upgrade. |
+| Provider homologado atrasar liberacao de API | Escolher o provider antes do build, validar leitura/escrita cedo e manter segundo provider oficial como plano B. |
 | Uso de IA consumir margem | Limites baixos e overage simples por AI suggestions. |
 | Creator nao configurar base QnA | Templates por nicho e onboarding que cria as primeiras 10 perguntas. |
-| Broadcast manual parecer trabalhoso | Importacao por copy/paste e CSV, com resumo automatico de temas. |
-| Trust parecer enterprise demais | Chamar de "Approval Log" ou "Historico de respostas importantes". |
+| Provider social bloquear permissao de leitura/escrita | Escolher um provider homologado antes do build, isolar adaptador e manter fallback para outro provider oficial. |
+| Conexao social quebrar ou expirar token | Health check, renovacao de token, reconexao guiada e alerta no Portal. |
+| Trust parecer enterprise demais | Chamar de "Policy Log" ou "Historico de respostas importantes". |
 
 ## Decisao Final
 
 O MVP mais rapido e comercialmente viavel e:
 
-> **Querify Creator: Answer Hub + Ask Me Inbox + Comment Collector + Approval Log.**
+> **Querify Creator: Answer Hub + Ask Me Inbox + Comment Collector + Policy Log.**
 
 Ele mantem todos os modulos vivos:
 
 - QnA publica e organiza conhecimento.
 - Direct captura perguntas privadas.
 - Broadcast captura perguntas publicas.
-- Trust registra aprovacao e historico.
+- Trust registra decisao de policy e historico.
 
 Mas reduz o peso de entrega:
 
-- sem depender de APIs sociais no primeiro release;
-- sem automacao autonoma;
+- com um provider social automatico em vez de todos os canais no primeiro release;
+- sem agente autonomo irrestrito;
 - sem governanca pesada;
 - sem pricing enterprise;
 - sem multi-agent complexo.
