@@ -22,17 +22,18 @@ O MVP deve ter todos os modulos, mas em corte pequeno:
 
 | Modulo | Corte MVP para creator |
 | --- | --- |
-| QnA | Mini base publica de perguntas e respostas, com AI draft e fonte simples. |
-| Direct | Inbox privado conectado a pelo menos um canal automatico, com sugestao e envio de resposta baseada no QnA. |
-| Broadcast | Integracao automatica com pelo menos uma rede social para capturar, persistir, agrupar e responder comentarios. |
+| QnA | Mini base publica de perguntas e respostas, com AI draft, MCP completo e busca vetorial enterprise. |
+| Direct | Inbox privado conectado a canais automaticos, com multi-agent runtime e envio de resposta baseada no QnA. |
+| Broadcast | Integracao automatica com Instagram, TikTok e YouTube para capturar, persistir, agrupar e responder comentarios. |
 | Trust | Policy gate automatico, historico de mudanca e registro de decisao para respostas sensiveis. |
 
-O MVP nao e aceito sem um canal social automatico de ponta a ponta. O corte minimo deve cobrir:
-configuracao OAuth/API do canal, persistencia da conexao, escuta de eventos ou polling incremental,
-persistencia das mensagens/comentarios, geracao de resposta, policy gate do Trust e escrita da
-resposta de volta no canal quando permitido. Nao tentar entregar no MVP: automacao profunda de todos
-os providers, inbox social completo para todos os canais, agente autonomo irrestrito, analytics
-enterprise, votes sofisticados ou workflows complexos de governanca.
+O MVP nao e aceito sem Instagram, TikTok e YouTube automaticos de ponta a ponta. O corte minimo deve
+cobrir configuracao OAuth/API de cada provider, persistencia da conexao, escuta de eventos ou
+polling incremental, persistencia das mensagens/comentarios, geracao de resposta, policy gate do
+Trust e escrita da resposta de volta no canal quando permitido. Tambem entram no MVP: MCP completo,
+runtime multi-agent completo e busca vetorial enterprise. Os demais providers ficam atras da mesma
+interface de adaptador. Nao tentar entregar no MVP: analytics enterprise, votes sofisticados ou
+workflows complexos de governanca.
 
 ## Por Que Esse MVP Faz Sentido
 
@@ -136,7 +137,9 @@ Funcionalidades MVP:
 - Publicar resposta como publica ou interna.
 - Copiar link de pergunta/resposta.
 - Feedback simples: util / nao util.
-- Busca simples por pergunta.
+- Busca vetorial enterprise com indice lexical + vetorial, filtros por tenant/space/idioma/status e
+  re-ranking.
+- MCP completo para consultar, criar, importar, promover e ativar QnA por ferramentas.
 - Tags basicas: produto, preco, entrega, acesso, garantia, comunidade, suporte, parceria.
 
 Limites MVP:
@@ -144,7 +147,6 @@ Limites MVP:
 - Sem editor editorial complexo.
 - Sem multi-idioma avancado.
 - Sem fonte rica por PDF/video no primeiro corte, salvo se o source upload ja estiver pronto.
-- Sem search enterprise; busca textual + matching semantico simples pode ser suficiente.
 
 Valor para creator:
 
@@ -161,8 +163,10 @@ persistencia e resposta pelo canal configurado.
 
 Funcionalidades MVP:
 
-- Configurar pelo menos um canal automatico de entrada e saida para Direct quando o provider
-  suportar mensagem privada.
+- Configurar canais automaticos de entrada e saida para Direct quando Instagram, TikTok ou YouTube
+  suportarem mensagem privada no escopo aprovado.
+- Resolver conversas com multi-agent runtime completo, usando agente Direct, agente QnA e policy
+  gate do Trust.
 - Link publico "Pergunte ao creator".
 - Formulario privado:
   - nome;
@@ -183,7 +187,6 @@ Funcionalidades MVP:
 Limites MVP:
 
 - Nao ter SLA/ticketing complexo.
-- Nao ter agente autonomo multicanal irrestrito.
 - Resposta automatica deve passar pelo policy gate do Trust antes de envio quando houver risco.
 
 Valor para creator:
@@ -196,18 +199,18 @@ Valor para creator:
 
 Objetivo:
 
-Capturar perguntas publicas de um canal social conectado, agrupar repeticoes e responder pelo
-proprio canal quando permitido.
+Capturar perguntas publicas de Instagram, TikTok e YouTube, agrupar repeticoes e responder pelo
+proprio provider quando permitido.
 
 Funcionalidades MVP:
 
-- Configurar pelo menos uma rede social com OAuth/API, escopos, conta externa e status da conexao.
+- Configurar Instagram, TikTok e YouTube com OAuth/API, escopos, conta externa e status da conexao.
 - Descobrir ou sincronizar automaticamente posts, videos, lives, aulas, campanhas ou lancamentos
-  disponiveis no provider escolhido.
+  disponiveis nos providers homologados.
 - Escutar comentarios por webhook quando existir, ou por polling incremental quando o provider nao
   oferecer webhook suficiente.
 - Persistir evento bruto, thread, item, autor externo, id externo e status de processamento.
-- Marcar origem: Instagram, TikTok, YouTube, LinkedIn, X, comunidade ou outro provider suportado.
+- Marcar origem: Instagram, TikTok, YouTube ou outro provider suportado futuramente.
 - Classificar itens:
   - pergunta;
   - objecao;
@@ -224,7 +227,8 @@ Funcionalidades MVP:
 
 Limites MVP:
 
-- Um provider social automatico e obrigatorio; os demais providers podem entrar depois.
+- Instagram, TikTok e YouTube sao obrigatorios no primeiro release; os demais providers entram
+  depois pela mesma interface de adaptador.
 - Sem cobertura completa de todos os formatos de cada rede social.
 - Sem social listening universal em tempo real; polling incremental e suficiente quando webhook nao
   estiver disponivel.
@@ -319,11 +323,14 @@ Creator publica link do Answer Hub
 
 - Usar QnA existente como base principal.
 - Criar um Public Creator Hub usando QnA Public.
-- Criar Direct minimo com canal automatico de entrada/saida quando o provider suportar mensagem
-  privada, alem do formulario publico como rota propria.
-- Criar Broadcast minimo com conexao automatica de uma rede social, listener, persistencia,
-  classificacao, agrupamento e escrita de resposta.
+- Criar Direct minimo com canal automatico de entrada/saida quando Instagram, TikTok ou YouTube
+  suportarem mensagem privada no escopo aprovado, alem do formulario publico como rota propria.
+- Criar Broadcast minimo com conexao automatica de Instagram, TikTok e YouTube, listener,
+  persistencia, classificacao, agrupamento e escrita de resposta.
 - Criar Trust minimo como policy/decision history para QnA Answer e respostas de canal.
+- Entregar MCP completo com ferramentas QnA, Direct, Broadcast, Trust e Tenant.
+- Entregar runtime multi-agent completo para QnA, Direct, Broadcast, Trust e Tenant.
+- Entregar busca vetorial enterprise para grounding, deduplicacao e resposta sugerida.
 - Usar IA apenas para:
   - gerar draft;
   - sugerir resposta;
@@ -334,13 +341,9 @@ Creator publica link do Answer Hub
 
 ### Nao Fazer No MVP
 
-- Todos os providers sociais no primeiro release; entregar um provider automatico homologado e
-  manter os demais atras da mesma interface de adaptador.
 - Publicacao irrestrita sem Trust/policy gate.
-- Multi-agent runtime completo.
-- MCP como parte obrigatoria da experiencia do creator.
 - Billing complexo por modulo.
-- Busca vetorial enterprise se busca textual + embeddings simples resolver o primeiro caso.
+- Providers alem de Instagram, TikTok e YouTube no primeiro release.
 - Trust com votacao formal.
 - Painel executivo complexo.
 
@@ -351,21 +354,24 @@ Componentes minimos:
 | Area | Implementacao MVP |
 | --- | --- |
 | QnA | Reusar spaces, questions, answers, sources, tags, activity. |
-| Direct | `Conversation`, `ConversationMessage`, API Portal/Public minima, listener e writer quando o provider suportar DM. |
-| Broadcast | `ChannelConnection`, `Thread`, `Item`, `ChannelEvent`, `OutboundReply`, API Portal/Webhook/Worker. |
+| Search | Busca vetorial enterprise com indice lexical + vetorial, filtros, re-ranking e evidencias. |
+| Direct | `Conversation`, `ConversationMessage`, API Portal/Public minima, listener, writer e agentes quando o provider suportar DM. |
+| Broadcast | `ChannelConnection`, `Thread`, `Item`, `ChannelEvent`, `OutboundReply`, adaptadores Instagram/TikTok/YouTube, API Portal/Webhook/Worker. |
 | Trust | Entidade simples de `PolicyDecision` ligada a QnA answer/question e respostas de canal. |
-| IA | Service compartilhado para draft/suggestion/classification com policy gate antes de envio. |
+| IA | Service compartilhado para draft/suggestion/classification com multi-agent runtime e policy gate antes de envio. |
+| MCP | `Querify.MCP.Server` nativo com ferramentas e prompts por modulo. |
 | Portal | Uma area "Creator Hub" com tabs: Answers, Inbox, Comments, Policy. |
 | Public | Pagina publica do creator com busca QnA e botao "Ask privately". |
 
 Sequencia de implementacao:
 
 1. Creator Hub publico com QnA.
-2. Direct Ask Me Inbox.
-3. AI answer suggestion para Direct.
-4. Broadcast Automatic Channel Integration.
-5. Trust Automated Policy Log.
-6. Pricing limits no Tenant/Billing.
+2. Busca vetorial enterprise e ingestion/reindexacao.
+3. MCP completo e runtime multi-agent.
+4. Direct Ask Me Inbox.
+5. Broadcast Automatic Channel Integration para Instagram, TikTok e YouTube.
+6. Trust Automated Policy Log.
+7. Pricing limits no Tenant/Billing.
 
 ## Roadmap De Entrega
 
@@ -383,38 +389,54 @@ Aceite:
 
 - Um creator consegue criar 10 perguntas e compartilhar um hub publico.
 
-### Semana 2: Direct Ask Me Inbox
+### Semana 2: Enterprise Search, MCP Foundation E Agents
+
+Entregaveis:
+
+- Busca vetorial enterprise para QnA com indice lexical + vetorial.
+- Chunking, embeddings, filtros, re-ranking e evidencias.
+- `Querify.MCP.Server` nativo com transporte, tenant context, prompts e ferramentas QnA/Tenant
+  iniciais.
+- Runtime multi-agent com agentes QnA, Direct, Broadcast, Trust e Tenant configurados.
+
+Aceite:
+
+- Um agente consulta QnA por MCP, usa busca vetorial, cria draft com evidencia e respeita tenant.
+
+### Semana 3: Direct Ask Me Inbox
 
 Entregaveis:
 
 - Formulario publico de pergunta privada.
-- Conversa Direct criada a partir do formulario.
+- Conversa Direct criada a partir do formulario ou canal conectado.
 - Inbox simples no Portal.
 - Status: new, answered, resolved.
+- Sugestao e resposta Direct pelo multi-agent runtime.
 
 Aceite:
 
 - Um seguidor envia pergunta; o creator ve no inbox e a resposta e enviada pelo canal configurado.
 
-### Semana 3: AI Draft E Suggestion
+### Semana 4: AI Draft E Suggestion
 
 Entregaveis:
 
 - Gerar resposta draft no QnA a partir de conteudo capturado ou URL publica.
 - Sugerir resposta Direct com base no QnA.
 - Criar lacuna QnA a partir de Direct.
+- Expor ferramentas MCP para importar fonte, buscar QnA, sugerir resposta Direct e promover lacuna.
 
 Aceite:
 
 - Uma pergunta privada sem resposta vira draft QnA em menos de 2 minutos.
 
-### Semana 4: Broadcast Automatic Channel
+### Semana 5: Broadcast Automatic Channels
 
 Entregaveis:
 
-- Configurar uma conta social por OAuth/API.
-- Sincronizar post/video/live do provider escolhido.
-- Escutar comentarios por webhook ou polling incremental.
+- Configurar Instagram, TikTok e YouTube por OAuth/API.
+- Sincronizar post/video/live dos tres providers homologados.
+- Escutar comentarios por webhook ou polling incremental por provider.
 - Persistir evento bruto, thread, item e autor externo.
 - Classificar comentario.
 - Agrupar perguntas parecidas.
@@ -423,10 +445,10 @@ Entregaveis:
 
 Aceite:
 
-- O sistema captura 50 comentarios do canal conectado, mostra os 5 principais temas e registra
-  tentativas de resposta no provider.
+- O sistema captura comentarios de Instagram, TikTok e YouTube, mostra os 5 principais temas e
+  registra tentativas de resposta por provider.
 
-### Semana 5: Trust Simples
+### Semana 6: Trust Simples
 
 Entregaveis:
 
@@ -439,10 +461,12 @@ Aceite:
 
 - Resposta de preco/garantia nao publica nem responde em canal sem decisao de policy registrada.
 
-### Semana 6: Pricing, Limits E Launch
+### Semana 7: MCP Completo, Pricing, Limits E Launch
 
 Entregaveis:
 
+- Ferramentas MCP completas para QnA, Direct, Broadcast, Trust e Tenant.
+- Prompts/agentes MCP completos para QnA, Direct, Broadcast, Trust e Tenant.
 - Limites por plano.
 - Tela de uso.
 - Emails ou mensagens basicas de limite.
@@ -475,16 +499,19 @@ Inclui:
 - 1 space.
 - 50 perguntas QnA.
 - 100 perguntas privadas Direct/mes.
-- 1 canal social conectado.
+- Instagram, TikTok e YouTube disponiveis.
+- 3 canais sociais conectados.
 - 100 comentarios Broadcast capturados/mes.
 - 100 AI suggestions/mes.
+- MCP completo.
+- Multi-agent runtime completo.
+- Busca vetorial enterprise.
 - Trust policy log simples.
 - 1 usuario.
 - Branding Querify discreto.
 
 Nao inclui:
 
-- Agente autonomo irrestrito.
 - Colaboradores.
 - Exportacao avancada.
 
@@ -496,7 +523,8 @@ Inclui:
 - 3 spaces.
 - 300 perguntas QnA.
 - 1.000 perguntas privadas Direct/mes.
-- 2 canais sociais conectados.
+- Instagram, TikTok e YouTube disponiveis.
+- 6 canais sociais conectados.
 - 1.000 comentarios Broadcast capturados/mes.
 - 500 AI suggestions/mes.
 - Trust policy log.
@@ -513,7 +541,8 @@ Inclui:
 - 10 spaces.
 - 1.000 perguntas QnA.
 - 5.000 perguntas privadas Direct/mes.
-- 5 canais sociais conectados.
+- Instagram, TikTok e YouTube disponiveis.
+- 15 canais sociais conectados.
 - 10.000 comentarios Broadcast capturados/mes.
 - 2.500 AI suggestions/mes.
 - 5 usuarios.
@@ -619,18 +648,18 @@ Negocio:
 | Risco | Mitigacao |
 | --- | --- |
 | Creator achar caro comparado a Linktree | Plano Starter US$ 19 anualizado e foco em economia de tempo/resposta. |
-| Provider homologado atrasar liberacao de API | Escolher o provider antes do build, validar leitura/escrita cedo e manter segundo provider oficial como plano B. |
+| Provider homologado atrasar liberacao de API | Validar Instagram, TikTok e YouTube no inicio do build, separar capabilities por provider e manter degradacao por polling/leitura quando escrita nao estiver liberada. |
 | Uso de IA consumir margem | Limites baixos e overage simples por AI suggestions. |
 | Creator nao configurar base QnA | Templates por nicho e onboarding que cria as primeiras 10 perguntas. |
-| Provider social bloquear permissao de leitura/escrita | Escolher um provider homologado antes do build, isolar adaptador e manter fallback para outro provider oficial. |
+| Provider social bloquear permissao de leitura/escrita | Isolar adaptadores, registrar capabilities por provider e bloquear apenas a acao indisponivel sem derrubar os demais canais. |
 | Conexao social quebrar ou expirar token | Health check, renovacao de token, reconexao guiada e alerta no Portal. |
 | Trust parecer enterprise demais | Chamar de "Policy Log" ou "Historico de respostas importantes". |
 
 ## Decisao Final
 
-O MVP mais rapido e comercialmente viavel e:
+O MVP recomendado para validar o produto com automacao real e:
 
-> **Querify Creator: Answer Hub + Ask Me Inbox + Comment Collector + Policy Log.**
+> **Querify Creator: Answer Hub + Ask Me Inbox + Instagram/TikTok/YouTube Comment Collector + MCP + Multi-Agent + Policy Log.**
 
 Ele mantem todos os modulos vivos:
 
@@ -641,11 +670,12 @@ Ele mantem todos os modulos vivos:
 
 Mas reduz o peso de entrega:
 
-- com um provider social automatico em vez de todos os canais no primeiro release;
-- sem agente autonomo irrestrito;
+- com Instagram, TikTok e YouTube automaticos no primeiro release;
+- com MCP completo;
+- com runtime multi-agent completo;
+- com busca vetorial enterprise;
 - sem governanca pesada;
 - sem pricing enterprise;
-- sem multi-agent complexo.
 
 Preco de entrada recomendado:
 

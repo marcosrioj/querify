@@ -15,7 +15,7 @@ current Querify repository shape.
 The target product package is:
 
 ```text
-Querify Creator = QnA Answer Hub + Direct Ask Me Inbox + Automatic Social Channel Integration + Broadcast Comment Collector + Trust Policy Log
+Querify Creator = QnA Answer Hub + Direct Ask Me Inbox + Instagram/TikTok/YouTube Channel Integration + Enterprise Vector Search + MCP Server + Multi-Agent Runtime + Trust Policy Log
 ```
 
 The architecture goal is to ship the MVP without turning QnA into a catch-all module. QnA owns
@@ -24,11 +24,12 @@ canonical questions, answers, sources, tags, activity, and public QnA signals. D
 evaluation, decision history, and auditability. Tenant owns entitlements, billing state, tenant
 users, and module connection routing.
 
-The MVP is not accepted with operator-driven channel work. The minimum release must include at least
-one social provider integration that covers connection setup, credential persistence, inbound
-listening through webhooks or incremental polling, persistence of channel events and comments,
-response generation, Trust/policy gating, and outbound write-back to the connected channel when the
-provider allows it.
+The MVP is not accepted with operator-driven channel work or a single-provider social cut. The
+minimum release must include Instagram, TikTok, and YouTube integrations that cover connection
+setup, credential persistence, inbound listening through webhooks or incremental polling,
+persistence of channel events and comments, response generation, Trust/policy gating, and outbound
+write-back to the connected channel when the provider allows it. The MVP also includes enterprise
+vector search, the native `Querify.MCP.Server`, and a complete module-scoped multi-agent runtime.
 
 ## Current Repository Baseline
 
@@ -44,10 +45,13 @@ The repository already has:
 | Direct persistence | `Querify.Direct.Common.Persistence.DirectDb` with `Conversation` and `ConversationMessage` |
 | Broadcast contracts | `Querify.Models.Broadcast` with minimal thread/item enums |
 | Broadcast persistence | `Querify.Broadcast.Common.Persistence.BroadcastDb` with `Thread` and `Item` |
-| Social channel integrations | No provider connection, webhook listener, polling cursor, raw event log, or outbound channel writer exists yet |
+| Social channel integrations | No Instagram, TikTok, or YouTube provider connection, webhook listener, polling cursor, raw event log, or outbound channel writer exists yet |
 | Trust persistence | `Querify.Trust.Common.Persistence.TrustDb` exists but has no entities yet |
 | Trust contracts/business | No `Querify.Models.Trust`, API host, or business feature projects yet |
 | Tenant billing | Tenant subscriptions and `TenantEntitlementSnapshot.FeatureJson` already exist |
+| MCP | TypeScript proxy exists as a prototype; native `Querify.MCP.Server` is designed but not built |
+| Multi-agent runtime | Design exists in future MCP docs; product runtime and module agents are not built |
+| Enterprise retrieval | No QnA enterprise vector search, chunk index, re-ranking, or retrieval service exists yet |
 | Portal frontend | QnA-oriented domains exist; Direct, Broadcast, Trust, and Creator-specific domains do not |
 
 ## Non-Negotiable Architecture Rules
@@ -79,17 +83,20 @@ constraints:
 | Public Answer Hub | QnA | `QnADbContext` | Existing QnA Public and Portal APIs |
 | Create/edit reusable questions and answers | QnA | `QnADbContext` | Existing QnA Portal API |
 | AI draft for a QnA answer | QnA | `QnADbContext` for draft state; shared AI infrastructure for model call | Existing QnA Portal API, optional QnA Worker for long jobs |
+| Enterprise vector search and retrieval | QnA owns corpus semantics; shared retrieval infrastructure owns index adapters | `QnADbContext` plus vector/search index storage | QnA Public/Portal APIs, QnA Worker, MCP tools, and module agents |
 | Private Ask Me form | Direct | `DirectDbContext` | New Direct Public API |
 | Creator private inbox | Direct | `DirectDbContext` | New Direct Portal API |
 | Direct suggested response from QnA | Direct owns suggestion record; QnA owns source answer | `DirectDbContext` plus read from `QnADbContext` | Direct Portal API |
 | Promote private question to QnA draft | Direct owns origin trace; QnA owns new question/answer draft | `DirectDbContext` and `QnADbContext` | Direct Portal API coordinating module services |
-| Social channel connection setup | Broadcast owns public-channel workflow; Tenant owns entitlement checks | `BroadcastDbContext` plus secure credential reference | Broadcast Portal API plus Broadcast Integration API |
-| Automatic inbound social listening | Broadcast | `BroadcastDbContext` | Broadcast Integration API plus Broadcast Worker |
-| Automatic outbound social reply | Broadcast | `BroadcastDbContext` | Broadcast Worker plus provider client |
+| Instagram/TikTok/YouTube connection setup | Broadcast owns public-channel workflow; Tenant owns entitlement checks | `BroadcastDbContext` plus secure credential reference | Broadcast Portal API plus Broadcast Integration API |
+| Automatic inbound social listening for Instagram/TikTok/YouTube | Broadcast | `BroadcastDbContext` | Broadcast Integration API plus Broadcast Worker |
+| Automatic outbound social reply for Instagram/TikTok/YouTube | Broadcast | `BroadcastDbContext` | Broadcast Worker plus provider clients |
 | Comment classification and grouping | Broadcast | `BroadcastDbContext` | Broadcast Worker |
 | Suggested public comment response | Broadcast owns response draft; QnA owns reused answer | `BroadcastDbContext` plus read from `QnADbContext` | Broadcast Portal API/Worker |
 | Policy gate before publishing or sending sensitive content | Trust | `TrustDbContext` | New Trust Portal API; QnA activation and channel write-back check Trust state |
 | Policy decision, rationale, and history | Trust | `TrustDbContext` | Trust Portal API |
+| Native MCP server and module tools | Integration layer | Module databases through owning commands/queries; no independent MCP persistence | `Querify.MCP.Server` |
+| Multi-agent runtime | AI infrastructure coordinates agents; modules own side effects | Agent run state in owning module when durable; no QnA catch-all state | MCP server, module APIs, workers, and agent runtime services |
 | Pricing and usage limits | Tenant | `TenantDbContext` | Tenant Portal/BackOffice APIs and module command guards |
 
 ## Existing Entities To Reuse
@@ -146,6 +153,8 @@ Recommended QnA behavior changes:
 |---|---|---|
 | Add creator seed/template data | `Querify.Tools.Seed` QnA seed catalog | Seed a `Creator Hub` space and creator tags. |
 | Add QnA draft generation command | `Querify.QnA.Portal.Business.Answer` or `Source` depending on input | If the draft is from captured channel content or URL, create/update `Source` and create a draft `Answer`. |
+| Add enterprise retrieval query | `Querify.QnA.Public.Business.Search` and `Querify.QnA.Portal.Business.Search` | Hybrid lexical + vector search with tenant, space, visibility, status, language, source, and validity filters. |
+| Add source chunking/reindex command | `Querify.QnA.Worker.Business.Ingestion` | Extract chunks, generate embeddings, update vector index, and preserve evidence references for agents. |
 | Add answer activation guard for Trust | `Querify.QnA.Portal.Business.Answer` activate command | Query Trust policy decision state before allowing sensitive answers to become active/public. |
 | Add public hub query shape if needed | `Querify.QnA.Public.Business.Space` | Prefer composing existing space/question endpoints before adding a Creator-specific endpoint. |
 
@@ -213,7 +222,7 @@ Add `ChannelConnection` for the connected social account:
 
 | Field | Type | Reason |
 |---|---|---|
-| `Provider` | `BroadcastProviderKind` | Distinguishes Instagram, TikTok, YouTube, LinkedIn, X, community, or other provider. |
+| `Provider` | `BroadcastProviderKind` | Distinguishes Instagram, TikTok, YouTube, or later providers such as LinkedIn, X, community, or other. |
 | `ExternalAccountId` | `string` | Provider account/page/channel id. |
 | `ExternalAccountName` | `string?` | Display name shown in Portal. |
 | `Status` | `ChannelConnectionStatus` | Pending, connected, degraded, reconnect required, disabled, or revoked. |
@@ -388,10 +397,14 @@ Recommended MVP feature JSON shape:
   "limits": {
     "qnaQuestions": 50,
     "directPrivateQuestionsPerMonth": 100,
-    "socialChannelConnections": 1,
+    "enabledSocialProviders": ["instagram", "tiktok", "youtube"],
+    "socialChannelConnections": 3,
     "broadcastCapturedItemsPerMonth": 100,
     "broadcastOutboundRepliesPerMonth": 100,
     "aiSuggestionsPerMonth": 100,
+    "mcpEnabled": true,
+    "multiAgentRuntimeEnabled": true,
+    "enterpriseVectorSearchEnabled": true,
     "users": 1,
     "spaces": 1,
     "creatorHubs": 1
@@ -419,19 +432,25 @@ Add projects only in the stage that introduces real behavior.
 |---|---:|---|
 | `Querify.Models.Trust` | Trust stage | Trust DTOs and enums. |
 | `Querify.Common.Infrastructure.Ai` | AI stage | Provider-neutral AI abstractions for draft generation, answer suggestion, classification, clustering, and summarization. |
+| `Querify.Common.Infrastructure.Retrieval` | Enterprise retrieval stage | Hybrid lexical/vector search abstractions, vector index adapter, re-ranking, evidence shaping, and query telemetry. |
+| `Querify.Common.Infrastructure.Agents` | Multi-agent stage | Agent orchestration, tool execution boundaries, run telemetry, guardrails, and module-scoped agent policies. |
 | `Querify.Common.Infrastructure.ChannelIntegrations` | Social channel stage | Provider-neutral OAuth/API clients, webhook validation, incremental read, outbound write, token refresh, and provider retry policy. |
+| `Querify.MCP.Server` | MCP stage | Native .NET MCP server exposing QnA, Direct, Broadcast, Trust, and Tenant tools/prompts. |
 
 `Querify.Common.Infrastructure.Ai` should expose abstractions such as:
 
 - `IAiTextGenerationService`
 - `IAiAnswerSuggestionService`
 - `IAiClassificationService`
-- `IAiEmbeddingService` only if semantic matching is implemented in the stage
+- `IAiEmbeddingService`
+- `IAgentRuntimeService`
 
 Keep prompt templates close to the owning feature when they encode product behavior. Keep AI
 provider clients and retry/timeout configuration in the shared AI infrastructure project. Keep
 social provider clients, token handling, webhook signature validation, and provider write/read
-contracts in the channel integration infrastructure project.
+contracts in the channel integration infrastructure project. Keep retrieval index details behind
+`IQnARetrievalService` so Direct, Broadcast, Trust, MCP tools, and agents do not know whether the
+MVP uses PostgreSQL/pgvector or a dedicated vector search service.
 
 ### Direct Projects
 
@@ -444,9 +463,10 @@ contracts in the channel integration infrastructure project.
 | `Querify.Direct.Portal.Test.IntegrationTests` | Direct Portal API and command/query coverage. |
 | `Querify.Direct.Public.Test.IntegrationTests` | Public form tenant resolution and conversation creation coverage. |
 
-Add `Querify.Direct.Worker.Api` only if the selected MVP provider supports Direct messages and
-requires durable inbound or outbound delivery. Public ask-form submission can remain synchronous,
-but provider delivery should use the same retry/idempotency expectations as Broadcast.
+Add `Querify.Direct.Worker.Api` when Instagram, TikTok, or YouTube Direct-message capabilities are
+enabled for the MVP scope and require durable inbound or outbound delivery. Public ask-form
+submission can remain synchronous, but provider delivery should use the same retry/idempotency
+expectations as Broadcast.
 
 ### Broadcast Projects
 
@@ -454,6 +474,9 @@ but provider delivery should use the same retry/idempotency expectations as Broa
 |---|---|
 | `Querify.Broadcast.Portal.Api` | Authenticated comment collector APIs. |
 | `Querify.Broadcast.Integration.Api` | Provider OAuth callbacks, webhook verification, and inbound webhook endpoints. |
+| `Querify.Common.Infrastructure.ChannelIntegrations.Instagram` or adapter folder | Instagram OAuth/API, webhook validation, incremental read, and reply writer. |
+| `Querify.Common.Infrastructure.ChannelIntegrations.TikTok` or adapter folder | TikTok OAuth/API, webhook validation, incremental read, and reply writer. |
+| `Querify.Common.Infrastructure.ChannelIntegrations.YouTube` or adapter folder | YouTube OAuth/API, webhook validation, incremental read, and reply writer. |
 | `Querify.Broadcast.Portal.Business.ChannelConnection` | Start connection, complete connection, list connection health, disconnect, and reconnect flows. |
 | `Querify.Broadcast.Portal.Business.Thread` | Thread list/detail, item list/detail, cluster list, response draft and outbound reply status queries. |
 | `Querify.Broadcast.Worker.Api` | Durable processing for channel events, polling cursors, classification, clustering, and outbound replies. |
@@ -477,6 +500,20 @@ latency.
 
 Do not add a Trust worker in the MVP unless stale-policy reconciliation, scheduled expiration, or
 notification delivery becomes a real requirement.
+
+### MCP And Multi-Agent Projects
+
+| Project | Purpose |
+|---|---|
+| `Querify.MCP.Server` | Native MCP server with stdio/SSE transports, tenant context, tools, and prompts. |
+| `Querify.MCP.Server.Test.IntegrationTests` | Tool authorization, tenant isolation, command/query dispatch, and JSON-RPC contract coverage. |
+| `Querify.Common.Infrastructure.Agents` | Module-scoped agent runtime, tool policies, guardrails, run telemetry, and handoff contracts. |
+| `Querify.Common.Infrastructure.Retrieval` | Hybrid retrieval, vector index adapter, re-ranking, citation/evidence shaping, and retrieval telemetry. |
+
+The complete MVP tool surface must include `qna_*`, `direct_*`, `broadcast_*`, `trust_*`, and
+`tenant_*` tools. The complete MVP prompt surface must include QnA, Direct, Broadcast, Trust, and
+Tenant agents. QnA search is shared across agents and must be backed by enterprise retrieval before
+agents can send or suggest channel responses.
 
 ### QnA Project Changes
 
@@ -582,12 +619,14 @@ Direct can be synchronous at MVP scale:
 
 - public form creates a conversation and first message;
 - Portal inbox query lists conversations;
-- suggestion endpoint reads QnA and calls AI on demand;
-- response endpoint records and queues provider delivery when the selected channel supports it;
+- suggestion endpoint reads QnA through enterprise retrieval and calls AI on demand;
+- response endpoint records and queues provider delivery when Instagram, TikTok, or YouTube
+  supports the required Direct capability;
 - creator promotes a question to QnA draft.
 
 Add `Querify.Direct.Worker.Api` only if notification delivery, async suggestion generation, provider
-DM listening, or provider reply sending becomes durable product behavior in the selected MVP channel.
+DM listening, or provider reply sending becomes durable product behavior in the selected MVP
+providers.
 
 ### Avoid Trust Worker In MVP
 
@@ -613,6 +652,8 @@ Use existing routes where possible:
 | Create/edit questions | Existing `api/qna/question` |
 | Create/edit answers | Existing `api/qna/answer` |
 | Generate draft answer | New action under `api/qna/answer/generate-draft` or `api/qna/question/{id}/answer-draft` |
+| Search QnA | New `api/qna/search` backed by enterprise retrieval, lexical + vector index, filters, and re-ranking |
+| Reindex source chunks | New Portal/worker command surface for chunk extraction, embeddings, and vector index updates |
 | Activate answer | Existing `api/qna/answer/{id}/activate`, with Trust guard added |
 
 ### QnA Public
@@ -624,6 +665,7 @@ round trip:
 GET api/qna/creator-hub/{spaceSlug}
 GET api/qna/creator-hub/{spaceSlug}/question
 GET api/qna/creator-hub/{spaceSlug}/question/{questionSlugOrId}
+GET api/qna/search?q={query}
 ```
 
 If implemented, the owning feature should still read `Space`, `Question`, and `Answer`; do not add a
@@ -685,6 +727,17 @@ POST   api/broadcast/webhook/{provider}
 The webhook endpoint validates provider signatures, stores `ChannelEvent`, returns provider-required
 acknowledgements quickly, and leaves normalization/classification/write-back to the worker.
 
+### MCP Server
+
+```text
+stdio Querify.MCP.Server
+GET/POST /mcp when hosted over HTTP/SSE
+```
+
+The MVP MCP surface must expose QnA, Direct, Broadcast, Trust, and Tenant tool groups plus matching
+module prompts. MCP tools call module commands/queries through MediatR and must use the same tenant,
+policy, retrieval, and entitlement rules as HTTP and worker flows.
+
 ### Trust Portal
 
 ```text
@@ -705,10 +758,11 @@ AI is a shared technical capability, but the business decision remains in the ow
 | AI use case | Owning command | Shared service |
 |---|---|---|
 | Generate QnA answer draft from captured content or URL | QnA Answer or Source command | Text generation |
-| Suggest Direct response from QnA | Direct Conversation command | Answer suggestion, optional semantic search |
+| Search and ground answers from QnA | QnA Search query or `IQnARetrievalService` caller | Enterprise retrieval, embeddings, lexical search, re-ranking |
+| Suggest Direct response from QnA | Direct Conversation command or Direct agent | Answer suggestion plus enterprise retrieval |
 | Classify Broadcast comments | Broadcast ChannelEvent command | Classification |
-| Cluster Broadcast questions | Broadcast ChannelEvent command | Embeddings or text grouping |
-| Generate outbound Broadcast reply | Broadcast OutboundReply command | Answer suggestion and text generation |
+| Cluster Broadcast questions | Broadcast ChannelEvent command or Broadcast agent | Embeddings, vector similarity, or text grouping |
+| Generate outbound Broadcast reply | Broadcast OutboundReply command or Broadcast agent | Answer suggestion, enterprise retrieval, and text generation |
 | Summarize QnA gap from Direct/Broadcast | Direct/Broadcast promote command | Summarization |
 | Detect sensitive answer categories | Trust policy evaluation command or QnA preflight command | Classification |
 
@@ -716,6 +770,7 @@ Keep generated output traceable:
 
 - store the final generated text in the owning draft entity;
 - store confidence and source QnA ids when a response is suggested from existing knowledge;
+- store retrieval evidence ids and citation metadata used by agents;
 - do not store provider prompts or raw model metadata unless needed for debugging or compliance;
 - enforce AI usage limits through Tenant entitlements before model calls.
 
@@ -726,7 +781,7 @@ Keep generated output traceable:
 ```text
 Direct connected channel or Direct Public Ask
   -> creates Direct Conversation + ConversationMessage
-Direct command searches QnA active public/internal answers
+Direct agent searches QnA through enterprise retrieval
   -> AI creates Direct response draft
 If sensitive
   -> Trust PolicyEvaluation is created
@@ -738,8 +793,8 @@ Trust/policy gate allows or blocks delivery
 ### Comments To Content
 
 ```text
-Creator connects social channel
-  -> Broadcast ChannelConnection(Connected)
+Creator connects Instagram, TikTok, and YouTube
+  -> Broadcast ChannelConnection(Connected) for each provider account
 Provider webhook or polling captures comment
   -> ChannelEvent(Received)
 Broadcast Worker processes event
@@ -797,7 +852,35 @@ Schema migration handoff:
 
 - none expected.
 
-### Stage 2: Direct Ask Me Inbox
+### Stage 2: Enterprise Retrieval, Native MCP, And Multi-Agent Runtime
+
+Scope:
+
+- add enterprise QnA retrieval before any agent can answer from knowledge;
+- add source chunking, embeddings, vector index writes, lexical search, filters, and re-ranking;
+- add native `Querify.MCP.Server`;
+- add complete multi-agent runtime foundations, prompts, tool policies, and tenant-aware execution;
+- expose initial QnA and Tenant tools, then keep Direct/Broadcast/Trust tools on the same MCP
+  contract as their module APIs land.
+
+Backend:
+
+- add `Querify.Common.Infrastructure.Retrieval`;
+- add `Querify.Common.Infrastructure.Agents`;
+- add `Querify.MCP.Server`;
+- add `Querify.QnA.Public.Business.Search`;
+- add `Querify.QnA.Portal.Business.Search`;
+- add `Querify.QnA.Worker.Business.Ingestion` chunking/reindexing commands;
+- add MCP and retrieval integration test projects.
+
+Schema migration handoff:
+
+- add vector index storage or external index provisioning;
+- add source chunk/evidence tables if chunks are persisted in QnA;
+- add indexes for tenant, space, visibility, status, language, source, and vector lookup;
+- add Tenant entitlement keys for MCP, agents, retrieval, and provider access.
+
+### Stage 3: Direct Ask Me Inbox
 
 Scope:
 
@@ -805,6 +888,7 @@ Scope:
 - add Direct Public and Portal APIs;
 - create conversations from public ask form;
 - list, reply through configured channel, track delivery, and resolve in Portal.
+- use enterprise retrieval and Direct agent orchestration for suggestions.
 
 Backend:
 
@@ -814,6 +898,7 @@ Backend:
 - add `Querify.Direct.Public.Business.Ask`;
 - add `Querify.Direct.Portal.Api`;
 - add `Querify.Direct.Portal.Business.Conversation`;
+- add Direct MCP tools and Direct agent prompt;
 - add Direct integration test projects.
 
 Schema migration handoff:
@@ -821,13 +906,13 @@ Schema migration handoff:
 - add/alter Direct tables and indexes for new fields/status values;
 - add Direct module connection setup for tenants if not already seeded.
 
-### Stage 3: AI Drafts And Direct Suggestions
+### Stage 4: AI Drafts And Direct Suggestions
 
 Scope:
 
 - add shared AI infrastructure;
 - generate QnA draft from captured content or URL;
-- suggest Direct response from active QnA answers;
+- suggest Direct response from active QnA answers through enterprise retrieval;
 - promote Direct conversation to QnA draft.
 
 Backend:
@@ -835,28 +920,31 @@ Backend:
 - add `Querify.Common.Infrastructure.Ai`;
 - extend QnA Answer/Source commands;
 - extend Direct Conversation commands;
+- extend MCP tools for source import, QnA search, Direct suggestion, and Direct promotion;
 - enforce AI usage limits through Tenant entitlements.
 
 Schema migration handoff:
 
 - only required if saved Direct suggestion drafts are introduced.
 
-### Stage 4: Automatic Broadcast Channel Integration
+### Stage 5: Automatic Broadcast Channel Integration
 
 Scope:
 
 - extend Broadcast model;
 - add Broadcast Portal and Integration APIs;
-- add provider connection setup, webhook receiver, polling cursors, raw channel event persistence,
-  item clustering, and outbound reply delivery;
+- add Instagram, TikTok, and YouTube provider connection setup, webhook receivers, polling cursors,
+  raw channel event persistence, item clustering, and outbound reply delivery;
 - add Broadcast Worker;
 - classify, group, and respond to captured comments.
+- use Broadcast agent orchestration for retrieval, clustering, policy checks, and routing.
 
 Backend:
 
 - update `Querify.Models.Broadcast`;
 - update `Querify.Broadcast.Common.Persistence.BroadcastDb`;
 - add `Querify.Common.Infrastructure.ChannelIntegrations`;
+- add Instagram, TikTok, and YouTube adapters behind the provider-neutral interface;
 - add `Querify.Broadcast.Portal.Api`;
 - add `Querify.Broadcast.Integration.Api`;
 - add `Querify.Broadcast.Portal.Business.ChannelConnection`;
@@ -865,14 +953,15 @@ Backend:
 - add `Querify.Broadcast.Worker.Business.ChannelEvent`;
 - add `Querify.Broadcast.Worker.Business.ChannelSync`;
 - add `Querify.Broadcast.Worker.Business.OutboundReply`;
+- add Broadcast MCP tools and Broadcast agent prompt;
 - add Broadcast integration test projects.
 
 Schema migration handoff:
 
-- add Broadcast channel connection/event/cursor/provider/classification/cluster/response-draft/outbound-reply tables and indexes;
+- add Broadcast channel connection/event/cursor/provider/classification/cluster/response-draft/outbound-reply tables and indexes for Instagram, TikTok, and YouTube;
 - add Broadcast worker runtime configuration.
 
-### Stage 5: Trust Policy Log
+### Stage 6: Trust Policy Log
 
 Scope:
 
@@ -888,6 +977,7 @@ Backend:
 - update `Querify.Trust.Common.Persistence.TrustDb`;
 - add `Querify.Trust.Portal.Api`;
 - add `Querify.Trust.Portal.Business.Policy`;
+- add Trust MCP tools and Trust agent prompt;
 - update QnA Answer activation command;
 - add Trust, QnA, and Broadcast integration tests for policy guards.
 
@@ -896,12 +986,12 @@ Schema migration handoff:
 - create Trust policy evaluation and decision tables and indexes;
 - add Trust module connection setup for tenants if not already seeded.
 
-### Stage 6: Pricing, Limits, And Usage
+### Stage 7: Pricing, Limits, And Usage
 
 Scope:
 
 - encode Creator Starter/Growth/Pro limits;
-- enforce QnA, Direct, Broadcast, AI, user, and space limits;
+- enforce QnA, Direct, Broadcast, AI, MCP, agents, retrieval, provider, user, and space limits;
 - expose basic usage summary.
 
 Backend:
@@ -922,6 +1012,9 @@ Recommended indexes once schema work is explicitly requested:
 
 | Module | Index |
 |---|---|
+| QnA/Retrieval | `TenantId, SpaceId, Visibility, Status, Language` for scoped lexical/vector retrieval |
+| QnA/Retrieval | Vector index on chunk embeddings for semantic search |
+| QnA/Retrieval | `TenantId, SourceId, ContentHash` for reindex idempotency |
 | Direct | `TenantId, Status, CreatedDate` for inbox list |
 | Direct | `TenantId, PromotedQuestionId` when tracing promoted QnA gaps |
 | Broadcast | `TenantId, Status, CreatedDate` for thread list |
@@ -945,6 +1038,8 @@ Add frontend domains in the same staged order as backend APIs:
 | `direct` | Ask Me inbox list/detail/reply/resolve/suggest/promote flows. |
 | `broadcast` | Channel connections, thread sync, items, clusters, response drafts, and outbound reply status. |
 | `trust` | Policy decision history and stale-decision screens. |
+| `mcp` | MCP server status, tenant tool access, prompt/tool configuration, and test invocation diagnostics. |
+| `agents` | Multi-agent runtime status, runs, handoffs, guardrail decisions, and failed tool calls. |
 | `usage` or billing extension | Plan limits and monthly usage. |
 
 The Portal should use tabs inside the Creator Hub area:
@@ -953,6 +1048,8 @@ The Portal should use tabs inside the Creator Hub area:
 - Inbox;
 - Comments;
 - Policy.
+- Agents;
+- MCP.
 
 Keep each tab backed by its owning module API. Do not create a frontend type that merges module
 contracts into one large Creator DTO unless it is a read-only dashboard query.
@@ -964,11 +1061,13 @@ Add tests per stage:
 | Stage | Test focus |
 |---|---|
 | QnA Creator Hub | public active space/question/answer visibility, creator seed data, answer activation behavior unchanged |
+| Enterprise retrieval | chunking, embedding writes, lexical/vector hybrid search, filters, re-ranking, evidence ids, tenant isolation |
+| MCP and agents | native MCP tool contracts, prompts, tenant context, tool authorization, agent handoffs, guardrail failures, run telemetry |
 | Direct | public ask form creates conversation/message, tenant isolation, inbox filters, channel reply status, resolve transitions, promote-to-QnA |
 | AI suggestions | entitlement checks before model calls, source answer ids preserved, no suggestion when no eligible QnA answer exists |
-| Broadcast | channel connection state, webhook validation, polling cursor behavior, event idempotency, item validation, classification, cluster generation, outbound reply delivery, failure/retry behavior |
+| Broadcast | Instagram/TikTok/YouTube connection state, webhook validation, polling cursor behavior, event idempotency, item validation, classification, cluster generation, outbound reply delivery, failure/retry behavior |
 | Trust | policy evaluation lifecycle, decision history, stale decision on content change, QnA activation and channel write-back blocked without allowed policy decision |
-| Pricing/limits | limit enforcement across QnA, Direct, Broadcast, AI, spaces, and users |
+| Pricing/limits | limit enforcement across QnA, Direct, Broadcast, AI, MCP, agents, retrieval, providers, spaces, and users |
 
 Keep architecture tests updated when new API, worker, business, model, or persistence project patterns
 are introduced.
@@ -990,15 +1089,17 @@ work. Each stage that changes persistence must end with a migration handoff list
 ## Architecture Decision Summary
 
 1. Use existing QnA entities for the public Creator Answer Hub.
-2. Add Direct APIs and extend Direct persistence for the private Ask Me Inbox.
-3. Add Broadcast Portal/Integration APIs and a Broadcast Worker for provider connection setup,
-   webhook/polling ingestion, classification, clustering, and outbound write-back.
-4. Add real Trust contracts/entities/business only when implementing policy log behavior.
-5. Use Trust as the policy source of truth; do not copy Trust state into QnA answers or Broadcast replies.
-6. Use Tenant entitlements for Creator plan limits and keep module commands responsible for checking
+2. Add enterprise retrieval before Direct, Broadcast, MCP, or agents use QnA as grounding.
+3. Add native `Querify.MCP.Server` and a complete module-scoped multi-agent runtime in the MVP.
+4. Add Direct APIs and extend Direct persistence for the private Ask Me Inbox.
+5. Add Broadcast Portal/Integration APIs and a Broadcast Worker for Instagram, TikTok, and YouTube
+   connection setup, webhook/polling ingestion, classification, clustering, and outbound write-back.
+6. Add real Trust contracts/entities/business only when implementing policy log behavior.
+7. Use Trust as the policy source of truth; do not copy Trust state into QnA answers or Broadcast replies.
+8. Use Tenant entitlements for Creator plan limits and keep module commands responsible for checking
    those limits before creating records or calling AI.
-7. Use MassTransit events only for cross-module or async work. Keep request-time behavior in the
+9. Use MassTransit events only for cross-module or async work. Keep request-time behavior in the
    owning module command/query path.
-8. Keep request-time behavior synchronous where user latency allows it; use workers for durable,
+10. Keep request-time behavior synchronous where user latency allows it; use workers for durable,
    retryable provider processing such as webhook normalization, polling, classification, clustering,
    token refresh, and outbound replies.
