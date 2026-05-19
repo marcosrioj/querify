@@ -171,6 +171,10 @@ Relationship sections manage children and related records without leaving the or
 
 ## Visual hierarchy rules
 
+- use Host Grotesk for all product UI text through the global Portal font tokens; do not hardcode
+  alternate sans-serif stacks or bring Inter back into components
+- reserve monospace only for code-like content, ids, logs, JSON, keyboard shortcuts, and values that
+  benefit from fixed-width scanning; icon fonts remain implementation details of icon libraries
 - show status, key metrics, and compact summaries before dense text
 - use muted supporting copy and stronger titles
 - avoid flat pages made only of repeated bordered boxes

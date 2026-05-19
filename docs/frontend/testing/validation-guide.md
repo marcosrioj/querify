@@ -78,6 +78,8 @@ Verify:
 - skeletons, empty states, and error states still fit the surrounding layout
 - focus flow and keyboard activation remain intact for dialogs, buttons, and confirms
 - light and dark themes both use readable contrast and token-based surfaces
+- product UI text uses Host Grotesk through the global Portal font tokens; no affected component
+  reintroduces Inter or a hardcoded alternate sans-serif stack
 - `ActionPanel` and `ActionButton` surfaces keep the square, lightly rounded action identity
 - detail-page action bars keep regular actions on the left, destructive actions grouped on the right, and `Delete` as the final content-width action
 - detail-page right rails use one consolidated overview card for status, metrics, workflow, settings, and metadata instead of stacked summary cards

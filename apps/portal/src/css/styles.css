@@ -8,15 +8,14 @@
 @layer base {
   html {
     @apply bg-background text-foreground;
+    font-family: var(--portal-font-sans);
   }
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-feature-settings:
-      "cv02" 1,
-      "cv03" 1,
-      "cv04" 1,
-      "cv11" 1;
+    font-family: var(--portal-font-sans);
+    font-feature-settings: normal;
+    font-variation-settings: normal;
   }
 
   * {

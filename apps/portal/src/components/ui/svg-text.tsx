@@ -83,7 +83,7 @@ export function SvgText({
         style={{
           fontSize: typeof fontSize === 'number' ? `${fontSize}px` : fontSize,
           fontWeight,
-          fontFamily: 'system-ui, -apple-system, sans-serif',
+          fontFamily: 'var(--portal-font-sans)',
         }}
       >
         {content}
@@ -98,7 +98,7 @@ export function SvgText({
         style={{
           fontSize: typeof fontSize === 'number' ? `${fontSize}px` : fontSize,
           fontWeight,
-          fontFamily: 'system-ui, -apple-system, sans-serif',
+          fontFamily: 'var(--portal-font-sans)',
         }}
       >
         <defs>
@@ -113,7 +113,7 @@ export function SvgText({
               style={{
                 fontSize: typeof fontSize === 'number' ? `${fontSize}px` : fontSize,
                 fontWeight,
-                fontFamily: 'system-ui, -apple-system, sans-serif',
+                fontFamily: 'var(--portal-font-sans)',
               }}
             >
               {content}

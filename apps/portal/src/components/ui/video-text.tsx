@@ -4,6 +4,18 @@ import * as React from 'react';
 import { ElementType, ReactNode, useEffect, useRef } from 'react';
 import { cn } from '@/lib/utils';
 
+const portalFontFamilyFallback =
+  '"Host Grotesk", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+
+function getPortalFontFamily() {
+  return (
+    getComputedStyle(document.documentElement)
+      .getPropertyValue('--portal-font-sans')
+      .replace(/\s+/g, ' ')
+      .trim() || portalFontFamilyFallback
+  );
+}
+
 export interface VideoTextProps {
   /**
    * The video source URL or array of sources for multiple formats
@@ -102,11 +114,14 @@ export function VideoText({
     if (!ctx) return;
 
     let animationId: number;
+    let isDisposed = false;
 
     const updateCanvas = () => {
       // Get text dimensions first
       const text = textElement.textContent || '';
-      ctx.font = `${fontWeight} ${typeof fontSize === 'number' ? `${fontSize}px` : fontSize} system-ui, -apple-system, sans-serif`;
+      const fontSizeValue = typeof fontSize === 'number' ? `${fontSize}px` : fontSize;
+      const fontFamily = getPortalFontFamily();
+      ctx.font = `${fontWeight} ${fontSizeValue} ${fontFamily}`;
       const textMetrics = ctx.measureText(text);
       const textWidth = textMetrics.width;
       const textHeight = typeof fontSize === 'number' ? fontSize : parseFloat(fontSize.replace(/[^\d.]/g, '')) || 100;
@@ -127,7 +142,7 @@ export function VideoText({
 
       // Draw text as mask
       ctx.fillStyle = 'white';
-      ctx.font = `${fontWeight} ${typeof fontSize === 'number' ? `${fontSize}px` : fontSize} system-ui, -apple-system, sans-serif`;
+      ctx.font = `${fontWeight} ${fontSizeValue} ${fontFamily}`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
 
@@ -150,8 +165,12 @@ export function VideoText({
     video.addEventListener('loadeddata', handleVideoLoad);
     video.addEventListener('play', updateCanvas);
     window.addEventListener('resize', handleResize);
+    document.fonts?.ready.then(() => {
+      if (!isDisposed) updateCanvas();
+    });
 
     return () => {
+      isDisposed = true;
       video.removeEventListener('loadeddata', handleVideoLoad);
       video.removeEventListener('play', updateCanvas);
       window.removeEventListener('resize', handleResize);
@@ -203,6 +222,7 @@ export function VideoText({
         style={{
           fontSize: typeof fontSize === 'number' ? `${fontSize}px` : fontSize,
           fontWeight,
+          fontFamily: 'var(--portal-font-sans)',
         }}
         aria-label={content}
       >

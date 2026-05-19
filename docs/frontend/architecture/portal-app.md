@@ -28,6 +28,20 @@ It is not the BackOffice UI and it does not own BackOffice API concerns.
 - `react-intl` for frontend-owned localization and RTL or LTR handling
 - `@microsoft/signalr` for Portal realtime notifications from backend hubs
 
+## Typography
+
+Host Grotesk is the Portal's product typeface. It is loaded once in `apps/portal/index.html` from
+Google Fonts with weights `300..800`, exposed through `--portal-font-sans`, and mapped into
+Tailwind's `--font-sans` and `--default-font-family` tokens in `src/css/config.reui.css`.
+
+Implementation rules:
+
+- do not reintroduce Inter, Arial, Helvetica, or ad hoc `system-ui` stacks in product UI
+- use the shared CSS variable or Tailwind font tokens instead of per-component font-family rules
+- keep vendor icon fonts, such as KeenIcons, isolated to their icon CSS
+- keep `font-mono` only for code, keyboard shortcuts, generated ids, JSON, logs, and other values
+  where monospace carries semantic scanning value
+
 ## Repository structure
 
 ```text

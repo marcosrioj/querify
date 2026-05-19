@@ -3,6 +3,8 @@
 /** Colors - https://tailwindcss.com/docs/colors **/
 :root {
   color-scheme: light;
+  --portal-font-sans: "Host Grotesk", ui-sans-serif, system-ui, -apple-system,
+    BlinkMacSystemFont, "Segoe UI", sans-serif;
   --background: oklch(99.2% 0.003 106.5);
   --foreground: oklch(17.8% 0.018 252.7);
   --card: oklch(100% 0 0);
@@ -163,6 +165,9 @@
 
 /** Theme Setup **/
 @theme inline {
+  --font-sans: var(--portal-font-sans);
+  --default-font-family: var(--portal-font-sans);
+
   /** Base Colors **/
   --color-background: var(--background);
   --color-foreground: var(--foreground);
