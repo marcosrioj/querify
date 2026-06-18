@@ -42,6 +42,13 @@ public sealed class QuestionsGetQuestionListQueryHandler(
         if (!string.IsNullOrWhiteSpace(request.Request.SpaceSlug))
             query = query.Where(question => question.Space.Slug == request.Request.SpaceSlug);
 
+        if (request.Request.ParentAnswerId is not null)
+            query = query.Where(question => question.ParentAnswerId == request.Request.ParentAnswerId);
+        else if (request.Request.HasParentAnswer is not null)
+            query = request.Request.HasParentAnswer.Value
+                ? query.Where(question => question.ParentAnswerId != null)
+                : query.Where(question => question.ParentAnswerId == null);
+
         query = request.Request.Sorting?.Trim().ToLowerInvariant() switch
         {
             "sort" => query.OrderBy(question => question.Sort),

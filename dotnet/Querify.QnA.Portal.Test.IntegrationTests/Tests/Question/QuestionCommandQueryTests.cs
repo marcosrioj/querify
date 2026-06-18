@@ -3,10 +3,12 @@ using System.Text.Json;
 using Querify.Common.Infrastructure.ApiErrorHandling.Exception;
 using Querify.Models.QnA.Dtos.Question;
 using Querify.Models.QnA.Enums;
+using Querify.QnA.Portal.Business.Answer.Queries.GetAnswer;
 using Querify.QnA.Portal.Business.Question.Commands.CreateQuestion;
 using Querify.QnA.Portal.Business.Question.Commands.DeleteQuestion;
 using Querify.QnA.Portal.Business.Question.Commands.UpdateQuestion;
 using Querify.QnA.Portal.Business.Question.Queries.GetQuestion;
+using Querify.QnA.Portal.Business.Question.Queries.GetQuestionList;
 using Querify.QnA.Portal.Test.IntegrationTests.Helpers;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
@@ -198,6 +200,162 @@ public class QuestionCommandQueryTests
                 .GetProperty("Status")
                 .GetProperty("After")
                 .GetString());
+    }
+
+    [Fact]
+    public async Task CreateQuestion_LinksParentAnswerAsFollowUpQuestion()
+    {
+        using var context = TestContext.Create();
+        var space = await TestDataFactory.SeedSpaceAsync(context.DbContext, context.SessionService.TenantId);
+        var parentQuestion = await TestDataFactory.SeedQuestionAsync(
+            context.DbContext,
+            context.SessionService.TenantId,
+            space.Id);
+        var parentAnswer = await TestDataFactory.SeedAnswerAsync(
+            context.DbContext,
+            context.SessionService.TenantId,
+            parentQuestion.Id);
+        var createHandler = new QuestionsCreateQuestionCommandHandler(
+            context.DbContext,
+            context.SessionService,
+            context.HttpContextAccessor);
+
+        var id = await createHandler.Handle(new QuestionsCreateQuestionCommand
+        {
+            Request = new QuestionCreateRequestDto
+            {
+                SpaceId = space.Id,
+                Title = "What should happen after activation?",
+                Summary = null,
+                ContextNote = null,
+                Status = QuestionStatus.Active,
+                Visibility = VisibilityScope.Internal,
+                OriginChannel = ChannelKind.Manual,
+                Sort = 0,
+                ParentAnswerId = parentAnswer.Id
+            }
+        }, CancellationToken.None);
+
+        var persisted = await context.DbContext.Questions
+            .AsNoTracking()
+            .SingleAsync(question => question.Id == id);
+
+        Assert.Equal(parentAnswer.Id, persisted.ParentAnswerId);
+
+        var getAnswerHandler = new AnswersGetAnswerQueryHandler(context.DbContext, context.SessionService);
+        var answerResult =
+            await getAnswerHandler.Handle(new AnswersGetAnswerQuery { Id = parentAnswer.Id }, CancellationToken.None);
+        var followUpQuestion = Assert.Single(answerResult.FollowUpQuestions);
+        Assert.Equal(id, followUpQuestion.Id);
+        Assert.Equal(parentAnswer.Id, followUpQuestion.ParentAnswerId);
+    }
+
+    [Fact]
+    public async Task CreateQuestion_ReturnsApiErrorWhenParentAnswerIsMissing()
+    {
+        using var context = TestContext.Create();
+        var space = await TestDataFactory.SeedSpaceAsync(context.DbContext, context.SessionService.TenantId);
+        var createHandler = new QuestionsCreateQuestionCommandHandler(
+            context.DbContext,
+            context.SessionService,
+            context.HttpContextAccessor);
+        var missingParentAnswerId = Guid.NewGuid();
+
+        var exception = await Assert.ThrowsAsync<ApiErrorException>(() => createHandler.Handle(
+            new QuestionsCreateQuestionCommand
+            {
+                Request = new QuestionCreateRequestDto
+                {
+                    SpaceId = space.Id,
+                    Title = "Missing parent answer",
+                    Summary = null,
+                    ContextNote = null,
+                    Status = QuestionStatus.Active,
+                    Visibility = VisibilityScope.Internal,
+                    OriginChannel = ChannelKind.Manual,
+                    Sort = 0,
+                    ParentAnswerId = missingParentAnswerId
+                }
+            },
+            CancellationToken.None));
+
+        Assert.Equal((int)HttpStatusCode.NotFound, exception.ErrorCode);
+        Assert.Equal($"Parent answer '{missingParentAnswerId}' was not found.", exception.Message);
+    }
+
+    [Fact]
+    public async Task GetQuestionList_FiltersRootAndFollowUpQuestions()
+    {
+        using var context = TestContext.Create();
+        var space = await TestDataFactory.SeedSpaceAsync(context.DbContext, context.SessionService.TenantId);
+        var parentQuestion = await TestDataFactory.SeedQuestionAsync(
+            context.DbContext,
+            context.SessionService.TenantId,
+            space.Id,
+            title: "Parent question");
+        var rootQuestion = await TestDataFactory.SeedQuestionAsync(
+            context.DbContext,
+            context.SessionService.TenantId,
+            space.Id,
+            title: "Root question");
+        var otherParentQuestion = await TestDataFactory.SeedQuestionAsync(
+            context.DbContext,
+            context.SessionService.TenantId,
+            space.Id,
+            title: "Other parent question");
+        var parentAnswer = await TestDataFactory.SeedAnswerAsync(
+            context.DbContext,
+            context.SessionService.TenantId,
+            parentQuestion.Id);
+        var otherParentAnswer = await TestDataFactory.SeedAnswerAsync(
+            context.DbContext,
+            context.SessionService.TenantId,
+            otherParentQuestion.Id);
+        var followUpQuestion = await TestDataFactory.SeedQuestionAsync(
+            context.DbContext,
+            context.SessionService.TenantId,
+            space.Id,
+            title: "Follow-up question");
+        var otherFollowUpQuestion = await TestDataFactory.SeedQuestionAsync(
+            context.DbContext,
+            context.SessionService.TenantId,
+            space.Id,
+            title: "Other follow-up question");
+
+        followUpQuestion.ParentAnswerId = parentAnswer.Id;
+        otherFollowUpQuestion.ParentAnswerId = otherParentAnswer.Id;
+        await context.DbContext.SaveChangesAsync();
+
+        var listHandler = new QuestionsGetQuestionListQueryHandler(context.DbContext, context.SessionService);
+        var rootResult = await listHandler.Handle(new QuestionsGetQuestionListQuery
+        {
+            Request = new QuestionGetAllRequestDto
+            {
+                SpaceId = space.Id,
+                HasParentAnswer = false,
+                Sorting = "Title ASC"
+            }
+        }, CancellationToken.None);
+        var rootQuestionIds = rootResult.Items.Select(question => question.Id).ToHashSet();
+
+        Assert.Contains(parentQuestion.Id, rootQuestionIds);
+        Assert.Contains(rootQuestion.Id, rootQuestionIds);
+        Assert.Contains(otherParentQuestion.Id, rootQuestionIds);
+        Assert.DoesNotContain(followUpQuestion.Id, rootQuestionIds);
+        Assert.DoesNotContain(otherFollowUpQuestion.Id, rootQuestionIds);
+
+        var followUpResult = await listHandler.Handle(new QuestionsGetQuestionListQuery
+        {
+            Request = new QuestionGetAllRequestDto
+            {
+                ParentAnswerId = parentAnswer.Id,
+                Sorting = "Title ASC"
+            }
+        }, CancellationToken.None);
+        var followUpQuestionResult = Assert.Single(followUpResult.Items);
+
+        Assert.Equal(followUpQuestion.Id, followUpQuestionResult.Id);
+        Assert.Equal(parentAnswer.Id, followUpQuestionResult.ParentAnswerId);
     }
 
     [Fact]

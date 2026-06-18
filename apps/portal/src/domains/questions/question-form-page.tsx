@@ -76,6 +76,7 @@ export function QuestionFormPage({ mode }: { mode: "create" | "edit" }) {
   const { id } = useParams();
   const [searchParams] = useSearchParams();
   const preselectedSpaceId = searchParams.get("spaceId") ?? "";
+  const preselectedParentAnswerId = searchParams.get("parentAnswerId") ?? "";
   const [spaceSearch, setSpaceSearch] = useState("");
   const deferredSpaceSearch = useDeferredValue(spaceSearch.trim());
   const questionQuery = useQuestion(mode === "edit" ? id : undefined);
@@ -95,6 +96,7 @@ export function QuestionFormPage({ mode }: { mode: "create" | "edit" }) {
       visibility: VisibilityScope.Internal,
       originChannel: ChannelKind.Manual,
       sort: 0,
+      parentAnswerId: preselectedParentAnswerId || undefined,
     },
   });
 
@@ -112,11 +114,16 @@ export function QuestionFormPage({ mode }: { mode: "create" | "edit" }) {
       visibility: questionQuery.data.visibility,
       originChannel: questionQuery.data.originChannel,
       sort: questionQuery.data.sort,
+      parentAnswerId: questionQuery.data.parentAnswerId ?? undefined,
     });
   }, [form, questionQuery.data]);
 
   const selectedSpaceId =
     form.watch("spaceId") || questionQuery.data?.spaceId || preselectedSpaceId;
+  const currentParentAnswerId =
+    form.watch("parentAnswerId") ||
+    questionQuery.data?.parentAnswerId ||
+    preselectedParentAnswerId;
   const selectedSpaceQuery = useSpace(selectedSpaceId || undefined);
   const spaceOptionsQuery = useSpaceList({
     page: 1,
@@ -181,6 +188,8 @@ export function QuestionFormPage({ mode }: { mode: "create" | "edit" }) {
   const backTo =
     mode === "edit" && id
       ? `/app/questions/${id}`
+      : preselectedParentAnswerId
+        ? `/app/answers/${preselectedParentAnswerId}`
       : selectedSpaceId
         ? `/app/spaces/${selectedSpaceId}`
         : "/app/spaces";
@@ -227,6 +236,14 @@ export function QuestionFormPage({ mode }: { mode: "create" | "edit" }) {
                     label: "Space",
                     to: `/app/spaces/${selectedSpaceId}`,
                   },
+                  ...(currentParentAnswerId
+                    ? [
+                        {
+                          label: "Answer",
+                          to: `/app/answers/${currentParentAnswerId}`,
+                        },
+                      ]
+                    : []),
                   ...(mode === "edit" && id
                     ? [{ label: "Question", to: `/app/questions/${id}` }]
                     : [{ label: "Question" }]),
@@ -338,6 +355,10 @@ export function QuestionFormPage({ mode }: { mode: "create" | "edit" }) {
                         values.originChannel,
                       ) as ChannelKind,
                       sort: values.sort,
+                      parentAnswerId:
+                        mode === "create"
+                          ? values.parentAnswerId || undefined
+                          : undefined,
                     };
 
                     if (mode === "create") {
@@ -380,7 +401,11 @@ export function QuestionFormPage({ mode }: { mode: "create" | "edit" }) {
                     options={spaceOptions}
                     selectedOption={selectedSpaceOption}
                     loading={spaceOptionsQuery.isFetching}
-                    disabled={Boolean(preselectedSpaceId) || mode === "edit"}
+                    disabled={
+                      Boolean(preselectedSpaceId) ||
+                      Boolean(preselectedParentAnswerId) ||
+                      mode === "edit"
+                    }
                     searchValue={spaceSearch}
                     onSearchChange={(value) =>
                       startTransition(() => setSpaceSearch(value))

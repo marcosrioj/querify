@@ -56,11 +56,12 @@ export type QuestionCreateRequestDto = {
   visibility: VisibilityScope;
   originChannel: ChannelKind;
   sort: number;
+  parentAnswerId?: string | null;
 };
 
 export type QuestionUpdateRequestDto = Omit<
   QuestionCreateRequestDto,
-  "spaceId"
+  "spaceId" | "parentAnswerId"
 > & {
   acceptedAnswerId?: string | null;
 };

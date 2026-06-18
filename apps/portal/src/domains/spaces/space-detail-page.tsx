@@ -196,6 +196,7 @@ export function SpaceDetailPage() {
     sorting: questionListState.sorting,
     searchText: questionListState.debouncedSearch || undefined,
     spaceId: id,
+    hasParentAnswer: false,
     status:
       questionStatusFilter === "all" ? undefined : Number(questionStatusFilter),
     visibility:

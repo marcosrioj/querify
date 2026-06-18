@@ -533,9 +533,11 @@ export function QuestionDetailPage() {
           description="Operate question workflow, answers, optional accepted answer, source links, tags, and activity from one place."
           descriptionMode="hint"
           backTo={
-            questionQuery.data?.spaceId
-              ? `/app/spaces/${questionQuery.data.spaceId}`
-              : "/app/spaces"
+            questionQuery.data?.parentAnswerId
+              ? `/app/answers/${questionQuery.data.parentAnswerId}`
+              : questionQuery.data?.spaceId
+                ? `/app/spaces/${questionQuery.data.spaceId}`
+                : "/app/spaces"
           }
           breadcrumbs={
             questionQuery.data
@@ -544,6 +546,14 @@ export function QuestionDetailPage() {
                     label: "Space",
                     to: `/app/spaces/${questionQuery.data.spaceId}`,
                   },
+                  ...(questionQuery.data.parentAnswerId
+                    ? [
+                        {
+                          label: "Answer",
+                          to: `/app/answers/${questionQuery.data.parentAnswerId}`,
+                        },
+                      ]
+                    : []),
                   { label: "Question" },
                 ]
               : undefined
@@ -707,9 +717,11 @@ export function QuestionDetailPage() {
               .mutateAsync(id)
               .then(() =>
                 navigate(
-                  questionQuery.data?.spaceId
-                    ? `/app/spaces/${questionQuery.data.spaceId}`
-                    : "/app/spaces",
+                  questionQuery.data?.parentAnswerId
+                    ? `/app/answers/${questionQuery.data.parentAnswerId}`
+                    : questionQuery.data?.spaceId
+                      ? `/app/spaces/${questionQuery.data.spaceId}`
+                      : "/app/spaces",
                 ),
               )
           }

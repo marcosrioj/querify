@@ -5,7 +5,17 @@ import {
   useMemo,
   useState,
 } from "react";
-import { Activity, CircleHelp, Link2, Pencil, ShieldCheck, Trash2 } from "lucide-react";
+import {
+  Activity,
+  CheckCircle2,
+  CircleHelp,
+  CircleOff,
+  Link2,
+  Pencil,
+  Plus,
+  ShieldCheck,
+  Trash2,
+} from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { ActivityRelationshipActions } from "@/domains/activity/activity-relationship-actions";
 import { useActivityList } from "@/domains/activity/hooks";
@@ -20,15 +30,28 @@ import {
 import { useActivationVisibilityPrompt } from "@/domains/qna/activation-visibility";
 import { QnaModuleNav } from "@/domains/qna/qna-module-nav";
 import { RecommendedNextActionCard } from "@/domains/qna/recommended-next-action-card";
-import { useQuestion } from "@/domains/questions/hooks";
+import {
+  useCreateQuestion,
+  useDeleteQuestion,
+  useQuestion,
+  useQuestionList,
+  useUpdateQuestionStatus,
+} from "@/domains/questions/hooks";
 import { usePortalTimeZone } from "@/domains/settings/settings-hooks";
+import { useSpace } from "@/domains/spaces/hooks";
 import { useSource, useSourceList } from "@/domains/sources/hooks";
 import {
   AnswerStatus,
+  ChannelKind,
+  QuestionStatus,
   SourceRole,
+  SpaceStatus,
+  VisibilityScope,
   activityKindLabels,
   actorKindLabels,
+  questionStatusLabels,
   sourceRoleLabels,
+  visibilityScopeLabels,
 } from "@/shared/constants/backend-enums";
 import {
   DetailOverviewCard,
@@ -49,7 +72,10 @@ import {
   CardTitle,
   ChildListPagination,
   ConfirmAction,
+  ContextHint,
   DetailPageSkeleton,
+  Input,
+  Label,
   ListFilterField,
   ListFilterSearch,
   ListFilterToolbar,
@@ -61,6 +87,7 @@ import {
   SelectTrigger,
   SelectValue,
   SidebarSummarySkeleton,
+  Textarea,
 } from "@/shared/ui";
 import { EmptyState, ErrorState } from "@/shared/ui/placeholder-state";
 import {
@@ -68,6 +95,7 @@ import {
   ActorKindBadge,
   AnswerKindBadge,
   AnswerStatusBadge,
+  QuestionStatusBadge,
   SourceRoleBadge,
   VisibilityBadge,
 } from "@/shared/ui/status-badges";
@@ -77,6 +105,17 @@ import { formatOptionalDateTimeInTimeZone } from "@/shared/lib/time-zone";
 import { clampPage } from "@/shared/lib/pagination";
 import { useRelationshipListState } from "@/shared/lib/use-relationship-list-state";
 
+const questionSortingOptions = [
+  { value: "LastActivityAtUtc DESC", label: "Latest activity" },
+  { value: "LastActivityAtUtc ASC", label: "Oldest activity" },
+  { value: "Title ASC", label: "Title A-Z" },
+  { value: "Title DESC", label: "Title Z-A" },
+  { value: "FeedbackScore DESC", label: "Feedback high-low" },
+  { value: "FeedbackScore ASC", label: "Feedback low-high" },
+  { value: "Sort ASC", label: "Sort low-high" },
+  { value: "Sort DESC", label: "Sort high-low" },
+];
+
 const activitySortingOptions = [
   { value: "OccurredAtUtc DESC", label: "Latest activity" },
   { value: "OccurredAtUtc ASC", label: "Oldest activity" },
@@ -85,6 +124,14 @@ const activitySortingOptions = [
   { value: "ActorKind ASC", label: "Actor kind A-Z" },
   { value: "ActorKind DESC", label: "Actor kind Z-A" },
 ];
+
+const QUESTION_RELATIONSHIP_FILTER_DEFAULTS: Record<
+  "status" | "visibility",
+  string
+> = {
+  status: "all",
+  visibility: "all",
+};
 
 const ACTIVITY_RELATIONSHIP_FILTER_DEFAULTS: Record<
   "kind" | "actorKind",
@@ -116,12 +163,33 @@ export function AnswerDetailPage() {
   const answerId = id ?? "";
   const answerQuery = useAnswer(id);
   const questionQuery = useQuestion(answerQuery.data?.questionId);
+  const parentSpaceQuery = useSpace(questionQuery.data?.spaceId);
+  const questionListState = useRelationshipListState({
+    defaultSorting: "LastActivityAtUtc DESC",
+    filterDefaults: QUESTION_RELATIONSHIP_FILTER_DEFAULTS,
+  });
   const activityListState = useRelationshipListState({
     defaultSorting: "OccurredAtUtc DESC",
     filterDefaults: ACTIVITY_RELATIONSHIP_FILTER_DEFAULTS,
   });
+  const questionStatusFilter = questionListState.filters.status;
+  const questionVisibilityFilter = questionListState.filters.visibility;
   const activityKindFilter = activityListState.filters.kind;
   const activityActorKindFilter = activityListState.filters.actorKind;
+  const followUpQuestionQuery = useQuestionList({
+    page: questionListState.page,
+    pageSize: questionListState.pageSize,
+    sorting: questionListState.sorting,
+    searchText: questionListState.debouncedSearch || undefined,
+    parentAnswerId: answerId,
+    status:
+      questionStatusFilter === "all" ? undefined : Number(questionStatusFilter),
+    visibility:
+      questionVisibilityFilter === "all"
+        ? undefined
+        : Number(questionVisibilityFilter),
+    enabled: Boolean(answerId),
+  });
   const activityQuery = useActivityList({
     page: activityListState.page,
     pageSize: activityListState.pageSize,
@@ -138,6 +206,9 @@ export function AnswerDetailPage() {
   const deleteAnswer = useDeleteAnswer();
   const updateAnswerStatus = useUpdateAnswerStatus();
   const archiveAnswer = useArchiveAnswer();
+  const createQuestion = useCreateQuestion();
+  const deleteQuestion = useDeleteQuestion();
+  const updateQuestionStatus = useUpdateQuestionStatus();
   const { resolveActivationVisibility, ActivationVisibilityDialog } =
     useActivationVisibilityPrompt();
   const addSource = useAddAnswerSource(answerId);
@@ -147,7 +218,11 @@ export function AnswerDetailPage() {
   const [selectedSourceRole, setSelectedSourceRole] = useState(
     String(SourceRole.Evidence),
   );
+  const [newQuestionTitle, setNewQuestionTitle] = useState("");
+  const [newQuestionSummary, setNewQuestionSummary] = useState("");
   const [relationshipTab, setRelationshipTab] = useState("sources");
+  const [questionCreateOpen, setQuestionCreateOpen] = useState(false);
+  const [questionFiltersOpen, setQuestionFiltersOpen] = useState(false);
   const [activityFiltersOpen, setActivityFiltersOpen] = useState(false);
   const deferredSourceSearch = useDeferredValue(sourceSearch.trim());
   const sourceOptionsQuery = useSourceList({
@@ -174,12 +249,43 @@ export function AnswerDetailPage() {
     ? buildSourceOption(selectedSource)
     : null;
   const answerActivity = activityQuery.data?.items ?? [];
+  const followUpQuestions = followUpQuestionQuery.data?.items ?? [];
+  const followUpQuestionCount =
+    followUpQuestionQuery.data?.totalCount ??
+    answerQuery.data?.followUpQuestions.length ??
+    0;
+  const isActiveSpace = parentSpaceQuery.data?.status === SpaceStatus.Active;
+  const blocksQuestions = parentSpaceQuery.data
+    ? isActiveSpace && !parentSpaceQuery.data.acceptsQuestions
+    : false;
   const sourcesPagination = useLocalPagination({
     items: answerQuery.data?.sources ?? [],
   });
-  const followUpQuestionsPagination = useLocalPagination({
-    items: answerQuery.data?.followUpQuestions ?? [],
-  });
+  const canCreateFollowUpQuestion =
+    Boolean(answerQuery.data && questionQuery.data?.spaceId) &&
+    !blocksQuestions;
+
+  useEffect(() => {
+    const totalCount = followUpQuestionQuery.data?.totalCount;
+
+    if (totalCount === undefined) {
+      return;
+    }
+
+    const nextPage = clampPage(
+      questionListState.page,
+      totalCount,
+      questionListState.pageSize,
+    );
+    if (nextPage !== questionListState.page) {
+      questionListState.setPage(nextPage);
+    }
+  }, [
+    questionListState.page,
+    questionListState.pageSize,
+    questionListState.setPage,
+    followUpQuestionQuery.data?.totalCount,
+  ]);
 
   useEffect(() => {
     const totalCount = activityQuery.data?.totalCount;
@@ -249,6 +355,31 @@ export function AnswerDetailPage() {
   const destructiveLifecycleActionOptions = lifecycleActionOptions.filter(
     (option) => option.variant === "destructive",
   );
+  const handleFollowUpQuestionStatusChange = async (
+    question: (typeof followUpQuestions)[number],
+  ) => {
+    const status =
+      question.status === QuestionStatus.Active
+        ? QuestionStatus.Archived
+        : QuestionStatus.Active;
+    let visibility: VisibilityScope | undefined;
+    if (question.status !== QuestionStatus.Active) {
+      const resolvedVisibility = await resolveActivationVisibility(
+        question.visibility,
+      );
+      if (resolvedVisibility === null) {
+        return;
+      }
+
+      visibility = resolvedVisibility;
+    }
+
+    updateQuestionStatus.mutate({
+      question,
+      status,
+      visibility,
+    });
+  };
   const activateRelationshipTab = (tab: string, focusTargetId?: string) => {
     setRelationshipTab(tab);
 
@@ -326,6 +457,14 @@ export function AnswerDetailPage() {
                         {
                           label: "Space",
                           to: `/app/spaces/${questionQuery.data.spaceId}`,
+                        },
+                      ]
+                    : []),
+                  ...(questionQuery.data?.parentAnswerId
+                    ? [
+                        {
+                          label: "Answer",
+                          to: `/app/answers/${questionQuery.data.parentAnswerId}`,
                         },
                       ]
                     : []),
@@ -412,7 +551,7 @@ export function AnswerDetailPage() {
                 label: "Follow-up questions",
                 description:
                   "Optional questions that continue the Q&A path after this answer.",
-                value: String(answerQuery.data.followUpQuestions.length),
+                value: String(followUpQuestionCount),
               },
               {
                 label: "Sort",
@@ -659,7 +798,7 @@ export function AnswerDetailPage() {
                 description:
                   "Open recursive questions that continue from this answer.",
                 icon: CircleHelp,
-                count: answerQuery.data?.followUpQuestions.length ?? 0,
+                count: followUpQuestionCount,
               },
               {
                 key: "activity",
@@ -827,16 +966,235 @@ export function AnswerDetailPage() {
                     <span>{translateText("Follow-up questions")}</span>
                     <Badge variant="outline">
                       {translateText("{count} questions", {
-                        count: answerQuery.data.followUpQuestions.length,
+                        count: followUpQuestionCount,
                       })}
                     </Badge>
                   </CardTitle>
                 </CardHeading>
+                <div className="flex flex-wrap items-center gap-2">
+                  {canCreateFollowUpQuestion ? (
+                    <Button
+                      type="button"
+                      variant={questionCreateOpen ? "primary" : "outline"}
+                      size="sm"
+                      className="h-8 gap-1.5 px-2.5 text-xs"
+                      aria-expanded={questionCreateOpen}
+                      aria-controls="answer-follow-up-question-create-form"
+                      onClick={() => setQuestionCreateOpen((open) => !open)}
+                    >
+                      <Plus className="size-4" />
+                      {translateText("New question")}
+                    </Button>
+                  ) : null}
+                  <RelationshipFilterButton
+                    activeFilterCount={questionListState.activeFilterCount}
+                    isLoading={followUpQuestionQuery.isFetching}
+                    open={questionFiltersOpen}
+                    onClick={() => setQuestionFiltersOpen((open) => !open)}
+                  />
+                </div>
               </CardHeader>
               <CardContent className="space-y-4">
-                {answerQuery.data.followUpQuestions.length ? (
+                {questionFiltersOpen ? (
+                  <div className="rounded-lg border border-border/70 bg-muted/20 p-3">
+                    <ListFilterToolbar
+                      isLoading={followUpQuestionQuery.isFetching}
+                    >
+                      <ListFilterSearch
+                        value={questionListState.search}
+                        onChange={questionListState.setSearch}
+                        placeholder="Search questions by title or summary"
+                        activeFilterCount={questionListState.activeFilterCount}
+                        onClear={questionListState.resetFilters}
+                        isLoading={followUpQuestionQuery.isFetching}
+                      />
+                      <div className="grid gap-3 md:grid-cols-3">
+                        <ListFilterField label="Status">
+                          <Select
+                            value={questionStatusFilter}
+                            onValueChange={(value) =>
+                              questionListState.setFilter("status", value)
+                            }
+                          >
+                            <SelectTrigger className="w-full" size="lg">
+                              <SelectValue
+                                placeholder={translateText("Status")}
+                              />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="all">
+                                All question states
+                              </SelectItem>
+                              {Object.entries(questionStatusLabels).map(
+                                ([value, label]) => (
+                                  <SelectItem key={value} value={value}>
+                                    {translateText(label)}
+                                  </SelectItem>
+                                ),
+                              )}
+                            </SelectContent>
+                          </Select>
+                        </ListFilterField>
+                        <ListFilterField label="Visibility">
+                          <Select
+                            value={questionVisibilityFilter}
+                            onValueChange={(value) =>
+                              questionListState.setFilter("visibility", value)
+                            }
+                          >
+                            <SelectTrigger className="w-full" size="lg">
+                              <SelectValue
+                                placeholder={translateText("Visibility")}
+                              />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="all">
+                                All visibility
+                              </SelectItem>
+                              {Object.entries(visibilityScopeLabels).map(
+                                ([value, label]) => (
+                                  <SelectItem key={value} value={value}>
+                                    {translateText(label)}
+                                  </SelectItem>
+                                ),
+                              )}
+                            </SelectContent>
+                          </Select>
+                        </ListFilterField>
+                        <ListFilterField label="Sort">
+                          <Select
+                            value={questionListState.sorting}
+                            onValueChange={questionListState.setSorting}
+                          >
+                            <SelectTrigger className="w-full" size="lg">
+                              <SelectValue
+                                placeholder={translateText("Sort questions")}
+                              />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {questionSortingOptions.map((option) => (
+                                <SelectItem
+                                  key={option.value}
+                                  value={option.value}
+                                >
+                                  {translateText(option.label)}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </ListFilterField>
+                      </div>
+                    </ListFilterToolbar>
+                  </div>
+                ) : null}
+                {canCreateFollowUpQuestion && questionCreateOpen ? (
+                  <form
+                    id="answer-follow-up-question-create-form"
+                    className="rounded-xl border border-primary/15 bg-primary/[0.025] p-4"
+                    onSubmit={(event) => {
+                      event.preventDefault();
+                      const title = newQuestionTitle.trim();
+
+                      if (!title || !questionQuery.data?.spaceId) {
+                        return;
+                      }
+
+                      void createQuestion
+                        .mutateAsync({
+                          spaceId: questionQuery.data.spaceId,
+                          title,
+                          summary: newQuestionSummary.trim() || undefined,
+                          contextNote: undefined,
+                          status: QuestionStatus.Draft,
+                          visibility: VisibilityScope.Internal,
+                          originChannel: ChannelKind.Manual,
+                          sort:
+                            (followUpQuestionQuery.data?.totalCount ?? 0) + 1,
+                          parentAnswerId: answerId,
+                        })
+                        .then(() => {
+                          setNewQuestionTitle("");
+                          setNewQuestionSummary("");
+                          setQuestionCreateOpen(false);
+                        });
+                    }}
+                  >
+                    <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto]">
+                      <div className="space-y-3">
+                        <div>
+                          <p className="text-sm font-semibold text-mono">
+                            {translateText("Create question")}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            {translateText(
+                              "Optionally link questions that should appear after this answer.",
+                            )}
+                          </p>
+                        </div>
+                        <div className="space-y-1.5">
+                          <div className="flex items-center gap-1.5">
+                            <Label htmlFor="new-follow-up-question-title">
+                              {translateText("Title")}
+                            </Label>
+                            <ContextHint
+                              content={translateText(
+                                "Use the canonical question wording.",
+                              )}
+                              label={translateText("Field details")}
+                            />
+                          </div>
+                          <Input
+                            id="new-follow-up-question-title"
+                            value={newQuestionTitle}
+                            onChange={(event) =>
+                              setNewQuestionTitle(event.target.value)
+                            }
+                            placeholder={translateText("Title")}
+                            aria-label={translateText("Title")}
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <div className="flex items-center gap-1.5">
+                            <Label htmlFor="new-follow-up-question-summary">
+                              {translateText("Summary")}
+                            </Label>
+                            <ContextHint
+                              content={translateText(
+                                "A compact explanation of the question before the full context.",
+                              )}
+                              label={translateText("Field details")}
+                            />
+                          </div>
+                          <Textarea
+                            id="new-follow-up-question-summary"
+                            value={newQuestionSummary}
+                            onChange={(event) =>
+                              setNewQuestionSummary(event.target.value)
+                            }
+                            placeholder={translateText("Summary")}
+                            aria-label={translateText("Summary")}
+                            rows={3}
+                          />
+                        </div>
+                      </div>
+                      <div className="flex items-end">
+                        <Button
+                          type="submit"
+                          disabled={
+                            !newQuestionTitle.trim() ||
+                            createQuestion.isPending
+                          }
+                        >
+                          <Plus className="size-4" />
+                          {translateText("Create question")}
+                        </Button>
+                      </div>
+                    </div>
+                  </form>
+                ) : null}
+                {followUpQuestions.length ? (
                   <div className="space-y-3">
-                    {followUpQuestionsPagination.pagedItems.map((question) => (
+                    {followUpQuestions.map((question) => (
                       <div
                         key={question.id}
                         className="flex flex-col gap-3 rounded-lg border border-border bg-muted/10 p-4 sm:flex-row sm:items-start sm:justify-between"
@@ -848,10 +1206,15 @@ export function AnswerDetailPage() {
                           >
                             {question.title}
                           </Link>
+                          <p className="mt-1 text-sm text-muted-foreground">
+                            {question.summary ||
+                              translateText("No summary provided.")}
+                          </p>
                           <div className="mt-2 flex flex-wrap items-center gap-2">
                             <Badge variant="outline">
                               {question.spaceSlug}
                             </Badge>
+                            <QuestionStatusBadge status={question.status} />
                             <VisibilityBadge
                               visibility={question.visibility}
                             />
@@ -864,33 +1227,78 @@ export function AnswerDetailPage() {
                                 ),
                               })}
                             </span>
+                            {question.acceptedAnswerId ? (
+                              <Badge variant="success" appearance="outline">
+                                {translateText("Accepted answer")}
+                              </Badge>
+                            ) : null}
                           </div>
                         </div>
-                        <Button asChild variant="outline" size="sm">
-                          <Link to={`/app/questions/${question.id}`}>
-                            <Link2 className="size-4" />
-                            {translateText("Open question")}
-                          </Link>
-                        </Button>
+                        <div className="flex flex-wrap gap-2">
+                          <Button asChild variant="outline" size="sm">
+                            <Link to={`/app/questions/${question.id}`}>
+                              <Link2 className="size-4" />
+                              {translateText("Open")}
+                            </Link>
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            disabled={updateQuestionStatus.isPending}
+                            onClick={() =>
+                              void handleFollowUpQuestionStatusChange(question)
+                            }
+                          >
+                            {question.status === QuestionStatus.Active ? (
+                              <CircleOff className="size-4" />
+                            ) : (
+                              <CheckCircle2 className="size-4" />
+                            )}
+                            {translateText(
+                              question.status === QuestionStatus.Active
+                                ? "Archive"
+                                : "Activate",
+                            )}
+                          </Button>
+                          <ConfirmAction
+                            title={translateText(
+                              'Delete question "{name}"?',
+                              {
+                                name: question.title,
+                              },
+                            )}
+                            description={translateText(
+                              "This removes the question from the portal and breaks any accepted-answer linkage.",
+                            )}
+                            confirmLabel={translateText("Delete question")}
+                            isPending={deleteQuestion.isPending}
+                            onConfirm={() =>
+                              deleteQuestion.mutateAsync(question.id)
+                            }
+                            trigger={
+                              <Button variant="ghost" size="sm">
+                                <Trash2 className="size-4" />
+                                {translateText("Delete")}
+                              </Button>
+                            }
+                          />
+                        </div>
                       </div>
                     ))}
                   </div>
                 ) : (
                   <EmptyState
                     title="No follow-up questions linked"
-                    description="Edit this answer to link questions that should continue the Q&A path."
-                    action={{
-                      label: "Edit answer",
-                      to: `/app/answers/${id}/edit`,
-                    }}
+                    description="Optionally link questions that should appear after this answer."
                   />
                 )}
                 <ChildListPagination
-                  page={followUpQuestionsPagination.page}
-                  pageSize={followUpQuestionsPagination.pageSize}
-                  totalCount={followUpQuestionsPagination.totalCount}
-                  onPageChange={followUpQuestionsPagination.setPage}
-                  onPageSizeChange={followUpQuestionsPagination.setPageSize}
+                  page={questionListState.page}
+                  pageSize={questionListState.pageSize}
+                  totalCount={followUpQuestionQuery.data?.totalCount ?? 0}
+                  isFetching={followUpQuestionQuery.isFetching}
+                  onPageChange={questionListState.setPage}
+                  onPageSizeChange={questionListState.setPageSize}
                 />
               </CardContent>
             </Card>

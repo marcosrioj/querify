@@ -43,6 +43,7 @@ export function useQuestionList(params: {
   tagId?: string;
   acceptedAnswerId?: string;
   parentAnswerId?: string;
+  hasParentAnswer?: boolean;
   status?: number;
   visibility?: number;
   spaceSlug?: string;

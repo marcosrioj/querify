@@ -12,4 +12,5 @@ public class QuestionCreateRequestDto
     public VisibilityScope Visibility { get; set; } = VisibilityScope.Internal;
     public required ChannelKind OriginChannel { get; set; }
     public required int Sort { get; set; }
+    public Guid? ParentAnswerId { get; set; }
 }

@@ -45,6 +45,10 @@ public sealed class QuestionsGetQuestionListQueryHandler(
 
         if (request.Request.ParentAnswerId is not null)
             query = query.Where(question => question.ParentAnswerId == request.Request.ParentAnswerId);
+        else if (request.Request.HasParentAnswer is not null)
+            query = request.Request.HasParentAnswer.Value
+                ? query.Where(question => question.ParentAnswerId != null)
+                : query.Where(question => question.ParentAnswerId == null);
 
         if (request.Request.Status is not null)
             query = query.Where(question => question.Status == request.Request.Status);

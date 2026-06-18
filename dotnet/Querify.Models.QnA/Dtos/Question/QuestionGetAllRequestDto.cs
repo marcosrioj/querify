@@ -11,6 +11,7 @@ public class QuestionGetAllRequestDto : PagedAndSortedResultRequestDto
     public Guid? TagId { get; set; }
     public Guid? AcceptedAnswerId { get; set; }
     public Guid? ParentAnswerId { get; set; }
+    public bool? HasParentAnswer { get; set; }
     public QuestionStatus? Status { get; set; }
     public VisibilityScope? Visibility { get; set; }
     public string? SpaceSlug { get; set; }

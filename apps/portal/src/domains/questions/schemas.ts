@@ -15,6 +15,7 @@ export const questionFormSchema = z.object({
   visibility: numericEnumSchema(VisibilityScope),
   originChannel: numericEnumSchema(ChannelKind),
   sort: z.coerce.number().int().min(0),
+  parentAnswerId: z.string().optional(),
 });
 
 export type QuestionFormValues = z.infer<typeof questionFormSchema>;

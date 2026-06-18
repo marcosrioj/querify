@@ -40,12 +40,15 @@ public sealed class QuestionsCreateQuestionCommandHandler(
         SpaceRules.EnsureAcceptsQuestions(space);
 
         QuestionRules.EnsureSupportedStatus(request.Request.Status);
+        var parentAnswer = await LoadParentAnswerAsync(request.Request.ParentAnswerId, tenantId, cancellationToken);
 
         var entity = new Common.Domain.Entities.Question
         {
             TenantId = tenantId,
             SpaceId = space.Id,
             Space = space,
+            ParentAnswerId = parentAnswer?.Id,
+            ParentAnswer = parentAnswer,
             Title = request.Request.Title,
             Status = request.Request.Status,
             Visibility = request.Request.Visibility,
@@ -58,6 +61,7 @@ public sealed class QuestionsCreateQuestionCommandHandler(
         };
 
         space.Questions.Add(entity);
+        parentAnswer?.FollowUpQuestions.Add(entity);
         dbContext.Questions.Add(entity);
 
         Apply(entity, request.Request, userId);
@@ -73,6 +77,27 @@ public sealed class QuestionsCreateQuestionCommandHandler(
 
         await dbContext.SaveChangesAsync(cancellationToken);
         return entity.Id;
+    }
+
+    private async Task<Common.Domain.Entities.Answer?> LoadParentAnswerAsync(
+        Guid? parentAnswerId,
+        Guid tenantId,
+        CancellationToken cancellationToken)
+    {
+        if (parentAnswerId is null)
+            return null;
+
+        var parentAnswer = await dbContext.Answers
+            .SingleOrDefaultAsync(
+                answer => answer.TenantId == tenantId && answer.Id == parentAnswerId.Value,
+                cancellationToken);
+
+        if (parentAnswer is null)
+            throw new ApiErrorException(
+                $"Parent answer '{parentAnswerId}' was not found.",
+                (int)HttpStatusCode.NotFound);
+
+        return parentAnswer;
     }
 
     private static void Apply(Common.Domain.Entities.Question entity, QuestionCreateRequestDto request, string userId)

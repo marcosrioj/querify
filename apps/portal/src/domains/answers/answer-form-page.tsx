@@ -138,16 +138,19 @@ export function AnswerFormPage({ mode }: { mode: "create" | "edit" }) {
     sorting: "Title ASC",
     searchText: deferredQuestionSearch || undefined,
   });
+  const selectedQuestion =
+    questionOptionsQuery.data?.items.find(
+      (question) => question.id === selectedQuestionId,
+    ) ?? selectedQuestionQuery.data;
   const followUpQuestionOptionsQuery = useQuestionList({
     page: 1,
     pageSize: 20,
     sorting: "Title ASC",
     searchText: deferredFollowUpQuestionSearch || undefined,
+    spaceId: selectedQuestion?.spaceId,
+    hasParentAnswer: false,
+    enabled: Boolean(selectedQuestion?.spaceId),
   });
-  const selectedQuestion =
-    questionOptionsQuery.data?.items.find(
-      (question) => question.id === selectedQuestionId,
-    ) ?? selectedQuestionQuery.data;
   const selectedSpaceQuery = useSpace(selectedQuestion?.spaceId);
   const selectedVisibility = Number(
     form.watch("visibility"),
@@ -311,6 +314,14 @@ export function AnswerFormPage({ mode }: { mode: "create" | "edit" }) {
                         {
                           label: "Space",
                           to: `/app/spaces/${selectedQuestion.spaceId}`,
+                        },
+                      ]
+                    : []),
+                  ...(selectedQuestion.parentAnswerId
+                    ? [
+                        {
+                          label: "Answer",
+                          to: `/app/answers/${selectedQuestion.parentAnswerId}`,
                         },
                       ]
                     : []),
