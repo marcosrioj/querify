@@ -79,6 +79,16 @@ public class Question : BaseEntity, IMustHaveTenant
     public Answer? AcceptedAnswer { get; set; }
 
     /// <summary>
+    ///     Id of the answer that links to this question as a follow-up question.
+    /// </summary>
+    public Guid? ParentAnswerId { get; set; }
+
+    /// <summary>
+    ///     Answer that links to this question as a follow-up question.
+    /// </summary>
+    public Answer? ParentAnswer { get; set; }
+
+    /// <summary>
     ///     Timestamp of the last relevant activity for the question.
     /// </summary>
     public DateTime? LastActivityAtUtc { get; set; }

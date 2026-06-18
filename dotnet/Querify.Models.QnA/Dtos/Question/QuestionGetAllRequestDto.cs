@@ -10,6 +10,7 @@ public class QuestionGetAllRequestDto : PagedAndSortedResultRequestDto
     public Guid? SourceId { get; set; }
     public Guid? TagId { get; set; }
     public Guid? AcceptedAnswerId { get; set; }
+    public Guid? ParentAnswerId { get; set; }
     public QuestionStatus? Status { get; set; }
     public VisibilityScope? Visibility { get; set; }
     public string? SpaceSlug { get; set; }

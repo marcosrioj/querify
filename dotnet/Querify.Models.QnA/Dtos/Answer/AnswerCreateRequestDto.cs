@@ -13,4 +13,5 @@ public class AnswerCreateRequestDto
     public string? ContextNote { get; set; }
     public string? AuthorLabel { get; set; }
     public required int Sort { get; set; }
+    public IReadOnlyList<Guid> FollowUpQuestionIds { get; set; } = [];
 }

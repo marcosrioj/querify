@@ -42,6 +42,7 @@ export function useQuestionList(params: {
   sourceId?: string;
   tagId?: string;
   acceptedAnswerId?: string;
+  parentAnswerId?: string;
   status?: number;
   visibility?: number;
   spaceSlug?: string;

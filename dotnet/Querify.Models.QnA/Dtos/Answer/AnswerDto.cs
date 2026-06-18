@@ -1,4 +1,5 @@
 using Querify.Models.QnA.Enums;
+using Querify.Models.QnA.Dtos.Question;
 
 namespace Querify.Models.QnA.Dtos.Answer;
 
@@ -23,4 +24,5 @@ public class AnswerDto
     public DateTime? LastUpdatedAtUtc { get; set; }
     public required int VoteScore { get; set; }
     public IReadOnlyList<AnswerSourceLinkDto> Sources { get; set; } = [];
+    public IReadOnlyList<QuestionDto> FollowUpQuestions { get; set; } = [];
 }

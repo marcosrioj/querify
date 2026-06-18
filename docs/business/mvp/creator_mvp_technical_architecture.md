@@ -108,8 +108,8 @@ Reuse these existing entities for the Answer Hub:
 | Entity | MVP use |
 |---|---|
 | `Space` | Creator Hub or product-specific answer collection. Use `Name`, `Slug`, `Summary`, `Language`, `Status`, `Visibility`, `AcceptsQuestions`, and `AcceptsAnswers`. |
-| `Question` | Canonical reusable audience question. A Direct or Broadcast gap may create a draft internal question, but Direct/Broadcast workflow state stays in the origin module. |
-| `Answer` | Reusable answer. Draft, active, archived, and visibility state remain QnA lifecycle concerns. |
+| `Question` | Canonical reusable audience question. It may optionally reference a parent QnA answer through `ParentAnswerId` when it continues a recursive QnA path. A Direct or Broadcast gap may create a draft internal question, but Direct/Broadcast workflow state stays in the origin module. |
+| `Answer` | Reusable answer. Draft, active, archived, visibility state, and optional follow-up questions remain QnA lifecycle and relationship concerns. |
 | `Source` | Pasted text, URL, FAQ page, product page, or uploaded artifact used to generate or support answers. |
 | `QuestionTag` and `SpaceTag` | Basic creator tags such as product, price, delivery, access, guarantee, community, support, and partnership. |
 | `Activity` | QnA lifecycle and public signal journal. Do not use it as Trust decision history. |

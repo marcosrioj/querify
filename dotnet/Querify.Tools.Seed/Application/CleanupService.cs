@@ -23,7 +23,9 @@ public sealed class CleanupService : ICleanupService
     {
         dbContext.Database.ExecuteSqlInterpolated($"""
             UPDATE "Questions"
-            SET "AcceptedAnswerId" = NULL
+            SET
+                "AcceptedAnswerId" = NULL,
+                "ParentAnswerId" = NULL
             WHERE "CreatedBy" = {SeedMarkers.BigData};
 
             DELETE FROM "Activities"

@@ -289,6 +289,7 @@ public sealed class QnASeedService : IQnASeedService
     {
         SpaceRules.EnsureAcceptsQuestions(space);
         SpaceRules.EnsureAcceptsAnswers(space);
+        Answer? previousPrimaryAnswer = null;
 
         for (var questionIndex = 0; questionIndex < definition.Items.Count; questionIndex++)
         {
@@ -324,6 +325,13 @@ public sealed class QnASeedService : IQnASeedService
                 CreatedBy = "seed",
                 UpdatedBy = "seed"
             };
+
+            if (previousPrimaryAnswer is not null && questionIndex % 3 == 1)
+            {
+                question.ParentAnswerId = previousPrimaryAnswer.Id;
+                question.ParentAnswer = previousPrimaryAnswer;
+                previousPrimaryAnswer.FollowUpQuestions.Add(question);
+            }
 
             primaryAnswer.QuestionId = question.Id;
             primaryAnswer.Question = question;
@@ -379,6 +387,7 @@ public sealed class QnASeedService : IQnASeedService
                 activities.Select(ActivityEntityMetadata.ToSignalEntry));
             dbContext.Questions.Add(question);
             acceptedAnswerAssignments.Add(new AcceptedAnswerAssignment(question, primaryAnswer));
+            previousPrimaryAnswer = primaryAnswer;
         }
     }
 

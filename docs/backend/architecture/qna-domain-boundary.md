@@ -10,6 +10,7 @@ This document records where QnA entity state and entity-related business rules l
 - `Querify.QnA.Common.Domain.BusinessRules.Activities` owns activity append, actor/request value creation, entity snapshots, activity context metadata, signal entries, and signal score calculations.
 - `Querify.QnA.Common.Domain.BusinessRules.Answers` owns answer status validation/transitions, visibility constraints, archive/activate semantics, and answer-source link creation rules.
 - `Querify.QnA.Common.Domain.BusinessRules.Questions` owns question status validation, visibility constraints, accepted-answer rules, and question tag/source link creation rules.
+- Recursive QnA navigation is modeled with `Question.ParentAnswerId` and `Answer.FollowUpQuestions`. Persistence tenant-integrity rules validate tenant ownership and prevent question-answer loops because the loop check needs persisted relationship lookup.
 - `Querify.QnA.Common.Domain.BusinessRules.Sources` owns source checksum rules, public source constraints, and public reference compatibility rules.
 - `Querify.QnA.Common.Domain.BusinessRules.Spaces` owns space visibility constraints, question/answer acceptance gates, tag/source link creation rules, and slug generation rules. Slug uniqueness checks stay outside the domain when they query `QnADbContext`.
 - `dotnet/Querify.QnA.Common.Persistence.QnADb` owns EF Core infrastructure only: `QnADbContext`, model configurations, tenant-integrity rules, migrations, and service registration.
@@ -43,7 +44,7 @@ Persistence decides how those attached entities are saved through normal EF chan
 Use this checklist when reviewing whether behavior belongs under `BusinessRules`:
 
 - Status and visibility invariants for `Space`, `Question`, `Answer`, and `Source` belong in the matching `BusinessRules.<Feature>` folder.
-- Cross-entity entity rules such as accepted-answer eligibility, public reference compatibility, and idempotent tag/source link creation belong in domain rules when they operate only on already-loaded entities.
+- Cross-entity entity rules such as accepted-answer eligibility, public reference compatibility, recursive follow-up compatibility, and idempotent tag/source link creation belong in domain rules when they operate only on already-loaded entities. Loop detection for follow-up questions stays in persistence tenant-integrity rules because it must inspect the saved parent chain.
 - Activity snapshot/context metadata and signal conversion belong in `BusinessRules.Activities` because the values are tied to QnA entity state and activity semantics.
 - DTO projection, filtering, sorting, and response-specific read shaping stay in query handlers.
 - EF uniqueness checks, tenant-integrity checks, model configuration, migrations, and `QnADbContext` queries stay in persistence or command orchestration, not in domain rules.

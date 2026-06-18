@@ -56,6 +56,11 @@ public sealed class QuestionsGetQuestionQueryHandler(
                                    question.AcceptedAnswer.Status == AnswerStatus.Active
                     ? question.AcceptedAnswerId
                     : null,
+                ParentAnswerId = question.ParentAnswer != null &&
+                                 question.ParentAnswer.Visibility == VisibilityScope.Public &&
+                                 question.ParentAnswer.Status == AnswerStatus.Active
+                    ? question.ParentAnswerId
+                    : null,
                 LastActivityAtUtc = question.LastActivityAtUtc,
                 LastUpdatedAtUtc = question.UpdatedDate ?? question.CreatedDate
             })
@@ -122,6 +127,37 @@ public sealed class QuestionsGetQuestionQueryHandler(
                 IsOfficial = answer.Kind == AnswerKind.Official,
                 LastUpdatedAtUtc = answer.UpdatedDate ?? answer.CreatedDate,
                 VoteScore = 0,
+                FollowUpQuestions = answer.FollowUpQuestions
+                    .Where(question =>
+                        question.Visibility == VisibilityScope.Public &&
+                        question.Status == QuestionStatus.Active)
+                    .OrderBy(question => question.Sort)
+                    .ThenBy(question => question.Title)
+                    .Select(question => new QuestionDto
+                    {
+                        Id = question.Id,
+                        TenantId = question.TenantId,
+                        SpaceId = question.SpaceId,
+                        SpaceSlug = question.Space.Slug,
+                        Title = question.Title,
+                        Summary = question.Summary,
+                        ContextNote = question.ContextNote,
+                        Status = question.Status,
+                        Visibility = question.Visibility,
+                        OriginChannel = question.OriginChannel,
+                        AiConfidenceScore = question.AiConfidenceScore,
+                        FeedbackScore = question.FeedbackScore,
+                        Sort = question.Sort,
+                        AcceptedAnswerId = question.AcceptedAnswer != null &&
+                                           question.AcceptedAnswer.Visibility == VisibilityScope.Public &&
+                                           question.AcceptedAnswer.Status == AnswerStatus.Active
+                            ? question.AcceptedAnswerId
+                            : null,
+                        ParentAnswerId = question.ParentAnswerId,
+                        LastActivityAtUtc = question.LastActivityAtUtc,
+                        LastUpdatedAtUtc = question.UpdatedDate ?? question.CreatedDate
+                    })
+                    .ToList(),
                 Sources = answer.Sources
                     .OrderBy(source => source.Order)
                     .Select(source => new AnswerSourceLinkDto

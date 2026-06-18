@@ -5,7 +5,7 @@ import {
   useMemo,
   useState,
 } from "react";
-import { Activity, Link2, Pencil, ShieldCheck, Trash2 } from "lucide-react";
+import { Activity, CircleHelp, Link2, Pencil, ShieldCheck, Trash2 } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { ActivityRelationshipActions } from "@/domains/activity/activity-relationship-actions";
 import { useActivityList } from "@/domains/activity/hooks";
@@ -176,6 +176,9 @@ export function AnswerDetailPage() {
   const answerActivity = activityQuery.data?.items ?? [];
   const sourcesPagination = useLocalPagination({
     items: answerQuery.data?.sources ?? [],
+  });
+  const followUpQuestionsPagination = useLocalPagination({
+    items: answerQuery.data?.followUpQuestions ?? [],
   });
 
   useEffect(() => {
@@ -404,6 +407,12 @@ export function AnswerDetailPage() {
                 description:
                   "Ranking signal used to compare answer candidates before acceptance overrides ordering.",
                 value: String(answerQuery.data.score),
+              },
+              {
+                label: "Follow-up questions",
+                description:
+                  "Optional questions that continue the Q&A path after this answer.",
+                value: String(answerQuery.data.followUpQuestions.length),
               },
               {
                 label: "Sort",
@@ -645,6 +654,14 @@ export function AnswerDetailPage() {
                 count: answerQuery.data?.sources.length ?? 0,
               },
               {
+                key: "questions",
+                label: "Follow-up questions",
+                description:
+                  "Open recursive questions that continue from this answer.",
+                icon: CircleHelp,
+                count: answerQuery.data?.followUpQuestions.length ?? 0,
+              },
+              {
                 key: "activity",
                 label: "Activity",
                 description:
@@ -798,6 +815,83 @@ export function AnswerDetailPage() {
                     {translateText("Attach source")}
                   </Button>
                 </div>
+              </CardContent>
+            </Card>
+          ) : null}
+
+          {relationshipTab === "questions" ? (
+            <Card id="answer-questions-section">
+              <CardHeader>
+                <CardHeading>
+                  <CardTitle className="flex items-center gap-2">
+                    <span>{translateText("Follow-up questions")}</span>
+                    <Badge variant="outline">
+                      {translateText("{count} questions", {
+                        count: answerQuery.data.followUpQuestions.length,
+                      })}
+                    </Badge>
+                  </CardTitle>
+                </CardHeading>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {answerQuery.data.followUpQuestions.length ? (
+                  <div className="space-y-3">
+                    {followUpQuestionsPagination.pagedItems.map((question) => (
+                      <div
+                        key={question.id}
+                        className="flex flex-col gap-3 rounded-lg border border-border bg-muted/10 p-4 sm:flex-row sm:items-start sm:justify-between"
+                      >
+                        <div className="min-w-0">
+                          <Link
+                            to={`/app/questions/${question.id}`}
+                            className="font-medium text-mono hover:text-primary"
+                          >
+                            {question.title}
+                          </Link>
+                          <div className="mt-2 flex flex-wrap items-center gap-2">
+                            <Badge variant="outline">
+                              {question.spaceSlug}
+                            </Badge>
+                            <VisibilityBadge
+                              visibility={question.visibility}
+                            />
+                            <span className="text-xs text-muted-foreground">
+                              {translateText("Last update {value}", {
+                                value: formatOptionalDateTimeInTimeZone(
+                                  question.lastUpdatedAtUtc,
+                                  portalTimeZone,
+                                  translateText("Not set"),
+                                ),
+                              })}
+                            </span>
+                          </div>
+                        </div>
+                        <Button asChild variant="outline" size="sm">
+                          <Link to={`/app/questions/${question.id}`}>
+                            <Link2 className="size-4" />
+                            {translateText("Open question")}
+                          </Link>
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <EmptyState
+                    title="No follow-up questions linked"
+                    description="Edit this answer to link questions that should continue the Q&A path."
+                    action={{
+                      label: "Edit answer",
+                      to: `/app/answers/${id}/edit`,
+                    }}
+                  />
+                )}
+                <ChildListPagination
+                  page={followUpQuestionsPagination.page}
+                  pageSize={followUpQuestionsPagination.pageSize}
+                  totalCount={followUpQuestionsPagination.totalCount}
+                  onPageChange={followUpQuestionsPagination.setPage}
+                  onPageSizeChange={followUpQuestionsPagination.setPageSize}
+                />
               </CardContent>
             </Card>
           ) : null}

@@ -4,6 +4,7 @@ import {
   SourceRole,
   VisibilityScope,
 } from "@/shared/constants/backend-enums";
+import type { QuestionDto } from "@/domains/questions/types";
 import type { SourceDto } from "@/domains/sources/types";
 
 export type AnswerSourceLinkDto = {
@@ -35,6 +36,7 @@ export type AnswerDto = {
   lastUpdatedAtUtc?: string | null;
   voteScore: number;
   sources: AnswerSourceLinkDto[];
+  followUpQuestions: QuestionDto[];
 };
 
 export type AnswerCreateRequestDto = {
@@ -47,9 +49,15 @@ export type AnswerCreateRequestDto = {
   contextNote?: string | null;
   authorLabel?: string | null;
   sort: number;
+  followUpQuestionIds: string[];
 };
 
-export type AnswerUpdateRequestDto = Omit<AnswerCreateRequestDto, "questionId">;
+export type AnswerUpdateRequestDto = Omit<
+  AnswerCreateRequestDto,
+  "questionId" | "followUpQuestionIds"
+> & {
+  followUpQuestionIds?: string[];
+};
 
 export type AnswerSourceLinkCreateRequestDto = {
   answerId: string;

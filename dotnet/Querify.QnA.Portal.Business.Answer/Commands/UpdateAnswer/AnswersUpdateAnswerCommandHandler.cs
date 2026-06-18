@@ -30,6 +30,7 @@ public sealed class AnswersUpdateAnswerCommandHandler(
         var entity = await dbContext.Answers
             .Include(answer => answer.Question)
             .ThenInclude(question => question.Activities)
+            .Include(answer => answer.FollowUpQuestions)
             .Include(answer => answer.Sources)
             .ThenInclude(link => link.Source)
             .SingleOrDefaultAsync(answer => answer.TenantId == tenantId && answer.Id == request.Id, cancellationToken);
@@ -40,6 +41,13 @@ public sealed class AnswersUpdateAnswerCommandHandler(
         var beforeSnapshot = ActivityEntityMetadata.SnapshotAnswer(entity);
         var originalStatus = entity.Status;
         Apply(entity, request.Request, userId);
+        if (request.Request.FollowUpQuestionIds is not null)
+            await ApplyFollowUpQuestionsAsync(
+                entity,
+                request.Request.FollowUpQuestionIds,
+                tenantId,
+                userId,
+                cancellationToken);
 
         var afterSnapshot = ActivityEntityMetadata.SnapshotAnswer(entity);
         var statusChanged = entity.Status != originalStatus;
@@ -72,5 +80,58 @@ public sealed class AnswersUpdateAnswerCommandHandler(
         AnswerRules.EnsureVisibilityAllowed(entity, request.Visibility);
         entity.Visibility = request.Visibility;
         entity.UpdatedBy = userId;
+    }
+
+    private async Task ApplyFollowUpQuestionsAsync(
+        Common.Domain.Entities.Answer entity,
+        IReadOnlyCollection<Guid> followUpQuestionIds,
+        Guid tenantId,
+        string userId,
+        CancellationToken cancellationToken)
+    {
+        var requestedIds = followUpQuestionIds
+            .Where(id => id != Guid.Empty)
+            .Distinct()
+            .ToHashSet();
+
+        if (requestedIds.Contains(entity.QuestionId))
+            throw new ApiErrorException(
+                $"Answer '{entity.Id}' cannot link its own question as a follow-up question.",
+                (int)HttpStatusCode.UnprocessableEntity);
+
+        foreach (var existing in entity.FollowUpQuestions.Where(question => !requestedIds.Contains(question.Id)).ToList())
+        {
+            existing.ParentAnswerId = null;
+            existing.ParentAnswer = null;
+            existing.UpdatedBy = userId;
+            entity.FollowUpQuestions.Remove(existing);
+        }
+
+        var existingIds = entity.FollowUpQuestions.Select(question => question.Id).ToHashSet();
+        var missingIds = requestedIds.Except(existingIds).ToList();
+
+        if (missingIds.Count == 0)
+            return;
+
+        var followUpQuestions = await dbContext.Questions
+            .Where(question => question.TenantId == tenantId && missingIds.Contains(question.Id))
+            .ToListAsync(cancellationToken);
+
+        if (followUpQuestions.Count != missingIds.Count)
+        {
+            var foundIds = followUpQuestions.Select(question => question.Id).ToHashSet();
+            var missingId = missingIds.First(id => !foundIds.Contains(id));
+            throw new ApiErrorException(
+                $"Follow-up question '{missingId}' was not found.",
+                (int)HttpStatusCode.NotFound);
+        }
+
+        foreach (var question in followUpQuestions)
+        {
+            question.ParentAnswerId = entity.Id;
+            question.ParentAnswer = entity;
+            question.UpdatedBy = userId;
+            entity.FollowUpQuestions.Add(question);
+        }
     }
 }

@@ -111,3 +111,8 @@ transaction as the rest of the backend.
 See the full design: [`../future/integrations/mcp.md`](../future/integrations/mcp.md)
 
 Source → Q&A generation pipeline: [`../future/integrations/mcp-source-to-qna.md`](../future/integrations/mcp-source-to-qna.md)
+
+`qna_create_answer` may include `followUpQuestionIds` when an answer should continue into
+existing QnA questions. Public `qna_get_question` responses return answers with shallow
+`followUpQuestions` so clients can navigate recursive Question -> Answer -> Question paths without
+receiving an unbounded graph.

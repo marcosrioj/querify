@@ -11,7 +11,7 @@ internal sealed class TenantIntegrityLookupCache(QnADbContext dbContext)
 {
     private readonly TenantIntegrityLookupCacheBase _tenantLookup = new(dbContext);
     private Dictionary<Guid, AnswerTenantIntegrityLookup>? _answers;
-    private Dictionary<Guid, Guid>? _questionTenants;
+    private Dictionary<Guid, QuestionTenantIntegrityLookup>? _questions;
     private Dictionary<Guid, Guid>? _sourceTenants;
     private Dictionary<Guid, Guid>? _spaceTenants;
     private Dictionary<Guid, Guid>? _tagTenants;
@@ -23,7 +23,32 @@ internal sealed class TenantIntegrityLookupCache(QnADbContext dbContext)
 
     internal Guid GetQuestionTenant(Guid id)
     {
-        return _tenantLookup.GetTenant<Question>(id, ref _questionTenants);
+        return GetQuestion(id).TenantId;
+    }
+
+    internal QuestionTenantIntegrityLookup GetQuestion(Guid id)
+    {
+        _questions ??= SeedQuestionCache();
+
+        if (_questions.TryGetValue(id, out var cached)) return cached;
+
+        var databaseLookup = dbContext.Questions
+            .IgnoreQueryFilters()
+            .Where(question => question.Id == id)
+            .Select(question => new QuestionTenantIntegrityLookup
+            {
+                TenantId = question.TenantId,
+                ParentAnswerId = question.ParentAnswerId
+            })
+            .SingleOrDefault();
+
+        if (databaseLookup is null)
+            throw new ApiErrorException(
+                $"Referenced {nameof(Question)} '{id}' was not found.",
+                (int)HttpStatusCode.NotFound);
+
+        _questions[id] = databaseLookup;
+        return databaseLookup;
     }
 
     internal AnswerTenantIntegrityLookup GetAnswer(Guid id)
@@ -79,6 +104,21 @@ internal sealed class TenantIntegrityLookupCache(QnADbContext dbContext)
 
         return cache;
     }
+
+    private Dictionary<Guid, QuestionTenantIntegrityLookup> SeedQuestionCache()
+    {
+        var cache = new Dictionary<Guid, QuestionTenantIntegrityLookup>();
+
+        foreach (var entry in dbContext.ChangeTracker.Entries<Question>()
+                     .Where(entry => entry.State != EntityState.Deleted))
+            cache[entry.Entity.Id] = new QuestionTenantIntegrityLookup
+            {
+                TenantId = entry.Entity.TenantId,
+                ParentAnswerId = entry.Entity.ParentAnswerId
+            };
+
+        return cache;
+    }
 }
 
 internal sealed class AnswerTenantIntegrityLookup
@@ -87,4 +127,10 @@ internal sealed class AnswerTenantIntegrityLookup
     public required Guid QuestionId { get; init; }
     public required AnswerStatus Status { get; init; }
     public required VisibilityScope Visibility { get; init; }
+}
+
+internal sealed class QuestionTenantIntegrityLookup
+{
+    public required Guid TenantId { get; init; }
+    public Guid? ParentAnswerId { get; init; }
 }

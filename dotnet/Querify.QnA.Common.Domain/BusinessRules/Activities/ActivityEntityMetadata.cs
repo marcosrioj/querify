@@ -20,7 +20,8 @@ public static class ActivityEntityMetadata
             ["AiConfidenceScore"] = entity.AiConfidenceScore,
             ["FeedbackScore"] = entity.FeedbackScore,
             ["Sort"] = entity.Sort,
-            ["AcceptedAnswerId"] = entity.AcceptedAnswerId
+            ["AcceptedAnswerId"] = entity.AcceptedAnswerId,
+            ["ParentAnswerId"] = entity.ParentAnswerId
         };
     }
 
@@ -51,7 +52,13 @@ public static class ActivityEntityMetadata
             ["Visibility"] = entity.Visibility.ToString(),
             ["AiConfidenceScore"] = entity.AiConfidenceScore,
             ["Score"] = entity.Score,
-            ["Sort"] = entity.Sort
+            ["Sort"] = entity.Sort,
+            ["FollowUpQuestionIds"] = string.Join(
+                ",",
+                entity.FollowUpQuestions
+                    .OrderBy(question => question.Sort)
+                    .ThenBy(question => question.Title)
+                    .Select(question => question.Id.ToString("D")))
         };
     }
 

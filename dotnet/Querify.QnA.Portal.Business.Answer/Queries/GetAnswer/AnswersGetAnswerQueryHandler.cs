@@ -3,6 +3,7 @@ using Querify.Common.Infrastructure.ApiErrorHandling.Exception;
 using Querify.Common.Infrastructure.Core.Abstractions;
 using Querify.Models.Common.Enums;
 using Querify.Models.QnA.Dtos.Answer;
+using Querify.Models.QnA.Dtos.Question;
 using Querify.Models.QnA.Dtos.Source;
 using Querify.Models.QnA.Enums;
 using Querify.QnA.Common.Domain.BusinessRules.Activities;
@@ -43,6 +44,31 @@ public sealed class AnswersGetAnswerQueryHandler(
                 CreatedAtUtc = answer.CreatedDate,
                 LastUpdatedAtUtc = answer.UpdatedDate ?? answer.CreatedDate,
                 VoteScore = 0,
+                FollowUpQuestions = answer.FollowUpQuestions
+                    .OrderBy(question => question.Sort)
+                    .ThenBy(question => question.Title)
+                    .Select(question => new QuestionDto
+                    {
+                        Id = question.Id,
+                        TenantId = question.TenantId,
+                        SpaceId = question.SpaceId,
+                        SpaceSlug = question.Space.Slug,
+                        Title = question.Title,
+                        Summary = question.Summary,
+                        ContextNote = question.ContextNote,
+                        Status = question.Status,
+                        Visibility = question.Visibility,
+                        OriginChannel = question.OriginChannel,
+                        AiConfidenceScore = question.AiConfidenceScore,
+                        FeedbackScore = question.FeedbackScore,
+                        Sort = question.Sort,
+                        AcceptedAnswerId = question.AcceptedAnswerId,
+                        ParentAnswerId = question.ParentAnswerId,
+                        LastActivityAtUtc = question.LastActivityAtUtc,
+                        CreatedAtUtc = question.CreatedDate,
+                        LastUpdatedAtUtc = question.UpdatedDate ?? question.CreatedDate
+                    })
+                    .ToList(),
                 Sources = answer.Sources
                     .OrderBy(source => source.Order)
                     .Select(source => new AnswerSourceLinkDto

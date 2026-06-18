@@ -71,6 +71,11 @@ public sealed class QuestionsGetQuestionListQueryHandler(
                 FeedbackScore = question.FeedbackScore,
                 Sort = question.Sort,
                 AcceptedAnswerId = question.AcceptedAnswerId,
+                ParentAnswerId = question.ParentAnswer != null &&
+                                 question.ParentAnswer.Visibility == VisibilityScope.Public &&
+                                 question.ParentAnswer.Status == AnswerStatus.Active
+                    ? question.ParentAnswerId
+                    : null,
                 LastActivityAtUtc = question.LastActivityAtUtc,
                 LastUpdatedAtUtc = question.UpdatedDate ?? question.CreatedDate
             })

@@ -80,6 +80,11 @@ public class Answer : BaseEntity, IMustHaveTenant
     public ICollection<AnswerSourceLink> Sources { get; set; } = [];
 
     /// <summary>
+    ///     Follow-up questions linked from this answer to support recursive Q&amp;A navigation.
+    /// </summary>
+    public ICollection<Question> FollowUpQuestions { get; set; } = [];
+
+    /// <summary>
     ///     Tenant that owns the answer.
     /// </summary>
     public required Guid TenantId { get; set; }

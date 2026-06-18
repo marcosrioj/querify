@@ -24,8 +24,19 @@ public sealed class QuestionsDeleteQuestionCommandHandler(
             throw new ApiErrorException($"Question '{request.Id}' was not found.", (int)HttpStatusCode.NotFound);
 
         var answers = await dbContext.Answers
+            .Include(answer => answer.FollowUpQuestions)
             .Where(answer => answer.TenantId == tenantId && answer.QuestionId == entity.Id)
             .ToListAsync(cancellationToken);
+
+        foreach (var answer in answers)
+        {
+            foreach (var followUpQuestion in answer.FollowUpQuestions.ToList())
+            {
+                followUpQuestion.ParentAnswerId = null;
+                followUpQuestion.ParentAnswer = null;
+                answer.FollowUpQuestions.Remove(followUpQuestion);
+            }
+        }
 
         dbContext.Answers.RemoveRange(answers);
         dbContext.Questions.Remove(entity);

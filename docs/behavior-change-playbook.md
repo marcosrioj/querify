@@ -91,6 +91,7 @@ Use these dimensions for module behavior:
 | Module boundary | owning persistence project | Which Querify module owns the behavior: Tenant, QnA, Direct, Broadcast, or Trust. |
 | Space lifecycle state | `SpaceStatus` | Whether a QnA space is draft, active, or archived. Public spaces must be active. |
 | Lifecycle state | `QuestionStatus`, `AnswerStatus` | Where a question or answer is in workflow. Active means available for use/reuse, not unresolved demand. |
+| Recursive QnA path | `Question.ParentAnswerId` and `Answer.FollowUpQuestions` | Optional answer-to-question continuation links. These make QnA navigable as Question -> Answer -> Question without creating another workflow state. |
 | Audience exposure | `VisibilityScope` | Who can see the item: internal portal users, authenticated external users, or the public. This is not status and not moderation. |
 | Channel | `ChannelKind` | Where a question, vote, feedback, or signal entered the system. |
 | Answer provenance | `AnswerKind` | Whether an answer is official, community-provided, or imported. |
@@ -109,6 +110,7 @@ Common consolidation rules:
 - Source trust or validation behavior belongs to relationship context or Trust-owned validation, not a source-wide shortcut in QnA.
 - An activity kind should describe a supported status event or public signal, not a field that can be edited directly.
 - Generic edits, accepted-answer selection, reports, and creation shortcuts should rely on entity state, relationship state, or audit fields instead of broad activity values.
+- Recursive QnA navigation belongs to the canonical answer-to-question relationship. Use `Question.ParentAnswerId` and `Answer.FollowUpQuestions`; do not model follow-up prompts as activity state, channel workflow, or duplicated answer metadata. Prevent recursive loops when assigning a parent answer.
 - A visibility value should not imply moderation, approval, citation permission, or indexing beyond audience exposure.
 - Capability booleans are acceptable only when they represent an independent switch, such as whether a space accepts questions or answers.
 - Channel, source, or activity values may record where a module asset came from, but they must not become the persistence home for another module's workflow.
@@ -320,6 +322,7 @@ For the QnA operating model, seed examples demonstrate:
 
 - active QnA spaces and canonical questions
 - questions and answers with active lifecycle, optional accepted-answer metadata, and reuse-ready metadata
+- optional follow-up question links from active answers, including examples that demonstrate recursive Question -> Answer -> Question navigation without cycles
 - source links that explain origin, context, evidence, and reusable references
 - source records with artifact identity, visibility, valid metadata JSON, and verification metadata
 - moderated contribution and accepted-answer behavior when it belongs to QnA
@@ -392,7 +395,7 @@ Process:
 9. Keep the tenant/workspace switcher in the sidebar header and keep the top toolbar focused on route context and global utilities.
 10. Use `ActionPanel` and `ActionButton` for screen-level and right-rail actions.
 11. Use relationship tabs for child and related records that should be managed in the current screen context.
-12. Keep relationship lists scoped to the current parent entity, including related tags and sources.
+12. Keep relationship lists scoped to the current parent entity, including related tags, sources, answers, and answer follow-up questions.
 13. Use `ChildListPagination` for local child lists with more than five items; keep top-level list pagination governed by the page API contract.
 14. Use `SearchSelect` or `SearchSelectField` for any select or dropdown backed by a backend list endpoint, including single-selection and relationship-linking flows.
 15. Keep enum-only controls on the normal `Select` primitive and route labels, descriptions, and badge variants through the centralized enum presentation layer.

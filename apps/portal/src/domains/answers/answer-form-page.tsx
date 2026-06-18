@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { startTransition, useDeferredValue, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { X } from "lucide-react";
+import { Plus, Trash2, X } from "lucide-react";
 import {
   Link,
   useNavigate,
@@ -34,6 +34,7 @@ import {
 } from "@/shared/layout/page-layouts";
 import {
   Button,
+  Badge,
   Card,
   CardContent,
   CardHeader,
@@ -46,6 +47,7 @@ import {
   FormSectionHeading,
   hasSetupText,
   hasSetupValue,
+  SearchSelect,
   SidebarSummarySkeleton,
 } from "@/shared/ui";
 import { EmptyState, ErrorState } from "@/shared/ui/placeholder-state";
@@ -79,7 +81,13 @@ export function AnswerFormPage({ mode }: { mode: "create" | "edit" }) {
   const [searchParams] = useSearchParams();
   const preselectedQuestionId = searchParams.get("questionId") ?? "";
   const [questionSearch, setQuestionSearch] = useState("");
+  const [followUpQuestionSearch, setFollowUpQuestionSearch] = useState("");
+  const [selectedFollowUpQuestionId, setSelectedFollowUpQuestionId] =
+    useState("");
   const deferredQuestionSearch = useDeferredValue(questionSearch.trim());
+  const deferredFollowUpQuestionSearch = useDeferredValue(
+    followUpQuestionSearch.trim(),
+  );
   const answerQuery = useAnswer(mode === "edit" ? id : undefined);
   const createAnswer = useCreateAnswer();
   const updateAnswer = useUpdateAnswer(id ?? "");
@@ -95,6 +103,7 @@ export function AnswerFormPage({ mode }: { mode: "create" | "edit" }) {
       contextNote: "",
       authorLabel: "",
       sort: 1,
+      followUpQuestionIds: [],
     },
   });
 
@@ -112,6 +121,9 @@ export function AnswerFormPage({ mode }: { mode: "create" | "edit" }) {
       contextNote: answerQuery.data.contextNote ?? "",
       authorLabel: answerQuery.data.authorLabel ?? "",
       sort: answerQuery.data.sort,
+      followUpQuestionIds: answerQuery.data.followUpQuestions.map(
+        (question) => question.id,
+      ),
     });
   }, [answerQuery.data, form]);
 
@@ -125,6 +137,12 @@ export function AnswerFormPage({ mode }: { mode: "create" | "edit" }) {
     pageSize: 20,
     sorting: "Title ASC",
     searchText: deferredQuestionSearch || undefined,
+  });
+  const followUpQuestionOptionsQuery = useQuestionList({
+    page: 1,
+    pageSize: 20,
+    sorting: "Title ASC",
+    searchText: deferredFollowUpQuestionSearch || undefined,
   });
   const selectedQuestion =
     questionOptionsQuery.data?.items.find(
@@ -148,6 +166,38 @@ export function AnswerFormPage({ mode }: { mode: "create" | "edit" }) {
   );
   const selectedQuestionOption = selectedQuestion
     ? buildQuestionOption(selectedQuestion)
+    : null;
+  const selectedFollowUpQuestionIds = form.watch("followUpQuestionIds") ?? [];
+  const selectedFollowUpQuestionSet = new Set(selectedFollowUpQuestionIds);
+  const followUpQuestionOptions = (
+    followUpQuestionOptionsQuery.data?.items ?? []
+  )
+    .filter(
+      (question) =>
+        question.id !== selectedQuestionId &&
+        !selectedFollowUpQuestionSet.has(question.id),
+    )
+    .map(buildQuestionOption);
+  const selectedFollowUpQuestions = selectedFollowUpQuestionIds.map((id) => {
+    return (
+      answerQuery.data?.followUpQuestions.find(
+        (question) => question.id === id,
+      ) ??
+      followUpQuestionOptionsQuery.data?.items.find(
+        (question) => question.id === id,
+      ) ?? {
+        id,
+        title: id,
+        spaceSlug: "",
+      }
+    );
+  });
+  const selectedFollowUpQuestion =
+    followUpQuestionOptionsQuery.data?.items.find(
+      (question) => question.id === selectedFollowUpQuestionId,
+    ) ?? null;
+  const selectedFollowUpQuestionOption = selectedFollowUpQuestion
+    ? buildQuestionOption(selectedFollowUpQuestion)
     : null;
   const setupValues = form.watch();
   const setupSteps = [
@@ -178,6 +228,39 @@ export function AnswerFormPage({ mode }: { mode: "create" | "edit" }) {
     },
   ];
   const isSubmitting = createAnswer.isPending || updateAnswer.isPending;
+  const addFollowUpQuestion = () => {
+    if (!selectedFollowUpQuestionId) {
+      return;
+    }
+
+    const currentIds = form.getValues("followUpQuestionIds") ?? [];
+    if (currentIds.includes(selectedFollowUpQuestionId)) {
+      setSelectedFollowUpQuestionId("");
+      return;
+    }
+
+    form.setValue(
+      "followUpQuestionIds",
+      [...currentIds, selectedFollowUpQuestionId],
+      {
+        shouldDirty: true,
+        shouldValidate: true,
+      },
+    );
+    setSelectedFollowUpQuestionId("");
+  };
+  const removeFollowUpQuestion = (questionId: string) => {
+    form.setValue(
+      "followUpQuestionIds",
+      (form.getValues("followUpQuestionIds") ?? []).filter(
+        (id) => id !== questionId,
+      ),
+      {
+        shouldDirty: true,
+        shouldValidate: true,
+      },
+    );
+  };
   const backTo =
     mode === "edit" && id
       ? `/app/answers/${id}`
@@ -319,6 +402,7 @@ export function AnswerFormPage({ mode }: { mode: "create" | "edit" }) {
                       status: currentAnswerStatus,
                       visibility: Number(values.visibility) as VisibilityScope,
                       sort: values.sort,
+                      followUpQuestionIds: values.followUpQuestionIds ?? [],
                     };
 
                     if (mode === "create") {
@@ -337,6 +421,7 @@ export function AnswerFormPage({ mode }: { mode: "create" | "edit" }) {
                       status: createBody.status,
                       visibility: createBody.visibility,
                       sort: createBody.sort,
+                      followUpQuestionIds: createBody.followUpQuestionIds,
                     });
                     navigate(`/app/answers/${id}`);
                   })}
@@ -384,6 +469,79 @@ export function AnswerFormPage({ mode }: { mode: "create" | "edit" }) {
                       rows={8}
                       description="The full guidance, including steps, caveats, and nuance."
                     />
+                  </div>
+                  <FormSectionHeading
+                    title="Follow-up questions"
+                    description="Optionally link questions that should appear after this answer."
+                  />
+                  <div className="space-y-3">
+                    {selectedFollowUpQuestions.length ? (
+                      <div className="space-y-2">
+                        {selectedFollowUpQuestions.map((question) => (
+                          <div
+                            key={question.id}
+                            className="flex flex-col gap-3 rounded-lg border border-border bg-muted/10 p-3 sm:flex-row sm:items-center sm:justify-between"
+                          >
+                            <div className="min-w-0">
+                              <p className="truncate text-sm font-medium text-mono">
+                                {question.title}
+                              </p>
+                              {question.spaceSlug ? (
+                                <Badge variant="outline" className="mt-1">
+                                  {question.spaceSlug}
+                                </Badge>
+                              ) : null}
+                            </div>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => removeFollowUpQuestion(question.id)}
+                            >
+                              <Trash2 className="size-4" />
+                              {translateText("Remove")}
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">
+                        {translateText("No follow-up questions linked.")}
+                      </p>
+                    )}
+                    <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto]">
+                      <SearchSelect
+                        id="answer-follow-up-question-picker"
+                        value={selectedFollowUpQuestionId}
+                        onValueChange={setSelectedFollowUpQuestionId}
+                        options={followUpQuestionOptions}
+                        selectedOption={selectedFollowUpQuestionOption}
+                        placeholder={translateText("Link follow-up question")}
+                        searchPlaceholder={translateText("Search questions")}
+                        emptyMessage={
+                          deferredFollowUpQuestionSearch
+                            ? translateText("No questions match this search.")
+                            : translateText("No questions available.")
+                        }
+                        loading={followUpQuestionOptionsQuery.isFetching}
+                        searchValue={followUpQuestionSearch}
+                        onSearchChange={(value) =>
+                          startTransition(() =>
+                            setFollowUpQuestionSearch(value),
+                          )
+                        }
+                        allowClear
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        disabled={!selectedFollowUpQuestionId}
+                        onClick={addFollowUpQuestion}
+                      >
+                        <Plus className="size-4" />
+                        {translateText("Link question")}
+                      </Button>
+                    </div>
                   </div>
                   <FormSectionHeading
                     title="Trust, attribution, and order"

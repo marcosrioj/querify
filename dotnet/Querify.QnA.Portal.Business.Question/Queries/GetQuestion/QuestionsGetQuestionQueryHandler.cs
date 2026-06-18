@@ -43,6 +43,7 @@ public sealed class QuestionsGetQuestionQueryHandler(
                 FeedbackScore = question.FeedbackScore,
                 Sort = question.Sort,
                 AcceptedAnswerId = question.AcceptedAnswerId,
+                ParentAnswerId = question.ParentAnswerId,
                 LastActivityAtUtc = question.LastActivityAtUtc,
                 CreatedAtUtc = question.CreatedDate,
                 LastUpdatedAtUtc = question.UpdatedDate ?? question.CreatedDate
@@ -94,7 +95,32 @@ public sealed class QuestionsGetQuestionQueryHandler(
                 IsAccepted = true,
                 IsOfficial = answer.Kind == AnswerKind.Official,
                 LastUpdatedAtUtc = answer.UpdatedDate ?? answer.CreatedDate,
-                VoteScore = 0
+                VoteScore = 0,
+                FollowUpQuestions = answer.FollowUpQuestions
+                    .OrderBy(question => question.Sort)
+                    .ThenBy(question => question.Title)
+                    .Select(question => new QuestionDto
+                    {
+                        Id = question.Id,
+                        TenantId = question.TenantId,
+                        SpaceId = question.SpaceId,
+                        SpaceSlug = question.Space.Slug,
+                        Title = question.Title,
+                        Summary = question.Summary,
+                        ContextNote = question.ContextNote,
+                        Status = question.Status,
+                        Visibility = question.Visibility,
+                        OriginChannel = question.OriginChannel,
+                        AiConfidenceScore = question.AiConfidenceScore,
+                        FeedbackScore = question.FeedbackScore,
+                        Sort = question.Sort,
+                        AcceptedAnswerId = question.AcceptedAnswerId,
+                        ParentAnswerId = question.ParentAnswerId,
+                        LastActivityAtUtc = question.LastActivityAtUtc,
+                        CreatedAtUtc = question.CreatedDate,
+                        LastUpdatedAtUtc = question.UpdatedDate ?? question.CreatedDate
+                    })
+                    .ToList()
             })
             .FirstOrDefaultAsync(cancellationToken);
     }

@@ -22,6 +22,7 @@ export function listQuestions(
     sourceId,
     tagId,
     acceptedAnswerId,
+    parentAnswerId,
     status,
     visibility,
     spaceSlug,
@@ -38,6 +39,7 @@ export function listQuestions(
     sourceId?: string;
     tagId?: string;
     acceptedAnswerId?: string;
+    parentAnswerId?: string;
     status?: number;
     visibility?: number;
     spaceSlug?: string;
@@ -59,6 +61,7 @@ export function listQuestions(
       SourceId: sourceId,
       TagId: tagId,
       AcceptedAnswerId: acceptedAnswerId,
+      ParentAnswerId: parentAnswerId,
       Status: status,
       Visibility: visibility,
       SpaceSlug: spaceSlug,

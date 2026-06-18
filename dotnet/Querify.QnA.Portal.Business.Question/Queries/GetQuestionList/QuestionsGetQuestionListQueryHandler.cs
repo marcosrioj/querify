@@ -43,6 +43,9 @@ public sealed class QuestionsGetQuestionListQueryHandler(
         if (request.Request.AcceptedAnswerId is not null)
             query = query.Where(question => question.AcceptedAnswerId == request.Request.AcceptedAnswerId);
 
+        if (request.Request.ParentAnswerId is not null)
+            query = query.Where(question => question.ParentAnswerId == request.Request.ParentAnswerId);
+
         if (request.Request.Status is not null)
             query = query.Where(question => question.Status == request.Request.Status);
 
@@ -97,6 +100,7 @@ public sealed class QuestionsGetQuestionListQueryHandler(
                 FeedbackScore = question.FeedbackScore,
                 Sort = question.Sort,
                 AcceptedAnswerId = question.AcceptedAnswerId,
+                ParentAnswerId = question.ParentAnswerId,
                 LastActivityAtUtc = question.LastActivityAtUtc,
                 LastUpdatedAtUtc = question.UpdatedDate ?? question.CreatedDate
             })

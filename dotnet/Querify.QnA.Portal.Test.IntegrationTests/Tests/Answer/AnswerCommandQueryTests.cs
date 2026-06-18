@@ -153,6 +153,51 @@ public class AnswerCommandQueryTests
     }
 
     [Fact]
+    public async Task CreateAnswer_LinksFollowUpQuestionsAndReturnsThem()
+    {
+        using var context = TestContext.Create();
+        var space = await TestDataFactory.SeedSpaceAsync(context.DbContext, context.SessionService.TenantId);
+        var question =
+            await TestDataFactory.SeedQuestionAsync(context.DbContext, context.SessionService.TenantId, space.Id);
+        var followUpQuestion = await TestDataFactory.SeedQuestionAsync(
+            context.DbContext,
+            context.SessionService.TenantId,
+            space.Id,
+            title: "How do I rotate my recovery codes?");
+
+        var id = await new AnswersCreateAnswerCommandHandler(
+            context.DbContext,
+            context.SessionService,
+            context.HttpContextAccessor).Handle(new AnswersCreateAnswerCommand
+        {
+            Request = new AnswerCreateRequestDto
+            {
+                QuestionId = question.Id,
+                Headline = "Use the security settings page",
+                Body = "Open security settings and rotate recovery codes.",
+                Kind = AnswerKind.Official,
+                Status = AnswerStatus.Active,
+                Visibility = VisibilityScope.Internal,
+                ContextNote = null,
+                Sort = 0,
+                FollowUpQuestionIds = [followUpQuestion.Id]
+            }
+        }, CancellationToken.None);
+
+        var persistedFollowUp = await context.DbContext.Questions
+            .AsNoTracking()
+            .SingleAsync(entity => entity.Id == followUpQuestion.Id);
+        Assert.Equal(id, persistedFollowUp.ParentAnswerId);
+
+        var result = await new AnswersGetAnswerQueryHandler(context.DbContext, context.SessionService)
+            .Handle(new AnswersGetAnswerQuery { Id = id }, CancellationToken.None);
+
+        var returnedFollowUp = Assert.Single(result.FollowUpQuestions);
+        Assert.Equal(followUpQuestion.Id, returnedFollowUp.Id);
+        Assert.Equal(id, returnedFollowUp.ParentAnswerId);
+    }
+
+    [Fact]
     public async Task CreateAnswer_ReturnsApiErrorWhenStatusIsUnsupported()
     {
         using var context = TestContext.Create();
@@ -181,6 +226,149 @@ public class AnswerCommandQueryTests
                 }
             },
             CancellationToken.None));
+
+        Assert.Equal((int)HttpStatusCode.UnprocessableEntity, exception.ErrorCode);
+    }
+
+    [Fact]
+    public async Task UpdateAnswer_ReplacesFollowUpQuestions()
+    {
+        using var context = TestContext.Create();
+        var space = await TestDataFactory.SeedSpaceAsync(context.DbContext, context.SessionService.TenantId);
+        var question =
+            await TestDataFactory.SeedQuestionAsync(context.DbContext, context.SessionService.TenantId, space.Id);
+        var firstFollowUp = await TestDataFactory.SeedQuestionAsync(
+            context.DbContext,
+            context.SessionService.TenantId,
+            space.Id,
+            title: "How do I add a backup email?");
+        var secondFollowUp = await TestDataFactory.SeedQuestionAsync(
+            context.DbContext,
+            context.SessionService.TenantId,
+            space.Id,
+            title: "How do I disable old sessions?");
+        var answer = await TestDataFactory.SeedAnswerAsync(
+            context.DbContext,
+            context.SessionService.TenantId,
+            question.Id,
+            status: AnswerStatus.Active,
+            visibility: VisibilityScope.Internal);
+
+        await new AnswersUpdateAnswerCommandHandler(
+            context.DbContext,
+            context.SessionService,
+            context.HttpContextAccessor).Handle(new AnswersUpdateAnswerCommand
+        {
+            Id = answer.Id,
+            Request = new AnswerUpdateRequestDto
+            {
+                Headline = answer.Headline,
+                Body = answer.Body,
+                Kind = answer.Kind,
+                Status = answer.Status,
+                Visibility = answer.Visibility,
+                ContextNote = answer.ContextNote,
+                AuthorLabel = answer.AuthorLabel,
+                Sort = answer.Sort,
+                FollowUpQuestionIds = [firstFollowUp.Id]
+            }
+        }, CancellationToken.None);
+
+        await new AnswersUpdateAnswerCommandHandler(
+            context.DbContext,
+            context.SessionService,
+            context.HttpContextAccessor).Handle(new AnswersUpdateAnswerCommand
+        {
+            Id = answer.Id,
+            Request = new AnswerUpdateRequestDto
+            {
+                Headline = answer.Headline,
+                Body = answer.Body,
+                Kind = answer.Kind,
+                Status = answer.Status,
+                Visibility = answer.Visibility,
+                ContextNote = answer.ContextNote,
+                AuthorLabel = answer.AuthorLabel,
+                Sort = answer.Sort,
+                FollowUpQuestionIds = [secondFollowUp.Id]
+            }
+        }, CancellationToken.None);
+
+        var parentLinks = await context.DbContext.Questions
+            .AsNoTracking()
+            .Where(entity => entity.Id == firstFollowUp.Id || entity.Id == secondFollowUp.Id)
+            .Select(entity => new { entity.Id, entity.ParentAnswerId })
+            .ToDictionaryAsync(entity => entity.Id, entity => entity.ParentAnswerId);
+
+        Assert.Null(parentLinks[firstFollowUp.Id]);
+        Assert.Equal(answer.Id, parentLinks[secondFollowUp.Id]);
+    }
+
+    [Fact]
+    public async Task UpdateAnswer_ReturnsApiErrorWhenFollowUpQuestionsCreateRecursiveLoop()
+    {
+        using var context = TestContext.Create();
+        var space = await TestDataFactory.SeedSpaceAsync(context.DbContext, context.SessionService.TenantId);
+        var rootQuestion =
+            await TestDataFactory.SeedQuestionAsync(context.DbContext, context.SessionService.TenantId, space.Id);
+        var rootAnswer = await TestDataFactory.SeedAnswerAsync(
+            context.DbContext,
+            context.SessionService.TenantId,
+            rootQuestion.Id,
+            status: AnswerStatus.Active,
+            visibility: VisibilityScope.Internal);
+        var childQuestion = await TestDataFactory.SeedQuestionAsync(
+            context.DbContext,
+            context.SessionService.TenantId,
+            space.Id,
+            title: "How should I handle the next recovery step?");
+
+        await new AnswersUpdateAnswerCommandHandler(
+            context.DbContext,
+            context.SessionService,
+            context.HttpContextAccessor).Handle(new AnswersUpdateAnswerCommand
+        {
+            Id = rootAnswer.Id,
+            Request = new AnswerUpdateRequestDto
+            {
+                Headline = rootAnswer.Headline,
+                Body = rootAnswer.Body,
+                Kind = rootAnswer.Kind,
+                Status = rootAnswer.Status,
+                Visibility = rootAnswer.Visibility,
+                ContextNote = rootAnswer.ContextNote,
+                AuthorLabel = rootAnswer.AuthorLabel,
+                Sort = rootAnswer.Sort,
+                FollowUpQuestionIds = [childQuestion.Id]
+            }
+        }, CancellationToken.None);
+
+        var childAnswer = await TestDataFactory.SeedAnswerAsync(
+            context.DbContext,
+            context.SessionService.TenantId,
+            childQuestion.Id,
+            status: AnswerStatus.Active,
+            visibility: VisibilityScope.Internal);
+
+        var exception = await Assert.ThrowsAsync<ApiErrorException>(() => new AnswersUpdateAnswerCommandHandler(
+            context.DbContext,
+            context.SessionService,
+            context.HttpContextAccessor).Handle(new AnswersUpdateAnswerCommand
+        {
+            Id = childAnswer.Id,
+            Request = new AnswerUpdateRequestDto
+            {
+                Headline = childAnswer.Headline,
+                Body = childAnswer.Body,
+                Kind = childAnswer.Kind,
+                Status = childAnswer.Status,
+                Visibility = childAnswer.Visibility,
+                ContextNote = childAnswer.ContextNote,
+                AuthorLabel = childAnswer.AuthorLabel,
+                Sort = childAnswer.Sort,
+                FollowUpQuestionIds = [rootQuestion.Id]
+            }
+        }, CancellationToken.None));
 
         Assert.Equal((int)HttpStatusCode.UnprocessableEntity, exception.ErrorCode);
     }

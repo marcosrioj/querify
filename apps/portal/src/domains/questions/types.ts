@@ -24,6 +24,7 @@ export type QuestionDto = {
   feedbackScore: number;
   sort: number;
   acceptedAnswerId?: string | null;
+  parentAnswerId?: string | null;
   lastActivityAtUtc?: string | null;
   createdAtUtc?: string | null;
   lastUpdatedAtUtc?: string | null;

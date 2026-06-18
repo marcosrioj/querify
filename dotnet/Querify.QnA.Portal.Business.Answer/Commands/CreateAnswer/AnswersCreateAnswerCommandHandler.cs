@@ -44,6 +44,7 @@ public sealed class AnswersCreateAnswerCommandHandler(
 
         var entity = new Common.Domain.Entities.Answer
         {
+            Id = Guid.NewGuid(),
             TenantId = tenantId,
             QuestionId = question.Id,
             Question = question,
@@ -63,6 +64,7 @@ public sealed class AnswersCreateAnswerCommandHandler(
         dbContext.Answers.Add(entity);
 
         Apply(entity, request.Request, userId);
+        await ApplyFollowUpQuestionsAsync(entity, request.Request.FollowUpQuestionIds, tenantId, userId, cancellationToken);
         var answerSnapshot = ActivityEntityMetadata.SnapshotAnswer(entity);
         ActivityAppender.AddAnswerActivity(
             entity,
@@ -92,5 +94,47 @@ public sealed class AnswersCreateAnswerCommandHandler(
         AnswerRules.EnsureVisibilityAllowed(entity, request.Visibility);
         entity.Visibility = request.Visibility;
         entity.UpdatedBy = userId;
+    }
+
+    private async Task ApplyFollowUpQuestionsAsync(
+        Common.Domain.Entities.Answer entity,
+        IReadOnlyCollection<Guid> followUpQuestionIds,
+        Guid tenantId,
+        string userId,
+        CancellationToken cancellationToken)
+    {
+        var requestedIds = followUpQuestionIds
+            .Where(id => id != Guid.Empty)
+            .Distinct()
+            .ToList();
+
+        if (requestedIds.Count == 0)
+            return;
+
+        if (requestedIds.Contains(entity.QuestionId))
+            throw new ApiErrorException(
+                $"Answer '{entity.Id}' cannot link its own question as a follow-up question.",
+                (int)HttpStatusCode.UnprocessableEntity);
+
+        var followUpQuestions = await dbContext.Questions
+            .Where(question => question.TenantId == tenantId && requestedIds.Contains(question.Id))
+            .ToListAsync(cancellationToken);
+
+        if (followUpQuestions.Count != requestedIds.Count)
+        {
+            var foundIds = followUpQuestions.Select(question => question.Id).ToHashSet();
+            var missingId = requestedIds.First(id => !foundIds.Contains(id));
+            throw new ApiErrorException(
+                $"Follow-up question '{missingId}' was not found.",
+                (int)HttpStatusCode.NotFound);
+        }
+
+        foreach (var question in followUpQuestions)
+        {
+            question.ParentAnswerId = entity.Id;
+            question.ParentAnswer = entity;
+            question.UpdatedBy = userId;
+            entity.FollowUpQuestions.Add(question);
+        }
     }
 }

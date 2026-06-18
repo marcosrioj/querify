@@ -199,6 +199,7 @@ The QnA module database stores tenant module data for the QnA module:
 - spaces
 - questions
 - answers
+- optional recursive links where answers can expose follow-up questions through `Question.ParentAnswerId`
 - space, question, and answer tag/source links
 - activity and public signaling metadata derived from activity
 - lifecycle state for questions, answer activation or archival, and activity-backed public signals

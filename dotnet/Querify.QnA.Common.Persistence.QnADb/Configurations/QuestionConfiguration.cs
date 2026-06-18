@@ -38,10 +38,20 @@ public class QuestionConfiguration : BaseConfiguration<Question>
         builder.Property(question => question.SpaceId)
             .IsRequired();
 
+        builder.Property(question => question.ParentAnswerId);
+
         builder.HasOne(question => question.AcceptedAnswer)
             .WithMany()
             .HasForeignKey(question => question.AcceptedAnswerId)
             .OnDelete(DeleteBehavior.SetNull);
+
+        builder.HasOne(question => question.ParentAnswer)
+            .WithMany(answer => answer.FollowUpQuestions)
+            .HasForeignKey(question => question.ParentAnswerId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        builder.HasIndex(question => question.ParentAnswerId)
+            .HasDatabaseName("IX_Questions_ParentAnswerId");
 
         builder.HasMany(question => question.Answers)
             .WithOne(answer => answer.Question)

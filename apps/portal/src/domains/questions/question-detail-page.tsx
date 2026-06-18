@@ -603,6 +603,21 @@ export function QuestionDetailPage() {
                 value: questionQuery.data.acceptedAnswer?.headline || "None",
               },
               {
+                label: "Parent answer",
+                description:
+                  "Optional answer that links into this question as a follow-up.",
+                value: questionQuery.data.parentAnswerId ? (
+                  <Link
+                    to={`/app/answers/${questionQuery.data.parentAnswerId}`}
+                    className="text-primary hover:text-primary/80"
+                  >
+                    {translateText("Open parent answer")}
+                  </Link>
+                ) : (
+                  "None"
+                ),
+              },
+              {
                 label: "Last activity",
                 description:
                   "Most recent workflow, source, answer, vote, or feedback activity recorded for this question.",
@@ -667,6 +682,14 @@ export function QuestionDetailPage() {
             <Link to={`/app/spaces/${questionQuery.data.spaceId}`}>
               <Link2 className="size-4" />
               {translateText("Open space")}
+            </Link>
+          </ActionButton>
+        ) : null}
+        {questionQuery.data?.parentAnswerId ? (
+          <ActionButton asChild tone="secondary">
+            <Link to={`/app/answers/${questionQuery.data.parentAnswerId}`}>
+              <Link2 className="size-4" />
+              {translateText("Open parent answer")}
             </Link>
           </ActionButton>
         ) : null}
@@ -1306,6 +1329,7 @@ export function QuestionDetailPage() {
                           contextNote: undefined,
                           authorLabel: undefined,
                           sort: (answerListQuery.data?.totalCount ?? 0) + 1,
+                          followUpQuestionIds: [],
                         })
                         .then(() => {
                           setNewAnswerHeadline("");

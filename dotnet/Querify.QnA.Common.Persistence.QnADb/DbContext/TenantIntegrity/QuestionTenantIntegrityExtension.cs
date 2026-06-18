@@ -29,6 +29,17 @@ internal static class QuestionTenantIntegrityExtension
                     $"Question '{question.Id}' cannot be public while in status '{question.Status}'.",
                     (int)HttpStatusCode.UnprocessableEntity);
 
+            if (question.ParentAnswerId is Guid parentAnswerId)
+            {
+                var parentAnswer = cache.GetAnswer(parentAnswerId);
+                TenantIntegrityGuard.EnsureTenantMatch(
+                    question.TenantId,
+                    parentAnswer.TenantId,
+                    nameof(Question.ParentAnswerId));
+
+                EnsureNoRecursiveParentAnswerCycle(cache, question, parentAnswer);
+            }
+
             if (question.AcceptedAnswerId is Guid acceptedAnswerId)
             {
                 var acceptedAnswer = cache.GetAnswer(acceptedAnswerId);
@@ -54,6 +65,29 @@ internal static class QuestionTenantIntegrityExtension
                         (int)HttpStatusCode.UnprocessableEntity);
             }
 
+        }
+    }
+
+    private static void EnsureNoRecursiveParentAnswerCycle(
+        TenantIntegrityLookupCache cache,
+        Question question,
+        AnswerTenantIntegrityLookup parentAnswer)
+    {
+        var visitedQuestionIds = new HashSet<Guid> { question.Id };
+        var cursorQuestionId = parentAnswer.QuestionId;
+
+        while (true)
+        {
+            if (!visitedQuestionIds.Add(cursorQuestionId))
+                throw new ApiErrorException(
+                    $"Question '{question.Id}' cannot use parent answer '{question.ParentAnswerId}' because it creates a recursive question-answer loop.",
+                    (int)HttpStatusCode.UnprocessableEntity);
+
+            var cursorQuestion = cache.GetQuestion(cursorQuestionId);
+            if (cursorQuestion.ParentAnswerId is not Guid cursorParentAnswerId)
+                return;
+
+            cursorQuestionId = cache.GetAnswer(cursorParentAnswerId).QuestionId;
         }
     }
 }

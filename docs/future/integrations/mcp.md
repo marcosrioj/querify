@@ -184,7 +184,7 @@ Available to every agent. QnA is the shared knowledge source across all modules.
 | `qna_get_question` | `GetQuestionQuery` | ✅ today |
 | `qna_search` | needs `Querify.QnA.Public.Business.Search` | ❌ Gap 3 |
 | `qna_create_question` | `CreateQuestionCommand` | ✅ today |
-| `qna_create_answer` | `CreateAnswerCommand` | ✅ today |
+| `qna_create_answer` | `CreateAnswerCommand` | ✅ today; accepts optional follow-up question ids for recursive QnA paths |
 | `qna_activate_answer` | `ActivateAnswerCommand` | ✅ today |
 | `qna_create_source` | `CreateSourceCommand` | ✅ today |
 | `qna_link_source` | `AddQuestionSourceCommand` / `AddAnswerSourceCommand` | ✅ today |

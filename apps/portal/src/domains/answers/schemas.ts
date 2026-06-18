@@ -14,6 +14,7 @@ export const answerFormSchema = z.object({
   contextNote: z.string().max(2000, 'Keep the context note concise.').optional(),
   authorLabel: z.string().max(120, 'Keep the author label concise.').optional(),
   sort: z.coerce.number().int().min(0),
+  followUpQuestionIds: z.array(z.string()).default([]),
 });
 
 export type AnswerFormValues = z.infer<typeof answerFormSchema>;
