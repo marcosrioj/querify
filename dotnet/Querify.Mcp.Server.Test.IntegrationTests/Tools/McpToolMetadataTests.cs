@@ -10,7 +10,7 @@ namespace Querify.Mcp.Server.Test.IntegrationTests.Tools;
 public sealed class McpToolMetadataTests
 {
     [Fact]
-    public void QnAToolsExposeExpectedStageTwoToolNames()
+    public void QnAToolsExposeExpectedStageThreeToolNames()
     {
         var toolNames = GetToolNames(typeof(QnATools));
 
@@ -20,8 +20,10 @@ public sealed class McpToolMetadataTests
                 McpToolNames.QnACreateAnswer,
                 McpToolNames.QnACreateQuestion,
                 McpToolNames.QnACreateSource,
+                McpToolNames.QnAGenerateSpaceFromSource,
                 McpToolNames.QnAGetQuestion,
                 McpToolNames.QnAGetSource,
+                McpToolNames.QnAGetSourceGenerationRun,
                 McpToolNames.QnAGetSpace,
                 McpToolNames.QnALinkAnswerSource,
                 McpToolNames.QnALinkQuestionSource,

@@ -6,9 +6,10 @@ This document is the staged design reference for `Querify.Mcp.Server` — a nati
 that exposes Querify modules as AI-callable tools. Different AI agents connect to it with different
 tool subsets and system prompts, each operating as a specialist for one Querify module.
 
-**Status:** Stage 2 is implemented for stdio, QnA tools, QnA search, Tenant read tools, and the
-Portal MCP workspace area. Source Generation, Direct, Broadcast, Trust, entitlements, and hosted
-transport remain future stages. See the operational runbook in
+**Status:** Stage 3 is implemented for stdio, QnA tools, QnA search, QnA Source Generation,
+Tenant read tools, the Portal MCP workspace area, and the Source Detail Generate Space action.
+Direct, Broadcast, Trust, entitlements, and hosted transport remain future stages. See the
+operational runbook in
 [`../../integrations/mcp-server.md`](../../integrations/mcp-server.md).
 
 ---
@@ -193,7 +194,8 @@ Available to every agent. QnA is the shared knowledge source across all modules.
 | `qna_link_question_source` | `QuestionsAddSourceCommand` | ✅ Stage 1 |
 | `qna_link_answer_source` | `AnswersAddSourceCommand` | ✅ Stage 1 |
 | `qna_search` | `QnASearchQuery` | ✅ Stage 2 |
-| `qna_generate_space_from_source` | needs QnA SourceGeneration command/query surface | ❌ Stage 3 |
+| `qna_generate_space_from_source` | `SourcesCreateSpaceGenerationRunCommand` plus local execution command | ✅ Stage 3 |
+| `qna_get_source_generation_run` | `SourcesGetSpaceGenerationRunQuery` | ✅ Stage 3 |
 
 ```csharp
 [McpServerToolType]
@@ -612,7 +614,8 @@ answers and register gaps back to QnA. Trust publishes decisions to QnA.
 | `qna_link_question_source` | ✅ | — | — | — | — | ✅ |
 | `qna_link_answer_source` | ✅ | — | — | — | — | ✅ |
 | `qna_search` | ✅ | ✅ | ✅ | ✅ | — | ✅ |
-| `qna_generate_space_from_source` | ✅ | — | — | — | — | ❌ Stage 3 |
+| `qna_generate_space_from_source` | ✅ | — | — | — | — | ✅ |
+| `qna_get_source_generation_run` | ✅ | — | — | — | — | ✅ |
 | `direct_*` | — | ✅ | — | — | — | ❌ needs Direct API |
 | `broadcast_*` | — | — | ✅ | — | — | ❌ needs Broadcast API |
 | `trust_*` | — | — | — | ✅ | — | ❌ needs Trust module |
@@ -645,14 +648,15 @@ MCP. There is still no hosted public REST endpoint or full-text/trigram search m
 Fix later only if product usage needs it: add the hosted endpoint and database-specific text-search
 indexes through the behavior-change playbook.
 
-### Gap 4: No QnA-owned Source Generation surface
+### Gap 4: Hosted AI Source Generation is not implemented
 
-`qna_generate_space_from_source` requires a QnA-owned command/query surface before MCP can expose
-it.
+The QnA-owned SourceGeneration command/query surface is implemented for Stage 3. The current MVP
+uses a deterministic local generator from existing Source metadata and locator context, executes
+the worker command in-process, and writes Draft/Internal content only.
 
-Fix: add `Querify.QnA.Portal.Business.SourceGeneration` and
-`Querify.QnA.Worker.Business.SourceGeneration`. The start command returns a run `Guid`; rich status
-is read through queries.
+Future work: replace local execution with queued worker execution and a model-backed generator
+that fetches/extracts source content, returns a structured plan, and preserves the same command and
+query boundaries. The start command still returns a run `Guid`; rich status remains query-owned.
 
 For the full Source → Q&A pipeline design, gaps, and roadmap, see
 [`mcp-source-to-qna.md`](mcp-source-to-qna.md).
@@ -686,8 +690,8 @@ index metadata, manual migration notes, and the `qna_search` MCP adapter tool.
 
 ### Stage 3 — Source Detail Generate Space from Source
 
-Add QnA-owned SourceGeneration Portal/Worker business projects. Expose
-`qna_generate_space_from_source` only as an adapter tool after the command/query surface exists.
+Implemented with QnA-owned SourceGeneration Portal/Worker business projects, persisted generation
+runs, Source Detail action, local deterministic draft graph generation, and MCP adapter tools.
 
 ### Stage 4 — Direct Agent (close Gap 5 for Direct)
 
@@ -710,7 +714,7 @@ to Tenant.
 
 | Document | Relationship |
 |---|---|
-| [`../../integrations/mcp-server.md`](../../integrations/mcp-server.md) | Native .NET Stage 2 runbook and tool list |
+| [`../../integrations/mcp-server.md`](../../integrations/mcp-server.md) | Native .NET Stage 3 runbook and tool list |
 | [`mcp-source-to-qna.md`](mcp-source-to-qna.md) | Deep-dive on Source Generation pipeline design and Gaps 1–4 |
 | [`../../business/value_proposition.md`](../../business/value_proposition.md) | Module boundaries and cross-module handoff model |
 | [`../../backend/architecture/solution-architecture.md`](../../backend/architecture/solution-architecture.md) | Runtime surfaces, `ISessionService`, multitenancy model |

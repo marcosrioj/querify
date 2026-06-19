@@ -26,12 +26,14 @@
         <ProjectReference Include="..\Querify.Common.Infrastructure.Core\Querify.Common.Infrastructure.Core.csproj"/>
         <ProjectReference Include="..\Querify.QnA.Portal.Business.Answer\Querify.QnA.Portal.Business.Answer.csproj"/>
         <ProjectReference Include="..\Querify.QnA.Portal.Business.Source\Querify.QnA.Portal.Business.Source.csproj"/>
+        <ProjectReference Include="..\Querify.QnA.Portal.Business.SourceGeneration\Querify.QnA.Portal.Business.SourceGeneration.csproj"/>
         <ProjectReference Include="..\Querify.QnA.Portal.Business.Question\Querify.QnA.Portal.Business.Question.csproj"/>
         <ProjectReference Include="..\Querify.QnA.Portal.Business.Space\Querify.QnA.Portal.Business.Space.csproj"/>
         <ProjectReference Include="..\Querify.QnA.Portal.Business.Activity\Querify.QnA.Portal.Business.Activity.csproj"/>
         <ProjectReference Include="..\Querify.QnA.Portal.Business.Tag\Querify.QnA.Portal.Business.Tag.csproj"/>
         <ProjectReference Include="..\Querify.QnA.Common.Domain\Querify.QnA.Common.Domain.csproj"/>
         <ProjectReference Include="..\Querify.QnA.Common.Persistence.QnADb\Querify.QnA.Common.Persistence.QnADb.csproj"/>
+        <ProjectReference Include="..\Querify.QnA.Worker.Business.SourceGeneration\Querify.QnA.Worker.Business.SourceGeneration.csproj"/>
         <ProjectReference Include="..\Querify.Models.QnA\Querify.Models.QnA.csproj"/>
     </ItemGroup>
 

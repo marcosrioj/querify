@@ -1,5 +1,6 @@
 using Querify.Common.EntityFramework.Core.Abstractions;
 using Querify.Common.EntityFramework.Core.Entities;
+using Querify.Models.QnA.Enums;
 
 namespace Querify.QnA.Common.Domain.Entities;
 
@@ -27,6 +28,11 @@ public class SpaceSource : BaseEntity, IMustHaveTenant
     ///     Curated source associated with the space.
     /// </summary>
     public Source Source { get; set; } = null!;
+
+    /// <summary>
+    ///     Explains why the source is curated on the space.
+    /// </summary>
+    public required SourceRole Role { get; set; }
 
     /// <summary>
     ///     Tenant that owns the relationship.

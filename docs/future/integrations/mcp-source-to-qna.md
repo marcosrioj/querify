@@ -2,14 +2,17 @@
 
 ## Purpose
 
-Deep-dive on the `qna_import_source` tool and the `GenerateQnAFromSourceCommand` it depends on.
-This document covers the AI generation logic, the Anthropic SDK integration, and the gaps specific
-to this pipeline.
+Deep-dive on the future AI-backed source-to-QnA generation pipeline. Stage 3 implements the
+QnA-owned Source Generation command/query surface, persisted run state, Source Detail action, and
+MCP adapter with a deterministic local MVP generator. External content extraction and model-backed
+generation remain future work.
 
 Read [`mcp.md`](mcp.md) first for the server architecture, session model, project structure, and
 the full tool/agent matrix. Everything documented there applies here.
 
-**Status:** designed, not yet built. See [`../README.md`](../README.md).
+**Status:** Stage 3 MVP built for deterministic draft generation from existing Source metadata.
+The AI pipeline in this document remains the target design for a later worker-backed generator.
+See [`../README.md`](../README.md).
 
 ---
 

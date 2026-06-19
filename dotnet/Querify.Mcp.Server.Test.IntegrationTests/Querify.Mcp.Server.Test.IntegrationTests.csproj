@@ -25,6 +25,8 @@
         <ProjectReference Include="..\Querify.Mcp.Common\Querify.Mcp.Common.csproj"/>
         <ProjectReference Include="..\Querify.Mcp.Server\Querify.Mcp.Server.csproj"/>
         <ProjectReference Include="..\Querify.QnA.Public.Business.Search\Querify.QnA.Public.Business.Search.csproj"/>
+        <ProjectReference Include="..\Querify.QnA.Portal.Business.SourceGeneration\Querify.QnA.Portal.Business.SourceGeneration.csproj"/>
+        <ProjectReference Include="..\Querify.QnA.Worker.Business.SourceGeneration\Querify.QnA.Worker.Business.SourceGeneration.csproj"/>
     </ItemGroup>
 
 </Project>

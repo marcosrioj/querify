@@ -37,7 +37,7 @@ public sealed class SpacesAddCuratedSourceCommandHandler(
                 $"Source '{request.Request.SourceId}' was not found.",
                 (int)HttpStatusCode.NotFound);
 
-        var link = SpaceRules.EnsureSourceLink(space, source, tenantId, userId);
+        var link = SpaceRules.EnsureSourceLink(space, source, tenantId, userId, request.Request.Role);
 
         await dbContext.SaveChangesAsync(cancellationToken);
 

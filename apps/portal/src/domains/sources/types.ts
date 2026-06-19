@@ -2,6 +2,8 @@ import {
   AnswerKind,
   AnswerStatus,
   QuestionStatus,
+  SourceGenerationRunStatus,
+  SourceGenerationTagMode,
   SourceRole,
   SourceUploadStatus,
   SpaceStatus,
@@ -128,4 +130,63 @@ export type SourceUploadCompleteRequestDto = {
 export type SourceDownloadUrlDto = {
   url: string;
   expiresAtUtc: string;
+};
+
+export type SourceGenerateSpaceRequestDto = {
+  spaceName: string;
+  spaceSlug?: string | null;
+  language: string;
+  visibility: VisibilityScope;
+  status: SpaceStatus;
+  acceptsQuestions: boolean;
+  acceptsAnswers: boolean;
+  extractionGoal?: string | null;
+  maxTopLevelQuestions: number;
+  maxFollowUpDepth: number;
+  maxAnswersPerQuestion: number;
+  includeFollowUpQuestions: boolean;
+  tagGenerationMode: SourceGenerationTagMode;
+  sourceRole: SourceRole;
+  requireEveryAnswerToCiteSource: boolean;
+  contentHint?: string | null;
+};
+
+export type SourceGenerationRunDto = {
+  id: string;
+  sourceId: string;
+  createdSpaceId?: string | null;
+  status: SourceGenerationRunStatus;
+  failureReason?: string | null;
+  warning?: string | null;
+  spaceName: string;
+  spaceSlug?: string | null;
+  language: string;
+  visibility: VisibilityScope;
+  spaceStatus: SpaceStatus;
+  acceptsQuestions: boolean;
+  acceptsAnswers: boolean;
+  extractionGoal?: string | null;
+  maxTopLevelQuestions: number;
+  maxFollowUpDepth: number;
+  maxAnswersPerQuestion: number;
+  includeFollowUpQuestions: boolean;
+  tagGenerationMode: SourceGenerationTagMode;
+  sourceRole: SourceRole;
+  requireEveryAnswerToCiteSource: boolean;
+  contentHint?: string | null;
+  createdAtUtc: string;
+  startedAtUtc?: string | null;
+  completedAtUtc?: string | null;
+};
+
+export type SourceGenerationRunSummaryDto = {
+  id: string;
+  sourceId: string;
+  createdSpaceId?: string | null;
+  status: SourceGenerationRunStatus;
+  failureReason?: string | null;
+  spaceName: string;
+  tagGenerationMode: SourceGenerationTagMode;
+  createdAtUtc: string;
+  completedAtUtc?: string | null;
 };

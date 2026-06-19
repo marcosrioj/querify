@@ -1,4 +1,5 @@
 using Querify.Common.EntityFramework.Core.Configurations;
+using Querify.Models.QnA.Enums;
 using Querify.QnA.Common.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -20,6 +21,11 @@ public class SpaceSourceConfiguration : BaseConfiguration<SpaceSource>
             .IsRequired();
 
         builder.Property(link => link.SourceId)
+            .IsRequired();
+
+        builder.Property(link => link.Role)
+            .HasConversion<int>()
+            .HasDefaultValue(SourceRole.Reference)
             .IsRequired();
 
         builder.HasIndex(link => new { link.SpaceId, link.SourceId })

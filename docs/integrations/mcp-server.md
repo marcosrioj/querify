@@ -2,9 +2,9 @@
 
 ## Status
 
-`Querify.Mcp.Server` is the native .NET 10 MCP Stage 2 server. It runs over stdio for local
-MCP clients and exposes QnA, QnA Search, and Tenant behavior through existing module-owned MediatR
-CQRS handlers.
+`Querify.Mcp.Server` is the native .NET 10 MCP Stage 3 server. It runs over stdio for local
+MCP clients and exposes QnA, QnA Search, Source Generation, and Tenant behavior through
+module-owned MediatR CQRS handlers.
 
 The server is intentionally not a browser API. The Portal MCP page at `/app/mcp` explains the
 available tools and connection shape; it does not call the stdio process.
@@ -17,9 +17,11 @@ available tools and connection shape; it does not call the stdio process.
 | `Querify.Mcp.Server` | `Mcp/Server` | Stdio transport, MCP tool adapters, prompts, session context |
 | `Querify.Mcp.Server.Test.IntegrationTests` | `Mcp/Test` | Tool/prompt metadata, tenant-context guard, write gate coverage |
 | `Querify.QnA.Public.Business.Search` | `QnA/Public/Business` | QnA-owned search query surface used by `qna_search` |
+| `Querify.QnA.Portal.Business.SourceGeneration` | `QnA/Portal/Business` | QnA-owned start/status API and CQRS surface for source-to-space generation |
+| `Querify.QnA.Worker.Business.SourceGeneration` | `QnA/Worker/Business` | QnA-owned execution handler for generation runs |
 
-Stage 2 does not create `Querify.Mcp.Portal.Api`, Source Generation projects, or
-Direct/Broadcast/Trust tools.
+Stage 3 does not create `Querify.Mcp.Portal.Api`, Direct/Broadcast/Trust tools, hosted MCP
+transport, or Tenant-owned MCP entitlements.
 
 ## Run Locally
 
@@ -80,15 +82,22 @@ Use this shape for Claude Desktop, Claude Code, Cursor, VS Code, or another stdi
 | `qna_search` | `Querify.QnA.Public.Business.Search` | Query |
 | `qna_list_sources` | `Querify.QnA.Portal.Business.Source` | Query |
 | `qna_get_source` | `Querify.QnA.Portal.Business.Source` | Query |
+| `qna_get_source_generation_run` | `Querify.QnA.Portal.Business.SourceGeneration` | Query |
 | `qna_create_question` | `Querify.QnA.Portal.Business.Question` | Command returns `Guid` |
 | `qna_create_answer` | `Querify.QnA.Portal.Business.Answer` | Command returns `Guid` |
 | `qna_activate_answer` | `Querify.QnA.Portal.Business.Answer` | Command returns `Guid` |
 | `qna_create_source` | `Querify.QnA.Portal.Business.Source` | Command returns `Guid` |
+| `qna_generate_space_from_source` | `Querify.QnA.Portal.Business.SourceGeneration` | Command returns generation run `Guid` |
 | `qna_link_question_source` | `Querify.QnA.Portal.Business.Question` | Command returns `Guid` |
 | `qna_link_answer_source` | `Querify.QnA.Portal.Business.Answer` | Command returns `Guid` |
 
 QnA write tools create Draft/Internal content by default and require
 `McpServer__EnableWriteTools=true`.
+
+`qna_generate_space_from_source` starts a QnA-owned generation run and returns the run id. The
+local MVP executes the worker command in-process after creating the run; the production target is
+queued worker execution using the same command/query contracts. Generated questions and answers
+remain Draft/Internal and are linked to the originating Source.
 
 ### Tenant
 
@@ -127,10 +136,8 @@ request metadata before dispatch.
 
 ## Future Tools
 
-These are intentionally not callable in Stage 2:
+These are intentionally not callable in Stage 3:
 
-- `qna_generate_space_from_source`
-- `qna_get_source_generation_run`
 - `direct_*`
 - `broadcast_*`
 - `trust_*`
@@ -146,6 +153,8 @@ Current validation commands:
 ```bash
 dotnet build dotnet/Querify.Mcp.Server/Querify.Mcp.Server.csproj -v minimal
 dotnet build dotnet/Querify.Mcp.Server.Test.IntegrationTests/Querify.Mcp.Server.Test.IntegrationTests.csproj -v minimal
+dotnet build dotnet/Querify.QnA.Portal.Business.SourceGeneration/Querify.QnA.Portal.Business.SourceGeneration.csproj -v minimal
+dotnet test dotnet/Querify.QnA.Portal.Test.IntegrationTests/Querify.QnA.Portal.Test.IntegrationTests.csproj --filter FullyQualifiedName~SourceGeneration -v minimal
 dotnet test dotnet/Querify.QnA.Public.Test.IntegrationTests/Querify.QnA.Public.Test.IntegrationTests.csproj --filter FullyQualifiedName~Search -v minimal
 dotnet build Querify.sln -v minimal
 ```
@@ -158,12 +167,18 @@ npx @modelcontextprotocol/inspector dotnet run --project dotnet/Querify.Mcp.Serv
 
 ## Manual Migration Note
 
-Stage 2 adds EF index metadata for QnA search filters but no migration was generated.
+Stage 3 adds EF metadata for Source Generation run state and a `SpaceSource.Role` relationship
+field, but no migration was generated.
 
 Pending manual migration operations:
 
 - Create `IX_Questions_TenantId_Visibility_Status_SpaceId` on `Questions`.
 - Create `IX_Answers_TenantId_Visibility_Status_QuestionId` on `Answers`.
 - Create `IX_QuestionTag_TenantId_TagId_QuestionId` on `QuestionTags`.
+- Add `Role` to `SpaceSources` as an integer enum column with default `SourceRole.Reference`.
+- Create `SourceGenerationRuns` with source id, optional created space id, status, request
+  options, failure/warning metadata, timestamps, and tenant id.
+- Create `IX_SourceGenerationRuns_TenantId_SourceId_CreatedDate` on `SourceGenerationRuns`.
+- Create `IX_SourceGenerationRuns_TenantId_Status` on `SourceGenerationRuns`.
 
 See the staged roadmap in [`../future/integrations/mcp-dotnet-mvp-implementation-prompt.md`](../future/integrations/mcp-dotnet-mvp-implementation-prompt.md).

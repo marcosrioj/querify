@@ -6,9 +6,12 @@ import {
   createSource,
   createSourceUploadIntent,
   deleteSource,
+  generateSourceSpace,
+  getSourceGenerationRun,
   getSource,
   getSourceDownloadUrl,
   inspectSourceExternalUrl,
+  listSourceGenerationRuns,
   listSources,
   updateSource,
 } from "@/domains/sources/api";
@@ -29,6 +32,7 @@ import type {
   SourceCreateRequestDto,
   SourceDetailDto,
   SourceExternalUrlInspectionRequestDto,
+  SourceGenerateSpaceRequestDto,
   SourceUploadCompleteRequestDto,
   SourceUploadIntentRequestDto,
   SourceUpdateRequestDto,
@@ -300,5 +304,67 @@ export function useSourceDownloadUrl(id: string | undefined, enabled = false) {
       ),
     enabled:
       enabled && status === "ready" && Boolean(currentTenantId) && Boolean(id),
+  });
+}
+
+export function useSourceGenerationRuns(id: string | undefined) {
+  const { session, status } = useAuth();
+  const { currentTenantId } = useTenant();
+
+  return useQuery({
+    queryKey: [
+      ...sourceKeys.detail(currentTenantId, id ?? "unknown"),
+      "generation-runs",
+    ],
+    queryFn: ({ signal }) =>
+      listSourceGenerationRuns(
+        session?.accessToken,
+        currentTenantId,
+        id ?? "",
+        { page: 1, pageSize: 20 },
+        signal,
+      ),
+    enabled: status === "ready" && Boolean(currentTenantId) && Boolean(id),
+  });
+}
+
+export function useSourceGenerationRun(runId: string | undefined) {
+  const { session, status } = useAuth();
+  const { currentTenantId } = useTenant();
+
+  return useQuery({
+    queryKey: [...sourceKeys.all(currentTenantId), "generation-run", runId],
+    queryFn: ({ signal }) =>
+      getSourceGenerationRun(
+        session?.accessToken,
+        currentTenantId,
+        runId ?? "",
+        signal,
+      ),
+    enabled:
+      status === "ready" && Boolean(currentTenantId) && Boolean(runId),
+  });
+}
+
+export function useGenerateSourceSpace(id: string | undefined) {
+  const { session } = useAuth();
+  const { currentTenantId } = useTenant();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationKey: [...sourceKeys.detail(currentTenantId, id ?? "unknown"), "generate-space"],
+    mutationFn: (body: SourceGenerateSpaceRequestDto) =>
+      generateSourceSpace(session?.accessToken, currentTenantId, id ?? "", body),
+    onSuccess: async () => {
+      toast.success(translateText("Source generation started."));
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: sourceKeys.detail(currentTenantId, id ?? "unknown"),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: qnaTenantKey(currentTenantId),
+        }),
+      ]);
+    },
   });
 }

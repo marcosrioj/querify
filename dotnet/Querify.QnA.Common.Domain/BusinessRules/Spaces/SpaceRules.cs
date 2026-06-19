@@ -58,11 +58,20 @@ public static class SpaceRules
         return link;
     }
 
-    public static SpaceSource EnsureSourceLink(Space space, Source source, Guid tenantId, string userId)
+    public static SpaceSource EnsureSourceLink(
+        Space space,
+        Source source,
+        Guid tenantId,
+        string userId,
+        SourceRole role = SourceRole.Reference)
     {
         var existingLink = space.Sources.SingleOrDefault(link => link.SourceId == source.Id);
         if (existingLink is not null)
+        {
+            existingLink.Role = role;
+            existingLink.UpdatedBy = userId;
             return existingLink;
+        }
 
         var link = new SpaceSource
         {
@@ -71,6 +80,7 @@ public static class SpaceRules
             Space = space,
             SourceId = source.Id,
             Source = source,
+            Role = role,
             CreatedBy = userId,
             UpdatedBy = userId
         };

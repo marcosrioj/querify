@@ -9,6 +9,9 @@ import type { PagedResultDto } from "@/shared/types/api";
 import type {
   SourceCreateRequestDto,
   SourceDownloadUrlDto,
+  SourceGenerateSpaceRequestDto,
+  SourceGenerationRunDto,
+  SourceGenerationRunSummaryDto,
   SourceDetailDto,
   SourceDto,
   SourceExternalUrlInspectionDto,
@@ -174,4 +177,58 @@ export function getSourceDownloadUrl(
     ...response,
     url: resolveObjectStorageUrl(response.url),
   }));
+}
+
+export function generateSourceSpace(
+  accessToken: string | undefined,
+  tenantId: string | undefined,
+  id: string,
+  body: SourceGenerateSpaceRequestDto,
+) {
+  return portalRequest<string>({
+    service: "qna",
+    path: `/api/qna/source/${id}/generate-space`,
+    method: "POST",
+    accessToken: requireAccessToken(accessToken),
+    tenantId: requireTenantId(tenantId),
+    body,
+  });
+}
+
+export function getSourceGenerationRun(
+  accessToken: string | undefined,
+  tenantId: string | undefined,
+  runId: string,
+  signal?: AbortSignal,
+) {
+  return portalRequest<SourceGenerationRunDto>({
+    service: "qna",
+    path: `/api/qna/source-generation/${runId}`,
+    accessToken: requireAccessToken(accessToken),
+    tenantId: requireTenantId(tenantId),
+    signal,
+  });
+}
+
+export function listSourceGenerationRuns(
+  accessToken: string | undefined,
+  tenantId: string | undefined,
+  id: string,
+  {
+    page,
+    pageSize,
+  }: {
+    page: number;
+    pageSize: number;
+  },
+  signal?: AbortSignal,
+) {
+  return portalRequest<PagedResultDto<SourceGenerationRunSummaryDto>>({
+    service: "qna",
+    path: `/api/qna/source/${id}/generation-runs`,
+    accessToken: requireAccessToken(accessToken),
+    tenantId: requireTenantId(tenantId),
+    query: toPagedQuery(page, pageSize),
+    signal,
+  });
 }

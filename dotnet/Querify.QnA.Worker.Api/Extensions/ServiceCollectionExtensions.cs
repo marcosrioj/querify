@@ -6,6 +6,7 @@ using Querify.QnA.Worker.Api.Consumers;
 using Querify.QnA.Worker.Api.Events;
 using Querify.QnA.Worker.Business.Source.Abstractions;
 using Querify.QnA.Worker.Business.Source.Extensions;
+using Querify.QnA.Worker.Business.SourceGeneration.Extensions;
 using RabbitMQ.Client;
 
 namespace Querify.QnA.Worker.Api.Extensions;
@@ -16,6 +17,7 @@ public static class ServiceCollectionExtensions
         IHostEnvironment environment)
     {
         services.AddSourceWorker(configuration, environment);
+        services.AddSourceGenerationExecutionBusiness();
         services.AddSourceUploadMessaging(configuration);
     }
 

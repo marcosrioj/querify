@@ -5,6 +5,7 @@ using Querify.QnA.Portal.Business.Activity.Extensions;
 using Querify.QnA.Portal.Business.Answer.Extensions;
 using Querify.QnA.Portal.Business.Question.Extensions;
 using Querify.QnA.Portal.Business.Source.Extensions;
+using Querify.QnA.Portal.Business.SourceGeneration.Extensions;
 using Querify.QnA.Portal.Business.Space.Extensions;
 using Querify.QnA.Portal.Business.Tag.Extensions;
 
@@ -26,6 +27,7 @@ public static class ServiceCollectionExtensions
             .ValidateOnStart();
         services.AddAnswerBusiness();
         services.AddSourceBusiness();
+        services.AddSourceGenerationBusiness();
         services.AddQuestionBusiness();
         services.AddSpaceBusiness();
         services.AddActivityBusiness();

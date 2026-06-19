@@ -29,6 +29,7 @@
         <ProjectReference Include="..\Querify.QnA.Common.Persistence.HangfireQnaDb\Querify.QnA.Common.Persistence.HangfireQnaDb.csproj"/>
         <ProjectReference Include="..\Querify.QnA.Common.Persistence.QnADb\Querify.QnA.Common.Persistence.QnADb.csproj"/>
         <ProjectReference Include="..\Querify.QnA.Worker.Business.Source\Querify.QnA.Worker.Business.Source.csproj"/>
+        <ProjectReference Include="..\Querify.QnA.Worker.Business.SourceGeneration\Querify.QnA.Worker.Business.SourceGeneration.csproj"/>
     </ItemGroup>
 
 </Project>

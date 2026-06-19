@@ -11,6 +11,7 @@ using Querify.Models.QnA.Dtos.Answer;
 using Querify.Models.QnA.Dtos.Question;
 using Querify.Models.QnA.Dtos.Search;
 using Querify.Models.QnA.Dtos.Source;
+using Querify.Models.QnA.Dtos.SourceGeneration;
 using Querify.Models.QnA.Dtos.Space;
 using Querify.Models.QnA.Enums;
 using Querify.QnA.Portal.Business.Answer.Commands.ActivateAnswer;
@@ -21,11 +22,14 @@ using Querify.QnA.Portal.Business.Question.Commands.CreateQuestion;
 using Querify.QnA.Portal.Business.Question.Queries.GetQuestion;
 using Querify.QnA.Portal.Business.Question.Queries.GetQuestionList;
 using Querify.QnA.Portal.Business.Source.Commands.CreateSource;
+using Querify.QnA.Portal.Business.SourceGeneration.Commands.CreateSpaceGenerationRun;
+using Querify.QnA.Portal.Business.SourceGeneration.Queries.GetSpaceGenerationRun;
 using Querify.QnA.Portal.Business.Source.Queries.GetSource;
 using Querify.QnA.Portal.Business.Source.Queries.GetSourceList;
 using Querify.QnA.Portal.Business.Space.Queries.GetSpace;
 using Querify.QnA.Portal.Business.Space.Queries.GetSpaceList;
 using Querify.QnA.Public.Business.Search.Queries.Search;
+using Querify.QnA.Worker.Business.SourceGeneration.Commands.ExecuteSpaceGenerationRun;
 using QuerifyMcpServerOptions = Querify.Mcp.Server.Options.McpServerOptions;
 
 namespace Querify.Mcp.Server.Tools;
@@ -219,6 +223,90 @@ public sealed class QnATools(
     {
         return ExecuteAsync(tenantId, async () =>
             await mediator.Send(new SourcesGetSourceQuery { Id = id }, cancellationToken));
+    }
+
+    [McpServerTool(
+        Name = McpToolNames.QnAGetSourceGenerationRun,
+        ReadOnly = true,
+        Destructive = false,
+        OpenWorld = false)]
+    [Description("Reads a QnA source generation run through the QnA SourceGeneration query boundary.")]
+    public Task<string> GetSourceGenerationRun(
+        [Description("Source generation run id.")]
+        Guid runId,
+        [Description("Tenant id. When omitted, McpServer:DefaultTenantId is used.")]
+        Guid? tenantId = null,
+        CancellationToken cancellationToken = default)
+    {
+        return ExecuteAsync(tenantId, async () =>
+            await mediator.Send(new SourcesGetSpaceGenerationRunQuery { RunId = runId }, cancellationToken));
+    }
+
+    [McpServerTool(
+        Name = McpToolNames.QnAGenerateSpaceFromSource,
+        ReadOnly = false,
+        Destructive = false,
+        OpenWorld = false)]
+    [Description("Starts source-to-space draft generation through the QnA SourceGeneration command boundary. Returns a run id and requires write tools to be enabled.")]
+    public Task<string> GenerateSpaceFromSource(
+        [Description("Source id used to ground the generated space.")]
+        Guid sourceId,
+        [Description("Name for the generated QnA space.")]
+        string spaceName,
+        [Description("Tenant id. When omitted, McpServer:DefaultTenantId is used.")]
+        Guid? tenantId = null,
+        [Description("Optional slug for the generated QnA space.")]
+        string? spaceSlug = null,
+        [Description("Language for the generated QnA space.")]
+        string language = "en-US",
+        [Description("Maximum top-level questions to generate.")]
+        int maxTopLevelQuestions = 3,
+        [Description("Maximum follow-up question depth. The local MVP populates depth one.")]
+        int maxFollowUpDepth = 1,
+        [Description("Maximum answers per generated question.")]
+        int maxAnswersPerQuestion = 1,
+        [Description("Whether to include follow-up questions.")]
+        bool includeFollowUpQuestions = true,
+        [Description("Optional extraction goal or audience note.")]
+        string? extractionGoal = null,
+        [Description("Optional section or range hint for long sources.")]
+        string? contentHint = null,
+        [Description("Source relationship role applied to generated links.")]
+        SourceRole sourceRole = SourceRole.Origin,
+        [Description("Tag behavior for generation.")]
+        SourceGenerationTagMode tagGenerationMode = SourceGenerationTagMode.CreateAndAttach,
+        CancellationToken cancellationToken = default)
+    {
+        return ExecuteWriteAsync(McpToolNames.QnAGenerateSpaceFromSource, tenantId, async () =>
+        {
+            var runId = await mediator.Send(new SourcesCreateSpaceGenerationRunCommand
+            {
+                SourceId = sourceId,
+                Request = new SourceGenerateSpaceRequestDto
+                {
+                    SpaceName = spaceName,
+                    SpaceSlug = spaceSlug,
+                    Language = language,
+                    Visibility = VisibilityScope.Internal,
+                    Status = SpaceStatus.Draft,
+                    AcceptsQuestions = true,
+                    AcceptsAnswers = true,
+                    ExtractionGoal = extractionGoal,
+                    MaxTopLevelQuestions = maxTopLevelQuestions,
+                    MaxFollowUpDepth = maxFollowUpDepth,
+                    MaxAnswersPerQuestion = maxAnswersPerQuestion,
+                    IncludeFollowUpQuestions = includeFollowUpQuestions,
+                    TagGenerationMode = tagGenerationMode,
+                    SourceRole = sourceRole,
+                    RequireEveryAnswerToCiteSource = true,
+                    ContentHint = contentHint
+                }
+            }, cancellationToken);
+
+            await mediator.Send(new SourcesExecuteSpaceGenerationRunCommand { RunId = runId }, cancellationToken);
+
+            return new McpWriteResult(runId);
+        });
     }
 
     [McpServerTool(

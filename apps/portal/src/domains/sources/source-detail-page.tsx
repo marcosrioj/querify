@@ -7,6 +7,8 @@ import {
   Link2,
   MessageSquareText,
   Pencil,
+  RefreshCw,
+  Sparkles,
   Trash2,
 } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
@@ -15,10 +17,13 @@ import { RecommendedNextActionCard } from "@/domains/qna/recommended-next-action
 import { usePortalTimeZone } from "@/domains/settings/settings-hooks";
 import {
   useDeleteSource,
+  useGenerateSourceSpace,
   useSource,
   useSourceDownloadUrl,
+  useSourceGenerationRuns,
   useSourceUploadStatusNotifications,
 } from "@/domains/sources/hooks";
+import { SourceGenerateSpaceDialog } from "@/domains/sources/source-generate-space-dialog";
 import {
   DetailOverviewCard,
   DetailFieldList,
@@ -45,8 +50,11 @@ import { EmptyState, ErrorState } from "@/shared/ui/placeholder-state";
 import {
   AnswerStatus,
   QuestionStatus,
+  SourceGenerationRunStatus,
   SourceUploadStatus,
   SpaceStatus,
+  sourceGenerationRunStatusLabels,
+  sourceGenerationTagModeLabels,
 } from "@/shared/constants/backend-enums";
 import {
   AnswerKindBadge,
@@ -81,6 +89,41 @@ function isExternalUrl(locator: string | null | undefined) {
   return /^https?:\/\//i.test(locator?.trim() ?? "");
 }
 
+function canGenerateFromSource(source: {
+  locator?: string | null;
+  storageKey?: string | null;
+  uploadStatus: SourceUploadStatus;
+}) {
+  if (source.storageKey) {
+    return source.uploadStatus === SourceUploadStatus.Verified;
+  }
+
+  if (!source.locator?.trim()) {
+    return false;
+  }
+
+  return (
+    source.uploadStatus === SourceUploadStatus.None ||
+    source.uploadStatus === SourceUploadStatus.Verified
+  );
+}
+
+function generationRunBadgeVariant(status: SourceGenerationRunStatus) {
+  if (status === SourceGenerationRunStatus.Completed) {
+    return "success" as const;
+  }
+
+  if (status === SourceGenerationRunStatus.Failed) {
+    return "destructive" as const;
+  }
+
+  if (status === SourceGenerationRunStatus.Running) {
+    return "info" as const;
+  }
+
+  return "outline" as const;
+}
+
 export function SourceDetailPage() {
   const navigate = useNavigate();
   const portalTimeZone = usePortalTimeZone();
@@ -88,7 +131,10 @@ export function SourceDetailPage() {
   const sourceQuery = useSource(id);
   useSourceUploadStatusNotifications(id);
   const deleteSource = useDeleteSource();
+  const generateSourceSpace = useGenerateSourceSpace(id);
+  const generationRunsQuery = useSourceGenerationRuns(id);
   const downloadUrlQuery = useSourceDownloadUrl(id, false);
+  const [generateDialogOpen, setGenerateDialogOpen] = useState(false);
   const [relationshipTab, setRelationshipTab] = useState("spaces");
   const spacesPagination = useLocalPagination({
     items: sourceQuery.data?.spaces ?? [],
@@ -159,6 +205,9 @@ export function SourceDetailPage() {
     canOpenExternalUrl &&
     !sourceQuery.data?.storageKey &&
     sourceQuery.data?.uploadStatus === SourceUploadStatus.None;
+  const canGenerateSpace =
+    Boolean(sourceQuery.data) && canGenerateFromSource(sourceQuery.data!);
+  const generationRuns = generationRunsQuery.data?.items ?? [];
 
   if (!id) {
     return (
@@ -289,6 +338,14 @@ export function SourceDetailPage() {
             {translateText("Download")}
           </ActionButton>
         ) : null}
+        <ActionButton
+          tone="secondary"
+          disabled={!canGenerateSpace || generateSourceSpace.isPending}
+          onClick={() => setGenerateDialogOpen(true)}
+        >
+          <Sparkles className="size-4" />
+          {translateText("Generate space")}
+        </ActionButton>
         <ConfirmAction
           title={translateText('Delete source "{name}"?', {
             name:
@@ -312,6 +369,19 @@ export function SourceDetailPage() {
           }
         />
       </ActionPanel>
+      <SourceGenerateSpaceDialog
+        open={generateDialogOpen}
+        sourceLabel={
+          sourceQuery.data?.label ||
+          sourceQuery.data?.locator ||
+          translateText("this source")
+        }
+        isPending={generateSourceSpace.isPending}
+        onOpenChange={setGenerateDialogOpen}
+        onSubmit={async (request) => {
+          await generateSourceSpace.mutateAsync(request);
+        }}
+      />
       {sourceQuery.isError ? (
         <ErrorState
           title="Unable to load source"
@@ -412,6 +482,126 @@ export function SourceDetailPage() {
                   },
                 ]}
               />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardHeading>
+                <CardTitle className="flex items-center gap-2">
+                  <span>{translateText("Generation runs")}</span>
+                  <Badge variant="outline">
+                    {translateText("{count} runs", {
+                      count: generationRuns.length,
+                    })}
+                  </Badge>
+                </CardTitle>
+              </CardHeading>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={generationRunsQuery.isFetching}
+                onClick={() => void generationRunsQuery.refetch()}
+              >
+                <RefreshCw
+                  className={
+                    generationRunsQuery.isFetching
+                      ? "size-4 animate-spin"
+                      : "size-4"
+                  }
+                />
+                {translateText("Refresh")}
+              </Button>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {generationRunsQuery.isError ? (
+                <ErrorState
+                  title="Unable to load generation runs"
+                  error={generationRunsQuery.error}
+                  retry={() => void generationRunsQuery.refetch()}
+                />
+              ) : generationRunsQuery.isLoading ? (
+                <div className="space-y-2">
+                  <div className="h-16 rounded-md bg-muted/40" />
+                  <div className="h-16 rounded-md bg-muted/40" />
+                </div>
+              ) : generationRuns.length ? (
+                <div className="space-y-3">
+                  {generationRuns.map((run) => (
+                    <div
+                      key={run.id}
+                      className="flex flex-col gap-3 rounded-lg border border-border bg-muted/10 p-4 sm:flex-row sm:items-start sm:justify-between"
+                    >
+                      <div className="min-w-0 space-y-2">
+                        <div>
+                          <p className="break-words font-medium text-mono">
+                            {run.spaceName}
+                          </p>
+                          <p className="mt-1 break-all text-sm text-muted-foreground">
+                            {run.id}
+                          </p>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Badge
+                            variant={generationRunBadgeVariant(run.status)}
+                            appearance={
+                              run.status === SourceGenerationRunStatus.Pending
+                                ? "default"
+                                : "outline"
+                            }
+                          >
+                            {translateText(
+                              sourceGenerationRunStatusLabels[run.status],
+                            )}
+                          </Badge>
+                          <Badge variant="outline">
+                            {translateText(
+                              sourceGenerationTagModeLabels[
+                                run.tagGenerationMode
+                              ],
+                            )}
+                          </Badge>
+                          <Badge variant="outline">
+                            {formatOptionalDateTimeInTimeZone(
+                              run.createdAtUtc,
+                              portalTimeZone,
+                              translateText("Not set"),
+                            )}
+                          </Badge>
+                          {run.completedAtUtc ? (
+                            <Badge variant="outline">
+                              {formatOptionalDateTimeInTimeZone(
+                                run.completedAtUtc,
+                                portalTimeZone,
+                                translateText("Not set"),
+                              )}
+                            </Badge>
+                          ) : null}
+                        </div>
+                        {run.failureReason ? (
+                          <p className="break-words text-sm text-destructive">
+                            {run.failureReason}
+                          </p>
+                        ) : null}
+                      </div>
+                      {run.createdSpaceId ? (
+                        <Button asChild variant="outline" size="sm">
+                          <Link to={`/app/spaces/${run.createdSpaceId}`}>
+                            <FolderKanban className="size-4" />
+                            {translateText("Open generated space")}
+                          </Link>
+                        </Button>
+                      ) : null}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <EmptyState
+                  title="No generation runs yet"
+                  description="Start generation to create a draft internal Space from this source."
+                />
+              )}
             </CardContent>
           </Card>
 

@@ -119,6 +119,19 @@ export enum SourceUploadStatus {
   Expired = 31,
 }
 
+export enum SourceGenerationRunStatus {
+  Pending = 1,
+  Running = 6,
+  Completed = 11,
+  Failed = 16,
+}
+
+export enum SourceGenerationTagMode {
+  None = 1,
+  SuggestOnly = 6,
+  CreateAndAttach = 11,
+}
+
 export enum ActivityKind {
   QuestionCreated = 1,
   QuestionUpdated = 6,
@@ -254,6 +267,25 @@ export const sourceUploadStatusLabels: Record<SourceUploadStatus, string> = {
   [SourceUploadStatus.Quarantined]: 'Quarantined',
   [SourceUploadStatus.Failed]: 'Failed',
   [SourceUploadStatus.Expired]: 'Expired',
+};
+
+export const sourceGenerationRunStatusLabels: Record<
+  SourceGenerationRunStatus,
+  string
+> = {
+  [SourceGenerationRunStatus.Pending]: 'Pending',
+  [SourceGenerationRunStatus.Running]: 'Running',
+  [SourceGenerationRunStatus.Completed]: 'Completed',
+  [SourceGenerationRunStatus.Failed]: 'Failed',
+};
+
+export const sourceGenerationTagModeLabels: Record<
+  SourceGenerationTagMode,
+  string
+> = {
+  [SourceGenerationTagMode.None]: 'None',
+  [SourceGenerationTagMode.SuggestOnly]: 'Suggest only',
+  [SourceGenerationTagMode.CreateAndAttach]: 'Create and attach',
 };
 
 export const activityKindLabels: Record<ActivityKind, string> = {

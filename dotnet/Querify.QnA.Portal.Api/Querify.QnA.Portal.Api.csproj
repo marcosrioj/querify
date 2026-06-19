@@ -37,6 +37,8 @@
         <ProjectReference Include="..\Querify.QnA.Portal.Business.Space\Querify.QnA.Portal.Business.Space.csproj"/>
         <ProjectReference Include="..\Querify.QnA.Portal.Business.Activity\Querify.QnA.Portal.Business.Activity.csproj"/>
         <ProjectReference Include="..\Querify.QnA.Portal.Business.Tag\Querify.QnA.Portal.Business.Tag.csproj"/>
+        <ProjectReference Include="..\Querify.QnA.Portal.Business.SourceGeneration\Querify.QnA.Portal.Business.SourceGeneration.csproj"/>
+        <ProjectReference Include="..\Querify.QnA.Worker.Business.SourceGeneration\Querify.QnA.Worker.Business.SourceGeneration.csproj"/>
     </ItemGroup>
 
 </Project>
