@@ -1,118 +1,161 @@
 # Querify MCP Server
 
-## What this is
+## Status
 
-Model Context Protocol (MCP) is an open standard that lets AI assistants (Claude, Cursor, VS Code
-Copilot, and any MCP-compatible client) call tools, read resources, and use system prompts
-provided by an external server. For Querify, this means any AI agent can query spaces and
-questions, create drafts, and run the Source → Q&A generation pipeline — all from a conversation.
+`Querify.Mcp.Server` is the native .NET 10 MCP Stage 1 server. It runs over stdio for local
+MCP clients and exposes QnA and Tenant behavior through existing module-owned MediatR CQRS
+handlers.
 
-**Full design:** [`../future/integrations/mcp.md`](../future/integrations/mcp.md)
+The server is intentionally not a browser API. The Portal MCP page at `/app/mcp` explains the
+available tools and connection shape; it does not call the stdio process.
 
----
+## Projects
 
-## What works today (TypeScript proxy)
-
-Before `Querify.MCP.Server` is built, a lightweight TypeScript proxy bridges MCP calls to the
-existing Querify REST APIs. No changes to the .NET solution required.
-
-### Tools available now
-
-| Tool | Querify endpoint | Auth |
+| Project | Solution folder | Purpose |
 |---|---|---|
-| `qna_list_spaces` | `GET /api/qna/space` | `X-Client-Key` |
-| `qna_get_space` | `GET /api/qna/space/by-slug/{slug}` | `X-Client-Key` |
-| `qna_list_questions` | `GET /api/qna/question` | `X-Client-Key` |
-| `qna_get_question` | `GET /api/qna/question/{id}` | `X-Client-Key` |
-| `qna_create_question` | `POST /api/qna/question` | `Authorization` + `X-Tenant-Id` |
-| `qna_create_answer` | `POST /api/qna/answer` | `Authorization` + `X-Tenant-Id` |
-| `qna_create_source` | `POST /api/qna/source` | `Authorization` + `X-Tenant-Id` |
-| `qna_link_source` | `POST /api/qna/question/{id}/source` | `Authorization` + `X-Tenant-Id` |
-| `tenant_get_workspace` | `GET /api/tenant/tenants/get-all` | `Authorization` + `X-Tenant-Id` |
-| `tenant_list_members` | `GET /api/tenant/tenant-users/get-all` | `Authorization` + `X-Tenant-Id` |
-| `tenant_get_billing` | `GET /api/tenant/billing/summary` | `Authorization` + `X-Tenant-Id` |
+| `Querify.Mcp.Common` | `Mcp/Common` | Tool names, prompt names, result serialization, write-tool gate |
+| `Querify.Mcp.Server` | `Mcp/Server` | Stdio transport, MCP tool adapters, prompts, session context |
+| `Querify.Mcp.Server.Test.IntegrationTests` | `Mcp/Test` | Tool/prompt metadata, tenant-context guard, write gate coverage |
 
-### Quick start
+Stage 1 does not create `Querify.Mcp.Portal.Api`, Source Generation projects, search projects, or
+Direct/Broadcast/Trust tools.
+
+## Run Locally
 
 ```bash
-mkdir querify-mcp && cd querify-mcp
-npm init -y
-npm install @modelcontextprotocol/sdk zod
-npm install -D typescript @types/node tsx
+dotnet run --project dotnet/Querify.Mcp.Server/Querify.Mcp.Server.csproj
 ```
 
-Environment variables:
+Required configuration:
 
 ```bash
-QUERIFY_PORTAL_API_URL=http://localhost:5010
-QUERIFY_PUBLIC_API_URL=http://localhost:5020
-QUERIFY_CLIENT_KEY=your-client-key
-QUERIFY_TENANT_ID=your-tenant-uuid
-QUERIFY_AUTH_TOKEN=your-auth0-token   # only needed for write tools
+ConnectionStrings__TenantDb=Host=localhost;Port=5432;Database=querify_tenant;Username=...;Password=...
+McpServer__ServiceUserId=<service-user-guid>
+McpServer__ServiceUserName=system:mcp
+McpServer__DefaultTenantId=<tenant-guid>
+McpServer__EnableWriteTools=false
+McpServer__ToolResultMaxItems=20
 ```
 
-### Connect to Claude Code
+`McpServer__DefaultTenantId` is optional only when every tool call passes `tenantId`.
+`McpServer__EnableWriteTools` defaults to `false`; leave it disabled unless the operator session is
+explicitly approved for QnA draft writes.
 
-`.claude/settings.json` at the project root:
+## Client Config
+
+Use this shape for Claude Desktop, Claude Code, Cursor, VS Code, or another stdio MCP client:
 
 ```json
 {
   "mcpServers": {
     "querify": {
-      "command": "tsx",
-      "args": ["./querify-mcp/src/server.ts"],
+      "command": "dotnet",
+      "args": [
+        "run",
+        "--project",
+        "/absolute/path/to/querify/dotnet/Querify.Mcp.Server/Querify.Mcp.Server.csproj"
+      ],
       "env": {
-        "QUERIFY_PORTAL_API_URL": "http://localhost:5010",
-        "QUERIFY_PUBLIC_API_URL": "http://localhost:5020",
-        "QUERIFY_CLIENT_KEY": "your-client-key"
+        "ConnectionStrings__TenantDb": "Host=localhost;Port=5432;Database=querify_tenant;Username=...;Password=...",
+        "McpServer__ServiceUserId": "service-user-guid",
+        "McpServer__DefaultTenantId": "tenant-guid",
+        "McpServer__EnableWriteTools": "false"
       }
     }
   }
 }
 ```
 
-### Connect to Claude Desktop
+## Tools
 
-`~/Library/Application Support/Claude/claude_desktop_config.json`:
+### QnA
 
-```json
-{
-  "mcpServers": {
-    "querify": {
-      "command": "tsx",
-      "args": ["/absolute/path/to/querify-mcp/src/server.ts"],
-      "env": {
-        "QUERIFY_PORTAL_API_URL": "http://localhost:5010",
-        "QUERIFY_PUBLIC_API_URL": "http://localhost:5020",
-        "QUERIFY_CLIENT_KEY": "your-client-key"
-      }
-    }
-  }
-}
-```
+| Tool | CQRS owner | Boundary |
+|---|---|---|
+| `qna_list_spaces` | `Querify.QnA.Portal.Business.Space` | Query |
+| `qna_get_space` | `Querify.QnA.Portal.Business.Space` | Query |
+| `qna_list_questions` | `Querify.QnA.Portal.Business.Question` | Query |
+| `qna_get_question` | `Querify.QnA.Portal.Business.Question` | Query |
+| `qna_list_sources` | `Querify.QnA.Portal.Business.Source` | Query |
+| `qna_get_source` | `Querify.QnA.Portal.Business.Source` | Query |
+| `qna_create_question` | `Querify.QnA.Portal.Business.Question` | Command returns `Guid` |
+| `qna_create_answer` | `Querify.QnA.Portal.Business.Answer` | Command returns `Guid` |
+| `qna_activate_answer` | `Querify.QnA.Portal.Business.Answer` | Command returns `Guid` |
+| `qna_create_source` | `Querify.QnA.Portal.Business.Source` | Command returns `Guid` |
+| `qna_link_question_source` | `Querify.QnA.Portal.Business.Question` | Command returns `Guid` |
+| `qna_link_answer_source` | `Querify.QnA.Portal.Business.Answer` | Command returns `Guid` |
 
-### Test with MCP Inspector
+QnA write tools create Draft/Internal content by default and require
+`McpServer__EnableWriteTools=true`.
+
+### Tenant
+
+| Tool | CQRS owner | Boundary |
+|---|---|---|
+| `tenant_list_workspaces` | `Querify.Tenant.Portal.Business.Tenant` | Query |
+| `tenant_get_client_key` | `Querify.Tenant.Portal.Business.Tenant` | Query |
+| `tenant_list_members` | `Querify.Tenant.Portal.Business.Tenant` | Query |
+| `tenant_get_profile` | `Querify.Tenant.Portal.Business.User` | Query |
+| `tenant_get_billing_summary` | `Querify.Tenant.Portal.Business.Billing` | Query |
+| `tenant_get_subscription` | `Querify.Tenant.Portal.Business.Billing` | Query |
+
+Tenant tools are read-only in Stage 1. MCP does not generate or rotate client keys.
+
+## Prompts
+
+| Prompt | Role |
+|---|---|
+| `qna_assistant` | Checks existing QnA first and creates only Draft/Internal QnA content when writes are enabled. |
+| `tenant_assistant` | Keeps workspace, member, profile, billing, subscription, and client-key assistance read-only. |
+
+## Tenant Context
+
+Each tool sets `McpSessionContext` before dispatching MediatR. `McpSessionService` implements the
+existing `ISessionService` contract used by QnA and Tenant handlers.
+
+Resolution order:
+
+1. Use the tool `tenantId` argument when provided.
+2. Use `McpServer__DefaultTenantId` when the tool omits `tenantId`.
+3. Reject the tool call with a clear MCP error when neither exists.
+
+QnA activity-writing handlers require request IP and user-agent values. Because stdio has no HTTP
+request, the MCP adapter initializes a scoped `DefaultHttpContext` with MCP-specific loopback
+request metadata before dispatch.
+
+## Future Tools
+
+These are intentionally not callable in Stage 1:
+
+- `qna_search`
+- `qna_generate_space_from_source`
+- `qna_get_source_generation_run`
+- `direct_*`
+- `broadcast_*`
+- `trust_*`
+- Tenant mutation, entitlement, billing mutation, permission mutation, and key-rotation tools
+
+Future tools must be backed by owning module CQRS commands or queries before the MCP adapter is
+added.
+
+## Validation
+
+Current validation commands:
 
 ```bash
-npx @modelcontextprotocol/inspector tsx src/server.ts
+dotnet build dotnet/Querify.Mcp.Server/Querify.Mcp.Server.csproj -v minimal
+dotnet build dotnet/Querify.Mcp.Server.Test.IntegrationTests/Querify.Mcp.Server.Test.IntegrationTests.csproj -v minimal
+dotnet build Querify.sln -v minimal
 ```
 
-Opens `http://localhost:5173` — browse tools, invoke them with test arguments, inspect JSON-RPC.
+MCP inspector example:
 
----
+```bash
+npx @modelcontextprotocol/inspector dotnet run --project dotnet/Querify.Mcp.Server/Querify.Mcp.Server.csproj
+```
 
-## Production path
+## Manual Migration Note
 
-The TypeScript proxy is the starting point. The production path is `Querify.MCP.Server` — a
-native .NET project inside `Querify.sln` that calls MediatR handlers directly, serves all five
-module agent types (QnA, Direct, Broadcast, Trust, Tenant), and participates in the same database
-transaction as the rest of the backend.
+Stage 1 adds no EF model changes and requires no migration.
 
-See the full design: [`../future/integrations/mcp.md`](../future/integrations/mcp.md)
-
-Source → Q&A generation pipeline: [`../future/integrations/mcp-source-to-qna.md`](../future/integrations/mcp-source-to-qna.md)
-
-`qna_create_answer` may include `followUpQuestionIds` when an answer should continue into
-existing QnA questions. Public `qna_get_question` responses return answers with shallow
-`followUpQuestions` so clients can navigate recursive Question -> Answer -> Question paths without
-receiving an unbounded graph.
+See the staged roadmap in [`../future/integrations/mcp-dotnet-mvp-implementation-prompt.md`](../future/integrations/mcp-dotnet-mvp-implementation-prompt.md).

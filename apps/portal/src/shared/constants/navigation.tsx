@@ -2,6 +2,7 @@ import {
   CircleDollarSign,
   FolderKanban,
   Home,
+  PlugZap,
   Settings,
   Tags,
   Users,
@@ -57,6 +58,13 @@ export const portalNavigationGroups: NavigationGroup[] = [
         description: "Evidence and trust catalog",
         path: "/app/sources",
         icon: Waypoints,
+      },
+      {
+        key: "mcp",
+        label: "MCP",
+        description: "Agent tools and local clients",
+        path: "/app/mcp",
+        icon: PlugZap,
       },
       {
         key: "tags",

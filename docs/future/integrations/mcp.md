@@ -2,22 +2,24 @@
 
 ## Purpose
 
-This document is the complete design reference for `Querify.MCP.Server` — a single native .NET
-MCP server that exposes all Querify modules as AI-callable tools. Different AI agents connect to
-it with different tool subsets and system prompts, each operating as a specialist for one Querify
-module.
+This document is the staged design reference for `Querify.Mcp.Server` — a native .NET MCP server
+that exposes Querify modules as AI-callable tools. Different AI agents connect to it with different
+tool subsets and system prompts, each operating as a specialist for one Querify module.
 
-**Status:** designed, not yet built. See [`../README.md`](../README.md).
+**Status:** Stage 1 is implemented for stdio, QnA tools, Tenant read tools, and the Portal MCP
+workspace area. Search, Source Generation, Direct, Broadcast, Trust, entitlements, and hosted
+transport remain future stages. See the operational runbook in
+[`../../integrations/mcp-server.md`](../../integrations/mcp-server.md).
 
 ---
 
 ## Core concept: one server, N module agents
 
 An MCP server is an API for AI. Just as the Querify REST surface is consumed by the Portal
-frontend and external clients, `Querify.MCP.Server` is consumed by AI agent instances. Each agent
+frontend and external clients, `Querify.Mcp.Server` is consumed by AI agent instances. Each agent
 is an AI model (Claude, GPT, or any MCP-compatible model) configured with:
 
-1. A connection to `Querify.MCP.Server`
+1. A connection to `Querify.Mcp.Server`
 2. A module-specific MCP **prompt** that defines its role, behavior, and scope
 3. A filtered **tool set** matching its module responsibilities
 
@@ -26,7 +28,7 @@ are available to all agents because QnA is the shared knowledge source for every
 
 ```
 ┌──────────────────────────────────────────────────────────────────────┐
-│ Querify.MCP.Server  (one .NET process, part of Querify.sln)          │
+│ Querify.Mcp.Server  (one .NET process, part of Querify.sln)          │
 │                                                                        │
 │  Tool groups:  [qna_*]  [direct_*]  [broadcast_*]  [trust_*]         │
 │                [tenant_*]                                              │
@@ -76,7 +78,7 @@ Every handler that touches tenant data calls `ISessionService.GetTenantId(module
 implementation reads from a scoped context populated at the start of each tool invocation.
 
 ```csharp
-// dotnet/Querify.MCP.Server/Infrastructure/McpSessionContext.cs
+// dotnet/Querify.Mcp.Server/Infrastructure/McpSessionContext.cs
 public class McpSessionContext
 {
     public Guid TenantId { get; set; }
@@ -84,7 +86,7 @@ public class McpSessionContext
     public string? UserName { get; set; }
 }
 
-// dotnet/Querify.MCP.Server/Infrastructure/McpSessionService.cs
+// dotnet/Querify.Mcp.Server/Infrastructure/McpSessionService.cs
 public sealed class McpSessionService(McpSessionContext ctx) : ISessionService
 {
     public Guid GetTenantId(ModuleEnum module) => ctx.TenantId;
@@ -115,7 +117,7 @@ worker host — no new pattern, same existing solution.
 ## Project structure
 
 ```
-dotnet/Querify.MCP.Server/
+dotnet/Querify.Mcp.Server/
   Program.cs
   Infrastructure/
     McpSessionService.cs
@@ -178,17 +180,20 @@ Available to every agent. QnA is the shared knowledge source across all modules.
 
 | Tool | Handler / Route today | Status |
 |---|---|---|
-| `qna_list_spaces` | `GetSpacesQuery` | ✅ today |
-| `qna_get_space` | `GetSpaceBySlugQuery` | ✅ today |
-| `qna_list_questions` | `GetQuestionsQuery` | ✅ today |
-| `qna_get_question` | `GetQuestionQuery` | ✅ today |
-| `qna_search` | needs `Querify.QnA.Public.Business.Search` | ❌ Gap 3 |
-| `qna_create_question` | `CreateQuestionCommand` | ✅ today |
-| `qna_create_answer` | `CreateAnswerCommand` | ✅ today; accepts optional follow-up question ids for recursive QnA paths |
-| `qna_activate_answer` | `ActivateAnswerCommand` | ✅ today |
-| `qna_create_source` | `CreateSourceCommand` | ✅ today |
-| `qna_link_source` | `AddQuestionSourceCommand` / `AddAnswerSourceCommand` | ✅ today |
-| `qna_import_source` | needs `GenerateQnAFromSourceCommand` | ❌ Gap 4 |
+| `qna_list_spaces` | `SpacesGetSpaceListQuery` | ✅ Stage 1 |
+| `qna_get_space` | `SpacesGetSpaceQuery` | ✅ Stage 1 |
+| `qna_list_questions` | `QuestionsGetQuestionListQuery` | ✅ Stage 1 |
+| `qna_get_question` | `QuestionsGetQuestionQuery` | ✅ Stage 1 |
+| `qna_list_sources` | `SourcesGetSourceListQuery` | ✅ Stage 1 |
+| `qna_get_source` | `SourcesGetSourceQuery` | ✅ Stage 1 |
+| `qna_create_question` | `QuestionsCreateQuestionCommand` | ✅ Stage 1 |
+| `qna_create_answer` | `AnswersCreateAnswerCommand` | ✅ Stage 1; accepts optional follow-up question ids for recursive QnA paths |
+| `qna_activate_answer` | `AnswersActivateAnswerCommand` | ✅ Stage 1 |
+| `qna_create_source` | `SourcesCreateSourceCommand` | ✅ Stage 1 |
+| `qna_link_question_source` | `QuestionsAddSourceCommand` | ✅ Stage 1 |
+| `qna_link_answer_source` | `AnswersAddSourceCommand` | ✅ Stage 1 |
+| `qna_search` | needs QnA-owned search query surface | ❌ Stage 2 |
+| `qna_generate_space_from_source` | needs QnA SourceGeneration command/query surface | ❌ Stage 3 |
 
 ```csharp
 [McpServerToolType]
@@ -332,20 +337,20 @@ tool creates a canonical QnA answer with `SourceRole.Evidence` linking back to t
 
 ### `tenant_*` — Workspace operations tools
 
-Used by the Tenant agent. Available today via `Querify.Tenant.Portal.Api`.
+Used by the Tenant agent. Stage 1 exposes read-only Tenant Portal handlers through
+`Querify.Mcp.Server`.
 
-| Tool | Route today | Status |
+| Tool | Handler today | Status |
 |---|---|---|
-| `tenant_get_workspace` | `GET /api/tenant/tenants/get-all` | ✅ today |
-| `tenant_list_members` | `GET /api/tenant/tenant-users/get-all` | ✅ today |
-| `tenant_get_profile` | `GET /api/user/user-profile` | ✅ today |
-| `tenant_get_billing` | `GET /api/tenant/billing/summary` | ✅ today |
-| `tenant_get_subscription` | `GET /api/tenant/billing/subscription` | ✅ today |
-| `tenant_get_client_key` | `GET /api/tenant/tenants/get-client-key` | ✅ today |
+| `tenant_list_workspaces` | `TenantsGetAllTenantsQuery` | ✅ Stage 1 |
+| `tenant_get_client_key` | `TenantsGetClientKeyQuery` | ✅ Stage 1 |
+| `tenant_list_members` | `TenantUsersGetTenantUserListQuery` | ✅ Stage 1 |
+| `tenant_get_profile` | `UsersGetUserProfileQuery` | ✅ Stage 1 |
+| `tenant_get_billing_summary` | `GetBillingSummaryQuery` | ✅ Stage 1 |
+| `tenant_get_subscription` | `GetBillingSubscriptionQuery` | ✅ Stage 1 |
 
-Tenant tools use the Portal API over HTTP (or via direct handler calls when Portal handlers are
-registered in the same DI container as the MCP server). For the native .NET approach, register
-`AddTenantPortalFeatures(...)` in `Program.cs` and call handlers directly.
+Tenant tools are read-only in Stage 1. They call handlers directly through MediatR and do not
+generate keys, mutate billing, or manage members.
 
 ---
 
@@ -465,9 +470,9 @@ public static class AgentPrompts
                 You are a workspace operations assistant powered by Querify.
                 You help with workspace setup, member management, and billing questions.
 
-                Use tenant_get_workspace to understand the current workspace state.
+                Use tenant_list_workspaces to understand available workspaces.
                 Use tenant_list_members to answer questions about team access.
-                Use tenant_get_billing and tenant_get_subscription for billing inquiries.
+                Use tenant_get_billing_summary and tenant_get_subscription for billing inquiries.
 
                 You are read-only unless the human explicitly asks you to make a change.
                 Never generate new API keys or modify permissions without explicit confirmation.
@@ -495,17 +500,17 @@ server binary; only the prompt and (optionally) the exposed tool filter differ.
   "mcpServers": {
     "querify-qna": {
       "command": "dotnet",
-      "args": ["run", "--project", "/path/to/Querify.MCP.Server", "--no-build"],
+      "args": ["run", "--project", "/path/to/querify/dotnet/Querify.Mcp.Server/Querify.Mcp.Server.csproj", "--no-build"],
       "env": {
         "ASPNETCORE_ENVIRONMENT": "Development",
         "McpServer__DefaultTenantId": "your-tenant-uuid",
         "McpServer__ServiceUserId": "your-service-user-uuid",
-        "Anthropic__ApiKey": "your-key"
+        "ConnectionStrings__TenantDb": "your-tenant-db-connection-string"
       }
     },
     "querify-direct": {
       "command": "dotnet",
-      "args": ["run", "--project", "/path/to/Querify.MCP.Server", "--no-build"],
+      "args": ["run", "--project", "/path/to/querify/dotnet/Querify.Mcp.Server/Querify.Mcp.Server.csproj", "--no-build"],
       "env": {
         "ASPNETCORE_ENVIRONMENT": "Development",
         "McpServer__DefaultTenantId": "your-tenant-uuid",
@@ -530,11 +535,11 @@ The AI client loads the agent-specific prompt at session start by calling the ma
   "mcpServers": {
     "querify": {
       "command": "dotnet",
-      "args": ["run", "--project", "dotnet/Querify.MCP.Server", "--no-build"],
+      "args": ["run", "--project", "dotnet/Querify.Mcp.Server/Querify.Mcp.Server.csproj", "--no-build"],
       "env": {
         "McpServer__DefaultTenantId": "your-tenant-uuid",
         "McpServer__ServiceUserId": "your-service-user-uuid",
-        "Anthropic__ApiKey": "your-key"
+        "ConnectionStrings__TenantDb": "your-tenant-db-connection-string"
       }
     }
   }
@@ -598,17 +603,20 @@ answers and register gaps back to QnA. Trust publishes decisions to QnA.
 | `qna_get_space` | ✅ | ✅ | ✅ | ✅ | — | ✅ |
 | `qna_list_questions` | ✅ | ✅ | ✅ | ✅ | — | ✅ |
 | `qna_get_question` | ✅ | ✅ | ✅ | ✅ | — | ✅ |
-| `qna_search` | ✅ | ✅ | ✅ | ✅ | — | ❌ Gap 3 |
+| `qna_list_sources` | ✅ | ✅ | ✅ | ✅ | — | ✅ |
+| `qna_get_source` | ✅ | ✅ | ✅ | ✅ | — | ✅ |
 | `qna_create_question` | ✅ | — | — | — | — | ✅ |
 | `qna_create_answer` | ✅ | — | — | — | — | ✅ |
 | `qna_activate_answer` | ✅ | — | — | — | — | ✅ |
 | `qna_create_source` | ✅ | — | — | — | — | ✅ |
-| `qna_link_source` | ✅ | — | — | — | — | ✅ |
-| `qna_import_source` | ✅ | — | — | — | — | ❌ Gap 4 |
+| `qna_link_question_source` | ✅ | — | — | — | — | ✅ |
+| `qna_link_answer_source` | ✅ | — | — | — | — | ✅ |
+| `qna_search` | ✅ | ✅ | ✅ | ✅ | — | ❌ Stage 2 |
+| `qna_generate_space_from_source` | ✅ | — | — | — | — | ❌ Stage 3 |
 | `direct_*` | — | ✅ | — | — | — | ❌ needs Direct API |
 | `broadcast_*` | — | — | ✅ | — | — | ❌ needs Broadcast API |
 | `trust_*` | — | — | — | ✅ | — | ❌ needs Trust module |
-| `tenant_*` | — | — | — | — | ✅ | ✅ (via Portal API) |
+| `tenant_*` | — | — | — | — | ✅ | ✅ read-only |
 
 ---
 
@@ -618,28 +626,32 @@ answers and register gaps back to QnA. Trust publishes decisions to QnA.
 
 `AnswerKind` has `Official`, `Community`, `Imported`. AI-generated drafts use `Imported` today.
 
-Fix: add `AiGenerated = 4` to `dotnet/Querify.Models.QnA/Enums/AnswerKind.cs`.
+Fix later through `docs/behavior-change-playbook.md`: add an explicit enum value, update
+frontend enum presentation, tests, and migration notes.
 
 ### Gap 2: No `ChannelKind` for AI ingestion
 
 `ChannelKind` values today: `Manual`, `Widget`, `Api`, `HelpCenter`, `Import`, `Other`. For
-AI-generated content, use `ChannelKind.Import` (5) until a dedicated value is added.
+MCP-created draft content, Stage 1 uses `ChannelKind.Api` until a dedicated value is added.
 
-Fix: add `AiIngestion` or `System` to `dotnet/Querify.Models.QnA/Enums/ChannelKind.cs`.
+Fix later through `docs/behavior-change-playbook.md`: add `AiIngestion` or another approved value,
+update frontend enum presentation, tests, and migration notes.
 
 ### Gap 3: No full-text search in QnA Public API
 
-`qna_search` has no backing endpoint. Every agent needs this before acting.
+`qna_search` has no backing query surface. Every agent needs this before broad retrieval.
 
-Fix: add `Querify.QnA.Public.Business.Search` with `GET /api/qna/search?q=...`.
+Fix: add a QnA-owned search query surface, tests, indexes or migration notes, and then expose the
+MCP adapter tool.
 
-### Gap 4: No atomic batch creation for Source → Q&A pipeline
+### Gap 4: No QnA-owned Source Generation surface
 
-`qna_import_source` requires multiple sequential handler calls. A failure mid-run leaves partial
-data.
+`qna_generate_space_from_source` requires a QnA-owned command/query surface before MCP can expose
+it.
 
-Fix: add `GenerateQnAFromSourceCommand` in `Querify.QnA.Portal.Business.SourceIngestion` — all
-Q&A pairs and source links created in a single transaction.
+Fix: add `Querify.QnA.Portal.Business.SourceGeneration` and
+`Querify.QnA.Worker.Business.SourceGeneration`. The start command returns a run `Guid`; rich status
+is read through queries.
 
 For the full Source → Q&A pipeline design, gaps, and roadmap, see
 [`mcp-source-to-qna.md`](mcp-source-to-qna.md).
@@ -661,33 +673,32 @@ Fix: add `McpEnabled` and `AiGenerationQuotaPerMonth` to `TenantEntitlementSnaps
 
 ## Roadmap
 
-### Phase 1 — TypeScript proxy, QnA read-only (today)
+### Stage 1 — Native .NET server, QnA/Tenant tools
 
-Use the TypeScript proxy described in
-[`../../integrations/mcp-server.md`](../../integrations/mcp-server.md) to prove the MCP
-connection with existing QnA read tools. No backend changes.
+Implemented in `Querify.Mcp.Server`: stdio transport, QnA tools, Tenant read tools,
+`McpSessionService`, QnA/Tenant prompts, tests, docs, and Portal MCP workspace area.
 
-### Phase 2 — Native .NET server, QnA Agent
+### Stage 2 — QnA search
 
-Create `Querify.MCP.Server`. Implement QnA tools (list, get, create, link) and Tenant tools.
-Implement `McpSessionService`. Ship QnA Agent and Tenant Agent configurations.
+Add a QnA-owned search query surface with tests and indexes or migration notes. Expose
+`qna_search` only after the query surface exists.
 
-### Phase 3 — QnA Agent: search and import (close Gaps 1, 2, 3, 4)
+### Stage 3 — Source Detail Generate Space from Source
 
-Add `AnswerKind.AiGenerated`, `ChannelKind.AiIngestion`, `Querify.QnA.Public.Business.Search`,
-and `GenerateQnAFromSourceCommand`. Ship `qna_search` and `qna_import_source` tools.
+Add QnA-owned SourceGeneration Portal/Worker business projects. Expose
+`qna_generate_space_from_source` only as an adapter tool after the command/query surface exists.
 
-### Phase 4 — Direct Agent (close Gap 5 for Direct)
+### Stage 4 — Direct Agent (close Gap 5 for Direct)
 
 Ship `Querify.Direct.Portal.*` API surface. Implement `direct_*` tools and `direct_assistant`
 prompt.
 
-### Phase 5 — Broadcast Agent (close Gap 5 for Broadcast)
+### Stage 5 — Broadcast Agent (close Gap 5 for Broadcast)
 
 Ship `Querify.Broadcast.Portal.*` API surface. Implement `broadcast_*` tools and
 `broadcast_assistant` prompt.
 
-### Phase 6 — Trust Agent + entitlement (close Gaps 5 for Trust, 6)
+### Stage 6 — Trust Agent + entitlement (close Gaps 5 for Trust, 6)
 
 Ship Trust module. Implement `trust_*` tools and `trust_assistant` prompt. Add MCP entitlement
 to Tenant.
@@ -698,11 +709,11 @@ to Tenant.
 
 | Document | Relationship |
 |---|---|
-| [`../../integrations/mcp-server.md`](../../integrations/mcp-server.md) | TypeScript proxy — quick start before Phase 2 |
-| [`mcp-source-to-qna.md`](mcp-source-to-qna.md) | Deep-dive on `qna_import_source`: AI generation pipeline, Anthropic SDK integration, and Gaps 1–4 |
+| [`../../integrations/mcp-server.md`](../../integrations/mcp-server.md) | Native .NET Stage 1 runbook and tool list |
+| [`mcp-source-to-qna.md`](mcp-source-to-qna.md) | Deep-dive on Source Generation pipeline design and Gaps 1–4 |
 | [`../../business/value_proposition.md`](../../business/value_proposition.md) | Module boundaries and cross-module handoff model |
 | [`../../backend/architecture/solution-architecture.md`](../../backend/architecture/solution-architecture.md) | Runtime surfaces, `ISessionService`, multitenancy model |
-| [`../../backend/architecture/dotnet-backend-overview.md`](../../backend/architecture/dotnet-backend-overview.md) | Feature-scoped module pattern for adding `Querify.MCP.Server` |
+| [`../../backend/architecture/dotnet-backend-overview.md`](../../backend/architecture/dotnet-backend-overview.md) | Feature-scoped module pattern for adding `Querify.Mcp.Server` |
 | [`../../backend/architecture/solution-cqrs-write-rules.md`](../../backend/architecture/solution-cqrs-write-rules.md) | CQRS write rules applied by every tool that calls a command |
 | [`../../behavior-change-playbook.md`](../../behavior-change-playbook.md) | Propagation path for Gap 1 (`AnswerKind`) and Gap 2 (`ChannelKind`) |
 | [`../../backend/tools/local-development.md`](../../backend/tools/local-development.md) | Starting the local stack the MCP server depends on |

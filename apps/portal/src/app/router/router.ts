@@ -14,6 +14,7 @@ import { AuthRoutes } from '@/domains/auth/routes';
 import { BillingRoutes } from '@/domains/billing/routes';
 import { DashboardRoutes } from '@/domains/dashboard/routes';
 import { MembersRoutes } from '@/domains/members/routes';
+import { McpRoutes } from '@/domains/mcp/routes';
 import { QuestionRoutes } from '@/domains/questions/routes';
 import { SettingsRoutes } from '@/domains/settings/routes';
 import { SourceRoutes } from '@/domains/sources/routes';
@@ -27,6 +28,7 @@ const protectedChildren: RouteObject[] = [
   ...QuestionRoutes,
   ...AnswerRoutes,
   ...SourceRoutes,
+  ...McpRoutes,
   ...TagRoutes,
   ...ActivityRoutes,
   ...MembersRoutes,
