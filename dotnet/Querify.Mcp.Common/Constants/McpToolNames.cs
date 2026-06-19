@@ -8,6 +8,7 @@ public static class McpToolNames
     public const string QnAGetQuestion = "qna_get_question";
     public const string QnAListSources = "qna_list_sources";
     public const string QnAGetSource = "qna_get_source";
+    public const string QnASearch = "qna_search";
     public const string QnACreateQuestion = "qna_create_question";
     public const string QnACreateAnswer = "qna_create_answer";
     public const string QnAActivateAnswer = "qna_activate_answer";

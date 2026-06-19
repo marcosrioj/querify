@@ -31,6 +31,7 @@
         <ProjectReference Include="..\Querify.QnA.Portal.Business.Question\Querify.QnA.Portal.Business.Question.csproj"/>
         <ProjectReference Include="..\Querify.QnA.Portal.Business.Source\Querify.QnA.Portal.Business.Source.csproj"/>
         <ProjectReference Include="..\Querify.QnA.Portal.Business.Space\Querify.QnA.Portal.Business.Space.csproj"/>
+        <ProjectReference Include="..\Querify.QnA.Public.Business.Search\Querify.QnA.Public.Business.Search.csproj"/>
         <ProjectReference Include="..\Querify.Tenant.Portal.Business.Billing\Querify.Tenant.Portal.Business.Billing.csproj"/>
         <ProjectReference Include="..\Querify.Tenant.Portal.Business.Tenant\Querify.Tenant.Portal.Business.Tenant.csproj"/>
         <ProjectReference Include="..\Querify.Tenant.Portal.Business.User\Querify.Tenant.Portal.Business.User.csproj"/>

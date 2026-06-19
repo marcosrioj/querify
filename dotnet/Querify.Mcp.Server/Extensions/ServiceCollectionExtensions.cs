@@ -13,6 +13,7 @@ using Querify.QnA.Portal.Business.Answer.Extensions;
 using Querify.QnA.Portal.Business.Question.Extensions;
 using Querify.QnA.Portal.Business.Source.Extensions;
 using Querify.QnA.Portal.Business.Space.Extensions;
+using Querify.QnA.Public.Business.Search.Extensions;
 using Querify.Tenant.Portal.Business.Billing.Extensions;
 using Querify.Tenant.Portal.Business.Tenant.Extensions;
 using Querify.Tenant.Portal.Business.User.Extensions;
@@ -45,6 +46,7 @@ public static class ServiceCollectionExtensions
         services.AddSourceBusiness();
         services.AddQuestionBusiness();
         services.AddSpaceBusiness();
+        services.AddSearchBusiness();
 
         services.AddBillingBusiness();
         services.AddTenantBusiness();

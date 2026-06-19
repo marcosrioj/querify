@@ -9,6 +9,7 @@ using Querify.Mcp.Server.Infrastructure;
 using Querify.Mcp.Server.Options;
 using Querify.Models.QnA.Dtos.Answer;
 using Querify.Models.QnA.Dtos.Question;
+using Querify.Models.QnA.Dtos.Search;
 using Querify.Models.QnA.Dtos.Source;
 using Querify.Models.QnA.Dtos.Space;
 using Querify.Models.QnA.Enums;
@@ -24,6 +25,7 @@ using Querify.QnA.Portal.Business.Source.Queries.GetSource;
 using Querify.QnA.Portal.Business.Source.Queries.GetSourceList;
 using Querify.QnA.Portal.Business.Space.Queries.GetSpace;
 using Querify.QnA.Portal.Business.Space.Queries.GetSpaceList;
+using Querify.QnA.Public.Business.Search.Queries.Search;
 using QuerifyMcpServerOptions = Querify.Mcp.Server.Options.McpServerOptions;
 
 namespace Querify.Mcp.Server.Tools;
@@ -130,6 +132,47 @@ public sealed class QnATools(
     {
         return ExecuteAsync(tenantId, async () =>
             await mediator.Send(new QuestionsGetQuestionQuery { Id = id }, cancellationToken));
+    }
+
+    [McpServerTool(
+        Name = McpToolNames.QnASearch,
+        ReadOnly = true,
+        Destructive = false,
+        OpenWorld = false)]
+    [Description("Searches tenant QnA content through the QnA Search query boundary. Supports question, answer, tag, and space text matching.")]
+    public Task<string> Search(
+        [Description("Tenant id. When omitted, McpServer:DefaultTenantId is used.")]
+        Guid? tenantId = null,
+        [Description("Optional search text matched against questions, answers, tags, and spaces.")]
+        string? searchText = null,
+        [Description("Optional space id filter.")]
+        Guid? spaceId = null,
+        [Description("Optional space slug filter.")]
+        string? spaceSlug = null,
+        [Description("Optional question status filter.")]
+        QuestionStatus? status = null,
+        [Description("Optional question visibility filter.")]
+        VisibilityScope? visibility = null,
+        [Description("Zero-based item offset.")]
+        int skipCount = 0,
+        [Description("Requested page size. The server caps this with McpServer:ToolResultMaxItems.")]
+        int maxResultCount = 20,
+        CancellationToken cancellationToken = default)
+    {
+        return ExecuteAsync(tenantId, async () =>
+            await mediator.Send(new QnASearchQuery
+            {
+                Request = new QnASearchRequestDto
+                {
+                    SearchText = searchText,
+                    SpaceId = spaceId,
+                    SpaceSlug = spaceSlug,
+                    Status = status,
+                    Visibility = visibility,
+                    SkipCount = NormalizeSkip(skipCount),
+                    MaxResultCount = NormalizeTake(maxResultCount)
+                }
+            }, cancellationToken));
     }
 
     [McpServerTool(

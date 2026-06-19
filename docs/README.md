@@ -76,7 +76,7 @@ Technical reference for how `apps/portal` is organized, what it consumes from th
 
 ## Integrations
 
-- [`integrations/mcp-server.md`](integrations/mcp-server.md) — native .NET 10 MCP Stage 1 runbook, available QnA/Tenant tools, prompts, tenant context, and stdio client connection configs.
+- [`integrations/mcp-server.md`](integrations/mcp-server.md) — native .NET 10 MCP Stage 2 runbook, available QnA/Search/Tenant tools, prompts, tenant context, and stdio client connection configs.
 
 ---
 
@@ -87,7 +87,7 @@ for how this folder works and when documents move out of it.
 
 ### Integrations (future)
 
-- [`future/integrations/mcp.md`](future/integrations/mcp.md) — staged architecture for `Querify.Mcp.Server`: Stage 1 native .NET MCP plus future search, Source Generation, Direct, Broadcast, Trust, hosted transport, and entitlement rollout.
+- [`future/integrations/mcp.md`](future/integrations/mcp.md) — staged architecture for `Querify.Mcp.Server`: Stage 1 native .NET MCP, Stage 2 QnA search, and future Source Generation, Direct, Broadcast, Trust, hosted transport, and entitlement rollout.
 - [`future/integrations/mcp-dotnet-mvp-implementation-prompt.md`](future/integrations/mcp-dotnet-mvp-implementation-prompt.md) — quality-first implementation prompt for the native .NET MCP MVP, CQRS-backed QnA/Tenant tools, staged future modules, and the Portal MCP workspace area.
 - [`future/integrations/mcp-source-to-qna.md`](future/integrations/mcp-source-to-qna.md) — deep-dive on the `qna_import_source` tool and `GenerateQnAFromSourceCommand`: AI generation logic, Anthropic SDK, atomic batch creation, and pipeline-specific gaps.
 

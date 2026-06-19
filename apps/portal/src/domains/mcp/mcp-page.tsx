@@ -25,6 +25,7 @@ const qnaTools = [
   "qna_get_space",
   "qna_list_questions",
   "qna_get_question",
+  "qna_search",
   "qna_list_sources",
   "qna_get_source",
   "qna_create_question",
@@ -60,11 +61,6 @@ const toolGroups: McpToolGroup[] = [
 ];
 
 const readinessItems: McpReadinessItem[] = [
-  {
-    module: "Search",
-    state: "future",
-    note: "Search is staged after its QnA query surface.",
-  },
   {
     module: "Source Generation",
     state: "future",

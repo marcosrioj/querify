@@ -53,6 +53,9 @@ public class QuestionConfiguration : BaseConfiguration<Question>
         builder.HasIndex(question => question.ParentAnswerId)
             .HasDatabaseName("IX_Questions_ParentAnswerId");
 
+        builder.HasIndex(question => new { question.TenantId, question.Visibility, question.Status, question.SpaceId })
+            .HasDatabaseName("IX_Questions_TenantId_Visibility_Status_SpaceId");
+
         builder.HasMany(question => question.Answers)
             .WithOne(answer => answer.Question)
             .HasForeignKey(answer => answer.QuestionId)

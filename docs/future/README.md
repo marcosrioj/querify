@@ -47,6 +47,6 @@ detail to start implementation without additional context.
 
 ### Integrations
 
-- [`integrations/mcp.md`](integrations/mcp.md) — `Querify.Mcp.Server`: Stage 1 status plus future multi-agent architecture, module rollout, hosted transport, entitlements, and roadmap.
+- [`integrations/mcp.md`](integrations/mcp.md) — `Querify.Mcp.Server`: Stage 2 status plus future multi-agent architecture, module rollout, hosted transport, entitlements, and roadmap.
 - [`integrations/mcp-dotnet-mvp-implementation-prompt.md`](integrations/mcp-dotnet-mvp-implementation-prompt.md) — implementation prompt for the native .NET MCP MVP, including CQRS-backed tools, staged module rollout, validation gates, and the Portal MCP workspace area.
 - [`integrations/mcp-source-to-qna.md`](integrations/mcp-source-to-qna.md) — Source → Q&A generation pipeline: `qna_import_source`, `GenerateQnAFromSourceCommand`, `ContentFetcher`, `QnAGenerator`.

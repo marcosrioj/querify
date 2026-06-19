@@ -41,6 +41,9 @@ public class AnswerConfiguration : BaseConfiguration<Answer>
         builder.Property(answer => answer.QuestionId)
             .IsRequired();
 
+        builder.HasIndex(answer => new { answer.TenantId, answer.Visibility, answer.Status, answer.QuestionId })
+            .HasDatabaseName("IX_Answers_TenantId_Visibility_Status_QuestionId");
+
         builder.HasMany(answer => answer.Sources)
             .WithOne(sourceLink => sourceLink.Answer)
             .HasForeignKey(sourceLink => sourceLink.AnswerId)

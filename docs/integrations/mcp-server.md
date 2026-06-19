@@ -2,9 +2,9 @@
 
 ## Status
 
-`Querify.Mcp.Server` is the native .NET 10 MCP Stage 1 server. It runs over stdio for local
-MCP clients and exposes QnA and Tenant behavior through existing module-owned MediatR CQRS
-handlers.
+`Querify.Mcp.Server` is the native .NET 10 MCP Stage 2 server. It runs over stdio for local
+MCP clients and exposes QnA, QnA Search, and Tenant behavior through existing module-owned MediatR
+CQRS handlers.
 
 The server is intentionally not a browser API. The Portal MCP page at `/app/mcp` explains the
 available tools and connection shape; it does not call the stdio process.
@@ -16,8 +16,9 @@ available tools and connection shape; it does not call the stdio process.
 | `Querify.Mcp.Common` | `Mcp/Common` | Tool names, prompt names, result serialization, write-tool gate |
 | `Querify.Mcp.Server` | `Mcp/Server` | Stdio transport, MCP tool adapters, prompts, session context |
 | `Querify.Mcp.Server.Test.IntegrationTests` | `Mcp/Test` | Tool/prompt metadata, tenant-context guard, write gate coverage |
+| `Querify.QnA.Public.Business.Search` | `QnA/Public/Business` | QnA-owned search query surface used by `qna_search` |
 
-Stage 1 does not create `Querify.Mcp.Portal.Api`, Source Generation projects, search projects, or
+Stage 2 does not create `Querify.Mcp.Portal.Api`, Source Generation projects, or
 Direct/Broadcast/Trust tools.
 
 ## Run Locally
@@ -76,6 +77,7 @@ Use this shape for Claude Desktop, Claude Code, Cursor, VS Code, or another stdi
 | `qna_get_space` | `Querify.QnA.Portal.Business.Space` | Query |
 | `qna_list_questions` | `Querify.QnA.Portal.Business.Question` | Query |
 | `qna_get_question` | `Querify.QnA.Portal.Business.Question` | Query |
+| `qna_search` | `Querify.QnA.Public.Business.Search` | Query |
 | `qna_list_sources` | `Querify.QnA.Portal.Business.Source` | Query |
 | `qna_get_source` | `Querify.QnA.Portal.Business.Source` | Query |
 | `qna_create_question` | `Querify.QnA.Portal.Business.Question` | Command returns `Guid` |
@@ -99,7 +101,7 @@ QnA write tools create Draft/Internal content by default and require
 | `tenant_get_billing_summary` | `Querify.Tenant.Portal.Business.Billing` | Query |
 | `tenant_get_subscription` | `Querify.Tenant.Portal.Business.Billing` | Query |
 
-Tenant tools are read-only in Stage 1. MCP does not generate or rotate client keys.
+Tenant tools remain read-only. MCP does not generate or rotate client keys.
 
 ## Prompts
 
@@ -125,9 +127,8 @@ request metadata before dispatch.
 
 ## Future Tools
 
-These are intentionally not callable in Stage 1:
+These are intentionally not callable in Stage 2:
 
-- `qna_search`
 - `qna_generate_space_from_source`
 - `qna_get_source_generation_run`
 - `direct_*`
@@ -145,6 +146,7 @@ Current validation commands:
 ```bash
 dotnet build dotnet/Querify.Mcp.Server/Querify.Mcp.Server.csproj -v minimal
 dotnet build dotnet/Querify.Mcp.Server.Test.IntegrationTests/Querify.Mcp.Server.Test.IntegrationTests.csproj -v minimal
+dotnet test dotnet/Querify.QnA.Public.Test.IntegrationTests/Querify.QnA.Public.Test.IntegrationTests.csproj --filter FullyQualifiedName~Search -v minimal
 dotnet build Querify.sln -v minimal
 ```
 
@@ -156,6 +158,12 @@ npx @modelcontextprotocol/inspector dotnet run --project dotnet/Querify.Mcp.Serv
 
 ## Manual Migration Note
 
-Stage 1 adds no EF model changes and requires no migration.
+Stage 2 adds EF index metadata for QnA search filters but no migration was generated.
+
+Pending manual migration operations:
+
+- Create `IX_Questions_TenantId_Visibility_Status_SpaceId` on `Questions`.
+- Create `IX_Answers_TenantId_Visibility_Status_QuestionId` on `Answers`.
+- Create `IX_QuestionTag_TenantId_TagId_QuestionId` on `QuestionTags`.
 
 See the staged roadmap in [`../future/integrations/mcp-dotnet-mvp-implementation-prompt.md`](../future/integrations/mcp-dotnet-mvp-implementation-prompt.md).

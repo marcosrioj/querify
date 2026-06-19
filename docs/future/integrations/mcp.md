@@ -6,8 +6,8 @@ This document is the staged design reference for `Querify.Mcp.Server` — a nati
 that exposes Querify modules as AI-callable tools. Different AI agents connect to it with different
 tool subsets and system prompts, each operating as a specialist for one Querify module.
 
-**Status:** Stage 1 is implemented for stdio, QnA tools, Tenant read tools, and the Portal MCP
-workspace area. Search, Source Generation, Direct, Broadcast, Trust, entitlements, and hosted
+**Status:** Stage 2 is implemented for stdio, QnA tools, QnA search, Tenant read tools, and the
+Portal MCP workspace area. Source Generation, Direct, Broadcast, Trust, entitlements, and hosted
 transport remain future stages. See the operational runbook in
 [`../../integrations/mcp-server.md`](../../integrations/mcp-server.md).
 
@@ -192,7 +192,7 @@ Available to every agent. QnA is the shared knowledge source across all modules.
 | `qna_create_source` | `SourcesCreateSourceCommand` | ✅ Stage 1 |
 | `qna_link_question_source` | `QuestionsAddSourceCommand` | ✅ Stage 1 |
 | `qna_link_answer_source` | `AnswersAddSourceCommand` | ✅ Stage 1 |
-| `qna_search` | needs QnA-owned search query surface | ❌ Stage 2 |
+| `qna_search` | `QnASearchQuery` | ✅ Stage 2 |
 | `qna_generate_space_from_source` | needs QnA SourceGeneration command/query surface | ❌ Stage 3 |
 
 ```csharp
@@ -611,7 +611,7 @@ answers and register gaps back to QnA. Trust publishes decisions to QnA.
 | `qna_create_source` | ✅ | — | — | — | — | ✅ |
 | `qna_link_question_source` | ✅ | — | — | — | — | ✅ |
 | `qna_link_answer_source` | ✅ | — | — | — | — | ✅ |
-| `qna_search` | ✅ | ✅ | ✅ | ✅ | — | ❌ Stage 2 |
+| `qna_search` | ✅ | ✅ | ✅ | ✅ | — | ✅ |
 | `qna_generate_space_from_source` | ✅ | — | — | — | — | ❌ Stage 3 |
 | `direct_*` | — | ✅ | — | — | — | ❌ needs Direct API |
 | `broadcast_*` | — | — | ✅ | — | — | ❌ needs Broadcast API |
@@ -637,12 +637,13 @@ MCP-created draft content, Stage 1 uses `ChannelKind.Api` until a dedicated valu
 Fix later through `docs/behavior-change-playbook.md`: add `AiIngestion` or another approved value,
 update frontend enum presentation, tests, and migration notes.
 
-### Gap 3: No full-text search in QnA Public API
+### Gap 3: No hosted/public full-text search endpoint
 
-`qna_search` has no backing query surface. Every agent needs this before broad retrieval.
+`qna_search` is implemented through the QnA-owned `QnASearchQuery` surface and exposed through
+MCP. There is still no hosted public REST endpoint or full-text/trigram search migration.
 
-Fix: add a QnA-owned search query surface, tests, indexes or migration notes, and then expose the
-MCP adapter tool.
+Fix later only if product usage needs it: add the hosted endpoint and database-specific text-search
+indexes through the behavior-change playbook.
 
 ### Gap 4: No QnA-owned Source Generation surface
 
@@ -680,8 +681,8 @@ Implemented in `Querify.Mcp.Server`: stdio transport, QnA tools, Tenant read too
 
 ### Stage 2 — QnA search
 
-Add a QnA-owned search query surface with tests and indexes or migration notes. Expose
-`qna_search` only after the query surface exists.
+Implemented with `Querify.QnA.Public.Business.Search`, `QnASearchQuery`, focused query tests,
+index metadata, manual migration notes, and the `qna_search` MCP adapter tool.
 
 ### Stage 3 — Source Detail Generate Space from Source
 
@@ -709,7 +710,7 @@ to Tenant.
 
 | Document | Relationship |
 |---|---|
-| [`../../integrations/mcp-server.md`](../../integrations/mcp-server.md) | Native .NET Stage 1 runbook and tool list |
+| [`../../integrations/mcp-server.md`](../../integrations/mcp-server.md) | Native .NET Stage 2 runbook and tool list |
 | [`mcp-source-to-qna.md`](mcp-source-to-qna.md) | Deep-dive on Source Generation pipeline design and Gaps 1–4 |
 | [`../../business/value_proposition.md`](../../business/value_proposition.md) | Module boundaries and cross-module handoff model |
 | [`../../backend/architecture/solution-architecture.md`](../../backend/architecture/solution-architecture.md) | Runtime surfaces, `ISessionService`, multitenancy model |

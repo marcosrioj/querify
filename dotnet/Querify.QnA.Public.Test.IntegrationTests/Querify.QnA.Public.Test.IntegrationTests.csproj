@@ -26,6 +26,7 @@
         <ProjectReference Include="..\Querify.Common.Infrastructure.Core\Querify.Common.Infrastructure.Core.csproj"/>
         <ProjectReference Include="..\Querify.QnA.Public.Business.Feedback\Querify.QnA.Public.Business.Feedback.csproj"/>
         <ProjectReference Include="..\Querify.QnA.Public.Business.Question\Querify.QnA.Public.Business.Question.csproj"/>
+        <ProjectReference Include="..\Querify.QnA.Public.Business.Search\Querify.QnA.Public.Business.Search.csproj"/>
         <ProjectReference Include="..\Querify.QnA.Public.Business.Space\Querify.QnA.Public.Business.Space.csproj"/>
         <ProjectReference Include="..\Querify.QnA.Public.Business.Vote\Querify.QnA.Public.Business.Vote.csproj"/>
         <ProjectReference Include="..\Querify.QnA.Common.Domain\Querify.QnA.Common.Domain.csproj"/>

@@ -25,5 +25,8 @@ public class QuestionTagConfiguration : BaseConfiguration<QuestionTag>
         builder.HasIndex(link => new { link.QuestionId, link.TagId })
             .HasDatabaseName("IX_QuestionTag_QuestionId_TagId")
             .IsUnique();
+
+        builder.HasIndex(link => new { link.TenantId, link.TagId, link.QuestionId })
+            .HasDatabaseName("IX_QuestionTag_TenantId_TagId_QuestionId");
     }
 }
