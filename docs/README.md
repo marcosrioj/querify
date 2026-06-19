@@ -88,6 +88,7 @@ for how this folder works and when documents move out of it.
 ### Integrations (future)
 
 - [`future/integrations/mcp.md`](future/integrations/mcp.md) — complete architecture for `Querify.MCP.Server`: one native .NET server powering five module agents (QnA, Direct, Broadcast, Trust, Tenant), direct MediatR handler calls, per-agent prompts, tool matrix, and 6-phase roadmap.
+- [`future/integrations/mcp-dotnet-mvp-implementation-prompt.md`](future/integrations/mcp-dotnet-mvp-implementation-prompt.md) — quality-first implementation prompt for the native .NET MCP MVP, CQRS-backed QnA/Tenant tools, staged future modules, and the Portal MCP workspace area.
 - [`future/integrations/mcp-source-to-qna.md`](future/integrations/mcp-source-to-qna.md) — deep-dive on the `qna_import_source` tool and `GenerateQnAFromSourceCommand`: AI generation logic, Anthropic SDK, atomic batch creation, and pipeline-specific gaps.
 
 ---
