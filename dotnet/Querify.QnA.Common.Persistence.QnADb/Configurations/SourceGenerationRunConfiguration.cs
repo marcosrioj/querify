@@ -56,7 +56,7 @@ public class SourceGenerationRunConfiguration : BaseConfiguration<SourceGenerati
 
         builder.Property(run => run.SourceRole)
             .HasConversion<int>()
-            .HasDefaultValue(SourceRole.Origin)
+            .HasDefaultValue(SourceRole.Evidence)
             .IsRequired();
 
         builder.Property(run => run.ContentHint)

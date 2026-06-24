@@ -23,7 +23,7 @@ Source artifact (URL, PDF, transcript, article)
   → ContentFetcher strips and normalizes content
   → QnAGenerator calls Claude API with extraction prompt
   → GenerateQnAFromSourceCommand creates all Q&A pairs in one transaction
-  → All content enters as Draft, linked to the originating Source record
+  → All content enters as Draft/Internal, linked as Evidence to the originating Source record
   → Human curator reviews AiConfidenceScore, activates or discards
 ```
 
@@ -70,7 +70,7 @@ use case and must be populated by the pipeline.
 |---|---|
 | `Locator` | The URL |
 | `Label` | Page title extracted from HTML |
-| `Language` | From tool parameter |
+| `Language` | Detected from source metadata or the generation planner |
 | `MediaType` | Determined from URL response or tool parameter (see table below) |
 | `Checksum` | SHA-256 of the raw fetched content |
 | `MetadataJson` | Generation metadata (see convention below) |
@@ -237,8 +237,8 @@ public async Task<GenerateQnAResult> Handle(
     {
         var question = BuildQuestion(cmd.SpaceId, c);
         var answer = BuildAnswer(c);
-        var qSourceLink = new QuestionSourceLink { Role = SourceRole.Origin, SourceId = sourceId };
-        var aSourceLink = new AnswerSourceLink { Role = SourceRole.Origin, SourceId = sourceId };
+        var qSourceLink = new QuestionSourceLink { Role = SourceRole.Evidence, SourceId = sourceId };
+        var aSourceLink = new AnswerSourceLink { Role = SourceRole.Evidence, SourceId = sourceId };
 
         question.Sources.Add(qSourceLink);
         answer.Sources.Add(aSourceLink);

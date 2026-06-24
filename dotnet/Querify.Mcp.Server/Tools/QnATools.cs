@@ -247,34 +247,16 @@ public sealed class QnATools(
         ReadOnly = false,
         Destructive = false,
         OpenWorld = false)]
-    [Description("Starts source-to-space draft generation through the QnA SourceGeneration command boundary. Returns a run id and requires write tools to be enabled.")]
+    [Description("Starts automatic source-to-space draft generation through the QnA SourceGeneration command boundary. The command derives the space name, slug, language, graph size, evidence links, and citation policy. Returns a run id and requires write tools to be enabled.")]
     public Task<string> GenerateSpaceFromSource(
         [Description("Source id used to ground the generated space.")]
         Guid sourceId,
-        [Description("Name for the generated QnA space.")]
-        string spaceName,
         [Description("Tenant id. When omitted, McpServer:DefaultTenantId is used.")]
         Guid? tenantId = null,
-        [Description("Optional slug for the generated QnA space.")]
-        string? spaceSlug = null,
-        [Description("Language for the generated QnA space.")]
-        string language = "en-US",
-        [Description("Maximum top-level questions to generate.")]
-        int maxTopLevelQuestions = 3,
-        [Description("Maximum follow-up question depth. The local MVP populates depth one.")]
-        int maxFollowUpDepth = 1,
-        [Description("Maximum answers per generated question.")]
-        int maxAnswersPerQuestion = 1,
-        [Description("Whether to include follow-up questions.")]
-        bool includeFollowUpQuestions = true,
         [Description("Optional extraction goal or audience note.")]
         string? extractionGoal = null,
         [Description("Optional section or range hint for long sources.")]
         string? contentHint = null,
-        [Description("Source relationship role applied to generated links.")]
-        SourceRole sourceRole = SourceRole.Origin,
-        [Description("Tag behavior for generation.")]
-        SourceGenerationTagMode tagGenerationMode = SourceGenerationTagMode.CreateAndAttach,
         CancellationToken cancellationToken = default)
     {
         return ExecuteWriteAsync(McpToolNames.QnAGenerateSpaceFromSource, tenantId, async () =>
@@ -284,21 +266,7 @@ public sealed class QnATools(
                 SourceId = sourceId,
                 Request = new SourceGenerateSpaceRequestDto
                 {
-                    SpaceName = spaceName,
-                    SpaceSlug = spaceSlug,
-                    Language = language,
-                    Visibility = VisibilityScope.Internal,
-                    Status = SpaceStatus.Draft,
-                    AcceptsQuestions = true,
-                    AcceptsAnswers = true,
                     ExtractionGoal = extractionGoal,
-                    MaxTopLevelQuestions = maxTopLevelQuestions,
-                    MaxFollowUpDepth = maxFollowUpDepth,
-                    MaxAnswersPerQuestion = maxAnswersPerQuestion,
-                    IncludeFollowUpQuestions = includeFollowUpQuestions,
-                    TagGenerationMode = tagGenerationMode,
-                    SourceRole = sourceRole,
-                    RequireEveryAnswerToCiteSource = true,
                     ContentHint = contentHint
                 }
             }, cancellationToken);

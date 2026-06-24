@@ -41,7 +41,7 @@ namespace Querify.QnA.Common.Persistence.QnADb.Migrations
                     MaxAnswersPerQuestion = table.Column<int>(type: "integer", nullable: false),
                     IncludeFollowUpQuestions = table.Column<bool>(type: "boolean", nullable: false),
                     TagGenerationMode = table.Column<int>(type: "integer", nullable: false, defaultValue: 11),
-                    SourceRole = table.Column<int>(type: "integer", nullable: false, defaultValue: 1),
+                    SourceRole = table.Column<int>(type: "integer", nullable: false, defaultValue: 11),
                     RequireEveryAnswerToCiteSource = table.Column<bool>(type: "boolean", nullable: false),
                     ContentHint = table.Column<string>(type: "character varying(2000)", maxLength: 2000, nullable: true),
                     RawOutputJson = table.Column<string>(type: "character varying(12000)", maxLength: 12000, nullable: true),

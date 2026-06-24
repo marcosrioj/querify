@@ -400,11 +400,12 @@ Generated graph rules:
 - Create child follow-up Questions through `Question.ParentAnswerId` and
   `Answer.FollowUpQuestions`.
 - Prevent recursive loops by validating the generated plan as a tree before writing entities.
-- Link the originating Source to each generated Question and Answer with the requested source role.
+- Link the originating Source to the generated Space, each generated Question, and each generated
+  Answer with `SourceRole.Evidence`.
 - Preserve tenant id on every generated entity and relationship.
-- Set generated Space, Questions, Answers, and Tags to safe review defaults. Generated Questions and
-  Answers must enter Draft/Internal. The generated Space should enter Draft/Internal unless the
-  user explicitly asks for another supported review state and the command validates it.
+- Set generated Space, Questions, Answers, and Tags to safe review defaults. Generated Space,
+  Questions, and Answers must enter Draft/Internal. Do not allow the Source Detail generation
+  action to choose Public visibility while the Space is Draft.
 - Do not auto-activate or publicly expose generated content.
 
 Generation plan contract:
@@ -547,29 +548,21 @@ Action placement:
 - Do not call `Querify.Mcp.Server` from the browser. The button calls the QnA Portal API endpoint.
 
 Best form shape:
-- Step 1: Space setup
-  - Space name
-  - Optional slug
-  - Language
-  - Visibility, default Internal
-  - Status, default Draft
-  - Accepts questions, default true
-  - Accepts answers, default true
-- Step 2: Generation scope
-  - Extraction goal or audience note
-  - Maximum top-level questions
-  - Maximum follow-up depth
-  - Maximum answers per question
-  - Include follow-up questions toggle
-  - Tag generation mode: none, suggest only, create and attach
-- Step 3: Source and evidence
-  - Source role for generated links, default Origin or Evidence according to the current source use
-  - Require every answer to cite the source
-  - Optional content range or section hint for long sources
-- Step 4: Review and start
-  - Show that generated content will be Draft/Internal by default
-  - Show that the command starts an async run and returns a run id
-  - Primary action starts the run
+- Show an automatic planning summary. The backend command derives Space name, slug, language,
+  graph size, maximum top-level questions, follow-up depth, answers per question, tag behavior,
+  Evidence source links, and required citations from the selected Source and the optional manual
+  guidance.
+- Do not expose manual controls for Space name, slug, language, visibility, status, accepts
+  questions, accepts answers, maximum top-level questions, follow-up depth, answers per question,
+  include follow-ups, tag generation mode, source role, or citation requirement.
+- Keep only two manual fields:
+  - Extraction goal or audience note.
+  - Content range or section hint for long sources.
+- Place a `ContextHint` beside each manual field using the Querify information icon pattern to
+  explain when the field helps the generation agent.
+- Generated Space, Questions, and Answers remain Draft/Internal while under review because the
+  current Space visibility rule allows Public exposure only after activation.
+- Primary action starts the run.
 
 Portal behavior:
 - On submit, call `POST /api/qna/source/{sourceId}/generate-space`.

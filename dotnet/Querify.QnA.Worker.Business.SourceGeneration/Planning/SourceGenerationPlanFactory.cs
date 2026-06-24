@@ -12,6 +12,7 @@ internal static class SourceGenerationPlanFactory
             ? source.StorageKey ?? "source content"
             : source.Locator;
         var questionCount = Math.Clamp(run.MaxTopLevelQuestions, 1, 12);
+        var followUpDepth = Math.Clamp(run.MaxFollowUpDepth, 0, 3);
         var answerCount = Math.Clamp(run.MaxAnswersPerQuestion, 1, 3);
         var questions = new List<SourceGenerationQuestionPlan>();
 
@@ -27,33 +28,68 @@ internal static class SourceGenerationPlanFactory
                 null,
                 answers));
 
-            if (!run.IncludeFollowUpQuestions || run.MaxFollowUpDepth <= 0)
+            if (!run.IncludeFollowUpQuestions || followUpDepth <= 0)
                 continue;
 
-            var parentAnswerTempId = answers[0].TempId;
-            var followUpTempId = $"q-{index}-follow-up-1";
-            questions.Add(new SourceGenerationQuestionPlan(
-                followUpTempId,
-                $"What evidence from {sourceLabel} supports this answer?",
-                $"Follow-up question generated from {sourceLabel}.",
-                BuildQuestionContext(run, source),
-                parentAnswerTempId,
-                BuildAnswers(run, sourceLabel, sourceLocator, followUpTempId, 1)));
+            AddFollowUpQuestions(
+                questions,
+                run,
+                source,
+                sourceLabel,
+                sourceLocator,
+                index,
+                answers[0].TempId,
+                1,
+                followUpDepth);
         }
 
         var warnings = new List<string>
         {
-            "Local MVP generation used source metadata and locator context only. Review generated draft content before activation."
+            "Local MVP generation used source metadata and locator context only. Review generated draft content before activation.",
+            $"Automatic planner selected {questionCount} top-level question(s), follow-up depth {followUpDepth}, and {answerCount} answer(s) per top-level question."
         };
-
-        if (run.MaxFollowUpDepth > 1)
-            warnings.Add("Only the first follow-up depth is populated by the local MVP generator.");
 
         return new SourceGenerationPlan(
             new SourceGenerationSpacePlan(run.SpaceName, run.SpaceSlug, run.Language),
             BuildTags(run, source),
             questions,
             warnings);
+    }
+
+    private static void AddFollowUpQuestions(
+        ICollection<SourceGenerationQuestionPlan> questions,
+        SourceGenerationRun run,
+        Source source,
+        string sourceLabel,
+        string sourceLocator,
+        int rootIndex,
+        string parentAnswerTempId,
+        int depth,
+        int maxDepth)
+    {
+        if (depth > maxDepth)
+            return;
+
+        var followUpTempId = $"q-{rootIndex}-follow-up-{depth}";
+        var answers = BuildAnswers(run, sourceLabel, sourceLocator, followUpTempId, 1);
+        questions.Add(new SourceGenerationQuestionPlan(
+            followUpTempId,
+            BuildFollowUpQuestionTitle(depth, sourceLabel),
+            $"Depth {depth} follow-up question generated from {sourceLabel}.",
+            BuildQuestionContext(run, source),
+            parentAnswerTempId,
+            answers));
+
+        AddFollowUpQuestions(
+            questions,
+            run,
+            source,
+            sourceLabel,
+            sourceLocator,
+            rootIndex,
+            answers[0].TempId,
+            depth + 1,
+            maxDepth);
     }
 
     private static IReadOnlyList<SourceGenerationAnswerPlan> BuildAnswers(
@@ -85,6 +121,16 @@ internal static class SourceGenerationPlanFactory
             2 => $"When should {sourceLabel} be used?",
             3 => $"What review notes matter for {sourceLabel}?",
             _ => $"What is source item {index} from {sourceLabel}?"
+        };
+    }
+
+    private static string BuildFollowUpQuestionTitle(int depth, string sourceLabel)
+    {
+        return depth switch
+        {
+            1 => $"What evidence from {sourceLabel} supports this answer?",
+            2 => $"What should be reviewed before relying on this evidence from {sourceLabel}?",
+            _ => $"What follow-up decision does {sourceLabel} require?"
         };
     }
 

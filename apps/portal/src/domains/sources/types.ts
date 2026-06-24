@@ -133,21 +133,7 @@ export type SourceDownloadUrlDto = {
 };
 
 export type SourceGenerateSpaceRequestDto = {
-  spaceName: string;
-  spaceSlug?: string | null;
-  language: string;
-  visibility: VisibilityScope;
-  status: SpaceStatus;
-  acceptsQuestions: boolean;
-  acceptsAnswers: boolean;
   extractionGoal?: string | null;
-  maxTopLevelQuestions: number;
-  maxFollowUpDepth: number;
-  maxAnswersPerQuestion: number;
-  includeFollowUpQuestions: boolean;
-  tagGenerationMode: SourceGenerationTagMode;
-  sourceRole: SourceRole;
-  requireEveryAnswerToCiteSource: boolean;
   contentHint?: string | null;
 };
 

@@ -29,16 +29,8 @@ public sealed class SourceGenerationCommandQueryTests
             SourceId = source.Id,
             Request = new SourceGenerateSpaceRequestDto
             {
-                SpaceName = "Generated Reset Password Space",
-                SpaceSlug = "generated-reset-password",
                 ExtractionGoal = "Create operator-reviewed support content.",
-                ContentHint = "Use the setup and troubleshooting sections.",
-                MaxTopLevelQuestions = 2,
-                MaxFollowUpDepth = 1,
-                MaxAnswersPerQuestion = 1,
-                IncludeFollowUpQuestions = true,
-                TagGenerationMode = SourceGenerationTagMode.CreateAndAttach,
-                SourceRole = SourceRole.Origin
+                ContentHint = "Use the setup and troubleshooting sections."
             }
         }, CancellationToken.None);
 
@@ -58,16 +50,24 @@ public sealed class SourceGenerationCommandQueryTests
         Assert.Equal(source.Id, run.SourceId);
         Assert.Null(run.FailureReason);
         Assert.NotNull(run.Warning);
+        Assert.Equal("Reset Password Doc", run.SpaceName);
+        Assert.Equal("reset-password-doc", run.SpaceSlug);
+        Assert.Equal(SourceRole.Evidence, run.SourceRole);
+        Assert.True(run.RequireEveryAnswerToCiteSource);
+        Assert.Equal(3, run.MaxTopLevelQuestions);
+        Assert.Equal(2, run.MaxFollowUpDepth);
+        Assert.Equal(2, run.MaxAnswersPerQuestion);
+        Assert.True(run.IncludeFollowUpQuestions);
 
         var space = await context.DbContext.Spaces
             .Include(entity => entity.Sources)
             .Include(entity => entity.Tags)
             .SingleAsync(entity => entity.Id == run.CreatedSpaceId);
-        Assert.Equal("Generated Reset Password Space", space.Name);
-        Assert.Equal("generated-reset-password", space.Slug);
+        Assert.Equal("Reset Password Doc", space.Name);
+        Assert.Equal("reset-password-doc", space.Slug);
         Assert.Equal(SpaceStatus.Draft, space.Status);
         Assert.Equal(VisibilityScope.Internal, space.Visibility);
-        Assert.Contains(space.Sources, link => link.SourceId == source.Id && link.Role == SourceRole.Origin);
+        Assert.Contains(space.Sources, link => link.SourceId == source.Id && link.Role == SourceRole.Evidence);
         Assert.NotEmpty(space.Tags);
 
         var questions = await context.DbContext.Questions
@@ -76,14 +76,14 @@ public sealed class SourceGenerationCommandQueryTests
             .Include(entity => entity.Tags)
             .Where(entity => entity.SpaceId == space.Id)
             .ToListAsync();
-        Assert.Equal(4, questions.Count);
+        Assert.Equal(9, questions.Count);
         Assert.Contains(questions, question => question.ParentAnswerId.HasValue);
         Assert.All(questions, question =>
         {
             Assert.Equal(QuestionStatus.Draft, question.Status);
             Assert.Equal(VisibilityScope.Internal, question.Visibility);
             Assert.Equal(ChannelKind.Import, question.OriginChannel);
-            Assert.Contains(question.Sources, link => link.SourceId == source.Id && link.Role == SourceRole.Origin);
+            Assert.Contains(question.Sources, link => link.SourceId == source.Id && link.Role == SourceRole.Evidence);
             Assert.NotEmpty(question.Tags);
         });
 
@@ -91,13 +91,13 @@ public sealed class SourceGenerationCommandQueryTests
             .Include(entity => entity.Sources)
             .Where(entity => questions.Select(question => question.Id).Contains(entity.QuestionId))
             .ToListAsync();
-        Assert.Equal(4, answers.Count);
+        Assert.Equal(12, answers.Count);
         Assert.All(answers, answer =>
         {
             Assert.Equal(AnswerStatus.Draft, answer.Status);
             Assert.Equal(VisibilityScope.Internal, answer.Visibility);
             Assert.Equal(AnswerKind.Imported, answer.Kind);
-            Assert.Contains(answer.Sources, link => link.SourceId == source.Id && link.Role == SourceRole.Origin);
+            Assert.Contains(answer.Sources, link => link.SourceId == source.Id && link.Role == SourceRole.Evidence);
         });
     }
 
@@ -114,10 +114,7 @@ public sealed class SourceGenerationCommandQueryTests
             SourceId = source.Id,
             Request = new SourceGenerateSpaceRequestDto
             {
-                SpaceName = "Generated Source Space",
-                MaxTopLevelQuestions = 1,
-                IncludeFollowUpQuestions = false,
-                TagGenerationMode = SourceGenerationTagMode.SuggestOnly
+                ExtractionGoal = "Prioritize operator support use cases."
             }
         }, CancellationToken.None);
 
@@ -133,6 +130,6 @@ public sealed class SourceGenerationCommandQueryTests
         var item = Assert.Single(result.Items);
         Assert.Equal(runId, item.Id);
         Assert.Equal(SourceGenerationRunStatus.Pending, item.Status);
-        Assert.Equal(SourceGenerationTagMode.SuggestOnly, item.TagGenerationMode);
+        Assert.Equal(SourceGenerationTagMode.CreateAndAttach, item.TagGenerationMode);
     }
 }

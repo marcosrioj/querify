@@ -95,9 +95,13 @@ QnA write tools create Draft/Internal content by default and require
 `McpServer__EnableWriteTools=true`.
 
 `qna_generate_space_from_source` starts a QnA-owned generation run and returns the run id. The
-local MVP executes the worker command in-process after creating the run; the production target is
-queued worker execution using the same command/query contracts. Generated questions and answers
-remain Draft/Internal and are linked to the originating Source.
+command accepts only the Source id plus optional extraction goal and content hint. The QnA
+SourceGeneration command derives the Space name, slug, language, graph size, follow-up depth,
+answer count, tag behavior, Evidence source links, and required answer citations. The local MVP
+executes the worker command in-process after creating the run; the production target is queued
+worker execution using the same command/query contracts. Generated spaces, questions, and answers
+remain Draft/Internal for review because the current Space rule allows public exposure only after
+activation.
 
 ### Tenant
 
@@ -167,18 +171,9 @@ npx @modelcontextprotocol/inspector dotnet run --project dotnet/Querify.Mcp.Serv
 
 ## Manual Migration Note
 
-Stage 3 adds EF metadata for Source Generation run state and a `SpaceSource.Role` relationship
-field, but no migration was generated.
-
-Pending manual migration operations:
-
-- Create `IX_Questions_TenantId_Visibility_Status_SpaceId` on `Questions`.
-- Create `IX_Answers_TenantId_Visibility_Status_QuestionId` on `Answers`.
-- Create `IX_QuestionTag_TenantId_TagId_QuestionId` on `QuestionTags`.
-- Add `Role` to `SpaceSources` as an integer enum column with default `SourceRole.Reference`.
-- Create `SourceGenerationRuns` with source id, optional created space id, status, request
-  options, failure/warning metadata, timestamps, and tenant id.
-- Create `IX_SourceGenerationRuns_TenantId_SourceId_CreatedDate` on `SourceGenerationRuns`.
-- Create `IX_SourceGenerationRuns_TenantId_Status` on `SourceGenerationRuns`.
+Stage 3 schema changes are represented by the QnA migration
+`20260619055744_AddMcpCallers`. The automatic planning update changes request shape and runtime
+defaults, and the current Stage 3 migration default for `SourceGenerationRuns.SourceRole` is
+`SourceRole.Evidence`. No additional migration was generated for this update.
 
 See the staged roadmap in [`../future/integrations/mcp-dotnet-mvp-implementation-prompt.md`](../future/integrations/mcp-dotnet-mvp-implementation-prompt.md).

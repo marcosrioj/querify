@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Net;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -6,8 +7,8 @@ using Querify.Common.Infrastructure.Core.Abstractions;
 using Querify.Models.Common.Enums;
 using Querify.Models.QnA.Dtos.SourceGeneration;
 using Querify.Models.QnA.Enums;
-using Querify.QnA.Common.Domain.Entities;
 using Querify.QnA.Common.Domain.BusinessRules.Spaces;
+using Querify.QnA.Common.Domain.Entities;
 using Querify.QnA.Common.Persistence.QnADb.DbContext;
 
 namespace Querify.QnA.Portal.Business.SourceGeneration.Commands.CreateSpaceGenerationRun;
@@ -34,7 +35,7 @@ public sealed class SourcesCreateSpaceGenerationRunCommandHandler(
 
         EnsureSourceCanGenerate(source);
 
-        var dto = Normalize(request.Request);
+        var dto = Normalize(request.Request, source);
 
         var draftSpace = new Space
         {
@@ -96,59 +97,177 @@ public sealed class SourcesCreateSpaceGenerationRunCommandHandler(
                 (int)HttpStatusCode.UnprocessableEntity);
     }
 
-    private static SourceGenerateSpaceRequestDto Normalize(SourceGenerateSpaceRequestDto request)
+    private static NormalizedSourceGenerationRequest Normalize(SourceGenerateSpaceRequestDto request, Source source)
     {
         ArgumentNullException.ThrowIfNull(request);
 
-        if (string.IsNullOrWhiteSpace(request.SpaceName))
-            throw new ApiErrorException(
-                "Space name is required.",
-                (int)HttpStatusCode.UnprocessableEntity);
+        var extractionGoal = TrimOptional(request.ExtractionGoal, SourceGenerationRun.MaxExtractionGoalLength);
+        var contentHint = TrimOptional(request.ContentHint, SourceGenerationRun.MaxContentHintLength);
+        var spaceName = ResolveSpaceName(source, extractionGoal, contentHint);
+        var spaceSlug = SpaceSlugRules.GenerateSlug(spaceName);
+        if (string.IsNullOrWhiteSpace(spaceSlug))
+            spaceSlug = SpaceSlugRules.GenerateFallbackSlug();
+        var shape = ResolveAutomaticShape(source, extractionGoal, contentHint);
 
-        if (request.Visibility is VisibilityScope.Public)
-            throw new ApiErrorException(
-                "Generated content cannot be made public during source generation.",
-                (int)HttpStatusCode.UnprocessableEntity);
+        return new NormalizedSourceGenerationRequest(
+            spaceName,
+            TrimOptional(spaceSlug, SourceGenerationRun.MaxSpaceSlugLength),
+            TrimRequired(source.Language, SourceGenerationRun.MaxLanguageLength, "en-US"),
+            VisibilityScope.Internal,
+            SpaceStatus.Draft,
+            true,
+            true,
+            extractionGoal,
+            shape.MaxTopLevelQuestions,
+            shape.MaxFollowUpDepth,
+            shape.MaxAnswersPerQuestion,
+            shape.MaxFollowUpDepth > 0,
+            SourceGenerationTagMode.CreateAndAttach,
+            SourceRole.Evidence,
+            true,
+            contentHint);
+    }
 
-        if (!Enum.IsDefined(request.Status))
-            throw new ApiErrorException(
-                "Unsupported generated space status.",
-                (int)HttpStatusCode.UnprocessableEntity);
+    private static string ResolveSpaceName(Source source, string? extractionGoal, string? contentHint)
+    {
+        var candidate =
+            FirstNonEmpty(
+                source.Label,
+                ResolveLocatorLabel(source.Locator),
+                source.ExternalId,
+                extractionGoal,
+                contentHint) ??
+            "Generated source space";
 
-        if (!Enum.IsDefined(request.Visibility))
-            throw new ApiErrorException(
-                "Unsupported generated space visibility.",
-                (int)HttpStatusCode.UnprocessableEntity);
+        return TrimRequired(Humanize(candidate), SourceGenerationRun.MaxSpaceNameLength, "Generated source space");
+    }
 
-        if (!Enum.IsDefined(request.TagGenerationMode))
-            throw new ApiErrorException(
-                "Unsupported source generation tag mode.",
-                (int)HttpStatusCode.UnprocessableEntity);
+    private static SourceGenerationShape ResolveAutomaticShape(
+        Source source,
+        string? extractionGoal,
+        string? contentHint)
+    {
+        var signal = string.Join(" ",
+            source.Label,
+            source.ContextNote,
+            source.ExternalId,
+            source.MediaType,
+            source.MetadataJson,
+            extractionGoal,
+            contentHint);
+        var wordCount = CountWords(signal);
+        var topLevelQuestions = Math.Clamp(2 + wordCount / 40, 2, 8);
 
-        if (!Enum.IsDefined(request.SourceRole))
-            throw new ApiErrorException(
-                "Unsupported source role.",
-                (int)HttpStatusCode.UnprocessableEntity);
+        if (IsStructuredSource(source))
+            topLevelQuestions = Math.Min(10, topLevelQuestions + 1);
 
-        return new SourceGenerateSpaceRequestDto
+        var followUpDepth = !string.IsNullOrWhiteSpace(contentHint) || wordCount >= 80
+            ? 2
+            : 1;
+        if (wordCount >= 180)
+            followUpDepth = 3;
+
+        var maxAnswersPerQuestion = NeedsAlternativeAnswers(extractionGoal, contentHint) ? 2 : 1;
+
+        return new SourceGenerationShape(
+            topLevelQuestions,
+            Math.Clamp(followUpDepth, 1, 3),
+            maxAnswersPerQuestion);
+    }
+
+    private static string? FirstNonEmpty(params string?[] values)
+    {
+        return values.FirstOrDefault(value => !string.IsNullOrWhiteSpace(value))?.Trim();
+    }
+
+    private static string? ResolveLocatorLabel(string? locator)
+    {
+        if (string.IsNullOrWhiteSpace(locator))
+            return null;
+
+        if (Uri.TryCreate(locator, UriKind.Absolute, out var uri))
         {
-            SpaceName = TrimRequired(request.SpaceName, SourceGenerationRun.MaxSpaceNameLength),
-            SpaceSlug = TrimOptional(request.SpaceSlug, SourceGenerationRun.MaxSpaceSlugLength),
-            Language = TrimRequired(request.Language, SourceGenerationRun.MaxLanguageLength, "en-US"),
-            Visibility = request.Visibility,
-            Status = request.Status,
-            AcceptsQuestions = request.AcceptsQuestions,
-            AcceptsAnswers = request.AcceptsAnswers,
-            ExtractionGoal = TrimOptional(request.ExtractionGoal, SourceGenerationRun.MaxExtractionGoalLength),
-            MaxTopLevelQuestions = Math.Clamp(request.MaxTopLevelQuestions, 1, 12),
-            MaxFollowUpDepth = Math.Clamp(request.MaxFollowUpDepth, 0, 3),
-            MaxAnswersPerQuestion = Math.Clamp(request.MaxAnswersPerQuestion, 1, 3),
-            IncludeFollowUpQuestions = request.IncludeFollowUpQuestions,
-            TagGenerationMode = request.TagGenerationMode,
-            SourceRole = request.SourceRole,
-            RequireEveryAnswerToCiteSource = request.RequireEveryAnswerToCiteSource,
-            ContentHint = TrimOptional(request.ContentHint, SourceGenerationRun.MaxContentHintLength)
-        };
+            var lastSegment = uri.Segments
+                .LastOrDefault(segment => !string.IsNullOrWhiteSpace(segment.Trim('/')))
+                ?.Trim('/');
+            return string.IsNullOrWhiteSpace(lastSegment)
+                ? uri.Host
+                : WebUtility.UrlDecode(lastSegment);
+        }
+
+        var segments = locator.Split(['/', '\\'], StringSplitOptions.RemoveEmptyEntries);
+        return segments.Length == 0
+            ? locator
+            : WebUtility.UrlDecode(segments[^1]);
+    }
+
+    private static string Humanize(string value)
+    {
+        var chars = value
+            .Select(character => char.IsLetterOrDigit(character) || char.IsWhiteSpace(character)
+                ? character
+                : ' ')
+            .ToArray();
+        var normalized = string.Join(' ',
+            new string(chars)
+                .Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
+
+        if (string.IsNullOrWhiteSpace(normalized))
+            return "Generated source space";
+
+        return CultureInfo.InvariantCulture.TextInfo.ToTitleCase(normalized.ToLowerInvariant());
+    }
+
+    private static bool IsStructuredSource(Source source)
+    {
+        var mediaType = source.MediaType ?? string.Empty;
+        return mediaType.Contains("html", StringComparison.OrdinalIgnoreCase) ||
+               mediaType.Contains("pdf", StringComparison.OrdinalIgnoreCase) ||
+               mediaType.Contains("json", StringComparison.OrdinalIgnoreCase) ||
+               mediaType.Contains("markdown", StringComparison.OrdinalIgnoreCase) ||
+               mediaType.Contains("text", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool NeedsAlternativeAnswers(string? extractionGoal, string? contentHint)
+    {
+        var signal = $"{extractionGoal} {contentHint}";
+        return ContainsAny(signal,
+            "alternative",
+            "compare",
+            "contrast",
+            "scenario",
+            "troubleshoot",
+            "edge case",
+            "risk",
+            "policy");
+    }
+
+    private static bool ContainsAny(string value, params string[] terms)
+    {
+        return terms.Any(term => value.Contains(term, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private static int CountWords(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return 0;
+
+        var count = 0;
+        var inWord = false;
+        foreach (var character in value)
+        {
+            if (char.IsLetterOrDigit(character))
+            {
+                if (!inWord)
+                    count++;
+                inWord = true;
+                continue;
+            }
+
+            inWord = false;
+        }
+
+        return count;
     }
 
     private static string TrimRequired(string? value, int maxLength, string? fallback = null)
@@ -171,4 +290,27 @@ public sealed class SourcesCreateSpaceGenerationRunCommandHandler(
         var resolved = value.Trim();
         return resolved.Length <= maxLength ? resolved : resolved[..maxLength].Trim();
     }
+
+    private sealed record SourceGenerationShape(
+        int MaxTopLevelQuestions,
+        int MaxFollowUpDepth,
+        int MaxAnswersPerQuestion);
+
+    private sealed record NormalizedSourceGenerationRequest(
+        string SpaceName,
+        string? SpaceSlug,
+        string Language,
+        VisibilityScope Visibility,
+        SpaceStatus Status,
+        bool AcceptsQuestions,
+        bool AcceptsAnswers,
+        string? ExtractionGoal,
+        int MaxTopLevelQuestions,
+        int MaxFollowUpDepth,
+        int MaxAnswersPerQuestion,
+        bool IncludeFollowUpQuestions,
+        SourceGenerationTagMode TagGenerationMode,
+        SourceRole SourceRole,
+        bool RequireEveryAnswerToCiteSource,
+        string? ContentHint);
 }

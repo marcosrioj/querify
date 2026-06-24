@@ -674,7 +674,7 @@ namespace Querify.QnA.Common.Persistence.QnADb.Migrations
                     b.Property<int>("SourceRole")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasDefaultValue(1);
+                        .HasDefaultValue(11);
 
                     b.Property<string>("SpaceName")
                         .IsRequired()

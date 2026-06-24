@@ -1241,5 +1241,14 @@
   "Running": "Running",
   "Completed": "Completed",
   "Suggest only": "Suggest only",
-  "Create and attach": "Create and attach"
+  "Create and attach": "Create and attach",
+  "Automatic generation plan": "Automatic generation plan",
+  "Querify derives the Space setup and graph size from the Source before starting the run.": "Querify derives the Space setup and graph size from the Source before starting the run.",
+  "Space name, slug, and language are identified automatically.": "Space name, slug, and language are identified automatically.",
+  "Draft/Internal review state is enforced until activation for public exposure.": "Draft/Internal review state is enforced until activation for public exposure.",
+  "Questions, answers, follow-up depth, and answer count are planned automatically.": "Questions, answers, follow-up depth, and answer count are planned automatically.",
+  "Source links use Evidence and every answer must cite the Source.": "Source links use Evidence and every answer must cite the Source.",
+  "Manual guidance": "Manual guidance",
+  "Use this to tell the agent which audience, product area, or support workflow to prioritize.": "Use this to tell the agent which audience, product area, or support workflow to prioritize.",
+  "Use this to point the agent to a section, range, or topic inside long source material.": "Use this to point the agent to a section, range, or topic inside long source material."
 }

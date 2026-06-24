@@ -651,8 +651,11 @@ indexes through the behavior-change playbook.
 ### Gap 4: Hosted AI Source Generation is not implemented
 
 The QnA-owned SourceGeneration command/query surface is implemented for Stage 3. The current MVP
-uses a deterministic local generator from existing Source metadata and locator context, executes
-the worker command in-process, and writes Draft/Internal content only.
+uses a deterministic local generator from existing Source metadata, optional extraction goal,
+optional content hint, and locator context. The command automatically derives the Space name, slug,
+language, graph size, follow-up depth, answer count, tag behavior, Evidence source links, and
+required citations. It executes the worker command in-process and writes Draft/Internal content
+only because current Space rules require activation before public exposure.
 
 Future work: replace local execution with queued worker execution and a model-backed generator
 that fetches/extracts source content, returns a structured plan, and preserves the same command and
@@ -691,7 +694,8 @@ index metadata, manual migration notes, and the `qna_search` MCP adapter tool.
 ### Stage 3 — Source Detail Generate Space from Source
 
 Implemented with QnA-owned SourceGeneration Portal/Worker business projects, persisted generation
-runs, Source Detail action, local deterministic draft graph generation, and MCP adapter tools.
+runs, Source Detail action, automatic local deterministic draft graph planning, and MCP adapter
+tools.
 
 ### Stage 4 — Direct Agent (close Gap 5 for Direct)
 
